@@ -761,9 +761,15 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
       for ( ; it != itEnd; ++it)
       {
-         if (it->second == NULL) continue;
-         it->second->AddUpdateCallbacks();
-         it->second->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         CNodeTranslator *nodeTr = it->second;
+         if (nodeTr == NULL) continue;
+         nodeTr->AddUpdateCallbacks();
+         nodeTr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         // for motion blur, check which nodes are static and which aren't (#2316)
+         if (mb && numSteps > 1)
+         {
+            nodeTr->m_impl->m_animArrays = nodeTr->m_impl->HasAnimatedArrays();
+         } else nodeTr->m_impl->m_animArrays = false;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
@@ -1339,7 +1345,7 @@ void CArnoldSession::DoUpdate()
          else
          {  
             // AI_UPDATE_ONLY => simple update
-            if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
+            if (moBlur) reqMob = reqMob || (translator->m_impl->m_animArrays && translator->RequiresMotionData());
             if (translator->m_impl->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
@@ -1398,7 +1404,7 @@ void CArnoldSession::DoUpdate()
          // Add the newly recovered or created translators to the list
          for (unsigned int i=0; i < translators.size(); ++i)
          {
-            if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
+            if (moBlur) reqMob = reqMob || (translators[i]->m_impl->m_animArrays && translators[i]->RequiresMotionData());
             if (translators[i]->m_impl->IsMayaTypeDag()) aDag = true;
 
             // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
@@ -1442,7 +1448,8 @@ void CArnoldSession::DoUpdate()
    {
       m_isExportingMotion = true;
       // Scene is motion blured, get the data for the steps.
-      for (unsigned int step = 0; (step < GetNumMotionSteps()); ++step)
+      unsigned int numSteps = GetNumMotionSteps();
+      for (unsigned int step = 0; step < numSteps; ++step)
       {
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
@@ -1452,6 +1459,12 @@ void CArnoldSession::DoUpdate()
          {
             CNodeTranslator* translator = (*iter);
             if (translator != NULL) translator->m_impl->DoUpdate();
+            
+            if (numSteps > 1 && step == numSteps - 1)
+            {
+               // last motion blur step, check once again if this translators has animated arrays
+               translator->m_impl->m_animArrays = translator->m_impl->HasAnimatedArrays();
+            }
          }
       }
       m_motionStep = 0;
