@@ -346,6 +346,8 @@ def createArnoldMenu():
         pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",
                     c=lambda *args: cmds.arnoldFlushCache(textures=True))
+        pm.menuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures",
+                    c=lambda *args: cmds.arnoldFlushCache(selected_textures=True))
         pm.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights",
                     c=lambda *args: cmds.arnoldFlushCache(skydome=True))
         pm.menuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights",
