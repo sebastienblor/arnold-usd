@@ -1275,6 +1275,12 @@ void CArnoldSession::DoUpdate()
    MStatus status;
    assert(AiUniverseIsActive());
 
+
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+   bool frameChanged = (frame != GetExportFrame());
+
+   if (frameChanged) SetExportFrame(frame);
+
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
@@ -1345,7 +1351,16 @@ void CArnoldSession::DoUpdate()
          else
          {  
             // AI_UPDATE_ONLY => simple update
-            if (moBlur) reqMob = reqMob || (translator->m_impl->m_animArrays && translator->RequiresMotionData());
+
+            if (moBlur)
+            {
+               // we check RequiresMotionData. But to consider it, either we have just changed the current frame
+               // or this node has been tagged as having animated arrays. Otherwise this is a static node and it
+               // must not cause a frame change for the motion blur
+               reqMob = reqMob || 
+                  ((frameChanged || translator->m_impl->m_animArrays) && translator->RequiresMotionData());
+
+            }
             if (translator->m_impl->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
@@ -1404,7 +1419,14 @@ void CArnoldSession::DoUpdate()
          // Add the newly recovered or created translators to the list
          for (unsigned int i=0; i < translators.size(); ++i)
          {
-            if (moBlur) reqMob = reqMob || (translators[i]->m_impl->m_animArrays && translators[i]->RequiresMotionData());
+            if (moBlur)
+            {
+               // we check RequiresMotionData. But to consider it, either we have just changed the current frame
+               // or this node has been tagged as having animated arrays. Otherwise this is a static node and it
+               // must not cause a frame change for the motion blur
+               reqMob = reqMob || 
+                  ((frameChanged || translators[i]->m_impl->m_animArrays) && translators[i]->RequiresMotionData());
+            }
             if (translators[i]->m_impl->IsMayaTypeDag()) aDag = true;
 
             // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
@@ -1431,9 +1453,6 @@ void CArnoldSession::DoUpdate()
       AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    }
    // Now do an update for all the translators in our list
-   // TODO : we'll probably need to be able to passe precisely to each
-   // translator what event or plug triggered the update request
-
          
    if (!reqMob)
    {
