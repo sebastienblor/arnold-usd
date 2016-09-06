@@ -51,12 +51,6 @@ SupportedArchitectureList = [
         'ia64',
         ['IA64'],
     ),
-    
-    ArchitectureDefinition(
-        'arm',
-        ['ARM'],
-    ),
-
 ]
 
 SupportedArchitectureMap = {}
