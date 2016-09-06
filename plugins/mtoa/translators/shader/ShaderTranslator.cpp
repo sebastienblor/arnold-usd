@@ -157,21 +157,31 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    CNodeTranslator::NodeChanged(node, plug);
 
-   if (m_impl->m_sourceTranslator == NULL) return;
-
    // if my connection to "normalCamera" changes, for example if I disconnect a bump node,
    // I not only need to re-export myself, but I also need to advert the node which is connected to the bump
    // (for example the ShadingEngine). Otherwise it will keep its connection to the bump
-   
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   if (plugName == ".normalCamera")
+   if (plugName == "normalCamera")
    {
-      // simply delete the sourceTranslator, it will be re-generated at next export
-      // this way if it's disconnected we delete it from the scene
-      // This might be a bit heavy but it will only happen when user tweaks the bump node
-      m_impl->m_sourceTranslator->SetUpdateMode(AI_DELETE_NODE);
-      m_impl->m_sourceTranslator->RequestUpdate();
+      // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
+      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      {
+         (*it)->RequestUpdate();
+      }
+ 
+
+      if (m_impl->m_sourceTranslator)
+      {
+         // simply delete the sourceTranslator, it will be re-generated at next export
+         // this way if it's disconnected we delete it from the scene
+         // This might be a bit heavy but it will only happen when user tweaks the bump node
+
+         // FIXME is this necessary now that we request update on back references ?
+         m_impl->m_sourceTranslator->SetUpdateMode(AI_DELETE_NODE);
+         m_impl->m_sourceTranslator->RequestUpdate();
+      } 
+
    }
 }
 
