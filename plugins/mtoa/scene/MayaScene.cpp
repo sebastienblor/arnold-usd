@@ -555,7 +555,6 @@ void CMayaScene::IPRIdleCallback(void *)
       }
       else
       {
-         s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
          s_arnoldSession->DoUpdate();
       }
       
@@ -567,7 +566,6 @@ void CMayaScene::IPRIdleCallback(void *)
 
 void CMayaScene::UpdateSceneChanges()
 {
-   s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
    s_arnoldSession->DoUpdate();
 }
 
