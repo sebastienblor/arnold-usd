@@ -241,7 +241,15 @@ void CSkyDomeLightTranslator::NodeChanged(MObject& node, MPlug& plug)
    // at next Export we'll want to flush the background cache.
    // This used to be done during the NodeDirty callback
    // but we must NOT interrupt renders or call arnold flush functions during maya's callbacks. 
-   m_flushCache = true; 
+
+   // only the following parameters affect the skydome cache
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "color" || plugName == "resolution" || plugName == "aiUseColorTemperature" 
+      || plugName == "aiColorTemperature" || plugName == "format")
+   {
+      m_flushCache = true;
+   }
+
    CLightTranslator::NodeChanged(node, plug);
 }
 void CPhotometricLightTranslator::Export(AtNode* light)
