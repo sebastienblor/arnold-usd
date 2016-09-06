@@ -509,8 +509,8 @@ MStatus CArnoldSession::UpdateMotionFrames()
    {
       unsigned int range_type    = m_sessionOptions.m_motion.range_type;
       unsigned int motionSteps   = m_sessionOptions.m_motion.steps;
-      if (m_motion_frames.size() != motionSteps) m_motion_frames.clear();
-      if (m_motion_frames.capacity() != motionSteps) m_motion_frames.reserve(motionSteps);
+      m_motion_frames.clear();
+      m_motion_frames.reserve(motionSteps);
       
       double motionFrames;
       double stepSize;
