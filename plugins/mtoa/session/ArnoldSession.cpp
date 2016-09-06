@@ -765,6 +765,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          if (nodeTr == NULL) continue;
          nodeTr->AddUpdateCallbacks();
          nodeTr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         nodeTr->m_impl->m_holdUpdates = false; // allow to trigger new updates
          // for motion blur, check which nodes are static and which aren't (#2316)
          if (mb && numSteps > 1)
          {
@@ -1247,7 +1248,20 @@ void CArnoldSession::EraseActiveTranslator(const CNodeAttrHandle &handle)
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
+   // don't add translator twice to the list, it could crash if its updateMode
+   // is "delete". Other solution would be to use a set, but the extra-cost is not
+   // necessary since we already have this flag
+   if (translator == NULL || translator->m_impl->m_holdUpdates) return; 
+
+   // During IPR with motion blur, we change the current frame to export the motion 
+   // and this might propagate nodeDirty signals that end up here. 
+   // We don't want to consider those
    if (m_isExportingMotion && IsInteractiveRender()) return;
+
+   // Set this translator as being in the update list, to avoid useless future signals
+   translator->m_impl->m_holdUpdates = true;   
+
+   // add this translator to the list of objects to be updated in next DoUpdate()
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
 }
 
@@ -1275,6 +1289,12 @@ void CArnoldSession::DoUpdate()
    MStatus status;
    assert(AiUniverseIsActive());
 
+
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+   bool frameChanged = (frame != GetExportFrame());
+
+   if (frameChanged) SetExportFrame(frame);
+
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
@@ -1284,7 +1304,6 @@ void CArnoldSession::DoUpdate()
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
 
-   bool arv = (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW);
    m_motionStep = 0;
 
    // In theory, no objectsToUpdate are supposed to be 
@@ -1345,7 +1364,16 @@ void CArnoldSession::DoUpdate()
          else
          {  
             // AI_UPDATE_ONLY => simple update
-            if (moBlur) reqMob = reqMob || (translator->m_impl->m_animArrays && translator->RequiresMotionData());
+
+            if (moBlur)
+            {
+               // we check RequiresMotionData. But to consider it, either we have just changed the current frame
+               // or this node has been tagged as having animated arrays. Otherwise this is a static node and it
+               // must not cause a frame change for the motion blur
+               reqMob = reqMob || 
+                  ((frameChanged || translator->m_impl->m_animArrays) && translator->RequiresMotionData());
+
+            }
             if (translator->m_impl->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
@@ -1404,7 +1432,14 @@ void CArnoldSession::DoUpdate()
          // Add the newly recovered or created translators to the list
          for (unsigned int i=0; i < translators.size(); ++i)
          {
-            if (moBlur) reqMob = reqMob || (translators[i]->m_impl->m_animArrays && translators[i]->RequiresMotionData());
+            if (moBlur)
+            {
+               // we check RequiresMotionData. But to consider it, either we have just changed the current frame
+               // or this node has been tagged as having animated arrays. Otherwise this is a static node and it
+               // must not cause a frame change for the motion blur
+               reqMob = reqMob || 
+                  ((frameChanged || translators[i]->m_impl->m_animArrays) && translators[i]->RequiresMotionData());
+            }
             if (translators[i]->m_impl->IsMayaTypeDag()) aDag = true;
 
             // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
@@ -1431,9 +1466,6 @@ void CArnoldSession::DoUpdate()
       AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    }
    // Now do an update for all the translators in our list
-   // TODO : we'll probably need to be able to passe precisely to each
-   // translator what event or plug triggered the update request
-
          
    if (!reqMob)
    {
@@ -1502,21 +1534,14 @@ void CArnoldSession::DoUpdate()
          CNodeTranslator* translator = (*iter);
          if (translator != NULL)
          {
-            if (arv)
+            // For RenderView, we don't clear the update callbacks
+            // we just add them if they're missing
+            if (translator->m_impl->m_mayaCallbackIDs.length() == 0)
             {
-               // For RenderView, we don't clear the update callbacks
-               // we just add them if they're missing
-               if (translator->m_impl->m_mayaCallbackIDs.length() == 0)
-               {
-                  translator->AddUpdateCallbacks();
-               } 
-
-              translator->m_impl->m_holdUpdates = false; // I'm allowed to receive updates once again
-            } else
-            {
-               translator->m_impl->RemoveUpdateCallbacks();
                translator->AddUpdateCallbacks();
-            }
+            } 
+            translator->m_impl->m_holdUpdates = false; // I'm allowed to receive updates once again
+         
             // restore the update mode to "update Only"
             translator->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
          }
@@ -1531,6 +1556,13 @@ void CArnoldSession::DoUpdate()
       // some nodes have been added to the update list.
       // let's keep them in this list so that next update invokes them
       m_objectsToUpdate.erase(m_objectsToUpdate.begin(), m_objectsToUpdate.begin() + updatedObjects);
+
+      // all the remaining objects to update must have holdUpdates On
+      for (size_t i = 0; i < m_objectsToUpdate.size(); ++i)
+      {
+         if (m_objectsToUpdate[i].second) 
+            m_objectsToUpdate[i].second->m_impl->m_holdUpdates = true;
+      }
    } else 
    {
       m_objectsToUpdate.clear();

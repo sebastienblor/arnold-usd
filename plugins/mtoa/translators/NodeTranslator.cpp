@@ -490,7 +490,7 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
 void CNodeTranslator::RequestUpdate()
 {
 
-   // if hold updates is enabled (on RenderView only), don't ask for updates
+   // if hold updates is enabled, don't ask for updates
    if (m_impl->m_holdUpdates) return;
 
    // we're changing the frame to evaluate motion blur, so we don't want more 
@@ -501,21 +501,8 @@ void CNodeTranslator::RequestUpdate()
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
               GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
 
-   
-   if (m_impl->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-   {
-      if (!m_impl->m_holdUpdates)
-      {
-         m_impl->m_holdUpdates = true;
-         // Add translator to the list of translators to update
-         m_impl->m_session->QueueForUpdate(this);
-      }
-   } else
-   {
-      m_impl->RemoveUpdateCallbacks();
-      // Add translator to the list of translators to update
-      m_impl->m_session->QueueForUpdate(this);
-   }
+
+   m_impl->m_session->QueueForUpdate(this);   
 
    // Pass the update request to the export session
    m_impl->m_session->RequestUpdate();
