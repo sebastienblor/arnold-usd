@@ -441,7 +441,11 @@ MStatus CMayaScene::SetupIPRCallbacks()
    // Add the node added callback
    if (s_NewNodeCallbackId == 0)
    {
-      id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dependNode", NULL, &status);
+      // We used to call the callback for every "dependNode", but now we're just doing it
+      // for dag nodes. This is introduced for #2540 when hypershade is opened, but more generically
+      // it shouldn't be necessary to restart when every node is created. Depend nodes should
+      // only appear once they're connected to other exported nodes
+      id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dagNode", NULL, &status);
       if (status == MS::kSuccess)
       {
          s_NewNodeCallbackId = id;
@@ -482,16 +486,18 @@ void CMayaScene::ClearIPRCallbacks()
 
 // Actuall callback functions
 
-// FIXME: we probably need to be able to directly pass a path or add an instance number here
+// We used to call the callback for every "dependNode", but now we're just doing it
+// for dag nodes. This is introduced for #2540 when hypershade is opened, but more generically
+// it shouldn't be necessary to restart when every node is created. Depend nodes should
+// only appear once they're connected to other exported nodes
 void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 {
-   // If this is a node we've exported before (e.g. user deletes then undos)
-   // we can shortcut and just call the update for it's already existing translator.
-   // Interupt rendering
-   MFnDependencyNode depNodeFn(node);
+   // do we want to prevent updates when a camera is created ?
+   // it wouldn't be added to ARV list of cameras
+   //if (node.hasFn(MFn::kCamera)) return;
 
-   // Getting name can impact performance
 #ifndef NDEBUG
+   MFnDependencyNode depNodeFn(node);
    MString name = depNodeFn.name();
    MString type = depNodeFn.typeName();
    AiMsgDebug("[mtoa] IPRNewNodeCallback on %s(%s)", name.asChar(), type.asChar());
