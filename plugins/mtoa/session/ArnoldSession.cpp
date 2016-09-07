@@ -1299,10 +1299,11 @@ void CArnoldSession::DoUpdate()
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
    
-   bool aDag   = false;
+   bool dagFound   = false;
    bool newDag = false;
-   bool reqMob = false;
-   bool moBlur = IsMotionBlurEnabled();
+   bool exportMotion = false;
+   bool motionBlur = IsMotionBlurEnabled();
+   bool mbRequiresFrameChange = false;
 
    m_motionStep = 0;
 
@@ -1365,19 +1366,22 @@ void CArnoldSession::DoUpdate()
          {  
             // AI_UPDATE_ONLY => simple update
 
-            if (moBlur)
+            if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translator->RequiresMotionData())
             {
-               // we check RequiresMotionData. But to consider it, either we have just changed the current frame
-               // or this node has been tagged as having animated arrays. Otherwise this is a static node and it
-               // must not cause a frame change for the motion blur
-               reqMob = reqMob || 
-                  ((frameChanged || translator->m_impl->m_animArrays) && translator->RequiresMotionData());
+               // Find out if we need to call ExportMotion for each motion step
+               // or if a single Export is enough. 
+               exportMotion = true;
 
+               // If the arnold node doesn't have any animated array then there's no need 
+               // to change the view frame in maya during the ExportMotion calls.
+               // However if the frame has just been changed, then the arrays might have become 
+               // animated now.
+               if (frameChanged || translator->m_impl->m_animArrays) 
+                  mbRequiresFrameChange = true;
             }
-            if (translator->m_impl->IsMayaTypeDag()) aDag = true;
+            if (translator->m_impl->IsMayaTypeDag()) dagFound = true;
             translatorsToUpdate.push_back(translator);
          }
-
       } else
       {
          // No translator was provided, it's either a new node creation or
@@ -1432,15 +1436,21 @@ void CArnoldSession::DoUpdate()
          // Add the newly recovered or created translators to the list
          for (unsigned int i=0; i < translators.size(); ++i)
          {
-            if (moBlur)
+            if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translators[i]->RequiresMotionData())
             {
-               // we check RequiresMotionData. But to consider it, either we have just changed the current frame
-               // or this node has been tagged as having animated arrays. Otherwise this is a static node and it
-               // must not cause a frame change for the motion blur
-               reqMob = reqMob || 
-                  ((frameChanged || translators[i]->m_impl->m_animArrays) && translators[i]->RequiresMotionData());
+               // Find out if we need to call ExportMotion for each motion step
+               // or if a single Export is enough. 
+               exportMotion = true;
+
+               // If the arnold node doesn't have any animated array then there's no need 
+               // to change the view frame in maya during the ExportMotion calls.
+               // However if the frame has just been changed, then the arrays might have become 
+               // animated now.
+               if (frameChanged || translators[i]->m_impl->m_animArrays) 
+                  mbRequiresFrameChange = true;
             }
-            if (translators[i]->m_impl->IsMayaTypeDag()) aDag = true;
+
+            if (translators[i]->m_impl->IsMayaTypeDag()) dagFound = true;
 
             // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
             //translators[i]->m_impl->DoExport();
@@ -1461,13 +1471,13 @@ void CArnoldSession::DoUpdate()
    }
 
    // Need something finer to determine if the changes have an influence
-   if (aDag)
+   if (dagFound)
    {
       AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    }
    // Now do an update for all the translators in our list
          
-   if (!reqMob)
+   if (!exportMotion)
    {
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
          iter != translatorsToUpdate.end(); ++iter)
@@ -1500,7 +1510,8 @@ void CArnoldSession::DoUpdate()
          }
       }
       m_motionStep = 0;
-      MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      if (mbRequiresFrameChange)
+         MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
 
       m_isExportingMotion = false;
    }
