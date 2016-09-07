@@ -161,8 +161,14 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 
 void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-   if(plugName == ".displacementShader")
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   // we happen to receive this signal quite often, but it doesn't seem to affect the render.
+   // For example, when we select a shader in the hypershade (#2540), it used to trigger a re-render.
+   // We're returning without calling CNodeTranslator::NodeChanged so that it doesn't request an update
+   if(plugName == "dagSetMembers") return;
+
+   if(plugName == "displacementShader")
    {
       MFnDependencyNode dnode(node);
       std::vector< CNodeTranslator * > translatorsToUpdate;
