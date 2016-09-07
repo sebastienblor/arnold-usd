@@ -1494,7 +1494,10 @@ void CArnoldSession::DoUpdate()
       for (unsigned int step = 0; step < numSteps; ++step)
       {
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
-         MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+
+         if (mbRequiresFrameChange) 
+            MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+
          m_motionStep = step;
          for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
              iter != translatorsToUpdate.end(); ++iter)
