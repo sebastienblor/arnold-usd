@@ -662,6 +662,18 @@ void CRenderSession::UpdateRenderView()
 
 }
 
+void CRenderSession::CloseRenderView()
+{  
+   if(s_renderView != NULL) // for now always return true
+   {
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->CloseRenderView();
+   }
+
+}
+
+
 void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 {
    if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;

@@ -82,32 +82,11 @@ struct CARVSequenceData
    std::string saveImagesValue;
 };
 static CARVSequenceData *s_sequenceData = NULL;
-/*
+static QWidget *s_workspaceControl = NULL;
+
 #if MAYA_API_VERSION >= 201700
-
-#ifdef _LINUX
-// FIXME : make sure this is the definitive name of the file on linux. Why is just this one lower cased ?
-#include "QtWidgets/qdockwidget.h"
-#else
-#include "QtWidgets/QDockWidget.h"
-#endif
-
 #include "QtWidgets/QMainWindow.h"
-#else
-#include "QtGui/QDockWidget.h"
-#include "QtGui/QMainWindow.h"
 #endif
-
-class ARVDockWidget : public QDockWidget
-{
-public:
-   ARVDockWidget(CRenderViewMtoA &arv, QWidget*parent) : QDockWidget(parent, RvQtFlags), m_arv(arv) {}
-protected:
-   virtual void closeEvent(QCloseEvent *event) {m_arv.CloseRenderView();}
-   CRenderViewMtoA &m_arv;
-};
-static ARVDockWidget *s_arvDockWidget = NULL;
-*/
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -220,23 +199,50 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
    } 
 
-   OpenRenderView(width, height, MQtUtil::mainWindow());
-/*
-   QWidget * mainWin = MQtUtil::mainWindow();
-   OpenRenderView(width, height, mainWin);
-   QMainWindow *arv = GetRenderView();
-   if (s_arvDockWidget == NULL){ 
-      s_arvDockWidget = new ARVDockWidget(*this, mainWin); 
-      s_arvDockWidget->setWidget(arv);
-      s_arvDockWidget->resize(arv->width(), arv->height());
-      s_arvDockWidget->setWindowTitle(arv->windowTitle());
-      s_arvDockWidget->setWindowIcon(arv->windowIcon());
+#if MAYA_API_VERSION >= 201700
+
+   // Docking in maya workspaces only supported from maya 2017.
+   // For older versions, we tried using QDockWindows (see branch FB-2470)
+   // but the docking was way too sensitive, and not very usable in practice
+   MString workspaceCmd = "workspaceControl ";
+
+   bool firstCreation = true;
+   if (s_workspaceControl)
+   {
+      workspaceCmd += " -edit -visible true ";
+      firstCreation = false;
+   } else
+   {
+      workspaceCmd += " -li 1"; // load immediately
+      workspaceCmd += " -ih "; // initial width
+      workspaceCmd += width;
+      workspaceCmd += " -iw "; // initiall height
+      workspaceCmd += height;
+
+       // command called when closed. It's not ARV itself that is closed now, but the workspace !
+      workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
+      workspaceCmd += " -l \"Arnold RenderView\" "; // label
    }
-   //s_arvDockWidget->setFloating(true);
-   //s_arvDockWidget->resize(arv->width(), arv->height());
-   s_arvDockWidget->setWindowFlags(RvQtFlags);
-   s_arvDockWidget->show();
-*/
+   workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
+
+   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+
+   QMainWindow *arv = GetRenderView();  
+   arv->setWindowFlags(Qt::Widget);
+
+   
+   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+   s_workspaceControl = MQtUtil::getCurrentParent(); // returns a pointer to th workspace called above
+
+   if (firstCreation)
+      MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
+
+   // for an unknown reason, maya crashes if I don't call show() as below....
+   arv->show();
+   s_workspaceControl->show();
+#else
+   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+#endif
 
    if (exists && m_convertOptionsParam)
    {
@@ -635,6 +641,12 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 
 void CRenderViewMtoA::RenderViewClosed()
 {
+
+#if MAYA_API_VERSION >= 201700
+   // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
+   MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+#endif
+
    ReceiveSelectionChanges(false);
    if (s_sequenceData != NULL)
    {
@@ -664,7 +676,6 @@ void CRenderViewMtoA::RenderViewClosed()
    m_rvSceneSaveCb = 0;
 
    MProgressWindow::endProgress();
-   //s_arvDockWidget->hide();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {

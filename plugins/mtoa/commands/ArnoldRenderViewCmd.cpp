@@ -119,6 +119,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
       
+
    // What mode are we in?
    if (mode == "render" || mode == "open")
    {
@@ -207,6 +208,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       renderSession->UpdateRenderView();
       // only consider argument "region", ignore camera/width/height, etc...
+   } else if (mode == "close")
+   {
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->CloseRenderView();
+
    }
    
    return status;
