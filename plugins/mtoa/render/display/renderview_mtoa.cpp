@@ -596,6 +596,7 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 
    if (paramName == "camera")
    {
+
       AtNode *cam = (AtNode*)AiNodeGetPtr(node, "camera");
       if (cam == NULL) return;
 
@@ -611,7 +612,9 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
          std::string camName = camPath.partialPathName().asChar();
          if (camName == cameraName)
          {
+            // why do we need to have this information in 2 several places ??
             CMayaScene::GetRenderSession()->SetCamera(camPath);
+            CMayaScene::GetArnoldSession()->SetExportCamera(camPath); 
             break;
          }      
          itDag.next();
