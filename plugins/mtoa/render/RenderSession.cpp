@@ -668,7 +668,7 @@ void CRenderSession::CloseRenderView()
    {
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
-      s_renderView->RenderViewClosed();
+      s_renderView->CloseRenderView();
    }
 
 }
