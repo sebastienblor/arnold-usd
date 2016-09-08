@@ -849,6 +849,12 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
       }
       break;
+   case AI_TYPE_UINT:
+      {
+         // no uint in maya MPlug
+         AiNodeSetUInt(arnoldNode, arnoldParamName, plug.asInt());
+      }
+      break;
    case AI_TYPE_STRING:
       {
          AiNodeSetStr(arnoldNode, arnoldParamName, plug.asString().asChar());
@@ -1005,6 +1011,11 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
    case AI_TYPE_INT:
       {
          AiArraySetInt(array, i, elem.asInt());
+      }
+      break;
+   case AI_TYPE_UINT:
+      {
+         AiArraySetUInt(array, i, elem.asInt());
       }
       break;
    case AI_TYPE_STRING:
