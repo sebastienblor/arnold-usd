@@ -35,6 +35,8 @@ protected:
 
    // ---- derived from CDagTranslator, to add the origin / scale global factors
    virtual void GetMatrix(AtMatrix& matrix);
+   virtual void RequestUpdate();
+
 
 protected:
    MFnCamera m_fnCamera;

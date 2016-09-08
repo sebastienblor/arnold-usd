@@ -18,6 +18,7 @@
 
 using namespace std;
 
+
 void CCameraTranslator::ExportImagePlanes()
 {   
    MPlug      imagePlanePlug;
@@ -393,3 +394,13 @@ void CCameraTranslator::GetMatrix(AtMatrix& matrix)
       }
    }
 }
+void CCameraTranslator::RequestUpdate()
+{
+   // if this is not the default camera, and if it doesn't have any back connection
+   // we should not request an update
+   if (m_dagPath == GetSessionOptions().GetExportCamera() || !m_impl->m_backReferences.empty())
+      CDagTranslator::RequestUpdate();
+   else
+      m_impl->m_session->QueueForUpdate(this); // still queue me for update, so that arnold scene remains sync'ed
+}
+

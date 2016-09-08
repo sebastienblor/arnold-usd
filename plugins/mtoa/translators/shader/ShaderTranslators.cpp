@@ -809,9 +809,13 @@ void CProjectionTranslator::Export(AtNode* shader)
    camPlug.connectedTo(connections, true, false);
    if (connections.length() >= 1 && typePlug.asInt() == 8)
    {
+      ExportConnectedNode(connections[0]);
       MObject camObj = connections[0].node();
       MFnCamera cam(camObj);
-      ProcessParameter(shader, "linkedCamera", AI_TYPE_NODE);
+
+      // this will create a MtoA connection between this shader and the camera
+      ExportConnectedNode(connections[0]);
+      //ProcessParameter(shader, "linkedCamera", AI_TYPE_NODE);
       AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
       AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
       AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
