@@ -492,16 +492,13 @@ void CMayaScene::ClearIPRCallbacks()
 // only appear once they're connected to other exported nodes
 void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 {
-   // do we want to prevent updates when a camera is created ?
-   // it wouldn't be added to ARV list of cameras
-   //if (node.hasFn(MFn::kCamera)) return;
 
-#ifndef NDEBUG
    MFnDependencyNode depNodeFn(node);
-   MString name = depNodeFn.name();
    MString type = depNodeFn.typeName();
+
+   
+   MString name = depNodeFn.name();
    AiMsgDebug("[mtoa] IPRNewNodeCallback on %s(%s)", name.asChar(), type.asChar());
-#endif
 
    CArnoldSession* arnoldSession = GetArnoldSession();
 
@@ -516,6 +513,17 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    {
       arnoldSession->QueueForUpdate(node);
    }
+
+   // FIXME : instead of testing specific types, we could 
+   // simply get a translator for this type (as ArnoldSession::ExportDagPath does).
+   // if no translator is provided then we skip it
+
+   if(type == "transform" ||type == "locator") return; // no need to do anything with a simple transform node
+
+   // new cameras shouldn't restart IPR
+   if (node.hasFn(MFn::kCamera)) 
+      return;
+
    arnoldSession->RequestUpdate();
 }
 
