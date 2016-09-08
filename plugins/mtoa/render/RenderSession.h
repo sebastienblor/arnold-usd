@@ -115,6 +115,7 @@ public:
 
    void StartRenderView();
    void UpdateRenderView();
+   void CloseRenderView();
 
    void ObjectNameChanged(MObject& node, const MString& str);
 
