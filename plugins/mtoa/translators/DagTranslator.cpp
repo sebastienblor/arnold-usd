@@ -60,7 +60,13 @@ void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
 
-   MString name = dagTr->GetMayaDagPath().partialPathName();
+   MString name = m_session->GetSessionOptions().GetExportFullPath() ? 
+      dagTr->GetMayaDagPath().fullPathName() : dagTr->GetMayaDagPath().partialPathName();
+
+   const MString &prefix = m_session->GetSessionOptions().GetExportPrefix();
+   if (prefix.length() > 0)
+      name = prefix + name;
+
    // TODO: add a global option to control how names are exported
    // MString name = m_dagPath.fullPathName();
    if (m_tr.DependsOnOutputPlug())

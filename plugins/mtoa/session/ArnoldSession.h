@@ -109,6 +109,14 @@ public:
    inline unsigned int GetExportFilterMask() const { return m_sessionOptions.GetExportFilterMask(); }
    inline void SetExportFilterMask(unsigned int mask) { m_sessionOptions.SetExportFilterMask(mask); }
 
+   inline bool GetExportFullPath() const {return m_sessionOptions.GetExportFullPath();}
+   inline const MString &GetExportPrefix() const {return m_sessionOptions.GetExportPrefix();}
+   
+   inline void SetExportFullPath(bool b) {m_sessionOptions.SetExportFullPath(b);}
+   inline void SetExportPrefix(const MString &prefix) {m_sessionOptions.SetExportPrefix(prefix);}
+
+
+
    // Export options
    inline const CSessionOptions& GetSessionOptions() const { return m_sessionOptions; }
    // Arnoldrender options
@@ -249,6 +257,8 @@ private:
    bool IsVisiblePath(MDagPath dagPath) const;
 
    void ExportTxFiles();
+
+
 
 private:
 

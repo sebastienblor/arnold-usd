@@ -109,6 +109,8 @@ struct CSessionOptions
    inline MVector GetOrigin() const { return m_origin; }
    const MStringArray &GetTextureSearchPaths() const {return m_textureSearchPaths;}
    const MStringArray &GetProceduralSearchPaths() const {return m_proceduralSearchPaths;}
+   inline bool GetExportFullPath() const {return m_exportFullPath;}
+   inline const MString &GetExportPrefix() const {return m_exportPrefix;}
 
    // if I don't inline this here, some contrib libs fail at linking
    inline void GetMotionRange(double &motion_start, double &motion_end) const {
@@ -182,6 +184,7 @@ private:
    CSessionOptions() :  m_options(MObject()),
                         m_camera(MDagPath()),
                         m_textureSearchPaths(),
+                        m_exportPrefix(""),
                         m_filter(CMayaExportFilter()),
                         m_motion(CMotionBlurOptions()),
                         m_origin(0.0, 0.0, 0.0),
@@ -192,7 +195,9 @@ private:
                         m_shadowlink(MTOA_SHADOWLINK_NONE),                        
                         m_progressiveRendering(false),
                         m_absoluteTexturePaths(true),
-                        m_absoluteProceduralPaths(true)
+                        m_absoluteProceduralPaths(true),
+                        m_exportFullPath(false)
+                        
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    }
@@ -207,6 +212,9 @@ private:
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
    inline void SetExportFrame(double frame) { m_frame = frame; }
    inline void SetProgressive(const bool is_progressive) { m_progressiveRendering = is_progressive; }
+
+   inline void SetExportFullPath(bool b) {m_exportFullPath = b;}
+   inline void SetExportPrefix(const MString &prefix) {m_exportPrefix = prefix;}
 
    MStatus GetFromMaya();
 
@@ -237,6 +245,7 @@ private:
    MDagPath             m_camera;
    MStringArray         m_textureSearchPaths;
    MStringArray         m_proceduralSearchPaths;
+   MString              m_exportPrefix;
 
    CMayaExportFilter    m_filter;
    CMotionBlurOptions   m_motion;
@@ -253,4 +262,5 @@ private:
    bool                 m_progressiveRendering;
    bool                 m_absoluteTexturePaths;
    bool                 m_absoluteProceduralPaths;
+   bool                 m_exportFullPath;
 };
