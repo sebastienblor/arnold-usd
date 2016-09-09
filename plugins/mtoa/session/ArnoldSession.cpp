@@ -1293,7 +1293,10 @@ void CArnoldSession::DoUpdate()
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool frameChanged = (frame != GetExportFrame());
 
-   if (frameChanged) SetExportFrame(frame);
+   // only change the frame for interactive renders
+   // It appears that Export() doesn't restore the current frame
+   // in maya otherwise ( to avoid useless maya evaluations )
+   if (frameChanged && IsInteractiveRender()) SetExportFrame(frame);
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
