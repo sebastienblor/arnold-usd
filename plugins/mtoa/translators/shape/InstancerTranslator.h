@@ -40,9 +40,8 @@ public:
    
 protected:
    AtByte ComputeMasterVisibility(const MDagPath& masterDagPath) const;
-   void ExportInstancer(AtNode* instancer, bool update);
    void ExportInstances(AtNode* instancer);
-
+   virtual void RequestUpdate();
 
 protected:
    MFnParticleSystem m_fnParticleSystem;
