@@ -447,6 +447,17 @@ def aiRenderSettingsBuiltCallback(currentRenderer):
                                                     utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
 
+def aiExecuteRendererAddOneTabToGlobalsWindowCreateProcCallback(createProc):
+    # Most create procs are now deferred till the tab is selected
+    # These two are the default tabs, so we don't defer them
+    createProcs = ['createArnoldRendererCommonGlobalsTab',
+                   'createArnoldRendererGlobalsTab',
+                   'createArnoldRendererSystemTab',
+                   'createArnoldRendererDiagnosticsTab']
+
+    if createProc in createProcs:
+        pm.mel.eval(createProc)
+        
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
     aiExport( self, self.invokeArgs[0], self.invokeArgs[1], self.invokeArgs[2], self.invokeArgs[3] )
@@ -533,6 +544,10 @@ def registerCallbacks():
 
     cmds.callbacks(addCallback=aiRenderSettingsBuiltCallback,
                    hook="renderSettingsBuilt",
+                   owner="arnold")
+
+    cmds.callbacks(addCallback=aiExecuteRendererAddOneTabToGlobalsWindowCreateProcCallback,
+                   hook="executeRendererAddOneTabToGlobalsWindowCreateProc",
                    owner="arnold")
 
 def clearCallbacks():
