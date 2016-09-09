@@ -34,20 +34,17 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
 
 void CInstancerTranslator::Export(AtNode* anode)
 {
-   ExportInstancer(anode, IsExported());
+   ExportMatrix(anode);
+   ExportInstances(anode);
 }
 
 void CInstancerTranslator::ExportMotion(AtNode* anode)
 {
    ExportMatrix(anode);
 
-   if (!IsExported())
+   if (IsMasterInstance() && m_motionDeform)
    {
-      // only at first export
-      if (IsMasterInstance() && m_motionDeform)
-      {
-         ExportInstances(anode);
-      }
+      ExportInstances(anode);
    }
 }
 
@@ -98,15 +95,6 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    return visibility;
 }
 
-void CInstancerTranslator::ExportInstancer(AtNode* instancer, bool update)
-{
-   ExportMatrix(instancer);
-   if(!update)
-   {
-      ExportInstances(instancer);
-   }
-
-}
 
 void CInstancerTranslator::ExportInstances(AtNode* instancer)
 {
@@ -485,6 +473,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       {
          int partID = it->first;
          int j = it->second;
+         if (j >= (int)m_vec_matrixArrays.size()) continue;
 
          for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
          {
@@ -503,7 +492,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                AiNodeSetStr(instance, "name", instanceName.asChar());
             }
             int idx = m_particlePathsMap[partID][k];
-                        
+            if (idx >= (int)m_objectNames.length()) continue;
+
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
             AiNodeSetBool(instance, "inherit_xform", true);
@@ -560,4 +550,21 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    }
 
 }
+void CInstancerTranslator::RequestUpdate()
+{
+   /*
+   FIXME : ideally we'd like to avoid re-generating instancer all the time, 
+   and do something more optimized based on the plug name in NodeChanged.
+   But from what I understand any parameter could require a full re-export
+   - inputPoints : particles/instances have changed
+   - translate/rotate/scale : ginstance matrices will have to be recomputed
+   - level of detail params : recompute
+   - inputHierarchy : would have been nice to stay independent of it, as ginstance references the original shape
+       however, if you change the scale/rotation of the shape, it will affect the matrices we get from maya.
+      -> TO BE VERIFIED
 
+   }*/
+
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}
