@@ -2050,3 +2050,30 @@ void CArnoldSession::RecomputeMotionData()
    }
    RequestUpdate();
 }
+
+void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
+{
+   MDagPath path = parent;
+   // check if there is a translator for this dag path
+   // If yes, Remove its update callbacks, and request an update on it
+   CNodeAttrHandle handle(path);
+   std::vector< CNodeTranslator * > translators;
+   if (GetActiveTranslators(handle, translators))
+   {
+      for (size_t i = 0; i < translators.size(); ++i)
+      {
+         translators[i]->m_impl->RemoveUpdateCallbacks();
+         translators[i]->RequestUpdate();
+      }
+   }
+ 
+   // Recursively dive into the dag children
+   for (unsigned int i = 0; i < path.childCount(); i++)
+   {
+      MObject ChildObject = path.child(i);
+      path.push(ChildObject);
+      RecursiveUpdateDagChildren(path);
+      path.pop(1);
+   }
+
+}

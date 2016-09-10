@@ -42,6 +42,9 @@ MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 MCallbackId CMayaScene::s_QuitApplicationCallbackId = 0;
 MCallbackId CMayaScene::s_FileOpenCallbackId = 0;
+MCallbackId CMayaScene::s_AddParentCallbackId = 0;
+MCallbackId CMayaScene::s_RemoveParentCallbackId = 0;
+
 
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
@@ -455,6 +458,32 @@ MStatus CMayaScene::SetupIPRCallbacks()
          AiMsgError("[mtoa] Unable to install IPR node added callback");
       }
    }
+
+   if (s_AddParentCallbackId == 0)
+   {
+      id = MDagMessage::addParentAddedCallback(IPRParentingChangedCallback, NULL, &status);
+      if (status == MS::kSuccess)
+      {
+         s_AddParentCallbackId = id;
+      }
+      else
+      {
+         AiMsgError("[mtoa] Unable to install IPR parent added callback");
+      }
+   }
+   if (s_RemoveParentCallbackId == 0)
+   {
+      id = MDagMessage::addParentRemovedCallback(IPRParentingChangedCallback, NULL, &status);
+      if (status == MS::kSuccess)
+      {
+         s_RemoveParentCallbackId = id;
+      }
+      else
+      {
+         AiMsgError("[mtoa] Unable to install IPR parent removed callback");
+      }
+   }
+   
    // TODO : might add a forceUpdateCallback to re-export when frame changes
    // static MCallbackId 	addForceUpdateCallback (MMessage::MTimeFunction func, void *clientData=NULL, MStatus *ReturnStatus=NULL)
  	// This method registers a callback that is called after the time changes and after all nodes have been evaluated in the dependency graph. 
@@ -476,7 +505,16 @@ void CMayaScene::ClearIPRCallbacks()
       MMessage::removeCallback(s_NewNodeCallbackId);
       s_NewNodeCallbackId = 0;
    }
-
+   if (s_AddParentCallbackId != 0)
+   {
+      MMessage::removeCallback(s_AddParentCallbackId);
+      s_AddParentCallbackId = 0;
+   }
+   if (s_RemoveParentCallbackId != 0)
+   {
+      MMessage::removeCallback(s_RemoveParentCallbackId);
+      s_RemoveParentCallbackId = 0;
+   }
    // Clear the callbacks on the translators of the current export session
    if (NULL != s_arnoldSession)
    {
@@ -517,7 +555,6 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // FIXME : instead of testing specific types, we could 
    // simply get a translator for this type (as ArnoldSession::ExportDagPath does).
    // if no translator is provided then we skip it
-
    if(type == "transform" ||type == "locator") return; // no need to do anything with a simple transform node
 
    // new cameras shouldn't restart IPR
@@ -527,6 +564,10 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    arnoldSession->RequestUpdate();
 }
 
+void CMayaScene::IPRParentingChangedCallback(MDagPath &child, MDagPath &parent, void *clientData)
+{
+   GetArnoldSession()->RecursiveUpdateDagChildren(child); 
+}
 void CMayaScene::FileOpenCallback(void *)
 {
    // something we might want to do when a new file is opened

@@ -262,7 +262,7 @@ private:
    bool IsVisiblePath(MDagPath dagPath) const;
 
    void ExportTxFiles();
-
+   void RecursiveUpdateDagChildren(MDagPath &parent);
 
 
 private:
