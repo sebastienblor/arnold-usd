@@ -1093,10 +1093,7 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
 }
 void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
-   MString name = m_tr.GetMayaNodeName();
-   const MString &prefix = m_session->GetSessionOptions().GetExportPrefix();
-   if (prefix.length() > 0)
-      name = prefix + name;
+   MString name = CNodeTranslator::GetArnoldNaming(m_tr.GetMayaObject());
 
    char nodeName[MAX_NAME_SIZE];
    if (m_tr.DependsOnOutputPlug())

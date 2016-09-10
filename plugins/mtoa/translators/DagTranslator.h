@@ -55,6 +55,10 @@ public:
 
    // returns true if this is one of the translate/rotate/scale parameters
    static bool IsTransformPlug(const MPlug &plug);
+
+   // returns the arnold name for a corresponding maya dag path
+   static MString GetArnoldNaming(const MDagPath &dagPath);
+
 protected:
 
    // This is a utility method which handles the common tasks associated with

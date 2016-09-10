@@ -398,7 +398,10 @@ void CCameraTranslator::RequestUpdate()
 {
    // if this is not the default camera, and if it doesn't have any back connection
    // we should not request an update
-   if (m_dagPath == GetSessionOptions().GetExportCamera() || !m_impl->m_backReferences.empty())
+
+   AtNode *node = GetArnoldNode();
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   if (node == renderCam || !m_impl->m_backReferences.empty())
       CDagTranslator::RequestUpdate();
    else
       m_impl->m_session->QueueForUpdate(this); // still queue me for update, so that arnold scene remains sync'ed

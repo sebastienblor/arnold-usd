@@ -99,6 +99,10 @@ public:
    static CNodeTranslator *GetTranslator(const MDagPath &dagPath);
    static CNodeTranslator *GetTranslator(const MObject &object);
 
+   // returns the arnold name corresponding to a maya object
+   // For Dag nodes, prefer the function in CDagTranslator with a MDagPath input
+   static MString GetArnoldNaming(const MObject &object);
+
    static void RequestLightLinksUpdate();
    static void RequestTxUpdate();
 

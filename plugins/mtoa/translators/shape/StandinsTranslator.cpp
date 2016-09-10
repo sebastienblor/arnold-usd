@@ -190,9 +190,9 @@ void CArnoldStandInsTranslator::ExportMotion(AtNode* anode)
 //
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 
@@ -301,7 +301,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 {
    m_DagNode.setObject(m_dagPath.node());
 
-   AiNodeSetStr(procedural, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(procedural, "name", GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(procedural);
    ProcessRenderFlags(procedural);

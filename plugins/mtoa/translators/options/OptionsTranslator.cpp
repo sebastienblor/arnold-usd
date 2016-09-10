@@ -200,12 +200,13 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          MDagPath camChildPath;
          if (childNode.getPath(camChildPath) != MS::kSuccess) continue;
          camChildPath.extendToShape();
-         std::string childName = camChildPath.partialPathName().asChar();
+         MString childName = CDagTranslator::GetArnoldNaming(camChildPath);
+         std::string childNameStr = childName.asChar();
 
          // if there's a way to get the Right-Left cameras through the Maya API it would be way better...
          // for now we're going through the cameras names, but this could fail if manually renamed.
-         if(rightCameraName.numChars() == 0 && childName.find("Right") != std::string::npos) rightCameraName = camChildPath.partialPathName();
-         else if (leftCameraName.numChars() == 0 && childName.find("Left") != std::string::npos) leftCameraName = camChildPath.partialPathName();
+         if(rightCameraName.numChars() == 0 && childNameStr.find("Right") != std::string::npos) rightCameraName = childName;
+         else if (leftCameraName.numChars() == 0 && childNameStr.find("Left") != std::string::npos) leftCameraName = childName;
       }
       if (rightCameraName.numChars() > 0 && leftCameraName.numChars() > 0) numEyes = 2;
       else  stereo = false;

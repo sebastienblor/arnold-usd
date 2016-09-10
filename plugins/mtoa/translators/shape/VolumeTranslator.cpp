@@ -61,9 +61,9 @@ void CArnoldVolumeTranslator::ExportMotion(AtNode* anode)
 
 AtNode* CArnoldVolumeTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 
@@ -133,7 +133,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 {
    m_DagNode.setObject(m_dagPath.node());
 
-   AiNodeSetStr(volume, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(volume, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(volume);
    ProcessRenderFlags(volume);

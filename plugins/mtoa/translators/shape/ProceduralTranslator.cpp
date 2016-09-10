@@ -87,7 +87,7 @@ void CArnoldProceduralTranslator::Export(AtNode* node)
    {
       // Export the procedural
       MFnDagNode dagNode(m_dagPath.node());
-      AiNodeSetStr(node, "name", m_dagPath.partialPathName().asChar());
+      AiNodeSetStr(node, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
       ExportMatrix(node);
       ProcessRenderFlags(node);
       ExportShaders();
@@ -135,8 +135,8 @@ void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
 void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
 {
    MDagPath masterInstance = GetMasterInstance();
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(GetArnoldNaming(masterInstance).asChar());
+   AiNodeSetStr(instance, "name", GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 

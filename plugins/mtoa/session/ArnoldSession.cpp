@@ -102,6 +102,7 @@ namespace // <anonymous>
    }
 }
 
+
 // Public Methods
 
 // Export a single dag path (a dag node or an instance of a dag node)
@@ -112,7 +113,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
-   MString name = dagPath.partialPathName();
+   MString name = CDagTranslator::GetArnoldNaming(dagPath);
    MString type = MFnDagNode(dagPath).typeName();
 
    AiMsgTab(1);

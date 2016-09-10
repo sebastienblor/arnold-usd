@@ -1235,3 +1235,11 @@ void CNodeTranslator::RequestTxUpdate()
 {
    CMayaScene::GetArnoldSession()->RequestUpdateTx();
 }
+MString CNodeTranslator::GetArnoldNaming(const MObject &object)
+{
+   MString name = MFnDependencyNode(object).name();
+   const MString &prefix = GetSessionOptions().GetExportPrefix();
+   if (prefix.length() > 0)
+      name = prefix + name;
+   return name;
+}

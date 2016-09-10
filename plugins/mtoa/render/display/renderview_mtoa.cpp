@@ -43,9 +43,8 @@ void CRenderViewMtoA::ProgressiveRenderFinished() {}
 #else
 
 // Arnold RenderView is defined
-
 #include "scene/MayaScene.h"
-
+#include "translators/DagTranslator.h"
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
@@ -609,7 +608,7 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
       {
          MDagPath camPath;
          itDag.getPath(camPath);
-         std::string camName = camPath.partialPathName().asChar();
+         std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
          if (camName == cameraName)
          {
             // why do we need to have this information in 2 several places ??

@@ -1508,11 +1508,11 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
 
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
    int instanceNum =  m_dagPath.instanceNumber();
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 
