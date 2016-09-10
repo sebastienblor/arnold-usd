@@ -23,6 +23,8 @@ protected:
    {}
    
    virtual bool Tessellate(const MDagPath &dagPath);
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+
 
 private:
    

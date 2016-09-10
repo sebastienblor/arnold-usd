@@ -128,3 +128,14 @@ bool CNurbsSurfaceTranslator::IsGeoDeforming()
    return true;
 }
 
+
+void CNurbsSurfaceTranslator::NodeChanged(MObject& node, MPlug& plug)
+{  
+   // FIXME we could optimize it a bit more and check exactly which parameters can trigger 
+   // a full re-export. 
+   // For now, it seems to me that most of the NurbsSurface parameter affect the geometry
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CPolygonGeometryTranslator::NodeChanged(node, plug);
+}

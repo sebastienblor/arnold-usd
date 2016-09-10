@@ -54,6 +54,21 @@ void CDagTranslator::ExportMotion(AtNode* node)
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), "matrix"))
       ExportMatrix(node);   
 }
+bool CDagTranslator::IsTransformPlug(const MPlug &plug)
+{
+   MString plugName =  plug.partialName(false, false, false, false, false, true);
+   if (plugName.length() == 0) return false;
+   const char firstChar = plugName.asChar()[0];
+
+   if (firstChar == 's')
+      return (plugName == "scale" || plugName == "scaleX" || plugName == "scaleY" || plugName == "scaleZ" );
+   if (firstChar == 't')
+      return (plugName == "translate" || plugName == "translateX" || plugName == "translateY" || plugName == "translateZ");
+   if (firstChar == 'r')
+      return (plugName == "rotate" || plugName == "rotateX" || plugName == "rotateY" || plugName == "rotateZ");
+
+   return false;        
+}
 
 /// set the name of the arnold node
 void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)

@@ -52,6 +52,9 @@ public:
    // Static function to force the export of a specific MDagPath and get the generated translator.
    // Only needed in very rare situations
    static CDagTranslator *ExportDagPath(const MDagPath &dagPath);
+
+   // returns true if this is one of the translate/rotate/scale parameters
+   static bool IsTransformPlug(const MPlug &plug);
 protected:
 
    // This is a utility method which handles the common tasks associated with

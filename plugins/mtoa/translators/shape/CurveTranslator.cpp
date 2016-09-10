@@ -88,7 +88,9 @@ void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
    // but ticket #2399 showed that curves aren't updated properly in arnold core,
    // for example when the curves width change.
    // So now we're always forcing to recreate the node
-   SetUpdateMode(AI_RECREATE_NODE);
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
    CShapeTranslator::NodeChanged(node, plug);
 }
 
