@@ -70,7 +70,7 @@ protected:
                         bool& raw);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
-   
+   virtual void NodeChanged(MObject& node, MPlug& plug);
 protected:
    AOVSet m_aovs;
    std::vector<CAOVOutputArray> m_aovData;

@@ -802,3 +802,15 @@ void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
    AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
    AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
 }
+
+void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   // this extra parameter is set by ARV to store its settings in the maya scene
+   // It is set at each scene save.
+   // we don't want this to propagate any dirtiness signal.
+   if (plugName == "ARV_options") return;
+
+   CNodeTranslator::NodeChanged(node, plug);
+}
