@@ -1289,7 +1289,6 @@ void CArnoldSession::DoUpdate()
    MStatus status;
    assert(AiUniverseIsActive());
 
-
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool frameChanged = (frame != GetExportFrame());
 
@@ -1297,6 +1296,13 @@ void CArnoldSession::DoUpdate()
    // It appears that Export() doesn't restore the current frame
    // in maya otherwise ( to avoid useless maya evaluations )
    if (frameChanged && IsInteractiveRender()) SetExportFrame(frame);
+
+   if (m_updateMotionData)
+   {
+      m_sessionOptions.GetFromMaya();
+      UpdateMotionFrames();
+      m_updateMotionData = false;
+   }
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
@@ -1354,6 +1360,14 @@ void CArnoldSession::DoUpdate()
             // since DoUpdate will call DoExport (isExported=false)
             //translator->m_impl->DoExport();
             translatorsToUpdate.push_back(translator);
+
+            if (motionBlur && translator->RequiresMotionData())
+            {
+               // this node needs to be export with motion
+               exportMotion = true;
+               mbRequiresFrameChange = true;
+            }
+
          } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
             translator->Delete();
@@ -1479,7 +1493,6 @@ void CArnoldSession::DoUpdate()
       AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    }
    // Now do an update for all the translators in our list
-         
    if (!exportMotion)
    {
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
@@ -1517,7 +1530,9 @@ void CArnoldSession::DoUpdate()
       }
       m_motionStep = 0;
       if (mbRequiresFrameChange)
+      {
          MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      }
 
       m_isExportingMotion = false;
    }
@@ -2011,4 +2026,26 @@ USE_TX:
    }
    if (progressBar && progressStarted) MProgressWindow::endProgress();
    
+}
+
+void CArnoldSession::RecomputeMotionData()
+{
+
+   m_updateMotionData = true;
+   
+   // check all translators in the scene
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
+   {
+      // this node doesn't require motion data, no need to modify it
+      if (!it->second->RequiresMotionData() || !it->second->m_impl->m_animArrays) 
+         continue;
+
+      // this is going to fully re-generate these nodes
+      // and it will re-export with the appropriate motion steps
+      it->second->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
+      it->second->RequestUpdate();
+   }
+   RequestUpdate();
 }

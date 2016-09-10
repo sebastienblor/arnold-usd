@@ -1,6 +1,6 @@
 #include "OptionsTranslator.h"
 #include "translators/DagTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
 
 #include "utils/MayaUtils.h"
 
@@ -727,7 +727,6 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeDeclare(options, "frame", "constant FLOAT");
    AiNodeSetFlt(options, "frame", (float)GetExportFrame());
 
-
    if (!IsExported())
    {
       // render layer name
@@ -811,6 +810,16 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    // It is set at each scene save.
    // we don't want this to propagate any dirtiness signal.
    if (plugName == "ARV_options") return;
+
+   if (plugName.length() == 0) return;
+
+   if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || 
+         plugName == "motion_steps" || plugName == "range_type" || plugName == "motion_frames" ||
+         plugName == "motion_start" || plugName == "motion_end")
+   {
+      // Need to re-export all the nodes that Require Motion
+      m_impl->m_session->RecomputeMotionData();
+   }
 
    CNodeTranslator::NodeChanged(node, plug);
 }

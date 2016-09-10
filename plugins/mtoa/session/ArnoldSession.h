@@ -178,6 +178,9 @@ public:
    
    // from a Maya name, get corresponding name in Arnold scene
    const char *GetArnoldObjectName(const MString &mayaName) const;
+
+   // this is going to recreate all nodes that require motion data (when MB parameters are edited)
+   void RecomputeMotionData();
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -214,6 +217,8 @@ private:
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
       ,  m_updateTx(false)
+      ,  m_updateMotionData(false)
+
 
       //,  m_continuousUpdates(true)
 
@@ -290,6 +295,7 @@ protected:
    COptionsTranslator*  m_optionsTranslator;
    bool                 m_is_active;
    bool                 m_updateTx;
+   bool                 m_updateMotionData;
    //bool                 m_continuousUpdates;
    //AOVSet m_aovs;
 };  // class CArnoldSession
