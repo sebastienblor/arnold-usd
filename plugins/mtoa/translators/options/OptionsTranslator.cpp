@@ -725,7 +725,9 @@ void COptionsTranslator::Export(AtNode *options)
    ExportAtmosphere(options);   
 
    // frame number. We're now updating it at every Update (#2319)
-   AiNodeDeclare(options, "frame", "constant FLOAT");
+   if (AiNodeLookUpUserParameter(options, "frame") == NULL)
+      AiNodeDeclare(options, "frame", "constant FLOAT");
+   
    AiNodeSetFlt(options, "frame", (float)GetExportFrame());
 
    if (!IsExported())

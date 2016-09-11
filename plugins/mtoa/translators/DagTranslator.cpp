@@ -66,6 +66,11 @@ bool CDagTranslator::IsTransformPlug(const MPlug &plug)
       return (plugName == "translate" || plugName == "translateX" || plugName == "translateY" || plugName == "translateZ");
    if (firstChar == 'r')
       return (plugName == "rotate" || plugName == "rotateX" || plugName == "rotateY" || plugName == "rotateZ");
+   if (firstChar == 'p')
+      return (plugName == "parentMatrix");
+   if (firstChar == 'w')
+      return (plugName == "worldMatrix");
+
 
    return false;        
 }

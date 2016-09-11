@@ -662,14 +662,17 @@ static declarationPointer declarationPointers[] = {
 template <signed ATTR>
 void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
 {
-   if (declarationPointers[declType](node, attrName, ATTR))
+   if (AiNodeLookUpUserParameter(node, attrName) == NULL)
    {
-      const unsigned int numElements = plug.numElements();
-      AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
-      for (unsigned int i = 0; i < numElements; ++i)
-         TExportArrayAttribute<ATTR>(arr, plug, i);
-      AiNodeSetArray(node, attrName, arr);
+      if (!declarationPointers[declType](node, attrName, ATTR)) return;
    }
+
+   const unsigned int numElements = plug.numElements();
+   AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
+   for (unsigned int i = 0; i < numElements; ++i)
+      TExportArrayAttribute<ATTR>(arr, plug, i);
+   AiNodeSetArray(node, attrName, arr);
+
 }
 
 template <signed ATTR>
@@ -679,8 +682,13 @@ void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttr
       TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
    else
    {
-      if (AiNodeDeclareConstant(node, attrName, ATTR))
-         TExportAttribute<ATTR>(node, plug, attrName);
+
+      if (AiNodeLookUpUserParameter(node, attrName) == NULL)
+      {
+         if (!AiNodeDeclareConstant(node, attrName, ATTR)) return;
+      }
+
+      TExportAttribute<ATTR>(node, plug, attrName);
    }
 }
 
@@ -796,8 +804,12 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
       }
       else
          AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_ for attribute: %s!", name.asChar());
+      
+      /*
+      This line was preventing IPR updates of user attributes
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          continue;
+         */
 
       if (translator)
          pAttr = translator->m_impl->GetOverridePlug(pAttr);
@@ -891,7 +903,10 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
             AtNode* connectedNode = translator->ExportConnectedNode(connectedPlug);
             if (connectedNode != 0)
             {
-               AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE);
+               if (AiNodeLookUpUserParameter(anode, aname) == NULL) 
+               {
+                  if (!AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE)) continue;
+               }
                AiNodeSetPtr(anode, aname, connectedNode);
             }
          }
