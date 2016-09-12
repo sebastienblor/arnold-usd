@@ -447,9 +447,7 @@ def aiRenderSettingsBuiltCallback(currentRenderer):
                                                     utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
 
-def aiExecuteRendererAddOneTabToGlobalsWindowCreateProcCallback(createProc):
-    # Most create procs are now deferred till the tab is selected
-    # These two are the default tabs, so we don't defer them
+def aiRendererAddOneTabToGlobalsWindowCreateProcCallback(createProc):
     createProcs = ['createArnoldRendererCommonGlobalsTab',
                    'createArnoldRendererGlobalsTab',
                    'createArnoldRendererSystemTab',
@@ -546,8 +544,9 @@ def registerCallbacks():
                    hook="renderSettingsBuilt",
                    owner="arnold")
 
-    cmds.callbacks(addCallback=aiExecuteRendererAddOneTabToGlobalsWindowCreateProcCallback,
-                   hook="executeRendererAddOneTabToGlobalsWindowCreateProc",
+    # This callback is new for Maya 2018.
+    cmds.callbacks(addCallback=aiRendererAddOneTabToGlobalsWindowCreateProcCallback,
+                   hook="rendererAddOneTabToGlobalsWindowCreateProc",
                    owner="arnold")
 
 def clearCallbacks():
