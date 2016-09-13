@@ -57,19 +57,19 @@ MHWRender::MPxGeometryOverride*
 
 CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const MObject& obj) 
    : MHWRender::MPxGeometryOverride(obj)
-   , m_radius(0)
-   , m_format(0)
+   , p_skydomeNode(0)
    , m_wireframeShader(0)
    , m_activeWireframeShader(0)
    , m_texturedShader(0)
    , m_texturedColorManagedShader(0)
-   , p_skydomeNode(0)
    , m_depthStencilState(0)
    , m_cullNoneState(0)
    , m_cullBackState(0)
    , m_cullFrontState(0)
-   , m_geometryDirty(true)
    , m_flipVData(true)
+   , m_radius(0)
+   , m_format(0)
+   , m_geometryDirty(true)
 {
    m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3] = 1.0f;
 
@@ -682,11 +682,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          {
             texture->setHasAlpha(true);
          }
-         bool assignedTexture = false;
          MStatus status = shaderInst->setParameter("map", textureAssignment);
-         if (MStatus::kSuccess == status)
-            assignedTexture = true;
-
+         
          // Check for transparency
          //
          float hwTexAlpha  = useUnconnectedColor ? 0.3f : depNode.findPlug("hwtexalpha").asFloat();

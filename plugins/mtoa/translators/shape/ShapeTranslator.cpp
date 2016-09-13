@@ -1,5 +1,6 @@
 #include "ShapeTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
+#include "scene/MayaScene.h"
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
@@ -9,6 +10,19 @@
 
 #include <common/UtilityFunctions.h>
 #include <utils/HashUtils.h>
+
+void CShapeTranslator::Init()
+{
+   CDagTranslator::Init();
+   m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+   m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+}
+bool CShapeTranslator::RequiresMotionData()
+{
+   return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
+}
+
+
 
 void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
 {
@@ -62,8 +76,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
 void CShapeTranslator::ExportLightLinking(AtNode* shape)
 {
-   CArnoldSession* session = GetSession();
-   session->ExportLightLinking(shape, m_dagPath);
+   m_impl->m_session->ExportLightLinking(shape, m_dagPath);
    return;
 }
 
@@ -95,30 +108,37 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    MakeArnoldVisibilityFlags(helper);
 }
 
-AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders)
-{
-   // insert shading group shader to evaluate extra AOV inputs
-   AtNode* shadingEngine = AiNode("MayaShadingEngine");
-
-   AddAOVDefaults(shadingEngine, aovShaders);
-
-   AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
-   AiNodeLink(rootShader, "beauty", shadingEngine);
-   return shadingEngine;
-}
-
-// called for shaders connected directly to shapes
-AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug, CNodeTranslator** outTranslator)
-{
-   return ExportRootShader(ExportNode(plug, true, outTranslator));
-}
 
 // called for root shaders that have already been created
-AtNode* CShapeTranslator::ExportRootShader(AtNode *rootShader)
+void CShapeTranslator::SetRootShader(AtNode *rootShader)
 {
-   std::vector<AtNode*> aovShaders;
-   return CreateShadingGroupShader(rootShader, aovShaders);
+   // handle the situation where a previous rootShader was deleted
+   if (rootShader == NULL)
+   {
+      AtNode *shape = GetArnoldNode();
+      if (shape != NULL)
+         AiNodeSetPtr(shape, "shader", NULL);
+
+      return;
+   }
+   
+   // First check if the internal SG node has already been created
+   AtNode *shadingEngine = GetArnoldNode("shadingEngine");
+   if (shadingEngine == NULL)
+   {
+      // register this AtNode in our Translator, so that it is properly cleared later
+      shadingEngine = AddArnoldNode("MayaShadingEngine", "shadingEngine");
+      std::vector<AtNode*> aovShaders;
+      m_impl->AddAOVDefaults(shadingEngine, aovShaders);
+   }
+   AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
+   AiNodeLink(rootShader, "beauty", shadingEngine);
+
+   AtNode *shape = GetArnoldNode();
+   if (shape != NULL)
+      AiNodeSetPtr(shape, "shader", shadingEngine);
 }
+
 
 MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
@@ -138,4 +158,34 @@ MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
       }
    }
    return MPlug();
+}
+
+
+static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
+{
+   // Shading assignments are done with the instObjGroups attr, so we only
+   // need to update when that is the attr that changes.
+   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
+   {
+      CShapeTranslator * translator = static_cast< CShapeTranslator* >(clientData);
+      translator->RequestUpdate();
+   }
+}
+
+void CShapeTranslator::AddUpdateCallbacks()
+{
+   CDagTranslator::AddUpdateCallbacks();
+
+   MObject dagPathNode = m_dagPath.node();
+   MStatus status;
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagPathNode, ShaderAssignmentCallback, this, &status);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
+}
+
+bool CShapeTranslator::RequiresShaderExport()
+{
+   CRenderOptions *renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
+   if (renderOptions == NULL) return false;
+   return (renderOptions->outputAssMask() & AI_NODE_SHADER) ||
+       renderOptions->forceTranslateShadingEngines();
 }

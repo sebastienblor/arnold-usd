@@ -18,22 +18,33 @@ class DLLEXPORT CShaderTranslator
    :  public CNodeTranslator
 {
 public:
-   AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="");
    static void* creator()
    {
       return new CShaderTranslator();
    }
+   //---- virtual functions derived from CNodeTranslator
    virtual AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* atNode);
-   virtual void ExportMotion(AtNode *shader, unsigned int step);
-   virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
+   virtual void ExportMotion(AtNode *shader);
    virtual bool RequiresMotionData();
-
+   
 protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
+   //----
+
+   // Add all AOV outputs for this node
+   // This is accomplished by detecting connections from the current node to the aiCustomAOV
+   // attribute of a shadingEngine node.  We then create an AOV writing node for each connection.
+   // To be used in CreateArnoldNodes(), typically : 
+   // return ProcessAOVOutput(AddArnoldNode("shader_type"));
    AtNode* ProcessAOVOutput(AtNode* shader);
-   void AssociateAOVsWithShadingGroups();
-   virtual void ExportBump(AtNode* shader);
 
-protected:
-   std::map<std::string, MPlugArray> m_aovShadingGroups;
+   // This function exports the bump for current shader
+   // This function exports the bump for current shader
+   void ExportBump(AtNode* shader);
+
+private:
+
+   // internal use only. Do Not override it
+   virtual void CreateImplementation();
 };

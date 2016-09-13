@@ -21,8 +21,6 @@
       virtual void Export(AtNode* shader);\
       AtNode* CreateArnoldNodes();\
       bool DependsOnOutputPlug() { return true; } \
-   protected:\
-      bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
    };
 
 class CSkyShaderTranslator
@@ -46,10 +44,25 @@ SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
-SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
 SHADER_TRANSLATOR(CMayaPhongTranslator);
+SHADER_TRANSLATOR(CMayaPhongETranslator);
+SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
+SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
+
+
+class CDisplacementTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CDisplacementTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   bool DependsOnOutputPlug() { return true; }
+
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};
 
 class CMayaShadingSwitchTranslator : public CShaderTranslator{
 private:
@@ -77,32 +90,6 @@ public:
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
-   
-   // We disable cache to prevent reusing the same bump for
-   //  different shaders:
-   //
-   // Maya:
-   //  ----------       -----------
-   //  | Bump2d | --->  | Shader1 |
-   //  ---------- \     -----------
-   //              \    -----------
-   //               \-> | Shader2 |
-   //                   -----------
-   //             __
-   //             ||
-   //            _||_
-   //            \  /
-   //             \/
-   //
-   // Arnold:
-   //  -----------     ---------
-   //  | Shader1 | --> | Bump1 |
-   //  -----------     ---------
-   //  -----------     ---------
-   //  | Shader2 | --> | Bump2 |
-   //  -----------     ---------
-   //
-   bool DisableCaching() {return true;};
 };
 
 class CBump3DTranslator : public CShaderTranslator
@@ -111,9 +98,7 @@ public:
    static void* creator(){return new CBump3DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
-   // We disable cache to prevent reusing the same bump for
-   //  different shaders. As done in CBump2DTranslator
-   bool DisableCaching() {return true;};
+
 };
 
 class CAnimCurveTranslator : public CShaderTranslator
@@ -121,7 +106,7 @@ class CAnimCurveTranslator : public CShaderTranslator
 public:
    static void* creator(){return new CAnimCurveTranslator();}
    virtual void Export(AtNode* shader);
-   virtual void ExportMotion(AtNode* shader, unsigned int step);
+   virtual void ExportMotion(AtNode* shader);
    AtNode* CreateArnoldNodes();
 };
 
@@ -132,6 +117,8 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
+private:
+   MString m_colorSpace;
 };
 
 class CAiHairTranslator : public CShaderTranslator{
@@ -147,6 +134,8 @@ public:
    static void* creator(){return new CAiImageTranslator();}
 
    virtual void Export(AtNode* shader);
-
+   static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
+private:
+   MString m_colorSpace;
 };

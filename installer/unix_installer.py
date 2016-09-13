@@ -70,7 +70,7 @@ installDir = ''
 
 mayaVersionDir = ''
 
-if sys.argv[1] != '2016' and sys.argv[1] != '2017':
+if sys.argv[1] != '2016' and sys.argv[1] != '2017' and sys.argv[1] != '2018':
     mayaVersionDir = '%s-x64' % sys.argv[1]
 else:
     mayaVersionDir = sys.argv[1]
@@ -109,15 +109,13 @@ def EnsureDir(d):
         return False
 
 if silent:
-    homeDir = os.path.expanduser(userString)
-    installDir = os.path.join(homeDir, 'solidangle', 'mtoa', mayaVersion)
+    installDir = os.path.join('/opt', 'solidangle', 'mtoa', mayaVersion)
     if not EnsureDir(installDir):
         sys.exit(0)
 else:
     while True:
-        homeDir = os.path.expanduser(userString)
         InstallerHeader()
-        installDir = os.path.join(homeDir, 'solidangle', 'mtoa', mayaVersion)
+        installDir = os.path.join('/opt', 'solidangle', 'mtoa', mayaVersion)
         print('''
         Select the installation directory.
         [%s]
@@ -227,6 +225,13 @@ if installMode == 1: # do the proper installation
     else:
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
     shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
+    
+    if sys.argv[1] == '2017' or sys.argv[1] == '2018':
+        homeDir = os.path.expanduser(userString)
+        templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
+        if EnsureDir(templatesDir):
+            shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
+            shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
 
 if not silent:
     os.system('clear')

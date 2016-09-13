@@ -1,14 +1,13 @@
 #include "extension/Extension.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
 #include <maya/MGlobal.h>
+#include <maya/MFnCamera.h>
+#include <maya/MMatrix.h>
 
 #include "XGenTranslator.h"
-
-#include "session/SessionOptions.h"
 
 
 #include <string>
@@ -36,12 +35,6 @@ AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
    return AddArnoldNode("procedural");
-}
-
-void CXgDescriptionTranslator::Export(AtNode* instance)
-{
-   //AiMsgInfo("[CXgDescriptionTranslator] Exporting %s", GetMayaNodeName().asChar());
-   Update(instance);
 }
 
 struct DescInfo
@@ -114,8 +107,9 @@ struct DescInfo
    }
 };
 
-void CXgDescriptionTranslator::Update(AtNode* procedural)
+void CXgDescriptionTranslator::Export(AtNode* procedural)
 {
+
    //AiMsgInfo("[CXgDescriptionTranslator] Update()");
 
    // Build the path to the procedural dso
@@ -133,7 +127,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 #endif
 
       // In Batch render, file name has a number added. Get the original name
-      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+      if(GetSessionOptions().IsBatch())
       {
          int exists = 0;
             MGlobal::executeCommand("objExists defaultArnoldRenderOptions.mtoaOrigFileName", exists);
@@ -248,10 +242,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                //  use render globals moblur settings
                if (info.moblur == 0)
                {
-                  if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
+                  if(GetSessionOptions().IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
                   {
-                     info.motionBlurSteps = CMayaScene::GetArnoldSession()->GetMotionFrames().size();
-                     info.moblurFactor = float(CMayaScene::GetArnoldSession()->GetMotionByFrame());
+                     GetMotionFrames(info.motionBlurSteps);
+                     info.moblurFactor = (float)GetMotionByFrame();
                   }
                }
                // use  xgen per  description moblur settings
@@ -348,50 +342,46 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // Hardcoded values for now.
       //float s = 100000.f * fUnitConvFactor;
       //info.setBoundingBox( -s,-s,-s, s, s, s );
+      MDagPath camera = GetSessionOptions().GetExportCamera();
 
-      if(CMayaScene::GetArnoldSession())
+      if (camera.isValid())
       {
-         MDagPath camera = m_session->GetExportCamera();
+         MStatus status;
+         MFnDependencyNode fnNode(camera.node());
+         MFnCamera fnCamera(camera.node());
 
-         if (camera.isValid())
+         // info.bCameraOrtho
+         MPlug plug = fnNode.findPlug("aiTranslator", status);
+         if (status && !plug.isNull())
          {
-            MStatus status;
-            MFnDependencyNode fnNode(camera.node());
-            MFnCamera fnCamera(camera.node());
-
-            // info.bCameraOrtho
-            MPlug plug = fnNode.findPlug("aiTranslator", status);
-            if (status && !plug.isNull())
-            {
-               if (plug.asString() == MString("orthographic"))
-                  info.bCameraOrtho = true;
-               else if(plug.asString() == MString("perspective"))
-                  info.bCameraOrtho = false;
-               else
-                  info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
-            }
+            if (plug.asString() == MString("orthographic"))
+               info.bCameraOrtho = true;
+            else if(plug.asString() == MString("perspective"))
+               info.bCameraOrtho = false;
             else
                info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
-
-            // info.setCameraPos
-            MMatrix tm = camera.inclusiveMatrix(&status);
-            info.setCameraPos( (float)tm[3][0], (float)tm[3][1], (float)tm[3][2] );
-
-            // info.fCameraFOV
-            info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * AI_RTOD;
-
-            // info.setCameraInvMat
-            // This is correct. Maya expects a mix of the inverted and not inverted matrix
-            //  values, and also with translation values in a different place.
-            MMatrix tmi = camera.inclusiveMatrixInverse(&status);
-            info.setCameraInvMat((float)tm[0][0], (float)tm[1][0], (float)tm[2][0], (float)tm[0][3],
-                                 (float)tm[0][1], (float)tm[1][1], (float)tm[2][1], (float)tm[1][3],
-                                 (float)tm[0][2], (float)tm[1][2], (float)tm[2][2], (float)tm[2][3],
-                                 (float)tmi[3][0], (float)tmi[3][1], (float)tmi[3][2], (float)tm[3][3]);
-
-            // info.fCamRatio
-            info.fCamRatio = (float)fnCamera.aspectRatio(&status);
          }
+         else
+            info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
+
+         // info.setCameraPos
+         MMatrix tm = camera.inclusiveMatrix(&status);
+         info.setCameraPos( (float)tm[3][0], (float)tm[3][1], (float)tm[3][2] );
+
+         // info.fCameraFOV
+         info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * AI_RTOD;
+
+         // info.setCameraInvMat
+         // This is correct. Maya expects a mix of the inverted and not inverted matrix
+         //  values, and also with translation values in a different place.
+         MMatrix tmi = camera.inclusiveMatrixInverse(&status);
+         info.setCameraInvMat((float)tm[0][0], (float)tm[1][0], (float)tm[2][0], (float)tm[0][3],
+                              (float)tm[0][1], (float)tm[1][1], (float)tm[2][1], (float)tm[1][3],
+                              (float)tm[0][2], (float)tm[1][2], (float)tm[2][2], (float)tm[2][3],
+                              (float)tmi[3][0], (float)tmi[3][1], (float)tmi[3][2], (float)tm[3][3]);
+
+         // info.fCamRatio
+         info.fCamRatio = (float)fnCamera.aspectRatio(&status);
       }
    }
 
@@ -441,19 +431,26 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          //AiNodeSetPtr( instance, "node", shape );
 
          // Export shaders
-         rootShader = ExportShaders( shape );
+         rootShader = ExportRootShader(shape);
 
-         ExportMatrix(shape, 0);
+         ExportMatrix(shape);
       }
       // For other patches we reuse the shaders and create new procedural
       else
       {
-         shape = AiNode("procedural");
+         MString nameKey = "proc";
+         nameKey += i;
+         // we store this procedural in our translator using a key based on its index.
+         // This way it'll be properly cleared or re-used later in the IPR session
+         shape = GetArnoldNode(nameKey.asChar());
+         if (shape == NULL)
+            shape = AddArnoldNode("procedural", nameKey.asChar());
 
          AiNodeDeclare( shape, "xgen_shader", "constant ARRAY NODE" );
          AiNodeSetArray(shape, "xgen_shader", AiArray(1, 1, AI_TYPE_NODE, rootShader));
 
-         /*AtNode* otherInstance = AiNode("ginstance");
+         /*AtNode* otherInstance = GetArnoldNode(nameKey.asChar());
+         if (otherInstance == NULL) otherInstance = AddArnoldNode("ginstance", nameKey.asChar());
          AiNodeSetStr(otherInstance, "name", NodeUniqueName(otherInstance, buf));
          AiNodeSetPtr( otherInstance, "node", shape );
          AiNodeSetPtr( otherInstance, "shader", rootShader );
@@ -483,7 +480,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       bool batchModeOk = false;
       
       // if maya session is in batch or  xgen render mode is batch we want to 
-      if((CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch()) || (info.renderMode == 3))
+      if(GetSessionOptions().IsBatch() || (info.renderMode == 3))
       {
          batchModeOk = true;
       }
@@ -491,7 +488,11 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // check if we don't have an alembic
       if (!info.hasAlembicFile) // we don't have the alembic
       {
-         AiMsgError("[xgen] Can't motion blur, alembic file '%s' has not been exported", strGeomFile.c_str());
+         // Only print the error if motion blur is enabled
+         if (info.moblur != 2 && info.motionBlurSteps > 1 && info.moblurFactor > 0.0f)
+         {
+            AiMsgError("[xgen] Can't motion blur, alembic file '%s' has not been exported", strGeomFile.c_str());
+         }
 
          info.moblur = 2; // turning off xgen motion blur
          info.renderMode = 1; // set to live mode  for good measure
@@ -514,12 +515,14 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
          if (info.moblur == 0) // use render globals
          {
-            if(CMayaScene::GetArnoldSession())
+
+            AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
+            AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
+            
+            unsigned int motionFramesCount;
+            const double *steps = GetMotionFrames(motionFramesCount);
+            if (steps != NULL && motionFramesCount > 0)
             {
-               AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
-               AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
-               
-               std::vector<double> steps = CMayaScene::GetArnoldSession()->GetMotionFrames();
             
                for (uint sampCount = 0; sampCount < info.motionBlurSteps; sampCount ++)
                {
@@ -535,11 +538,6 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                   AiArraySetFlt(samples, sampCount, sample);
                }
                AiNodeSetArray(shape, "time_samples", samples);
-            }
-            else
-            {
-               AiMsgWarning("[xgen] Motion blur sample settings cannot be acquired from Arnold Render Globals");
-               mbSamplesString += std::string("0.0 ");
             }
          }
          
@@ -691,14 +689,18 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       ExportLightLinking(shape);
    }
 }
+void CXgDescriptionTranslator::ExportShaders()
+{
+   ExportRootShader(GetArnoldNode());
+}
 
-void CXgDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
+void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(shape, step);
+   ExportMatrix(shape);
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -771,12 +773,12 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputString ( data );
 }
 
-AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
+AtNode* CXgDescriptionTranslator::ExportRootShader(AtNode* instance)
 {
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
          AiNodeDeclare( instance, "xgen_shader", "constant ARRAY NODE" );

@@ -11,7 +11,7 @@ public:
    AtNode* CreateArnoldNodes();
    void Export(AtNode*);
    void Update(AtNode*);
-   void ExportMotion(AtNode*, unsigned int);
+   void ExportMotion(AtNode*);
    static void NodeInitializer(CAbTranslator);
    static void* creator();
 };
@@ -27,17 +27,11 @@ AtNode*  CApiShapeTranslator::CreateArnoldNodes()
 }
 
 void CApiShapeTranslator::Export(AtNode* shape)
-{
-   AiMsgInfo("[apiShape extension] Exporting %s", GetMayaNodeName().asChar());
-   Update(shape);
-}
-
-void CApiShapeTranslator::Update(AtNode* shape)
-{
-   AiMsgInfo("[apiShape extension] Update()");
+{   
+   AiMsgInfo("[apiShape extension] Export()");
 
    // Export the transform matrix
-   ExportMatrix(shape, 0);
+   ExportMatrix(shape);
 
    // Get the visibiliy and render flags set.
    ProcessRenderFlags(shape);
@@ -45,13 +39,13 @@ void CApiShapeTranslator::Update(AtNode* shape)
    return;
 }
 
-void CApiShapeTranslator::ExportMotion(AtNode* shape, unsigned int step)
+void CApiShapeTranslator::ExportMotion(AtNode* shape)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(shape, step);
+   ExportMatrix(shape);
 }
 
 void CApiShapeTranslator::NodeInitializer(CAbTranslator context)

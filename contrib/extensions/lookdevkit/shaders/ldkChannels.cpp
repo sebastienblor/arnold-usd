@@ -71,7 +71,11 @@ shader_evaluate
    // Evaluate color input if needed
    if (channelR < CHANNEL_A || channelG < CHANNEL_A || channelB < CHANNEL_A || channelA < CHANNEL_A) 
    {
-      input.rgb() = AiShaderEvalParamRGB(p_inColor);
+      AtRGB inColorRGB = AiShaderEvalParamRGB(p_inColor);
+      input.r = inColorRGB.r;
+      input.g = inColorRGB.g;
+      input.b = inColorRGB.b;
+      input.a= 1.f;
    }
    // Evaluate alpha input if needed
    if (channelR == CHANNEL_A || channelG == CHANNEL_A || channelB == CHANNEL_A || channelA == CHANNEL_A) 

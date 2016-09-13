@@ -1,6 +1,5 @@
-#include "extension/Extension.h"
-#include "utils/time.h"
-#include "scene/MayaScene.h"
+//#include "extension/Extension.h"
+//#include "utils/time.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
@@ -15,9 +14,6 @@
 #include "BifrostTranslator.h"
 #include "../common/bifrostObjectUserData.h"
 #include "../common/bifrostHelpers.h"
-
-
-#include "session/SessionOptions.h"
 
 #include <bifrostapi/bifrost_component.h>
 #include <bifrostapi/bifrost_pointchannel.h>
@@ -99,7 +95,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
          return AddArnoldNode("volume");
 
       case CBIFROST_LIQUID:
-         AiMsgError("[BIFROST]: liquid not implemented yet : %s", m_object.c_str());
+         AiMsgError("[bifrost]: liquid not implemented yet : %s", m_object.c_str());
       // not implemented for now
       break;
 
@@ -111,10 +107,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    return AddArnoldNode("procedural");
 }
 
-void CBfDescriptionTranslator::Export(AtNode* instance)
-{
-   Update(instance);
-}
+
 
 void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 {
@@ -138,7 +131,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
       
       if (!loaded || !objectRef.objectExists())
       {
-         AiMsgError("[BIFROST]: foam data %s  not found", m_object.c_str());
+         AiMsgError("[bifrost]: foam data %s  not found", m_object.c_str());
          return;
       }
    }
@@ -218,9 +211,9 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    float inv_fps = 1.f / (float)fps;
 
    // can we go directly to maxDepth instead of looping ?
-   for (Bifrost::API::TreeIndex::Depth d = 0; d < layout.depthCount(); d++)
+   for (Bifrost::API::TreeIndex::Depth d = 0; d < (int)layout.depthCount(); d++)
    {
-      for (Bifrost::API::TreeIndex::Tile t = 0; t < layout.tileCount(d); t++)
+      for (Bifrost::API::TreeIndex::Tile t = 0; t < (int)layout.tileCount(d); t++)
       {
          Bifrost::API::TreeIndex tindex(t,d);
 
@@ -240,7 +233,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
          {
             // Convert position to world space
             const amino::Math::vec3f position = similarity.apply(voxelScale * positionTile[i]);
-            const amino::Math::vec3f velocity = (i < velocityTile.count()) ? velocityTile[i] : amino::Math::vec3f();
+            const amino::Math::vec3f velocity = (i < velocityTile.count()) ? velocityTile[i] : amino::Math::vec3f(0.f, 0.f, 0.f);
 
             AtPoint part_pos;
             part_pos.x = position[0];
@@ -304,9 +297,9 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    // Isn't there a way to get it ?
    // can we go directly to maxDepth instead of looping ?
    int pindex = 0;
-   for (Bifrost::API::TreeIndex::Depth d = 0; d < layout.depthCount(); d++)
+   for (Bifrost::API::TreeIndex::Depth d = 0; d < (int)layout.depthCount(); d++)
    {
-      for (Bifrost::API::TreeIndex::Tile t = 0; t < layout.tileCount(d); t++)
+      for (Bifrost::API::TreeIndex::Tile t = 0; t < (int)layout.tileCount(d); t++)
       {
          Bifrost::API::TreeIndex tindex(t,d);
 
@@ -316,7 +309,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
          for (size_t i = 0; i < elementCount; ++i, ++pindex)
          {
-            if (pindex >= points.size()) continue; // this shouldn't be happening but it does. frame mismatch ?
+            if (pindex >= (int)points.size()) continue; // this shouldn't be happening but it does. frame mismatch ?
             
          // Get Tile starting point for each of the extra-channels
             for (size_t ch = 0; ch < extraChannels.count(); ch++)
@@ -364,10 +357,9 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    }
 
 
-   ExportMatrix(node, 0);   
+   ExportMatrix(node);   
    
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
       ExportBifrostShader();
    ExportLightLinking(node);
 
@@ -388,7 +380,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
       if (!loaded || !objectRef.objectExists())
       {
-         AiMsgError("[BIFROST]: Aero data %s  not found", m_object.c_str());
+         AiMsgError("[bifrost]: Aero data %s  not found", m_object.c_str());
          return;
       }
    }
@@ -418,7 +410,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
    // Check if the bounds is valid
    if (bboxMin[0] >= bboxMax[0] || bboxMin[1] >= bboxMax[1] || bboxMin[2] >= bboxMax[2])
    {
-      AiMsgError("[BIFROST]: bounds for %s  are not valid", m_object.c_str());
+      AiMsgError("[bifrost]: bounds for %s  are not valid", m_object.c_str());
       return;
    }
  
@@ -427,10 +419,9 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
    AiNodeSetByte(shape, "visibility", 243);
 
-   ExportMatrix(shape, 0);   
+   ExportMatrix(shape);   
    
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
       ExportBifrostShader();
       // we need to hack this because a volume shader doesn't work with a 
@@ -450,8 +441,8 @@ void CBfDescriptionTranslator::UpdateLiquid(AtNode *shape)
 }
 
 
-void CBfDescriptionTranslator::Update(AtNode* node)
-{
+void CBfDescriptionTranslator::Export(AtNode* node)
+{   
    switch (m_render_type)
    {
       default:
@@ -467,13 +458,13 @@ void CBfDescriptionTranslator::Update(AtNode* node)
    }
 }
 
-void CBfDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
+void CBfDescriptionTranslator::ExportMotion(AtNode* shape)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(shape, step);
+   ExportMatrix(shape);
 }
 
 void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -483,12 +474,12 @@ void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
 void CBfDescriptionTranslator::ExportBifrostShader()
 {
-   AtNode *node = GetArnoldRootNode();
+   AtNode *node = GetArnoldNode();
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       { 
          // Push the shader in the vector to be assigned later to mtoa_shading_groups

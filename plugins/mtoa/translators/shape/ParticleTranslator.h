@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MFnParticleSystem.h>
 #include <maya/MNodeMessage.h>
@@ -14,11 +14,11 @@
 
 
 class CParticleTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
    CParticleTranslator() :
-      CGeometryTranslator(),
+      CShapeTranslator(),
       m_hasRGB(false),
       m_hasOpacity(false),
       m_hasRadiusPP(false),
@@ -38,12 +38,9 @@ public:
       m_inheritCacheTxfm(false),
       m_exportId(false),
       m_minPixelWidth(0.0f)
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "points";
-   }
+   {}
 
+   
    static void* creator()
    {
       return new CParticleTranslator();
@@ -52,11 +49,9 @@ public:
 
 
    static void NodeInitializer(CAbTranslator context);
-   virtual void Update(AtNode* anode);
-   void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
-
+   virtual void Export(AtNode* anode);
+   virtual void ExportMotion(AtNode* anode);
+   
 
 protected:
 

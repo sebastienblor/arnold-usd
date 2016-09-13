@@ -309,7 +309,7 @@ public:
    AtNode *points_op;
    bool voxels;
    
-   GradientDescription() : elements(0), nExtraScalarElements(0), extraScalarElements(0), inputMax(1.f), invInputDelta(1.f), data(0), extraScalarData(0), points_op( 0), voxels(false) 
+   GradientDescription() : elements(0), extraScalarElements(0), nExtraScalarElements(0), inputMax(1.f), invInputDelta(1.f), data(0), extraScalarData(0), points_op( 0), voxels(false) 
    {}
    ~GradientDescription() {Release();}
    

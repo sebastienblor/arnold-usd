@@ -10,6 +10,7 @@ import shlex
 import sys
 import ctypes
 import string
+import locale
 from hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
 
 def even(num):
@@ -405,6 +406,20 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     imageDir = imageDir if imageDir else 'data'
     imageDir = pm.workspace(expandName=imageDir);
 
+    codecs = ['utf-8', 'latin-1']
+    for i in codecs:
+        try:
+            partialPath = partialPath.decode(i)
+            break
+        except UnicodeDecodeError:
+            pass
+    for i in codecs:
+        try:
+            imageDir = imageDir.decode(i)
+            break
+        except UnicodeDecodeError:
+            pass   
+
     if pathType in [pm.api.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
         result = os.path.join(imageDir, 'tmp', partialPath)
     elif pathType in [pm.api.MCommonRenderSettingsData.kFullPathImage, 'full']:
@@ -413,6 +428,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         raise TypeError("Invalid pathType")
 
     result = result.replace("\\", "/")
+    result = convertToUnicode(result)
     if createDirectory:
         dir =  os.path.dirname(result)
         try:
@@ -485,3 +501,12 @@ def getSourceImagesDir():
         return ret
     else:
         return [cmds.workspace(expandName='sourceimages')]
+
+def getActiveRenderLayerName():
+    renderLayers = cmds.listConnections('renderLayerManager.renderLayerId')
+    if (len(renderLayers) > 1):
+        layer = cmds.editRenderLayerGlobals(query=True, currentRenderLayer=True)
+        if (cmds.getAttr(layer+'.identification') == 0):
+            return 'masterLayer'
+        return layer
+    return ''

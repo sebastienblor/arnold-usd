@@ -20,9 +20,15 @@
 #include <maya/MVector.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnNumericAttribute.h>
+#include "translators/NodeTranslatorImpl.h"
 
 #include <vector>
 #include <string>
+
+bool CLightTranslator::RequiresMotionData()
+{
+   return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
+}
 
 void CLightTranslator::Export(AtNode* light)
 {
@@ -30,13 +36,13 @@ void CLightTranslator::Export(AtNode* light)
    AtMatrix matrix;
 
    // Early out, light isn't visible so no point exporting anything else.
-   if (false == m_session->IsRenderablePath(m_dagPath))
+   if (!IsRenderable())
    {
-      AiNodeSetDisabled(GetArnoldRootNode(), true);
-      //AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
+      AiNodeSetDisabled(GetArnoldNode(), true);
+      //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);
       return;
    }
-   AiNodeSetDisabled(GetArnoldRootNode(), false);
+   AiNodeSetDisabled(GetArnoldNode(), false);
 
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.
@@ -59,12 +65,12 @@ void CLightTranslator::Export(AtNode* light)
       m_session->ScaleArea(intensity);
       AiNodeSetFlt(light, "intensity", intensity);*/
       float exposure = AiNodeGetFlt(light, "exposure");
-      m_session->ScaleLightExposure(exposure);
+      m_impl->m_session->ScaleLightExposure(exposure);
       AiNodeSetFlt(light, "exposure", exposure);
    }
 
    AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
-   AiNodeSetFlt(light,  "shadow_density",  FindMayaObjectPlug("aiShadowDensity").asFloat());
+   AiNodeSetFlt(light,  "shadow_density",  FindMayaPlug("aiShadowDensity").asFloat());
    
    AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
    AiNodeSetBool(light, "normalize",       norm);
@@ -96,13 +102,13 @@ void CLightTranslator::Export(AtNode* light)
    }
 }
 
-void CLightTranslator::ExportMotion(AtNode* light, unsigned int step)
+void CLightTranslator::ExportMotion(AtNode* light)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
 
    AtArray* matrices = AiNodeGetArray(light, "matrix");
-   AiArraySetMtx(matrices, step, matrix);
+   AiArraySetMtx(matrices, GetMotionStep(), matrix);
 }
 
 void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
@@ -139,14 +145,6 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.hasMin = true;
    data.min.FLT = 0.f;
    helper.MakeInputFloat(data);
-}
-
-void CLightTranslator::Delete()
-{
-   AiNodeDestroy(GetArnoldRootNode());
-   // Arnold doesn't allow us to create nodes in between to calls to AiRender
-   // for the moment. For IPR we still need to rely on setting the intensity to 0.0.
-   //AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
 }
 
 double BBSpectrum(double wavelength, double bbTemp)

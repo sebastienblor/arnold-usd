@@ -66,7 +66,7 @@ private:
 
    // Node data
    bool m_flipVData;
-   float m_modelMatrix[4][4]; // cut out translation, that doesn't matter
+   //float m_modelMatrix[4][4]; // cut out translation, that doesn't matter
    float m_wireframeColor[4];
    float m_radius;
    int m_format;    

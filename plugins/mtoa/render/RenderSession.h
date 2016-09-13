@@ -100,7 +100,7 @@ public:
    static void InteractiveRenderCallback(float, float, void* data);
 
    /// Stop a render, leaving Arnold univierse active.
-   void InterruptRender(bool waitFinished = false);
+   void InterruptRender(bool waitFinished = true);
 
    void RunRenderView();
    void SetRenderViewOption(const MString &option, const MString &value);
@@ -115,6 +115,7 @@ public:
 
    void StartRenderView();
    void UpdateRenderView();
+   void CloseRenderView();
 
    void ObjectNameChanged(MObject& node, const MString& str);
 
@@ -167,6 +168,8 @@ public:
    inline bool IsActive() const { return m_is_active; }
 
    static void ClearIdleRenderViewCallback();
+
+   bool RenderSequence();
       
 private:
 
