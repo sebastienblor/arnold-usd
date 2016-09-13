@@ -84,7 +84,12 @@ static CARVSequenceData *s_sequenceData = NULL;
 static QWidget *s_workspaceControl = NULL;
 
 #if MAYA_API_VERSION >= 201700
+
+#ifdef _LINUX
+#include "QtWidgets/qmainwindow.h"
+#else
 #include "QtWidgets/QMainWindow.h"
+#endif
 #endif
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
