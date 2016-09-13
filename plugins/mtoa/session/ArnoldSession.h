@@ -204,6 +204,10 @@ public:
    const MStringArray &GetProceduralSearchPaths() const;
 
    void RequestUpdateTx() {m_updateTx = true;}   
+   void QueueProceduralUpdate(CNodeTranslator *tr);
+   void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
+   void UnRegisterProcedural(AtNode *node);
+
 private:
 
    CArnoldSession()
@@ -264,6 +268,7 @@ private:
    void ExportTxFiles();
    void RecursiveUpdateDagChildren(MDagPath &parent);
 
+   void UpdateProceduralReferences();
 
 private:
 
@@ -289,6 +294,8 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
+   std::set<CNodeTranslator *> m_proceduralsToUpdate;
+   
 protected:
    ObjectHandleToDagMap m_masterInstances;
 
@@ -296,6 +303,4 @@ protected:
    bool                 m_is_active;
    bool                 m_updateTx;
    bool                 m_updateMotionData;
-   //bool                 m_continuousUpdates;
-   //AOVSet m_aovs;
 };  // class CArnoldSession

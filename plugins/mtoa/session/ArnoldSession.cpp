@@ -1266,17 +1266,6 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
 }
 
-/*
-void CArnoldSession::SetContinuousUpdates(bool b) 
-{
-   //if (b == m_continuousUpdates) return;
-   m_continuousUpdates = b;
-   if (m_continuousUpdates && HasObjectsToUpdate())
-   {
-      RequestUpdate();
-   }
-}
-*/
 void CArnoldSession::RequestUpdate()
 {
    //if (!forceUpdate && !m_continuousUpdates) return;
@@ -1304,6 +1293,12 @@ void CArnoldSession::DoUpdate()
       UpdateMotionFrames();
       m_updateMotionData = false;
    }
+
+   // hack to support deleting procedurals
+   // we need to force arnold to re-generate 
+   // eventual connections from one procedural to another
+   if (!m_proceduralsToUpdate.empty())
+      UpdateProceduralReferences();
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
@@ -1356,7 +1351,7 @@ void CArnoldSession::DoUpdate()
             // be deleted and re-exported            
             translator->Delete();
             translator->m_impl->DoCreateArnoldNodes();
-
+            
             // no longer re-exporting here. This will be done in the translatorsToUpdateList
             // since DoUpdate will call DoExport (isExported=false)
             //translator->m_impl->DoExport();
@@ -2076,4 +2071,234 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
       path.pop(1);
    }
 
+}
+
+
+//--------------------------
+// This is an unpleasant piece of code that is meant to allow for 
+// procedurals updates during IPR. It's there because arnold itself
+// can't support connections updates. If someday this is solved in the core,
+// we'll happily get rid of this code
+// I tried to centralize this as much as possible, so that it doesn't spread out in mtoa.
+// If you remove this code, don't forget to remove the member CNodeTranslatorImpl::m_isProcedural
+
+static inline AtNode *GetRootParentNode(AtNode *node)
+{
+   AtNode *currentNode = NULL;
+   AtNode *parentNode = AiNodeGetParent(node);
+   while(parentNode)
+   {
+      currentNode = AiNodeGetParent(parentNode);
+      if (currentNode == NULL) return parentNode;
+
+      parentNode = currentNode;
+   }
+   return NULL;
+}
+
+struct SessionProceduralData
+{
+   SessionProceduralData(CNodeTranslator *tr) : translator(tr), state(PROC_STATE_UNKNOWN){}
+
+   CNodeTranslator *translator;
+
+   enum TranslatorReferenceState
+   {
+      PROC_STATE_UNKNOWN = 0,
+      PROC_STATE_ISOLATED = 1,
+      PROC_STATE_EXTERNAL_REFS
+   };
+   TranslatorReferenceState state;
+};
+
+   
+static std::map<AtNode*, SessionProceduralData*> s_registeredProcedurals;
+
+// some procedurals are being deleted. 
+// Make sure there are no connections from one procedural to another.
+// Since Arnold doesn't support deleting nodes properly, we must also re-generate all the 
+// procedurals connected to one of these nodes about to be deleted
+void CArnoldSession::UpdateProceduralReferences()
+{
+   if (m_proceduralsToUpdate.empty()) return;
+   // ok folks, some procedurals are being re-generated here.
+   // This means we have to deal with possible translators dangling references
+     
+   // Part 1 : Check all nodes in the arnold scene (doh)
+   // and see if they have connections on nodes belonging to another procedural
+   std::set<SessionProceduralData *> registeredProceduralData;
+   std::set<CNodeTranslator *> outsideConnectionsList;
+   std::vector<AtNode*> nodeConnections;
+
+   // optimization, to avoid calling the hash map too often
+   AtNode *lastParent = NULL;
+   SessionProceduralData *lastData = NULL;
+   AtNode *lastTargetParent = NULL;
+   SessionProceduralData *lastTargetData = NULL;
+
+   AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);         
+   while (!AiNodeIteratorFinished(nodeIter))
+   {
+      AtNode* node = AiNodeIteratorGetNext(nodeIter);
+
+      // get the root parent node
+      AtNode *parentNode = GetRootParentNode(node);
+
+      // we don't need to consider nodes that don't belong to a procedural
+      // because in practice (to my knowledge) there is no way to connect
+      // a "parentless" node in maya to a node living on a procedural
+      if (parentNode == NULL) continue;
+      
+      // parentNode is the proceduralNode that should have a corresponding translator in the scene
+      SessionProceduralData *procData = (parentNode == lastParent) ? lastData : s_registeredProcedurals[parentNode]; 
+
+      // just to optimize things and avoid calling the map too frequently
+      lastParent = parentNode;
+      lastData = procData;
+      if(procData == NULL || procData->translator == NULL) continue;
+
+      CNodeTranslator *rootTranslator = procData->translator;
+
+      // FIXME should we test m_holdUpdates ?
+      if (rootTranslator->m_impl->m_updateMode >= CNodeTranslator::AI_RECREATE_NODE) continue;
+
+      // this translator has already been treated previously. The references are correctly filled
+      // so he don't need to check the connections
+      if (procData->state != SessionProceduralData::PROC_STATE_UNKNOWN) continue;
+
+      registeredProceduralData.insert(procData);
+      // ok, heaviest part now....
+      // loop over all attributes and see if there is a connection to the outside world (another translator)
+      AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
+      AtNode *target = NULL;
+      while (!AiParamIteratorFinished(nodeParam))
+      {
+         const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+         const char* paramName = AiParamGetName(paramEntry);
+         std::string paramStr = paramName;
+         
+         nodeConnections.clear();
+         int paramType = AiParamGetType(paramEntry);
+         
+         if(paramType == AI_TYPE_NODE)
+         {
+            // it seems that AiNodeGetLink doesn't work for node references
+            // so we need a special case here
+            target = (AtNode*)AiNodeGetPtr(node, paramName);
+            if (target)
+               nodeConnections.push_back(target);
+         } else if (AiNodeIsLinked(node, paramName))
+         {
+            if(AiParamGetType(paramEntry) == AI_TYPE_ARRAY)
+            {
+               int ind = 0;
+               AtArray *arr = AiNodeGetArray(node, paramName);
+               if (arr == NULL) continue; // shouldn't happen since this is linked
+               for (int a = 0; a < (int)arr->nelements; ++a)
+               {
+                  target = AiNodeGetLink(node, paramName, &a);
+                  if (target) 
+                     nodeConnections.push_back(target);
+               }
+            } else
+            {
+               target = AiNodeGetLink(node, paramName);
+               if (target)
+                  nodeConnections.push_back(target);
+            }
+         } else if (paramType == AI_TYPE_ARRAY)
+         {
+            AtArray *arr = AiNodeGetArray(node, paramName);
+            if (arr && arr->type == AI_TYPE_NODE)
+            {
+               for (int a = 0; a < (int)arr->nelements; ++a)
+               {
+                  target = (AtNode*)AiArrayGetPtr(arr, a);
+                  if (target) 
+                     nodeConnections.push_back(target);
+               }
+            }
+         }
+
+         // no link
+         if (nodeConnections.empty()) 
+            continue;
+
+         for (size_t t = 0; t < nodeConnections.size(); ++t)
+         {
+            target = nodeConnections[t];
+            if (target == NULL) 
+               continue;
+
+            AtNode *targetParent = GetRootParentNode(target);
+
+            // self-contained connections
+            if (targetParent == NULL || targetParent == parentNode) 
+               continue;
+
+            // ok, so at this point, I have unfortunately a connection to another procedural, damn....
+            SessionProceduralData *targetData = (lastTargetParent == targetParent) ? lastTargetData : s_registeredProcedurals[targetParent]; 
+            
+            // just to optimize things and avoid calling the map too frequently
+            lastTargetParent = targetParent;
+            lastTargetData = targetData;
+            if (targetData == NULL || targetData->translator == NULL) continue;
+            CNodeTranslator *targetTranslator = targetData->translator;
+
+            outsideConnectionsList.insert(rootTranslator);
+            rootTranslator->m_impl->AddReference(targetTranslator);
+         }
+      }
+      AiParamIteratorDestroy(nodeParam);
+   }
+   AiNodeIteratorDestroy(nodeIter);
+
+
+   // Part 2 Set the procedural flags on the translators so that we don't have to do this mess at every IPR update
+   std::set<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
+   std::set<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
+
+   for ( ; it != itEnd; ++it)
+   {
+      SessionProceduralData *procData = *it;
+      
+      procData->state = (outsideConnectionsList.find(procData->translator) == outsideConnectionsList.end()) ? 
+         SessionProceduralData::PROC_STATE_ISOLATED : SessionProceduralData::PROC_STATE_EXTERNAL_REFS;
+
+   }
+
+   // Part 3: now that all references are connected, 
+   // RE-set the update mode so that all the propagations happens correctly
+   std::set<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
+   std::set<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
+   for ( ; iter != iterEnd; ++iter)
+   {      
+      // we temporarily reset the update mode to update_only
+      // so that SetUpdateMode does its job
+      CNodeTranslator::UpdateMode updateMode = (*iter)->m_impl->m_updateMode;
+      (*iter)->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY; 
+      (*iter)->SetUpdateMode(updateMode);
+   }
+
+   m_proceduralsToUpdate.clear();
+}
+
+// a procedural node is being created
+void CArnoldSession::RegisterProcedural(AtNode *node, CNodeTranslator *translator)
+{
+   s_registeredProcedurals[node] = new SessionProceduralData(translator);
+}
+// a procedural node is being deleted
+void CArnoldSession::UnRegisterProcedural(AtNode *node)
+{
+   std::map<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
+   if (iter == s_registeredProcedurals.end()) return;
+
+   delete iter->second; // delete the SessionProceduralData
+   s_registeredProcedurals.erase(iter);
+}
+// a procedural is going to be deleted / regenerated
+void CArnoldSession::QueueProceduralUpdate(CNodeTranslator *translator)
+{
+   m_proceduralsToUpdate.insert(translator);
 }

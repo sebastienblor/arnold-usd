@@ -183,6 +183,16 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
             m_tr.GetMayaNodeName().asChar(), m_tr.GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
+   else if (AiNodeIs(m_atNode, "procedural"))
+   {
+      // FIXME : make sure we get rid of this once a DG is implemented in arnold
+      
+      // this is a procedural node, so it can "contain"
+      // other arnold nodes, we're flagging it this way
+      m_isProcedural = true;
+      // need to register to arnold session, that will keep track of it
+      m_session->RegisterProcedural(m_atNode, &m_tr);
+   }
 }
 
 

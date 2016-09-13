@@ -442,3 +442,11 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
    }
    return procedural;
 }
+
+
+void CArnoldStandInsTranslator::RequestUpdate()
+{  
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+   // this should propagate a request update on all other procedurals, standins, referencing me
+}
