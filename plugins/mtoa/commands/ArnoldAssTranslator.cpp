@@ -8,7 +8,6 @@
 
 
 #include "ArnoldAssTranslator.h"
-#include "translators/DagTranslator.h"
 
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
@@ -220,7 +219,7 @@ MStatus CArnoldAssTranslator::writer(const MFileObject& file,
    {
       MDagPath camera;
       M3dView::active3dView().getCamera(camera);
-      cmdStr += "-cam " + CDagTranslator::GetArnoldNaming(camera);
+      cmdStr += "-cam " + camera.partialPathName();
    }
    return MGlobal::executeCommand(cmdStr, true);
 
