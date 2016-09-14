@@ -42,6 +42,10 @@ void CRenderViewMtoA::ProgressiveRenderFinished() {}
 
 #else
 
+#if MAYA_API_VERSION >= 201700
+#include "QtWidgets/qmainwindow.h"
+#endif
+
 // Arnold RenderView is defined
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
@@ -82,15 +86,6 @@ struct CARVSequenceData
 };
 static CARVSequenceData *s_sequenceData = NULL;
 static QWidget *s_workspaceControl = NULL;
-
-#if MAYA_API_VERSION >= 201700
-
-#ifdef _LINUX
-#include "QtWidgets/qmainwindow.h"
-#else
-#include "QtWidgets/QMainWindow.h"
-#endif
-#endif
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
