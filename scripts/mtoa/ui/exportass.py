@@ -279,7 +279,9 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         settings['forceTranslateShadingEngines'] = cmds.checkBoxGrp('oa_forceTranslateShadingEngines', query=True, value1=True)
 
         settings['fullPath'] = cmds.checkBoxGrp('oa_export_full_path', query=True, value1=True)
-        settings['exportPrefix'] = cmds.textFieldGrp('oa_export_prefix', query=True, text=True)
+        prefix = cmds.textFieldGrp('oa_export_prefix', query=True, text=True)
+        if len(prefix) > 0:
+            settings['exportPrefix'] =  prefix
 
         currentOptions = buildSettingsString(settings)
         # print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
