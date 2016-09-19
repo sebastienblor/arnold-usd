@@ -1004,12 +1004,28 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
 
    MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
    MStatus status;
+   bool pruneDag = false;
+   MDagPath parentPruneDag;
+
    for (dagIterator.reset(path); (!dagIterator.isDone()); dagIterator.next())
    {
       if (dagIterator.getPath(path))
       {
          if (path.apiType() == MFn::kWorld)
             continue;
+
+         if (pruneDag)
+         {
+            MDagPath tmpPath(path);
+            tmpPath.pop();
+            if (tmpPath == parentPruneDag)
+            {
+               dagIterator.prune();
+               continue;
+            }
+            pruneDag = false;
+         }
+
          MObject obj = path.node();
          MFnDagNode node(obj);
          MString name = node.name();
@@ -1038,11 +1054,14 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
          if (stat != MStatus::kSuccess)
             status = MStatus::kFailure;
 
-         if (!tr->ExportDagChildren())
+         if (tr != NULL && !tr->ExportDagChildren())
+         {
+            pruneDag = true;
+            parentPruneDag = path;
+            parentPruneDag.pop();
             dagIterator.prune();
-
+         }
       }
-      
    }
 
    RequestUpdate();
@@ -1085,12 +1104,28 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 
       DagFiltered filtered;
       MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+
+      bool pruneDag = false;
+      MDagPath parentPruneDag;
+
       for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
       {
          if (dagIterator.getPath(path))
          {
             if (path.apiType() == MFn::kWorld)
                continue;
+
+            if (pruneDag)
+            {
+               MDagPath tmpPath(path);
+               tmpPath.pop();
+               if (tmpPath == parentPruneDag)
+               {
+                  dagIterator.prune();
+                  continue;
+               }
+               pruneDag = false;
+            }
             MObject obj = path.node();
             MFnDagNode node(obj);
             MString name = node.name();
@@ -1114,9 +1149,17 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
                continue;
             }
             MStatus stat;
-            ExportDagPath(path, true, &stat);
+            CDagTranslator *tr = ExportDagPath(path, true, &stat);
             if (stat != MStatus::kSuccess)
                status = MStatus::kFailure;
+
+            if (tr != NULL && !tr->ExportDagChildren())
+            {
+               pruneDag = true;
+               parentPruneDag = path;
+               parentPruneDag.pop();
+               dagIterator.prune();
+            }
          }
          else
          {
