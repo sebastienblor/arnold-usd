@@ -814,26 +814,21 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
       MDagPath path;
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
+      MFnDagNode cameraNode;
+      MPlug renderable;
       // First we export all cameras
       // We do not reset the iterator to avoid getting kWorld
       for (; (!dagIterCameras.isDone()); dagIterCameras.next())
       {
          if (dagIterCameras.getPath(path))
          {
-            // Only check for cameras being visible, not templated and in render layer
-            // FIXME: does a camera need to be visible to render actually in Maya?
-            /*
-            MFnDagNode node(path.node());
-            MString name = node.name();
-            if (m_sessionOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
-               continue;
-            if (m_sessionOptions.m_filter.templated == true && IsTemplatedPath(path))
-               continue;
-            if (m_sessionOptions.m_filter.hidden == true && !IsVisiblePath(path))
-               continue;
-            */
+            
             MStatus stat;
-            ExportDagPath(path, true, &stat);
+            cameraNode.setObject(path);
+            renderable = cameraNode.findPlug("renderable", false, &stat);
+            if (stat == MS::kSuccess && renderable.asBool())
+               ExportDagPath(path, true, &stat);
+
             if (stat != MStatus::kSuccess)
                status = MStatus::kFailure;
          }
