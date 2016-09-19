@@ -93,7 +93,6 @@ AtNode* CNodeTranslatorImpl::DoExport()
       m_tr.ExportMotion(node);
    }
 
-   m_isExported = true;
    return m_tr.GetArnoldNode();
 }
 
@@ -172,7 +171,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       m_tr.ExportMotion(node);
    }
 
-   m_isExported = true;
    return m_tr.GetArnoldNode();
 }
 

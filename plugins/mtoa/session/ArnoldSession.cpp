@@ -767,6 +767,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          nodeTr->AddUpdateCallbacks();
          nodeTr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
          nodeTr->m_impl->m_holdUpdates = false; // allow to trigger new updates
+         nodeTr->m_impl->m_isExported = true; // next export will be an update
          // for motion blur, check which nodes are static and which aren't (#2316)
          if (mb && numSteps > 1)
          {
@@ -1569,7 +1570,7 @@ void CArnoldSession::DoUpdate()
                translator->AddUpdateCallbacks();
             } 
             translator->m_impl->m_holdUpdates = false; // I'm allowed to receive updates once again
-         
+            translator->m_impl->m_isExported = true;
             // restore the update mode to "update Only"
             translator->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
          }

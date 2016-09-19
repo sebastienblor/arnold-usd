@@ -1059,6 +1059,8 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       if (exportVertices)
       {
          AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
+         if (vlist_array == NULL)
+            return;
          if (vlist_array->nelements != numVerts)
             AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
                        GetMayaNodeName().asChar(), vlist_array->nelements, numVerts);

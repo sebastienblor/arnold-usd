@@ -66,7 +66,8 @@ void CMeshTranslator::ExportMotion(AtNode* anode)
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "polymesh") == 0)
    {
-      if (m_motionDeform)
+      // if this is an export update, we haven't called ExportMeshGeoData
+      if (m_motionDeform && !IsExported())
       {
          // Early return if we can't tessalate.
          if (!Tessellate(m_dagPath))
@@ -169,11 +170,13 @@ void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
    MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
    
-   if(plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache" ||
-      (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/
-   {
+   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
+   
+   if (recreate_geom)
       SetUpdateMode(AI_RECREATE_NODE);
-   }
+   
    CPolygonGeometryTranslator::NodeChanged(node, plug);
 
 }
