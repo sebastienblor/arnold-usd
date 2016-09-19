@@ -12,6 +12,34 @@
 
 #include <vector>
 
+typedef std::vector<float> CurveWidths;
+
+std::map<std::string, CurveWidths *> s_processedWidths;
+
+static inline void ClearProcessedWidths()
+{
+   if (s_processedWidths.empty())
+      return;
+
+
+   std::map<std::string, CurveWidths *>::iterator it = s_processedWidths.begin();
+   std::map<std::string, CurveWidths *>::iterator itEnd = s_processedWidths.end();
+
+   for ( ; it != itEnd; ++it)
+      delete it->second;
+   
+   s_processedWidths.clear();
+}
+
+CCurveTranslator::~CCurveTranslator()
+{
+   // just clear it if something was exported with this node
+   // otherwise we'd clear too often during export 
+   // (dummy translators are created/deleted all the time)
+   if (!mayaCurve.points.empty())
+      ClearProcessedWidths();
+
+}
 void CCurveTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "curves");
@@ -67,6 +95,9 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CCurveTranslator::CreateArnoldNodes()
 {
+   // first make sure the processed widths are cleared
+   ClearProcessedWidths();
+
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());
 
@@ -78,9 +109,28 @@ AtNode* CCurveTranslator::CreateArnoldNodes()
 
    return AddArnoldNode("curves");
 }
+void CCurveTranslator::RequestUpdate()
+{
 
+   // we used to only set RECREATE_NODE for the .create attribute
+   //MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   //if ((plugName == ".create")) SetUpdateMode(AI_RECREATE_NODE);
+
+   // but ticket #2399 showed that curves aren't updated properly in arnold core,
+   // for example when the curves width change.
+   // So now we're always forcing to recreate the node
+   ClearProcessedWidths();
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}
+
+/*
+
+FIXME we can't really use NodeChanged because of Sets. When they're modified they invoke the set's members "RequestUpdate function".
+Instead, they should invoke NodeChanged, or all other NodeChanged functions are just useless....
 void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
+   
    // we used to only set RECREATE_NODE for the .create attribute
    //MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
    //if ((plugName == ".create")) SetUpdateMode(AI_RECREATE_NODE);
@@ -93,6 +143,7 @@ void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
    
    CShapeTranslator::NodeChanged(node, plug);
 }
+*/
 
 void CCurveTranslator::Export( AtNode *curve )
 {
@@ -334,25 +385,47 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
       if (conns.length() > 0)
       {
          mayaCurve.widthConnected = true;
-         MFloatArray uCoords;
-         MFloatArray vCoords;
-         uCoords.setLength(numcvs);
-         vCoords.setLength(numcvs);
-         MFloatVectorArray resultColors;
-         MFloatVectorArray resultTransparencies;
-         MFloatArray filterSizes;
-         filterSizes.setLength(numcvs);
-         for (unsigned int i = 0; i < numcvs; ++i)
+
+         // our static map contains the width arrays for a given target shader +  a given amount of CVs.
+         // The key in the map is the name of the shader + '#' + the amount of CVs
+         // This static map is cleared whenever a new node is created, an update is requested, or a node is deleted
+         // since it's meant to remain local to each IPR update where curves are re-generated
+         MString widthHash = MFnDependencyNode(conns[0].node()).name();
+         widthHash += "#";
+         widthHash += (int)numcvs;
+         std::string widthHashStr = widthHash.asChar();
+
+         CurveWidths *&processedCurveWidth = s_processedWidths[widthHashStr];
+         if (processedCurveWidth == NULL)
          {
-            uCoords[i] = 0.0f;
-            vCoords[i] = (float)i / (float)(numcvs + 1);
-            filterSizes[i] = 0.001f;
+            // we haven't processed these widths yet, let's do it
+            MFloatArray uCoords;
+            MFloatArray vCoords;
+            uCoords.setLength(numcvs);
+            vCoords.setLength(numcvs);
+            MFloatVectorArray resultColors;
+            MFloatVectorArray resultTransparencies;
+            MFloatArray filterSizes;
+            filterSizes.setLength(numcvs);
+            for (unsigned int i = 0; i < numcvs; ++i)
+            {
+               uCoords[i] = 0.0f;
+               vCoords[i] = (float)i / (float)(numcvs + 1);
+               filterSizes[i] = 0.001f;
+            }
+            MRenderUtil::sampleShadingNetwork(widthPlug.name(), numcvs, false, false, MFloatMatrix().setToIdentity(), 
+                                             0, &uCoords, &vCoords, 0, 0, 0, 0, &filterSizes,
+                                             resultColors, resultTransparencies);
+            for (unsigned int i = 0; i < numcvs; ++i)
+               mayaCurve.widths[i] = resultColors[i].x;
+
+            processedCurveWidth = new std::vector<float>(mayaCurve.widths);
+         } else
+         {
+            // we have already processed this width shader for the same amount of CVs, so it's useless to do it again.
+            // we just copy the previous widths
+            mayaCurve.widths = *processedCurveWidth;
          }
-         MRenderUtil::sampleShadingNetwork(widthPlug.name(), numcvs, false, false, MFloatMatrix().setToIdentity(), 
-                                          0, &uCoords, &vCoords, 0, 0, 0, 0, &filterSizes,
-                                          resultColors, resultTransparencies);
-         for (unsigned int i = 0; i < numcvs; ++i)
-            mayaCurve.widths[i] = resultColors[i].x;
       }
       else 
       {

@@ -34,6 +34,8 @@ public:
       exportReferenceObject(false)
    {}
 
+   virtual ~CCurveTranslator();
+
    virtual void Export(AtNode* curve);
    virtual void ExportMotion(AtNode* curve);
    static void NodeInitializer(CAbTranslator context);
@@ -43,7 +45,8 @@ public:
       return new CCurveTranslator();
    }
 protected:
-   virtual void NodeChanged(MObject& node, MPlug& plug);
+   //virtual void NodeChanged(MObject& node, MPlug& plug);
+   virtual void RequestUpdate();
 private:
    void ProcessCurveLines(unsigned int step,
                          AtArray* curvePoints,
