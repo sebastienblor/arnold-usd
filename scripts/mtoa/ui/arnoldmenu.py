@@ -47,6 +47,24 @@ def doCreateMeshLight():
         return
     cmds.setAttr('%s.aiTranslator' % shs[0], 'mesh_light', type='string')
 
+
+def doCreateCurvesCollector():
+    # Get selection and group the curves ?
+    sls = cmds.ls(sl=True, et='transform')
+    curveNode = mutils.createLocator('aiCurvesCollector')
+
+    if len(sls) > 0:
+        for slsElem in sls:
+            shs = cmds.listRelatives(slsElem, type='nurbsCurve')
+            if len(shs):
+                for shsElem in shs:
+                    sts = cmds.listRelatives(shsElem, fullPath=True, parent=True)
+                    if len(sts) > 0:
+                        cmds.parent(sts, curveNode[1])
+                
+
+
+
     
 def arnoldAboutDialog():
     legaltext = "All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
@@ -339,7 +357,9 @@ def createArnoldMenu():
                     c=lambda *args: cmds.CreateSpotLight())
         pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
                     c=lambda *args: cmds.CreateAreaLight())
-                    
+        
+        pm.menuItem('CurvesCollector', label='Curves Collector', parent='ArnoldMenu',
+                    c=lambda *args: doCreateCurvesCollector())
         pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu',
                     c=lambda *args: createVolume())
                     

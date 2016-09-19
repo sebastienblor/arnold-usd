@@ -16,6 +16,7 @@
 #define ARNOLD_NODEID_DRIVER                    0x00115C03
 #define ARNOLD_NODEID_FILTER                    0x00115C04
 #define ARNOLD_NODEID_VOLUME                    0x00115C05
+#define ARNOLD_NODEID_CURVES_COLLECTOR          0x00115C06
 
 // Arnold Lights and light filters
 #define ARNOLD_NODEID_BARNDOOR                  0x00115C80

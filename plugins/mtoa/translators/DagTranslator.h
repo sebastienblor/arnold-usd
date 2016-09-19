@@ -59,6 +59,9 @@ public:
    // returns the arnold name for a corresponding maya dag path
    static MString GetArnoldNaming(const MDagPath &dagPath);
 
+   // If this function returns false, children of this dag node won't be exported
+   virtual bool ExportDagChildren() const {return true;}
+
 protected:
 
    // This is a utility method which handles the common tasks associated with

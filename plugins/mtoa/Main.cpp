@@ -52,6 +52,7 @@
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
+#include "nodes/shape/ArnoldCurvesCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
@@ -69,6 +70,7 @@
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/CurveTranslator.h"
+#include "translators/shape/CurvesCollectorTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
 #include "translators/shape/ProceduralTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
@@ -203,6 +205,10 @@ namespace // <anonymous>
          CArnoldSkyDomeLightNode::creator, CArnoldSkyDomeLightNode::initialize,
          MPxNode::kLocatorNode, &AI_SKYDOME_LIGHT_WITH_SWATCH
       } , {
+         "aiCurvesCollector", CArnoldCurvesCollector::id,
+         CArnoldCurvesCollector::creator, CArnoldCurvesCollector::initialize,
+         MPxNode::kLocatorNode, 0
+      } , {
          "aiAreaLight", CArnoldAreaLightNode::id,
          CArnoldAreaLightNode::creator, CArnoldAreaLightNode::initialize,
          MPxNode::kLocatorNode, &AI_AREA_LIGHT_WITH_SWATCH
@@ -268,6 +274,7 @@ namespace // <anonymous>
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
       } ,
+
 #endif
       {
          "arnoldPhotometricLightNodeOverride",
@@ -474,6 +481,10 @@ namespace // <anonymous>
                                     CCurveTranslator::creator,
                                     CCurveTranslator::NodeInitializer);
 
+      builtin->RegisterTranslator("aiCurvesCollector",
+                                    "",
+                                    CCurvesCollectorTranslator::creator,
+                                    CCurvesCollectorTranslator::NodeInitializer);
       // Particles
       builtin->RegisterTranslator("particle",
                                     "",
