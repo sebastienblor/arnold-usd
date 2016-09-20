@@ -95,6 +95,11 @@ void CArnoldAreaLightNode::postConstructor()
    plug.setValue(false);
 
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
+
+   // Alias aiExposure as exposure for internal attribute name recognition
+   MStatus stat;
+   MPlug plg = node.findPlug("aiExposure", &stat);
+   node.setAlias("exposure", "aiExposure", plg, true /*add*/, &stat);
 }
 
 // Map node's attribute value changes to ones understood by Maya

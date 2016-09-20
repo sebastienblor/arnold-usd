@@ -6,6 +6,7 @@ import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 import maya.cmds as cmds
+import maya.mel as mel
 import os
 
 CATEGORY_TO_RUNTIME_CLASS = {
@@ -84,6 +85,7 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
         node = pm.createNode(nodeType, **kwargs)
 
+    createShadingGroupIfNeeded(nodeType, node)
     createOptions()
 
     return node
@@ -121,7 +123,7 @@ def listTranslators(nodeType):
 
 def createStandIn(path=None):
     if not pm.objExists('ArnoldStandInDefaultLightSet'):
-        pm.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
+        pm.createNode("objectSet", name=":ArnoldStandInDefaultLightSet", shared=True)
         pm.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
 
     standIn = pm.createNode('aiStandIn', n='ArnoldStandInShape')
@@ -202,10 +204,16 @@ def createOptions():
     import mtoa.hooks as hooks
 
     # the shared option ensures that it is only created if it does not exist
-    options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-    filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
-    driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
-    displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
+    # testing for obj existence before creating because createNode with shared and forcing a namespace
+    # will switch the namespace if the object already exists (it's bugged).
+    options = pm.createNode('aiOptions', skipSelect=True, shared=True, name=':defaultArnoldRenderOptions')\
+        if not pm.objExists('defaultArnoldRenderOptions') else None
+    filterNode = pm.createNode('aiAOVFilter', name=':defaultArnoldFilter', skipSelect=True, shared=True)\
+        if not pm.objExists('defaultArnoldFilter') else None
+    driverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDriver', skipSelect=True, shared=True)\
+        if not pm.objExists('defaultArnoldDriver') else None
+    displayDriverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDisplayDriver', skipSelect=True, shared=True)\
+        if not pm.objExists('defaultArnoldDisplayDriver') else None
 
     if (filterNode or driverNode) and not options:
         options = pm.PyNode('defaultArnoldRenderOptions')
@@ -254,6 +262,19 @@ def createOptions():
     except:
         pass
     
+
+# If the current node is a surface shader then create the shading group for it and connect it.
+def createShadingGroupIfNeeded(nodeType, node):
+    if cmds.getClassification(nodeType, sat="shader/surface") and cmds.getClassification(nodeType, sat="rendernode/arnold/shader/surface"):
+        shadingNodeGroupName = node + "SG"
+        group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=shadingNodeGroupName)
+        outAttr = node
+        if mel.eval("attributeExists(\"outColor\", \"" + node + "\")"):
+            outAttr += ".outColor"
+        else:
+            outAttr += ".message"
+        cmds.connectAttr(outAttr, group + ".surfaceShader")
+
 
 #-------------------------------------------------
 # translator defaults

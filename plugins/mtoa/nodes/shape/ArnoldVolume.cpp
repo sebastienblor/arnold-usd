@@ -136,7 +136,7 @@ MStatus CArnoldVolumeShape::initialize()
 
    CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
-   s_type = eAttr.create("type", "type", 0);
+   s_type = eAttr.create("type", "type", 1);
    eAttr.addField("Custom", VT_CUSTOM);
    eAttr.addField("OpenVDB", VT_OPEN_VDB);
    addAttribute(s_type);

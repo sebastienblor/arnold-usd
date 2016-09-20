@@ -1,6 +1,4 @@
-
 #include "NParticleTranslator.h"
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 
 #include <maya/MFnDependencyNode.h>
@@ -15,7 +13,6 @@
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
-
 
 void CNParticleTranslator::NodeInitializer(CAbTranslator context)
 {

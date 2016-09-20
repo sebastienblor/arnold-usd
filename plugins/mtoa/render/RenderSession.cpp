@@ -646,8 +646,9 @@ void CRenderSession::StartRenderView()
       s_renderView = new CRenderViewMtoA;
    }
    s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
-   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
 
+   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+   
 }
 
 void CRenderSession::UpdateRenderView()
@@ -660,6 +661,18 @@ void CRenderSession::UpdateRenderView()
    }
 
 }
+
+void CRenderSession::CloseRenderView()
+{  
+   if(s_renderView != NULL) // for now always return true
+   {
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->CloseRenderView();
+   }
+
+}
+
 
 void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 {
@@ -809,4 +822,33 @@ void CRenderSession::SetRenderViewOption(const MString &option, const MString &v
    s_renderView->SetOption(option.asChar(), value.asChar());
 }
 
+bool CRenderSession::RenderSequence()
+{   
+   if (s_renderView == NULL || !CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return false;
+
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+   float startFrame;
+   float endFrame;
+   float frameStep;
+
+   if (renderGlobals.isAnimated())
+   {
+      startFrame = (float)renderGlobals.frameStart.as(MTime::uiUnit());
+      endFrame = (float)renderGlobals.frameEnd.as(MTime::uiUnit());
+      frameStep = (float)renderGlobals.frameBy;
+   }
+   else
+   {
+      startFrame = (float)MAnimControl::currentTime().as(MTime::uiUnit());
+      endFrame = startFrame;
+      frameStep = 1;
+   }
+
+   StartRenderView();
+   SetRendering(true);
+
+   s_renderView->RenderSequence(startFrame, endFrame, frameStep);
+   return true;
+}
 

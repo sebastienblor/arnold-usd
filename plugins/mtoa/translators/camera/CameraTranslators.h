@@ -1,12 +1,11 @@
 #pragma once
-
 #include "CameraTranslator.h"
 
 class CStandardCameraTranslator : public CCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, unsigned int step);
+   void ExportMotion(AtNode* camera);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -30,7 +29,7 @@ class CFishEyeCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, unsigned int step);
+   void ExportMotion(AtNode* camera);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -48,7 +47,7 @@ class CCylCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, unsigned int step);
+   void ExportMotion(AtNode* camera);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -66,7 +65,7 @@ class CSphericalCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, unsigned int step);
+   void ExportMotion(AtNode* camera);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {

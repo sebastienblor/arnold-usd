@@ -1,7 +1,5 @@
 #include "CurveTranslator.h"
 
-#include "scene/MayaScene.h"
-
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
 #include <maya/MDagPathArray.h>
@@ -10,6 +8,8 @@
 #include <maya/MFnNurbsCurve.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFloatMatrix.h>
+#include <maya/MFloatVectorArray.h>
+
 #include <vector>
 
 void CCurveTranslator::NodeInitializer(CAbTranslator context)
@@ -79,12 +79,22 @@ AtNode* CCurveTranslator::CreateArnoldNodes()
    return AddArnoldNode("curves");
 }
 
-void CCurveTranslator::Export( AtNode *curve )
+void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   Update(curve);
+   // we used to only set RECREATE_NODE for the .create attribute
+   //MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   //if ((plugName == ".create")) SetUpdateMode(AI_RECREATE_NODE);
+
+   // but ticket #2399 showed that curves aren't updated properly in arnold core,
+   // for example when the curves width change.
+   // So now we're always forcing to recreate the node
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShapeTranslator::NodeChanged(node, plug);
 }
 
-void CCurveTranslator::Update( AtNode *curve )
+void CCurveTranslator::Export( AtNode *curve )
 {
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());
@@ -114,15 +124,13 @@ void CCurveTranslator::Update( AtNode *curve )
    if (stat != MStatus::kSuccess) return;
 
    // Set curve matrix for step 0
-   ExportMatrix(curve, 0);
+   ExportMatrix(curve);
 
    // The num points array (int array the size of numLines, no motionsteps)
    AtArray* curveNumPoints             = AiArrayAllocate(1, 1, AI_TYPE_INT);
 
-
    // Check if we using a custom curve shader.
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
       AtNode* shader = NULL;
       MPlugArray curveShaderPlugs;
@@ -132,13 +140,17 @@ void CCurveTranslator::Update( AtNode *curve )
          plug.connectedTo(curveShaderPlugs, true, false);
          if (curveShaderPlugs.length() > 0)
          {
-            shader = ExportRootShader(curveShaderPlugs[0]);
+            shader = ExportConnectedNode(curveShaderPlugs[0]);
          }
       }
       
       if (shader == NULL)
       {
-         shader = AiNode("hair");
+         // check if the internal root shader was already created in a previous export
+         shader = GetArnoldNode("rootShader");
+         if (shader == NULL)
+            shader = AddArnoldNode("hair", "rootShader");
+            
          MString hairShaderName = fnDepNodeCurve.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
@@ -146,12 +158,8 @@ void CCurveTranslator::Update( AtNode *curve )
          // Add shader uparam and vparam names
          AiNodeSetStr(shader, "uparam", "uparamcoord");
          AiNodeSetStr(shader, "vparam", "vparamcoord");
-
-         shader = ExportRootShader(shader);
       }
-      
-      // Assign shader
-      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+      SetRootShader(shader);      
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate
@@ -204,13 +212,13 @@ void CCurveTranslator::Update( AtNode *curve )
 
 }
 
-void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
+void CCurveTranslator::ExportMotion(AtNode *curve)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(curve, step);
+   ExportMatrix(curve);
 
    // Same for object deformation, early out if it's not set.
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
@@ -219,6 +227,7 @@ void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
    // Get curve lines
    MObject objectCurveShape(m_dagPath.node());
    exportReferenceObject = false;
+   int step = GetMotionStep();
    MStatus stat = GetCurveLines(objectCurveShape, step);
 
    if (stat == MStatus::kSuccess)

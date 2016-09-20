@@ -10,6 +10,7 @@
 class CPxArnoldNode
 {
    friend class CExtension;
+   friend class CExtensionImpl;
    friend class CExtensionsManager;
 
 public:

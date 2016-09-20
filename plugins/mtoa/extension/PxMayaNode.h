@@ -19,6 +19,7 @@ class CPxMayaNode
 {
    friend class CAbMayaNode;
    friend class CExtension;
+   friend class CExtensionImpl;   
    friend class CExtensionsManager;
 
 public:

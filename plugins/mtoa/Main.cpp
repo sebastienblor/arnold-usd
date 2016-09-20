@@ -60,6 +60,7 @@
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
+#include "translators/camera/ImagePlaneTranslator.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/light/LightLinkerTranslator.h"
 #include "translators/light/LightBlockerTranslator.h"
@@ -141,13 +142,13 @@ namespace // <anonymous>
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
 #endif
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
-#if MAYA_API_VERSION >= 201700
-   const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION /* + ":drawdb/light/ambientLight" */;
+#if MAYA_API_VERSION >= 201800
+   const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION + ":drawdb/light/image";
 #else
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
 #endif
    const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/arnold/skynode";
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
 #else
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
@@ -157,10 +158,16 @@ namespace // <anonymous>
    const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
 #if MAYA_API_VERSION >= 201700
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION + ":drawdb/light/spotLight";
+#if MAYA_API_VERSION >= 201800
+   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION + ":drawdb/light/image/environment"; 
+#else
+   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION; 
+#endif
 #else
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
-#endif
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
+#endif
+
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
 
    struct mayaNode {
@@ -331,7 +338,8 @@ namespace // <anonymous>
                                     CAiHairTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiImage",
                                     "",
-                                    CAiImageTranslator::creator);
+                                    CAiImageTranslator::creator,
+                                    CAiImageTranslator::NodeInitializer);
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",
@@ -450,7 +458,11 @@ namespace // <anonymous>
       builtin->RegisterTranslator("stereoRigCamera",
                                     "spherical",
                                     CSphericalCameraTranslator::creator,
-                                    CSphericalCameraTranslator::NodeInitializer);                                 
+                                    CSphericalCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("imagePlane",
+                                    "MayaImagePlane",
+                                    CImagePlaneTranslator::creator,
+                                    CImagePlaneTranslator::NodeInitializer);                          
        // Hair
       builtin->RegisterTranslator("pfxHair",
                                     "",
@@ -588,6 +600,15 @@ namespace // <anonymous>
          shaders->RegisterTranslator("phong",
                                        "",
                                        CMayaPhongTranslator::creator);
+         shaders->RegisterTranslator("phongE",
+                                       "",
+                                       CMayaPhongETranslator::creator);
+         shaders->RegisterTranslator("anisotropic",
+                                       "",
+                                       CMayaAnisotropicTranslator::creator);
+         shaders->RegisterTranslator("rampShader",
+                                       "",
+                                      CMayaRampShaderTranslator::creator);
          shaders->RegisterTranslator("singleShadingSwitch",
                                        "",
                                        CreateSingleShadingSwitchTranslator);

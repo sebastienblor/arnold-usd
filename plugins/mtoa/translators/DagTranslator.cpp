@@ -1,11 +1,34 @@
 #include "DagTranslator.h"
-
+#include "DagTranslatorImpl.h"
+#include "scene/MayaScene.h"
 #include <maya/MPlugArray.h>
 #include <maya/MFnSet.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MFnTransform.h>
+#include "NodeTranslatorImpl.h"
 
+void CDagTranslator::Init()
+{
+   //CNodeTranslator::Init(); // does nothing, but this could change
+   // FIXME: maybe this could be overkill with tons of DAG instances.
+   // we'll be able to solve this soon if we start having implementations inheriting from the base one
+   MDagPathArray dagArray;
+   MDagPath::getAllPathsTo(GetMayaObject(), dagArray);
+   for (unsigned int i = 0; i < dagArray.length(); ++i)
+   {
+      if ((int)dagArray[i].instanceNumber() == m_impl->m_handle.instanceNum())
+      {
+         // this is the right instance
+         m_dagPath = dagArray[i];
+         break;
+      }
+   }
+}
+void CDagTranslator::CreateImplementation()
+{
+   m_impl = new CDagTranslatorImpl(*this);
+}
 void CDagTranslator::Export(AtNode* node)
 {
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
@@ -17,7 +40,7 @@ void CDagTranslator::Export(AtNode* node)
       if (strcmp(paramName, "name") != 0)
       {
          if (strcmp(paramName, "matrix") == 0)
-            ExportMatrix(node, 0);
+            ExportMatrix(node);
          else
             ProcessParameter(node, paramName, AiParamGetType(paramEntry));
       }
@@ -25,117 +48,74 @@ void CDagTranslator::Export(AtNode* node)
    AiParamIteratorDestroy(nodeParam);
 }
 
-void CDagTranslator::ExportMotion(AtNode* node, unsigned int step)
+// For Motion Blur only re-export the transform matrix
+void CDagTranslator::ExportMotion(AtNode* node)
 {
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), "matrix"))
-      ExportMatrix(node, step);
+      ExportMatrix(node);   
 }
-
-/// get override sets containing the passed Maya dag path
-/// and add them to the passed MObjectArray
-/// and we also need to check the parent nodes, so groups are handled properly
-MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
+bool CDagTranslator::IsTransformPlug(const MPlug &plug)
 {
-   MStatus status;
-   MDagPath pathRec = path;
-   for(;pathRec.length();pathRec.pop(1))
-   {
-      MFnDagNode fnDag(pathRec);
-      unsigned int instNum = pathRec.instanceNumber();
-      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
-      CHECK_MSTATUS(status)
-      MPlugArray connections;
-      MFnSet fnSet;
-      // MString plugName = instObjGroups.name();
-      if (instObjGroups.connectedTo(connections, false, true, &status))
-      {
-         unsigned int nc = connections.length();
-         for (unsigned int i=0; i<nc; i++)
-         {
-            MObject set = connections[i].node();
-            MFnDependencyNode setDNode(set);
-            if (setDNode.typeName() == MString("objectSet"))
-            {
-               if (!fnSet.setObject(set))
-                  continue;
-               // MString setName = fnSet.name();
-               // Also add sets with override turned off to allow chaining
-               // on these as well
-               MPlug p = fnSet.findPlug("aiOverride", true, &status);
-               if ((MStatus::kSuccess == status) && !p.isNull())
-               {
-                  overrideSets.append(set);
-               }
-            }
-         }
-      }
-   }
+   MString plugName =  plug.partialName(false, false, false, false, false, true);
+   if (plugName.length() == 0) return false;
+   const char firstChar = plugName.asChar()[0];
 
-   return status;
+   if (firstChar == 's')
+      return (plugName == "scale" || plugName == "scaleX" || plugName == "scaleY" || plugName == "scaleZ" );
+   if (firstChar == 't')
+      return (plugName == "translate" || plugName == "translateX" || plugName == "translateY" || plugName == "translateZ");
+   if (firstChar == 'r')
+      return (plugName == "rotate" || plugName == "rotateX" || plugName == "rotateY" || plugName == "rotateZ");
+   if (firstChar == 'p')
+      return (plugName == "parentMatrix");
+   if (firstChar == 'w')
+      return (plugName == "worldMatrix");
+
+
+   return false;        
 }
 
-/// gather the active override sets containing this node
-/// and export them
-MStatus CDagTranslator::ExportOverrideSets()
+MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
 {
-   MStatus status;
+   MString name = GetSessionOptions().GetExportFullPath() ? 
+      dagPath.fullPathName() : dagPath.partialPathName();
 
-   m_overrideSets.clear();
-   MDagPath path = m_dagPath;
-   // Check for passed path
-   MObjectArray overrideSetObjs;
-   status = GetOverrideSets(path, overrideSetObjs);
-   // If passed path is a shape, check for its transform as well
-   // FIXME: do we want to consider full hierarchy ?
-   // Also consider the sets the transform of that shape might be in
-   const MObject transformObj = path.transform(&status);
-   while ((MStatus::kSuccess == status) && (transformObj != path.node(&status)))
-   {
-      status = path.pop();
-   }
-   if (!(path == m_dagPath))
-   {
-      status = GetOverrideSets(path, overrideSetObjs);
-   }
-   // Exporting a set creates no Arnold object but allow IPR to track it
-   MFnSet fnSet;
-   unsigned int ns = overrideSetObjs.length();
-   for (unsigned int i=0; i<ns; i++)
-   {
-      fnSet.setObject(overrideSetObjs[i]);
-      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
-   }
-
-   return status;
+   const MString &prefix = GetSessionOptions().GetExportPrefix();
+   if (prefix.length() > 0)
+      name = prefix + name;
+   return name;
 }
+
 
 /// set the name of the arnold node
-void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
-   MString name = m_dagPath.partialPathName();
-   // TODO: add a global option to control how names are exported
-   // MString name = m_dagPath.fullPathName();
-   if (DependsOnOutputPlug())
+   CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+   MString name = CDagTranslator::GetArnoldNaming(dagTr->GetMayaDagPath());
+
+   if (m_tr.DependsOnOutputPlug())
    {
-      MString outputAttr = GetMayaAttributeName();
+      MString outputAttr = m_handle.attribute();
 
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
    }
-   if (strlen(tag))
+   if (tag != NULL && strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
    AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
 
-void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
+
+
+
+void CDagTranslator::AddUpdateCallbacks()
 {
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add DAG parents update callbacks for translator %p",
-      path.partialPathName().asChar(), GetTranslatorName().asChar(), this);
+   // Add hierarchy callbacks
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
-   MDagPath dag_path(path);
+   MDagPath dag_path(m_dagPath);
    dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddUpdateCallbacks.
    for(; dag_path.length() > 0; dag_path.pop())
    {
@@ -147,33 +127,62 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
                                                              NodeDirtyCallback,
                                                              this,
                                                              &status);
-         if (MS::kSuccess == status) ManageUpdateCallback(id);
+         if (MS::kSuccess == status) RegisterUpdateCallback(id);
       }
    }
-}
 
-
-void CDagTranslator::AddUpdateCallbacks()
-{
-   AddHierarchyCallbacks(m_dagPath);
 
    // Call the base class to get the others.
    CNodeTranslator::AddUpdateCallbacks();
 }
 
-void CDagTranslator::Delete()
+/// Like IsMasterInstance, but does not cache result
+static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *session, const MDagPath& dagPath, MDagPath &masterDag)
 {
-
-   AiRenderInterrupt();
-   
-   AiNodeDestroy(GetArnoldRootNode());
-
-   // Arnold doesn't allow us to create nodes in between to calls to AiRender
-   // for the moment. For IPR we still need to rely on setting the visibility for now.
-   //AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
-   m_atNode = NULL;
-   m_atNodes.clear();
+   if (dagPath.isInstanced())
+   {
+      MObjectHandle handle = MObjectHandle(dagPath.node());
+      unsigned int instNum = dagPath.instanceNumber();
+      // first instance
+      if (instNum == 0)
+      {
+         // first visible instance is always the master (passed dagPath is assumed to be visible)
+         session->AddMasterInstanceHandle(handle, dagPath);
+         return true;
+      }
+      else
+      {
+         // if handle is not in the map, a new entry will be made with a default value
+         MDagPath currDag = session->GetMasterInstanceDagPath(handle);
+         if (currDag.isValid())
+         {
+            // previously found the master
+            masterDag.set(currDag);
+            return false;
+         }
+         // find the master by searching preceding instances
+         MDagPathArray allInstances;
+         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
+         for (unsigned int master_index = 0; master_index < instNum; master_index++)
+         {
+            currDag = allInstances[master_index];
+            if (translator->IsRenderable())
+            {
+               // found it
+               session->AddMasterInstanceHandle(handle, currDag);
+               masterDag.set(currDag);
+               return false;
+            }
+         }
+         // didn't find a master: dagPath is the master
+         session->AddMasterInstanceHandle(handle, dagPath);
+         return true;
+      }
+   }
+   // not instanced: dagPath is the master
+   return true;
 }
+
 
 /// Return whether the current dag object is the master instance.
 ///
@@ -191,11 +200,13 @@ void CDagTranslator::Delete()
 ///
 /// @return                  whether or not dagPath is a master
 ///
+
 bool CDagTranslator::IsMasterInstance()
 {
-   if (!m_masterDag.isValid())
-      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
-   return m_isMasterDag;
+   CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
+   if (!dagImpl->m_masterDag.isValid())
+      dagImpl->m_isMasterDag = DoIsMasterInstance(this, m_impl->m_session, m_dagPath, dagImpl->m_masterDag);
+   return dagImpl->m_isMasterDag;
 }
 
 /// Return the master instance for the current dag object.
@@ -205,102 +216,35 @@ bool CDagTranslator::IsMasterInstance()
 ///
 MDagPath& CDagTranslator::GetMasterInstance()
 {
-   if (!m_masterDag.isValid())
-      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
-   return m_masterDag;
-}
-
-/// Like IsMasterInstance, but does not cache result
-bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag)
-{
-   if (dagPath.isInstanced())
-   {
-      MObjectHandle handle = MObjectHandle(dagPath.node());
-      unsigned int instNum = dagPath.instanceNumber();
-      // first instance
-      if (instNum == 0)
-      {
-         // first visible instance is always the master (passed dagPath is assumed to be visible)
-         m_session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
-      }
-      else
-      {
-         // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = m_session->GetMasterInstanceDagPath(handle);
-         if (currDag.isValid())
-         {
-            // previously found the master
-            masterDag.set(currDag);
-            return false;
-         }
-         // find the master by searching preceding instances
-         MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
-         unsigned int master_index = 0;
-         for (; (master_index < dagPath.instanceNumber()); master_index++)
-         {
-            currDag = allInstances[master_index];
-            if (m_session->IsRenderablePath(currDag))
-            {
-               // found it
-               m_session->AddMasterInstanceHandle(handle, currDag);
-               masterDag.set(currDag);
-               return false;
-            }
-         }
-         // didn't find a master: dagPath is the master
-         m_session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
-      }
-   }
-   // not instanced: dagPath is the master
-   return true;
-}
-
-void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
-{
-   MObject transform = m_dagPath.transform();
-   MFnTransform mTransform;
-   mTransform.setObject(transform);
-   MTransformationMatrix mTransformMatrix = mTransform.transformation();
-
-   MMatrix tm = mTransformMatrix.asRotateMatrix();
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) tm[I][J];
-      }
-   }
-}
-
-void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSession* session)
-{
-   MStatus stat;
-   MMatrix tm = path.inclusiveMatrix(&stat);
-   if (MStatus::kSuccess != stat)
-   {
-      AiMsgError("Failed to get transformation matrix for %s",  path.partialPathName().asChar());
-   }
-   ConvertMatrix(matrix, tm, session);
+   CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
+   if (!dagImpl->m_masterDag.isValid())
+      dagImpl->m_isMasterDag = DoIsMasterInstance(this, m_impl->m_session, m_dagPath, dagImpl->m_masterDag);
+   return dagImpl->m_masterDag;
 }
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   GetMatrix(matrix, m_dagPath, m_session);
+   MStatus stat;
+   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
+   if (MStatus::kSuccess != stat)
+   {
+      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
+   }
+   ConvertMatrix(matrix, tm);
 }
 
 // this is a utility method which handles the common tasks associated with
 // exporting matrix information. it properly handles exporting a matrix array
 // if motion blur is enabled and required by the node. it should be called
 // at each motion step
-void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
+void CDagTranslator::ExportMatrix(AtNode* node)
 {
+   int step = GetMotionStep();
    AtMatrix matrix;
    GetMatrix(matrix);
    if (step == 0)
    {
+      // why not only RequiresMotionData() ??
       if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
@@ -319,10 +263,15 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    }
 }
 
-AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
+bool CDagTranslator::IsRenderable() const
+{
+   return m_impl->m_session->IsRenderablePath(m_dagPath);
+}
+
+AtByte CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_session->IsRenderablePath(path))
+   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
@@ -371,12 +320,6 @@ AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
    }
 
    return visibility;
-}
-
-// use standardized render flag names to compute an arnold visibility mask
-AtByte CDagTranslator::ComputeVisibility()
-{
-   return ComputeVisibility(m_dagPath);
 }
 
 // Create Maya visibility attributes with standardized render flag names
@@ -442,4 +385,29 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
+}
+
+CDagTranslator *CDagTranslator::ExportDagPath(const MDagPath &dagPath)
+{
+   return CMayaScene::GetArnoldSession()->ExportDagPath(dagPath);
+}
+
+void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
+{
+   // testing if anode is ginstance instead of calling IsMasterInstance
+   // for efficiency reasons.
+   if (AiNodeIs(anode, "ginstance"))
+   {
+      CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+
+      CNodeTranslator::ExportUserAttributes(anode, dagTr->GetMayaDagPath().transform(), &m_tr);
+      
+      // FIXME below is what's being done in parent function for aiUserOptions
+      // is that what we want to do here ?
+      MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
+      if (!plug.isNull())
+         AiNodeSetAttributes(anode, plug.asString().asChar());
+   }
+   else
+      CNodeTranslatorImpl::ExportUserAttribute(anode);
 }

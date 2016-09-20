@@ -109,6 +109,8 @@ public:
       if (m_nodeHandle.object() == other.m_nodeHandle.object())
       {
          // only check instance if provided
+         // only check instance if provided
+         
          if (m_instanceNum >= 0 && other.m_instanceNum >= 0)
          {
             // test if same dag node

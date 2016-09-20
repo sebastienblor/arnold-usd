@@ -1,8 +1,6 @@
 #include "InstancerTranslator.h"
-
-#include "scene/MayaScene.h"
 #include <maya/MFnDagNode.h>
-
+#include <scene/MayaScene.h>
 #include "utils/time.h"
 
 
@@ -33,30 +31,21 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
       return  AddArnoldNode("ginstance");
 }
 
-void CInstancerTranslator::Update(AtNode *anode)
+
+void CInstancerTranslator::Export(AtNode* anode)
 {
-   ExportInstancer(anode, true);
+   ExportMatrix(anode);
+   ExportInstances(anode);
 }
 
-void CInstancerTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CInstancerTranslator::ExportMotion(AtNode* anode)
 {
-   if (IsMasterInstance())
-   {
-      ExportMatrix(anode, step);
-      if (m_motionDeform)
-      {
-         ExportInstances(anode, step);
-      }
-   }
-   else
-   {
-      ExportMatrix(anode, step);
-   }
-}
+   ExportMatrix(anode);
 
-void CInstancerTranslator::UpdateMotion(AtNode* anode, unsigned int step)
-{
-   ExportMatrix(anode, step);
+   if (IsMasterInstance() && m_motionDeform)
+   {
+      ExportInstances(anode);
+   }
 }
 
 AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
@@ -106,19 +95,10 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    return visibility;
 }
 
-void CInstancerTranslator::ExportInstancer(AtNode* instancer, bool update)
+
+void CInstancerTranslator::ExportInstances(AtNode* instancer)
 {
-   ExportMatrix(instancer,0);
-   if(!update)
-   {
-      ExportInstances(instancer, 0);
-   }
-
-}
-
-void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
-{
-
+   unsigned int step = GetMotionStep();
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
@@ -203,8 +183,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 
    }
 
-
-
+   // if deform blur is disabled, this function will only be called for step = 0
+   bool hasMotion = (RequiresMotionData() && m_motionDeform);
 
    bool exportID = false;
    MStringArray attrs;
@@ -288,11 +268,13 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 
       if (mayaMatrices.length() > 0)
       {
+         unsigned int nmtx = ((hasMotion) ? GetNumMotionSteps() : 1);
+         
          for (unsigned int j = 0; j < mayaMatrices.length(); j++)
          {
-            AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+            AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
-            ConvertMatrix(matrix, mayaMatrices[j], m_session);
+            ConvertMatrix(matrix, mayaMatrices[j]);
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -312,7 +294,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
                m_instantVeloArray.append(velocities[j]);
             }
          }
-
       }
 
       if (m_customAttrs.length() != 0 || exportID)
@@ -333,7 +314,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
          if (!fnDag.isIntermediateObject())
          {
             // Check if the node is in the scene already.
-            AtNode* masterNode = AiNodeLookUpByName(dagPathMaster.partialPathName().asChar());
+            AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
             // if not, we export it
             if (!masterNode)
             {
@@ -341,7 +322,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
                ExportDagPath(dagPathMaster);
             }
          }
-         m_objectNames.append(dagPathMaster.partialPathName().asChar());
+         m_objectNames.append(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
          m_objectDagPaths.append(dagPathMaster);
       }
       // Done export object masters
@@ -360,7 +341,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j], m_session);
+               ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
 
                if (velocities.length() > 0)
@@ -373,10 +354,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
             else  // found a new particle in this substep
             {
                newParticleCount++;
-
                AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j], m_session);
+               ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (unsigned int i = 0; i<step; i++)
@@ -472,7 +452,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
    }
 
    /// NOW write out the final list
-   if (step == (GetNumMotionSteps()-1))
+   // if deform blur is disabled, this function will only be called for step = 0 (#2386)
+   // so we need to create the instancer now   
+   if (!hasMotion || step == (GetNumMotionSteps()-1))
    {
       // we check to see if there are any instances to export here instead of at the top(before first step)
       // because at each step we might be adding particles/instances,
@@ -482,21 +464,35 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
       {
          return;
       }
+      int globalIndex = 0;
+
+      const char *arnoldBaseName = GetArnoldNodeName();
 
       for (std::map<int,int>::iterator it = m_particleIDMap.begin();
            it !=  m_particleIDMap.end(); ++it)
       {
          int partID = it->first;
          int j = it->second;
+         if (j >= (int)m_vec_matrixArrays.size()) continue;
 
-         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
+         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
          {
-            AtNode *instance;
-            instance = AiNode("ginstance");
-            char nodeName[MAX_NAME_SIZE];
-            AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+            MString instanceKey = "inst";
+            instanceKey += globalIndex;
 
+            // check if the instance for this index was already found
+            AtNode *instance = GetArnoldNode(instanceKey.asChar());
+            if (instance == NULL)
+            {
+               // Create and register this ginstance node, so that it is properly cleared later
+               instance = AddArnoldNode("ginstance", instanceKey.asChar());
+
+               MString instanceName(arnoldBaseName);
+               instanceName += globalIndex;
+               AiNodeSetStr(instance, "name", instanceName.asChar());
+            }
             int idx = m_particlePathsMap[partID][k];
+            if (idx >= (int)m_objectNames.length()) continue;
 
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
@@ -554,8 +550,21 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
    }
 
 }
-
-void CInstancerTranslator::Export(AtNode* anode)
+void CInstancerTranslator::RequestUpdate()
 {
-   ExportInstancer(anode, false);
+   /*
+   FIXME : ideally we'd like to avoid re-generating instancer all the time, 
+   and do something more optimized based on the plug name in NodeChanged.
+   But from what I understand any parameter could require a full re-export
+   - inputPoints : particles/instances have changed
+   - translate/rotate/scale : ginstance matrices will have to be recomputed
+   - level of detail params : recompute
+   - inputHierarchy : would have been nice to stay independent of it, as ginstance references the original shape
+       however, if you change the scale/rotation of the shape, it will affect the matrices we get from maya.
+      -> TO BE VERIFIED
+
+   }*/
+
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
 }

@@ -1,10 +1,10 @@
 #include "FluidTranslator.h"
-
 #include <maya/MFnFluid.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MColor.h>
 #include <maya/MPlugArray.h>
 
+bool CFluidTranslator::RequiresMotionData(){return IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);}
 void CFluidTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper("fluidShape");
@@ -169,7 +169,7 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
       colorPlug.connectedTo(conns, true, false, &status);
       if (status && conns.length())
       {
-         AtNode* connectedColor = ExportNode(conns[0]);
+         AtNode* connectedColor = ExportConnectedNode(conns[0]);
          MString attributeName = values_name + MString("[");
          attributeName += i;
          attributeName += "]";
@@ -228,7 +228,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    MFnFluid mayaFluid(GetMayaObject());
    MFnDependencyNode mayaFluidNode(GetMayaObject());
    
-   ExportMatrix(fluid, 0);
+   ExportMatrix(fluid);
    AiNodeSetByte(fluid, "visibility", ComputeVisibility());
    ExportTraceSets(fluid, FindMayaPlug("aiTraceSets"));
    ProcessParameter(fluid, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
@@ -268,7 +268,7 @@ void CFluidTranslator::Export(AtNode* fluid)
          plug.connectedTo(volumeNoisePlug, true, false);
          if (volumeNoisePlug.length() > 0)
          {
-            AtNode* volumeNoise = ExportNode(volumeNoisePlug[0]);
+            AtNode* volumeNoise = ExportConnectedNode(volumeNoisePlug[0]);
             AiNodeSetPtr(fluid_shader, "volume_texture", volumeNoise);
          }
       }
@@ -358,7 +358,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       double motion_start = 0.;
       double motion_end = 1.;
       // multiply the scale by the shutter length (ignoring shutter offset here...)
-      m_session->GetMotionRange(motion_start, motion_end);
+      GetSessionOptions().GetMotionRange(motion_start, motion_end);
       mv_scale *= (float)(motion_end - motion_start);
       
       AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);
@@ -367,7 +367,6 @@ void CFluidTranslator::Export(AtNode* fluid)
       AiNodeSetBool(fluid_shader, "enable_deformation_blur", false);
    }
    
-
    // support for gradient mode  
    // Exporting fluid data to a shader attached to the shape
    // at the moment this is the best way to store data
@@ -568,7 +567,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    }
 }
 
-void CFluidTranslator::ExportMotion(AtNode* fluid, unsigned int step)
+void CFluidTranslator::ExportMotion(AtNode* fluid)
 {
-   ExportMatrix(fluid, step);
+   ExportMatrix(fluid);
 }

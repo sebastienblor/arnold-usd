@@ -146,6 +146,9 @@ vars.AddVariables(
     PathVariable('TARGET_VP2_PATH',
                     'Path for VP2 shader files.',
                     os.path.join('$TARGET_MODULE_PATH', 'vp2'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_PRESETS_PATH',
+                 'Path for presets.',
+                 os.path.join('$TARGET_MODULE_PATH', 'presets'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
                  '.', PathVariable.PathIsDir),
@@ -156,7 +159,8 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
-    BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False)
+    BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
+    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False)
 )
 
 if system.os() == 'darwin':
@@ -182,6 +186,8 @@ if system.os() == 'windows':
         msvc_version = '10.0'
     elif int(maya_version_base) >= 2015:
         msvc_version = '11.0'
+    if int(maya_version_base) >= 2018:
+        msvc_version = '14.0'
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
         msvc_version += 'Exp'
     tmp_env['MSVC_VERSION'] = msvc_version
@@ -245,6 +251,7 @@ TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
+TARGET_PRESETS_PATH = env.subst(env['TARGET_PRESETS_PATH'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 env['ENABLE_XGEN'] = 0
@@ -252,22 +259,33 @@ env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
-
+env['ENABLE_RENDERSETUP'] = 0
+env['ENABLE_COLOR_MANAGEMENT'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
-maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+if not env['MAYA_MAINLINE_2018']:
+    maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+else:
+    maya_version = '201800'
+
 maya_version_base = maya_version[0:4]
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
     env['ENABLE_LOOKDEVKIT'] = 1
+if int(maya_version) >= 201650:
+    env['ENABLE_RENDERSETUP'] = 1
 
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
+
+if int(maya_version) >= 201700:
+    env["ENABLE_COLOR_MANAGEMENT"] = 1
+    env["MTOA_AFM"] = 1
 
 mercurial_id = ""
 
@@ -349,6 +367,8 @@ if env['COMPILER'] == 'gcc':
         env['CXX'] = env['SHCXX']
         #env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
         #env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
+
+        # FIXME : To be removed and used through scons variables
         env['CC']  = '/solidangle/toolchain/3.0/bin/clang'
         env['CXX'] = '/solidangle/toolchain/3.0/bin/clang++'
 
@@ -358,6 +378,7 @@ if env['COMPILER'] == 'gcc':
             env['CC']  = 'gcc' + compiler_version
             env['CXX'] = 'g++' + compiler_version
         else:
+            # FIXME to be removed and used through scons variables
             env['CC']  = '/opt/local/bin/clang'# + compiler_version
             env['CXX'] = '/opt/local/bin/clang++'# + compiler_version
 
@@ -394,10 +415,13 @@ if env['COMPILER'] == 'gcc':
     if env['MODE'] == 'opt' or env['MODE'] == 'profile':
         env.Append(CCFLAGS = Split(env['GCC_OPT_FLAGS']))
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
-        env.Append(CCFLAGS   = Split('-g'))
-        env.Append(LINKFLAGS = Split('-g'))
-        if system.os() == 'linux':
-            env.Append(CCFLAGS = Split('-fno-omit-frame-pointer'))
+
+        if system.os() == 'darwin': 
+            env.Append(CCFLAGS = Split('-gstabs')) 
+            env.Append(LINKFLAGS = Split('-gstabs')) 
+        else: 
+            env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
+            env.Append(LINKFLAGS = Split('-g')) 
 
     if system.os() == 'darwin':
         ## tell gcc to compile a 64 bit binary
@@ -523,6 +547,8 @@ if env['ENABLE_BIFROST'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
 if env['ENABLE_LOOKDEVKIT'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
+if env['ENABLE_RENDERSETUP'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_RENDERSETUP'))
 
 if int(maya_version_base) < 2017:
     env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
@@ -707,6 +733,18 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extensi
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
+COLOR_MANAGEMENT_FILES = ""
+if env['ENABLE_COLOR_MANAGEMENT'] == 1:
+    COLOR_MANAGEMENT_FILES = os.path.join(EXTERNAL_PATH, 'maketx', system.os(), '*')
+
+    for dylibElem in reversed(dylibs):
+        
+        if 'maketx' in dylibElem:
+            dylibs.remove(dylibElem)
+        
+
+    env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
+
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 OCIO_DYLIBPATH =""
@@ -720,11 +758,6 @@ if not env['MTOA_DISABLE_RV']:
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
 
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
-
-    
-
-
-
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -755,41 +788,41 @@ if env['ENABLE_VP2']:
 apibasepath = os.path.join('plugins', 'mtoa')
 apiheaders = [
                 os.path.join('attributes', 'AttrHelper.h'),
-                os.path.join('attributes', 'Components.h'),
-                os.path.join('common', 'MObjectCompare.h'),
+                #os.path.join('attributes', 'Components.h'),
+                #os.path.join('common', 'MObjectCompare.h'),
                 os.path.join('common', 'UtilityFunctions.h'),
                 os.path.join('extension', 'Extension.h'),
-                os.path.join('extension', 'ExtensionsManager.h'),
-                os.path.join('extension', 'AbMayaNode.h'),
+                #os.path.join('extension', 'ExtensionsManager.h'),
+                #os.path.join('extension', 'AbMayaNode.h'),
                 os.path.join('extension', 'AbTranslator.h'),
-                os.path.join('extension', 'PxUtils.h'),
-                os.path.join('extension', 'PxMayaNode.h'),
-                os.path.join('extension', 'PxArnoldNode.h'),
-                os.path.join('extension', 'PxTranslator.h'),
-                os.path.join('extension', 'PathUtils.h'),
+                #os.path.join('extension', 'PxUtils.h'),
+                #os.path.join('extension', 'PxMayaNode.h'),
+                #os.path.join('extension', 'PxArnoldNode.h'),
+                #os.path.join('extension', 'PxTranslator.h'),
+                #os.path.join('extension', 'PathUtils.h'),
                 os.path.join('platform', 'Platform.h'),
                 os.path.join('platform', 'darwin', 'Event.h'),
                 os.path.join('platform', 'linux', 'Event.h'),
                 os.path.join('platform', 'win32', 'Event.h'),
                 os.path.join('platform', 'win32', 'dirent.h'),
                 os.path.join('platform', 'win32', 'Debug.h'),
-                os.path.join('render', 'AOV.h'),
-                os.path.join('render', 'RenderSession.h'),
-                os.path.join('render', 'RenderOptions.h'),
-                os.path.join('scene', 'MayaScene.h'),
-                os.path.join('session', 'ArnoldSession.h'),
+                #os.path.join('render', 'AOV.h'),
+                #os.path.join('render', 'RenderSession.h'),
+                #os.path.join('render', 'RenderOptions.h'),
+                #os.path.join('scene', 'MayaScene.h'),
+                #os.path.join('session', 'ArnoldSession.h'),
                 os.path.join('session', 'SessionOptions.h'),
-                os.path.join('session', 'ArnoldLightLinks.h'),
+                #os.path.join('session', 'ArnoldLightLinks.h'),
                 os.path.join('translators', 'NodeTranslator.h'),
                 os.path.join('translators', 'AutoDagTranslator.h'),
                 os.path.join('translators', 'DagTranslator.h'),
-                os.path.join('translators', 'ObjectSetTranslator.h'),
+                #os.path.join('translators', 'ObjectSetTranslator.h'),
                 os.path.join('translators', 'camera', 'CameraTranslator.h'),
                 os.path.join('translators', 'camera', 'AutoCameraTranslator.h'),
                 os.path.join('translators', 'driver', 'DriverTranslator.h'),
                 os.path.join('translators', 'filter', 'FilterTranslator.h'),
                 os.path.join('translators', 'light', 'LightTranslator.h'),
-                os.path.join('translators', 'options', 'OptionsTranslator.h'),
+                #os.path.join('translators', 'options', 'OptionsTranslator.h'),
                 os.path.join('translators', 'shader', 'ShaderTranslator.h'),
                 os.path.join('translators', 'shape', 'ShapeTranslator.h'),
                 os.path.join('utils', 'Version.h'),
@@ -815,7 +848,10 @@ env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
 # install docs
 env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
-
+# install presets
+presetfiles = find_files_recursive(os.path.join('presets'), ['.mel'])
+env.InstallAs([os.path.join(TARGET_PRESETS_PATH, x) for x in presetfiles],
+              [os.path.join('presets', x) for x in presetfiles])
 # install renderer description
 env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
@@ -890,8 +926,16 @@ env['BUILDERS']['PackageDeploy']  = Builder(action = Action(deploy,  "Deploying 
 ## EXTENSIONS
 ################################
 
+print 'extensions'
+
 ext_env = maya_env.Clone()
-ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+
+ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
+
+# Instead of including our whole MtoA folder, we should just include what's provided in the public API
+#ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+
 ext_env.Append(LIBPATH = ['.', ARNOLD_API_LIB, ARNOLD_BINARIES])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
@@ -900,11 +944,18 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit')):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or
+            (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or
+            (env['ENABLE_XGEN'] == 1 and (int(maya_version) >= 201700) and ext == 'xgenSpline') or
+            ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
+            (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
+            (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
+            (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
-    if os.path.isdir(ext_dir):        
+    if os.path.isdir(ext_dir):
+
         EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                              duplicate   = 0,
@@ -989,13 +1040,13 @@ for ext in os.listdir(ext_base_dir):
 ## (file_spec, destination_path)                        Copies a group of files specified by a glob expression
 ##
 PACKAGE_FILES = [
+[os.path.join('tools', 'ShaderConversion', 'mrShadersToArnold.py'), 'docs'],
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('icons', '*.png'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
-[os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
@@ -1005,6 +1056,19 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+for p in presetfiles:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join('presets', p), os.path.join('presets', d)]
+    ]
+
+if env['ENABLE_COLOR_MANAGEMENT'] == 0:
+    PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
+else:
+    PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
+    
+if (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
@@ -1015,15 +1079,31 @@ if env['ENABLE_XGEN'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
+  
+if (env['ENABLE_XGEN'] == 1) and (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
+    
+if (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShaderTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShader_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_LOOKDEVKIT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit_shaders%s' % get_library_extension()), 'shaders'])
+
+if env['ENABLE_RENDERSETUP'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])

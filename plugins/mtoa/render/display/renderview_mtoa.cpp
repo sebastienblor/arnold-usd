@@ -1,6 +1,7 @@
 
 #include "renderview_mtoa.h"
 
+
 #ifdef MTOA_DISABLE_RV
 
 // define the functions in case we disabled the RenderView
@@ -32,13 +33,22 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 void CRenderViewMtoA::ResolutionChangedCallback(void *) {}
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
 void CRenderViewMtoA::UpdateColorManagement(){}
+MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step) {return MStatus::kSuccess;}
+
+void CRenderViewMtoA::PreProgressiveStep() {}
+void CRenderViewMtoA::PostProgressiveStep() {}
+void CRenderViewMtoA::ProgressiveRenderStarted() {}
+void CRenderViewMtoA::ProgressiveRenderFinished() {}
 
 #else
 
+#if MAYA_API_VERSION >= 201700
+#include "QtWidgets/qmainwindow.h"
+#endif
+
 // Arnold RenderView is defined
-
 #include "scene/MayaScene.h"
-
+#include "translators/DagTranslator.h"
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
@@ -53,8 +63,29 @@ void CRenderViewMtoA::UpdateColorManagement(){}
 #include <maya/M3dView.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MNodeMessage.h>
-
+#include <maya/MProgressWindow.h>
 #include <maya/MSceneMessage.h>
+#include <maya/MTimerMessage.h>
+
+
+#ifdef _DARWIN
+static Qt::WindowFlags RvQtFlags = Qt::Tool;
+#else
+static Qt::WindowFlags RvQtFlags = Qt::Window|Qt::WindowSystemMenuHint|Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+#endif
+
+struct CARVSequenceData
+{
+   float first;
+   float last;
+   float current;
+   float step;
+   bool renderStarted;
+   std::string sceneUpdatesValue;
+   std::string saveImagesValue;
+};
+static CARVSequenceData *s_sequenceData = NULL;
+static QWidget *s_workspaceControl = NULL;
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -65,10 +96,14 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvColorMgtCb(0),
    m_rvResCb(0),
    m_rvIdleCb(0),
-   m_convertOptionsParam(true)
+   m_convertOptionsParam(true),
+   m_hasPreProgressiveStep(false),
+   m_hasPostProgressiveStep(false),
+   m_hasProgressiveRenderStarted(false),
+   m_hasProgressiveRenderFinished(false)
+
 {   
 }
-
 CRenderViewMtoA::~CRenderViewMtoA()
 {
    if (m_rvSceneSaveCb)
@@ -163,7 +198,50 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
    } 
 
-   OpenRenderView(width, height, MQtUtil::mainWindow());
+#if MAYA_API_VERSION >= 201700
+
+   // Docking in maya workspaces only supported from maya 2017.
+   // For older versions, we tried using QDockWindows (see branch FB-2470)
+   // but the docking was way too sensitive, and not very usable in practice
+   MString workspaceCmd = "workspaceControl ";
+
+   bool firstCreation = true;
+   if (s_workspaceControl)
+   {
+      workspaceCmd += " -edit -visible true ";
+      firstCreation = false;
+   } else
+   {
+      workspaceCmd += " -li 1"; // load immediately
+      workspaceCmd += " -ih "; // initial width
+      workspaceCmd += width;
+      workspaceCmd += " -iw "; // initiall height
+      workspaceCmd += height;
+
+       // command called when closed. It's not ARV itself that is closed now, but the workspace !
+      workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
+      workspaceCmd += " -l \"Arnold RenderView\" "; // label
+   }
+   workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
+
+   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+
+   QMainWindow *arv = GetRenderView();  
+   arv->setWindowFlags(Qt::Widget);
+
+   
+   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+   s_workspaceControl = MQtUtil::getCurrentParent(); // returns a pointer to th workspace called above
+
+   if (firstCreation)
+      MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
+
+   // for an unknown reason, maya crashes if I don't call show() as below....
+   arv->show();
+   s_workspaceControl->show();
+#else
+   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+#endif
 
    if (exists && m_convertOptionsParam)
    {
@@ -257,6 +335,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       int fileLogging = renderOptions->GetLogFileVerbosity();
       SetLogging(consoleLogging, fileLogging);
    }
+   UpdateRenderCallbacks();
 }
 /**
   * Preparing MtoA's interface code with the RenderView
@@ -273,18 +352,22 @@ void CRenderViewMtoA::UpdateSceneChanges()
       return;
    }
 
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
    // Universe isn't active, oh my....
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
       renderSession->SetRendering(false);
       CMayaScene::End();
+      CMayaScene::ExecuteScript(renderGlobals.postMel);
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+
    }
+
+
    // Re-export everything !
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-
    MDagPathArray cameras;
    GetRenderCamerasList(cameras);
    CMayaScene::ExecuteScript(renderGlobals.preMel);
@@ -309,6 +392,32 @@ void CRenderViewMtoA::UpdateSceneChanges()
    // Set resolution and camera as passed in.
    CMayaScene::GetRenderSession()->SetResolution(-1, -1);
    CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+
+   UpdateRenderCallbacks();
+}
+
+void CRenderViewMtoA::UpdateRenderCallbacks()
+{
+   MStatus status;
+   MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
+   if (status)
+   {
+      m_progressiveRenderStarted = optionsNode.findPlug("IPRRefinementStarted").asString();
+      m_preProgressiveStep = optionsNode.findPlug("IPRStepStarted").asString();
+      m_postProgressiveStep = optionsNode.findPlug("IPRStepFinished").asString();
+      m_progressiveRenderFinished = optionsNode.findPlug("IPRRefinementFinished").asString();
+   }
+   else
+   {
+      m_progressiveRenderStarted = "";
+      m_preProgressiveStep = "";
+      m_postProgressiveStep = "";
+      m_progressiveRenderFinished = "";
+   }
+   m_hasPreProgressiveStep = (m_preProgressiveStep != "");
+   m_hasPostProgressiveStep = (m_postProgressiveStep != "");
+   m_hasProgressiveRenderStarted = (m_progressiveRenderStarted != "");
+   m_hasProgressiveRenderFinished = (m_progressiveRenderFinished != "");
 }
 
 static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
@@ -486,6 +595,7 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 
    if (paramName == "camera")
    {
+
       AtNode *cam = (AtNode*)AiNodeGetPtr(node, "camera");
       if (cam == NULL) return;
 
@@ -498,10 +608,12 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
       {
          MDagPath camPath;
          itDag.getPath(camPath);
-         std::string camName = camPath.partialPathName().asChar();
+         std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
          if (camName == cameraName)
          {
+            // why do we need to have this information in 2 several places ??
             CMayaScene::GetRenderSession()->SetCamera(camPath);
+            CMayaScene::GetArnoldSession()->SetExportCamera(camPath); 
             break;
          }      
          itDag.next();
@@ -531,15 +643,41 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 
 void CRenderViewMtoA::RenderViewClosed()
 {
+
+#if MAYA_API_VERSION >= 201700
+   // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
+   MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+#endif
+
    ReceiveSelectionChanges(false);
+   if (s_sequenceData != NULL)
+   {
+      SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+      SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+      if (m_rvIdleCb)
+      {
+         MMessage::removeCallback(m_rvIdleCb);
+         m_rvIdleCb = 0;
+      }
+      delete s_sequenceData;
+      s_sequenceData = NULL;
+   }
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
       renderSession->SetRendering(false);
       CMayaScene::End();
+
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+      CMayaScene::ExecuteScript(renderGlobals.postMel);
    }
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
+
+   MProgressWindow::endProgress();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -874,12 +1012,19 @@ void CRenderViewMtoA::UpdateColorManagement()
 
    MStringArray viewTransforms;
    MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   MString userPrefsDir;
+   MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
+   userPrefsDir += "/synColorConfig.xml";
+
    std::string allViewTransforms;
    for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
    {
       allViewTransforms += viewTransforms[idx].asChar();
       allViewTransforms += ";";
    }
+
+   // Set the Color Management configuration before doing anything.
+   SetOption("Color Management.Config Files",  userPrefsDir.asChar()); 
 
    // The order of initialization is important to avoid useless changes.
    SetOption("Color Management.Enabled",        "false");
@@ -1110,6 +1255,173 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
                                                   &status);
    }
 
+}
+
+void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, void *data)
+{
+   if (s_sequenceData == NULL){return;}
+
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)data;
+
+   if (MProgressWindow::isCancelled())
+   {
+      CMayaScene::GetRenderSession()->InterruptRender(true);
+      MProgressWindow::endProgress();
+      rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+      rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+      if (rvMtoA->m_rvIdleCb)
+      {
+         MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+         rvMtoA->m_rvIdleCb = 0;
+      }
+      return;
+   }
+
+   if(!s_sequenceData->renderStarted)
+   {
+      if (AiRendering()) {s_sequenceData->renderStarted = true; }
+      
+   } else
+   {
+      if(!AiRendering())
+      {
+         // this frame has finished !
+         s_sequenceData->current += s_sequenceData->step;
+         if (s_sequenceData->current > s_sequenceData->last)
+         {
+            MProgressWindow::endProgress();
+            rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+            rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+            if (rvMtoA->m_rvIdleCb)
+            {
+               MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+               rvMtoA->m_rvIdleCb = 0;
+            }
+            return;
+         }
+         s_sequenceData->renderStarted = false;
+         MProgressWindow::setProgress(s_sequenceData->current);
+
+         MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+         MGlobal::viewFrame(s_sequenceData->current);
+         MProgressWindow::setProgressStatus(progressStr);
+         MGlobal::displayInfo(progressStr);
+         rvMtoA->SetOption("Update Full Scene", "1");
+
+      } else
+      {
+         // still computing
+         // nothing to do ?
+      }
+   }
+
+}
+
+
+MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
+{
+   if (m_rvIdleCb)
+   {
+      MMessage::removeCallback(m_rvIdleCb);
+      m_rvIdleCb = 0;
+   } 
+   // make sure no render is going on
+   CMayaScene::GetRenderSession()->InterruptRender(true);
+
+   if (s_sequenceData) 
+   {
+      delete s_sequenceData;
+      s_sequenceData = NULL;
+   }
+
+
+   /*
+   FIXME : we'd need to find the original value of scene updates / save final images
+   but they're not in "serialize" yet
+
+   std::string serialized = Serialize();
+
+   size_t npos = serialized.find("Scene Updates");
+   if (npos != std::string::npos)
+   {
+   }
+   npos = serialized.find("Save Final Images");
+   if (npos != std::string::npos)
+   {
+   }
+   */
+
+   SetOption("Scene Updates", "0");
+   SetOption("Save Final Images", "1");
+   
+   s_sequenceData = new CARVSequenceData;
+   s_sequenceData->first = first;
+   s_sequenceData->current = first;
+   s_sequenceData->last = last;
+   s_sequenceData->step = step;
+   s_sequenceData->renderStarted = false;
+   s_sequenceData->sceneUpdatesValue = "1";
+   s_sequenceData->saveImagesValue = "0";
+
+   if (!MProgressWindow::reserve())
+   {
+      MGlobal::displayError("Progress window already in use.");
+      return MS::kFailure;
+   }
+
+   MProgressWindow::setProgressRange(first, last);
+   MProgressWindow::setTitle(MString("Sequence Rendering"));
+   MProgressWindow::setInterruptable(true);
+   MProgressWindow::setProgress(first);
+
+   MString progressWindowState = MString("Sequence Rendering:") +
+          MString("\nFrames ") + MProgressWindow::progressMin() +
+          MString(" to ") + MProgressWindow::progressMax() + 
+          MString(" (step ") + step + MString(")");
+
+   MGlobal::displayInfo(progressWindowState);
+   MProgressWindow::startProgress();
+
+   MGlobal::viewFrame(first);
+   MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+   MProgressWindow::setProgressStatus(progressStr);
+   MGlobal::displayInfo(progressStr);
+
+   SetOption("Update Full Scene", "1");
+   
+   // connect to Idle
+   MStatus status;
+
+   m_rvIdleCb = MTimerMessage::addTimerCallback(0.1f,
+                                                  CRenderViewMtoA::SequenceRenderCallback,
+                                                  this,
+                                                  &status);
+
+   return status;
+}
+
+void CRenderViewMtoA::PreProgressiveStep()
+{
+   if (!m_hasPreProgressiveStep) return;
+   CMayaScene::ExecuteScript(m_preProgressiveStep, false, true);
+
+}
+void CRenderViewMtoA::PostProgressiveStep()
+{
+   if (!m_hasPostProgressiveStep) return;
+   CMayaScene::ExecuteScript(m_postProgressiveStep, false, true);
+
+}
+void CRenderViewMtoA::ProgressiveRenderStarted()
+{
+   if (!m_hasProgressiveRenderStarted) return;
+   CMayaScene::ExecuteScript(m_progressiveRenderStarted, false, true);
+}
+
+void CRenderViewMtoA::ProgressiveRenderFinished()
+{
+   if (!m_hasProgressiveRenderFinished) return;
+   CMayaScene::ExecuteScript(m_progressiveRenderFinished, false, true);
 }
 
 #endif

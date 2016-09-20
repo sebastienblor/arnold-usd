@@ -4,8 +4,13 @@
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
+#include "translators/camera/ImagePlaneTranslator.h"
+#include "translators/shader/ShaderTranslators.h"
+#include "translators/shader/ShadingEngineTranslator.h"
 #include "nodes/ShaderUtils.h"
 #include "translators/DagTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
+#include "utils/MakeTx.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -35,6 +40,7 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
 #include <maya/MNodeMessage.h>
+#include <maya/MProgressWindow.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -101,12 +107,13 @@ namespace // <anonymous>
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus* stat)
+CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool initOnly, MStatus* stat)
 {
+   //m_motionStep = 0;
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
-   MString name = dagPath.partialPathName();
+   MString name = CDagTranslator::GetArnoldNaming(dagPath);
    MString type = MFnDagNode(dagPath).typeName();
 
    AiMsgTab(1);
@@ -119,7 +126,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       AiMsgTab(-1);
       return NULL;
    }
-   else if (!translator->IsMayaTypeDag())
+   else if (!translator->m_impl->IsMayaTypeDag())
    {
       if (stat != NULL) *stat = MStatus::kInvalidParameter;
       AiMsgDebug("[mtoa] translator for %s of type %s is not a DAG translator", name.asChar(), type.asChar());
@@ -131,30 +138,29 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
    CNodeAttrHandle handle(dagPath);
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
-   if (!translator->DisableCaching())
-   {
-      // Check if node has already been processed
-      // FIXME: since it's a multimap there can be more than one translator associated ?
-      // ObjectToTranslatorMap::iterator it, itlo, itup;
-      // itlo = m_processedTranslators.lower_bound(handle);
-      // itup = m_processedTranslators.upper_bound(handle);
-      it = m_processedTranslators.find(handle);
-      if (it != m_processedTranslators.end())
-      {
-         AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
 
-         delete translator;
-         status = MStatus::kSuccess;
-         arnoldNode = it->second->GetArnoldRootNode();
-         translator = (CDagTranslator*)it->second;
-      }
+   // Check if node has already been processed
+   // FIXME: since it's a multimap there can be more than one translator associated ?
+   // ObjectToTranslatorMap::iterator it, itlo, itup;
+   // itlo = m_processedTranslators.lower_bound(handle);
+   // itup = m_processedTranslators.upper_bound(handle);
+   it = m_processedTranslators.find(handle);
+   if (it != m_processedTranslators.end())
+   {
+      AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
+
+      delete translator;
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldNode();
+      translator = (CDagTranslator*)it->second;
    }
+
    if (arnoldNode == NULL)
    {
       if (initOnly)
          AiMsgDebug("[mtoa.session]     %-30s | Initializing DAG node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
-      translator->Init(this, dagPath);
+      translator->m_impl->Init(this, dagPath);
       if (it != m_processedTranslators.end())
       {
          it->second = translator;
@@ -162,7 +168,6 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       else
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
-         m_processedTranslatorList.push_back(translator);
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
@@ -170,7 +175,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
-         arnoldNode = translator->DoExport(0);
+         arnoldNode = translator->m_impl->DoExport();
    }
 
    if (NULL != stat) *stat = status;
@@ -181,8 +186,10 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
 // Export a plug (dependency node output attribute)
 //
 CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
-                                   bool initOnly, MStatus *stat)
+                                   bool initOnly, int instanceNumber, MStatus *stat)
 {
+   //instanceNumber is currently used only for bump. We provide a specific instance number
+
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
@@ -223,7 +230,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    // resolving the plug gives translators a chance to replace ".message" with ".outColor",
    // for example, or to reject it outright.
    // once the attribute is properly resolved it can be used as a key in our multimap cache
-   if (translator->ResolveOutputPlug(resultPlug, resolvedPlug))
+   if (translator->m_impl->ResolveOutputPlug(resultPlug, resolvedPlug))
    {
       resultPlug = resolvedPlug;
    }
@@ -244,35 +251,34 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       name.asChar(), plugName.asChar(), type.asChar());
    CNodeAttrHandle handle;
    if (translator->DependsOnOutputPlug())
-      handle.set(resultPlug);
+      handle.set(resultPlug, instanceNumber);
    else
-      handle.set(mayaNode);
+      handle.set(mayaNode, "", instanceNumber);
    ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
-   if (!translator->DisableCaching())
+   
+   // Check if node has already been processed
+   // FIXME: since it's a multimap there can be more than one translator associated ?
+   // ObjectToTranslatorMap::iterator it, itlo, itup;
+   // itlo = m_processedTranslators.lower_bound(handle);
+   // itup = m_processedTranslators.upper_bound(handle);
+   it = m_processedTranslators.find(handle);
+   if (it != m_processedTranslators.end())
    {
-      // Check if node has already been processed
-      // FIXME: since it's a multimap there can be more than one translator associated ?
-      // ObjectToTranslatorMap::iterator it, itlo, itup;
-      // itlo = m_processedTranslators.lower_bound(handle);
-      // itup = m_processedTranslators.upper_bound(handle);
-      it = m_processedTranslators.find(handle);
-      if (it != m_processedTranslators.end())
-      {
-         AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of node of type %s", name.asChar(), type.asChar());
+      AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of node of type %s", name.asChar(), type.asChar());
 
-         delete translator;
-         status = MStatus::kSuccess;
-         arnoldNode = it->second->GetArnoldRootNode();
-         translator = it->second;
-      }
+      delete translator;
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldNode();
+      translator = it->second;
    }
+   
    if (arnoldNode == NULL)
    {
       if (initOnly)
          AiMsgDebug("[mtoa.session]     %-30s | Initializing node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
-      translator->TrackShaders(nodes);
-      translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
+      translator->m_impl->SetShadersList(nodes);
+      translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
       if (it != m_processedTranslators.end())
       {
          it->second = translator;
@@ -280,8 +286,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       else
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
-         m_processedTranslatorList.push_back(translator);
-
+         
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
@@ -289,20 +294,28 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
-         arnoldNode = translator->DoExport(0);
+         arnoldNode = translator->m_impl->DoExport();
    }
    if (arnoldNode != NULL)
    {
       if (nodes != NULL)
       {
-         std::map<std::string, AtNode*>::iterator nodeIt;
-         for (nodeIt = translator->m_atNodes.begin(); nodeIt != translator->m_atNodes.end(); ++nodeIt)
+         nodes->insert(translator->m_impl->m_atNode);
+
+         if (translator->m_impl->m_additionalAtNodes)
          {
-            nodes->insert(nodeIt->second);
+            std::map<std::string, AtNode*>::iterator nodeIt;
+            for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
+            {
+               nodes->insert(nodeIt->second);
+            }         
          }
       }
       if (aovs != NULL)
-         translator->TrackAOVs(aovs);
+      {
+         // only ShadingEngine doesn't TrackAOVs as it's the root of the shading tree
+         translator->m_impl->TrackAOVs(aovs);
+      }
    }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
@@ -412,10 +425,11 @@ MStatus CArnoldSession::End()
    }
 
    // Delete stored translators
-   for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
    {
-      //AiMsgDebug("[mtoa] Deleting translator for %s in %p", MFnDependencyNode(it->first.object()).name().asChar(), it->second);
-      delete m_processedTranslatorList[i];
+      delete it->second;
    }
 
    for(unsigned int i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
@@ -424,11 +438,9 @@ MStatus CArnoldSession::End()
    }
    m_hiddenObjectsCallbacks.clear();
 
-   // Any translators are in the processed translators map, so already deleted
    m_processedTranslators.clear();
    m_objectsToUpdate.clear();
    m_optionsTranslator = NULL;
-   m_processedTranslatorList.clear();
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
@@ -505,8 +517,8 @@ MStatus CArnoldSession::UpdateMotionFrames()
    {
       unsigned int range_type    = m_sessionOptions.m_motion.range_type;
       unsigned int motionSteps   = m_sessionOptions.m_motion.steps;
-      if (m_motion_frames.size() != motionSteps) m_motion_frames.clear();
-      if (m_motion_frames.capacity() != motionSteps) m_motion_frames.reserve(motionSteps);
+      m_motion_frames.clear();
+      m_motion_frames.reserve(motionSteps);
       
       double motionFrames;
       double stepSize;
@@ -588,7 +600,7 @@ AtNode* CArnoldSession::ExportOptions()
    MPlug optPlug = fnNode.findPlug("message");
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, true);
 
-   return m_optionsTranslator->GetArnoldRootNode();
+   return m_optionsTranslator->GetArnoldNode();
 }
 
 /// Primary entry point for exporting a Maya scene to Arnold
@@ -619,6 +631,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    // Set up export options
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
+   m_motionStep = 0;
 
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
@@ -708,15 +721,28 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // traverse the DG even if the translators call ExportNode or ExportDag. This makes it safe
       // to re-export all objects from a flattened list
 
-      // get the size first, because on step 0, m_processedTranslatorList will grow as we export
-      unsigned int size = m_processedTranslatorList.size();
-      // finally, loop through the already processed translators and export for current step
-      for (unsigned int i=0; i < size; ++i)
+      // The list of processedTranslators can grow while we call doExport a few lines below.
+      // So we can't call doExport while iterating over them.
+      // Thus we first store the list of translators to process.
+      std::vector<CNodeTranslator*> translatorsToExport;
+      translatorsToExport.reserve(m_processedTranslators.size());
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      for (; it != itEnd; ++it)
       {
-         m_processedTranslatorList[i]->DoExport(step);
+         if (it->second) translatorsToExport.push_back(it->second);
+      }
+      
+      // for safety we're not doing the loop on m_motionSteps directly in case it is modified somewhere else
+      m_motionStep = step; 
+
+      // finally, loop through the already processed translators and export for current step
+      for (size_t i=0; i < translatorsToExport.size(); ++i)
+      {         
+         translatorsToExport[i]->m_impl->DoExport();
       }
    }
-
+   m_motionStep = 0;
    if (mb)
    {
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
@@ -728,17 +754,32 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    }
 
    m_isExportingMotion = false;
-   
+
    // add callbacks after all is done
    if (IsInteractiveRender())
    {
-      ObjectToTranslatorMap::iterator it;
-      for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      for ( ; it != itEnd; ++it)
       {
-         m_processedTranslatorList[i]->AddUpdateCallbacks();
+         CNodeTranslator *nodeTr = it->second;
+         if (nodeTr == NULL) continue;
+         nodeTr->AddUpdateCallbacks();
+         nodeTr->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         nodeTr->m_impl->m_holdUpdates = false; // allow to trigger new updates
+         nodeTr->m_impl->m_isExported = true; // next export will be an update
+         // for motion blur, check which nodes are static and which aren't (#2316)
+         if (mb && numSteps > 1)
+         {
+            nodeTr->m_impl->m_animArrays = nodeTr->m_impl->HasAnimatedArrays();
+         } else nodeTr->m_impl->m_animArrays = false;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
+
+   // it would seem correct to only call ExportTxFiles if m_updateTx = true
+   // but it's not a good moment to take that risk...
+   ExportTxFiles();
 
    return status;
 }
@@ -774,26 +815,21 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
       MDagPath path;
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
+      MFnDagNode cameraNode;
+      MPlug renderable;
       // First we export all cameras
       // We do not reset the iterator to avoid getting kWorld
       for (; (!dagIterCameras.isDone()); dagIterCameras.next())
       {
          if (dagIterCameras.getPath(path))
          {
-            // Only check for cameras being visible, not templated and in render layer
-            // FIXME: does a camera need to be visible to render actually in Maya?
-            /*
-            MFnDagNode node(path.node());
-            MString name = node.name();
-            if (m_sessionOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
-               continue;
-            if (m_sessionOptions.m_filter.templated == true && IsTemplatedPath(path))
-               continue;
-            if (m_sessionOptions.m_filter.hidden == true && !IsVisiblePath(path))
-               continue;
-            */
+            
             MStatus stat;
-            ExportDagPath(path, true, &stat);
+            cameraNode.setObject(path);
+            renderable = cameraNode.findPlug("renderable", false, &stat);
+            if (stat == MS::kSuccess && renderable.asBool())
+               ExportDagPath(path, true, &stat);
+
             if (stat != MStatus::kSuccess)
                status = MStatus::kFailure;
          }
@@ -1202,10 +1238,28 @@ void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
+void CArnoldSession::EraseActiveTranslator(const CNodeAttrHandle &handle)
+{
+   m_processedTranslators.erase(handle);
+}
+
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
+   // don't add translator twice to the list, it could crash if its updateMode
+   // is "delete". Other solution would be to use a set, but the extra-cost is not
+   // necessary since we already have this flag
+   if (translator == NULL || translator->m_impl->m_holdUpdates) return; 
+
+   // During IPR with motion blur, we change the current frame to export the motion 
+   // and this might propagate nodeDirty signals that end up here. 
+   // We don't want to consider those
    if (m_isExportingMotion && IsInteractiveRender()) return;
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
+
+   // Set this translator as being in the update list, to avoid useless future signals
+   translator->m_impl->m_holdUpdates = true;   
+
+   // add this translator to the list of objects to be updated in next DoUpdate()
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
 }
 
 /*
@@ -1232,16 +1286,32 @@ void CArnoldSession::DoUpdate()
    MStatus status;
    assert(AiUniverseIsActive());
 
+   double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+   bool frameChanged = (frame != GetExportFrame());
+
+   // only change the frame for interactive renders
+   // It appears that Export() doesn't restore the current frame
+   // in maya otherwise ( to avoid useless maya evaluations )
+   if (frameChanged && IsInteractiveRender()) SetExportFrame(frame);
+
+   if (m_updateMotionData)
+   {
+      m_sessionOptions.GetFromMaya();
+      UpdateMotionFrames();
+      m_updateMotionData = false;
+   }
+
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
    
-   bool aDag   = false;
+   bool dagFound   = false;
    bool newDag = false;
-   bool reqMob = false;
-   bool moBlur = IsMotionBlurEnabled();
+   bool exportMotion = false;
+   bool motionBlur = IsMotionBlurEnabled();
+   bool mbRequiresFrameChange = false;
 
-   bool arv = (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW);
+   m_motionStep = 0;
 
    // In theory, no objectsToUpdate are supposed to be 
    // added to this list during the loop. But to make 
@@ -1254,12 +1324,16 @@ void CArnoldSession::DoUpdate()
       CNodeTranslator * translator = m_objectsToUpdate[i].second;
 
       // Check if this translator needs to be re-created
-      if (translator != NULL && translator->m_updateMode == AI_RECREATE_TRANSLATOR)
+      if (translator != NULL && translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
          // delete the current translator, just like AI_DELETE_NODE does
-         translator->RemoveUpdateCallbacks();
          translator->Delete();
-         m_processedTranslators.erase(handle); // shouldn't we delete the translator ?
+         m_processedTranslators.erase(handle); 
+         
+         // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
+         delete translator;
+         // callbacks are now removed in the destructor
+         //translator->m_impl->RemoveUpdateCallbacks();
 
          // setting translator to NULL will consider that this is a new node,
          // re-create the translator and export it appropriately
@@ -1271,31 +1345,57 @@ void CArnoldSession::DoUpdate()
       {
          // Translator already exists
          // check its update mode
-         if(translator->m_updateMode == AI_RECREATE_NODE)
+         if(translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
          {
+            
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
             translator->Delete();
-            translator->m_atNodes.clear();
-            translator->DoCreateArnoldNodes();
+            translator->m_impl->DoCreateArnoldNodes();
 
-            translator->DoExport(0);
+            // no longer re-exporting here. This will be done in the translatorsToUpdateList
+            // since DoUpdate will call DoExport (isExported=false)
+            //translator->m_impl->DoExport();
             translatorsToUpdate.push_back(translator);
-         } else if(translator->m_updateMode == AI_DELETE_NODE)
+
+            if (motionBlur && translator->RequiresMotionData())
+            {
+               // this node needs to be export with motion
+               exportMotion = true;
+               mbRequiresFrameChange = true;
+            }
+
+         } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
-            translator->RemoveUpdateCallbacks();
             translator->Delete();
-            m_processedTranslators.erase(handle);
-            // FIXME : when is this translator supposed to be deleted ??
+            // the translator has already been removed from our list
+            //m_processedTranslators.erase(handle);
+
+            // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
+            delete translator;
+            // removing callbacks now handled in the destructor
+            //translator->m_impl->RemoveUpdateCallbacks();
          }  
          else
          {  
             // AI_UPDATE_ONLY => simple update
-            if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
-            if (translator->IsMayaTypeDag()) aDag = true;
+
+            if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translator->RequiresMotionData())
+            {
+               // Find out if we need to call ExportMotion for each motion step
+               // or if a single Export is enough. 
+               exportMotion = true;
+
+               // If the arnold node doesn't have any animated array then there's no need 
+               // to change the view frame in maya during the ExportMotion calls.
+               // However if the frame has just been changed, then the arrays might have become 
+               // animated now.
+               if (frameChanged || translator->m_impl->m_animArrays) 
+                  mbRequiresFrameChange = true;
+            }
+            if (translator->m_impl->IsMayaTypeDag()) dagFound = true;
             translatorsToUpdate.push_back(translator);
          }
-
       } else
       {
          // No translator was provided, it's either a new node creation or
@@ -1350,9 +1450,24 @@ void CArnoldSession::DoUpdate()
          // Add the newly recovered or created translators to the list
          for (unsigned int i=0; i < translators.size(); ++i)
          {
-            if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
-            if (translators[i]->IsMayaTypeDag()) aDag = true;
-            translators[i]->DoExport(0);
+            if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translators[i]->RequiresMotionData())
+            {
+               // Find out if we need to call ExportMotion for each motion step
+               // or if a single Export is enough. 
+               exportMotion = true;
+
+               // If the arnold node doesn't have any animated array then there's no need 
+               // to change the view frame in maya during the ExportMotion calls.
+               // However if the frame has just been changed, then the arrays might have become 
+               // animated now.
+               if (frameChanged || translators[i]->m_impl->m_animArrays) 
+                  mbRequiresFrameChange = true;
+            }
+
+            if (translators[i]->m_impl->IsMayaTypeDag()) dagFound = true;
+
+            // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
+            //translators[i]->m_impl->DoExport();
             translatorsToUpdate.push_back(translators[i]);
          }
       }
@@ -1363,49 +1478,69 @@ void CArnoldSession::DoUpdate()
    size_t updatedObjects = m_objectsToUpdate.size();
    
    // FIXME: n
+         
    if (newDag || IsLightLinksDirty())
    {
       UpdateLightLinks();
    }
 
    // Need something finer to determine if the changes have an influence
-   if (aDag)
+   if (dagFound)
    {
       AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    }
    // Now do an update for all the translators in our list
-   // TODO : we'll probably need to be able to passe precisely to each
-   // translator what event or plug triggered the update request
-
-   if (!reqMob)
+   if (!exportMotion)
    {
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
          iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->DoUpdate(0);
-         
+         if (translator != NULL) translator->m_impl->DoUpdate();
       }
    }
    else
    {
       m_isExportingMotion = true;
       // Scene is motion blured, get the data for the steps.
-      for (unsigned int step = 0; (step < GetNumMotionSteps()); ++step)
+      unsigned int numSteps = GetNumMotionSteps();
+      for (unsigned int step = 0; step < numSteps; ++step)
       {
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
-         MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+
+         if (mbRequiresFrameChange) 
+            MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+
+         m_motionStep = step;
          for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
              iter != translatorsToUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if (translator != NULL) translator->DoUpdate(step);
+            if (translator != NULL) translator->m_impl->DoUpdate();
+            
+            if (numSteps > 1 && step == numSteps - 1)
+            {
+               // last motion blur step, check once again if this translators has animated arrays
+               translator->m_impl->m_animArrays = translator->m_impl->HasAnimatedArrays();
+            }
          }
       }
-      MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      m_motionStep = 0;
+      if (mbRequiresFrameChange)
+      {
+         MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      }
 
       m_isExportingMotion = false;
    }
+   
+
+   if (m_updateTx) 
+   {
+      m_updateTx = false;
+      ExportTxFiles();
+   }
+   
 
    // Refresh translator callbacks after all is done
    if (IsInteractiveRender())
@@ -1428,21 +1563,16 @@ void CArnoldSession::DoUpdate()
          CNodeTranslator* translator = (*iter);
          if (translator != NULL)
          {
-            if (arv)
+            // For RenderView, we don't clear the update callbacks
+            // we just add them if they're missing
+            if (translator->m_impl->m_mayaCallbackIDs.length() == 0)
             {
-               // For RenderView, we don't clear the update callbacks
-               // we just add them if they're missing
-               if (!translator->HasUpdateCallbacks())
-               {
-                  translator->AddUpdateCallbacks();
-               } 
-
-              translator->m_holdUpdates = false; // I'm allowed to receive updates once again
-            } else
-            {
-               translator->RemoveUpdateCallbacks();
                translator->AddUpdateCallbacks();
-            }
+            } 
+            translator->m_impl->m_holdUpdates = false; // I'm allowed to receive updates once again
+            translator->m_impl->m_isExported = true;
+            // restore the update mode to "update Only"
+            translator->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
          }
       }
    }
@@ -1455,6 +1585,13 @@ void CArnoldSession::DoUpdate()
       // some nodes have been added to the update list.
       // let's keep them in this list so that next update invokes them
       m_objectsToUpdate.erase(m_objectsToUpdate.begin(), m_objectsToUpdate.begin() + updatedObjects);
+
+      // all the remaining objects to update must have holdUpdates On
+      for (size_t i = 0; i < m_objectsToUpdate.size(); ++i)
+      {
+         if (m_objectsToUpdate[i].second) 
+            m_objectsToUpdate[i].second->m_impl->m_holdUpdates = true;
+      }
    } else 
    {
       m_objectsToUpdate.clear();
@@ -1469,8 +1606,8 @@ void CArnoldSession::ClearUpdateCallbacks()
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {
-      if (it->second != NULL) it->second->RemoveUpdateCallbacks();
+   {	   
+      if (it->second != NULL) it->second->m_impl->RemoveUpdateCallbacks();
    }
 }
 
@@ -1478,21 +1615,20 @@ void CArnoldSession::ClearUpdateCallbacks()
 
 /// If called prior to export, only the specified camera will be exported. If not set, all cameras
 /// will be exported, but some translators may not be able to fully export without an export camera specified.
-/// To address this potential issue, this method should be called after a multi-cam export, as it will cause all
-/// translators for which CNodeTranslator::DependsOnExportCamera() returns true to be updated.
+/// To address this potential issue, this method should be called after a multi-cam export, as it will cause
+/// the options translator to be updated
 ///
 void CArnoldSession::SetExportCamera(MDagPath camera)
 {
    AiMsgDebug("[mtoa.session] Setting export camera to \"%s\"", camera.partialPathName().asChar());
    m_sessionOptions.SetExportCamera(camera);
 
-   // queue up translators for update
-   ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {
-      if (it->second->DependsOnExportCamera())
-         QueueForUpdate(it->second);
-   }
+   if (m_optionsTranslator == NULL) return;
+   // just queue the options translator now 
+   // instead of relying on the DependsOnExportCamera.
+   // In the future we should have a generic way to make translators dependent from others,
+   // so that whatever change in one translator propagates an update on the others
+   QueueForUpdate(m_optionsTranslator);
    DoUpdate();
 }
 
@@ -1588,14 +1724,16 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 
    // There is no object with this name in the scene.
    // Let's search it amongst the list of processed translators
-   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   ObjectToTranslatorMap::const_iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::const_iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
    {
-      CNodeTranslator *translator = m_processedTranslatorList[i];
+      CNodeTranslator *translator = it->second;
       if (translator == NULL) continue;
 
       // check if this translator corresponds to this AtNode
       // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
-      if (translator->GetArnoldRootNode() == node)
+      if (translator->GetArnoldNode() == node)
       {
          // We found our translator
          return translator->GetMayaNodeName().asChar();
@@ -1604,6 +1742,37 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 
    return "";
 }
+const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
+{
+   AtNode* node = AiNodeLookUpByName(mayaName.asChar());
+
+   if (node == NULL)
+   {
+      // There is no object with this name in the scene.
+      // Let's search it amongst the list of processed translators
+
+      ObjectToTranslatorMap::const_iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::const_iterator itEnd = m_processedTranslators.end();
+      for ( ; it != itEnd; ++it)
+      {
+         CNodeTranslator *translator = it->second;
+         if (translator == NULL) continue;
+
+         // check if this translator corresponds to this AtNode
+         // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
+         if (translator->GetMayaNodeName() == mayaName)
+         {
+            // We found our translator
+            node = translator->GetArnoldNode();
+         }
+      }
+   }
+
+   if (node) return AiNodeGetName(node);   
+
+   return "";
+}
+
 
 bool CArnoldSession::IsVisible(MFnDagNode &node) const
 {
@@ -1651,4 +1820,256 @@ const MStringArray &CArnoldSession::GetTextureSearchPaths() const
 const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
 {
    return m_sessionOptions.GetProceduralSearchPaths();
+}
+
+
+void CArnoldSession::ExportTxFiles()
+{
+
+   // Do not call makeTx if we're doing swatch rendering or material view
+   int sessionMode = GetSessionMode();
+   if (sessionMode == MTOA_SESSION_MATERIALVIEW || sessionMode == MTOA_SESSION_SWATCH ||
+      sessionMode == MTOA_SESSION_UNDEFINED) return;
+   
+   // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
+  // or that class eliminated completely 
+   CRenderOptions renderOptions; 
+   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+   renderOptions.GetFromMaya(); 
+
+   bool autoTx = renderOptions.autoTx();
+   bool useTx = renderOptions.useExistingTiledTextures();
+
+   if (useTx == false && autoTx == false) return;
+
+   const MStringArray &searchPaths = GetTextureSearchPaths();
+
+   bool progressBar = autoTx && (MGlobal::mayaState() == MGlobal::kInteractive);
+
+   std::vector<CNodeTranslator *> textureNodes;
+   textureNodes.reserve(100); // completely empirical value, to avoid first allocations
+
+
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
+   {
+      CNodeTranslator *translator = it->second;
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldNode();
+      if (node == NULL) continue;
+
+      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
+      
+   }
+
+   bool progressStarted = false;
+   std::map<std::string, std::string> textureColorSpaces;
+   for (size_t i = 0; i < textureNodes.size(); ++i)
+   {
+      CNodeTranslator *translator = textureNodes[i];
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldNode();
+      if (node == NULL) continue;
+      
+      MString filename = AiNodeGetStr(node, "filename");
+      std::string filenameStr = filename.asChar();
+
+      const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
+      bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
+      MString searchPath = "";
+      bool invalidProgressWin = false;
+      if (fileAutoTx)
+      {
+         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
+         std::string colorSpaceStr = colorSpace.asChar();
+
+         std::map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+         if (it == textureColorSpaces.end())
+         {
+            textureColorSpaces[filenameStr] = colorSpaceStr;
+         } else
+         {
+            // already dealt with this filename, skip the auto-tx
+            if (colorSpaceStr != it->second)
+            {
+               AiMsgDebug("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
+            }
+            goto USE_TX;
+         }
+
+         if (progressBar)
+         {
+            if (!progressStarted)
+            {
+               MProgressWindow::reserve();
+               MProgressWindow::setProgressRange(0, 100);
+               MProgressWindow::setTitle("Converting Images to TX");
+               MProgressWindow::setInterruptable(true);
+
+               // if the progress bar was already cancelled before it started
+               // (it seems that it happens sometimes...), the we simply
+               // don't test for cancel anymore
+               if (MProgressWindow::isCancelled()) invalidProgressWin = true;
+            }
+            if ((!invalidProgressWin) && MProgressWindow::isCancelled()) 
+            {
+               // FIXME show a confirm dialog to mention color management will be wrong
+               //MString cmd;
+               //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
+               //MGlobal::executePythonCommandStringResult(cmd);
+
+               // if progress was cancelled we consider that auto-Tx is OFF
+               // but we still need to handle "use Tx"
+               MProgressWindow::endProgress();
+               fileAutoTx = false;
+
+               goto USE_TX;
+            }
+
+            // FIXME use basename instead
+            MString progressStatus = filename;
+            int basenameIndex = progressStatus.rindexW('/');
+            if (basenameIndex > 0)
+            {
+               progressStatus = progressStatus.substring(basenameIndex + 1, progressStatus.numChars() - 1);
+            }
+            progressStatus += " (";
+            progressStatus += (unsigned int)(i + 1);
+            progressStatus += "/";
+            progressStatus += (unsigned int)textureNodes.size();
+            progressStatus += ")";
+
+            while (progressStatus.length() < 50)
+            {
+               progressStatus += "    ";
+            }
+
+            MProgressWindow::setProgressStatus(progressStatus);
+
+            if (!progressStarted)
+            {
+               MProgressWindow::startProgress();
+               // strange, but I need to change the value once so that it is displayed
+               MProgressWindow::setProgress(1);
+               MProgressWindow::setProgress(0);
+            }
+            else
+            {
+               MProgressWindow::setProgress(i * 100 / textureNodes.size());
+            }
+            progressStarted = true;
+         }
+
+
+         // convert TX
+         int createdFiles = 0;
+         int skippedFiles = 0;
+         int errorFiles = 0;
+
+         makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+         
+         if (createdFiles + skippedFiles + errorFiles == 0)
+         {               
+            // no file has been found
+            // let's try with the search paths
+            for (unsigned int t = 0; t < searchPaths.length(); ++t)
+            {
+               searchPath = searchPaths[t];
+               MString searchFilename = searchPath + filename;
+               makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+
+               if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
+            }
+         }
+      }
+USE_TX:
+      if (useTx)
+      {
+
+         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+
+         MString searchFilename = searchPath + txFilename;
+
+         MStringArray expandedFilenames = expandFilename(searchFilename);
+
+         if(expandedFilenames.length() == 0 && !autoTx)
+         {
+            // No file was found for this filename
+            // and mipmap hasn't been generated above (auto-tx = false)
+            // we should check in the search paths
+         
+            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            {
+               searchFilename = searchPaths[i] + txFilename;
+               expandedFilenames = expandFilename(searchFilename);
+               
+               // we found the texture, stop searching
+               if (expandedFilenames.length() > 0) break;
+            }
+         }
+         // if expandedFilenames.length >= 1 then we're OK ?
+         if (expandedFilenames.length() > 0)
+         {
+            filename = txFilename;
+            FormatTexturePath(filename);
+            AiNodeSetStr(node, "filename", filename.asChar()); 
+            
+         
+         }
+      }      
+   }
+   if (progressBar && progressStarted) MProgressWindow::endProgress();
+   
+}
+
+void CArnoldSession::RecomputeMotionData()
+{
+
+   m_updateMotionData = true;
+   
+   // check all translators in the scene
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
+   {
+      // this node doesn't require motion data, no need to modify it
+      if (!it->second->RequiresMotionData() || !it->second->m_impl->m_animArrays) 
+         continue;
+
+      // this is going to fully re-generate these nodes
+      // and it will re-export with the appropriate motion steps
+      it->second->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
+      it->second->RequestUpdate();
+   }
+   RequestUpdate();
+}
+
+void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
+{
+   MDagPath path = parent;
+   // check if there is a translator for this dag path
+   // If yes, Remove its update callbacks, and request an update on it
+   CNodeAttrHandle handle(path);
+   std::vector< CNodeTranslator * > translators;
+   if (GetActiveTranslators(handle, translators))
+   {
+      for (size_t i = 0; i < translators.size(); ++i)
+      {
+         translators[i]->m_impl->RemoveUpdateCallbacks();
+         translators[i]->RequestUpdate();
+      }
+   }
+ 
+   // Recursively dive into the dag children
+   for (unsigned int i = 0; i < path.childCount(); i++)
+   {
+      MObject ChildObject = path.child(i);
+      path.push(ChildObject);
+      RecursiveUpdateDagChildren(path);
+      path.pop(1);
+   }
+
 }

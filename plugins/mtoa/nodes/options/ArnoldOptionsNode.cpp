@@ -71,6 +71,7 @@ MObject CArnoldOptionsNode::s_motion_start;
 MObject CArnoldOptionsNode::s_motion_end;
 MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
+MObject CArnoldOptionsNode::s_autotx;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
 MObject CArnoldOptionsNode::s_output_ass_mask;
@@ -426,7 +427,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("max_subdivisions");
 
    // textures
+#if MAYA_API_VERSION < 201700
    s_attributes.MakeInput("texture_automip");
+#endif
    s_attributes.MakeInput("texture_autotile");
    s_attributes.MakeInput("texture_max_memory_MB");
    s_attributes.MakeInput("texture_max_open_files");
@@ -440,9 +443,17 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotile);
    
-   s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
+   int defaultAutoTx = 0;
+#if MAYA_API_VERSION >= 201700
+   defaultAutoTx = 1;
+#endif
+   s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, defaultAutoTx); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);
+
+   s_autotx = nAttr.create("autotx", "autotx", MFnNumericData::kBoolean, defaultAutoTx);
+   nAttr.setKeyable(false);
+   addAttribute(s_autotx);
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");

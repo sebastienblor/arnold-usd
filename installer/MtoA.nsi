@@ -137,6 +137,12 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
     StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
     CopyFiles "$INSTDIR\arnoldRenderer.xml" "$R1$R2"
+    
+    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+    ${If} "$%MAYA_VERSION%" >= "2017"
+    CreateDirectory "$R1\maya\RSTemplates"
+    CopyFiles "$INSTDIR\RSTemplates\*.json" "$R1\maya\RSTemplates"
+    ${EndIf}
 
 SectionEnd
 
@@ -171,6 +177,12 @@ Section "Uninstall"
   ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
   StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
   Delete "$R1$R2"
+  
+  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+  ${If} "$%MAYA_VERSION%" >= "2017"
+  Delete "$R1\maya\RSTemplates\MatteOverride-Arnold.json"
+  Delete "$R1\maya\RSTemplates\RenderLayerExample-Arnold.json"
+  ${EndIf}
   
   IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
   deleteMayaEnv:

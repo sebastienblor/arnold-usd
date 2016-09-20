@@ -1,8 +1,5 @@
 #include "ParticleTranslator.h"
-
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
@@ -13,9 +10,12 @@
 #include <maya/MFnMesh.h>
 #include <maya/MVectorArray.h>
 #include <maya/MStringArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MSelectionList.h>
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
+#include <ai_noise.h>
 
 
 #ifdef _DEBUG
@@ -111,13 +111,6 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputFloat(data);
 }
 
-void CParticleTranslator::UpdateMotion(AtNode* anode, unsigned int step)
-{
-   // ProcessRenderFlags(anode);
-   // FIXME: Crashes
-   // ExportMatrix(anode, step);
-}
-
 void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
@@ -125,7 +118,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
          AiNodeSetPtr(particle, "shader", rootShader);
@@ -665,7 +658,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
       m_out_radiusArrays.push_back(newRadiusArray);
    }
 
-   particle = GetArnoldRootNode();
+   particle = GetArnoldNode();
 
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
@@ -803,7 +796,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
    //uint totalSteps = GetNumMotionSteps(); // not needed
 
-   particle = GetArnoldRootNode();
+   particle = GetArnoldNode();
 
 
    // add in a new vector entry for this step to all the  maps/vectors
@@ -1149,7 +1142,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       MMatrix mpm;
       mpm = m_dagPath.inclusiveMatrix();
       // convert it to AtMatrix
-      ConvertMatrix (inclMatrix, mpm, m_session); // util From CNodeTranslator
+      ConvertMatrix (inclMatrix, mpm); // util From CNodeTranslator
    }
 
    const unsigned int numMotionSteps = (m_motionDeform && RequiresMotionData()) ? GetNumMotionSteps() : 1;
@@ -1515,13 +1508,13 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
 
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
    int instanceNum =  m_dagPath.instanceNumber();
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -1553,7 +1546,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    if (iogConnectionsMaster[0].node() != iogConnections[0].node())
    {
       //FIXME : Is it ok to assume that the shader is the first Dag member ?
-      AtNode *shader = ExportNode(iogConnections[0]);
+      AtNode *shader = ExportConnectedNode(iogConnections[0]);
       AiNodeSetPtr(instance, "shader", shader);
    }
 
@@ -1565,8 +1558,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
 {
    if (step == 0)
    {
-      if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-          CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+      if (RequiresShaderExport())
          ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);
@@ -1589,32 +1581,19 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    return particle;
 }
 
-
-void CParticleTranslator::Update(AtNode *anode)
-{
-   ProcessRenderFlags(anode);
-   //ExportMatrix(anode, 0);
-}
-
-void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)
-{
-   if (IsMasterInstance())
-   {
-      //ExportMatrix(anode, step);
-      if (m_motionDeform)
-         ExportParticleNode(anode, step);
-      else if (step == (GetNumMotionSteps() - 1))
-      {
-         WriteOutParticle(anode);
-         ProcessRenderFlags(anode);
-      }
-   }
-   else
-      ExportMatrix(anode, step);
-}
-
 void CParticleTranslator::Export(AtNode* anode)
 {
+   if (IsExported())
+   {
+      // During Updates we only re-exported the render flags
+      // make sure it's really what we want !
+      ProcessRenderFlags(anode);
+      //ExportMatrix(anode, 0);
+
+      // shouldn't we re-export the shaders ?
+      return;
+   }
+
    // check if the particle system is linked to an instancer
    m_fnParticleSystem.setObject(m_dagPath.node());
    if (m_fnParticleSystem.isValid() == false)
@@ -1622,7 +1601,6 @@ void CParticleTranslator::Export(AtNode* anode)
       AiMsgError("[mtoa]: Particle system %s not exported. It has 0 particles", m_fnParticleSystem.partialPathName().asChar());
       return;
    }
-
 
    if (IsMasterInstance())
    {
@@ -1642,5 +1620,32 @@ void CParticleTranslator::Export(AtNode* anode)
    else
       ExportInstance(anode, GetMasterInstance());
 
-
 }
+
+void CParticleTranslator::ExportMotion(AtNode* anode)
+{
+   if (IsExported())
+   {
+      // ProcessRenderFlags(anode);
+      // FIXME: Crashes
+      // ExportMatrix(anode, step);
+      return;
+   }
+
+
+   int step = GetMotionStep();
+   if (IsMasterInstance())
+   {
+      //ExportMatrix(anode, step);
+      if (m_motionDeform)
+         ExportParticleNode(anode, step);
+      else if (step == int(GetNumMotionSteps() - 1))
+      {
+         WriteOutParticle(anode);
+         ProcessRenderFlags(anode);
+      }
+   }
+   else
+      ExportMatrix(anode);
+}
+

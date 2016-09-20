@@ -76,9 +76,9 @@ class DLLEXPORT CArnoldSession
 public:
 
    // Called by translators
-   CDagTranslator* ExportDagPath(MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
+   CDagTranslator* ExportDagPath(const MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
    CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
-                      bool initOnly=false, MStatus* stat=NULL);
+                      bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
    unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
@@ -109,6 +109,14 @@ public:
    inline unsigned int GetExportFilterMask() const { return m_sessionOptions.GetExportFilterMask(); }
    inline void SetExportFilterMask(unsigned int mask) { m_sessionOptions.SetExportFilterMask(mask); }
 
+   inline bool GetExportFullPath() const {return m_sessionOptions.GetExportFullPath();}
+   inline const MString &GetExportPrefix() const {return m_sessionOptions.GetExportPrefix();}
+   
+   inline void SetExportFullPath(bool b) {m_sessionOptions.SetExportFullPath(b);}
+   inline void SetExportPrefix(const MString &prefix) {m_sessionOptions.SetExportPrefix(prefix);}
+
+
+
    // Export options
    inline const CSessionOptions& GetSessionOptions() const { return m_sessionOptions; }
    // Arnoldrender options
@@ -116,7 +124,8 @@ public:
    
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
-   inline std::vector<double> GetMotionFrames() const { return m_motion_frames; }
+   inline const std::vector<double> &GetMotionFrames() const { return m_motion_frames; }
+   inline unsigned int GetMotionStep() const {return m_motionStep;}
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
    inline void GetMotionRange(double &motion_start, double &motion_end) const {m_sessionOptions.GetMotionRange(motion_start, motion_end); }
 
@@ -137,13 +146,14 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
    void RequestUpdate();
+   void EraseActiveTranslator(const CNodeAttrHandle &handle);
 
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};
 
-   bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
-   bool IsInteractiveRender() const {return (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_IPR); }
+   bool IsBatch() const { return m_sessionOptions.IsBatch(); }
+   bool IsInteractiveRender() const {return m_sessionOptions.IsInteractiveRender();}
 
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
@@ -165,6 +175,12 @@ public:
    bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
    MString GetMayaObjectName(const AtNode *node) const;
+   
+   // from a Maya name, get corresponding name in Arnold scene
+   const char *GetArnoldObjectName(const MString &mayaName) const;
+
+   // this is going to recreate all nodes that require motion data (when MB parameters are edited)
+   void RecomputeMotionData();
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -186,7 +202,8 @@ public:
 */
    const MStringArray &GetTextureSearchPaths() const;
    const MStringArray &GetProceduralSearchPaths() const;
-   
+
+   void RequestUpdateTx() {m_updateTx = true;}   
 private:
 
    CArnoldSession()
@@ -195,9 +212,14 @@ private:
       ,  m_numLights(0)
       ,  m_lightLinks(MLightLinks())
       ,  m_isExportingMotion(false)
+      ,  m_motionStep(0)
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
+      ,  m_updateTx(false)
+      ,  m_updateMotionData(false)
+
+
       //,  m_continuousUpdates(true)
 
    {
@@ -239,6 +261,10 @@ private:
    bool IsVisible(MFnDagNode &node) const;
    bool IsVisiblePath(MDagPath dagPath) const;
 
+   void ExportTxFiles();
+   void RecursiveUpdateDagChildren(MDagPath &parent);
+
+
 private:
 
    CSessionOptions m_sessionOptions;
@@ -250,14 +276,14 @@ private:
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;
+   int m_motionStep;
 
    bool m_requestUpdate;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
    
    // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
-   std::vector<CNodeTranslator*> m_processedTranslatorList;
-
+   
    double m_scaleFactor;
    MMatrix m_scaleFactorMMatrix;
    AtMatrix m_scaleFactorAtMatrix;
@@ -268,6 +294,8 @@ protected:
 
    COptionsTranslator*  m_optionsTranslator;
    bool                 m_is_active;
+   bool                 m_updateTx;
+   bool                 m_updateMotionData;
    //bool                 m_continuousUpdates;
    //AOVSet m_aovs;
 };  // class CArnoldSession

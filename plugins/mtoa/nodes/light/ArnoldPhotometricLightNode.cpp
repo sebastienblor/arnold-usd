@@ -299,6 +299,11 @@ void CArnoldPhotometricLightNode::postConstructor()
    plug = node.findPlug("castsShadows");
    plug.setValue(false);
 
+   // Alias aiExposure as exposure for internal attribute name recognition
+   MStatus stat;
+   MPlug plg = node.findPlug("aiExposure", &stat);
+   node.setAlias("exposure", "aiExposure", plg, true /*add*/, &stat);
+
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
 }
 

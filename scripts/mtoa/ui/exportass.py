@@ -126,9 +126,12 @@ def buildSettingsString(settings):
         for key, value in items :
             if value is True:
                 yield '-%s' % key
+            elif key is "exportPrefix":
+                yield '-%s %s' % (key, value)
             elif value is not False:
                 yield '-%s %r' % (key, value)
         
+
     settingsString = ';'.join(flagSyntaxItems(settings.items()))
     return settingsString 
 
@@ -199,6 +202,9 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, select=1+settings.get('shadowLinks', 0)) 
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, enable=lightsOn)
         
+        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=False)
+        cmds.textFieldGrp("oa_export_prefix", label="Prefix ", text="")
+
         cmds.setParent('..')      
         cmds.setParent('..')
         cmds.separator(style='none')    
@@ -271,7 +277,12 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
          
         settings['expandProcedurals'] = cmds.checkBoxGrp('oa_expandProcedurals', query=True, value1=True)
         settings['forceTranslateShadingEngines'] = cmds.checkBoxGrp('oa_forceTranslateShadingEngines', query=True, value1=True)
-        
+
+        settings['fullPath'] = cmds.checkBoxGrp('oa_export_full_path', query=True, value1=True)
+        prefix = cmds.textFieldGrp('oa_export_prefix', query=True, text=True)
+        if len(prefix) > 0:
+            settings['exportPrefix'] =  prefix
+
         currentOptions = buildSettingsString(settings)
         # print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')

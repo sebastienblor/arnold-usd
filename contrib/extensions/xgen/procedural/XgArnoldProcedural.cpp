@@ -13,8 +13,14 @@
 #include <fstream>
 #include <fcntl.h>
 
-#ifndef _DARWIN
-// This would need a proper fix to be enabled in OSX !
+// FIXME this is currently failing at link time
+//on OSX for maya 2015 & 2016
+// So for now we're only including it if we're not in this situation
+#ifdef _DARWIN
+#if MAYA_API_VERSION >= 201700
+#include <maya/MTypes.h>
+#endif
+#else
 #include <maya/MTypes.h>
 #endif
 
@@ -236,7 +242,7 @@ int Procedural::Init(AtNode* node)
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
-#if MAYA_API_VERSION >= 201500
+#if MAYA_API_VERSION > 201500
    char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
    if(xgenConfigPath != NULL)
       xgapi::initConfig(string(xgenConfigPath));
@@ -749,7 +755,7 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
       m_bboxes.insert(std::make_pair(asstocfile,out_bbox));
 
       file.close();
-      delete str;
+      delete[] str;
 
    }
    else
@@ -958,8 +964,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       float constantWidth = pc->get( PC(ConstantWidth) );
 
       XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
-      {string s = "Constant width: " + ftoa(constantWidth) + "\n";
-      printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
     }
     // Add Varying Widths

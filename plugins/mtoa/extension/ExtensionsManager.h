@@ -5,6 +5,8 @@
 
 #include "extension/Extension.h"
 #include "extension/PxUtils.h"
+#include "translators/DagTranslator.h"
+
 
 #include <maya/MGlobal.h>
 #include <maya/MObject.h>
