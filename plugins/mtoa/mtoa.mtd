@@ -6,6 +6,7 @@
 # sky                         0x00115C84
 # skydome_light               0x00115C85
 # area_light                  0x00115C86
+# mesh_light                  0x00115C88
 
 # standard                    0x00115D01
 # utility                     0x00115D03
@@ -768,8 +769,8 @@
 
 
 [node mesh_light]
-    maya.name               STRING  "aiAreaLight"
-    maya.id                 INT     0x00115C86
+    maya.name               STRING  "aiMeshLight"
+    maya.id                 INT     0x00115C88
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
     [attr color]
@@ -882,7 +883,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
+    maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight aiMeshLight mesh"
     maya.output             INT     0x05
     maya.swatch             BOOL    False
     [attr density]
@@ -909,7 +910,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight mesh"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight aiMeshLight mesh"
     maya.swatch             BOOL    False
     [attr far_end]
         min                 FLOAT   0.0

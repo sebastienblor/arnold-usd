@@ -491,6 +491,72 @@ def createLocator(locatorType, asLight=False):
         pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
+def createMeshLight(legacy=False, centerPivot=True):
+    sls = cmds.ls(sl=True, et='transform')
+    if len(sls) == 0:
+        cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
+        return
+    meshTransform = sls[0]
+    shs = cmds.listRelatives(meshTransform, type='mesh')
+    if shs is None or len(shs) == 0:
+        cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
+        return
+    meshShape = shs[0]
+    if legacy:
+        cmds.setAttr('%s.aiTranslator' % meshShape, 'mesh_light', type='string')
+    else:
+        # Make sure the shape has not been converted already
+        existing = cmds.listConnections('%s.outMesh' % meshShape, shapes=True, type='aiMeshLight')
+        if existing and len(existing) > 0:
+            cmds.confirmDialog(title='Error', message='Mesh light already created!', button='Ok')
+            return
+
+        # Make sure the shape has only a single parent
+        # Multiple light instances are not supported
+        allPaths = cmds.listRelatives(meshShape, allParents=True, fullPath=True)
+        if len(allPaths) != 1:
+            cmds.confirmDialog(title='Error', message='The mesh has multiple instances. Light instances are not supported!', button='Ok')
+            return
+
+        (lightShape,lightTransform) = createLocator('aiMeshLight', asLight=True)
+
+        cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
+
+        # FIXME ignoring this for now
+        
+        # Center pivot of mesh if requested
+        # This will make sure that the point light used for approximate
+        # vewport lighting is placed in the center of the mesh
+        #if centerPivot:
+        #    cmds.xform(meshTransform, centerPivots=True)
+        #    p = cmds.xform(meshTransform, query=True, objectSpace=True, scalePivot=True)
+        #    oldPos = [
+        #        (p[0]*m[0] + p[1]*m[4]+ p[2]*m[8]  + m[12]),
+        #        (p[0]*m[1] + p[1]*m[5]+ p[2]*m[9]  + m[13]),
+        #        (p[0]*m[2] + p[1]*m[6]+ p[2]*m[10] + m[14])
+        #    ]
+        #    cmds.xform(meshTransform, zeroTransformPivots=True)
+        #    # Translate back to previous pivot (preserving child transform positions and geometry positions)
+        #    [newPos] = cmds.getAttr(meshTransform + ".translate")
+        #    cmds.move(oldPos[0]-newPos[0], oldPos[1]-newPos[1], oldPos[2]-newPos[2], meshTransform,
+        #        preserveChildPosition=True, preserveGeometryPosition=True, localSpace=True, relative=True)
+
+        # Copy transform
+        #cmds.matchTransform(lightTransform, meshTransform)
+        
+        # Hide the original mesh using the lodVisibility attribute
+        # Using lodVisibility keeps the mesh dirty propagation enabled
+
+        cmds.connectAttr('%s.showOriginalMesh' % lightShape, '%s.lodVisibility' % meshShape)
+
+        # FIXME : we shouldn't have to do this, but otherwise it takes a couple of tweaks on
+        # showOriginalMesh before seeing its effect
+        cmds.setAttr('%s.showOriginalMesh' % lightShape, 1)
+        cmds.setAttr('%s.showOriginalMesh' % lightShape, 0)
+
+
+        cmds.select(lightTransform)
+
 def getSourceImagesDir():
     sourceImagesRule = cmds.workspace(fileRuleEntry='sourceImages')
     if sourceImagesRule != None:

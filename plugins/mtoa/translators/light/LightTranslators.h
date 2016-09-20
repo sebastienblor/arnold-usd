@@ -157,8 +157,35 @@ public:
 
    virtual void ExportMotion(AtNode* light);
 protected:
+   MPlug GetPlug(const MObject& obj, const MString &attrName, MStatus* ReturnStatus = NULL) const
+   {
+      MFnDependencyNode fnNode(obj);
+      return fnNode.findPlug(attrName, ReturnStatus);
+   }
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
    virtual MObject GetMeshObject() const;
 
    int m_numVertices;
 };
+
+
+// Translator for new mesh light representation where
+// the light is a seperate node, with a connection to the
+// mesh representing the light shape
+class CMeshLightNewTranslator : public CMeshLightTranslator
+{
+public:
+   CMeshLightNewTranslator() : CMeshLightTranslator() {}
+   virtual MObject GetMeshObject() const;
+
+   static void* creator()
+   {
+      return new CMeshLightNewTranslator();
+   }
+
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+
+

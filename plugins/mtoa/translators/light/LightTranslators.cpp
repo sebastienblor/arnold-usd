@@ -5,6 +5,7 @@
 #include <maya/MFnSpotLight.h>
 #include <maya/MFnMesh.h>
 #include <maya/MItMeshPolygon.h>
+#include <maya/MPlugArray.h>
 #include <maya/MMatrix.h>
 
 // DirectionalLight
@@ -595,4 +596,40 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
       }
       
    }  
+}
+
+MObject CMeshLightNewTranslator::GetMeshObject() const
+{
+   MPlug inMesh = GetPlug(m_dagPath.node(), "inMesh");
+   if (inMesh.isDestination())
+   {
+      MPlugArray plugArray;
+      
+      inMesh.connectedTo(plugArray,  true, false);
+      MObject sourceNode;
+
+      if (plugArray.length() > 0)
+         sourceNode = plugArray[0].node();
+      
+      // equivalent code in maya 2017 
+      //MObject sourceNode = inMesh.source().node();      
+      
+      if (sourceNode.hasFn(MFn::kMesh))
+         return sourceNode;
+      
+   }
+   return MObject::kNullObj;
+}
+void CMeshLightNewTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+
+   const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
+   
+   if (recreate_geom)
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CMeshLightTranslator::NodeChanged(node, plug);
 }
