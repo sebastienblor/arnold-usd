@@ -13,7 +13,16 @@
 #include <fstream>
 #include <fcntl.h>
 
+// FIXME this is currently failing at link time
+//on OSX for maya 2015 & 2016
+// So for now we're only including it if we're not in this situation
+#ifdef _DARWIN
+#if MAYA_API_VERSION >= 201700
 #include <maya/MTypes.h>
+#endif
+#else
+#include <maya/MTypes.h>
+#endif
 
 #include "../../../plugins/mtoa/utils/HashUtils.h"
 
