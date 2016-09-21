@@ -21,6 +21,20 @@ except:
 global arnoldAOVCallbacks
 
 try:
+    import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
+    import mtoa.core as core
+
+    class ArnoldRenderSettingsCallbacks(rendererCallbacks.RenderSettingsCallbacks):
+    
+        # Create the default Arnold nodes
+        def createDefaultNodes(self):
+            core.createOptions()
+
+    arnoldRenderSettingsCallbacks = ArnoldRenderSettingsCallbacks()
+except ImportError:
+    arnoldRenderSettingsCallbacks = None
+
+try:
     import maya.app.renderSetup.model.renderSetup as renderSetup
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
     import maya.app.renderSetup.model.typeIDs as typeIDs
@@ -33,12 +47,6 @@ try:
     import mtoa.ui.aoveditor as aoveditor
     import json
     import maya.api.OpenMaya as OpenMaya
-
-    class ArnoldRenderSettingsCallbacks(rendererCallbacks.RenderSettingsCallbacks):
-    
-        # Create the default Arnold nodes
-        def createDefaultNodes(self):
-            core.createOptions()
 
     class ArnoldAOVChildSelector(selector.Selector):
         kTypeId = typeIDs.arnoldAOVChildSelector
@@ -320,10 +328,8 @@ try:
             return d["selector"]["arnoldAOVChildSelector"]["arnoldAOVNodeName"]
 
     renderSetup.registerNode(ArnoldAOVChildSelector)
-    arnoldRenderSettingsCallbacks = ArnoldRenderSettingsCallbacks()
     arnoldAOVCallbacks = ArnoldAOVCallbacks()
 except ImportError:
-    arnoldRenderSettingsCallbacks = None
     arnoldAOVCallbacks = None
 
 def aiHyperShadePanelBuildCreateMenuCallback() :
