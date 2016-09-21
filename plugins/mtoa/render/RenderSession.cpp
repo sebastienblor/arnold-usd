@@ -39,7 +39,7 @@
 #include <cstdio>
 #include <assert.h>
 
-#ifdef _LINUX
+#ifndef _WIN64
 #include <unistd.h>
 #endif
 

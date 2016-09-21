@@ -20,11 +20,7 @@
 #include <fstream>
 #include <istream>
 #include <streambuf>
-#ifdef _WIN32
 #include <unordered_map>
-#else
-#include <tr1/unordered_map>
-#endif
 
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
@@ -134,8 +130,8 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    // Otherwise, as soon as AiRender is called, they are re-initialized
    AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
-#ifdef _WIN32
-   std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
+#ifdef _DARWIN
+   std::unordered_map<std::string, matrixAsFloats>  mtxMap;
 #else
    std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
 #endif
@@ -169,9 +165,9 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::vector<AtPoint2> uvs;
    std::vector<unsigned int> vertexIds;
    
-#ifdef _WIN32
-   std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
-   std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
+#ifdef _DARWIN
+   std::unordered_map<size_t, unsigned int>  vertexMap;
+   std::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
 #else
    std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
    std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;

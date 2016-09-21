@@ -39,6 +39,7 @@ public :
       m_handle(CNodeAttrHandle()),
       m_updateMode(CNodeTranslator::AI_UPDATE_ONLY),
       m_holdUpdates(false),
+      m_animArrays(false),
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
@@ -50,7 +51,6 @@ public :
       m_shaders(NULL),
       m_sourceTranslator(NULL),
       m_isExported(false),
-      m_animArrays(false),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
 
