@@ -115,16 +115,25 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    MPlug inputPointsPlug = depNodeInstancer.findPlug("inputPoints");
    inputPointsPlug.connectedTo(conn, true, false);
 
-   MObject inputPointsData = inputPointsPlug.attribute();
+   MObject inputPointsData = inputPointsPlug.asMObject();
 
    // inputPoints is not an array, so position [0] is the particleShape node
    MObject particleShape = conn[0].node();
+
+   MString particleName;
+   MFnDependencyNode fnParticle;
+   MString idAttrName;
+
 
    MIntArray  partIds;
    MVectorArray velocities;
    MFnArrayAttrsData::Type vectorType(MFnArrayAttrsData::kVectorArray);
    MFnArrayAttrsData::Type doubleType(MFnArrayAttrsData::kDoubleArray);
+   MFnArrayAttrsData::Type intType(MFnArrayAttrsData::kIntArray);
+   MFnArrayAttrsData::Type arrayType;
+
    bool usingParticleSource = true;
+   MFnArrayAttrsData instancerData;
 
    MDagPathArray paths;
    MMatrixArray mayaMatrices;
@@ -145,6 +154,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       m_fnParticleSystem.particleIds(partIds);
       m_fnParticleSystem.velocity(velocities);
 
+      particleName = m_fnParticleSystem.partialPathName();
    }
 
    // if particles are not connected to the instancer it must be being fed by something else
@@ -153,18 +163,34 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    else
    {
       usingParticleSource = false;
-      MFnArrayAttrsData instancerData(inputPointsData);
-
-      MDoubleArray  idArray;
-      if(instancerData.checkArrayExist("id",doubleType))
+      MString arrayName;
+      fnParticle.setObject(particleShape);
+      instancerData.setObject(inputPointsData);
+      // check 'particleId' first and 'id'
+      arrayName = "particleId";
+      if (!instancerData.checkArrayExist(arrayName, arrayType) || (arrayType != intType && arrayType != doubleType))
       {
-
-         idArray = instancerData.getDoubleData(MString("id"));
-         partIds.setLength(idArray.length());
-
-         for (unsigned int i = 0; i< idArray.length(); i++)
+         arrayName = "id";
+         if (!instancerData.checkArrayExist(arrayName, arrayType) || (arrayType != intType && arrayType != doubleType))
          {
-            partIds[i] = (int)idArray[i];
+            arrayName = "";
+         }
+      }
+      if (arrayName.length() > 0)
+      {
+         idAttrName = arrayName;
+         if (arrayType == intType)
+         {
+            partIds = instancerData.getIntData(arrayName);
+         }
+         else
+         {
+            MDoubleArray idArray = instancerData.getDoubleData(arrayName);
+            partIds.setLength(idArray.length());
+            for (unsigned int i = 0; i< idArray.length(); i++)
+            {
+               partIds[i] = (int) idArray[i];
+            }
          }
       }
       else
@@ -172,15 +198,16 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          partIds.setLength(mayaMatrices.length());
          for (unsigned int i = 0; i< mayaMatrices.length(); i++)
          {
-            partIds[i] = i;
+            partIds[i] = (int)i;
          }
       }
 
-      if(instancerData.checkArrayExist("velocity",vectorType))
+      arrayName = "velocity";
+      if (instancerData.checkArrayExist(arrayName, arrayType) && arrayType == vectorType)
       {
-         velocities = instancerData.getVectorData(MString("velocity"));
+         velocities = instancerData.getVectorData(arrayName);
       }
-
+      particleName = fnParticle.name();
    }
 
    // if deform blur is disabled, this function will only be called for step = 0
@@ -256,7 +283,56 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       {
          m_instant_customIntAttrArrays["particleId"]= partIds;
       }
+   } else
+   {
+      MPlug plug = fnParticle.findPlug("aiExportParticleIDs");
+      exportID = (!plug.isNull() && plug.asBool());
+
+      plug = fnParticle.findPlug("aiExportAttributes");
+      m_customAttrs = (plug.isNull() ? "" : plug.asString());
+
+      status = m_customAttrs.split(' ', attrs);
+
+      m_instant_customDoubleAttrArrays.clear();
+      m_instant_customVectorAttrArrays.clear();
+      m_instant_customIntAttrArrays.clear();
+
+      if (status ==  MS::kSuccess && m_customAttrs.length() != 0)
+      {
+         for (unsigned int i=0; i < attrs.length(); i++)
+         {
+            MString currentAttr = attrs[i];
+
+            if (currentAttr == idAttrName)
+            {
+               exportID = true;
+               continue;
+            }
+
+            if (instancerData.checkArrayExist(currentAttr, arrayType))
+            {
+               if (arrayType == intType)
+               {
+                  m_instant_customIntAttrArrays[currentAttr.asChar()] = instancerData.getIntData(currentAttr);
+               }
+               else if (arrayType == doubleType)
+               {
+                  m_instant_customDoubleAttrArrays[currentAttr.asChar()]= instancerData.getDoubleData(currentAttr);
+               }
+               else if (arrayType == vectorType)
+               {
+                  m_instant_customVectorAttrArrays[currentAttr.asChar()] = instancerData.getVectorData(currentAttr);
+               }
+            }
+         }
+      }
+
+      if (exportID)
+      {
+         m_instant_customIntAttrArrays["particleId"] = partIds;
+      }
    }
+
 
    if (step == 0)
    {
@@ -373,34 +449,63 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                {
                   if (attrs.length() > 0)
                   {
-                     for (unsigned int i=0; i < attrs.length(); i++)
+                     if (usingParticleSource)
                      {
+                        for (unsigned int i=0; i < attrs.length(); i++)
+                        {
+                           MString currentAttr = attrs[i];
+                           if (currentAttr == "particleId")
+                           {
+                              exportID = true;
+                              continue;
+                           }
+                           m_fnParticleSystem.findPlug(currentAttr, &status);
+                           if (status != MS::kSuccess)
+                              continue;
 
-                        MString currentAttr = attrs[i];
-                        if (currentAttr == "particleId")
-                        {
-                           exportID = true;
-                           continue;
+                           //check the type of the plug
+                           if (m_fnParticleSystem.isPerParticleDoubleAttribute(currentAttr))
+                           {
+                              m_out_customDoubleAttrArrays[currentAttr.asChar()].append(m_instant_customDoubleAttrArrays[currentAttr.asChar()][j]);
+                              continue;
+                           }
+                           else if (m_fnParticleSystem.isPerParticleVectorAttribute(currentAttr))
+                           {
+                              m_out_customVectorAttrArrays[currentAttr.asChar()].append(m_instant_customVectorAttrArrays[currentAttr.asChar()][j]);
+                              continue;
+                           }
+                           else if (m_fnParticleSystem.isPerParticleIntAttribute(currentAttr))
+                           {
+                              m_out_customIntAttrArrays[currentAttr.asChar()].append(m_instant_customIntAttrArrays[currentAttr.asChar()][j]);
+                              continue;
+                           }
                         }
-                        m_fnParticleSystem.findPlug(currentAttr, &status);
-                        if (status != MS::kSuccess)
-                           continue;
+                     } else
+                     {
+                        for (unsigned int i=0; i < attrs.length(); i++)
+                        {
+                           MString currentAttr = attrs[i];
+                           if (currentAttr == "particleId")
+                           {
+                              exportID = true;
+                              continue;
+                           }
 
-                        //check the type of the plug
-                        if (m_fnParticleSystem.isPerParticleDoubleAttribute(currentAttr))
-                        {
-                         m_out_customDoubleAttrArrays[currentAttr.asChar()].append(m_instant_customDoubleAttrArrays[currentAttr.asChar()][j]);
-                         continue;
-                        }
-                        else if (m_fnParticleSystem.isPerParticleVectorAttribute(currentAttr))
-                        {
-                         m_out_customVectorAttrArrays[currentAttr.asChar()].append(m_instant_customVectorAttrArrays[currentAttr.asChar()][j]);
-                         continue;
-                        }
-                        else if (m_fnParticleSystem.isPerParticleIntAttribute(currentAttr))
-                        {
-                         m_out_customIntAttrArrays[currentAttr.asChar()].append(m_instant_customIntAttrArrays[currentAttr.asChar()][j]);
-                         continue;
+                           if (instancerData.checkArrayExist(currentAttr, arrayType))
+                           {
+                              if (arrayType == intType)
+                              {
+                                 m_out_customIntAttrArrays[currentAttr.asChar()].append(m_instant_customIntAttrArrays[currentAttr.asChar()][j]);
+                              }
+                              else if (arrayType == doubleType)
+                              {
+                                 m_out_customDoubleAttrArrays[currentAttr.asChar()].append(m_instant_customDoubleAttrArrays[currentAttr.asChar()][j]);
+                              }
+                              else if (arrayType == vectorType)
+                              {
+                                 m_out_customVectorAttrArrays[currentAttr.asChar()].append(m_instant_customVectorAttrArrays[currentAttr.asChar()][j]);
+                              }
+                           }
                         }
                      }
                   }
@@ -430,12 +535,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             }
          }
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found a %i new particles for step %i",
-                  m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
+                  m_fnMayaInstancer.partialPathName().asChar(), particleName.asChar(), newParticleCount, step);
       }
       if (tempMap.size() > 0)
       {
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
-            m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
+            m_fnMayaInstancer.partialPathName().asChar(), particleName.asChar(), (int)tempMap.size(), step);
          for (it = tempMap.begin(); it != tempMap.end(); it++)
          {
             // get last steps  matrix
