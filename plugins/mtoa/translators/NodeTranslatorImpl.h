@@ -43,6 +43,7 @@ public :
       m_session(NULL),
       m_atNode(NULL),
       m_additionalAtNodes(NULL),
+      m_isProcedural(false),
       m_overrideSets(),
       m_localAOVs(),
       m_upstreamAOVs(),
@@ -112,6 +113,7 @@ public :
    AtNode* ExportConnectedNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = NULL);
    bool HasAnimatedArrays() const;
 
+
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
    bool m_holdUpdates; // for Arnold RenderView only
@@ -123,6 +125,10 @@ public :
    AtNode* m_atNode;
    std::map<std::string, AtNode*> *m_additionalAtNodes;
 
+   // FIXME : make sure we get rid of this isProcedural stuff 
+   // once dependency graph is properly implemented in arnold....
+   bool m_isProcedural;
+   
    std::vector<CNodeTranslator*> m_overrideSets;
 
    AOVSet m_localAOVs;

@@ -215,6 +215,13 @@ void CNodeTranslator::Delete()
    m_impl->m_backReferences.clear();
 #endif
 
+
+   if (m_impl->m_isProcedural)
+   {
+      // if this node is a procedural, we want to un-register it from the Arnold Session.
+      // FIXME : make we get rid of this once dependency graph is properly implemented in arnold
+      m_impl->m_session->UnRegisterProcedural(m_impl->m_atNode);
+   }
    
    AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
@@ -233,6 +240,7 @@ void CNodeTranslator::Delete()
 
    // is there anything else to be deleted ?
    // overrideSets are created at Init (not Export) so I guess we shouldn't be deleting them here
+
 }
 
 /// convert from maya matrix to AtMatrix
@@ -504,6 +512,14 @@ void CNodeTranslator::RequestUpdate()
 
    m_impl->m_session->QueueForUpdate(this);   
 
+   if (m_impl->m_isProcedural && m_impl->m_updateMode >= AI_RECREATE_NODE)
+   {
+      // If this is a procedural being re-generated, we must
+      // advert the arnold session so that it checks for all 
+      // lost connections
+      m_impl->m_session->QueueProceduralUpdate(this);
+   }
+   
    // Pass the update request to the export session
    m_impl->m_session->RequestUpdate();
 }
@@ -1139,6 +1155,13 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       // But for now we just want to remove the translator from the session list
       // since it's being accessed in the map based on the MObject/MPlug/MDagPath, etc...
       m_impl->m_session->EraseActiveTranslator(m_impl->m_handle);
+   } else if (m >= AI_RECREATE_NODE)
+   {
+      // Since we'll recreate the arnold node, we must tell our back references to re-export
+      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      {
+         (*it)->RequestUpdate();
+      }
    }
 }
 /// for automatically creating parameters
