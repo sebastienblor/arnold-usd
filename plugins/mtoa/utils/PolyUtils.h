@@ -5,12 +5,12 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef _WIN32
-#include <unordered_set>
-#include <unordered_map>
-#else
+#ifdef _LINUX
 #include <tr1/unordered_set>
 #include <tr1/unordered_map>
+#else
+#include <unordered_set>
+#include <unordered_map>
 #endif
 
 #include <maya/MFnMesh.h>
@@ -43,10 +43,10 @@ public:
 
         // pre-allocate buffers for the worst case
         size_t maxNumWires = fNumFaceIndices;
-#ifdef _WIN32
-        typedef typename std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
-#else
+#ifdef _LINUX
         typedef typename std::tr1::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+#else
+        typedef typename std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
 #endif
 
         WireSet wireSet(size_t(maxNumWires / 0.75f));
@@ -204,10 +204,10 @@ public:
         std::vector<index_type> indicesRegion(fNumStreams * fNumFaceIndices);
 
         // the hash map to find unique combination of multi-indices
-#ifdef _WIN32
-        typedef std::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
-#else
+#ifdef _LINUX
         typedef std::tr1::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
+#else
+        typedef std::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
 #endif
 
         IndicesMap indicesMap(size_t(fNumFaceIndices / 0.75f));
