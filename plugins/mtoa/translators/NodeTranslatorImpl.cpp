@@ -1344,6 +1344,19 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
    return false;
 }
 
+void CNodeTranslatorImpl::SetSourceTranslator(CNodeTranslator *tr)
+{
+   if (tr == NULL)
+   {
+      m_sourceTranslator = NULL;
+      return;
+   }
+   while (tr->m_impl->m_sourceTranslator)
+   {
+      tr = tr->m_impl->m_sourceTranslator;
+   }
+   m_sourceTranslator = tr;
+}
 
 
 

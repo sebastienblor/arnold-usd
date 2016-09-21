@@ -113,6 +113,8 @@ public :
    AtNode* ExportConnectedNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = NULL);
    bool HasAnimatedArrays() const;
 
+   void SetSourceTranslator(CNodeTranslator *tr);
+
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;

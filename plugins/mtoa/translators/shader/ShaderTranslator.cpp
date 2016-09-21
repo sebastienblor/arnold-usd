@@ -228,7 +228,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
          
          if (bumpTranslator != NULL)
          {
-            m_impl->m_sourceTranslator = bumpTranslator;
+            m_impl->SetSourceTranslator(bumpTranslator);
 
 #ifdef NODE_TRANSLATOR_REFERENCES 
             m_impl->AddBackReference(bumpTranslator, true); // "true" in order to add the reverse connection too 
