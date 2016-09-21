@@ -34,6 +34,12 @@ try:
     import json
     import maya.api.OpenMaya as OpenMaya
 
+    class ArnoldRenderSettingsCallbacks(rendererCallbacks.RenderSettingsCallbacks):
+    
+        # Create the default Arnold nodes
+        def createDefaultNodes(self):
+            core.createOptions()
+
     class ArnoldAOVChildSelector(selector.Selector):
         kTypeId = typeIDs.arnoldAOVChildSelector
         kTypeName = 'arnoldAOVChildSelector'
@@ -314,8 +320,10 @@ try:
             return d["selector"]["arnoldAOVChildSelector"]["arnoldAOVNodeName"]
 
     renderSetup.registerNode(ArnoldAOVChildSelector)
+    arnoldRenderSettingsCallbacks = ArnoldRenderSettingsCallbacks()
     arnoldAOVCallbacks = ArnoldAOVCallbacks()
 except ImportError:
+    arnoldRenderSettingsCallbacks = None
     arnoldAOVCallbacks = None
 
 def aiHyperShadePanelBuildCreateMenuCallback() :
@@ -477,9 +485,12 @@ def registerCallbacks():
     if cmds.about(batch=True):
         return
         
-    if not arnoldAOVCallbacks is None:
+    if arnoldAOVCallbacks is not None:
         rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_AOVS, arnoldAOVCallbacks)
         
+    if arnoldRenderSettingsCallbacks is not None:
+        rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_RENDER_SETTINGS, arnoldRenderSettingsCallbacks)
+
     cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
                    hook="hyperShadePanelBuildCreateMenu",
                    owner="arnold")
