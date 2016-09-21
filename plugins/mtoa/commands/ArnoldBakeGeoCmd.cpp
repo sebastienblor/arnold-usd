@@ -20,8 +20,11 @@
 #include <fstream>
 #include <istream>
 #include <streambuf>
+#ifdef _LINUX
+#include <tr1/unordered_map>
+#else
 #include <unordered_map>
-
+#endif
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
 HashFunctionDJB2(const unsigned char *input, size_t size)
