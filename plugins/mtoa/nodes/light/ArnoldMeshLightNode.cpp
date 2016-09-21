@@ -188,7 +188,8 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
             {
                MMessage::removeCallback(node->m_meshDirtyId);
             }
-            node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlug.node(), meshDirtyCallback, node);
+            MObject otherPlugObject = otherPlug.node();
+            node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlugObject, meshDirtyCallback, node);
             node->scheduleGeometryUpdate();
          }
       }

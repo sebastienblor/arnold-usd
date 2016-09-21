@@ -1129,7 +1129,6 @@ void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // it would be nice if this could be done in arnold core
 static inline bool IsArrayAnimated(const AtArray* array)
 {
-   AtByte type = array->type;
    switch (array->type)
    {
       case AI_TYPE_BOOLEAN:

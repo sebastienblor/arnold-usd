@@ -2199,7 +2199,6 @@ void CArnoldSession::UpdateProceduralReferences()
          {
             if(AiParamGetType(paramEntry) == AI_TYPE_ARRAY)
             {
-               int ind = 0;
                AtArray *arr = AiNodeGetArray(node, paramName);
                if (arr == NULL) continue; // shouldn't happen since this is linked
                for (int a = 0; a < (int)arr->nelements; ++a)
