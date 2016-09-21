@@ -109,25 +109,7 @@ AtNode* CCurveTranslator::CreateArnoldNodes()
 
    return AddArnoldNode("curves");
 }
-void CCurveTranslator::RequestUpdate()
-{
 
-   // we used to only set RECREATE_NODE for the .create attribute
-   //MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-   //if ((plugName == ".create")) SetUpdateMode(AI_RECREATE_NODE);
-
-   // but ticket #2399 showed that curves aren't updated properly in arnold core,
-   // for example when the curves width change.
-   // So now we're always forcing to recreate the node
-   ClearProcessedWidths();
-   SetUpdateMode(AI_RECREATE_NODE);
-   CShapeTranslator::RequestUpdate();
-}
-
-/*
-
-FIXME we can't really use NodeChanged because of Sets. When they're modified they invoke the set's members "RequestUpdate function".
-Instead, they should invoke NodeChanged, or all other NodeChanged functions are just useless....
 void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    
@@ -143,7 +125,6 @@ void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
    
    CShapeTranslator::NodeChanged(node, plug);
 }
-*/
 
 void CCurveTranslator::Export( AtNode *curve )
 {

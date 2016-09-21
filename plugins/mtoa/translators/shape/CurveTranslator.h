@@ -45,8 +45,8 @@ public:
       return new CCurveTranslator();
    }
 protected:
-   //virtual void NodeChanged(MObject& node, MPlug& plug);
-   virtual void RequestUpdate();
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
 private:
    void ProcessCurveLines(unsigned int step,
                          AtArray* curvePoints,

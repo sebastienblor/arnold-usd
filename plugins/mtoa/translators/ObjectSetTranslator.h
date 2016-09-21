@@ -14,7 +14,8 @@ public:
 
 protected:
    CObjectSetTranslator() :
-      CNodeTranslator()
+      CNodeTranslator(),
+        m_membersListDirty(true)
    {}
    virtual ~CObjectSetTranslator()
    {}
@@ -24,5 +25,13 @@ protected:
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
    static void SetMembersChangedCallback(MObject &node, void *clientData);
+private:
+   void FillMembersTranslators();
+
+   std::vector<CNodeTranslator *> m_membersTranslators;
+   bool m_membersListDirty;
+
+
+
    
 };
