@@ -61,6 +61,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   IfSilent 0 +4
     IntCmp $3 1 0 QuitPart QuitPart
       ExecWait "$R0 /S"
+      Sleep 3000
       Goto NotInstalled
     
   MessageBox MB_TOPMOST|MB_OKCANCEL  \
