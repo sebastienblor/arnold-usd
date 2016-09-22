@@ -1285,6 +1285,12 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
    // for all nodes related to this translator
    if (m_atNode == NULL) return false;
 
+   // if motion length is null, return true otherwise next change won't be updated properly
+   double motion_start, motion_end;
+   m_session->GetMotionRange(motion_start, motion_end);
+   if (ABS(motion_end - motion_start) < AI_EPSILON)
+      return true;
+
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(m_atNode));
    while (!AiParamIteratorFinished(nodeParam))
    {

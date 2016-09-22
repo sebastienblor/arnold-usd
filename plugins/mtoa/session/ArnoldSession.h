@@ -178,9 +178,7 @@ public:
    
    // from a Maya name, get corresponding name in Arnold scene
    const char *GetArnoldObjectName(const MString &mayaName) const;
-
-   // this is going to recreate all nodes that require motion data (when MB parameters are edited)
-   void RecomputeMotionData();
+   
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -204,6 +202,10 @@ public:
    const MStringArray &GetProceduralSearchPaths() const;
 
    void RequestUpdateTx() {m_updateTx = true;}   
+   
+   // this is going to recreate all nodes that require motion data (when MB parameters are edited)
+   void RequestUpdateMotion();
+
    void QueueProceduralUpdate(CNodeTranslator *tr);
    void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
    void UnRegisterProcedural(AtNode *node);

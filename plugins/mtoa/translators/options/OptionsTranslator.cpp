@@ -821,7 +821,7 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
          plugName == "motion_start" || plugName == "motion_end")
    {
       // Need to re-export all the nodes that Require Motion
-      m_impl->m_session->RecomputeMotionData();
+      m_impl->m_session->RequestUpdateMotion();
    }
 
    CNodeTranslator::NodeChanged(node, plug);
