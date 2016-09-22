@@ -1152,12 +1152,7 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
 }
 
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
-{
-   
-   // Check if this geometry is renderable
-   // if it is not, set it as Disabled
-   AiNodeSetDisabled(polymesh, !IsRenderable());
-   
+{   
    ExportMatrix(polymesh);   
    ExportMeshParameters(polymesh);
    if (RequiresShaderExport())
