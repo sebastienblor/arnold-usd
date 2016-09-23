@@ -31,4 +31,7 @@ protected:
    // Export the shaders for this Geometry
    virtual void ExportShaders();
 
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+
+
 };

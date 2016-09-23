@@ -192,6 +192,16 @@ void CArnoldProceduralTranslator::ExportShaders()
    }
 
 }
+void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   if (plugName == ".deferStandinLoad" || plugName == ".dso" || plugName == ".data")
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShapeTranslator::NodeChanged(node, plug);
+}
+
 
 void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
 {
