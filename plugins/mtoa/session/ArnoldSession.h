@@ -206,6 +206,8 @@ public:
    // this is going to recreate all nodes that require motion data (when MB parameters are edited)
    void RequestUpdateMotion();
 
+   void RequestUpdateOptions();
+
    void QueueProceduralUpdate(CNodeTranslator *tr);
    void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
    void UnRegisterProcedural(AtNode *node);
@@ -224,6 +226,7 @@ private:
       ,  m_is_active(false)
       ,  m_updateTx(false)
       ,  m_updateMotionData(false)
+      ,  m_updateOptions(false)
 
 
       //,  m_continuousUpdates(true)
@@ -305,4 +308,5 @@ protected:
    bool                 m_is_active;
    bool                 m_updateTx;
    bool                 m_updateMotionData;
+   bool                 m_updateOptions;
 };  // class CArnoldSession

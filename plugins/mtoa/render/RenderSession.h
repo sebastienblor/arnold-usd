@@ -170,6 +170,7 @@ public:
    static void ClearIdleRenderViewCallback();
 
    bool RenderSequence();
+   void UpdateRenderOptions();
       
 private:
 

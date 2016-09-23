@@ -1326,6 +1326,13 @@ void CArnoldSession::DoUpdate()
       m_updateMotionData = false;
    }
 
+   if (m_updateOptions)
+   {
+      CRenderSession *renderSession = CMayaScene::GetRenderSession();
+      renderSession->UpdateRenderOptions();
+      m_updateOptions = false;
+   }
+
 
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool frameChanged = (frame != GetExportFrame());
@@ -1581,6 +1588,7 @@ void CArnoldSession::DoUpdate()
       ExportTxFiles();
    }
    
+
 
    // Refresh translator callbacks after all is done
    if (IsInteractiveRender())
@@ -1883,14 +1891,11 @@ void CArnoldSession::ExportTxFiles()
    if (sessionMode == MTOA_SESSION_MATERIALVIEW || sessionMode == MTOA_SESSION_SWATCH ||
       sessionMode == MTOA_SESSION_UNDEFINED) return;
    
-   // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
-  // or that class eliminated completely 
-   CRenderOptions renderOptions; 
-   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-   renderOptions.GetFromMaya(); 
+   CRenderOptions *renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
+   renderOptions->GetFromMaya(); 
 
-   bool autoTx = renderOptions.autoTx();
-   bool useTx = renderOptions.useExistingTiledTextures();
+   bool autoTx = renderOptions->autoTx();
+   bool useTx = renderOptions->useExistingTiledTextures();
 
    if (useTx == false && autoTx == false) return;
 
@@ -2080,6 +2085,11 @@ USE_TX:
 void CArnoldSession::RequestUpdateMotion()
 {
    m_updateMotionData = true;
+   RequestUpdate();
+}
+void CArnoldSession::RequestUpdateOptions()
+{
+   m_updateOptions = true;
    RequestUpdate();
 }
 

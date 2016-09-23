@@ -852,3 +852,12 @@ bool CRenderSession::RenderSequence()
    return true;
 }
 
+void CRenderSession::UpdateRenderOptions()
+{
+   m_renderOptions.GetFromMaya(); 
+   m_renderOptions.SetupLog();
+   if (s_renderView)
+   {
+      s_renderView->SetLogging(m_renderOptions.GetLogConsoleVerbosity(), m_renderOptions.GetLogFileVerbosity());
+   }
+}
