@@ -1275,6 +1275,58 @@ void CArnoldSession::DoUpdate()
    MStatus status;
    assert(AiUniverseIsActive());
 
+   if (m_updateMotionData)
+   {  
+      std::vector<bool> prevRequiresMotion;
+      prevRequiresMotion.reserve(m_processedTranslators.size());
+
+      // stores requiresMotionData from all translators
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      for ( ; it != itEnd; ++it)
+         prevRequiresMotion.push_back(it->second->RequiresMotionData());
+
+      // this will update the motion blur settings in SessionOptions
+      // which is necessary for RequiresMotionData
+      m_sessionOptions.GetFromMaya();
+
+      // check again all translators
+      int trIdx = 0;
+      for (it = m_processedTranslators.begin() ; it != itEnd; ++it, ++trIdx)
+      {
+         if (prevRequiresMotion[trIdx])
+         {
+            // This translator used to be motion blurred
+            if (!it->second->RequiresMotionData())
+            {
+               // now it's not motion blurred anymore.
+               // Just need to re-export it
+               it->second->SetUpdateMode(CNodeTranslator::AI_UPDATE_ONLY);
+               it->second->RequestUpdate();
+            } else if (it->second->m_impl->m_animArrays)
+            {
+               // Now it is sill motion blurred, and its arrays were animated
+               // need to recreated the node since the motion steps might have changed
+               it->second->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
+               it->second->RequestUpdate();               
+            } // otherwise this node was exported with motion, but its arrays were found to be static, so we don't update it
+
+         } else
+         {
+            // this node didn't require motion blur before.
+            if (it->second->RequiresMotionData())
+            {
+               // it now requires motion blur ! need to re-generate the node 
+               it->second->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
+               it->second->RequestUpdate();                 
+            } // otherwise, this node shouldn't be updated at all 
+         }
+      }
+      UpdateMotionFrames();
+      m_updateMotionData = false;
+   }
+
+
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool frameChanged = (frame != GetExportFrame());
 
@@ -1282,13 +1334,6 @@ void CArnoldSession::DoUpdate()
    // It appears that Export() doesn't restore the current frame
    // in maya otherwise ( to avoid useless maya evaluations )
    if (frameChanged && IsInteractiveRender()) SetExportFrame(frame);
-
-   if (m_updateMotionData)
-   {
-      m_sessionOptions.GetFromMaya();
-      UpdateMotionFrames();
-      m_updateMotionData = false;
-   }
 
    // hack to support deleting procedurals
    // we need to force arnold to re-generate 
@@ -1305,6 +1350,7 @@ void CArnoldSession::DoUpdate()
    bool exportMotion = false;
    bool motionBlur = IsMotionBlurEnabled();
    bool mbRequiresFrameChange = false;
+
 
    m_motionStep = 0;
 
@@ -1342,7 +1388,6 @@ void CArnoldSession::DoUpdate()
          // check its update mode
          if(translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
          {
-            
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
             translator->Delete();
@@ -2032,25 +2077,9 @@ USE_TX:
    
 }
 
-void CArnoldSession::RecomputeMotionData()
+void CArnoldSession::RequestUpdateMotion()
 {
-
    m_updateMotionData = true;
-   
-   // check all translators in the scene
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
-   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
-   for ( ; it != itEnd; ++it)
-   {
-      // this node doesn't require motion data, no need to modify it
-      if (!it->second->RequiresMotionData() || !it->second->m_impl->m_animArrays) 
-         continue;
-
-      // this is going to fully re-generate these nodes
-      // and it will re-export with the appropriate motion steps
-      it->second->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
-      it->second->RequestUpdate();
-   }
    RequestUpdate();
 }
 
