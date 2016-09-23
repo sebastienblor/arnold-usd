@@ -281,3 +281,16 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
 
    return rgb;
 }
+
+
+void CLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{  
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   // this plug is dirtied when the light editor is opened
+   // so we don't want to take it into account
+   if (plugName == ".childIndex")
+      return;
+
+   CDagTranslator::NodeChanged(node, plug);
+}
