@@ -1270,8 +1270,18 @@ void CArnoldSession::RequestUpdate()
    CMayaScene::UpdateIPR();
 }
 
+// During nodes export in DoUpdate(), some new translators can be created by the export of other ones 
+//( e.g. connections in the shading tree). So once update is finished, we might get a new list of
+// objects to update. In that case we'll invoke DoUpdate() recursively, but we don't want it to end up in an infinite loop
+// so we set an arbitrary maximum amount of updates
+static int s_recursiveUpdates = 0;
+static const int s_maxRecursiveUpdates = 5;
+
+
 void CArnoldSession::DoUpdate()
 {
+   s_recursiveUpdates++;
+
    MStatus status;
    assert(AiUniverseIsActive());
 
@@ -1358,7 +1368,6 @@ void CArnoldSession::DoUpdate()
    bool motionBlur = IsMotionBlurEnabled();
    bool mbRequiresFrameChange = false;
 
-
    m_motionStep = 0;
 
    // In theory, no objectsToUpdate are supposed to be 
@@ -1426,7 +1435,6 @@ void CArnoldSession::DoUpdate()
          else
          {  
             // AI_UPDATE_ONLY => simple update
-
             if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translator->RequiresMotionData())
             {
                // Find out if we need to call ExportMotion for each motion step
@@ -1587,8 +1595,6 @@ void CArnoldSession::DoUpdate()
       m_updateTx = false;
       ExportTxFiles();
    }
-   
-
 
    // Refresh translator callbacks after all is done
    if (IsInteractiveRender())
@@ -1604,6 +1610,7 @@ void CArnoldSession::DoUpdate()
             translatorsToUpdate.push_back(it->second);
          }
       }
+
       // re-add IPR callbacks to all updated translators after ALL updates are done
       for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
          iter != translatorsToUpdate.end(); ++iter)
@@ -1637,14 +1644,34 @@ void CArnoldSession::DoUpdate()
       // all the remaining objects to update must have holdUpdates On
       for (size_t i = 0; i < m_objectsToUpdate.size(); ++i)
       {
-         if (m_objectsToUpdate[i].second) 
-            m_objectsToUpdate[i].second->m_impl->m_holdUpdates = true;
+         CNodeTranslator *createdTranslator = m_objectsToUpdate[i].second;
+         if (createdTranslator)
+         {
+            createdTranslator->m_impl->m_holdUpdates = true;
+            // this new translator might not have its callbacks yet
+            if (createdTranslator->m_impl->m_mayaCallbackIDs.length() == 0)
+            {
+               createdTranslator->AddUpdateCallbacks();
+            }
+         }
+      }
+
+      // During nodes export in DoUpdate(), some new translators can be created by the export of other ones 
+      //( e.g. connections in the shading tree). So once update is finished, we might get a new list of
+      // objects to update. In that case we'll invoke DoUpdate() recursively, but we don't want it to end up in an infinite loop
+      // so we set an arbitrary maximum amount of updates
+      if (s_recursiveUpdates < s_maxRecursiveUpdates)
+         DoUpdate();
+      else
+      {
+         AiMsgError("[mtoa.ipr] Recursive updates during IPR");
       }
    } else 
    {
       m_objectsToUpdate.clear();
       m_requestUpdate = false;
-   }     
+   } 
+   s_recursiveUpdates = 0;    
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
