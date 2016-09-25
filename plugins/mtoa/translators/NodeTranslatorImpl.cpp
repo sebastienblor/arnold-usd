@@ -52,8 +52,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
 {
    AtNode* node = m_tr.GetArnoldNode("");
    MString outputAttr = m_tr.GetMayaOutputAttributeName();
-   int step = m_tr.GetMotionStep();
-
+   
    // FIXME : for now we're setting isExported to false when we ask for a full re-export
    // but as refactoring continues we'll stop doing it. 
    // And we'll restore it to false only when Delete() is called
@@ -65,9 +64,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
       return NULL;
    }
 
-   // FIXME couldn't we just call the same functions for whatever step, 
-   // and do an early out on the other methods when GetMotionStep() > 0 ?
-   if (step == 0)
+   if (!m_session->IsExportingMotion())
    {
       if (outputAttr != "")
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting on plug %s (%s)",
@@ -104,8 +101,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
    assert(AiUniverseIsActive());
    AtNode* node = m_tr.GetArnoldNode("");
-   int step = m_tr.GetMotionStep();
-
+   
    if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
@@ -118,7 +114,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
               AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
               node);
 
-   if (step == 0)
+   if (!m_session->IsExportingMotion())
    {
 #ifdef NODE_TRANSLATOR_REFERENCES 
       // before exporting, clear all the references
@@ -163,7 +159,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
          }
       }
 #endif
-
 
    }
    else if (m_tr.RequiresMotionData())
@@ -824,7 +819,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             AtNode* animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
             AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
 
-            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
+            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, m_tr.GetMotionStep(), plug);
 
             // Set the parameter for the interpolation node
             AiNodeSetArray(animNode, "values", matrices);

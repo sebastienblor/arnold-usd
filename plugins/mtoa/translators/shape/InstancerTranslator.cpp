@@ -145,35 +145,35 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       m_fnParticleSystem.particleIds(partIds);
       m_fnParticleSystem.velocity(velocities);
 
-   }
-
-   // if particles are not connected to the instancer it must be being fed by something else
-   // like a plugin  node of some kind.
-   // we have to just use whats given to us on the input array
-   else
+   } else
    {
+      // if particles are not connected to the instancer it must be being fed by something else
+      // like a plugin  node of some kind.
+      // we have to just use whats given to us on the input array
+
       usingParticleSource = false;
       MFnArrayAttrsData instancerData(inputPointsData);
 
       MDoubleArray  idArray;
+      // check if the ID parameter exists in the instancer
       if(instancerData.checkArrayExist("id",doubleType))
       {
 
          idArray = instancerData.getDoubleData(MString("id"));
          partIds.setLength(idArray.length());
 
+         // fill the ID for each particle index
          for (unsigned int i = 0; i< idArray.length(); i++)
-         {
             partIds[i] = (int)idArray[i];
-         }
+         
       }
       else
       {
+         // no ID attribute found, just fill them with their array index
          partIds.setLength(mayaMatrices.length());
          for (unsigned int i = 0; i< mayaMatrices.length(); i++)
-         {
             partIds[i] = i;
-         }
+         
       }
 
       if(instancerData.checkArrayExist("velocity",vectorType))
@@ -183,7 +183,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
    }
 
-   // if deform blur is disabled, this function will only be called for step = 0
+   // if deform blur is disabled, this function will only be called for current frame
    bool hasMotion = (RequiresMotionData() && m_motionDeform);
 
    bool exportID = false;
@@ -194,8 +194,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
       /// STORE the custom attrs for use later
       m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes").asString();
-
-      // std::cout << "[mtoa] Particle instancer custom attributes: " <<  m_customAttrs << std::endl;
 
       status = m_customAttrs.split(' ', attrs);
 
@@ -258,8 +256,11 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       }
    }
 
-   if (step == 0)
+   if (!IsExportingMotion())
    {
+      m_exportedSteps.clear();
+      m_exportedSteps.assign(GetNumMotionSteps(), false);
+      m_exportedSteps[step] = true;
       m_instantVeloArray.clear();
       m_vec_matrixArrays.clear();
       m_out_customVectorAttrArrays.clear();
@@ -288,7 +289,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                paths.append(pathIndices[particlePathStartIndices[j]+i]);
             }
             m_particlePathsMap[id] = paths;
-            m_instanceTags.append("originalParticle");
+            //m_instanceTags.append("originalParticle");
             if(velocities.length() > 0)
             {
                m_instantVeloArray.append(velocities[j]);
@@ -328,8 +329,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       // Done export object masters
 
    }
-   else // step > 0
+   else // motion Steps
    {
+      int numMotionSteps = GetNumMotionSteps();
+      m_exportedSteps[step] = true;
       std::map <int, int> tempMap = m_particleIDMap;
       std::map <int, int>::iterator it;
       if (mayaMatrices.length() > 0)
@@ -342,6 +345,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             {
                AtMatrix matrix;
                ConvertMatrix(matrix, mayaMatrices[j]);
+               // setting the matrix with the index corresponding to the original index
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
 
                if (velocities.length() > 0)
@@ -354,17 +358,22 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             else  // found a new particle in this substep
             {
                newParticleCount++;
-               AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+               AtArray* outMatrix = AiArrayAllocate(1, numMotionSteps, AI_TYPE_MATRIX);
                AtMatrix matrix;
                ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
-               for (unsigned int i = 0; i<step; i++)
+               for (int i = 0; i < numMotionSteps; i++)
                {
+                  // if the motion step hasn't been computed yet, there's no
+                  // need to fill it as we'll do it soon
+                  if (i == step || m_exportedSteps[i] == false)
+                     continue;
+
                   int k = (i-step);
                   MVector velocitySubstep(0, 0, 0);
                   if (velocities.length() > 0)
-                     velocitySubstep = (((velocities[j]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1))*k;
+                     velocitySubstep = (((velocities[j]/fps)*GetMotionByFrame())/(numMotionSteps-1))*k;
                   AtMatrix substepMatrix;
                   addVelocityToMatrix (substepMatrix, matrix, velocitySubstep);
                   AiArraySetMtx(outMatrix, i, substepMatrix);
@@ -410,7 +419,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                {
                   m_out_customIntAttrArrays["particleId"].append(m_instant_customIntAttrArrays["particleId"][j]);
                }
-               
+
                m_vec_matrixArrays.push_back(outMatrix);
                m_particleIDMap[partIds[j]] = m_vec_matrixArrays.size()-1;
 
@@ -422,7 +431,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                }
                m_particlePathsMap[partIds[j]] = paths;
 
-               m_instanceTags.append("newParticle");
+               //m_instanceTags.append("newParticle");
                if (velocities.length() > 0)
                {
                   m_instantVeloArray.append(velocities[j]);
@@ -436,115 +445,136 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       {
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
             m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
+
+         int previousStep = step - 1;
+         if (previousStep < 0)
+         {
+            for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+            {
+               if (i == step) continue;
+               if (m_exportedSteps[i])
+               {
+                  previousStep = i;
+                  break;
+               }
+            }
+         }
+         if (previousStep < 0) return; // shouldn't happen
+
          for (it = tempMap.begin(); it != tempMap.end(); it++)
          {
+
             // get last steps  matrix
             MVector velocitySubstep(0, 0, 0);
             if (velocities.length() > 0)
-               velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
+               velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(numMotionSteps-1)) * (step - previousStep);
             AtMatrix substepMatrix;
-            AiArrayGetMtx(m_vec_matrixArrays[it->second], step-1, substepMatrix);
+
+            AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep, substepMatrix);
             addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
             AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
-            m_instanceTags[it->second] = ("deadParticle");
+            //m_instanceTags[it->second] = ("deadParticle");
          }
       }
    }
 
-   /// NOW write out the final list
-   // if deform blur is disabled, this function will only be called for step = 0 (#2386)
-   // so we need to create the instancer now   
-   if (!hasMotion || step == (GetNumMotionSteps()-1))
+   // check if all the steps have been exported
+   for (size_t i = 0; i < m_exportedSteps.size(); ++i)
    {
-      // we check to see if there are any instances to export here instead of at the top(before first step)
-      // because at each step we might be adding particles/instances,
-      // and in the case of first particle born, that first step would not contain anything
-      // and we'd end up with an extra blank frame
-      if(m_particleIDMap.size() == 0)
-      {
+      if (m_exportedSteps[i] == false)
          return;
-      }
-      int globalIndex = 0;
+   }
 
-      const char *arnoldBaseName = GetArnoldNodeName();
+   /// NOW write out the final list
+   // if deform blur is disabled, this function will only be called for current frame (#2386)
+   // so we need to create the instancer now   
+   
+   // we check to see if there are any instances to export here instead of at the top(before first step)
+   // because at each step we might be adding particles/instances,
+   // and in the case of first particle born, that first step would not contain anything
+   // and we'd end up with an extra blank frame
+   if(m_particleIDMap.size() == 0)
+      return;
+   
+   int globalIndex = 0;
+   const char *arnoldBaseName = GetArnoldNodeName();
 
-      for (std::map<int,int>::iterator it = m_particleIDMap.begin();
-           it !=  m_particleIDMap.end(); ++it)
+   for (std::map<int,int>::iterator it = m_particleIDMap.begin();
+        it !=  m_particleIDMap.end(); ++it)
+   {
+      int partID = it->first;
+      int j = it->second;
+      if (j >= (int)m_vec_matrixArrays.size()) continue;
+
+      for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
       {
-         int partID = it->first;
-         int j = it->second;
-         if (j >= (int)m_vec_matrixArrays.size()) continue;
+         MString instanceKey = "inst";
+         instanceKey += globalIndex;
 
-         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
+         // check if the instance for this index was already found
+         AtNode *instance = GetArnoldNode(instanceKey.asChar());
+         if (instance == NULL)
          {
-            MString instanceKey = "inst";
-            instanceKey += globalIndex;
+            // Create and register this ginstance node, so that it is properly cleared later
+            instance = AddArnoldNode("ginstance", instanceKey.asChar());
 
-            // check if the instance for this index was already found
-            AtNode *instance = GetArnoldNode(instanceKey.asChar());
-            if (instance == NULL)
+            MString instanceName(arnoldBaseName);
+            instanceName += globalIndex;
+            AiNodeSetStr(instance, "name", instanceName.asChar());
+         }
+         int idx = m_particlePathsMap[partID][k];
+         if (idx >= (int)m_objectNames.length()) continue;
+
+         AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
+         AiNodeSetPtr(instance, "node", obj);
+         AiNodeSetBool(instance, "inherit_xform", true);
+         // Do not assign same array to more than one node
+         if (k == 0)
+            AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
+         else
+            AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
+
+         //AiNodeDeclare(instance, "instanceTag", "constant STRING");
+         //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
+        
+         // need this in case instance sources are hidden
+         AtByte visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
+         AiNodeSetByte(instance, "visibility", visibility);
+
+         // add the custom user selected attributes to export
+         std::map<std::string, MVectorArray>::iterator custVect;
+         for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
+         {
+
+            MVector vecAttrValue = custVect->second[j];
+            if (MString(custVect->first.c_str()) == "rgbPP")
             {
-               // Create and register this ginstance node, so that it is properly cleared later
-               instance = AddArnoldNode("ginstance", instanceKey.asChar());
-
-               MString instanceName(arnoldBaseName);
-               instanceName += globalIndex;
-               AiNodeSetStr(instance, "name", instanceName.asChar());
-            }
-            int idx = m_particlePathsMap[partID][k];
-            if (idx >= (int)m_objectNames.length()) continue;
-
-            AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
-            AiNodeSetPtr(instance, "node", obj);
-            AiNodeSetBool(instance, "inherit_xform", true);
-            // Do not assign same array to more than one node
-            if (k == 0)
-               AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
+               AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
+               AiNodeSetRGB(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
+                                             }
             else
-               AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
-
-            //AiNodeDeclare(instance, "instanceTag", "constant STRING");
-            //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
-           
-            // need this in case instance sources are hidden
-            AtByte visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
-            AiNodeSetByte(instance, "visibility", visibility);
-
-            // add the custom user selected attributes to export
-            std::map<std::string, MVectorArray>::iterator custVect;
-            for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
             {
-
-               MVector vecAttrValue = custVect->second[j];
-               if (MString(custVect->first.c_str()) == "rgbPP")
-               {
-                  AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
-                  AiNodeSetRGB(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
-                                                }
-               else
-               {
-                  AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
-                  AiNodeSetVec(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
-               }
+               AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
+               AiNodeSetVec(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
             }
-            std::map<std::string, MDoubleArray>::iterator custDouble;
-            for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
-            {
-               float doubleAttrValue = (float)custDouble->second[j];
+         }
+         std::map<std::string, MDoubleArray>::iterator custDouble;
+         for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
+         {
+            float doubleAttrValue = (float)custDouble->second[j];
 
-                  AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
-                  AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
+               AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
+               AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
 
-            }
-            std::map<std::string, MIntArray>::iterator custInt;
-            for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
-            {
-               int intAttrValue = custInt->second[j];
+         }
+         std::map<std::string, MIntArray>::iterator custInt;
+         for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
+         {
+            int intAttrValue = custInt->second[j];
 
-                  AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
-                  AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
+               AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
+               AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
 
-            }
          }
       }
    }

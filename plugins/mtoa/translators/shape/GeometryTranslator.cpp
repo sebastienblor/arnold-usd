@@ -782,7 +782,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    // Get all normals
    bool exportNormals = GetNormals(geometry, normals);  
 
-   if (step == 0)
+   if (!IsExportingMotion())
    {
       std::vector<AtArray*> uvs;
       std::vector<MString> uvNames;
@@ -1050,7 +1050,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiNodeSetArray(polymesh, "crease_sharpness", aCreaseData);
          }         
       }
-   } // step == 0
+   }
    else if (!m_useMotionVectors)
    {
       // Export motion blur keys information (for deformation)

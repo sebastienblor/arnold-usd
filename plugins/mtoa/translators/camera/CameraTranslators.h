@@ -18,8 +18,8 @@ protected:
    
    void ExportOrtho(AtNode* camera);
    void ExportPersp(AtNode* camera);
-   void ExportMotionOrtho(AtNode* camera, unsigned int step);
-   void ExportMotionPersp(AtNode* camera, unsigned int step);
+   void ExportMotionOrtho(AtNode* camera);
+   void ExportMotionPersp(AtNode* camera);
    void ExportFilmbackOrtho(AtNode* camera);
    float ExportFilmbackPersp(AtNode* camera);
 };      

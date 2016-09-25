@@ -23,11 +23,10 @@ void CStandardCameraTranslator::ExportMotion(AtNode* camera)
    // temporary camera is not told that it is destroyed (#2075).
    if (!m_dagPath.isValid()) return;
 
-   int step = GetMotionStep();
    if (IsOrtho())
-      ExportMotionOrtho(camera, step);
+      ExportMotionOrtho(camera);
    else
-      ExportMotionPersp(camera, step);
+      ExportMotionPersp(camera);
 }
 
 void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
@@ -115,7 +114,7 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
    if (RequiresMotionData())
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(fovs, 0, fov);
+      AiArraySetFlt(fovs, GetMotionStep(), fov);
       AiNodeSetArray(camera, "fov", fovs);
    }
    else
@@ -160,13 +159,13 @@ void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
    SetFilmTransform(camera, 0, 0, width, false);
 }
 
-void CStandardCameraTranslator::ExportMotionOrtho(AtNode* camera, unsigned int step)
+void CStandardCameraTranslator::ExportMotionOrtho(AtNode* camera)
 {
    ExportCameraData(camera);
    ExportImagePlanes();
 }
 
-void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera, unsigned int step)
+void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera)
 {
    // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
    // which we don't want to do at each step
@@ -175,7 +174,7 @@ void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera, unsigned int s
    ExportImagePlanes();
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
-   AiArraySetFlt(fovs, step, fov);
+   AiArraySetFlt(fovs, GetMotionStep(), fov);
 }
 
 float CStandardCameraTranslator::ExportFilmbackPersp(AtNode* camera)
@@ -303,7 +302,7 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    if (RequiresMotionData())
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(fovs, 0, fov);
+      AiArraySetFlt(fovs, GetMotionStep(), fov);
       AiNodeSetArray(camera, "fov", fovs);
    }
    else
@@ -316,13 +315,11 @@ void CFishEyeCameraTranslator::ExportMotion(AtNode* camera)
 {
    float fov = ExportFilmback(camera);
 
-   int step = GetMotionStep();
-
    ExportCameraData(camera);
    ExportImagePlanes();
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
-   AiArraySetFlt(fovs, step, fov);
+   AiArraySetFlt(fovs, GetMotionStep(), fov);
 }
 
 void CFishEyeCameraTranslator::NodeInitializer(CAbTranslator context)
@@ -366,10 +363,11 @@ void CCylCameraTranslator::Export(AtNode* camera)
 
    if (RequiresMotionData())
    {
+      int step = GetMotionStep();
       AtArray* h_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AtArray* v_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(h_fovs, 0, fovs[0]);
-      AiArraySetFlt(v_fovs, 0, fovs[1]);
+      AiArraySetFlt(h_fovs, step, fovs[0]);
+      AiArraySetFlt(v_fovs, step, fovs[1]);
       AiNodeSetArray(camera, "horizontal_fov", h_fovs);
       AiNodeSetArray(camera, "vertical_fov", v_fovs);
    }

@@ -60,7 +60,7 @@ void CAutoCameraTranslator::Export(AtNode* camera)
       if (RequiresMotionData() && m_fovAnimated)
       {
          AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-         AiArraySetFlt(fovs, 0, GetFOV(camera));
+         AiArraySetFlt(fovs, GetMotionStep(), GetFOV(camera));
          AiNodeSetArray(camera, "fov", fovs);
       }
       else

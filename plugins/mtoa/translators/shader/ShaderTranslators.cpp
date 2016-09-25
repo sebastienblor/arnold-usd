@@ -1096,8 +1096,9 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    if (RequiresMotionData())
    {
       AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(values, 0, value);
+      AiArraySetFlt(values, GetMotionStep(), value);
       AiNodeSetArray(shader, "values", values);
+      std::cerr<<"anim step = "<<GetMotionStep()<<" / "<<GetNumMotionSteps()<<std::endl;
    }
    else
    {
@@ -1112,6 +1113,7 @@ void CAnimCurveTranslator::ExportMotion(AtNode* shader)
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
    AtArray* values = AiNodeGetArray(shader, "values");
    AiArraySetFlt(values, GetMotionStep(), value);
+   std::cerr<<"motion "<<GetMotionStep()<<std::endl;
 }
 
 

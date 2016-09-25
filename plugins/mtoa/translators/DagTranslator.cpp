@@ -239,16 +239,15 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix)
 // at each motion step
 void CDagTranslator::ExportMatrix(AtNode* node)
 {
-   int step = GetMotionStep();
    AtMatrix matrix;
    GetMatrix(matrix);
-   if (step == 0)
+   if (!IsExportingMotion())
    {
       // why not only RequiresMotionData() ??
       if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, 0, matrix);
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
          AiNodeSetArray(node, "matrix", matrices);
       }
       else
@@ -259,7 +258,7 @@ void CDagTranslator::ExportMatrix(AtNode* node)
    else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
       AtArray* matrices = AiNodeGetArray(node, "matrix");
-      AiArraySetMtx(matrices, step, matrix);
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
    }
 }
 
