@@ -735,6 +735,15 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    
    if (mb)
    {
+      // re-generate the translators to export list as it may have increased during 
+      // the first export
+      translatorsToExport.clear();
+      translatorsToExport.reserve(m_processedTranslators.size());
+      it = m_processedTranslators.begin();
+      itEnd = m_processedTranslators.end();
+      for (; it != itEnd; ++it)
+         if (it->second) translatorsToExport.push_back(it->second);
+
       // now loop through motion steps
       unsigned int numSteps = GetNumMotionSteps();
       m_isExportingMotion = true;
@@ -743,7 +752,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          if (step == currentFrameIndex)
             continue; // current frame, has already been exported above
-
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
          AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
          
@@ -756,6 +764,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          // for safety we're not doing the loop on m_motionSteps directly in case it is modified somewhere else
          m_motionStep = step; 
 
+         trItEnd = translatorsToExport.end();
          for (trIt = translatorsToExport.begin(); trIt != trItEnd; ++trIt)
             (*trIt)->m_impl->DoExport();
    
