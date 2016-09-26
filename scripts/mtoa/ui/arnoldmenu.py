@@ -19,9 +19,12 @@ def doCreateStandInFile():
     node = createStandIn()
     LoadStandInButtonPush(node.name())
 
+
 def doExportStandIn():
     #Save the defaultType
     default = cmds.optionVar(q='defaultFileExportActiveType')
+    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
     try:
         #Change it to ASS
         cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
@@ -29,9 +32,16 @@ def doExportStandIn():
     finally:
         cmds.optionVar(sv=('defaultFileExportActiveType', default))
 
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
+
 def doExportOptionsStandIn():
+    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
+
     pm.mel.eval('ExportSelectionOptions')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
+
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
 def arnoldAboutDialog():
     legaltext = "All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
