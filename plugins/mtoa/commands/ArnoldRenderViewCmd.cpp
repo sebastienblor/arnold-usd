@@ -26,18 +26,16 @@
 
 
 
-// Return all renderable cameras
-static int GetRenderCameras(MDagPathArray &cameras)
+// Return the default camera
+static MDagPath GetDefaultCamera()
 {
-
    M3dView view;
    MDagPath activeCameraPath;
    MStatus viewStatus;
    view = M3dView::active3dView(&viewStatus);
    if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
    {
-      cameras.append(activeCameraPath);
-      return 1;
+      return activeCameraPath;
    }
 
    MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
@@ -52,18 +50,13 @@ static int GetRenderCameras(MDagPathArray &cameras)
       cameraNode.setObject(cameraPath);
       renderable = cameraNode.findPlug("renderable", false, &stat);
       if (stat && renderable.asBool())
-      {
-         cameras.append(cameraPath);
-      }
+         return cameraPath;
+
       dagIter.next();
    }
+   return MDagPath();
 
-   int size = cameras.length();
-   if (size > 1)
-      MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
-   else if (!size)
-      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
-   return size;
+   MGlobal::displayWarning("No renderable camera was found");
 }
 
 MSyntax CArnoldRenderViewCmd::newSyntax()
@@ -130,8 +123,9 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          CMayaScene::GetRenderSession()->StartRenderView();
          return MS::kSuccess;
       }
-      MDagPathArray cameras;
+      MDagPath defaultCamera;
 
+      // First check if a camera is specified
       if (args.isFlagSet("camera"))
       {
          MSelectionList sel;
@@ -140,12 +134,14 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          status = sel.getDagPath(0, camera);
 
          if (camera.isValid())
-         {
-            cameras.append(camera);
-         }
-      }      
-      GetRenderCameras(cameras);      
-      startRenderView(cameras[0], width, height);
+            defaultCamera = camera;
+      }
+
+      // if not, get the viewport camera, and otherwise the first one found
+      if (!defaultCamera.isValid())
+         defaultCamera = GetDefaultCamera();
+
+      startRenderView(defaultCamera, width, height);
 
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->InterruptRender();
@@ -157,7 +153,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       }
       renderSession->SetResolution(width, height);
       // Set the render session camera.
-      renderSession->SetCamera(cameras[0]);
+      renderSession->SetCamera(defaultCamera);
 
       if (is_region)
       {
@@ -242,10 +238,13 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    {
       CMayaScene::Export();
    }
-
+   // make sure this camera is exported. It might not be "renderable" but 
+    // we specially chose this one as default so it should be exported.
+   if (camera.isValid())
+      CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
    // SetExportCamera mus be called AFTER CMayaScene::Export
    CMayaScene::GetArnoldSession()->SetExportCamera(camera);
-
+   
    // Set resolution and camera as passed in.
    CMayaScene::GetRenderSession()->SetResolution(width, height);
    CMayaScene::GetRenderSession()->SetCamera(camera);
