@@ -5,7 +5,7 @@
 #include "render/AOV.h"
 #include "SessionOptions.h"
 #include "ArnoldLightLinks.h"
-
+#include "common/AiStream.h"
 #include <ai_nodes.h>
 
 #include <maya/MStatus.h>
