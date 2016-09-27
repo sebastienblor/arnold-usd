@@ -731,7 +731,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
          // Because we are dealing with a new particle, we need to create all its past step data, so we loop thru steps
          // here  and fill in the gaps with the current frame's  data and only compute its  position from current velocity
 
-         for (size_t k = 0; k <= m_exportedSteps.size(); k++)
+         for (size_t k = 0; k < m_exportedSteps.size(); k++)
          {
             // the steps that haven't been processed yet
             // can be ignored as they'll be filled later
@@ -931,7 +931,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
          // Because we are dealing with a new particle, we need to create all its past step data, so we loop thru steps
          // here  and fill in the gaps with the current frame's  data and only compute its  position from current velocity
-         for (size_t k = 0; k <= m_exportedSteps.size(); k++)
+         for (size_t k = 0; k < m_exportedSteps.size(); k++)
          {
             if (!m_exportedSteps[k])
                continue;
@@ -1658,8 +1658,10 @@ void CParticleTranslator::Export(AtNode* anode)
       // Once they're all processed, we can write out the particles
       m_exportedSteps.clear();
       m_exportedSteps.assign(GetNumMotionSteps(), false);
+      int step = GetMotionStep();
+      m_exportedSteps[step]=true;
 
-      ExportParticleNode(anode, GetMotionStep());
+      ExportParticleNode(anode, step);
 
       //
       if (!RequiresMotionData() && (m_exportedSteps.size() > 1))
@@ -1696,18 +1698,20 @@ void CParticleTranslator::ExportMotion(AtNode* anode)
       ExportMatrix(anode);
       if (m_motionDeform)
          ExportParticleNode(anode, step);
-
-      for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+      else
       {
-         // one of the motion steps is still missing
-         if (!m_exportedSteps[i])
+         for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+         {
+            // one of the motion steps is still missing
+            if (!m_exportedSteps[i])
             return;
-      }
+         }
 
-      // all steps have been processed, it's time to write out
-      // the particles
-      WriteOutParticle(anode);
-      ProcessRenderFlags(anode);
+         // all steps have been processed, it's time to write out
+         // the particles
+         WriteOutParticle(anode);
+         ProcessRenderFlags(anode);
+      }
    }
    else
       ExportMatrix(anode);
