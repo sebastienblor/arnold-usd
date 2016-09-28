@@ -21,6 +21,20 @@ except:
 global arnoldAOVCallbacks
 
 try:
+    import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
+    import mtoa.core as core
+
+    class ArnoldRenderSettingsCallbacks(rendererCallbacks.RenderSettingsCallbacks):
+    
+        # Create the default Arnold nodes
+        def createDefaultNodes(self):
+            core.createOptions()
+
+    arnoldRenderSettingsCallbacks = ArnoldRenderSettingsCallbacks()
+except:
+    arnoldRenderSettingsCallbacks = None
+
+try:
     import maya.app.renderSetup.model.renderSetup as renderSetup
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
     import maya.app.renderSetup.model.typeIDs as typeIDs
@@ -486,9 +500,12 @@ def registerCallbacks():
     if cmds.about(batch=True):
         return
         
-    if not arnoldAOVCallbacks is None:
+    if arnoldAOVCallbacks is not None:
         rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_AOVS, arnoldAOVCallbacks)
         
+    if arnoldRenderSettingsCallbacks is not None:
+        rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_RENDER_SETTINGS, arnoldRenderSettingsCallbacks)
+
     cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
                    hook="hyperShadePanelBuildCreateMenu",
                    owner="arnold")
