@@ -31,7 +31,7 @@ try:
             core.createOptions()
 
     arnoldRenderSettingsCallbacks = ArnoldRenderSettingsCallbacks()
-except ImportError:
+except:
     arnoldRenderSettingsCallbacks = None
 
 try:
