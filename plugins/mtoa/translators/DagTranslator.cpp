@@ -258,7 +258,17 @@ void CDagTranslator::ExportMatrix(AtNode* node)
    else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
       AtArray* matrices = AiNodeGetArray(node, "matrix");
-      AiArraySetMtx(matrices, GetMotionStep(), matrix);
+      if (matrices)
+      {
+         int step = GetMotionStep();
+         if (step >= (int)(matrices->nkeys * matrices->nelements))
+         {
+            AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
+
+         } else
+            AiArraySetMtx(matrices, step, matrix);
+         
+      }
    }
 }
 

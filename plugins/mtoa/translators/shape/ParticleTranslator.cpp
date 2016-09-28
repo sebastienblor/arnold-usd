@@ -1638,7 +1638,7 @@ void CParticleTranslator::Export(AtNode* anode)
       // During Updates we only re-exported the render flags
       // make sure it's really what we want !
       ProcessRenderFlags(anode);
-      //ExportMatrix(anode, 0);
+      ExportMatrix(anode);
 
       // shouldn't we re-export the shaders ?
       return;
@@ -1660,6 +1660,7 @@ void CParticleTranslator::Export(AtNode* anode)
       m_exportedSteps.assign(GetNumMotionSteps(), false);
       int step = GetMotionStep();
       m_exportedSteps[step]=true;
+      ExportMatrix(anode);
 
       ExportParticleNode(anode, step);
 

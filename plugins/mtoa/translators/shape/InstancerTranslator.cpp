@@ -26,9 +26,10 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
    // produces individual ginstances for each particle instance
    if (IsMasterInstance())
       return  AddArnoldNode("ginstance");
-
    else
       return  AddArnoldNode("ginstance");
+
+   // the code above is interesting....
 }
 
 
@@ -346,12 +347,15 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                AtMatrix matrix;
                ConvertMatrix(matrix, mayaMatrices[j]);
                // setting the matrix with the index corresponding to the original index
-               AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
+               if (it->second < (int)m_vec_matrixArrays.size())
+                  AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
+               
 
                if (velocities.length() > 0)
                {
                   // update instant velocity
-                  m_instantVeloArray[it->second] = velocities[j];
+                  if (it->second < (int)m_instantVeloArray.length())
+                     m_instantVeloArray[it->second] = velocities[j];
                }
                tempMap.erase(it);
             }
@@ -470,9 +474,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(numMotionSteps-1)) * (step - previousStep);
             AtMatrix substepMatrix;
 
-            AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep, substepMatrix);
-            addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
-            AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
+            if (it->second < (int)m_vec_matrixArrays.size())
+            {
+               AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep, substepMatrix);
+               addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
+               AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
+            }
             //m_instanceTags[it->second] = ("deadParticle");
          }
       }
