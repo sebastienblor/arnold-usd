@@ -1558,6 +1558,20 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
 {
    if (step == 0)
    {
+      // first export -> clear data 
+      m_out_positionArrays.clear();
+      m_out_radiusArrays.clear();
+      m_out_spriteScaleXArrays.clear();
+      m_out_spriteScaleYArrays.clear();
+      m_out_opacityArray.clear();
+      m_out_colorArray.clear();
+      m_out_customVectorAttrArrays.clear();
+      m_out_customDoubleAttrArrays.clear();
+      m_out_customIntAttrArrays.clear();
+      m_particleIDMap.clear();
+      m_instantVeloArray.clear();
+      m_instantAcceArray.clear();
+
       if (RequiresShaderExport())
          ExportParticleShaders(particle);
       ExportPreambleData(particle);

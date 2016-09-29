@@ -265,6 +265,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       m_out_customVectorAttrArrays.clear();
       m_out_customDoubleAttrArrays.clear();
       m_out_customIntAttrArrays.clear();
+      m_particlePathsMap.clear();
+      m_particleIDMap.clear();
+      m_objectNames.clear();
+      m_objectDagPaths.clear();
 
       if (mayaMatrices.length() > 0)
       {
@@ -342,7 +346,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             {
                AtMatrix matrix;
                ConvertMatrix(matrix, mayaMatrices[j]);
-               AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
+               if (it->second < (int) m_vec_matrixArrays.size())
+                  AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
 
                if (velocities.length() > 0)
                {
@@ -432,7 +437,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found a %i new particles for step %i",
                   m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
       }
-      if (tempMap.size() > 0)
+      if ((!m_vec_matrixArrays.empty()) && tempMap.size() > 0)
       {
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
             m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
@@ -443,9 +448,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (velocities.length() > 0)
                velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
             AtMatrix substepMatrix;
-            AiArrayGetMtx(m_vec_matrixArrays[it->second], step-1, substepMatrix);
-            addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
-            AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
+            if (it->second < (int)m_vec_matrixArrays.size())
+            {
+               AiArrayGetMtx(m_vec_matrixArrays[it->second], step-1, substepMatrix);
+               addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
+               AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
+            }
             m_instanceTags[it->second] = ("deadParticle");
          }
       }
