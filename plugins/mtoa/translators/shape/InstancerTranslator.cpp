@@ -267,6 +267,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       m_out_customVectorAttrArrays.clear();
       m_out_customDoubleAttrArrays.clear();
       m_out_customIntAttrArrays.clear();
+      m_particlePathsMap.clear();
+      m_particleIDMap.clear();
+      m_objectNames.clear();
+      m_objectDagPaths.clear();
 
       if (mayaMatrices.length() > 0)
       {
@@ -445,7 +449,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found a %i new particles for step %i",
                   m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
       }
-      if (tempMap.size() > 0)
+      if ((!m_vec_matrixArrays.empty()) && tempMap.size() > 0)
       {
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
             m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
