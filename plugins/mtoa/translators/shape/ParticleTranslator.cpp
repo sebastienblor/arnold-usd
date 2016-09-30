@@ -1663,3 +1663,11 @@ void CParticleTranslator::ExportMotion(AtNode* anode)
       ExportMatrix(anode);
 }
 
+
+void CParticleTranslator::RequestUpdate()
+{
+   // FIXME: verify if we can optimize this and only re-generate the particles for given attribute changes
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}
+

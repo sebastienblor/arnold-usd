@@ -83,6 +83,8 @@ protected:
 
 protected:
 
+   virtual void RequestUpdate();
+
    // by solid angle's conventions m_renderTypeSphere should be formatted like:  PARTICLE_TYPE_SPHERE
    enum ParticleRenderType
    {
