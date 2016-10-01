@@ -1177,11 +1177,6 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
 
 AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
-   
-   // Check if this geometry is renderable
-   // if it is not, set it as Disabled
-   AiNodeSetDisabled(polymesh, !m_session->IsRenderablePath(m_dagPath));
-   
    ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
