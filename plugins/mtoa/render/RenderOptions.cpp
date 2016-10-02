@@ -244,18 +244,21 @@ void CRenderOptions::SetupLog() const
       }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
       AiMsgSetLogFileFlags(m_log_verbosity);
-   }
+      AiMsgResetCallback();
+   } else if (m_log_to_console)
+   {
+      // no "Log to File" enabled. Therefore we can rely on MtoA's callback
+      // that invokes Maya log functions.
+      // The reason why we don't always enable it is that it should also 
+      // handle the "log to file" and we prefer letting arnold do it.
+      AiMsgSetCallback(MtoaLogCallback);
+   } else
+      AiMsgResetCallback();
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
       AiMsgSetConsoleFlags(m_log_verbosity | AI_LOG_COLOR);   
-
-   // Not working correctly until we can add to callback rather than replace it,
-   // or have access to original callback code
-   // Callback for script editor echo has to be disabled, because not way to know
-   // the log filename and write to it from callback
-   // AiMsgSetCallback(MtoaLogCallback);
-   // AiMsgResetCallback();
+   
 }
 
 void CRenderOptions::SetCamera(MDagPath& camera)
