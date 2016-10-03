@@ -1499,7 +1499,8 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   m_fnParticleSystem.position(*positionArray);
+   //m_fnParticleSystem.position(*positionArray);
+   m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    //m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.acceleration(accelerationArray);
