@@ -135,16 +135,14 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
    }
 
    AiMsgDebug("[mtoa.session]     %-30s | Exporting DAG node of type %s", name.asChar(), type.asChar());
+
    CNodeAttrHandle handle(dagPath);
-
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
-
    // Check if node has already been processed
    // FIXME: since it's a multimap there can be more than one translator associated ?
    // ObjectToTranslatorMap::iterator it, itlo, itup;
    // itlo = m_processedTranslators.lower_bound(handle);
    // itup = m_processedTranslators.upper_bound(handle);
-   it = m_processedTranslators.find(handle);
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
    if (it != m_processedTranslators.end())
    {
       AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
@@ -1002,12 +1000,28 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
 
    MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
    MStatus status;
+   bool pruneDag = false;
+   MDagPath parentPruneDag;
+
    for (dagIterator.reset(path); (!dagIterator.isDone()); dagIterator.next())
    {
       if (dagIterator.getPath(path))
       {
          if (path.apiType() == MFn::kWorld)
             continue;
+
+         if (pruneDag)
+         {
+            MDagPath tmpPath(path);
+            tmpPath.pop();
+            if (tmpPath == parentPruneDag)
+            {
+               dagIterator.prune();
+               continue;
+            }
+            pruneDag = false;
+         }
+
          MObject obj = path.node();
          MFnDagNode node(obj);
          MString name = node.name();
@@ -1031,12 +1045,19 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
             continue;
          }
          MStatus stat;
-         ExportDagPath(path, true, &stat);
+         CDagTranslator *tr = ExportDagPath(path, true, &stat);
          QueueForUpdate(path);
          if (stat != MStatus::kSuccess)
             status = MStatus::kFailure;
+
+         if (tr != NULL && !tr->ExportDagChildren())
+         {
+            pruneDag = true;
+            parentPruneDag = path;
+            parentPruneDag.pop();
+            dagIterator.prune();
+         }
       }
-      
    }
 
    RequestUpdate();
@@ -1079,12 +1100,28 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 
       DagFiltered filtered;
       MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+
+      bool pruneDag = false;
+      MDagPath parentPruneDag;
+
       for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
       {
          if (dagIterator.getPath(path))
          {
             if (path.apiType() == MFn::kWorld)
                continue;
+
+            if (pruneDag)
+            {
+               MDagPath tmpPath(path);
+               tmpPath.pop();
+               if (tmpPath == parentPruneDag)
+               {
+                  dagIterator.prune();
+                  continue;
+               }
+               pruneDag = false;
+            }
             MObject obj = path.node();
             MFnDagNode node(obj);
             MString name = node.name();
@@ -1108,9 +1145,17 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
                continue;
             }
             MStatus stat;
-            ExportDagPath(path, true, &stat);
+            CDagTranslator *tr = ExportDagPath(path, true, &stat);
             if (stat != MStatus::kSuccess)
                status = MStatus::kFailure;
+
+            if (tr != NULL && !tr->ExportDagChildren())
+            {
+               pruneDag = true;
+               parentPruneDag = path;
+               parentPruneDag.pop();
+               dagIterator.prune();
+            }
          }
          else
          {
