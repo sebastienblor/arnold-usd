@@ -5,26 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef _LINUX
-#define MAP_NEEDS_TR1 1
-#endif
-
-#ifdef _DARWIN
-#if MAYA_API_VERSION < 201600
-#define MAP_NEEDS_TR1 1
-#endif
-#endif
-
-
-
-#ifdef MAP_NEEDS_TR1
-#include <tr1/unordered_set>
-#include <tr1/unordered_map>
-#else
-#include <unordered_set>
-#include <unordered_map>
-#endif
-
+#include "common/AtMap.h"
 #include <maya/MFnMesh.h>
 #include <maya/MFloatVector.h>
 #include <string.h>
@@ -55,15 +36,8 @@ public:
 
         // pre-allocate buffers for the worst case
         size_t maxNumWires = fNumFaceIndices;
-#ifdef _LINUX
-        typedef typename std::tr1::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
-#else
-#ifdef MAP_NEEDS_TR1
-        typedef typename std::tr1::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
-#else
-        typedef typename std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
-#endif
-#endif
+
+        typedef AtSet<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
 
         WireSet wireSet(size_t(maxNumWires / 0.75f));
 
@@ -220,15 +194,7 @@ public:
         std::vector<index_type> indicesRegion(fNumStreams * fNumFaceIndices);
 
         // the hash map to find unique combination of multi-indices
-#ifdef _LINUX
-        typedef std::tr1::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
-#else
-#ifdef MAP_NEEDS_TR1
-        typedef std::tr1::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
-#else
-        typedef std::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
-#endif
-#endif
+        typedef AtMap<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
 
         IndicesMap indicesMap(size_t(fNumFaceIndices / 0.75f));
 
