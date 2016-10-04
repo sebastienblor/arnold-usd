@@ -23,6 +23,9 @@ public:
    static MObject s_width;
    static MObject s_sampleRate;
    static MObject s_curveShader;
+   static MObject s_curveShaderR;
+   static MObject s_curveShaderG;
+   static MObject s_curveShaderB;
    static MObject s_exportRefPoints;
    static MObject s_minPixelWidth;
    static MObject s_mode;

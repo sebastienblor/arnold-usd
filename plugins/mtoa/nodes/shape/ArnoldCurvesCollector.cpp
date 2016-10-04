@@ -23,6 +23,9 @@ CStaticAttrHelper CArnoldCurvesCollector::s_attributes(CArnoldCurvesCollector::a
 MObject CArnoldCurvesCollector::s_width;
 MObject CArnoldCurvesCollector::s_sampleRate;
 MObject CArnoldCurvesCollector::s_curveShader;
+MObject CArnoldCurvesCollector::s_curveShaderR;
+MObject CArnoldCurvesCollector::s_curveShaderG;
+MObject CArnoldCurvesCollector::s_curveShaderB;
 MObject CArnoldCurvesCollector::s_exportRefPoints;
 MObject CArnoldCurvesCollector::s_minPixelWidth;
 MObject CArnoldCurvesCollector::s_mode;
@@ -42,12 +45,14 @@ MStatus CArnoldCurvesCollector::initialize()
    MFnNumericAttribute nAttr;
    MFnEnumAttribute eAttr;
 
-
    s_width = nAttr.create("aiCurveWidth", "aiCurveWidth", MFnNumericData::kFloat, 0.01f);
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    nAttr.setConnectable(true);
    nAttr.setKeyable(true);
+   nAttr.setSoftMin(0.);
+   nAttr.setSoftMax(1.);
+   nAttr.setMin(0.);
    nAttr.addToCategory("arnold");
    addAttribute(s_width);
 
@@ -55,15 +60,19 @@ MStatus CArnoldCurvesCollector::initialize()
    s_sampleRate = nAttr.create("aiSampleRate", "aiSampleRate", MFnNumericData::kInt, 5);
    nAttr.setHidden(false);
    nAttr.setStorable(true);
+   nAttr.setSoftMin(1);
+   nAttr.setSoftMax(20);
+   nAttr.setMin(1);
    nAttr.addToCategory("arnold");
    addAttribute(s_sampleRate);
 
-   s_curveShader = nAttr.create("aiCurveShader", "aiCurveShader", MFnNumericData::k3Float, 0.f);
-   nAttr.setHidden(false);
-   nAttr.setStorable(true);
-   nAttr.setConnectable(true);
+   MAKE_COLOR(s_curveShader, "aiCurveShader", "aiCurveShader", 0, 0, 0);
    nAttr.setKeyable(true);
-
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   nAttr.setInternal(true);
+   nAttr.setChannelBox(true);
    addAttribute(s_curveShader);
 
    s_exportRefPoints = nAttr.create("aiExportRefPoints", "aiExportRefPoints", MFnNumericData::kBoolean, 0);
@@ -94,15 +103,6 @@ MStatus CArnoldCurvesCollector::initialize()
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(opaque);
-   
-   /*
-   MObject matte = nAttr.create("aiMatte", "aiMatte", MFnNumericData::kBoolean, 0);
-   nAttr.setHidden(false);
-   nAttr.setStorable(true);
-   addAttribute(matte);*/
-   
-
-   // receive shadows
    
    CAttrData data;
    data.stringDefault = "";
