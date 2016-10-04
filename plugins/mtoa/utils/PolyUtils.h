@@ -6,6 +6,18 @@
 #include <algorithm>
 
 #ifdef _LINUX
+#define MAP_NEEDS_TR1 1
+#endif
+
+#ifdef _DARWIN
+#if MAYA_API_VERSION < 201600
+#define MAP_NEEDS_TR1 1
+#endif
+#endif
+
+
+
+#ifdef MAP_NEEDS_TR1
 #include <tr1/unordered_set>
 #include <tr1/unordered_map>
 #else
@@ -46,7 +58,11 @@ public:
 #ifdef _LINUX
         typedef typename std::tr1::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
 #else
+#ifdef MAP_NEEDS_TR1
+        typedef typename std::tr1::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+#else
         typedef typename std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+#endif
 #endif
 
         WireSet wireSet(size_t(maxNumWires / 0.75f));
@@ -207,7 +223,11 @@ public:
 #ifdef _LINUX
         typedef std::tr1::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
 #else
+#ifdef MAP_NEEDS_TR1
+        typedef std::tr1::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
+#else
         typedef std::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
+#endif
 #endif
 
         IndicesMap indicesMap(size_t(fNumFaceIndices / 0.75f));
