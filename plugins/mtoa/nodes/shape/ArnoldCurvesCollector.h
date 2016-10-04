@@ -25,4 +25,6 @@ public:
    static MObject s_curveShader;
    static MObject s_exportRefPoints;
    static MObject s_minPixelWidth;
+   static MObject s_mode;
+
 }; 

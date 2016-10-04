@@ -25,6 +25,8 @@ MObject CArnoldCurvesCollector::s_sampleRate;
 MObject CArnoldCurvesCollector::s_curveShader;
 MObject CArnoldCurvesCollector::s_exportRefPoints;
 MObject CArnoldCurvesCollector::s_minPixelWidth;
+MObject CArnoldCurvesCollector::s_mode;
+
 
 void* CArnoldCurvesCollector::creator()
 {
@@ -73,22 +75,55 @@ MStatus CArnoldCurvesCollector::initialize()
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(s_minPixelWidth);
-/*
-   FIXME still missing the mode, do I have to re-create the enum manually here ?
 
-   s_mode = eAttr.create("mode", "mode", 0);
-   eAttr.addField("Bounding Box", DM_BOUNDING_BOX);
-   eAttr.addField("Per Object Bounding Box", DM_PER_OBJECT_BOUNDING_BOX);
-   eAttr.addField("Polywire", DM_POLYWIRE);
-   eAttr.addField("Wireframe", DM_WIREFRAME);
-   eAttr.addField("Point Cloud", DM_POINT_CLOUD);
-   eAttr.addField("Shaded Polywire", DM_SHADED_POLYWIRE);
-   eAttr.addField("Shaded", DM_SHADED);
+   s_mode = eAttr.create("aiMode", "aiMode", 0);
+   eAttr.addField("ribbon", 0);
+   eAttr.addField("thick", 1);
    addAttribute(s_mode);
-*/
+
    /*data.name = "widthProfile";
    data.shortName = "wdthP";
    helper.MakeInputCurveRamp(data);*/
+
+   MObject selfShadows = nAttr.create("aiSelfShadows", "aiSelfShadows", MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(selfShadows);
+
+   MObject opaque = nAttr.create("aiOpaque", "aiOpaque", MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(opaque);
+   
+   /*
+   MObject matte = nAttr.create("aiMatte", "aiMatte", MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(matte);*/
+   
+
+   // receive shadows
+   
+   CAttrData data;
+   data.stringDefault = "";
+   data.name = "aiTraceSets";
+   data.shortName = "trace_sets";
+   data.type = AI_TYPE_STRING;   
+   s_attributes.MakeInput(data);
+   
+   data.stringDefault = "";
+   data.name = "aiSssSetname";
+   data.shortName = "ai_sss_setname";
+   data.type = AI_TYPE_STRING;
+   s_attributes.MakeInput(data);
+
+
+   data.stringDefault = "";
+   data.name = "aiUserOptions";
+   data.shortName = "user_options";
+   data.type = AI_TYPE_STRING;   
+   s_attributes.MakeInput(data);
+
    return MS::kSuccess;
 }
 

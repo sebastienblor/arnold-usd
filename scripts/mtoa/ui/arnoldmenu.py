@@ -55,15 +55,17 @@ def doCreateCurvesCollector():
 
     if len(sls) > 0:
         for slsElem in sls:
-            shs = cmds.listRelatives(slsElem, type='nurbsCurve')
+            print slsElem
+            shs = cmds.listRelatives(slsElem, type='nurbsCurve', allDescendents=True)
+            if shs is None:
+                continue
             if len(shs):
                 for shsElem in shs:
                     sts = cmds.listRelatives(shsElem, fullPath=True, parent=True)
                     if len(sts) > 0:
                         cmds.parent(sts, curveNode[1])
                 
-
-
+    cmds.select(curveNode, replace=True)
 
     
 def arnoldAboutDialog():
