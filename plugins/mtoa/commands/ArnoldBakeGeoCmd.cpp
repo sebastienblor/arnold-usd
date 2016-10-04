@@ -20,11 +20,23 @@
 #include <fstream>
 #include <istream>
 #include <streambuf>
+
 #ifdef _LINUX
+#define MAP_NEEDS_TR1 1
+#endif
+
+#ifdef _DARWIN
+#if MAYA_API_VERSION < 201600
+#define MAP_NEEDS_TR1 1
+#endif
+#endif
+
+#ifdef MAP_NEEDS_TR1
 #include <tr1/unordered_map>
 #else
 #include <unordered_map>
 #endif
+
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
 HashFunctionDJB2(const unsigned char *input, size_t size)
@@ -134,7 +146,11 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
 #ifdef _DARWIN
+#ifdef MAP_NEEDS_TR1
+   std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
+#else
    std::unordered_map<std::string, matrixAsFloats>  mtxMap;
+#endif
 #else
    std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
 #endif
@@ -169,8 +185,13 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::vector<unsigned int> vertexIds;
    
 #ifdef _DARWIN
+#ifdef MAP_NEEDS_TR1
+   std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
+   std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
+#else
    std::unordered_map<size_t, unsigned int>  vertexMap;
    std::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
+#endif
 #else
    std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
    std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
