@@ -26,7 +26,7 @@
 #else
 #include <unordered_map>
 #include <unordered_set>
-#define AtMap std::tr1::unordered_map
-#define AtSet std::tr1::unordered_set
+#define AtMap std::unordered_map
+#define AtSet std::unordered_set
 
 #endif
