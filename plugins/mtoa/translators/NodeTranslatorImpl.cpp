@@ -398,6 +398,10 @@ static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
          for (unsigned int i=0; i<nc; i++)
          {
             MObject set = connections[i].node();
+
+            /*
+            Commented out from ticket #2112, this seems to be useless now
+            
             MFnDependencyNode setDNode(set);
             if (setDNode.typeName() == MString("objectSet"))
             {
@@ -411,7 +415,10 @@ static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
                {
                   overrideSets.append(set);
                }
-            }
+            }*/
+            if (set.hasFn(MFn::kSet))
+               overrideSets.append(set);
+
          }
       }
    }

@@ -405,7 +405,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 #ifdef MTOA_ENABLE_GAMMA
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
 #else
-   AiNodeSetFlt(shader, "gamma_correct", 1.f);
+   AiNodeSetBool(shader, "gamma_correct", false);
 #endif
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");
@@ -1098,7 +1098,6 @@ void CAnimCurveTranslator::Export(AtNode* shader)
       AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(values, GetMotionStep(), value);
       AiNodeSetArray(shader, "values", values);
-      std::cerr<<"anim step = "<<GetMotionStep()<<" / "<<GetNumMotionSteps()<<std::endl;
    }
    else
    {
@@ -1113,7 +1112,6 @@ void CAnimCurveTranslator::ExportMotion(AtNode* shader)
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
    AtArray* values = AiNodeGetArray(shader, "values");
    AiArraySetFlt(values, GetMotionStep(), value);
-   std::cerr<<"motion "<<GetMotionStep()<<std::endl;
 }
 
 

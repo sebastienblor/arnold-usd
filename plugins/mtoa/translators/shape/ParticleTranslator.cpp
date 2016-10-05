@@ -1533,8 +1533,13 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   m_fnParticleSystem.position(*positionArray);
-   //m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
+   if (MAYA_API_VERSION >= 201700 && IsCached())
+   {
+      m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
+   } else
+   {
+      m_fnParticleSystem.position(*positionArray);
+   }
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.acceleration(accelerationArray);
    MDoubleArray tempDoubleParticleId;
@@ -1732,3 +1737,9 @@ void CParticleTranslator::ExportMotion(AtNode* anode)
       ExportMatrix(anode);
 }
 
+void CParticleTranslator::RequestUpdate()
+{
+   // FIXME: verify if we can optimize this and only re-generate the particles for given attribute changes
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}

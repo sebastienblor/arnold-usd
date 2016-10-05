@@ -3,6 +3,7 @@
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
 #include "session/ArnoldSession.h"
+#include "common/AiStream.h"
 
 #include <ai_nodes.h>
 

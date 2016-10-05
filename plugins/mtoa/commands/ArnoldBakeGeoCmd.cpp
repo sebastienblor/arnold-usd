@@ -1,5 +1,6 @@
 #include "ArnoldBakeGeoCmd.h"
 #include "../scene/MayaScene.h"
+#include "../common/AtMap.h"
 #include <ai.h>
 
 #include <maya/MStatus.h>
@@ -20,11 +21,7 @@
 #include <fstream>
 #include <istream>
 #include <streambuf>
-#ifdef _LINUX
-#include <tr1/unordered_map>
-#else
-#include <unordered_map>
-#endif
+
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
 HashFunctionDJB2(const unsigned char *input, size_t size)
@@ -133,11 +130,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    // Otherwise, as soon as AiRender is called, they are re-initialized
    AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
-#ifdef _DARWIN
-   std::unordered_map<std::string, matrixAsFloats>  mtxMap;
-#else
-   std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
-#endif
+   AtMap<std::string, matrixAsFloats>  mtxMap;
    
    while (!AiNodeIteratorFinished(nodeIter))
    {
@@ -167,14 +160,10 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::vector<AtVector> normals;
    std::vector<AtPoint2> uvs;
    std::vector<unsigned int> vertexIds;
-   
-#ifdef _DARWIN
-   std::unordered_map<size_t, unsigned int>  vertexMap;
-   std::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
-#else
-   std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
-   std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
-#endif
+
+   AtMap<size_t, unsigned int>  vertexMap;
+   AtMap<size_t, unsigned int>::iterator  vertexMapIter;
+
    unsigned int vtxOffset = 1;  // OBJ expects vertex indices starting at 1
 
    while (!AiNodeIteratorFinished(nodeIter))

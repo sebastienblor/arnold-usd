@@ -19,9 +19,12 @@ def doCreateStandInFile():
     node = createStandIn()
     LoadStandInButtonPush(node.name())
 
+
 def doExportStandIn():
     #Save the defaultType
     default = cmds.optionVar(q='defaultFileExportActiveType')
+    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
     try:
         #Change it to ASS
         cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
@@ -29,10 +32,37 @@ def doExportStandIn():
     finally:
         cmds.optionVar(sv=('defaultFileExportActiveType', default))
 
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
+
 def doExportOptionsStandIn():
+    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
+
     pm.mel.eval('ExportSelectionOptions')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
 
+    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
+
+def doCreateCurvesCollector():
+    # Get selection and group the curves ?
+    sls = cmds.ls(sl=True, et='transform')
+    curveNode = mutils.createLocator('aiCurvesCollector')
+
+    if len(sls) > 0:
+        for slsElem in sls:
+            print slsElem
+            shs = cmds.listRelatives(slsElem, type='nurbsCurve', allDescendents=True)
+            if shs is None:
+                continue
+            if len(shs):
+                for shsElem in shs:
+                    sts = cmds.listRelatives(shsElem, fullPath=True, parent=True)
+                    if len(sts) > 0:
+                        cmds.parent(sts, curveNode[1])
+                
+    cmds.select(curveNode, replace=True)
+
+    
 def arnoldAboutDialog():
     legaltext = "All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
 \n\
@@ -324,7 +354,9 @@ def createArnoldMenu():
                     c=lambda *args: cmds.CreateSpotLight())
         pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
                     c=lambda *args: cmds.CreateAreaLight())
-                    
+        
+        pm.menuItem('CurvesCollector', label='Curves Collector', parent='ArnoldMenu',
+                    c=lambda *args: doCreateCurvesCollector())
         pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu',
                     c=lambda *args: createVolume())
                     
