@@ -166,7 +166,7 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
    if (plugName == "normalCamera" || plugName == "aiEnableMatte" || plugName == "aiMatteColor")
    {
       // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (AtSet<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }

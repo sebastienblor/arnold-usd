@@ -208,7 +208,7 @@ void CNodeTranslator::Delete()
    }
    m_impl->m_references.clear();
 
-   for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+   for (AtSet<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
    {
       (*it)->m_impl->RemoveReference(this);
    }
@@ -1142,7 +1142,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
 
       // We'll delete this node at next Render Update
       // We should advert our back references to re-export 
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (AtSet<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }
@@ -1158,7 +1158,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
    } else if (m >= AI_RECREATE_NODE)
    {
       // Since we'll recreate the arnold node, we must tell our back references to re-export
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (AtSet<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }

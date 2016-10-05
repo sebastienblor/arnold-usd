@@ -56,7 +56,7 @@ typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
 
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
-typedef std::set<AtNode*> AtNodeSet;
+typedef AtSet<AtNode*> AtNodeSet;
 
 /// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
 /// file or any other use. It has methods to export individual objects or whole scenes, and tracks the list
@@ -299,7 +299,7 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-   std::set<CNodeTranslator *> m_proceduralsToUpdate;
+   AtSet<CNodeTranslator *> m_proceduralsToUpdate;
    
 protected:
    ObjectHandleToDagMap m_masterInstances;

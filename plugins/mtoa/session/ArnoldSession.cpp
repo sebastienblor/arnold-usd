@@ -2245,8 +2245,8 @@ void CArnoldSession::UpdateProceduralReferences()
      
    // Part 1 : Check all nodes in the arnold scene (doh)
    // and see if they have connections on nodes belonging to another procedural
-   std::set<SessionProceduralData *> registeredProceduralData;
-   std::set<CNodeTranslator *> outsideConnectionsList;
+   AtSet<SessionProceduralData *> registeredProceduralData;
+   AtSet<CNodeTranslator *> outsideConnectionsList;
    std::vector<AtNode*> nodeConnections;
 
    // optimization, to avoid calling the hash map too often
@@ -2373,8 +2373,8 @@ void CArnoldSession::UpdateProceduralReferences()
 
 
    // Part 2 Set the procedural flags on the translators so that we don't have to do this mess at every IPR update
-   std::set<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
-   std::set<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
+   AtSet<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
+   AtSet<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
 
    for ( ; it != itEnd; ++it)
    {
@@ -2387,8 +2387,8 @@ void CArnoldSession::UpdateProceduralReferences()
 
    // Part 3: now that all references are connected, 
    // RE-set the update mode so that all the propagations happens correctly
-   std::set<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
-   std::set<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
+   AtSet<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
+   AtSet<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
    for ( ; iter != iterEnd; ++iter)
    {      
       // we temporarily reset the update mode to update_only
