@@ -84,9 +84,9 @@ public :
 
    // Remove callbacks installed. 
    void RemoveUpdateCallbacks();
-   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
+   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="", int instanceNumber = -1)
    {
-      Init(session, CNodeAttrHandle(nodeObject, attrName));
+      Init(session, CNodeAttrHandle(nodeObject, attrName, instanceNumber));
    }
    void Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {

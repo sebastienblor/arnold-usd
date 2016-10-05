@@ -72,6 +72,7 @@ public:
       m_instanceNum = instanceNum;
    }
 
+   /*
    bool operator<(const CNodeAttrHandle &other) const
    {
       // check if same node
@@ -133,6 +134,20 @@ public:
          return true; // they are same depend node
       }
       return false;
+   }
+   */
+   void GetHashString(MString &hashCode, bool includeAttr=false) const
+   {
+      hashCode = m_nodeHandle.hashCode();
+      if (m_instanceNum >= 0)
+      {
+         hashCode += "#";
+         hashCode += m_instanceNum;
+      }
+      if (includeAttr && m_attrName.length() > 0)
+      {
+         hashCode += ":" + m_attrName;
+      }
    }
 private :
    MObjectHandle m_nodeHandle;

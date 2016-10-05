@@ -47,7 +47,7 @@ class COptionsTranslator;
 // for Maya node with multiple outputs (until Arnold nodes support multiple outputs)
 // (Trac #351)
 // FIXME: careful that multiple occurrence of same translator will cause a crash when clearing map and deleting them!
-typedef std::multimap<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorMap;
+typedef AtMap<std::string, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 typedef std::pair<CNodeAttrHandle, MCallbackId> HiddenObjectCallbackPair;
 
@@ -81,7 +81,7 @@ public:
                       bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
-   unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
+   CNodeTranslator *GetActiveTranslator(const CNodeAttrHandle &handle);
    bool IsRenderablePath(MDagPath dagPath);
 
    inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }
@@ -146,7 +146,7 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
    void RequestUpdate();
-   void EraseActiveTranslator(const CNodeAttrHandle &handle);
+   void EraseActiveTranslator(CNodeTranslator *translator);
 
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};

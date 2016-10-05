@@ -1154,7 +1154,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       // be deleted in the next IPR update (CArnoldSession::DoUpdate()).
       // But for now we just want to remove the translator from the session list
       // since it's being accessed in the map based on the MObject/MPlug/MDagPath, etc...
-      m_impl->m_session->EraseActiveTranslator(m_impl->m_handle);
+      m_impl->m_session->EraseActiveTranslator(this);
    } else if (m >= AI_RECREATE_NODE)
    {
       // Since we'll recreate the arnold node, we must tell our back references to re-export
@@ -1244,11 +1244,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(dagPath);
-   session->GetActiveTranslators(handle, translators);
-
-   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
-   // as apparently we're not supposed to have multiple results here
-   return (translators.empty()) ? NULL : translators[0];
+   return session->GetActiveTranslator(handle);
 }
 
 CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
@@ -1256,11 +1252,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(object);
-   session->GetActiveTranslators(handle, translators);
-
-   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
-   // as apparently we're not supposed to have multiple results here
-   return (translators.empty()) ? NULL : translators[0];  
+   return session->GetActiveTranslator(handle);
 }
 
 
