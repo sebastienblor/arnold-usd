@@ -52,7 +52,7 @@ typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 typedef std::pair<CNodeAttrHandle, MCallbackId> HiddenObjectCallbackPair;
 
 // Map dag object handles to master instance
-typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
+typedef AmMap<MObjectHandle, MDagPath> ObjectHandleToDagMap;
 
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 

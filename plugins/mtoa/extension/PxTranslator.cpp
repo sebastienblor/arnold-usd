@@ -16,6 +16,7 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
                              TNodeInitFunction nodeInitFunction)
 {
    name = translatorName;
+   nameStr = name.asChar();
    arnold = "";
    provider = providerName;
    // if (name.numChars() == 0) name = provider;
@@ -83,6 +84,7 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
       }
       // No default strategy to create the rest
    }
+   nameStr = name.asChar();
 
    return MStatus::kSuccess;
 }

@@ -35,6 +35,7 @@ CPxMayaNode::CPxMayaNode(const MString &typeName,
    abstract = NULL;
    type = typeNode;
    classification = classif;
+   nameStr = name.asChar();
 }
 
 /// Read metadata for this Maya node from an arnold node
@@ -244,7 +245,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       if (drawdbClassification.numChars() != 0)
          classification += drawdbClassification;
    }
-
+   nameStr = name.asChar();
    return MStatus::kSuccess;
 }
 

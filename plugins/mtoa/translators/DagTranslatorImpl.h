@@ -1,8 +1,6 @@
 #pragma once
 #include "NodeTranslatorImpl.h"
 
-typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
-
 
 class CDagTranslatorImpl : public CNodeTranslatorImpl
 {
