@@ -9,7 +9,7 @@
 #include <maya/MMessage.h>
 
 #if MAYA_API_VERSION >= 201650
-
+#include "common/AtMap.h"
 #include <ai_vector.h>
 #include <vector>
 #include <map>

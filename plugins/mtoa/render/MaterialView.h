@@ -87,7 +87,7 @@ private:
       bool operator<(const Uuid& rhs) const { return memcmp(m_data, rhs.m_data, 16) < 0; }
    };
 
-   typedef AtMap<Uuid, CNodeTranslator*> TranslatorLookup;
+   typedef std::map<Uuid, CNodeTranslator*> TranslatorLookup;
    typedef std::vector<CNodeTranslator*>    TranslatorVector;
 
    TranslatorVector m_deletables;
