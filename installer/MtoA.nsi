@@ -58,7 +58,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   ReadRegStr $R0 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
   StrCmp $R0 "" NotInstalled Installed
   Installed:
-  IfSilent 0 +4
+  IfSilent 0 +5
     IntCmp $3 1 0 QuitPart QuitPart
       ExecWait "$R0 /S"
       Sleep 3000

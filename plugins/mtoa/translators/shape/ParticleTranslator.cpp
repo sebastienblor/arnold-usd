@@ -1499,7 +1499,14 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   m_fnParticleSystem.position(*positionArray);
+   if (MAYA_API_VERSION >= 201700 && IsCached())
+   {
+      m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
+   }
+   else
+   {
+      m_fnParticleSystem.position(*positionArray);
+   }
    //m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.acceleration(accelerationArray);

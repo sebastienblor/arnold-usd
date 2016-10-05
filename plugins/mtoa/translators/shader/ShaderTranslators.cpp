@@ -415,7 +415,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 #ifdef MTOA_ENABLE_GAMMA
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
 #else
-   AiNodeSetFlt(shader, "gamma_correct", 1.f);
+   AiNodeSetBool(shader, "gamma_correct", false);
 #endif
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");

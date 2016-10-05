@@ -349,10 +349,12 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
          refNormals = AiArrayConvert(rNumNorms, 1, AI_TYPE_VECTOR, &(fnRefMesh.getRawNormals(&stat)[0]));
          
          MIntArray vertex_counts, normal_ids;
-         rnidxs = AiArrayAllocate(rNumNorms, 1, AI_TYPE_UINT);
-         unsigned int id = 0;
+         
          fnRefMesh.getNormalIds(vertex_counts, normal_ids);
-         for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(rnidxs, id, normal_ids[n]);
+         // normal_ids should have the same length as the amount of polygon vertices
+         rnidxs = AiArrayAllocate((int)normal_ids.length(), 1, AI_TYPE_UINT);
+         
+         for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, n, normal_ids[n]);
          
       }
 
@@ -1175,11 +1177,6 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
 
 AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
-   
-   // Check if this geometry is renderable
-   // if it is not, set it as Disabled
-   AiNodeSetDisabled(polymesh, !m_session->IsRenderablePath(m_dagPath));
-   
    ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
