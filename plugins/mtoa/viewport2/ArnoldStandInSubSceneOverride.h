@@ -112,7 +112,7 @@ private:
         InstanceInfo(const MDagPath& instance, const MMatrix& matrix, bool selected, bool lead) : 
             fTransform(matrix), fSelected(selected), fLead(lead), fInstance(instance) {}
     };
-    typedef std::map<unsigned int, InstanceInfo> InstanceInfoMap;
+    typedef AtMap<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
 	bool fLastTimeInvisible;
 };

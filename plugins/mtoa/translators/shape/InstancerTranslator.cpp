@@ -410,8 +410,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    }
    else // step > 0
    {
-      std::map <int, int> tempMap = m_particleIDMap;
-      std::map <int, int>::iterator it;
+      AtMap <int, int> tempMap = m_particleIDMap;
+      AtMap <int, int>::iterator it;
       if (mayaMatrices.length() > 0)
       {
          int newParticleCount = 0;
@@ -581,7 +581,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
       const char *arnoldBaseName = GetArnoldNodeName();
 
-      for (std::map<int,int>::iterator it = m_particleIDMap.begin();
+      for (AtMap<int,int>::iterator it = m_particleIDMap.begin();
            it !=  m_particleIDMap.end(); ++it)
       {
          int partID = it->first;

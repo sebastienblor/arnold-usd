@@ -2231,7 +2231,7 @@ struct SessionProceduralData
 };
 
    
-static std::map<AtNode*, SessionProceduralData*> s_registeredProcedurals;
+static AtMap<AtNode*, SessionProceduralData*> s_registeredProcedurals;
 
 // some procedurals are being deleted. 
 // Make sure there are no connections from one procedural to another.
@@ -2409,7 +2409,7 @@ void CArnoldSession::RegisterProcedural(AtNode *node, CNodeTranslator *translato
 // a procedural node is being deleted
 void CArnoldSession::UnRegisterProcedural(AtNode *node)
 {
-   std::map<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
+   AtMap<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
    if (iter == s_registeredProcedurals.end()) return;
 
    delete iter->second; // delete the SessionProceduralData

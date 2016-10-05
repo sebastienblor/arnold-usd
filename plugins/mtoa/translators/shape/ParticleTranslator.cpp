@@ -479,11 +479,11 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
       numParticles = m_fnParticleSystem.count();
 
-      std::map <int, int> tempMap = m_particleIDMap;
-      std::map <int, int>::iterator it;
+      AtMap <int, int> tempMap = m_particleIDMap;
+      AtMap <int, int>::iterator it;
 
-      std::map <int, int> pos2Map;
-      std::map <int, int>::iterator it2;
+      AtMap <int, int> pos2Map;
+      AtMap <int, int>::iterator it2;
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -669,8 +669,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
    // tempMap is destroyed  little by little as we progress thru the particle list
    // to speed up the search for particles as we go.. then whatever is left over  in tempMap
    // gets iterated over  because they are "the particles that died" in this frameStep
-   std::map <int, int> tempMap = m_particleIDMap;
-   std::map <int, int>::iterator it;
+   AtMap <int, int> tempMap = m_particleIDMap;
+   AtMap <int, int>::iterator it;
 
    int newParticleCount = 0;
    for (int j = 0; j < numParticles; j++)
@@ -861,8 +861,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
    int numParticles = m_fnParticleSystem.count();
 
-   std::map <int, int> tempMap = m_particleIDMap;
-   std::map <int, int>::iterator it;
+   AtMap <int, int> tempMap = m_particleIDMap;
+   AtMap <int, int>::iterator it;
 
    MDoubleArray *newRadiusArray =NULL;
    newRadiusArray = new MDoubleArray((*m_out_radiusArrays[step-1]));
@@ -985,8 +985,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
       tempMap = m_particleIDMap;
 
-      std::map <int, int> pos2Map;
-      std::map <int, int>::iterator it2;
+      AtMap <int, int> pos2Map;
+      AtMap <int, int>::iterator it2;
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -1173,7 +1173,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    if(m_hasOpacity)
       a_opacityPPArray = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
    
-   std::map <int, int>::iterator it;
+   AtMap <int, int>::iterator it;
    
    for (unsigned int s = 0; s < numMotionSteps; s++)
    {

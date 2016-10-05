@@ -116,7 +116,7 @@ protected:
 
 
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays
-   std::map<int, int>  m_particleIDMap;
+   AtMap<int, int>  m_particleIDMap;
 
 
    MVectorArray m_instantVeloArray;
