@@ -31,7 +31,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
                    GetMayaNodeName().asChar());
       return shader;
    }
-   std::map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
+   AtMap<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray destPlugs;
    MPlugArray sourcePlugs;
@@ -76,7 +76,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
       }
    }
    // at this stage, we only care about the aov names, which are the key in the map
-   std::map<std::string, MPlugArray>::const_iterator it;
+   AtMap<std::string, MPlugArray>::const_iterator it;
    for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
    {
       const char* aovName = it->first.c_str();

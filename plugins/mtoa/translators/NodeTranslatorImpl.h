@@ -125,7 +125,7 @@ public :
    CArnoldSession* m_session;
 
    AtNode* m_atNode;
-   std::map<std::string, AtNode*> *m_additionalAtNodes;
+   AtMap<std::string, AtNode*> *m_additionalAtNodes;
 
    // FIXME : make sure we get rid of this isProcedural stuff 
    // once dependency graph is properly implemented in arnold....

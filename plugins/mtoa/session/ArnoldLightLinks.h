@@ -4,7 +4,7 @@
 #include <maya/MDagPath.h>
 
 #include <ai.h>
-
+#include "common/AtMap.h"
 #include <map>
 #include <vector>
 #include <string>
@@ -42,10 +42,10 @@ private:
    bool FillLights(const std::vector<std::string> &linkList, const std::vector<std::string> &ignoreList);
 
    // saving the lights here for faster access
-   std::map<std::string, AtNode*> m_arnoldLights;
+   AtMap<std::string, AtNode*> m_arnoldLights;
    std::vector<AtNode *> m_arnoldDefaultLights;
    std::vector<AtNode *> m_arnoldMeshLights;
-   std::map<std::string, std::vector<AtNode*> > m_cachedObjectSets;
+   AtMap<std::string, std::vector<AtNode*> > m_cachedObjectSets;
    size_t m_numArnoldLights;
    
    std::vector<std::string> m_linkedLights;

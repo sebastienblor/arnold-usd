@@ -846,7 +846,7 @@ void CExtensionsManager::GetAOVs(MStringArray& result)
          extIt != s_extensions.end();
          extIt++)
    {
-      std::map<std::string, int>::iterator it;
+      AtMap<std::string, int>::iterator it;
       for (it = extIt->m_impl->aovTypes.begin(); it != extIt->m_impl->aovTypes.end(); ++it)
       {
          result.append(it->first.c_str());
@@ -880,7 +880,7 @@ void CExtensionsManager::GetNodeTypesWithAOVs(MStringArray& result)
          extIt != s_extensions.end();
          extIt++)
    {
-      std::map<std::string, std::vector<CAOVData> >::iterator it;
+      AtMap<std::string, std::vector<CAOVData> >::iterator it;
       for (it = extIt->m_impl->aovAttrs.begin(); it!=extIt->m_impl->aovAttrs.end(); ++it)
       {
          result.append(it->first.c_str());

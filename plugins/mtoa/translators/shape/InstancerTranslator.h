@@ -49,13 +49,13 @@ protected:
    MString m_customAttrs;
 
 
-   std::map<std::string, MVectorArray > m_out_customVectorAttrArrays;
-   std::map<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
-   std::map<std::string, MIntArray > m_out_customIntAttrArrays;
+   AtMap<std::string, MVectorArray > m_out_customVectorAttrArrays;
+   AtMap<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
+   AtMap<std::string, MIntArray > m_out_customIntAttrArrays;
 
-   std::map<std::string, MVectorArray > m_instant_customVectorAttrArrays;
-   std::map<std::string, MDoubleArray > m_instant_customDoubleAttrArrays;
-   std::map<std::string, MIntArray > m_instant_customIntAttrArrays;
+   AtMap<std::string, MVectorArray > m_instant_customVectorAttrArrays;
+   AtMap<std::string, MDoubleArray > m_instant_customDoubleAttrArrays;
+   AtMap<std::string, MIntArray > m_instant_customIntAttrArrays;
 
 
 

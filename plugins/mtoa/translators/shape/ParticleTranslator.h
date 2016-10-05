@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ShapeTranslator.h"
-
+#include "common/AtMap.h"
 #include <maya/MFnParticleSystem.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTimer.h>
@@ -110,9 +110,9 @@ protected:
 
 
    // these hold each frame steps values  per map entry  for  custom attrs
-   std::map<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
-   std::map<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
-   std::map<std::string,  MIntArray* > m_out_customIntAttrArrays;
+   AtMap<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
+   AtMap<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
+   AtMap<std::string,  MIntArray* > m_out_customIntAttrArrays;
 
 
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays

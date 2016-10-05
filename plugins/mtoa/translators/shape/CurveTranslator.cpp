@@ -14,7 +14,7 @@
 
 typedef std::vector<float> CurveWidths;
 
-std::map<std::string, CurveWidths *> s_processedWidths;
+AtMap<std::string, CurveWidths *> s_processedWidths;
 
 static inline void ClearProcessedWidths()
 {
@@ -22,8 +22,8 @@ static inline void ClearProcessedWidths()
       return;
 
 
-   std::map<std::string, CurveWidths *>::iterator it = s_processedWidths.begin();
-   std::map<std::string, CurveWidths *>::iterator itEnd = s_processedWidths.end();
+   AtMap<std::string, CurveWidths *>::iterator it = s_processedWidths.begin();
+   AtMap<std::string, CurveWidths *>::iterator itEnd = s_processedWidths.end();
 
    for ( ; it != itEnd; ++it)
       delete it->second;

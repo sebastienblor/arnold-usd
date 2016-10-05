@@ -1,5 +1,5 @@
 #include "ArnoldListAttributesCmd.h"
-
+#include "common/AtMap.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -27,7 +27,7 @@ void* CArnoldListAttributesCmd::creator()
    return new CArnoldListAttributesCmd();
 }
 
-static void GetAttributesFromNode(const MFnDependencyNode& node, std::map<std::string, std::string>& attributeList, std::string* fullName = 0)
+static void GetAttributesFromNode(const MFnDependencyNode& node, AtMap<std::string, std::string>& attributeList, std::string* fullName = 0)
 {
    const unsigned int attributeCount = node.attributeCount();
    for (unsigned int i = 0; i < attributeCount; ++i)
@@ -38,7 +38,7 @@ static void GetAttributesFromNode(const MFnDependencyNode& node, std::map<std::s
       if (!attr.isWritable())
          continue;
       const std::string attrName = attr.name().asChar();
-      std::map<std::string, std::string>::iterator it = attributeList.find(attrName);
+      AtMap<std::string, std::string>::iterator it = attributeList.find(attrName);
       if (it == attributeList.end())
       {
          if (fullName)
@@ -49,7 +49,7 @@ static void GetAttributesFromNode(const MFnDependencyNode& node, std::map<std::s
    }
 }
 
-static void GetAttributesFromDgPath(const MDagPath& dg, std::map<std::string, std::string>& attributeList)
+static void GetAttributesFromDgPath(const MDagPath& dg, AtMap<std::string, std::string>& attributeList)
 {
    std::string fullName = dg.fullPathName().asChar();
    MFnDependencyNode node(dg.node());
@@ -95,7 +95,7 @@ MStatus CArnoldListAttributesCmd::doIt(const MArgList& args)
    
    unsigned int numSetMembers = slist.length();
    
-   std::map<std::string, std::string> attributeMap;
+   AtMap<std::string, std::string> attributeMap;
    
    for (unsigned int i = 0; i < numSetMembers; ++i)
    {
@@ -117,7 +117,7 @@ MStatus CArnoldListAttributesCmd::doIt(const MArgList& args)
    resultArray.setLength((unsigned int)attributeMap.size());
    
    unsigned int id = 0;
-   for (std::map<std::string, std::string>::const_iterator it = attributeMap.begin(); it != attributeMap.end(); ++it)
+   for (AtMap<std::string, std::string>::const_iterator it = attributeMap.begin(); it != attributeMap.end(); ++it)
       resultArray[id++] = it->second.c_str();
    
    setResult(resultArray);

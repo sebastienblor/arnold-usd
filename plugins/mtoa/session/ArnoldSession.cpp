@@ -302,7 +302,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
 
          if (translator->m_impl->m_additionalAtNodes)
          {
-            std::map<std::string, AtNode*>::iterator nodeIt;
+            AtMap<std::string, AtNode*>::iterator nodeIt;
             for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
             {
                nodes->insert(nodeIt->second);
@@ -1994,7 +1994,7 @@ void CArnoldSession::ExportTxFiles()
    }
 
    bool progressStarted = false;
-   std::map<std::string, std::string> textureColorSpaces;
+   AtMap<std::string, std::string> textureColorSpaces;
    for (size_t i = 0; i < textureNodes.size(); ++i)
    {
       CNodeTranslator *translator = textureNodes[i];
@@ -2015,7 +2015,7 @@ void CArnoldSession::ExportTxFiles()
          MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
          std::string colorSpaceStr = colorSpace.asChar();
 
-         std::map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+         AtMap<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
          if (it == textureColorSpaces.end())
          {
             textureColorSpaces[filenameStr] = colorSpaceStr;

@@ -23,4 +23,4 @@ typedef std::set<CPxTranslator> TranslatorsSet;
 // Maya node to Translator map
 typedef std::map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
 // Storing the default translator value
-typedef std::map<std::string, MString> DefaultTranslatorMap;
+typedef AtMap<std::string, MString> DefaultTranslatorMap;

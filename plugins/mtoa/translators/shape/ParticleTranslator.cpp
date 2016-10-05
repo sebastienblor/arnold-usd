@@ -1,6 +1,5 @@
 #include "ParticleTranslator.h"
 #include "attributes/AttrHelper.h"
-
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
 #include <maya/MFnParticleSystem.h>
@@ -1316,9 +1315,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    if (m_doExtraAttributes)
    {
-      std::map <std::string, MVectorArray*>::iterator vecIt;
-      std::map <std::string, MDoubleArray*>::iterator doubleIt;
-      std::map <std::string, MIntArray*>::iterator intIt;
+      AtMap <std::string, MVectorArray*>::iterator vecIt;
+      AtMap <std::string, MDoubleArray*>::iterator doubleIt;
+      AtMap <std::string, MIntArray*>::iterator intIt;
 
       // Extra export attrs
       for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)

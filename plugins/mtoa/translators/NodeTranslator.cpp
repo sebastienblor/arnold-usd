@@ -228,7 +228,7 @@ void CNodeTranslator::Delete()
    
    if (m_impl->m_additionalAtNodes)
    {
-      for (std::map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
+      for (AtMap<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
          AiNodeDestroy(it->second);
       
       delete m_impl->m_additionalAtNodes;
@@ -306,7 +306,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
       if (tag != NULL && strlen(tag))
       {
          if (m_impl->m_additionalAtNodes == NULL) 
-            m_impl->m_additionalAtNodes = new std::map<std::string, AtNode*>();
+            m_impl->m_additionalAtNodes = new AtMap<std::string, AtNode*>();
          if (m_impl->m_additionalAtNodes->count(tag))
          {
             AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
