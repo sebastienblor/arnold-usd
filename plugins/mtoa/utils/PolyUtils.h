@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "common/AtMap.h"
+#include "common/AmMap.h"
 #include <maya/MFnMesh.h>
 #include <maya/MFloatVector.h>
 #include <string.h>
@@ -37,7 +37,7 @@ public:
         // pre-allocate buffers for the worst case
         size_t maxNumWires = fNumFaceIndices;
 
-        typedef AtSet<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+        typedef AmSet<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
 
         WireSet wireSet(size_t(maxNumWires / 0.75f));
 
@@ -194,7 +194,7 @@ public:
         std::vector<index_type> indicesRegion(fNumStreams * fNumFaceIndices);
 
         // the hash map to find unique combination of multi-indices
-        typedef AtMap<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
+        typedef AmMap<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
 
         IndicesMap indicesMap(size_t(fNumFaceIndices / 0.75f));
 

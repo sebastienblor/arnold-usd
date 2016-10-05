@@ -47,7 +47,7 @@ class COptionsTranslator;
 // for Maya node with multiple outputs (until Arnold nodes support multiple outputs)
 // (Trac #351)
 // FIXME: careful that multiple occurrence of same translator will cause a crash when clearing map and deleting them!
-typedef AtMap<std::string, CNodeTranslator*> ObjectToTranslatorMap;
+typedef AmMap<std::string, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 typedef std::pair<CNodeAttrHandle, MCallbackId> HiddenObjectCallbackPair;
 
@@ -56,7 +56,7 @@ typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
 
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
-typedef AtSet<AtNode*> AtNodeSet;
+typedef AmSet<AtNode*> AtNodeSet;
 
 /// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
 /// file or any other use. It has methods to export individual objects or whole scenes, and tracks the list
@@ -299,7 +299,7 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-   AtSet<CNodeTranslator *> m_proceduralsToUpdate;
+   AmSet<CNodeTranslator *> m_proceduralsToUpdate;
    
 protected:
    ObjectHandleToDagMap m_masterInstances;

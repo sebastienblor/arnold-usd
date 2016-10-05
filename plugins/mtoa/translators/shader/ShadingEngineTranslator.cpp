@@ -11,7 +11,7 @@ CShadingEngineTranslator::~CShadingEngineTranslator()
 
 void CShadingEngineTranslator::Init()
 {
-   m_impl->m_shaders = new AtSet<AtNode*>;//AtNodeSet;
+   m_impl->m_shaders = new AmSet<AtNode*>;//AtNodeSet;
    CNodeTranslator::Init();
 }
 

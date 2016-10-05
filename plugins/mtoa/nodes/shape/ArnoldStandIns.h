@@ -1,7 +1,7 @@
 #pragma once
 
 #include "attributes/AttrHelper.h"
-#include "common/AtMap.h"
+#include "common/AmMap.h"
 #include "ArnoldStandInGeometry.h"
 
 #include <maya/MPxNode.h>
@@ -35,7 +35,7 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   typedef AtMap<AtNode*, CArnoldStandInGeometry*> geometryListType;
+   typedef AmMap<AtNode*, CArnoldStandInGeometry*> geometryListType;
    typedef geometryListType::const_iterator geometryListIterType;
    geometryListType m_geometryList;
    typedef std::vector<CArnoldStandInGInstance*> instanceListType;

@@ -301,7 +301,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
 
          if (translator->m_impl->m_additionalAtNodes)
          {
-            AtMap<std::string, AtNode*>::iterator nodeIt;
+            AmMap<std::string, AtNode*>::iterator nodeIt;
             for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
             {
                nodes->insert(nodeIt->second);
@@ -2001,7 +2001,7 @@ void CArnoldSession::ExportTxFiles()
    }
 
    bool progressStarted = false;
-   AtMap<std::string, std::string> textureColorSpaces;
+   AmMap<std::string, std::string> textureColorSpaces;
    for (size_t i = 0; i < textureNodes.size(); ++i)
    {
       CNodeTranslator *translator = textureNodes[i];
@@ -2022,7 +2022,7 @@ void CArnoldSession::ExportTxFiles()
          MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
          std::string colorSpaceStr = colorSpace.asChar();
 
-         AtMap<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+         AmMap<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
          if (it == textureColorSpaces.end())
          {
             textureColorSpaces[filenameStr] = colorSpaceStr;
@@ -2239,7 +2239,7 @@ struct SessionProceduralData
 };
 
    
-static AtMap<AtNode*, SessionProceduralData*> s_registeredProcedurals;
+static AmMap<AtNode*, SessionProceduralData*> s_registeredProcedurals;
 
 // some procedurals are being deleted. 
 // Make sure there are no connections from one procedural to another.
@@ -2253,8 +2253,8 @@ void CArnoldSession::UpdateProceduralReferences()
      
    // Part 1 : Check all nodes in the arnold scene (doh)
    // and see if they have connections on nodes belonging to another procedural
-   AtSet<SessionProceduralData *> registeredProceduralData;
-   AtSet<CNodeTranslator *> outsideConnectionsList;
+   AmSet<SessionProceduralData *> registeredProceduralData;
+   AmSet<CNodeTranslator *> outsideConnectionsList;
    std::vector<AtNode*> nodeConnections;
 
    // optimization, to avoid calling the hash map too often
@@ -2381,8 +2381,8 @@ void CArnoldSession::UpdateProceduralReferences()
 
 
    // Part 2 Set the procedural flags on the translators so that we don't have to do this mess at every IPR update
-   AtSet<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
-   AtSet<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
+   AmSet<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
+   AmSet<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
 
    for ( ; it != itEnd; ++it)
    {
@@ -2395,8 +2395,8 @@ void CArnoldSession::UpdateProceduralReferences()
 
    // Part 3: now that all references are connected, 
    // RE-set the update mode so that all the propagations happens correctly
-   AtSet<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
-   AtSet<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
+   AmSet<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
+   AmSet<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
    for ( ; iter != iterEnd; ++iter)
    {      
       // we temporarily reset the update mode to update_only
@@ -2417,7 +2417,7 @@ void CArnoldSession::RegisterProcedural(AtNode *node, CNodeTranslator *translato
 // a procedural node is being deleted
 void CArnoldSession::UnRegisterProcedural(AtNode *node)
 {
-   AtMap<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
+   AmMap<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
    if (iter == s_registeredProcedurals.end()) return;
 
    delete iter->second; // delete the SessionProceduralData

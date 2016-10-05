@@ -1,6 +1,6 @@
 #include "ArnoldBakeGeoCmd.h"
 #include "../scene/MayaScene.h"
-#include "../common/AtMap.h"
+#include "../common/AmMap.h"
 #include <ai.h>
 
 #include <maya/MStatus.h>
@@ -130,7 +130,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    // Otherwise, as soon as AiRender is called, they are re-initialized
    AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
-   AtMap<std::string, matrixAsFloats>  mtxMap;
+   AmMap<std::string, matrixAsFloats>  mtxMap;
    
    while (!AiNodeIteratorFinished(nodeIter))
    {
@@ -161,8 +161,8 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::vector<AtPoint2> uvs;
    std::vector<unsigned int> vertexIds;
 
-   AtMap<size_t, unsigned int>  vertexMap;
-   AtMap<size_t, unsigned int>::iterator  vertexMapIter;
+   AmMap<size_t, unsigned int>  vertexMap;
+   AmMap<size_t, unsigned int>::iterator  vertexMapIter;
 
    unsigned int vtxOffset = 1;  // OBJ expects vertex indices starting at 1
 

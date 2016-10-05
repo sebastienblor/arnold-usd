@@ -31,7 +31,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
                    GetMayaNodeName().asChar());
       return shader;
    }
-   AtMap<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
+   AmMap<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray destPlugs;
    MPlugArray sourcePlugs;
@@ -76,7 +76,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
       }
    }
    // at this stage, we only care about the aov names, which are the key in the map
-   AtMap<std::string, MPlugArray>::const_iterator it;
+   AmMap<std::string, MPlugArray>::const_iterator it;
    for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
    {
       const char* aovName = it->first.c_str();
@@ -166,7 +166,7 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
    if (plugName == "normalCamera" || plugName == "aiEnableMatte" || plugName == "aiMatteColor")
    {
       // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
-      for (AtSet<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (AmSet<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }

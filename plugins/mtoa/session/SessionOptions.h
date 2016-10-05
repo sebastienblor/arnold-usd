@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/AtMap.h"
+#include "common/AmMap.h"
 #include <maya/MObject.h>
 #include <maya/MDagPath.h>
 #include <maya/MAnimControl.h>
@@ -44,7 +44,7 @@ enum ArnoldShadowLinkMode
 #define MTOA_FILTER_LAYER     0x0004
 #define MTOA_FILTER_ANY       0xFFFF
 
-typedef AtSet<MFn::Type> MFnTypeSet;
+typedef AmSet<MFn::Type> MFnTypeSet;
 
 struct CMayaExportFilter
 {

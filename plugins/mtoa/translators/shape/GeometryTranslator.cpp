@@ -384,7 +384,7 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
 }
 
 bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
-                                          AtMap<std::string, std::vector<float> > &vcolors)
+                                          AmMap<std::string, std::vector<float> > &vcolors)
 {
    MFnMesh fnMesh(geometry);
 
@@ -791,7 +791,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       std::vector<AtArray*> uvidxs;
       AtArray* nsides = 0;
       AtArray* vidxs = 0; AtArray* nidxs = 0;
-      AtMap<std::string, std::vector<float> > vcolors;
+      AmMap<std::string, std::vector<float> > vcolors;
       AtArray* refNormals = 0; AtArray* rnidxs = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
@@ -846,7 +846,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // Declare user parameters for color sets
       if (exportColors)
       {
-         AtMap<std::string, std::vector<float> >::iterator it = vcolors.begin();
+         AmMap<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
             AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
@@ -986,7 +986,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       }
       if (exportColors)
       {
-         AtMap<std::string, std::vector<float> >::iterator it = vcolors.begin();
+         AmMap<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
             AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));

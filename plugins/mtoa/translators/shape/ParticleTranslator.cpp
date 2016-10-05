@@ -479,11 +479,11 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
       numParticles = m_fnParticleSystem.count();
 
-      AtMap <int, int> tempMap = m_particleIDMap;
-      AtMap <int, int>::iterator it;
+      AmMap <int, int> tempMap = m_particleIDMap;
+      AmMap <int, int>::iterator it;
 
-      AtMap <int, int> pos2Map;
-      AtMap <int, int>::iterator it2;
+      AmMap <int, int> pos2Map;
+      AmMap <int, int>::iterator it2;
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -669,8 +669,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
    // tempMap is destroyed  little by little as we progress thru the particle list
    // to speed up the search for particles as we go.. then whatever is left over  in tempMap
    // gets iterated over  because they are "the particles that died" in this frameStep
-   AtMap <int, int> tempMap = m_particleIDMap;
-   AtMap <int, int>::iterator it;
+   AmMap <int, int> tempMap = m_particleIDMap;
+   AmMap <int, int>::iterator it;
 
    int newParticleCount = 0;
    for (int j = 0; j < numParticles; j++)
@@ -861,8 +861,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
    int numParticles = m_fnParticleSystem.count();
 
-   AtMap <int, int> tempMap = m_particleIDMap;
-   AtMap <int, int>::iterator it;
+   AmMap <int, int> tempMap = m_particleIDMap;
+   AmMap <int, int>::iterator it;
 
    MDoubleArray *newRadiusArray =NULL;
    newRadiusArray = new MDoubleArray((*m_out_radiusArrays[step-1]));
@@ -985,8 +985,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
       tempMap = m_particleIDMap;
 
-      AtMap <int, int> pos2Map;
-      AtMap <int, int>::iterator it2;
+      AmMap <int, int> pos2Map;
+      AmMap <int, int>::iterator it2;
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -1173,7 +1173,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    if(m_hasOpacity)
       a_opacityPPArray = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
    
-   AtMap <int, int>::iterator it;
+   AmMap <int, int>::iterator it;
    
    for (unsigned int s = 0; s < numMotionSteps; s++)
    {
@@ -1315,9 +1315,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    if (m_doExtraAttributes)
    {
-      AtMap <std::string, MVectorArray*>::iterator vecIt;
-      AtMap <std::string, MDoubleArray*>::iterator doubleIt;
-      AtMap <std::string, MIntArray*>::iterator intIt;
+      AmMap <std::string, MVectorArray*>::iterator vecIt;
+      AmMap <std::string, MDoubleArray*>::iterator doubleIt;
+      AmMap <std::string, MIntArray*>::iterator intIt;
 
       // Extra export attrs
       for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)

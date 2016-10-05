@@ -49,13 +49,13 @@ protected:
    MString m_customAttrs;
 
 
-   AtMap<std::string, MVectorArray > m_out_customVectorAttrArrays;
-   AtMap<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
-   AtMap<std::string, MIntArray > m_out_customIntAttrArrays;
+   AmMap<std::string, MVectorArray > m_out_customVectorAttrArrays;
+   AmMap<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
+   AmMap<std::string, MIntArray > m_out_customIntAttrArrays;
 
-   AtMap<std::string, MVectorArray > m_instant_customVectorAttrArrays;
-   AtMap<std::string, MDoubleArray > m_instant_customDoubleAttrArrays;
-   AtMap<std::string, MIntArray > m_instant_customIntAttrArrays;
+   AmMap<std::string, MVectorArray > m_instant_customVectorAttrArrays;
+   AmMap<std::string, MDoubleArray > m_instant_customDoubleAttrArrays;
+   AmMap<std::string, MIntArray > m_instant_customIntAttrArrays;
 
 
 
@@ -63,8 +63,8 @@ protected:
    std::vector< AtArray* > m_vec_matrixArrays;
    MStringArray m_objectNames;
    MDagPathArray m_objectDagPaths;
-   AtMap<int, int>  m_particleIDMap;
-   AtMap<int, MIntArray> m_particlePathsMap;
+   AmMap<int, int>  m_particleIDMap;
+   AmMap<int, MIntArray> m_particlePathsMap;
    MStringArray m_instanceTags; // for debug purposes
 
 };

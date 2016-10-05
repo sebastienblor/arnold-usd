@@ -9,7 +9,7 @@
 #include <maya/MMessage.h>
 
 #if MAYA_API_VERSION >= 201650
-#include "common/AtMap.h"
+#include "common/AmMap.h"
 #include <ai_vector.h>
 #include <vector>
 #include <map>
@@ -112,7 +112,7 @@ private:
         InstanceInfo(const MDagPath& instance, const MMatrix& matrix, bool selected, bool lead) : 
             fTransform(matrix), fSelected(selected), fLead(lead), fInstance(instance) {}
     };
-    typedef AtMap<unsigned int, InstanceInfo> InstanceInfoMap;
+    typedef AmMap<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
 	bool fLastTimeInvisible;
 };

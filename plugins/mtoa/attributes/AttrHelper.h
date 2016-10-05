@@ -1,7 +1,7 @@
 #pragma once
 
 #include "platform/Platform.h"
-#include "common/AtMap.h"
+#include "common/AmMap.h"
 
 #include <ai_node_entry.h>
 #include <ai_params.h>
@@ -245,7 +245,7 @@ protected:
    const AtNodeEntry* m_nodeEntry;
    int m_attrNum;
    MString m_prefix;
-   AtMap<std::string, MObject> m_attributes;
+   AmMap<std::string, MObject> m_attributes;
    virtual MStatus addAttribute(MObject& attrib){return MStatus::kFailure;};
 
 };
