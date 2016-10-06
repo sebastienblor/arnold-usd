@@ -1096,7 +1096,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    if (RequiresMotionData())
    {
       AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(values, 0, value);
+      AiArraySetFlt(values, GetMotionStep(), value);
       AiNodeSetArray(shader, "values", values);
    }
    else

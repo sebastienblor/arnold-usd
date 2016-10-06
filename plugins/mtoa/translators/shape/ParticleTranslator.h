@@ -118,7 +118,8 @@ protected:
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays
    std::map<int, int>  m_particleIDMap;
 
-
+   std::vector<bool> m_exportedSteps;
+   
    MVectorArray m_instantVeloArray;
    MVectorArray m_instantAcceArray;
    MFnDagNode m_DagNode;

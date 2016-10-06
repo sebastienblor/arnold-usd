@@ -25,19 +25,18 @@ using namespace std;
 void CImagePlaneTranslator::Export(AtNode *imagePlane)
 {
    CNodeTranslator::Export(imagePlane);
-   ExportImagePlane(0u);
+   ExportImagePlane();
 }
 void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane)
 {
-   int step = GetMotionStep();
    CNodeTranslator::ExportMotion(imagePlane);
-   ExportImagePlane(step);
+   ExportImagePlane();
 
 }
 void CImagePlaneTranslator::SetCamera(MString cameraName)
 {
    m_camera = cameraName;
-   ExportImagePlane(0u);
+   ExportImagePlane();
 }
 static void GetCameraRotationMatrix(MDagPath camera, AtMatrix& matrix)
 {
@@ -96,7 +95,7 @@ bool CImagePlaneTranslator::RequiresMotionData()
    return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
 }
 
-void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
+void CImagePlaneTranslator::ExportImagePlane()
 {
    MObject imgPlane = GetMayaObject();
    // get the dependency node of the image plane
@@ -281,7 +280,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
          ipHeight = planeSizeY;
       }
 
-      if (step == 0)
+      if (!IsExportingMotion())
       {
          AtNode* imagePlane = GetArnoldNode("polymesh");
          AiNodeSetStr(imagePlane, "name", imagePlaneName.asChar());
@@ -439,7 +438,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
          AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
          AiNodeSetBool(imagePlane, "opaque", 0);
 
-      }// (step == 0)
+      }
 
       AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
 
@@ -510,16 +509,16 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
          // image plane should move with the camera to render it with no motion blur
          if (m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
          {
-            if (step == 0)
+            if (!IsExportingMotion())
             {
                AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-               AiArraySetMtx(matrices, 0, imagePlaneMatrix);
+               AiArraySetMtx(matrices, GetMotionStep(), imagePlaneMatrix);
                AiNodeSetArray(imagePlane, "matrix", matrices);
             }
             else
             {
                AtArray* matrices = AiNodeGetArray(imagePlane, "matrix");
-               AiArraySetMtx(matrices, step, imagePlaneMatrix);
+               AiArraySetMtx(matrices, GetMotionStep(), imagePlaneMatrix);
             }
          }
          else

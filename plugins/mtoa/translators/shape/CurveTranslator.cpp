@@ -138,6 +138,8 @@ void CCurveTranslator::Export( AtNode *curve )
    }
 
    plug = FindMayaPlug("aiExportRefPoints");
+   
+   int step = GetMotionStep();
 
    if (!plug.isNull())
       exportReferenceObject = plug.asBool();
@@ -151,11 +153,11 @@ void CCurveTranslator::Export( AtNode *curve )
 
    // Get curve lines
    MStatus stat;
-   stat = GetCurveLines(objectCurveShape, 0);
+   stat = GetCurveLines(objectCurveShape, step);
    // Bail if there isn't any curve data
    if (stat != MStatus::kSuccess) return;
 
-   // Set curve matrix for step 0
+   // Set "rest" curve matrix
    ExportMatrix(curve);
 
    // The num points array (int array the size of numLines, no motionsteps)
@@ -205,13 +207,15 @@ void CCurveTranslator::Export( AtNode *curve )
 
    ProcessRenderFlags(curve);
 
+   bool requireMotion = RequiresMotionData();
+
    // Allocate memory for all curve points and widths
    AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
-   AtArray* curveWidths = AiArrayAllocate(numPoints,              mayaCurve.widthConnected ? GetNumMotionSteps() : 1, AI_TYPE_FLOAT);
+   AtArray* curveWidths = AiArrayAllocate(numPoints,              (requireMotion && mayaCurve.widthConnected) ? GetNumMotionSteps() : 1, AI_TYPE_FLOAT);
    AtArray* curveColors = AiArrayAllocate(1,                      1, AI_TYPE_RGB);
    AtArray* referenceCurvePoints = exportReferenceObject ? AiArrayAllocate(numPoints, 1, AI_TYPE_POINT) : 0;
 
-   ProcessCurveLines(0,
+   ProcessCurveLines(step,
                     curvePoints,
                     referenceCurvePoints,
                     curveWidths,
@@ -298,12 +302,16 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
       for (int j = 0; j < renderLineLength; ++j)
       {
          AiArraySetPnt(curvePoints, j + 1 + (step * numPointsPerStep), mayaCurve.points[j]);
-         // Animated widths are not supported, so just export on step 0
-         if (step == 0)
+         // Animated widths are not supported, so just export on current frame
+         if (!IsExportingMotion())
          {
             if (exportReferenceObject)
                AiArraySetPnt(referenceCurvePoints, j, mayaCurve.referencePoints[j]);
-            AiArraySetFlt(curveWidths, j, static_cast<float>(mayaCurve.widths[j] / 2.0));
+
+            if (RequiresMotionData() && mayaCurve.widthConnected)
+               AiArraySetFlt(curveWidths, j + (step * renderLineLength), static_cast<float>(mayaCurve.widths[j] / 2.0));
+            else
+               AiArraySetFlt(curveWidths, j, static_cast<float>(mayaCurve.widths[j] / 2.0));
          }
          else if (mayaCurve.widthConnected)
             AiArraySetFlt(curveWidths, j + (step * renderLineLength), static_cast<float>(mayaCurve.widths[j] / 2.0));
@@ -410,8 +418,9 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
       }
       else 
       {
+         // FIXME could we get rid of the connected width motion ?
          mayaCurve.widthConnected = false;
-         if (step == 0)
+         if (!IsExportingMotion())
          {
             for (unsigned int i = 0; i < numcvs; ++i)
                mayaCurve.widths[i] = globalWidth;

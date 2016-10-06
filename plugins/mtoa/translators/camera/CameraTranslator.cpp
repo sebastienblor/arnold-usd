@@ -43,7 +43,7 @@ void CCameraTranslator::ExportImagePlanes()
 
             if (imgPlaneTranslator)
             {
-               if (GetMotionStep() == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
+               if (!IsExportingMotion()) imgPlaneTranslator->SetCamera(GetMayaNodeName());
                else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
             }
          }
@@ -102,7 +102,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
 
 void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
-   if (GetMotionStep() > 0)
+   if (IsExportingMotion())
    {
       // for motion steps, only set the matrix at current step
       AtMatrix matrix;
@@ -132,7 +132,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, 0, matrix);
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
       AiNodeSetArray(camera, "matrix", matrices);
    }
    else

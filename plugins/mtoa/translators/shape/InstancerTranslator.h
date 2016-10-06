@@ -65,6 +65,7 @@ protected:
    MDagPathArray m_objectDagPaths;
    std::map<int, int>  m_particleIDMap;
    std::map<int, MIntArray> m_particlePathsMap;
-   MStringArray m_instanceTags; // for debug purposes
+   //MStringArray m_instanceTags; // for debug purposes
+   std::vector<bool> m_exportedSteps;
 
 };

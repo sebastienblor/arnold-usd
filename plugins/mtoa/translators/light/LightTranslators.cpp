@@ -332,9 +332,11 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
-   AtArray* vlist = AiArrayAllocate(m_numVertices, IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? steps : 1, AI_TYPE_POINT);
+   bool deformMotion = RequiresMotionData() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+   AtArray* vlist = AiArrayAllocate(m_numVertices, deformMotion ? steps : 1, AI_TYPE_POINT);
+   int vlistOffset = deformMotion ? m_numVertices * GetMotionStep() : 0;
    for (int i = 0; i < m_numVertices; ++i)
-      AiArraySetVec(vlist, i, vertices[i]);
+      AiArraySetVec(vlist, i + vlistOffset, vertices[i]);
 
    AiNodeSetArray(meshNode, "vlist", vlist);
 
@@ -564,6 +566,7 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
 
+      // As motion deform was disabled, I just allocated a single key
       if (vlist->nkeys == 1)
          return;
        

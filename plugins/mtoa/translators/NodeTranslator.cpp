@@ -499,7 +499,7 @@ void CNodeTranslator::RequestUpdate()
 {
 
    // if hold updates is enabled, don't ask for updates
-   if (m_impl->m_holdUpdates) return;
+   if (m_impl->m_inUpdateQueue) return;
 
    // we're changing the frame to evaluate motion blur, so we don't want more 
    // updates now
@@ -1006,10 +1006,10 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       return NULL;
    }
 
-   // It doesn't make sense to call this method when step is greater than 0
-   if (GetMotionStep() > 0)
+   // It doesn't make sense to call this method during motion export
+   if (IsExportingMotion())
    {
-      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0",
+      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be called during motion export",
             GetTranslatorName().asChar(), AiNodeGetName(arnoldNode), arnoldParamName);
       return NULL;
    }
@@ -1204,12 +1204,12 @@ bool CNodeTranslator::IsLocalMotionBlurEnabled() const
 }
 unsigned int CNodeTranslator::GetMotionStep()
 {   
-   return CMayaScene::GetArnoldSession()->GetMotionStep();
+   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? CMayaScene::GetArnoldSession()->GetMotionStep() : 0;
 }
 
 unsigned int CNodeTranslator::GetNumMotionSteps()
 {
-   return CMayaScene::GetArnoldSession()->GetNumMotionSteps();
+   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? CMayaScene::GetArnoldSession()->GetNumMotionSteps() : 1;
 }
 const CSessionOptions& CNodeTranslator::GetSessionOptions()
 {
@@ -1280,4 +1280,10 @@ MString CNodeTranslator::GetArnoldNaming(const MObject &object)
    if (prefix.length() > 0)
       name = prefix + name;
    return name;
+}
+
+
+bool CNodeTranslator::IsExportingMotion() const
+{
+   return m_impl->m_session->IsExportingMotion();
 }

@@ -38,7 +38,7 @@ public :
    CNodeTranslatorImpl(CNodeTranslator &translator) : 
       m_handle(CNodeAttrHandle()),
       m_updateMode(CNodeTranslator::AI_UPDATE_ONLY),
-      m_holdUpdates(false),
+      m_inUpdateQueue(false),
       m_animArrays(false),
       m_abstract(CAbTranslator()),
       m_session(NULL),
@@ -118,7 +118,7 @@ public :
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
-   bool m_holdUpdates; // for Arnold RenderView only
+   bool m_inUpdateQueue; // for Arnold RenderView only
    bool m_animArrays;
    CAbTranslator m_abstract;
 
