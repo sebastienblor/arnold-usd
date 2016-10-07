@@ -137,12 +137,12 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
    AiMsgDebug("[mtoa.session]     %-30s | Exporting DAG node of type %s", name.asChar(), type.asChar());
 
    CNodeAttrHandle handle(dagPath);
+   MString hashCode;
+   handle.GetHashString(hashCode);
+   std::string hashStr(hashCode.asChar());
    // Check if node has already been processed
-   // FIXME: since it's a multimap there can be more than one translator associated ?
-   // ObjectToTranslatorMap::iterator it, itlo, itup;
-   // itlo = m_processedTranslators.lower_bound(handle);
-   // itup = m_processedTranslators.upper_bound(handle);
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
+
    if (it != m_processedTranslators.end())
    {
       AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
@@ -165,7 +165,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
       }
       else
       {
-         m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+         m_processedTranslators[hashStr] = translator;
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
@@ -248,18 +248,20 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    AiMsgDebug("[mtoa.session]     %-30s | Exporting plug %s for type %s",
       name.asChar(), plugName.asChar(), type.asChar());
    CNodeAttrHandle handle;
+   MString handleCode;
    if (translator->DependsOnOutputPlug())
+   {
       handle.set(resultPlug, instanceNumber);
+      handle.GetHashString(handleCode, true); // true because I need the plug name
+   }
    else
+   {
       handle.set(mayaNode, "", instanceNumber);
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
-   
-   // Check if node has already been processed
-   // FIXME: since it's a multimap there can be more than one translator associated ?
-   // ObjectToTranslatorMap::iterator it, itlo, itup;
-   // itlo = m_processedTranslators.lower_bound(handle);
-   // itup = m_processedTranslators.upper_bound(handle);
-   it = m_processedTranslators.find(handle);
+      handle.GetHashString(handleCode, false); // I don't need the plug name
+   }
+   std::string hashStr(handleCode.asChar());
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
+
    if (it != m_processedTranslators.end())
    {
       AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of node of type %s", name.asChar(), type.asChar());
@@ -283,7 +285,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       }
       else
       {
-         m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+         m_processedTranslators[hashStr] = translator;
          
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
@@ -302,7 +304,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
 
          if (translator->m_impl->m_additionalAtNodes)
          {
-            std::map<std::string, AtNode*>::iterator nodeIt;
+            unordered_map<std::string, AtNode*>::iterator nodeIt;
             for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
             {
                nodes->insert(nodeIt->second);
@@ -320,18 +322,48 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    return translator;
 }
 
-unsigned int CArnoldSession::GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result)
+CNodeTranslator *CArnoldSession::GetActiveTranslator(const CNodeAttrHandle &handle)
 {
-   result.clear();
-   ObjectToTranslatorMap::iterator it, itlo, itup;
-   itlo = m_processedTranslators.lower_bound(handle);
-   itup = m_processedTranslators.upper_bound(handle);
-   for (it = itlo; it != itup; it++)
-   {
-      result.push_back(static_cast< CNodeTranslator* >(it->second));
-   }
-   return result.size();
+   MString hashCode;
+   handle.GetHashString(hashCode);
+   std::string hashStr(hashCode.asChar());
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
+
+   if (it != m_processedTranslators.end())
+      return it->second;
+
+
+   // FIXME, should we try now with the attribute name for multi-output translators ?
+   /*
+   handle.GetHashString(hashCode, true);
+   hashStr= hashCode.asChar();
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
+
+   if (it != m_processedTranslators.end())
+      return it->second;   
+   */
+
+   return NULL;
 }
+
+// This function removes the translator from our list of 
+// processed translators. Note that it doesn't actually erase it,
+// this will be done later
+void CArnoldSession::EraseActiveTranslator(CNodeTranslator *translator)
+{
+   if (translator == NULL) return;
+
+   CNodeAttrHandle &handle = translator->m_impl->m_handle;
+   MString hashCode;
+   handle.GetHashString(hashCode, translator->DependsOnOutputPlug());
+
+   std::string hashStr(hashCode.asChar());
+   
+   m_processedTranslators.erase(hashStr);
+   // we're not deleting the translator yet
+}
+
+
 
 bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 {
@@ -1310,10 +1342,6 @@ void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
-void CArnoldSession::EraseActiveTranslator(const CNodeAttrHandle &handle)
-{
-   m_processedTranslators.erase(handle);
-}
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
@@ -1351,6 +1379,9 @@ void CArnoldSession::DoUpdate()
    size_t objectsToUpdateCount;
    bool dagFound, newDag, exportMotion, motionBlur, mbRequiresFrameChange;
    int currentFrameIndex;
+   MString hashCode;
+   std::string hashStr;
+
 
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool frameChanged = (frame != GetExportFrame());
@@ -1472,10 +1503,13 @@ UPDATE_BEGIN:
       // Check if this translator needs to be re-created
       if (translator != NULL && translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
+         handle.GetHashString(hashCode, translator->DependsOnOutputPlug());
+         hashStr = hashCode.asChar();
          // delete the current translator, just like AI_DELETE_NODE does
          translator->Delete();
-         m_processedTranslators.erase(handle); 
          
+         m_processedTranslators.erase(hashStr); 
+
          // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
          delete translator;
          // callbacks are now removed in the destructor
@@ -1546,69 +1580,44 @@ UPDATE_BEGIN:
          // the undo of a delete node
          MObject node = handle.object();
          MString name = MFnDependencyNode(node).name();
-
-         std::vector< CNodeTranslator * > translators;
-         if (GetActiveTranslators(handle, translators))
+         
+         // New node, dag node or dependency node?
+         MFnDagNode dagNodeFn(node);
+         MDagPath path;
+         status = dagNodeFn.getPath(path);
+         if (status == MS::kSuccess)
          {
-            // Restored node, we have the translator(s) already
-            AiMsgDebug("[mtoa] Updating restored node translators: %s", name.asChar());
-         }
-         else
-         {
-            // New node, dag node or dependency node?
-            MFnDagNode dagNodeFn(node);
-            MDagPath path;
-            status = dagNodeFn.getPath(path);
-            if (status == MS::kSuccess)
+            // This is a Dag node, is it instanced ?
+            int instanceNum = handle.instanceNum();
+            if (instanceNum >= 0)
             {
-               // This is a Dag node, is it instanced ?
-               int instanceNum = handle.instanceNum();
-               if (instanceNum >= 0)
+               MDagPathArray allPaths;
+               dagNodeFn.getAllPaths(allPaths);
+               if (instanceNum < (int)allPaths.length())
                {
-                  MDagPathArray allPaths;
-                  dagNodeFn.getAllPaths(allPaths);
-                  if (instanceNum < (int)allPaths.length())
-                  {
-                     path = allPaths[instanceNum];
-                  }
+                  path = allPaths[instanceNum];
                }
-               // Just export it then
-               ExportDagPath(path, true, &status);
-               if (MStatus::kSuccess == status)
-               {
-                  name = path.partialPathName();
-                  AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
-                  newDag = true;
-                  // Then queue newly created translators to the list
-                  GetActiveTranslators(handle, translators);
-               }
-            }           
-            // Dependency nodes are not exported by themselves, their export
-            // will be requested if they're connected to an exported node
-         }
-         // Add the newly recovered or created translators to the list
-         for (unsigned int i=0; i < translators.size(); ++i)
-         {
-            if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translators[i]->RequiresMotionData())
-            {
-               // Find out if we need to call ExportMotion for each motion step
-               // or if a single Export is enough. 
-               exportMotion = true;
-
-               // If the arnold node doesn't have any animated array then there's no need 
-               // to change the view frame in maya during the ExportMotion calls.
-               // However if the frame has just been changed, then the arrays might have become 
-               // animated now.
-               if (frameChanged || translators[i]->m_impl->m_animArrays) 
-                  mbRequiresFrameChange = true;
             }
-
-            if (translators[i]->m_impl->IsMayaTypeDag()) dagFound = true;
-
-            // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
-            //translators[i]->m_impl->DoExport();
-            translatorsToUpdate.push_back(translators[i]);
+            // Just export it then
+            CDagTranslator *dagTr = ExportDagPath(path, true, &status);
+            if (MStatus::kSuccess == status)
+            {
+               name = path.partialPathName();
+               AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
+               newDag = true;
+               dagFound = true;
+               translatorsToUpdate.push_back(dagTr);
+               if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+               {
+                  // Find out if we need to call ExportMotion for each motion step
+                  // or if a single Export is enough. 
+                  exportMotion = true;
+                  mbRequiresFrameChange = true;
+               }
+            }
          }
+         // Dependency nodes are not exported by themselves, their export
+         // will be requested if they're connected to an exported node
       }
    }
          
@@ -1716,7 +1725,7 @@ UPDATE_BEGIN:
    }
  
    if (IsInteractiveRender())
-   {      
+   {
       // Reset IPR status and eventuall add the IPR callbacks now that export is finished
       for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
          iter != translatorsToUpdate.end(); ++iter)
@@ -2018,7 +2027,7 @@ void CArnoldSession::ExportTxFiles()
    }
 
    bool progressStarted = false;
-   std::map<std::string, std::string> textureColorSpaces;
+   unordered_map<std::string, std::string> textureColorSpaces;
    for (size_t i = 0; i < textureNodes.size(); ++i)
    {
       CNodeTranslator *translator = textureNodes[i];
@@ -2039,7 +2048,7 @@ void CArnoldSession::ExportTxFiles()
          MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
          std::string colorSpaceStr = colorSpace.asChar();
 
-         std::map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+         unordered_map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
          if (it == textureColorSpaces.end())
          {
             textureColorSpaces[filenameStr] = colorSpaceStr;
@@ -2195,14 +2204,15 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
    // check if there is a translator for this dag path
    // If yes, Remove its update callbacks, and request an update on it
    CNodeAttrHandle handle(path);
-   std::vector< CNodeTranslator * > translators;
-   if (GetActiveTranslators(handle, translators))
+   MString hashCode;
+   handle.GetHashString(hashCode);
+   std::string hashStr(hashCode.asChar());
+
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(hashStr);
+   if (it != m_processedTranslators.end())
    {
-      for (size_t i = 0; i < translators.size(); ++i)
-      {
-         translators[i]->m_impl->RemoveUpdateCallbacks();
-         translators[i]->RequestUpdate();
-      }
+      it->second->m_impl->RemoveUpdateCallbacks();
+      it->second->RequestUpdate();
    }
  
    // Recursively dive into the dag children
@@ -2255,7 +2265,7 @@ struct SessionProceduralData
 };
 
    
-static std::map<AtNode*, SessionProceduralData*> s_registeredProcedurals;
+static unordered_map<AtNode*, SessionProceduralData*> s_registeredProcedurals;
 
 // some procedurals are being deleted. 
 // Make sure there are no connections from one procedural to another.
@@ -2269,8 +2279,8 @@ void CArnoldSession::UpdateProceduralReferences()
      
    // Part 1 : Check all nodes in the arnold scene (doh)
    // and see if they have connections on nodes belonging to another procedural
-   std::set<SessionProceduralData *> registeredProceduralData;
-   std::set<CNodeTranslator *> outsideConnectionsList;
+   unordered_set<SessionProceduralData *> registeredProceduralData;
+   unordered_set<CNodeTranslator *> outsideConnectionsList;
    std::vector<AtNode*> nodeConnections;
 
    // optimization, to avoid calling the hash map too often
@@ -2397,8 +2407,8 @@ void CArnoldSession::UpdateProceduralReferences()
 
 
    // Part 2 Set the procedural flags on the translators so that we don't have to do this mess at every IPR update
-   std::set<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
-   std::set<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
+   unordered_set<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
+   unordered_set<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
 
    for ( ; it != itEnd; ++it)
    {
@@ -2411,8 +2421,8 @@ void CArnoldSession::UpdateProceduralReferences()
 
    // Part 3: now that all references are connected, 
    // RE-set the update mode so that all the propagations happens correctly
-   std::set<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
-   std::set<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
+   unordered_set<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
+   unordered_set<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
    for ( ; iter != iterEnd; ++iter)
    {      
       // we temporarily reset the update mode to update_only
@@ -2433,7 +2443,7 @@ void CArnoldSession::RegisterProcedural(AtNode *node, CNodeTranslator *translato
 // a procedural node is being deleted
 void CArnoldSession::UnRegisterProcedural(AtNode *node)
 {
-   std::map<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
+   unordered_map<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
    if (iter == s_registeredProcedurals.end()) return;
 
    delete iter->second; // delete the SessionProceduralData

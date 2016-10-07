@@ -208,7 +208,7 @@ void CNodeTranslator::Delete()
    }
    m_impl->m_references.clear();
 
-   for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+   for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
    {
       (*it)->m_impl->RemoveReference(this);
    }
@@ -228,7 +228,7 @@ void CNodeTranslator::Delete()
    
    if (m_impl->m_additionalAtNodes)
    {
-      for (std::map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
+      for (unordered_map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
          AiNodeDestroy(it->second);
       
       delete m_impl->m_additionalAtNodes;
@@ -306,7 +306,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
       if (tag != NULL && strlen(tag))
       {
          if (m_impl->m_additionalAtNodes == NULL) 
-            m_impl->m_additionalAtNodes = new std::map<std::string, AtNode*>();
+            m_impl->m_additionalAtNodes = new unordered_map<std::string, AtNode*>();
          if (m_impl->m_additionalAtNodes->count(tag))
          {
             AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
@@ -1142,7 +1142,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
 
       // We'll delete this node at next Render Update
       // We should advert our back references to re-export 
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }
@@ -1154,11 +1154,11 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       // be deleted in the next IPR update (CArnoldSession::DoUpdate()).
       // But for now we just want to remove the translator from the session list
       // since it's being accessed in the map based on the MObject/MPlug/MDagPath, etc...
-      m_impl->m_session->EraseActiveTranslator(m_impl->m_handle);
+      m_impl->m_session->EraseActiveTranslator(this);
    } else if (m >= AI_RECREATE_NODE)
    {
       // Since we'll recreate the arnold node, we must tell our back references to re-export
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }
@@ -1244,11 +1244,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(dagPath);
-   session->GetActiveTranslators(handle, translators);
-
-   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
-   // as apparently we're not supposed to have multiple results here
-   return (translators.empty()) ? NULL : translators[0];
+   return session->GetActiveTranslator(handle);
 }
 
 CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
@@ -1256,11 +1252,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(object);
-   session->GetActiveTranslators(handle, translators);
-
-   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
-   // as apparently we're not supposed to have multiple results here
-   return (translators.empty()) ? NULL : translators[0];  
+   return session->GetActiveTranslator(handle);
 }
 
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "platform/Platform.h"
+#include "common/UnorderedContainer.h"
+
 #include <ai_node_entry.h>
 #include <ai_params.h>
 #include <ai_metadata.h>
@@ -243,7 +245,7 @@ protected:
    const AtNodeEntry* m_nodeEntry;
    int m_attrNum;
    MString m_prefix;
-   std::map<std::string, MObject> m_attributes;
+   unordered_map<std::string, MObject> m_attributes;
    virtual MStatus addAttribute(MObject& attrib){return MStatus::kFailure;};
 
 };
