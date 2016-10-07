@@ -93,7 +93,9 @@ void CLambertTranslator::Export(AtNode* shader)
          if (inNode != NULL)
          {
             MString tag = GetMayaNodeName() + ".transparency";
-            AtNode* reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
+            AtNode* reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
             AiNodeLink(inNode, "input", reverseNode);
             AiNodeLink(reverseNode, "opacity", shader);
          }

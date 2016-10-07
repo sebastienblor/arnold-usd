@@ -823,7 +823,10 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          if (m_tr.RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
          {
             // create an interpolation node for matrices
-            AtNode* animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+            AtNode* animNode = m_tr.GetArnoldNode(arnoldParamName);
+            if (animNode == NULL)
+               animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+
             AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
 
             ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, m_tr.GetMotionStep(), plug);
