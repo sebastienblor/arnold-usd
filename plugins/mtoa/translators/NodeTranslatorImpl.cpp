@@ -1321,8 +1321,8 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
 
    if (m_additionalAtNodes != NULL)
    {
-      AmMap<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
-      AmMap<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
+      unordered_map<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
+      unordered_map<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
 
       for ( ; it != itEnd; ++it)
       {

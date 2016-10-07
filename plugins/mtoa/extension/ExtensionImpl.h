@@ -37,7 +37,7 @@ public:
 
 typedef PluginStore LoadedArnoldPluginsSet;
 // To track required  Maya plugins
-typedef AmSet<std::string> RequiredMayaPluginsSet;
+typedef unordered_set<std::string> RequiredMayaPluginsSet;
 
 // class CExtension
 

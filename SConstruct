@@ -786,7 +786,7 @@ apiheaders = [
                 #os.path.join('attributes', 'Components.h'),
                 #os.path.join('common', 'MObjectCompare.h'),
                 os.path.join('common', 'UtilityFunctions.h'),
-                os.path.join('common', 'AmMap.h'),
+                os.path.join('common', 'UnorderedContainer.h'),
                 os.path.join('extension', 'Extension.h'),
                 #os.path.join('extension', 'ExtensionsManager.h'),
                 #os.path.join('extension', 'AbMayaNode.h'),

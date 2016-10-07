@@ -292,7 +292,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                eyeToken);
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
-               AmMap<std::string, AtNode*>::iterator it;
+               unordered_map<std::string, AtNode*>::iterator it;
                it = m_multiDriverMap.find(filename.asChar());
                if (it == m_multiDriverMap.end())
                {

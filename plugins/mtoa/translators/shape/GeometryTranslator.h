@@ -66,7 +66,7 @@ protected:
          AtArray*& refTangents,
          AtArray*& refBitangents);
    bool GetVertexColors(const MObject &geometry,
-         AmMap<std::string, std::vector<float> > &vcolors);
+         unordered_map<std::string, std::vector<float> > &vcolors);
    bool GetComponentIDs(const MObject &geometry,
          AtArray*& nsides,
          AtArray*& vidxs,

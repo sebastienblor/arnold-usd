@@ -1714,9 +1714,9 @@
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "farthest"
 
-[node heAmMap_filter]
+[node heatmap_filter]
     maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "heAmMap"
+    maya.translator         STRING  "heatmap"
 
 [node mitnet_filter]
     maya.attr_prefix        STRING  ""

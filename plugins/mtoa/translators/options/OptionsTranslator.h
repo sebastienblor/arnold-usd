@@ -76,5 +76,5 @@ protected:
    std::vector<CAOVOutputArray> m_aovData;
    bool m_aovsEnabled;
    bool m_aovsInUse;
-   AmMap<std::string, AtNode*> m_multiDriverMap;
+   unordered_map<std::string, AtNode*> m_multiDriverMap;
 };

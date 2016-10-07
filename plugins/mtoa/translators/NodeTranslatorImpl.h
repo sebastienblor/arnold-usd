@@ -125,7 +125,7 @@ public :
    CArnoldSession* m_session;
 
    AtNode* m_atNode;
-   AmMap<std::string, AtNode*> *m_additionalAtNodes;
+   unordered_map<std::string, AtNode*> *m_additionalAtNodes;
 
    // FIXME : make sure we get rid of this isProcedural stuff 
    // once dependency graph is properly implemented in arnold....
@@ -206,8 +206,8 @@ public :
    void RemoveAllBackReferences()
    {
       if (m_backReferences.empty()) return;
-      AmSet<CNodeTranslator*>::iterator it = m_backReferences.begin();
-      AmSet<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
+      unordered_set<CNodeTranslator*>::iterator it = m_backReferences.begin();
+      unordered_set<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
       for( ; it != itEnd; ++it)
       {
          (*it)->m_impl->RemoveReference(&m_tr);
@@ -219,7 +219,7 @@ public :
    // On the other hand a single node could be referenced by thousands of other ones, 
    // for example a single shader assigned to the whole scene
    std::vector<CNodeTranslator *> m_references;
-   AmSet<CNodeTranslator *> m_backReferences;
+   unordered_set<CNodeTranslator *> m_backReferences;
 protected:
 
 

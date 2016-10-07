@@ -4,7 +4,7 @@
 #include <maya/MDagPath.h>
 
 #include <ai.h>
-#include "common/AmMap.h"
+#include "common/UnorderedContainer.h"
 #include <map>
 #include <vector>
 #include <string>
@@ -42,10 +42,10 @@ private:
    bool FillLights(const std::vector<std::string> &linkList, const std::vector<std::string> &ignoreList);
 
    // saving the lights here for faster access
-   AmMap<std::string, AtNode*> m_arnoldLights;
+   unordered_map<std::string, AtNode*> m_arnoldLights;
    std::vector<AtNode *> m_arnoldDefaultLights;
    std::vector<AtNode *> m_arnoldMeshLights;
-   AmMap<std::string, std::vector<AtNode*> > m_cachedObjectSets;
+   unordered_map<std::string, std::vector<AtNode*> > m_cachedObjectSets;
    size_t m_numArnoldLights;
    
    std::vector<std::string> m_linkedLights;

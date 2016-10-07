@@ -410,8 +410,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    }
    else // step > 0
    {
-      AmMap <int, int> tempMap = m_particleIDMap;
-      AmMap <int, int>::iterator it;
+      unordered_map <int, int> tempMap = m_particleIDMap;
+      unordered_map <int, int>::iterator it;
       if (mayaMatrices.length() > 0)
       {
          int newParticleCount = 0;
@@ -581,7 +581,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
       const char *arnoldBaseName = GetArnoldNodeName();
 
-      for (AmMap<int,int>::iterator it = m_particleIDMap.begin();
+      for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
            it !=  m_particleIDMap.end(); ++it)
       {
          int partID = it->first;
@@ -624,7 +624,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             AiNodeSetByte(instance, "visibility", visibility);
 
             // add the custom user selected attributes to export
-            AmMap<std::string, MVectorArray>::iterator custVect;
+            unordered_map<std::string, MVectorArray>::iterator custVect;
             for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
             {
 
@@ -640,7 +640,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                   AiNodeSetVec(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
                }
             }
-            AmMap<std::string, MDoubleArray>::iterator custDouble;
+            unordered_map<std::string, MDoubleArray>::iterator custDouble;
             for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
             {
                float doubleAttrValue = (float)custDouble->second[j];
@@ -649,7 +649,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                   AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
 
             }
-            AmMap<std::string, MIntArray>::iterator custInt;
+            unordered_map<std::string, MIntArray>::iterator custInt;
             for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
             {
                int intAttrValue = custInt->second[j];
