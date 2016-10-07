@@ -292,7 +292,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                eyeToken);
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
-               std::map<std::string, AtNode*>::iterator it;
+               unordered_map<std::string, AtNode*>::iterator it;
                it = m_multiDriverMap.find(filename.asChar());
                if (it == m_multiDriverMap.end())
                {
@@ -642,6 +642,35 @@ void COptionsTranslator::Export(AtNode *options)
       }
    }
    AiParamIteratorDestroy(nodeParam);
+
+   // Setting the reference time properly (used when ignore motion blur is turned on)
+   float referenceTime = 0.f;
+   if (FindMayaPlug("mb_en").asBool())
+   {
+      // if motion blur is enabled, check the motion's range type 
+      int motionRange = FindMayaPlug("range_type").asInt();
+      switch(motionRange)
+      {
+         case MTOA_MBLUR_TYPE_START:
+            referenceTime = 0.f;
+         break;
+         default:
+         case MTOA_MBLUR_TYPE_CENTER:
+            referenceTime = 0.5f;
+         break;
+         case MTOA_MBLUR_TYPE_END:
+            referenceTime = 1.f;
+         break;
+         {
+         case MTOA_MBLUR_TYPE_CUSTOM:
+            float motionStart = FindMayaPlug("motion_start").asFloat();
+            float motionEnd = FindMayaPlug("motion_end").asFloat();
+            referenceTime = CLAMP((-motionStart) / MAX((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
+         break;
+         }
+      }
+   }
+   AiNodeSetFlt(options, "reference_time", referenceTime);
 
    AddProjectFoldersToSearchPaths(options);
    

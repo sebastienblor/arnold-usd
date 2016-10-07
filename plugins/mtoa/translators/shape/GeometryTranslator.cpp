@@ -317,10 +317,12 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
          refNormals = AiArrayConvert(rNumNorms, 1, AI_TYPE_VECTOR, &(fnRefMesh.getRawNormals(&stat)[0]));
          
          MIntArray vertex_counts, normal_ids;
-         rnidxs = AiArrayAllocate(rNumNorms, 1, AI_TYPE_UINT);
-         unsigned int id = 0;
+         
          fnRefMesh.getNormalIds(vertex_counts, normal_ids);
-         for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(rnidxs, id, normal_ids[n]);
+         // normal_ids should have the same length as the amount of polygon vertices
+         rnidxs = AiArrayAllocate((int)normal_ids.length(), 1, AI_TYPE_UINT);
+         
+         for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, n, normal_ids[n]);
          
       }
 
@@ -382,7 +384,7 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
 }
 
 bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
-                                          std::map<std::string, std::vector<float> > &vcolors)
+                                          unordered_map<std::string, std::vector<float> > &vcolors)
 {
    MFnMesh fnMesh(geometry);
 
@@ -782,14 +784,14 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    // Get all normals
    bool exportNormals = GetNormals(geometry, normals);  
 
-   if (step == 0)
+   if (!IsExportingMotion())
    {
       std::vector<AtArray*> uvs;
       std::vector<MString> uvNames;
       std::vector<AtArray*> uvidxs;
       AtArray* nsides = 0;
       AtArray* vidxs = 0; AtArray* nidxs = 0;
-      std::map<std::string, std::vector<float> > vcolors;
+      unordered_map<std::string, std::vector<float> > vcolors;
       AtArray* refNormals = 0; AtArray* rnidxs = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
@@ -844,7 +846,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // Declare user parameters for color sets
       if (exportColors)
       {
-         std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
+         unordered_map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
             AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
@@ -984,7 +986,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       }
       if (exportColors)
       {
-         std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
+         unordered_map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
             AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
@@ -1050,7 +1052,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiNodeSetArray(polymesh, "crease_sharpness", aCreaseData);
          }         
       }
-   } // step == 0
+   }
    else if (!m_useMotionVectors)
    {
       // Export motion blur keys information (for deformation)

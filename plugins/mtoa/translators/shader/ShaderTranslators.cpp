@@ -93,7 +93,9 @@ void CLambertTranslator::Export(AtNode* shader)
          if (inNode != NULL)
          {
             MString tag = GetMayaNodeName() + ".transparency";
-            AtNode* reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
+            AtNode* reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
             AiNodeLink(inNode, "input", reverseNode);
             AiNodeLink(reverseNode, "opacity", shader);
          }
@@ -405,7 +407,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 #ifdef MTOA_ENABLE_GAMMA
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
 #else
-   AiNodeSetFlt(shader, "gamma_correct", 1.f);
+   AiNodeSetBool(shader, "gamma_correct", false);
 #endif
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");
@@ -1096,7 +1098,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    if (RequiresMotionData())
    {
       AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(values, 0, value);
+      AiArraySetFlt(values, GetMotionStep(), value);
       AiNodeSetArray(shader, "values", values);
    }
    else

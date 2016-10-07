@@ -87,7 +87,7 @@ void CHairTranslator::Export( AtNode *curve )
 
    MFnDependencyNode fnDepNodeHair(hairSystemObject);
    
-   // Set curve matrix for step 0   
+   // Set rest curve matrix
    ExportMatrix(curve);
 
    MPlug plug;  
@@ -306,6 +306,8 @@ void CHairTranslator::Export( AtNode *curve )
    if (!plug.isNull())
       AiNodeSetBool(curve, "receive_shadows", plug.asBool());
    
+   int step = GetMotionStep();
+
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur
    // Is not enabled
@@ -313,7 +315,7 @@ void CHairTranslator::Export( AtNode *curve )
    AtArray* curveNumPoints = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints, 1, AI_TYPE_FLOAT);
    
-   unsigned int iid = 0; // for the position data
+   unsigned int iid = m_numPointsInterpolation * step ; // for the position data
    unsigned int id = 0; // for the general data   
    for (unsigned int i = 0; i < numLines; ++i)
    {
@@ -406,8 +408,6 @@ void CHairTranslator::ExportMotion(AtNode *curve)
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
-   int step = GetMotionStep();
-
    // Set transform matrix
    ExportMatrix(curve);
 
@@ -424,7 +424,7 @@ void CHairTranslator::ExportMotion(AtNode *curve)
    
    AtArray* curvePoints = AiNodeGetArray(curve, "points");
    
-   unsigned int iid = step * m_numPointsInterpolation;
+   unsigned int iid = GetMotionStep() * m_numPointsInterpolation;
    for (unsigned int i = 0; i < numLines; ++i)
    {
       MRenderLine renderLine = mainLines.renderLine(i, &status);

@@ -52,8 +52,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
 {
    AtNode* node = m_tr.GetArnoldNode("");
    MString outputAttr = m_tr.GetMayaOutputAttributeName();
-   int step = m_tr.GetMotionStep();
-
+   
    // FIXME : for now we're setting isExported to false when we ask for a full re-export
    // but as refactoring continues we'll stop doing it. 
    // And we'll restore it to false only when Delete() is called
@@ -65,9 +64,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
       return NULL;
    }
 
-   // FIXME couldn't we just call the same functions for whatever step, 
-   // and do an early out on the other methods when GetMotionStep() > 0 ?
-   if (step == 0)
+   if (!m_session->IsExportingMotion())
    {
       if (outputAttr != "")
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting on plug %s (%s)",
@@ -104,8 +101,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
    assert(AiUniverseIsActive());
    AtNode* node = m_tr.GetArnoldNode("");
-   int step = m_tr.GetMotionStep();
-
+   
    if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
@@ -118,7 +114,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
               AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
               node);
 
-   if (step == 0)
+   if (!m_session->IsExportingMotion())
    {
 #ifdef NODE_TRANSLATOR_REFERENCES 
       // before exporting, clear all the references
@@ -163,7 +159,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
          }
       }
 #endif
-
 
    }
    else if (m_tr.RequiresMotionData())
@@ -403,6 +398,10 @@ static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
          for (unsigned int i=0; i<nc; i++)
          {
             MObject set = connections[i].node();
+
+            /*
+            Commented out from ticket #2112, this seems to be useless now
+            
             MFnDependencyNode setDNode(set);
             if (setDNode.typeName() == MString("objectSet"))
             {
@@ -416,7 +415,10 @@ static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
                {
                   overrideSets.append(set);
                }
-            }
+            }*/
+            if (set.hasFn(MFn::kSet))
+               overrideSets.append(set);
+
          }
       }
    }
@@ -821,10 +823,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          if (m_tr.RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
          {
             // create an interpolation node for matrices
-            AtNode* animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+            AtNode* animNode = m_tr.GetArnoldNode(arnoldParamName);
+            if (animNode == NULL)
+               animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+
             AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
 
-            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
+            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, m_tr.GetMotionStep(), plug);
 
             // Set the parameter for the interpolation node
             AiNodeSetArray(animNode, "values", matrices);
@@ -1314,8 +1319,8 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
 
    if (m_additionalAtNodes != NULL)
    {
-      std::map<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
-      std::map<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
+      unordered_map<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
+      unordered_map<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
 
       for ( ; it != itEnd; ++it)
       {

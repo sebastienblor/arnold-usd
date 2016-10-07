@@ -110,7 +110,7 @@ bool CMeshTranslator::IsGeoDeforming()
 
 bool CMeshTranslator::Tessellate(const MDagPath &path)
 {
-   bool doRef = (GetMotionStep() == 0);
+   bool doRef = (!IsExportingMotion());
 
    MStatus status = MStatus::kSuccess;
    MFnMesh fnMesh(path);

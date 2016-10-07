@@ -38,7 +38,7 @@ public :
    CNodeTranslatorImpl(CNodeTranslator &translator) : 
       m_handle(CNodeAttrHandle()),
       m_updateMode(CNodeTranslator::AI_UPDATE_ONLY),
-      m_holdUpdates(false),
+      m_inUpdateQueue(false),
       m_animArrays(false),
       m_abstract(CAbTranslator()),
       m_session(NULL),
@@ -84,9 +84,9 @@ public :
 
    // Remove callbacks installed. 
    void RemoveUpdateCallbacks();
-   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
+   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="", int instanceNumber = -1)
    {
-      Init(session, CNodeAttrHandle(nodeObject, attrName));
+      Init(session, CNodeAttrHandle(nodeObject, attrName, instanceNumber));
    }
    void Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
@@ -118,14 +118,14 @@ public :
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
-   bool m_holdUpdates; // for Arnold RenderView only
+   bool m_inUpdateQueue; // for Arnold RenderView only
    bool m_animArrays;
    CAbTranslator m_abstract;
 
    CArnoldSession* m_session;
 
    AtNode* m_atNode;
-   std::map<std::string, AtNode*> *m_additionalAtNodes;
+   unordered_map<std::string, AtNode*> *m_additionalAtNodes;
 
    // FIXME : make sure we get rid of this isProcedural stuff 
    // once dependency graph is properly implemented in arnold....
@@ -206,8 +206,8 @@ public :
    void RemoveAllBackReferences()
    {
       if (m_backReferences.empty()) return;
-      std::set<CNodeTranslator*>::iterator it = m_backReferences.begin();
-      std::set<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
+      unordered_set<CNodeTranslator*>::iterator it = m_backReferences.begin();
+      unordered_set<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
       for( ; it != itEnd; ++it)
       {
          (*it)->m_impl->RemoveReference(&m_tr);
@@ -215,11 +215,11 @@ public :
       m_backReferences.clear();
    }
 
-   // we could use std::set for both, but in practice a node is usually connected to only a few other nodes.
+   // we could use AmSet for both, but in practice a node is usually connected to only a few other nodes.
    // On the other hand a single node could be referenced by thousands of other ones, 
    // for example a single shader assigned to the whole scene
    std::vector<CNodeTranslator *> m_references;
-   std::set<CNodeTranslator *> m_backReferences;
+   unordered_set<CNodeTranslator *> m_backReferences;
 protected:
 
 

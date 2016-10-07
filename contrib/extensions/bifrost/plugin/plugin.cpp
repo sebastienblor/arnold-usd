@@ -15,6 +15,8 @@ extern "C"
 
 #if MAYA_API_VERSION < 201650
         extension.Requires ( "BifrostMain" );
+#else
+        extension.Requires ( "bifrostvisplugin" );
 #endif
         extension.LoadArnoldPlugin("bifrost_shaders");
         

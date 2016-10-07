@@ -27,12 +27,13 @@ public:
    ~CPxTranslator() {};
 
    inline bool operator==(const CPxTranslator& other) const { return name == other.name; }
-   inline bool operator!=(const CPxTranslator& other) const { return name != other.name; }
-   inline bool operator<(const CPxTranslator& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
+   //inline bool operator!=(const CPxTranslator& other) const { return name != other.name; }
+   //inline bool operator<(const CPxTranslator& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
    inline bool IsNull() const {return (name == "");}
    MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool mappedMayaNode);
 
+   std::string nameStr; // public stl version of the name for the hash
 private:
    MString name;
    MString provider;
@@ -41,3 +42,21 @@ private:
    TCreatorFunction creator;
    TNodeInitFunction initialize;
 };
+
+
+namespace std {
+
+   template <>
+   struct hash<CPxTranslator>
+   {
+      std::size_t operator()(const CPxTranslator& k) const
+      {
+         using std::size_t;
+         using std::hash;
+         using std::string;
+
+         return (hash<string>()(k.nameStr));
+      }
+   };
+
+}

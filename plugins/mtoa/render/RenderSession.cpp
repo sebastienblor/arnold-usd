@@ -856,8 +856,11 @@ void CRenderSession::UpdateRenderOptions()
 {
    m_renderOptions.GetFromMaya(); 
    m_renderOptions.SetupLog();
+
+#ifndef MTOA_DISABLE_RV
    if (s_renderView)
    {
       s_renderView->SetLogging(m_renderOptions.GetLogConsoleVerbosity(), m_renderOptions.GetLogFileVerbosity());
    }
+#endif
 }

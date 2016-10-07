@@ -9,15 +9,21 @@
 #include <maya/MString.h>
 #include <maya/MFnDependencyNode.h>
 
-struct MObjectCompare
-{
-   bool operator()(MObjectHandle h1, MObjectHandle h2) const
+///Define MObjectHandle key for a AmMap  
+namespace std {
+   template <>
+   struct hash<MObjectHandle>
    {
-      return h1.hashCode() < h2.hashCode();
-   }
-};
+      std::size_t operator()(const MObjectHandle& k) const
+      {
+         using std::size_t;
+         using std::hash;
 
-/// Designed to serve as a key for a std::multimap.
+         return (hash<unsigned int>()(k.hashCode()));
+      }
+   };
+}
+
 
 /// The key can be as specific or generic as desired, specifying at least a depend node MObject,
 /// and optionally a DAG instance number and/or attribute name. When comparing two instances of
@@ -72,6 +78,7 @@ public:
       m_instanceNum = instanceNum;
    }
 
+   /*
    bool operator<(const CNodeAttrHandle &other) const
    {
       // check if same node
@@ -133,6 +140,20 @@ public:
          return true; // they are same depend node
       }
       return false;
+   }
+   */
+   void GetHashString(MString &hashCode, bool includeAttr=false) const
+   {
+      hashCode = m_nodeHandle.hashCode();
+      if (m_instanceNum >= 0)
+      {
+         hashCode += "#";
+         hashCode += m_instanceNum;
+      }
+      if (includeAttr && m_attrName.length() > 0)
+      {
+         hashCode += ":" + m_attrName;
+      }
    }
 private :
    MObjectHandle m_nodeHandle;

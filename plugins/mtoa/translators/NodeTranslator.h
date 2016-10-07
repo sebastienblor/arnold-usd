@@ -60,6 +60,9 @@ public:
    // Returns true if this translator has already been exported
    bool IsExported() const;
 
+   // Returns true if we are exporting the motion (i.e. changing the current frame)
+   bool IsExportingMotion() const;
+
    // Get the the Maya plug for this given attribute name
    MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
 
@@ -159,7 +162,11 @@ protected:
    // Delete the Arnold node(s) for this translator.
    virtual void Delete();
 
+   unsigned int GetMotionStep();
+   unsigned int GetNumMotionSteps();
+   
 // -------- Static functions
+
 
    // Some simple callbacks used by several translators.
    // They might be useful in case AddUpdateCallbacks is re-defined without calling the parent function
@@ -172,8 +179,6 @@ protected:
 
    // Shortcuts for the Render Session
    static double GetExportFrame();
-   static unsigned int GetMotionStep();
-   static unsigned int GetNumMotionSteps();
    static bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY);
    static const CSessionOptions& GetSessionOptions();
    static ArnoldSessionMode GetSessionMode();
