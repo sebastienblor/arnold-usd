@@ -780,7 +780,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
        
       for (unsigned int step = 0; step < numSteps; ++step)
       {
-         if (step == currentFrameIndex)
+         if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
          AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
@@ -1670,7 +1670,7 @@ UPDATE_BEGIN:
       // loop over the motion steps
       for (unsigned int step = 0; step < numSteps; ++step)
       {
-         if (step == currentFrameIndex)
+         if (step == (unsigned int)currentFrameIndex)
             continue; // we have already processed this step during the "current frame export"
 
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);

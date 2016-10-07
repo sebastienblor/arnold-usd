@@ -5,6 +5,7 @@
 #include <maya/MString.h>
 
 #include <ai_nodes.h>
+#include <common/UnorderedContainer.h>
 
 class CAbTranslator;
 
@@ -43,9 +44,24 @@ private:
    TNodeInitFunction initialize;
 };
 
-
 namespace std {
 
+#ifdef UNORDERED_NEEDS_TR1
+   namespace tr1 {
+      template <>
+      struct hash<CPxTranslator>
+      {
+         std::size_t operator()(const CPxTranslator& k) const
+         {
+            using std::size_t;
+            using std::tr1::hash;
+            using std::string;
+
+            return (hash<string>()(k.nameStr));
+         }
+      };
+   }
+#else
    template <>
    struct hash<CPxTranslator>
    {
@@ -58,5 +74,5 @@ namespace std {
          return (hash<string>()(k.nameStr));
       }
    };
-
+#endif
 }
