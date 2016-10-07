@@ -349,6 +349,7 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
    // When the frame is changed for motion blur we can receive signals here,
    // but we want to ignore them
    // FIXME should we test this in RequestUpdate ?
+   
    if (m_impl->m_session->IsExportingMotion() && m_impl->m_session->IsInteractiveRender()) return;
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: translator %s, providing Arnold %s(%s): %p",
@@ -356,13 +357,16 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
               GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
 
    // name of the attribute that emitted a signal
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   MString plugName = plug.partialName(false, false, false, false, false, true);
 
    // The Arnold translator has changed :
    // This means the current one won't be able to export as it should.
    // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
    // will be cleared and a new one will be generated
-   if (plugName == ".aiTranslator") SetUpdateMode(AI_RECREATE_TRANSLATOR);
+   if (plugName == "aiTranslator") SetUpdateMode(AI_RECREATE_TRANSLATOR);
+
+   // ignore this signal emitted from "Render Setup" as it shouldn't trigger a refresh
+   if (plugName.length() >= 15 && plugName.substringW(0, 14) == "renderLayerInfo") return;
 
    RequestUpdate();
 }
