@@ -44,7 +44,7 @@ enum ArnoldShadowLinkMode
 #define MTOA_FILTER_LAYER     0x0004
 #define MTOA_FILTER_ANY       0xFFFF
 
-typedef unordered_set<MFn::Type> MFnTypeSet;
+typedef unordered_set<MFn::Type, hash<int> > MFnTypeSet;
 
 struct CMayaExportFilter
 {

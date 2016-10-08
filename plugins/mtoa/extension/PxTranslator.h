@@ -48,31 +48,22 @@ namespace std {
 
 #ifdef UNORDERED_NEEDS_TR1
    namespace tr1 {
+#endif
+
       template <>
       struct hash<CPxTranslator>
       {
          std::size_t operator()(const CPxTranslator& k) const
          {
             using std::size_t;
-            using std::tr1::hash;
             using std::string;
 
             return (hash<string>()(k.nameStr));
          }
       };
+   
+#ifdef UNORDERED_NEEDS_TR1
    }
-#else
-   template <>
-   struct hash<CPxTranslator>
-   {
-      std::size_t operator()(const CPxTranslator& k) const
-      {
-         using std::size_t;
-         using std::hash;
-         using std::string;
-
-         return (hash<string>()(k.nameStr));
-      }
-   };
 #endif
+   
 }
