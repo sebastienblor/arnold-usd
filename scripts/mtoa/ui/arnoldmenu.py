@@ -281,6 +281,11 @@ def arnoldTxManager():
     win = mtoa.txManager.MtoATxManager()
     win.create()
     win.refreshList()
+
+def arnoldUpdateTx():
+    core.createOptions()
+    cmds.arnoldUpdateTx()
+    
     
 def arnoldLightManager():
     win = mtoa.lightManager.MtoALightManager()
@@ -377,8 +382,10 @@ def createArnoldMenu():
                     c=lambda *args: arnoldBakeGeo())
         pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',
                     c=lambda *args: arnoldRenderToTexture())
-        pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldUtilities',
+        pm.menuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities',
                     c=lambda *args: arnoldTxManager())                    
+        pm.menuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldUpdateTx())                    
         pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities',
                     c=lambda *args: arnoldLightManager())
 
