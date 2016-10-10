@@ -258,15 +258,21 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    AtArray *points_array = AiArrayAllocate(points.size(), (motion)? 2 : 1, AI_TYPE_POINT);
    AtArray *velocities_array = AiArrayAllocate(points.size(), 1, AI_TYPE_VECTOR);
    
+   double motion_start = 0.;
+   double motion_end = 0.f;
+   GetSessionOptions().GetMotionRange(motion_start, motion_end);
+   float motion_length = float(motion_end - motion_start);
    for (unsigned int i = 0; i < points.size(); ++i)
    {
-      AiArraySetPnt(points_array, i, points[i]);
       if (motion)
       {
-        AtPoint motion_pnt = points[i] + velocities[i];        
-        AiArraySetPnt(points_array, i + points.size(), motion_pnt);
+         AiArraySetPnt(points_array, i, points[i] + velocities[i] * (float)motion_start);
+         AiArraySetPnt(points_array, i + points.size(), points[i] + velocities[i] * (float)motion_end);
+      } else
+      {
+         AiArraySetPnt(points_array, i, points[i]);
       }
-      AiArraySetVec(velocities_array, i, velocities[i]);
+      AiArraySetVec(velocities_array, i, velocities[i] * motion_length);
    }
 
 
@@ -392,6 +398,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
    AiNodeDeclare(shape, "object_name", "constant STRING");
    AiNodeDeclare(shape, "file_name", "constant STRING");
    AiNodeDeclare(shape, "inv_fps", "constant FLOAT");
+   AiNodeDeclare(shape, "shutter_length", "constant FLOAT");
 
    AiNodeSetStr(shape, "object_name", m_object.c_str());
    AiNodeSetStr(shape, "file_name", m_file.c_str());
@@ -402,6 +409,11 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
    float inv_fps = 1.f / (float)fps;
 
    AiNodeSetFlt(shape, "inv_fps", inv_fps);
+
+   double motion_start = 0.;
+   double motion_end = 0.f;
+   GetSessionOptions().GetMotionRange(motion_start, motion_end);
+   AiNodeSetFlt(shape, "shutter_length", float(motion_end - motion_start));
 
    double bboxMin[3] = {0.0, 0.0, 0.0}, bboxMax[3] = {0.0, 0.0, 0.0} ;
 
