@@ -22,6 +22,8 @@ public:
    void UpdateAero(AtNode *shape);
    void UpdateLiquid(AtNode *shape);
 
+   void RequestUpdate();
+
    static void* creator()
    {
       return new CBfDescriptionTranslator();

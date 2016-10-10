@@ -205,6 +205,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
       AiNodeDeclare(node, ch_name.c_str(), user_data_declaration.c_str());
    }
+
    // get fps
    static const MTime sec(1.0, MTime::kSeconds);
    double fps = sec.as(MTime::uiUnit());
@@ -488,4 +489,10 @@ void CBfDescriptionTranslator::ExportBifrostShader()
       }
    }
 
+}
+
+void CBfDescriptionTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
 }
