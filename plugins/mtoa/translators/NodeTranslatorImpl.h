@@ -100,7 +100,7 @@ public :
    // call ExportRootShader, which call CreateShadingGroupShader, which call AddAOVDefaults
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    
-   MStatus ExportOverrideSets();
+   virtual MStatus ExportOverrideSets();
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
    void WriteAOVUserAttributes(AtNode* atNode);

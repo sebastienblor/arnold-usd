@@ -360,10 +360,11 @@ void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& o
 {
    m_session = session;
    m_handle = object;
-   ExportOverrideSets();
    
    // first eventually initialize the translator
    m_tr.Init();
+
+   ExportOverrideSets();
 
    // then create the arnoldNodes
    DoCreateArnoldNodes();
@@ -373,57 +374,6 @@ void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& o
    if (m_abstract.arnold.length() == 0 && m_atNode)
       m_abstract.arnold = AiNodeEntryGetName(AiNodeGetNodeEntry(m_atNode));
    
-}
-
-
-/// get override sets containing the passed Maya dag path
-/// and add them to the passed MObjectArray
-/// and we also need to check the parent nodes, so groups are handled properly
-static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
-{
-   MStatus status;
-   MDagPath pathRec = path;
-   for(;pathRec.length();pathRec.pop(1))
-   {
-      MFnDagNode fnDag(pathRec);
-      unsigned int instNum = pathRec.instanceNumber();
-      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
-      CHECK_MSTATUS(status)
-      MPlugArray connections;
-      MFnSet fnSet;
-      // MString plugName = instObjGroups.name();
-      if (instObjGroups.connectedTo(connections, false, true, &status))
-      {
-         unsigned int nc = connections.length();
-         for (unsigned int i=0; i<nc; i++)
-         {
-            MObject set = connections[i].node();
-
-            /*
-            Commented out from ticket #2112, this seems to be useless now
-            
-            MFnDependencyNode setDNode(set);
-            if (setDNode.typeName() == MString("objectSet"))
-            {
-               if (!fnSet.setObject(set))
-                  continue;
-               // MString setName = fnSet.name();
-               // Also add sets with override turned off to allow chaining
-               // on these as well
-               MPlug p = fnSet.findPlug("aiOverride", true, &status);
-               if ((MStatus::kSuccess == status) && !p.isNull())
-               {
-                  overrideSets.append(set);
-               }
-            }*/
-            if (set.hasFn(MFn::kSet))
-               overrideSets.append(set);
-
-         }
-      }
-   }
-
-   return status;
 }
 
 /// find override sets containing the passed Maya node
@@ -443,6 +393,9 @@ static MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets)
       for (unsigned int i=0; i<nc; i++)
       {
          MObject set = connections[i].node();
+         /*
+         Commented out from ticket #2112, this seems to be useless now
+            
          MFnDependencyNode setDNode(set);
          if (setDNode.typeName() == MString("objectSet"))
          {
@@ -456,12 +409,14 @@ static MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets)
             {
                overrideSets.append(set);
             }
-         }
+         }*/
+         if (set.hasFn(MFn::kSet))
+            overrideSets.append(set);
       }
    }
-
    return status;
 }
+
 
 
 bool CNodeTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
@@ -497,42 +452,15 @@ void CNodeTranslatorImpl::ComputeAOVs()
    }
 }
 
-
-
 /// gather the active override sets containing this node
 MStatus CNodeTranslatorImpl::ExportOverrideSets()
 {
    MStatus status;
+
+   MString nodeName = m_tr.GetMayaNodeName();
    m_overrideSets.clear();
-
    MObjectArray overrideSetObjs;
-
-   if (IsMayaTypeDag())
-   {
-      MDagPath path;
-      MDagPath::getAPathTo(m_tr.GetMayaObject(), path);
-      MDagPath nodePath = path;
-
-      status = GetOverrideSets(path, overrideSetObjs);
-      // If passed path is a shape, check for its transform as well
-      // FIXME: do we want to consider full hierarchy ?
-      // Also consider the sets the transform of that shape might be in
-      const MObject transformObj = path.transform(&status);
-      while ((MStatus::kSuccess == status) && (transformObj != path.node(&status)))
-      {
-         status = path.pop();
-      }
-      if (!(path == nodePath))
-      {
-         status = GetOverrideSets(path, overrideSetObjs);
-      }
-
-   } else
-   {
-      status = GetOverrideSets(m_tr.GetMayaObject(), overrideSetObjs);
-   }
-
-
+   status = GetOverrideSets(m_handle.object(), overrideSetObjs);
    // Exporting a set creates no Arnold object but allows IPR to track it
    MFnSet fnSet;
    unsigned int ns = overrideSetObjs.length();
@@ -541,12 +469,10 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
       fnSet.setObject(overrideSetObjs[i]);
       m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
    }
-   if (ns > 0)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
               m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar(), ns);
-   }
    return status;
+
 }
 void CNodeTranslatorImpl::SetShadersList(AtNodeSet* nodes)
 {
