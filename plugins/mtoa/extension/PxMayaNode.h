@@ -12,6 +12,7 @@
 
 class CAbMayaNode;
 
+#include <common/UnorderedContainer.h>
 #include <vector>
 
 // A Maya node class proxy
@@ -64,17 +65,24 @@ private:
 
 namespace std {
 
-   template <>
-   struct hash<CPxMayaNode>
-   {
-      std::size_t operator()(const CPxMayaNode& k) const
+#ifdef UNORDERED_NEEDS_TR1
+   namespace tr1 {
+#endif
+
+      template <>
+      struct hash<CPxMayaNode>
       {
-         using std::size_t;
-         using std::hash;
-         using std::string;
+         std::size_t operator()(const CPxMayaNode& k) const
+         {
+            using std::size_t;
+            using std::string;
 
-         return (hash<string>()(k.nameStr));
-      }
-   };
-
+            return (hash<string>()(k.nameStr));
+         }
+      };
+   
+#ifdef UNORDERED_NEEDS_TR1
+   }
+#endif
+   
 }

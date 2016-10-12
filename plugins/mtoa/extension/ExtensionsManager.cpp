@@ -1159,8 +1159,7 @@ const CPxMayaNode* CExtensionsManager::FindRegisteredMayaNode(const CPxMayaNode 
 const CPxTranslator* CExtensionsManager::FindRegisteredTranslator(const CPxMayaNode &mayaNode,
                                              const CPxTranslator &translator)
 {
-   TranslatorsSet *allTranslators;
-   allTranslators = FindRegisteredTranslators(mayaNode);
+   TranslatorsSet *allTranslators = FindRegisteredTranslators(mayaNode);
    if (NULL == allTranslators || allTranslators->empty()) return NULL;
 
    const CPxTranslator* result = NULL;
@@ -1170,9 +1169,17 @@ const CPxTranslator* CExtensionsManager::FindRegisteredTranslator(const CPxMayaN
       // TODO : actually check s_extensions to use the last loaded translator?
       TranslatorsSet::iterator it = allTranslators->find(GetDefaultTranslator(mayaNode.name));
       if (it == allTranslators->end())
-         result = &(*--allTranslators->end());
-      else
-         result = &(*it);
+      {
+         // need to get the last element. This code is ugly, but is there
+         // a better way to get the last element of an unordered_set ?
+         int setSize = (allTranslators->size() - 1);
+         it = allTranslators->begin();
+         for (int j = 0; j < setSize; ++j)
+            it++;
+         
+      }
+
+      result = &(*it);
    }
    else
    {

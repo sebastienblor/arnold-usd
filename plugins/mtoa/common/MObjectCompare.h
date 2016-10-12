@@ -8,9 +8,24 @@
 #include <maya/MFnAttribute.h>
 #include <maya/MString.h>
 #include <maya/MFnDependencyNode.h>
+#include <common/UnorderedContainer.h>
 
-///Define MObjectHandle key for a AmMap  
 namespace std {
+#ifdef UNORDERED_NEEDS_TR1
+   namespace tr1 {
+      template <>
+      struct hash<MObjectHandle>
+      {
+         std::size_t operator()(const MObjectHandle& k) const
+         {
+            using std::size_t;
+            using std::tr1::hash;
+
+            return (hash<unsigned int>()(k.hashCode()));
+         }
+      };
+   }
+#else
    template <>
    struct hash<MObjectHandle>
    {
@@ -22,6 +37,7 @@ namespace std {
          return (hash<unsigned int>()(k.hashCode()));
       }
    };
+#endif
 }
 
 

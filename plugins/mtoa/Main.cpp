@@ -31,6 +31,7 @@
 
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
+#include "commands/ArnoldUpdateTxCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldBakeGeoCmd.h"
@@ -134,7 +135,8 @@ namespace // <anonymous>
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
       {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
       {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax},
-      {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax}
+      {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
+      {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
@@ -146,7 +148,7 @@ namespace // <anonymous>
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
 #endif
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
-#if MAYA_API_VERSION >= 201800
+#if MAYA_API_VERSION >= 201720
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION + ":drawdb/light/image";
 #else
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;

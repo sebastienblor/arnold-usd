@@ -397,6 +397,11 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
             if res is not None:
                 path = res
 
+    # Use display name for render layer
+    layerName = tokens.get('RenderLayer', None)
+    if layerName and mel.eval('exists renderLayerDisplayName'):
+        tokens['RenderLayer'] = mel.eval('renderLayerDisplayName ' + layerName)
+
     #print path, tokens
     partialPath = expandFileTokens(path, tokens, leaveUnmatchedTokens=leaveUnmatchedTokens)
     if pathType in [pm.api.MCommonRenderSettingsData.kRelativePath, 'relative']:

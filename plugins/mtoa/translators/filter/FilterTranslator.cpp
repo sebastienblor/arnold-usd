@@ -17,7 +17,7 @@ AtNode* CFilterTranslator::CreateArnoldNodes()
 
    const char *arnoldName = m_impl->m_abstract.arnold.asChar();
 
-   AtNode* created = AddArnoldNode(arnoldName, arnoldName);
+   AtNode* created = AddArnoldNode(arnoldName/*, arnoldName*/);
    return created;
 }
 

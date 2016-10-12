@@ -44,6 +44,7 @@ public :
       m_session(NULL),
       m_atNode(NULL),
       m_additionalAtNodes(NULL),
+      m_atRoot(NULL),
       m_isProcedural(false),
       m_overrideSets(),
       m_localAOVs(),
@@ -100,7 +101,7 @@ public :
    // call ExportRootShader, which call CreateShadingGroupShader, which call AddAOVDefaults
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    
-   MStatus ExportOverrideSets();
+   virtual MStatus ExportOverrideSets();
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -126,6 +127,8 @@ public :
 
    AtNode* m_atNode;
    unordered_map<std::string, AtNode*> *m_additionalAtNodes;
+   AtNode *m_atRoot; // shortcut to the node which is at the root of this translator
+   // do not delete, it is supposed to be one of the translators nodes
 
    // FIXME : make sure we get rid of this isProcedural stuff 
    // once dependency graph is properly implemented in arnold....

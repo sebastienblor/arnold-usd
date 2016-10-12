@@ -87,6 +87,8 @@ struct CARVSequenceData
 static CARVSequenceData *s_sequenceData = NULL;
 static QWidget *s_workspaceControl = NULL;
 
+static MString s_renderLayer = "";
+
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
    m_rvSceneSaveCb(0),
@@ -267,7 +269,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    }
    if (m_rvLayerChangeCb == 0)
    {
-      m_rvLayerManagerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+      m_rvLayerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
                                       CRenderViewMtoA::RenderLayerChangedCallback,
                                       (void*)this);
    }
@@ -336,6 +338,14 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       SetLogging(consoleLogging, fileLogging);
    }
    UpdateRenderCallbacks();
+
+#if MAYA_API_VERSION >= 201700
+   MGlobal::executePythonCommand("import mtoa.utils;mtoa.utils.getActiveRenderLayerName()", s_renderLayer);
+   if (s_renderLayer.length() == 0)
+      s_renderLayer = "masterLayer";
+
+#endif
+
 }
 /**
   * Preparing MtoA's interface code with the RenderView
@@ -486,6 +496,17 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 {
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+
+#if MAYA_API_VERSION >= 201700
+   MString layerName;
+   MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
+
+   // we haven't changed the visible render layer
+   if (layerName.length() == 0 || layerName == s_renderLayer) 
+      return;
+
+   s_renderLayer = layerName;
+#endif
    renderViewMtoA->SetOption("Update Full Scene", "1");
 
 

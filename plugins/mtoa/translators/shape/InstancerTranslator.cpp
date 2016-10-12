@@ -451,7 +451,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                {
                   // if the motion step hasn't been computed yet, there's no
                   // need to fill it as we'll do it soon
-                  if (i == step || m_exportedSteps[i] == false)
+                  if (i == (int)step || m_exportedSteps[i] == false)
                      continue;
 
                   int k = (i-step);
