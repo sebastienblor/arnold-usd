@@ -36,7 +36,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
          return NULL;
    }
 
-   AtNode* created = AddArnoldNode(driverType, driverType);
+   AtNode* created = AddArnoldNode(driverType/*, driverType*/);
    return created;
 }
 

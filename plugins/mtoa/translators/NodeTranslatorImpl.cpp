@@ -50,7 +50,7 @@
 // internal use only
 AtNode* CNodeTranslatorImpl::DoExport()
 {
-   AtNode* node = m_tr.GetArnoldNode("");
+   AtNode* node = m_atNode;
    MString outputAttr = m_tr.GetMayaOutputAttributeName();
    
    // FIXME : for now we're setting isExported to false when we ask for a full re-export
@@ -171,7 +171,18 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
 void CNodeTranslatorImpl::DoCreateArnoldNodes()
 {   
-   m_atNode = m_tr.CreateArnoldNodes();
+   // m_atRoot is what's at the root of this translator
+   // It is not necessarily the main node (which happens with aov_write shaders)
+   m_atRoot = m_tr.CreateArnoldNodes();
+
+   // if no main arnold node has been created, set it here
+   if (m_atNode == NULL)
+      m_atNode = m_atRoot;
+
+   // if CreateArnoldNodes forgot to return the root node, let's use 
+   // the main arnold node
+   if (m_atRoot == NULL)
+      m_atRoot = m_atNode;
    
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
@@ -1015,7 +1026,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       AddReference(translator);
 #endif
 
-      return translator->GetArnoldNode();
+      return translator->m_impl->m_atRoot; // return the node that is at the root of this translator
    }
    return NULL;
 }

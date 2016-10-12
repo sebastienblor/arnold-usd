@@ -314,7 +314,8 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
          }
          else
             (*(m_impl->m_additionalAtNodes))[tag] = node;
-      }
+      } else
+         m_impl->m_atNode = node;
       return node;
    }
    else
