@@ -37,6 +37,14 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
    }
 
    AtNode* created = AddArnoldNode(driverType/*, driverType*/);
+
+   // we used to set this as the driver's name (using tags)
+   // so until we're sure there wasn't a good reason for it I'm keeping this behaviour
+   std::string name = AiNodeGetName(created);
+   name += "@";
+   name += driverType;
+   AiNodeSetStr(created, "name", name.c_str());
+
    return created;
 }
 
