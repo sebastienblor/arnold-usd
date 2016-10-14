@@ -278,7 +278,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          AiMsgDebug("[mtoa.session]     %-30s | Initializing node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
       translator->m_impl->SetShadersList(nodes);
-      translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
+      translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true), instanceNumber);
       if (it != m_processedTranslators.end())
       {
          it->second = translator;
