@@ -64,8 +64,9 @@ public:
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
-   // and call us back in UpdateSceneChanges
-   void SceneChanged();
+   // and call us back in UpdateSceneChanges.
+   // Return value tells us if render will actually update
+   bool SceneChanged();
 
    // If ReceiveSelectionChanges is set to true, then the Host
    // should call this function whenever its current selection
