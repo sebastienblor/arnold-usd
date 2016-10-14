@@ -638,7 +638,8 @@ MStatus CExtensionImpl::NewMappedMayaNode(CPxMayaNode mayaNode,
    // it doesnt' exist and we have all required information or use defaults
    if (mayaNode.name == "")
    {
-      mayaNode.name = toMayaStyle(MString("ai_")+arnoldNode.name);
+      mayaNode.SetName(toMayaStyle(MString("ai_")+arnoldNode.name));
+      
       AiMsgWarning("[mtoa] [%s] [node %s] Using auto generated associated Maya type name %s.",
             mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
    }
@@ -774,7 +775,7 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
    if (NULL != trs)
    {
       trs->CreateImplementation();
-      if (trsProxy.name == "") trsProxy.name = trs->m_impl->m_abstract.name;
+      if (trsProxy.name == "") trsProxy.SetName(trs->m_impl->m_abstract.name);
       if (trsProxy.arnold == "") trsProxy.arnold = trs->m_impl->m_abstract.arnold;
       // if (trsProxy.maya == "") trsProxy.maya = trs->m_abstract.maya;
       if (trsProxy.provider == "") trsProxy.provider = trs->m_impl->m_abstract.provider;

@@ -18,7 +18,6 @@ class CAbMayaNode;
 // A Maya node class proxy
 class CPxMayaNode
 {
-   friend class CAbMayaNode;
    friend class CExtension;
    friend class CExtensionImpl;   
    friend class CExtensionsManager;
@@ -46,8 +45,17 @@ public:
                     int dataType,
                     const MString &aovAttr);
 
+   // To be removed later. A single member for the name is surely enough
+   // But I want to minimize risks for now
    std::string nameStr; // public stl string for the hash
+
 private:
+   void SetName(const MString &n)
+   {
+      name = n;
+      nameStr = name.asChar(); // stl version for the unordered_map's key
+   }
+
    MString name;
    MTypeId id;
    MString provider;
