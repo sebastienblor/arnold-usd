@@ -11,14 +11,14 @@
 
 
 // Set of Maya node proxies
-typedef unordered_set<CPxMayaNode> MayaNodesSet;
+typedef std::set<CPxMayaNode> MayaNodesSet;
 
 // Arnold node to Maya node multimap
 /// key: arnold node name. value: maya node name
 typedef std::multimap<CPxArnoldNode, CPxMayaNode> ArnoldNodeToMayaNodeMap;
 // Set of Translator proxies
-typedef unordered_set<CPxTranslator> TranslatorsSet;
+typedef std::set<CPxTranslator> TranslatorsSet;
 // Maya node to Translator map
-typedef unordered_map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
+typedef std::map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
 // Storing the default translator value
 typedef unordered_map<std::string, MString> DefaultTranslatorMap;

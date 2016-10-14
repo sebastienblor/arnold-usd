@@ -36,8 +36,8 @@ public:
    ~CPxMayaNode() {};
 
    inline bool operator==(const CPxMayaNode& other) const { return name == other.name; }
-   //inline bool operator!=(const CPxMayaNode& other) const { return name != other.name; }
-   //inline bool operator<(const CPxMayaNode& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
+   inline bool operator!=(const CPxMayaNode& other) const { return name != other.name; }
+   inline bool operator<(const CPxMayaNode& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
    inline bool IsNull() const {return (name == "");}
    MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry);
