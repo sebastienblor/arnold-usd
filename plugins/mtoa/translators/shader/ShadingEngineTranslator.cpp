@@ -201,7 +201,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
 
             // TODO: By now we have to check the connected nodes and if something that is not a mesh
             //  is connected, we do not reexport, as some crashes may happen.
-            if(translator2->GetMayaNodeTypeName() != "mesh")
+            if(MFnDependencyNode(translator2->GetMayaObject()).typeName() != "mesh")
             {
                reexport = false;
                break;

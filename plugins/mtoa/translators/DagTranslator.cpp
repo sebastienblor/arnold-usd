@@ -93,7 +93,7 @@ void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
    MString name = CDagTranslator::GetArnoldNaming(dagTr->GetMayaDagPath());
 
-   if (m_tr.DependsOnOutputPlug())
+   if (DependsOnOutputPlug())
    {
       MString outputAttr = m_handle.attribute();
 

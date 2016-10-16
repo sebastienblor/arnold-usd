@@ -614,7 +614,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       return;
    
    int globalIndex = 0;
-   const char *arnoldBaseName = GetArnoldNodeName();
+   const char *arnoldBaseName = (instancer) ? AiNodeGetName(instancer) : "";
 
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
         it !=  m_particleIDMap.end(); ++it)

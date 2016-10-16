@@ -252,7 +252,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
 bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
 {
    // If this is a multi-output shader, just copy the MPlug
-   if (m_tr.DependsOnOutputPlug()) 
+   if (DependsOnOutputPlug()) 
    {
       resolvedOutputPlug=outputPlug;
       return true;
