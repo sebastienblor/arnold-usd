@@ -14,16 +14,27 @@ enum FitType
    FIT_TOSIZE,
 };
 
+/** \class CCameraTranslator
+ A Translator class that exports Maya Camera nodes
+
+ \see CDagTranslator
+*/
+
 class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:
 
-   // ---- Virtual functions derived from CNodeTranslator
+// ---- Virtual functions derived from CNodeTranslator
    virtual void Init();
    virtual bool RequiresMotionData();
    
 protected:
+   virtual void GetMatrix(AtMatrix& matrix);
+   virtual void RequestUpdate();
+
+//-----------------
+
    double GetDeviceAspect();
    void SetFilmTransform(AtNode* camera, double factorX=0, double factorY=0, double width=0, bool persp=true);
    void ExportImagePlanes();
@@ -32,11 +43,6 @@ protected:
 
    static void MakeDefaultAttributes(CExtensionAttrHelper &helper);
    static void MakeDOFAttributes(CExtensionAttrHelper &helper);
-
-   // ---- derived from CDagTranslator, to add the origin / scale global factors
-   virtual void GetMatrix(AtMatrix& matrix);
-   virtual void RequestUpdate();
-
 
 protected:
    MFnCamera m_fnCamera;
