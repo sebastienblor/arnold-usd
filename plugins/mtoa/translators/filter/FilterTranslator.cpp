@@ -17,7 +17,15 @@ AtNode* CFilterTranslator::CreateArnoldNodes()
 
    const char *arnoldName = m_impl->m_abstract.arnold.asChar();
 
-   AtNode* created = AddArnoldNode(arnoldName, arnoldName);
+   AtNode* created = AddArnoldNode(arnoldName/*, arnoldName*/);
+
+   // we used to set this as the filter's name (using tags)
+   // so until we're sure there wasn't a good reason for it I'm keeping this behaviour
+   std::string name = AiNodeGetName(created);
+   name += "@";
+   name += arnoldName;
+   AiNodeSetStr(created, "name", name.c_str());
+
    return created;
 }
 

@@ -54,12 +54,7 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 {
    MStatus status;
    MArgDatabase args(syntax(), argList);
-
-   if (!AiUniverseIsActive()) return MS::kSuccess;
-
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession != NULL)
-      renderSession->InterruptRender();
+  
    
    if (args.isFlagSet("textures"))
       AiUniverseCacheFlush(AI_CACHE_TEXTURE);
@@ -124,6 +119,10 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
       }
       
    }
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   if (renderSession != NULL && AiUniverseIsActive())
+      renderSession->InterruptRender();
+
    return MS::kSuccess;
 }
 
