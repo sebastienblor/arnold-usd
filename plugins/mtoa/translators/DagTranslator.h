@@ -77,10 +77,22 @@ protected:
    void ExportMatrix(AtNode* node);
 
    /** Return whether the current dag object is the master instance.
+   
     The master is the first instance that is completely visible (including parent transforms)
     for which full geometry should be exported.
-    \see GetMasterInstance
-    */
+   
+    Always returns true if this dagPath is not instanced.
+    If dagPath is instanced, this searches the preceding instances
+    for the first that is visible. if none are found, dagPath is considered the master.
+   
+    This function caches the result on the first run and returns the cached results on
+    subsequent calls.
+   
+    note: dagPath is assumed to be visible.
+   
+    @return                  whether or not dagPath is a master
+   \see GetMasterInstance
+   */
    bool IsMasterInstance();
 
    /** Return the DAG path of the master instance.

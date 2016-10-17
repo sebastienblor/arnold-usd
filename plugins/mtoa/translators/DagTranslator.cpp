@@ -87,7 +87,6 @@ MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
 }
 
 
-/// set the name of the arnold node
 void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
@@ -136,7 +135,6 @@ void CDagTranslator::AddUpdateCallbacks()
    CNodeTranslator::AddUpdateCallbacks();
 }
 
-/// Like IsMasterInstance, but does not cache result
 static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *session, const MDagPath& dagPath, MDagPath &masterDag)
 {
    if (dagPath.isInstanced())
@@ -184,23 +182,6 @@ static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *sessi
 }
 
 
-/// Return whether the current dag object is the master instance.
-///
-/// The master is the first instance that is completely visible (including parent transforms)
-/// for which full geometry should be exported.
-///
-/// Always returns true if this dagPath is not instanced.
-/// If dagPath is instanced, this searches the preceding instances
-/// for the first that is visible. if none are found, dagPath is considered the master.
-///
-/// This function caches the result on the first run and returns the cached results on
-/// subsequent calls.
-///
-/// note: dagPath is assumed to be visible.
-///
-/// @return                  whether or not dagPath is a master
-///
-
 bool CDagTranslator::IsMasterInstance()
 {
    CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
@@ -209,11 +190,6 @@ bool CDagTranslator::IsMasterInstance()
    return dagImpl->m_isMasterDag;
 }
 
-/// Return the master instance for the current dag object.
-///
-/// The master is the first instance that is completely visible (including parent transforms)
-/// for which full geometry should be exported.
-///
 MDagPath& CDagTranslator::GetMasterInstance()
 {
    CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
@@ -461,7 +437,6 @@ static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
    return status;
 }
 
-/// gather the active override sets containing this node
 MStatus CDagTranslatorImpl::ExportOverrideSets()
 {
 
