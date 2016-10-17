@@ -74,7 +74,7 @@ MStringArray CExtension::Required()
 unsigned int CExtension::TranslatorCount() const
 {
    unsigned int sum = 0;
-   MayaNodeToTranslatorsMap::const_iterator it;
+   MayaNodeToTranslatorsOldMap::const_iterator it;
    for (it = m_impl->m_registeredTranslators.begin();
         it != m_impl->m_registeredTranslators.end();
         it++)
@@ -214,7 +214,7 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
 MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, int dataType, const MString &aovAttr)
 {
    CPxMayaNode mayaNode(mayaTypeName);
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_impl->m_registeredTranslators.find(mayaNode);
    if (nodeIt != m_impl->m_registeredTranslators.end())
    {
@@ -745,7 +745,7 @@ MStatus CExtensionImpl::MapMayaNode(const CPxMayaNode &mayaNode,
    // Not found, add it
    it = m_arnoldToMayaNodes.insert(range.first, std::make_pair(arnoldNode, mayaNode));
    // Add an empty translator set for that node
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt == m_registeredTranslators.end())
    {
@@ -789,7 +789,7 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
       return MStatus::kFailure;
    }
    TranslatorsSet nodeTranslators;
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt != m_registeredTranslators.end())
    {
@@ -859,7 +859,7 @@ const CPxMayaNode* CExtensionImpl::FindRegisteredMayaNode(const CPxMayaNode &may
 /// Find a std::set of all registered translators for a Maya node.
 const TranslatorsSet* CExtensionImpl::FindRegisteredTranslators(const CPxMayaNode &mayaNode)
 {
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt != m_registeredTranslators.end())
    {

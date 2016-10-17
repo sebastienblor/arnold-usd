@@ -18,7 +18,10 @@ typedef unordered_set<CPxMayaNode> MayaNodesSet;
 typedef std::multimap<CPxArnoldNode, CPxMayaNode> ArnoldNodeToMayaNodeMap;
 // Set of Translator proxies
 typedef unordered_set<CPxTranslator> TranslatorsSet;
-// Maya node to Translator map
+// Maya node to Translator map. FIXME, to be merged with the following typedef and use unordered_map
+// once we understand why there are fails when the StereoRigCamera is loaded before the Camera in this iterator
+typedef std::map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsOldMap;
+// Maya node to Translator unordered_map
 typedef unordered_map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
 // Storing the default translator value
 typedef unordered_map<std::string, MString> DefaultTranslatorMap;

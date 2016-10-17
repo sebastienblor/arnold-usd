@@ -451,7 +451,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    // translators (overriding for subclasses of a node class only)
    AiMsgDebug("[mtoa] [%s] Registering new translators provided by %s.",
          extName.asChar(), extFile.asChar());
-   MayaNodeToTranslatorsMap::iterator tnodeIt;
+   MayaNodeToTranslatorsOldMap::iterator tnodeIt;
    for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
          tnodeIt != extension->m_impl->m_registeredTranslators.end();
          tnodeIt++)
@@ -662,7 +662,7 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    // remove translators from the list
    AiMsgDebug("[mtoa.ext]  Deregistering translators provided by %s(%s).",
          extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
-   MayaNodeToTranslatorsMap::iterator tnodeIt;
+   MayaNodeToTranslatorsOldMap::iterator tnodeIt;
    for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
          tnodeIt != extension->m_impl->m_registeredTranslators.end();
          tnodeIt++)

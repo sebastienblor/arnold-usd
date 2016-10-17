@@ -97,8 +97,12 @@ public:
    // new maya nodes as well as existing associated to arnold nodes
    // FIXME can probably remove it
    ArnoldNodeToMayaNodeMap m_arnoldToMayaNodes;
+   
    // translators registered by this extension, indexed by Maya node
-   MayaNodeToTranslatorsMap m_registeredTranslators;
+   // FIXME find a way to use MayaNodeToTranslatorsOldMap instead.
+   // It fails to add aiTranslator attribute to the cameras as 
+   // StereoRigCameras comes first in the iterator
+   MayaNodeToTranslatorsOldMap m_registeredTranslators;
    // Arnold plugins loaded by this extension
    LoadedArnoldPluginsSet m_ownLoadedArnoldPlugins;
    // Maya plugins required by this extension
