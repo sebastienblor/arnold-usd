@@ -116,6 +116,14 @@ public :
 
    void SetSourceTranslator(CNodeTranslator *tr);
 
+   inline bool DependsOnOutputPlug() {return m_tr.DependsOnOutputPlug();}
+   /// Get the name of the Arnold node
+   const char* GetArnoldNodeName();
+   /// Get the type of the Arnold node
+   const char* GetArnoldTypeName();
+   /// Get the type of the Maya node. Mainly used for debug logs : do we want to keep it in the API?
+   MString GetMayaNodeTypeName() const;
+
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;

@@ -186,7 +186,7 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
-            m_tr.GetMayaNodeName().asChar(), m_tr.GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
+            m_tr.GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
    else if (AiNodeIs(m_atNode, "procedural"))
    {
       // FIXME : make sure we get rid of this once a DG is implemented in arnold
@@ -442,7 +442,7 @@ void CNodeTranslatorImpl::ComputeAOVs()
 
    MStringArray aovAttrs;
 
-   MString typeName = m_tr.GetMayaNodeTypeName();
+   MString typeName = GetMayaNodeTypeName();
    CExtensionsManager::GetNodeAOVs(typeName, aovAttrs);
    // FIXME: use more efficient insertion method
    MStatus stat;
@@ -1304,6 +1304,27 @@ void CNodeTranslatorImpl::SetSourceTranslator(CNodeTranslator *tr)
    }
    m_sourceTranslator = tr;
 }
+
+const char* CNodeTranslatorImpl::GetArnoldNodeName()
+{
+   AtNode *node = m_tr.GetArnoldNode();
+   if (node == NULL) return "";
+   return AiNodeGetName(node);
+}
+
+const char* CNodeTranslatorImpl::GetArnoldTypeName()
+{
+   AtNode* node = m_tr.GetArnoldNode();
+   if (NULL == node)
+   {
+      return NULL;
+   }
+   else
+   {
+      return AiNodeEntryGetName(AiNodeGetNodeEntry(node));
+   }
+}
+MString CNodeTranslatorImpl::GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
 
 
 

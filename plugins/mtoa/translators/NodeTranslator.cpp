@@ -121,12 +121,12 @@ bool HasIncomingConnection(const MPlug &plug)
    return false;
 }
 
-//------------ CNodeTranslator ------------//
 CNodeTranslator::CNodeTranslator()
 {
    // we can't call CreateImplementation here as it's a virtual function and we're in the constructor...
    m_impl = NULL;
 }
+
 CNodeTranslator::~CNodeTranslator()
 {
    if (m_impl)
@@ -151,8 +151,6 @@ AtNode* CNodeTranslator::ExportConnectedNode(const MPlug& outputPlug)
 
 
 
-/// Get actual plug to be used for that attribute name, either the one on the translated maya object,
-/// or the one on the override set to be used, if any.
 MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStatus) const
 {
    MStatus status(MStatus::kSuccess);
@@ -243,7 +241,6 @@ void CNodeTranslator::Delete()
 
 }
 
-/// convert from maya matrix to AtMatrix
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
    const CArnoldSession* session = CMayaScene::GetArnoldSession();
@@ -276,7 +273,6 @@ void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
    
 }
 
-/// Retrieve a node previously created using AddArnoldNode()
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
    if (tag == NULL || strlen(tag) == 0) return m_impl->m_atNode;
@@ -293,7 +289,6 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
    }
 }
 
-/// Create an arnold node of the specified type, and save with the given tag (defaults to "")
 AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
@@ -325,26 +320,6 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
 }
 
-const char* CNodeTranslator::GetArnoldNodeName(const char* tag)
-{
-   AtNode *node = GetArnoldNode(tag);
-   if (node == NULL) return "";
-   return AiNodeGetName(node);
-}
-
-const char* CNodeTranslator::GetArnoldTypeName(const char* tag)
-{
-   AtNode* node = GetArnoldNode(tag);
-   if (NULL == node)
-   {
-      return NULL;
-   }
-   else
-   {
-      return AiNodeEntryGetName(AiNodeGetNodeEntry(node));
-   }
-}
-
 void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
    // When the frame is changed for motion blur we can receive signals here,
@@ -355,7 +330,7 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: translator %s, providing Arnold %s(%s): %p",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-              GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
+              m_impl->GetArnoldNodeName(), m_impl->GetArnoldTypeName(), GetArnoldNode());
 
    // name of the attribute that emitted a signal
    MString plugName = plug.partialName(false, false, false, false, false, true);
@@ -444,9 +419,9 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    if (translator != NULL)
    {
       translator->m_impl->SetArnoldNodeName(translator->GetArnoldNode());
-      AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: providing Arnold %s(%s): %p",
+      AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
+                 translator->GetArnoldNode());
    }
    else
    {
@@ -499,7 +474,7 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
    }
 }
 */
-/// add this node's AOVs into the passed AOVSet
+
 void CNodeTranslator::RequestUpdate()
 {
 
@@ -512,7 +487,7 @@ void CNodeTranslator::RequestUpdate()
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-              GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
+              m_impl->GetArnoldNodeName(), m_impl->GetArnoldTypeName(), GetArnoldNode());
 
 
    m_impl->m_session->QueueForUpdate(this);   
@@ -938,7 +913,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
    }
 }
 
-/// Using the translator's m_handle Maya Object and specific attrName
+
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                           int arnoldParamType, MString mayaAttrName)
 {
@@ -983,7 +958,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    {
       AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
             GetTranslatorName().asChar(),
-            GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+            GetMayaNodeName().asChar(), m_impl->GetMayaNodeTypeName().asChar(),
             mayaAttrName.asChar(), arnoldParamName,
             AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
       return NULL;
@@ -991,9 +966,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-/// Main entry point to export values to an arnold parameter from a maya plug, recursively following
-/// connections in the dependency graph.
-/// Calls ProcessParameterInputs for parameters that allow linking or ProcessConstantParameter
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                           int arnoldParamType, const MPlug& plug)
 {
@@ -1055,10 +1027,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    return m_impl->ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-
-
-/// Allocate an AtArray, ProcessConstantArrayElement to fill it with values from the array plug, and call AiNodeSetArray.
-/// Also calls ProcessParameterInputs.
 void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int arnoldParamType, MObject *childArray)
 {
    if (arnoldParamType == AI_TYPE_UNDEFINED)
@@ -1169,7 +1137,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       }
    }
 }
-/// for automatically creating parameters
+
 void CNodeTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, context.arnold);
@@ -1188,7 +1156,6 @@ MObject CNodeTranslator::GetMayaObject() const { return m_impl->m_handle.object(
 MString CNodeTranslator::GetMayaNodeName() const { return MFnDependencyNode(m_impl->m_handle.object()).name(); }
 MString CNodeTranslator::GetMayaOutputAttributeName() const { return m_impl->m_handle.attribute(); }
 
-MString CNodeTranslator::GetMayaNodeTypeName() const { return MFnDependencyNode(m_impl->m_handle.object()).typeName(); }
 
 double CNodeTranslator::GetExportFrame()
 {
