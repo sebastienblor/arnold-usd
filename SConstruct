@@ -160,7 +160,8 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False)
+    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
+    BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False)
 )
 
 if system.os() == 'darwin':
@@ -922,15 +923,21 @@ env['BUILDERS']['PackageDeploy']  = Builder(action = Action(deploy,  "Deploying 
 ## EXTENSIONS
 ################################
 
-print 'extensions'
-
 ext_env = maya_env.Clone()
 
-ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
-
-# Instead of including our whole MtoA folder, we should just include what's provided in the public API
-#ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
-ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+# In theory we should always build our extensions against the resulting "target" includes folder. 
+# However, when there are changes in the API files they aren't always updated before the build starts. 
+# We might have been doing something wrong here,
+# but for now we will only build extensions against target API include folder if this variable is defined.
+# It is important to try that regularly, in order to make sure our extensions aren't cheating by including more
+# files than what they're supposed to
+if env['BUILD_EXT_TARGET_INCLUDES'] == 1:
+    ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
+    # Instead of including our whole MtoA folder, we should just include what's provided in the public API
+    ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+else:
+    ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+    
 
 ext_env.Append(LIBPATH = ['.', ARNOLD_API_LIB, ARNOLD_BINARIES])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
