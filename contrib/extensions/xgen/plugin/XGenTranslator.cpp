@@ -881,4 +881,17 @@ void CXgDescriptionTranslator::ExpandProcedural()
    // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
    // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now
    AiNodeSetDisabled(node, true);
+   int i = 1;
+
+   while(true)
+   {
+      MString nameKey = "proc";
+      nameKey += i;
+      AtNode * procNode = GetArnoldNode(nameKey.asChar());
+      if (procNode == NULL)
+         break;
+
+      AiNodeSetDisabled(procNode, true);
+      i++;
+   }
 }
