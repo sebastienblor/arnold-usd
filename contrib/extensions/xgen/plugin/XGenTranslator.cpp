@@ -1,4 +1,3 @@
-
 #include "../common/XgArnoldExpand.h"
 
 #include "extension/Extension.h"
@@ -872,6 +871,7 @@ void CXgDescriptionTranslator::ExpandProcedural()
    if (m_expandedProcedural)
       return;
 
+   s_bCleanDescriptionCache = true;
    AtNode *node = GetArnoldNode();
    m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
    m_expandedProcedural->Init( node );

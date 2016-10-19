@@ -4,7 +4,8 @@
 #include <ai.h>
 #include <string>
 #include <vector>
-
+#include <cstring>
+#include <stdio.h>
 // FIXME this is currently failing at link time
 //on OSX for maya 2015 & 2016
 // So for now we're only including it if we're not in this situation
@@ -26,7 +27,7 @@
 #include <XgRenderAPI.h>
 #include <XgRenderAPIUtils.h>
 
-static bool s_bCleanDescriptionCache = true;
+extern bool s_bCleanDescriptionCache;
 
 
 using namespace XGenRenderAPI;

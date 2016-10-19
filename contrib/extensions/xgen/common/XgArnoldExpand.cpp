@@ -27,7 +27,7 @@ using namespace XGenRenderAPI::Utils;
 using namespace XGenArnold;
 using namespace std;
 
-
+bool s_bCleanDescriptionCache = true;
 
 struct XgMergedData
 {
