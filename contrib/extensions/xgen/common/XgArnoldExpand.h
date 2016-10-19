@@ -1,11 +1,33 @@
 #pragma once
 
+#include <cmath>
+#include <ai.h>
+#include <string>
+#include <vector>
+
+// FIXME this is currently failing at link time
+//on OSX for maya 2015 & 2016
+// So for now we're only including it if we're not in this situation
+#ifdef _DARWIN
+#if MAYA_API_VERSION >= 201700
+#include <maya/MTypes.h>
+#endif
+#else
+#include <maya/MTypes.h>
+#endif
+
+#include "XgExternalAPI.h"
+
+
 #include <vector>
 #include <map>
 #include <string>
 
 #include <XgRenderAPI.h>
 #include <XgRenderAPIUtils.h>
+
+static bool s_bCleanDescriptionCache = true;
+
 
 using namespace XGenRenderAPI;
 
@@ -16,7 +38,7 @@ struct XgMergedData;
 class XgMutex;
 
 namespace XGenArnold
-{
+{  
    class Procedural : public ProceduralCallbacks
    {
    public:
@@ -116,5 +138,10 @@ namespace XGenArnold
       Procedural* m_proc;
       bool m_cleanup;
    };
+
+   inline int getHash(AtNode* node)
+   {
+      return (int)AiNodeGetStr(node, AtString("name")).hash();
+   }
 };
 

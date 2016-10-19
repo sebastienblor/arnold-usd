@@ -2,6 +2,11 @@
 
 #include "translators/shape/ShapeTranslator.h"
 
+namespace XGenArnold
+{
+   class ProceduralWrapper;
+}
+
 class CXgDescriptionTranslator : public CShapeTranslator
 {
 public:
@@ -17,7 +22,14 @@ public:
    }
    static void NodeInitializer(CAbTranslator context);
    virtual void ExportShaders();
+
+   virtual void RequestUpdate();
+   virtual void Delete();
 private:
 
    AtNode* ExportRootShader(AtNode *);
+   void ExpandProcedural();
+
+   std::vector<bool> m_exportedSteps;
+   XGenArnold::ProceduralWrapper *m_expandedProcedural;
 };

@@ -1,3 +1,6 @@
+
+#include "../common/XgArnoldExpand.h"
+
 #include "extension/Extension.h"
 #include "utils/time.h"
 
@@ -8,10 +11,6 @@
 #include <maya/MMatrix.h>
 
 #include "XGenTranslator.h"
-
-
-#include <string>
-#include <vector>
 
 
 static void SetEnv(const MString& env, const MString& val)
@@ -32,9 +31,33 @@ inline bool alembicExists(const std::string& name)
 }
 
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
-{
+{   
+   m_expandedProcedural = NULL;
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
    return AddArnoldNode("procedural");
+}
+
+void CXgDescriptionTranslator::Delete()
+{
+   CShapeTranslator::Delete();
+
+   // If the procedural has been expanded at export,
+   // we need to delete all the created nodes here 
+   if (m_expandedProcedural)
+   {
+      int numNodes = m_expandedProcedural->NumNodes();
+      for (int i = 0; i < numNodes; ++i)
+      {
+         AtNode *node = m_expandedProcedural->GetNode(i);
+         if (node == NULL) continue; 
+         AiNodeDestroy(node);
+      }
+      m_expandedProcedural->Cleanup();
+
+      delete m_expandedProcedural;
+      m_expandedProcedural = NULL;
+      m_exportedSteps.clear();
+   }
 }
 
 struct DescInfo
@@ -109,8 +132,12 @@ struct DescInfo
 
 void CXgDescriptionTranslator::Export(AtNode* procedural)
 {
-
-   //AiMsgInfo("[CXgDescriptionTranslator] Update()");
+   if (IsExported())
+   {
+      // Since we always use AI_RECREATE_NODE during IPR (see RequestUpdate)
+      // we should never get here. Early out for safety
+      return;
+   }
 
    // Build the path to the procedural dso
    static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgen_procedural.so");
@@ -683,10 +710,30 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
        AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
        AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
        
-
       }
       
       ExportLightLinking(shape);
+   }
+
+   m_exportedSteps.clear();
+
+   // For now we're only expanding the procedurals during export if we are on an interactive render
+   // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+   // can be updated while tweaking the XGen attributes
+   if (GetSessionOptions().IsInteractiveRender())
+   {
+      // if there is no motion blur for this node, then we're good to expand the geometries
+      bool hasMotion = IsMotionBlurEnabled() && RequiresMotionData();
+
+      // If there is motion blur, we'll want to expand the procedural only
+      // at the final motion step
+      if (hasMotion)
+      {
+         m_exportedSteps.assign(GetNumMotionSteps(), false);
+         m_exportedSteps[GetMotionStep()] = true;
+      } else
+         ExpandProcedural();
+      
    }
 }
 void CXgDescriptionTranslator::ExportShaders()
@@ -701,6 +748,25 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 
    // Set transform matrix
    ExportMatrix(shape);
+
+   if (m_exportedSteps.empty())
+      return;
+
+   // If we're here, it means that we're on an interactive render
+   // where the procedural has to be expanded during export
+
+   m_exportedSteps[GetMotionStep()] = true; // motion step done
+
+   // check if all motion steps have been exported
+   for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+   {
+      // a motion step is still missing. We'll expand later
+      if (!m_exportedSteps[i])
+         return;
+   }
+
+   // All motion steps have been exported, it's time to expand the procedural
+   ExpandProcedural();
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -788,4 +854,44 @@ AtNode* CXgDescriptionTranslator::ExportRootShader(AtNode* instance)
    }
 
    return NULL;
+}
+
+// this forces the refresh during IPR. All nodes have to be deleted
+// which will happen in the Delete() function
+void CXgDescriptionTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}
+
+// For now we're only expanding the procedurals during export if we are on an interactive render
+// (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+// can be updated while tweaking the XGen attributes
+void CXgDescriptionTranslator::ExpandProcedural()
+{
+   if (m_expandedProcedural)
+      return;
+
+   AtNode *node = GetArnoldNode();
+   m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
+   m_expandedProcedural->Init( node );
+
+   // FIXME verify if we need to do something about the procedural matrix ?
+
+   // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
+   // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now
+   AiNodeSetDisabled(node, true);
+   int i = 1;
+
+   while(true)
+   {
+      MString nameKey = "proc";
+      nameKey += i;
+      AtNode * procNode = GetArnoldNode(nameKey.asChar());
+      if (procNode == NULL)
+         break;
+
+      AiNodeSetDisabled(procNode, true);
+      i++;
+   }
 }
