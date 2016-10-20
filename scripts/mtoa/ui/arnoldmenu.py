@@ -62,7 +62,29 @@ def doCreateCurvesCollector():
                 
     cmds.select(curveNode, replace=True)
 
-    
+
+def doCreateLightPortal():
+
+    sls = cmds.ls(sl=False, et='aiSkyDomeLight')
+    if len(sls) == 0:
+        msg = "Light Portals need a "
+        msg += "SkyDome light in the scene"
+
+        result = cmds.confirmDialog(
+            title='No SkyDome Light found',
+            message=msg
+            #button=['OK', 'Cancel'],
+            #defaultButton='OK',
+            #cancelButton='Cancel',
+            #dismissString='Cancel'
+            )
+
+        return
+
+    mutils.createLocator('aiLightPortal', asLight=True)
+
+
+
 def arnoldAboutDialog():
     legaltext = "All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
 \n\
@@ -348,7 +370,8 @@ def createArnoldMenu():
                     c=lambda *args: mutils.createMeshLight())
         pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light",
                     c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
-
+        pm.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal",
+                    c=lambda *args: doCreateLightPortal())
         pm.menuItem(parent='ArnoldLights', divider=True)
 
         pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light",
