@@ -21,6 +21,8 @@ protected:
    {}
    virtual void NodeChanged(MObject& node, MPlug& plug);
    virtual void AddUpdateCallbacks();
+   virtual void Delete();
+   void DirtyElement(CNodeTranslator *tr);
    static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);

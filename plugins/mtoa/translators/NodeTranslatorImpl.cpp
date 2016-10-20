@@ -63,6 +63,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
                    m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
       return NULL;
    }
+   if (m_overrideSetsDirty) ExportOverrideSets();
 
    if (!m_session->IsExportingMotion())
    {
@@ -114,6 +115,8 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
               AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
               node);
 
+   if (m_overrideSetsDirty) ExportOverrideSets();
+
    if (!m_session->IsExportingMotion())
    {
 #ifdef NODE_TRANSLATOR_REFERENCES 
@@ -123,6 +126,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       m_references.clear();
 #endif
       m_sourceTranslator = NULL; // this will be set during Export
+
 
       m_tr.Export(node);
       ExportUserAttribute(node);
@@ -313,7 +317,6 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
    return compConnected == numComponents;
 }
 
-// FIXME: store translators list instead of MObject list for m_overrideSets
 // ExportNode and ExportDagPath should return a pointer to translator, much easier
 // than a pointer to Arnold Node
 /// Get a plug for that attribute name on the maya override sets, if any
@@ -325,6 +328,7 @@ MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus
    std::vector<CNodeTranslator*>::iterator it;
    std::vector<CNodeTranslator*> translators;
    unsigned int novr = m_overrideSets.size();
+   
    for (unsigned int i=0; i<novr; i++)
    {
       CNodeTranslator* translator = m_overrideSets[i];
@@ -482,8 +486,17 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
    }
    AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
               m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar(), ns);
+
+   m_overrideSetsDirty = false;
    return status;
 
+}
+void CNodeTranslatorImpl::DirtyOverrideSets(CNodeTranslator *tr)
+{
+   if (tr == NULL)
+      return;
+   tr->m_impl->m_overrideSetsDirty = true;
+   tr->RequestUpdate();
 }
 void CNodeTranslatorImpl::SetShadersList(AtNodeSet* nodes)
 {

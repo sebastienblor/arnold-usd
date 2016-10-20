@@ -38,8 +38,6 @@ public :
    CNodeTranslatorImpl(CNodeTranslator &translator) : 
       m_handle(CNodeAttrHandle()),
       m_updateMode(CNodeTranslator::AI_UPDATE_ONLY),
-      m_inUpdateQueue(false),
-      m_animArrays(false),
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
@@ -51,6 +49,9 @@ public :
       m_upstreamAOVs(),
       m_shaders(NULL),
       m_sourceTranslator(NULL),
+      m_inUpdateQueue(false),
+      m_animArrays(false),
+      m_overrideSetsDirty(false),
       m_isExported(false),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
@@ -102,6 +103,7 @@ public :
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    
    virtual MStatus ExportOverrideSets();
+   static void DirtyOverrideSets(CNodeTranslator *tr);
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -127,8 +129,6 @@ public :
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
-   bool m_inUpdateQueue; // for Arnold RenderView only
-   bool m_animArrays;
    CAbTranslator m_abstract;
 
    CArnoldSession* m_session;
@@ -156,7 +156,10 @@ public :
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
+   bool m_inUpdateQueue; // for Arnold RenderView only
+   bool m_animArrays;
    bool m_isExported;
+   bool m_overrideSetsDirty;
 
    virtual void ExportUserAttribute(AtNode *anode);
 

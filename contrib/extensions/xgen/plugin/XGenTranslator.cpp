@@ -38,8 +38,6 @@ AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 
 void CXgDescriptionTranslator::Delete()
 {
-   CShapeTranslator::Delete();
-
    // If the procedural has been expanded at export,
    // we need to delete all the created nodes here 
    if (m_expandedProcedural)
@@ -57,6 +55,7 @@ void CXgDescriptionTranslator::Delete()
       m_expandedProcedural = NULL;
       m_exportedSteps.clear();
    }
+   CShapeTranslator::Delete();
 }
 
 struct DescInfo

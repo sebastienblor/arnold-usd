@@ -38,7 +38,8 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'AutoDagTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslatorImpl.cpp'),
-                    os.path.join('translators', 'DagTranslator.cpp')]
+                    os.path.join('translators', 'DagTranslator.cpp'),
+                    os.path.join('translators', 'ObjectSetTranslator.cpp')]
 
 source_files_rem =  [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'DrawUtils.cpp')]
 
