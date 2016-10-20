@@ -28,6 +28,7 @@
 #define ARNOLD_NODEID_AREA_LIGHT                0x00115C86
 #define ARNOLD_NODEID_PHOTOMETRIC_LIGHT         0x00115C87
 #define ARNOLD_NODEID_MESH_LIGHT                0x00115C88
+#define ARNOLD_NODEID_LIGHT_PORTAL              0x00115C89
 
 // Arnold Shaders
 #define ARNOLD_NODEID_CUSTOM                    0x00115D00

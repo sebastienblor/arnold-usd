@@ -118,7 +118,7 @@ void CQuadLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
    AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
-   AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool());
+   //AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool()); removed it from here as we now have a dedicated light portal node
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
@@ -142,7 +142,7 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("decay_type");
    helper.MakeInput("resolution");
    helper.MakeInput("spread");
-   helper.MakeInput("portal");
+   //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }
