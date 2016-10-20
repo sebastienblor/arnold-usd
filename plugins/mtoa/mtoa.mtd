@@ -114,12 +114,10 @@
         maya.keyable        BOOL    False
         min                 INT     0
         max                 INT     999
-        default             INT     999
         linkable            BOOL    False
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
         maya.keyable        BOOL    False
-        default             FLOAT   1024
         linkable            BOOL    False
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
@@ -207,7 +205,6 @@
         max                 INT     100
         softmin             INT     0
         softmax             INT     10        
-        default             INT     2
         linkable            BOOL    False
     [attr GI_volume_samples]
         maya.keyable        BOOL    False
