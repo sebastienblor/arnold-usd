@@ -90,6 +90,7 @@ class QuadAreaLightTemplate(BaseAreaLightTemplate):
     def setup(self):
         self.addControl("aiSpread")
         self.addControl("aiResolution")
+        self.addControl("aiPortal")
         self.addSeparator()
         self.addCommonParameters()
 
