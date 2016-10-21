@@ -1,4 +1,5 @@
 #include "ObjectSetTranslator.h"
+#include "NodeTranslatorImpl.h"
 
 #include <maya/MFnSet.h>
 #include <maya/MDagPathArray.h>
@@ -30,6 +31,9 @@ void CObjectSetTranslator::Export(AtNode *set)
 {
    // We don't call CNodeTranslator::Export
    // because we don't want to export anything
+
+   // do we want to fill the member translators here ?
+   // FillMembersTranslators();
 
    AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s).",
                GetTranslatorName().asChar(), GetMayaNodeName().asChar(), MFnDependencyNode(GetMayaObject()).typeName().asChar());
@@ -97,6 +101,14 @@ void CObjectSetTranslator::NodeChanged(MObject& node, MPlug& plug)
 
 }
 
+void CObjectSetTranslator::DirtyElement(CNodeTranslator *elemTr)
+{
+   if (elemTr == NULL)
+      return;
+
+   CNodeTranslatorImpl::DirtyOverrideSets(elemTr);
+   
+}
 void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                                     MPlug& plug, MPlug& otherPlug,
                                                     void* clientData)
@@ -142,23 +154,16 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                   path = allPaths[instanceNumber];
                }
                if (path.isValid())
-               {
-                  CNodeTranslator *elemTr = GetTranslator(path); 
-                  if (elemTr)  elemTr->RequestUpdate();
-               }
+                  translator->DirtyElement(GetTranslator(path));
+                 
+               
                // Check also for shapes
                if (MStatus::kSuccess == path.extendToShape())
-               {
-                  CNodeTranslator *elemTr = GetTranslator(path); 
-                  if (elemTr)  elemTr->RequestUpdate();
-               }
+                  translator->DirtyElement(GetTranslator(path)); 
+               
             }
             else if (pname == "dnsm")
-            {
-               // dependency node
-               CNodeTranslator *elemTr = GetTranslator(otherPlug.node()); 
-               if (elemTr)  elemTr->RequestUpdate();
-            }
+               translator->DirtyElement(GetTranslator(otherPlug.node())); 
          }
       }
       else if (msg & (MNodeMessage::kAttributeAdded | MNodeMessage::kAttributeRemoved))
@@ -237,8 +242,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          }
          else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
          {
-            CNodeTranslator *elemTr = GetTranslator(linker); 
-            if (elemTr)  elemTr->RequestUpdate();
+            translator->DirtyElement(GetTranslator(linker)); 
          }
          else
          {
@@ -347,3 +351,11 @@ void CObjectSetTranslator::RequestUpdate()
    
 }
 
+void CObjectSetTranslator::Delete()
+{
+   for (size_t i = 0; i < m_membersTranslators.size(); ++i)
+      CNodeTranslatorImpl::DirtyOverrideSets(m_membersTranslators[i]);
+
+   CNodeTranslator::Delete();
+
+}
