@@ -1995,12 +1995,16 @@ void CArnoldSession::ExportTxFiles()
    int sessionMode = GetSessionMode();
    if (sessionMode == MTOA_SESSION_MATERIALVIEW || sessionMode == MTOA_SESSION_SWATCH ||
       sessionMode == MTOA_SESSION_UNDEFINED) return;
-   
-   CRenderOptions *renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
-   renderOptions->GetFromMaya(); 
 
-   bool autoTx = renderOptions->autoTx();
-   bool useTx = renderOptions->useExistingTiledTextures();
+   // FIXME really inconvenient
+   // we must not do this from the global render options, or we might override some export 
+   // command line settings
+   CRenderOptions renderOptions; 
+   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+   renderOptions.GetFromMaya(); 
+   
+   bool autoTx = renderOptions.autoTx();
+   bool useTx = renderOptions.useExistingTiledTextures();
 
    if (useTx == false && autoTx == false) return;
 
