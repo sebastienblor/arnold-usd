@@ -19,6 +19,15 @@ AtNode* CLightPortalTranslator::CreateArnoldNodes()
 
 void CLightPortalTranslator::Export(AtNode* portal)
 {
+   // Early out, light isn't visible so no point exporting anything else.
+   if (!IsRenderable())
+   {
+      AiNodeSetDisabled(portal, true);
+      //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);
+      return;
+   }
+   AiNodeSetDisabled(portal, false);
+   
    ExportMatrix(portal);
    AtPoint vertices[4];
 
