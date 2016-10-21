@@ -87,7 +87,8 @@ static void ChildAddedCallback(MDagPath &child, MDagPath &parent, void *clientDa
       if (dagIterator.getPath(path))
       {
          CDagTranslator *oldTranslator = (CDagTranslator *)CNodeTranslator::GetTranslator(path);
-         oldTranslator->SetUpdateMode(CNodeTranslator::AI_DELETE_NODE);
+         if (oldTranslator)
+            oldTranslator->SetUpdateMode(CNodeTranslator::AI_DELETE_NODE);
       }
    }
    translator->RequestUpdate();
@@ -110,13 +111,13 @@ void CCurveCollectorTranslator::AddUpdateCallbacks()
 
    id = MDagMessage::addChildAddedDagPathCallback(rootPath, 
                                                    ChildAddedCallback, 
-                                                   NULL, 
+                                                   this, 
                                                    &status);
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    id = MDagMessage::addChildRemovedDagPathCallback(rootPath, 
                                                    ChildRemovedCallback, 
-                                                   NULL, 
+                                                   this, 
                                                    &status);
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
@@ -148,13 +149,13 @@ void CCurveCollectorTranslator::AddUpdateCallbacks()
 
             id = MDagMessage::addParentAddedDagPathCallback(dagPath,
                                                    ChildParentingChangedCallback, 
-                                                   NULL, 
+                                                   this, 
                                                    &status);
             if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
             id = MDagMessage::addParentRemovedDagPathCallback(dagPath, 
                                                    ChildParentingChangedCallback, 
-                                                   NULL, 
+                                                   this, 
                                                    &status);
             if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
