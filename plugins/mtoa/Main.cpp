@@ -55,7 +55,7 @@
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
-#include "nodes/shape/ArnoldCurvesCollector.h"
+#include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
@@ -76,7 +76,7 @@
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/CurveTranslator.h"
-#include "translators/shape/CurvesCollectorTranslator.h"
+#include "translators/shape/CurveCollectorTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
 #include "translators/shape/ProceduralTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
@@ -219,8 +219,8 @@ namespace // <anonymous>
          CArnoldSkyDomeLightNode::creator, CArnoldSkyDomeLightNode::initialize,
          MPxNode::kLocatorNode, &AI_SKYDOME_LIGHT_WITH_SWATCH
       } , {
-         "aiCurvesCollector", CArnoldCurvesCollector::id,
-         CArnoldCurvesCollector::creator, CArnoldCurvesCollector::initialize,
+         "aiCurveCollector", CArnoldCurveCollector::id,
+         CArnoldCurveCollector::creator, CArnoldCurveCollector::initialize,
          MPxNode::kLocatorNode, 0
       } , {
          "aiAreaLight", CArnoldAreaLightNode::id,
@@ -522,10 +522,10 @@ namespace // <anonymous>
                                     CCurveTranslator::creator,
                                     CCurveTranslator::NodeInitializer);
 
-      builtin->RegisterTranslator("aiCurvesCollector",
+      builtin->RegisterTranslator("aiCurveCollector",
                                     "",
-                                    CCurvesCollectorTranslator::creator,
-                                    CCurvesCollectorTranslator::NodeInitializer);
+                                    CCurveCollectorTranslator::creator,
+                                    CCurveCollectorTranslator::NodeInitializer);
       // Particles
       builtin->RegisterTranslator("particle",
                                     "",

@@ -1,4 +1,4 @@
-#include "CurvesCollectorTranslator.h"
+#include "CurveCollectorTranslator.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -15,22 +15,22 @@
 
 typedef std::vector<float> CurveWidths;
 
-void CCurvesCollectorTranslator::NodeInitializer(CAbTranslator context)
+void CCurveCollectorTranslator::NodeInitializer(CAbTranslator context)
 {
 }
 
-AtNode* CCurvesCollectorTranslator::CreateArnoldNodes()
+AtNode* CCurveCollectorTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("curves");
 }
 
-void CCurvesCollectorTranslator::Init()
+void CCurveCollectorTranslator::Init()
 {  
    CShapeTranslator::Init();
    ComputeCurvesList(m_curveDagPaths);
 }
 
-void CCurvesCollectorTranslator::ComputeCurvesList(MDagPathArray &pathArray)
+void CCurveCollectorTranslator::ComputeCurvesList(MDagPathArray &pathArray)
 {
    pathArray.clear();
    MDagPath rootPath(GetMayaDagPath());
@@ -55,20 +55,20 @@ void CCurvesCollectorTranslator::ComputeCurvesList(MDagPathArray &pathArray)
 
 static void ChildCurvesDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 {
-   CCurvesCollectorTranslator *translator = (CCurvesCollectorTranslator*) clientData;
+   CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_NODE);
    translator->RequestUpdate();
 }
 
 static void ChildCurvesDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData)
 {
-   CCurvesCollectorTranslator *translator = (CCurvesCollectorTranslator*) clientData;
+   CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
    translator->RequestUpdate();
 }
 static void ChildParentingChangedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
-   CCurvesCollectorTranslator *translator = (CCurvesCollectorTranslator*) clientData;
+   CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
    CDagTranslator::ExportDagPath(child);
    translator->RequestUpdate();
@@ -76,7 +76,7 @@ static void ChildParentingChangedCallback(MDagPath &child, MDagPath &parent, voi
 
 static void ChildAddedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
-   CCurvesCollectorTranslator *translator = (CCurvesCollectorTranslator*) clientData;
+   CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
 
    MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
@@ -94,13 +94,13 @@ static void ChildAddedCallback(MDagPath &child, MDagPath &parent, void *clientDa
 }
 static void ChildRemovedCallback(MDagPath &child, MDagPath &parent, void *clientData)
 {
-   CCurvesCollectorTranslator *translator = (CCurvesCollectorTranslator*) clientData;
+   CCurveCollectorTranslator *translator = (CCurveCollectorTranslator*) clientData;
    translator->SetUpdateMode(CNodeTranslator::AI_RECREATE_TRANSLATOR);
    CDagTranslator::ExportDagPath(child);
    translator->RequestUpdate();
 }
 
-void CCurvesCollectorTranslator::AddUpdateCallbacks()
+void CCurveCollectorTranslator::AddUpdateCallbacks()
 {
    CShapeTranslator::AddUpdateCallbacks();
    MCallbackId id;
@@ -290,7 +290,7 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
 }
 
 
-void CCurvesCollectorTranslator::Export( AtNode *curve )
+void CCurveCollectorTranslator::Export( AtNode *curve )
 {
    ExportMatrix(curve);
    ProcessRenderFlags(curve);
@@ -448,7 +448,7 @@ void CCurvesCollectorTranslator::Export( AtNode *curve )
 
 }
 
-void CCurvesCollectorTranslator::ExportMotion( AtNode *curve )
+void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
 {
    if (!IsMotionBlurEnabled()) return;
 
@@ -488,7 +488,7 @@ void CCurvesCollectorTranslator::ExportMotion( AtNode *curve )
 
 }
 
-void CCurvesCollectorTranslator::NodeChanged(MObject& node, MPlug& plug)
+void CCurveCollectorTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    if (!IsTransformPlug(plug))
       SetUpdateMode(AI_RECREATE_NODE);

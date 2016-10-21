@@ -43,10 +43,10 @@ def doExportOptionsStandIn():
 
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
-def doCreateCurvesCollector():
+def doCreateCurveCollector():
     # Get selection and group the curves ?
     sls = cmds.ls(sl=True, et='transform')
-    curveNode = mutils.createLocator('aiCurvesCollector')
+    curveNode = mutils.createLocator('aiCurveCollector')
 
     if len(sls) > 0:
         for slsElem in sls:
@@ -383,8 +383,8 @@ def createArnoldMenu():
         pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
                     c=lambda *args: cmds.CreateAreaLight())
         
-        pm.menuItem('CurvesCollector', label='Curves Collector', parent='ArnoldMenu',
-                    c=lambda *args: doCreateCurvesCollector())
+        pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu',
+                    c=lambda *args: doCreateCurveCollector())
         pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu',
                     c=lambda *args: createVolume())
                     

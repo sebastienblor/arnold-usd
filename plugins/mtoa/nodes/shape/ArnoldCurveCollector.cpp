@@ -1,4 +1,4 @@
-#include "ArnoldCurvesCollector.h"
+#include "ArnoldCurveCollector.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "translators/DagTranslator.h"
@@ -16,27 +16,27 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
 
-MTypeId CArnoldCurvesCollector::id(ARNOLD_NODEID_CURVES_COLLECTOR);
+MTypeId CArnoldCurveCollector::id(ARNOLD_NODEID_CURVES_COLLECTOR);
 
-CStaticAttrHelper CArnoldCurvesCollector::s_attributes(CArnoldCurvesCollector::addAttribute);
+CStaticAttrHelper CArnoldCurveCollector::s_attributes(CArnoldCurveCollector::addAttribute);
 
-MObject CArnoldCurvesCollector::s_width;
-MObject CArnoldCurvesCollector::s_sampleRate;
-MObject CArnoldCurvesCollector::s_curveShader;
-MObject CArnoldCurvesCollector::s_curveShaderR;
-MObject CArnoldCurvesCollector::s_curveShaderG;
-MObject CArnoldCurvesCollector::s_curveShaderB;
-MObject CArnoldCurvesCollector::s_exportRefPoints;
-MObject CArnoldCurvesCollector::s_minPixelWidth;
-MObject CArnoldCurvesCollector::s_mode;
+MObject CArnoldCurveCollector::s_width;
+MObject CArnoldCurveCollector::s_sampleRate;
+MObject CArnoldCurveCollector::s_curveShader;
+MObject CArnoldCurveCollector::s_curveShaderR;
+MObject CArnoldCurveCollector::s_curveShaderG;
+MObject CArnoldCurveCollector::s_curveShaderB;
+MObject CArnoldCurveCollector::s_exportRefPoints;
+MObject CArnoldCurveCollector::s_minPixelWidth;
+MObject CArnoldCurveCollector::s_mode;
 
 
-void* CArnoldCurvesCollector::creator()
+void* CArnoldCurveCollector::creator()
 {
-   return new CArnoldCurvesCollector();
+   return new CArnoldCurveCollector();
 }
 
-MStatus CArnoldCurvesCollector::initialize()
+MStatus CArnoldCurveCollector::initialize()
 {
    s_attributes.SetNode("curves");
 
@@ -127,14 +127,14 @@ MStatus CArnoldCurvesCollector::initialize()
    return MS::kSuccess;
 }
 
-void CArnoldCurvesCollector::postConstructor()
+void CArnoldCurveCollector::postConstructor()
 {
    // Call parent postConstructor as it is not done automatically as the parent constructor
    MPxLocatorNode::postConstructor();
    setMPSafe(true);
 }
 
-MStatus CArnoldCurvesCollector::compute(const MPlug& plug, MDataBlock& block)
+MStatus CArnoldCurveCollector::compute(const MPlug& plug, MDataBlock& block)
 {
    return MS::kUnknownParameter;
 }

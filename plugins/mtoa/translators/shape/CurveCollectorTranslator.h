@@ -3,13 +3,13 @@
 #include "ShapeTranslator.h"
 #include "maya/MDagPathArray.h"
 
-class CCurvesCollectorTranslator
+class CCurveCollectorTranslator
    :   public CShapeTranslator
 {
 public:
-   CCurvesCollectorTranslator() : CShapeTranslator(), m_sampleRate(5)
+   CCurveCollectorTranslator() : CShapeTranslator(), m_sampleRate(5)
    {}
-   virtual ~CCurvesCollectorTranslator(){}
+   virtual ~CCurveCollectorTranslator(){}
 
    virtual void Export(AtNode* curve);
    virtual void ExportMotion(AtNode* curve);
@@ -17,7 +17,7 @@ public:
    AtNode* CreateArnoldNodes();
    static void* creator()
    {
-      return new CCurvesCollectorTranslator();
+      return new CCurveCollectorTranslator();
    }
    virtual bool ExportDagChildren() const {return false;}
    virtual void Init();

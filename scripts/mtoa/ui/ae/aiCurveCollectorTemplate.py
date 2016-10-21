@@ -5,7 +5,7 @@ import mtoa.utils as utils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
-class AEaiCurvesCollectorTemplate(ShaderAETemplate):
+class AEaiCurveCollectorTemplate(ShaderAETemplate):
 
     def setup(self):
         self.beginScrollLayout()
