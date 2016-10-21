@@ -315,7 +315,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          saveToRenderView = args.flagArgumentString("saveToRenderView", 0);
       }
 
-      unordered_set<double> frameSet;
+      std::set<double> frameSet;
 
       if (args.isFlagSet("seq"))
       {
@@ -354,7 +354,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       
 
-      for (unordered_set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
+      for (std::set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
       {
          const double framerender = *frameIt;
          MGlobal::viewFrame(framerender);
