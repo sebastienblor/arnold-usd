@@ -396,12 +396,19 @@ void CRenderViewMtoA::UpdateSceneChanges()
       CMayaScene::Export();
    }
 
-   // SetExportCamera mus be called AFTER CMayaScene::Export
-   CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+   if (cameras.length() > 0)
+   {
+      if (cameras[0].isValid())
+      {
+         CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
+      }
+      // SetExportCamera mus be called AFTER CMayaScene::Export
+      CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
 
-   // Set resolution and camera as passed in.
-   CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-   CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+      // Set resolution and camera as passed in.
+      CMayaScene::GetRenderSession()->SetResolution(-1, -1);
+      CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+   }
 
    UpdateRenderCallbacks();
 }
