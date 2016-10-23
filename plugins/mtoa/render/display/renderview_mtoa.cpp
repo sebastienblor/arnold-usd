@@ -188,6 +188,11 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    return size;
 }
 
+#if MAYA_API_VERSION >= 201700
+#ifndef _LINUX
+#define ARV_DOCKED 1
+#endif
+#endif
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
    // Check if attribute ARV_options exist
@@ -200,7 +205,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
    } 
 
-#if MAYA_API_VERSION >= 201700
+#ifdef ARV_DOCKED
 
    // Docking in maya workspaces only supported from maya 2017.
    // For older versions, we tried using QDockWindows (see branch FB-2470)
