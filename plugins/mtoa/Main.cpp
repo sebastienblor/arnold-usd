@@ -5,7 +5,9 @@
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
+#include "viewport2/ArnoldLightPortalDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
+#include "viewport2/ArnoldMeshLightDrawOverride.h"
 #if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
@@ -30,6 +32,7 @@
 
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
+#include "commands/ArnoldUpdateTxCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldBakeGeoCmd.h"
@@ -52,11 +55,14 @@
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
+#include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
 #include "nodes/light/ArnoldLightBlockerNode.h"
 #include "nodes/light/ArnoldPhotometricLightNode.h"
+#include "nodes/light/ArnoldMeshLightNode.h"
+#include "nodes/light/ArnoldLightPortal.h"
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
@@ -64,11 +70,13 @@
 #include "translators/light/LightTranslators.h"
 #include "translators/light/LightLinkerTranslator.h"
 #include "translators/light/LightBlockerTranslator.h"
+#include "translators/light/LightPortalTranslator.h"
 #include "translators/shader/ShaderTranslators.h"
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/CurveTranslator.h"
+#include "translators/shape/CurveCollectorTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
 #include "translators/shape/ProceduralTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
@@ -130,19 +138,21 @@ namespace // <anonymous>
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
       {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
       {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax},
-      {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax}
+      {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
+      {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
    // This will allow it to be automatically filtered out by viewport display filters.
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
+   const MString AI_LIGHT_PORTAL_CLASSIFICATION = "drawdb/geometry/light/arnold/lightPortal";
 #if MAYA_API_VERSION >= 201700
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight";
 #else
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
 #endif
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201720
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION + ":drawdb/light/image";
 #else
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
@@ -158,10 +168,20 @@ namespace // <anonymous>
    const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
 #if MAYA_API_VERSION >= 201700
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION + ":drawdb/light/spotLight";
+#if MAYA_API_VERSION >= 201800
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION + ":drawdb/light/image/environment"; 
+#else
+   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION; 
+#endif
 #else
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
+#endif
+   const MString AI_MESH_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/meshLight";
+#if MAYA_API_VERSION >= 201700
+   const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION + ":drawdb/light/pointLight";
+#else
+   const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION;
 #endif
 
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
@@ -199,13 +219,25 @@ namespace // <anonymous>
          CArnoldSkyDomeLightNode::creator, CArnoldSkyDomeLightNode::initialize,
          MPxNode::kLocatorNode, &AI_SKYDOME_LIGHT_WITH_SWATCH
       } , {
+         "aiCurveCollector", CArnoldCurveCollector::id,
+         CArnoldCurveCollector::creator, CArnoldCurveCollector::initialize,
+         MPxNode::kLocatorNode, 0
+      } , {
          "aiAreaLight", CArnoldAreaLightNode::id,
          CArnoldAreaLightNode::creator, CArnoldAreaLightNode::initialize,
          MPxNode::kLocatorNode, &AI_AREA_LIGHT_WITH_SWATCH
       } , {
+         "aiLightPortal", CArnoldLightPortalNode::id,
+         CArnoldLightPortalNode::creator, CArnoldLightPortalNode::initialize,
+         MPxNode::kLocatorNode, &AI_LIGHT_PORTAL_CLASSIFICATION
+      } , {
          "aiPhotometricLight", CArnoldPhotometricLightNode::id,
          CArnoldPhotometricLightNode::creator, CArnoldPhotometricLightNode::initialize,
          MPxNode::kLocatorNode, &AI_PHOTOMETRIC_LIGHT_WITH_SWATCH
+      } , {
+         "aiMeshLight", CArnoldMeshLightNode::id,
+         CArnoldMeshLightNode::creator, CArnoldMeshLightNode::initialize,
+         MPxNode::kLocatorNode, &AI_MESH_LIGHT_WITH_SWATCH
       } , {
          "aiLightBlocker", CArnoldLightBlockerNode::id,
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
@@ -249,6 +281,11 @@ namespace // <anonymous>
          AI_AREA_LIGHT_CLASSIFICATION,
          CArnoldAreaLightDrawOverride::creator
       } , 
+      {
+         "arnoldLightPortalNodeOverride",
+         AI_LIGHT_PORTAL_CLASSIFICATION,
+         CArnoldLightPortalDrawOverride::creator
+      } , 
 #if MAYA_API_VERSION < 201700
       {
          "arnoldSkyDomeLightNodeOverride",
@@ -264,11 +301,17 @@ namespace // <anonymous>
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
       } ,
+
 #endif
       {
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
          CArnoldPhotometricLightDrawOverride::creator
+      } ,
+      {
+         "arnoldMeshLightNodeOverride",
+         AI_MESH_LIGHT_CLASSIFICATION,
+         CArnoldMeshLightDrawOverride::creator
       }  
    };
 #endif
@@ -374,11 +417,20 @@ namespace // <anonymous>
                                   "",
                                   CSkyDomeLightTranslator::creator,
                                   CSkyDomeLightTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiLightPortal",
+                                  "",
+                                  CLightPortalTranslator::creator,
+                                  CLightPortalTranslator::NodeInitializer);
                                    
       builtin->RegisterTranslator("aiPhotometricLight",
                                     "",
                                     CPhotometricLightTranslator::creator,
                                     CPhotometricLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiMeshLight",
+                                    "",
+                                    CMeshLightNewTranslator::creator,
+                                    CMeshLightNewTranslator::NodeInitializer);
 
       builtin->RegisterTranslator("lightLinker",
                                     "",
@@ -470,6 +522,10 @@ namespace // <anonymous>
                                     CCurveTranslator::creator,
                                     CCurveTranslator::NodeInitializer);
 
+      builtin->RegisterTranslator("aiCurveCollector",
+                                    "",
+                                    CCurveCollectorTranslator::creator,
+                                    CCurveCollectorTranslator::NodeInitializer);
       // Particles
       builtin->RegisterTranslator("particle",
                                     "",
@@ -918,7 +974,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
        "arnoldStandInNodeOverride",
        CArnoldStandInSubSceneOverride::Creator);
    CHECK_MSTATUS(status);
-   	
+
    // Skydome light and sky shader share the same override as
    // they are drawn the same way.
    status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
@@ -1044,6 +1100,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 #if MAYA_API_VERSION < 201700
       CArnoldPhotometricLightDrawOverride::clearGPUResources();
       CArnoldAreaLightDrawOverride::clearGPUResources();
+      CArnoldLightPortalDrawOverride::clearGPUResources();
       CArnoldStandInDrawOverride::clearGPUResources();
 #endif
    }

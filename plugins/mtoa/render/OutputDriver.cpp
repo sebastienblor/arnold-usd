@@ -661,8 +661,14 @@ void GenerateRenderViewCaptionCmd(time_t elapsed, unsigned int mem_used, MString
       {
          if (s_layer_name != "")
          {
+            // Get layer display name
+            MString layerDisplayName = s_layer_name;
+            int scriptExists = 0;
+            MGlobal::executeCommand("exists renderLayerDisplayName", scriptExists);
+            if (scriptExists)
+               MGlobal::executeCommand("renderLayerDisplayName " + s_layer_name, layerDisplayName);
             cmd += "Layer: ";
-            cmd += s_layer_name;
+            cmd += layerDisplayName;
          }
       }
 

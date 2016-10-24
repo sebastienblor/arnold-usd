@@ -1,7 +1,4 @@
-
-
 #include "HairTranslator.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -11,6 +8,7 @@
 #include <maya/MFnPfxGeometry.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
+
 
 void CHairTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -68,14 +66,10 @@ AtNode* CHairTranslator::CreateArnoldNodes()
    return AddArnoldNode("curves");
 }
 
+// FIXME should we set the update mode to RECREATE_NODE as CCurveTranslator ? (#2399)
 void CHairTranslator::Export( AtNode *curve )
 {
-   Update(curve);
-}
-// FIXME should we set the update mode to RECREATE_NODE as CCurveTranslator ? (#2399)
 
-void CHairTranslator::Update( AtNode *curve )
-{
    m_hairInfo = MObject(m_dagPath.node());
 
    MFnDagNode fnDagNodeHairShape(m_hairInfo);
@@ -93,8 +87,8 @@ void CHairTranslator::Update( AtNode *curve )
 
    MFnDependencyNode fnDepNodeHair(hairSystemObject);
    
-   // Set curve matrix for step 0   
-   ExportMatrix(curve, 0);
+   // Set rest curve matrix
+   ExportMatrix(curve);
 
    MPlug plug;  
    
@@ -130,11 +124,8 @@ void CHairTranslator::Update( AtNode *curve )
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_GLOSSY;   
    
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
-      // The shader nodes
-      // TODO: Kill these and export it properly.
       AtNode* shader = NULL;
       
       plug = fnDepNodeHair.findPlug("aiOverrideHair");
@@ -146,18 +137,23 @@ void CHairTranslator::Update( AtNode *curve )
          {
             plug.connectedTo(curveShaderPlug, true, false);
             if (curveShaderPlug.length() > 0)
-            {
-               CNodeTranslator* shaderTranslator; // the shading engine's translator is not called
-               // because there is no maya node for it
-               shader = ExportRootShader(curveShaderPlug[0], &shaderTranslator);
-               if ((shader != 0) && (shaderTranslator != 0))
+            {               
+               shader = ExportConnectedNode(curveShaderPlug[0]);
+               if (shader)
                {
-                  plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
-                  if (status && !plug.isNull())
-                     ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
-                  plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
-                  if (status && !plug.isNull())
-                     ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
+                  CNodeTranslator* shaderTranslator = GetTranslator(curveShaderPlug[0].node()); // the shading engine's translator is not called
+                  // because there is no maya node for it
+
+                  // FIXME: check if this works properly and if there's another way of doing this
+                  if (shaderTranslator)
+                  {
+                     plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
+                     if (status && !plug.isNull())
+                        ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
+                     plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
+                     if (status && !plug.isNull())
+                        ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
+                  }
                }
             }
          }
@@ -165,9 +161,12 @@ void CHairTranslator::Update( AtNode *curve )
       // Default to the Hair shader if nothing else has been set.
       if (shader == NULL)
       {
-         shader = AiNode("MayaHair");
-         MString hairShaderName = fnDepNodeHair.name();
+         // First check if the internal root shader was already created in a previous export
+         shader = GetArnoldNode("rootShader");
+         if (shader == NULL)
+            shader = AddArnoldNode("MayaHair", "rootShader");
 
+         MString hairShaderName = fnDepNodeHair.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
          ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
@@ -223,10 +222,8 @@ void CHairTranslator::Update( AtNode *curve )
          }
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse");
          AiNodeSetFlt(shader, "indirectDiffuse", plug.asFloat());
-         shader = ExportRootShader(shader);
       }
-      // Assign shader
-      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+      SetRootShader(shader);      
    }
    
    AiNodeSetByte(curve, "visibility", visibility);  
@@ -309,6 +306,8 @@ void CHairTranslator::Update( AtNode *curve )
    if (!plug.isNull())
       AiNodeSetBool(curve, "receive_shadows", plug.asBool());
    
+   int step = GetMotionStep();
+
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur
    // Is not enabled
@@ -316,7 +315,7 @@ void CHairTranslator::Update( AtNode *curve )
    AtArray* curveNumPoints = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints, 1, AI_TYPE_FLOAT);
    
-   unsigned int iid = 0; // for the position data
+   unsigned int iid = m_numPointsInterpolation * step ; // for the position data
    unsigned int id = 0; // for the general data   
    for (unsigned int i = 0; i < numLines; ++i)
    {
@@ -404,13 +403,13 @@ void CHairTranslator::Update( AtNode *curve )
    mainLines.deleteArray();
 }
 
-void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
+void CHairTranslator::ExportMotion(AtNode *curve)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(curve, step);
+   ExportMatrix(curve);
 
    // Same for object deformation, early out if it's not set.
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
@@ -425,7 +424,7 @@ void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
    
    AtArray* curvePoints = AiNodeGetArray(curve, "points");
    
-   unsigned int iid = step * m_numPointsInterpolation;
+   unsigned int iid = GetMotionStep() * m_numPointsInterpolation;
    for (unsigned int i = 0; i < numLines; ++i)
    {
       MRenderLine renderLine = mainLines.renderLine(i, &status);

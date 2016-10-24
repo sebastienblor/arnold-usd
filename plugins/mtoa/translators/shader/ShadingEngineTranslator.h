@@ -11,21 +11,19 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
-   // shading engines are the root of tracking, so they ignore these calls and start their own
-   virtual void TrackAOVs(AOVSet* aovs) {};
-   virtual void TrackShaders(AtNodeSet* nodes) {};
-   void ComputeAOVs();
+
 
 protected:
+
    CShadingEngineTranslator() :
       CNodeTranslator()
-   {
-      m_shaders = new AtNodeSet;
-   }
-   virtual ~CShadingEngineTranslator()
-   {
-      delete m_shaders;
-   }
-protected:
-   MPlugArray m_customAOVPlugs;
+   {}
+   virtual ~CShadingEngineTranslator();
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   virtual void Init();
+
+private:
+   // internal use only : do not override it
+   virtual void CreateImplementation();
+
 };

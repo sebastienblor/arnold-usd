@@ -1,9 +1,6 @@
 #include "StandinsTranslator.h"
-
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -52,7 +49,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_session->IsRenderablePath(m_dagPath))
+   if (!IsRenderable())
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
@@ -180,42 +177,24 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    }
    else
    {
-      ExportProcedural(anode, false);
+      ExportProcedural(anode, IsExported());
    }
 }
 
-void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CArnoldStandInsTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
-}
-
-void CArnoldStandInsTranslator::Update(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else
-   {
-      ExportProcedural(anode, true);
-   }
-}
-
-void CArnoldStandInsTranslator::UpdateMotion(AtNode* anode, unsigned int step)
-{
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 // Deprecated : Arnold support procedural instance, but it's not safe.
 //
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -226,8 +205,7 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    m_DagNode.setObject(masterInstance);
    
    if (m_DagNode.findPlug("overrideShaders").asBool() &&
-      ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
-       || CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines()))
+      RequiresShaderExport())
    {
       ExportStandinsShaders(instance);
    }
@@ -243,7 +221,7 @@ void CArnoldStandInsTranslator::ExportShaders()
 {
    AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
    /// TODO: Test shaders with standins.
-   ExportStandinsShaders(GetArnoldRootNode());
+   ExportStandinsShaders(GetArnoldNode());
 }
 
 void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
@@ -255,7 +233,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *shader = ExportNode(shadingGroupPlug);
+      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
          AiNodeSetPtr(procedural, "shader", shader);
@@ -283,7 +261,7 @@ void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
    int drawOverride = m_DagNode.findPlug("standin_draw_override").asShort(); 
    if (drawOverride == 0) 
    { 
-      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+      MObject ArnoldRenderOptionsNode = GetSessionOptions().GetArnoldRenderOptions(); 
       if (!ArnoldRenderOptionsNode.isNull()) 
          drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort(); 
    } 
@@ -323,9 +301,9 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 {
    m_DagNode.setObject(m_dagPath.node());
 
-   AiNodeSetStr(procedural, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(procedural, "name", GetArnoldNaming(m_dagPath).asChar());
 
-   ExportMatrix(procedural, 0);
+   ExportMatrix(procedural);
    ProcessRenderFlags(procedural);
    if (m_DagNode.findPlug("overrideShaders").asBool())
    {
@@ -446,7 +424,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
       }
       
-      m_session->FormatProceduralPath(resolvedName);
+      GetSessionOptions().FormatProceduralPath(resolvedName);
       AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");
@@ -461,14 +439,14 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
-
-      /*   FIXME : we're still having crashes when updating standins. For examples when nodes from one file reference nodes from another file
-      if (!AiNodeLookUpUserParameter(procedural, "allow_updates"))
-      {
-         AiNodeDeclare(procedural, "allow_updates", "constant BOOL");
-      }
-      AiNodeSetBool(procedural, "allow_updates", true); // do we need a security valve here ? like a new parameter to control that ?
-      */
    }
    return procedural;
+}
+
+
+void CArnoldStandInsTranslator::RequestUpdate()
+{  
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+   // this should propagate a request update on all other procedurals, standins, referencing me
 }

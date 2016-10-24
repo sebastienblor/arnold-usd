@@ -1,8 +1,6 @@
 #pragma once
 
 #include "translators/shape/ShapeTranslator.h"
-#include "translators/NodeTranslator.h"
-
 
 class CBfDescriptionTranslator : public CShapeTranslator
 {
@@ -18,12 +16,13 @@ public:
 
    AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* shape);
-   virtual void Update(AtNode* shape);
-   void ExportMotion(AtNode*, unsigned int);
+   void ExportMotion(AtNode*);
 
    void UpdateFoam(AtNode *shape);
    void UpdateAero(AtNode *shape);
    void UpdateLiquid(AtNode *shape);
+
+   void RequestUpdate();
 
    static void* creator()
    {

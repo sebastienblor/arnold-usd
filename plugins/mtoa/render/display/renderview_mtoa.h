@@ -194,11 +194,8 @@ private:
    MPoint m_center;
    MVector m_upDirection;
    float m_centerDist;
-   float m_origLon;
-   float m_origLat;
    MVector m_viewDirection;
    MVector m_origRotation;
-   int m_width;
    
 
 };

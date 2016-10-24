@@ -2,7 +2,6 @@
 #include <maya/MStringArray.h>
 #include <maya/MNodeClass.h>
 
-#include "extension/PathUtils.h"
 
 // An Arnold node entry proxy
 CPxArnoldNode::CPxArnoldNode(const MString &nodeName)

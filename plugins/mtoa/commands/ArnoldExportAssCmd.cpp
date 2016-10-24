@@ -41,6 +41,9 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("sl", "shadowLinks", MSyntax::kUnsigned);
    syntax.addFlag("ep", "expandProcedurals");
    syntax.addFlag("fsh", "forceTranslateShadingEngines");
+   syntax.addFlag("fp", "fullPath");
+   syntax.addFlag("ep", "exportPrefix", MSyntax::kString);
+
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -138,6 +141,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString cameraName = "";
    MString optionsName = "";
    MString assExtension = "ass";
+   MString exportPrefix = "";
 
    bool writeBox                     = false;
    bool createDirectory              = true;
@@ -147,6 +151,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    bool asciiAss                     = true;
    bool expandProcedurals            = false;
    bool forceTranslateShadingEngines = false;
+   bool fullPath                     = false;
    int mask        = -1;
    int lightLinks  = -1;
    int shadowLinks = -1;
@@ -275,6 +280,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       forceTranslateShadingEngines = true;
    }
+   if (argDB.isFlagSet("fullPath"))
+   {
+      fullPath = true;
+   }
+   if (argDB.isFlagSet("exportPrefix"))
+   {
+      argDB.getFlagArgument("exportPrefix", 0, exportPrefix);
+   }
 
    // Get Maya scene information
    MString sceneName = MFileIO::currentFile();
@@ -357,6 +370,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       }
       renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
       
+      arnoldSession->SetExportFullPath(fullPath);
+      arnoldSession->SetExportPrefix(exportPrefix);
+   
       MFnDependencyNode fnCam;
 
       // Export the scene or the selection

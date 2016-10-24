@@ -1,11 +1,29 @@
 #include "ShadingEngineTranslator.h"
+#include "ShadingEngineTranslatorImpl.h"
+#include "../DagTranslator.h"
 #include "scene/MayaScene.h"
+
+CShadingEngineTranslator::~CShadingEngineTranslator()
+{
+   if (m_impl)
+      delete m_impl->m_shaders;
+}
+
+void CShadingEngineTranslator::Init()
+{
+   m_impl->m_shaders = new unordered_set<AtNode*>;//AtNodeSet;
+   CNodeTranslator::Init();
+}
 
 AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("MayaShadingEngine");
 }
 
+void CShadingEngineTranslator::CreateImplementation()
+{
+   m_impl = new CShadingEngineTranslatorImpl(*this);
+}
 
 void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -40,33 +58,6 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputRGB(data);
 }
 
-/// Compute the shading engine's AOVs. these are connected to aiCustomAOVs compound array.
-/// note that the final list of AOVs as tracked on "mtoa_aovs" user parameter does not include AOV global defaults
-void CShadingEngineTranslator::ComputeAOVs()
-{
-   MPlugArray connections;
-   // loop through and export custom AOV networks
-   MPlug arrayPlug = FindMayaPlug("aiCustomAOVs");
-   for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
-   {
-      MPlug msgPlug = arrayPlug[i].child(1);
-      msgPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         CAOV aov;
-         MString value = arrayPlug[i].child(0).asString();
-         aov.SetName(value);
-         if (m_session->IsActiveAOV(aov))
-         {
-            m_localAOVs.insert(aov);
-            m_customAOVPlugs.append(connections[0]);
-            AiMsgDebug("[mtoa.translator.aov] %-30s | \"%s\" is active on attr %s",
-                       GetMayaNodeName().asChar(), value.asChar(), msgPlug.partialName(false, false, false, false, true, true).asChar());
-         }
-      }
-   }
-}
-
 /// Find and export the surfaceShader and custom AOVs for the passed shadingGroup, and add the global AOV defaults.
 ///
 /// Nodes to be written to AOVs are connected to a special attribute on the shading group called aiCustomAOVs.
@@ -80,6 +71,7 @@ void CShadingEngineTranslator::ComputeAOVs()
 /// the remaining custom AOVs are processed by CShadingEngineTranslator::Export.
 void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 {
+   
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) == 0)
       return;
    std::vector<AtNode*> aovShaders;
@@ -97,7 +89,8 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    {
       // export the root shading network, this fills m_shaders
       CNodeTranslator* shaderNodeTranslator = 0;
-      rootShader = ExportNode(connections[0], true, &shaderNodeTranslator);
+      // here we call the private implementation function as we need the output translator
+      rootShader = m_impl->ExportConnectedNode(connections[0], true, &shaderNodeTranslator);
       if (rootShader)
       {
          AiNodeLink(rootShader, "beauty", shadingEngine);
@@ -115,10 +108,13 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       }
 
       // loop through and export custom AOV networks
-      for (unsigned int i = 0; i < m_customAOVPlugs.length(); i++)
+      CShadingEngineTranslatorImpl *trImpl = static_cast<CShadingEngineTranslatorImpl*>(m_impl);
+      for (unsigned int i = 0; i < trImpl->m_customAOVPlugs.length(); i++)
       {
          // by passing false we avoid tracking shaders and aovs.
-         AtNode* writeNode = ExportNode(m_customAOVPlugs[i], false);
+         // we need to call the private implementation function to prevent shaders tracking
+         AtNode* writeNode = m_impl->ExportConnectedNode(trImpl->m_customAOVPlugs[i], false);
+         
          // since we know this maya node is connected to aiCustomAOVs it will have a write node
          // inserted after it by CShaderTranslator::ProcessAOVOutput (assuming the node is translated by
          // CShaderTranslator)
@@ -126,15 +122,18 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 
          // if the node is not yet in the shading network for this shape, then branch it in.
          // m_shaders contains all the arnold nodes in a shape's shading network.
-         if (!m_shaders->count(writeNode))
+         if (!m_impl->m_shaders->count(writeNode))
          {
             aovShaders.push_back(writeNode);
          }
       }
    }
    else
+   {
       AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
             GetTranslatorName().asChar(), GetMayaNodeName().asChar());
+      AiNodeUnlink(shadingEngine, "beauty");
+   }
    
    connections.clear();
    MPlug volumeShaderPlug = FindMayaPlug("aiVolumeShader");
@@ -150,10 +149,86 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       // export the root shading network, this fills m_shaders
       MFnDependencyNode shaderNode(connections[0].node());
       MStatus status;
-      rootShader = ExportNode(connections[0]);
+      rootShader = ExportConnectedNode(connections[0]);
       AiNodeLink(rootShader, "volume", shadingEngine);
+   } else
+   {
+      AiNodeUnlink(shadingEngine, "volume");
    }
 
-   AddAOVDefaults(shadingEngine, aovShaders); // modifies aovShaders list
+   m_impl->AddAOVDefaults(shadingEngine, aovShaders); // modifies aovShaders list
+}
+
+void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
+   // we happen to receive this signal quite often, but it doesn't seem to affect the render.
+   // For example, when we select a shader in the hypershade (#2540), it used to trigger a re-render.
+   // We're returning without calling CNodeTranslator::NodeChanged so that it doesn't request an update
+   if(plugName == "dagSetMembers") return;
+
+   if(plugName == "displacementShader")
+   {
+      MFnDependencyNode dnode(node);
+      std::vector< CNodeTranslator * > translatorsToUpdate;
+      bool reexport = true;
+      MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
+      const unsigned int numElements = dagSetMembersPlug.numElements();
+      for(unsigned int i = 0; i < numElements; i++)
+      {
+         MPlug a = dagSetMembersPlug[i];
+         MPlugArray connectedPlugs;
+         a.connectedTo(connectedPlugs,true,false);
+
+         const unsigned int connectedPlugsLength = connectedPlugs.length();
+         for(unsigned int j = 0; j < connectedPlugsLength; j++)
+         {
+            MPlug connection = connectedPlugs[j];
+            MObject parent = connection.node();
+            MFnDependencyNode parentDag(parent);
+            MString nameParent = parentDag.name();
+
+            MDagPath dagPath;
+            MStatus status = MDagPath::getAPathTo(parent, dagPath);
+            if (!status)
+               continue;
+
+            CNodeTranslator* translator2 = m_impl->m_session->ExportDagPath(dagPath, true);
+
+            if (translator2 == 0)
+               continue;
+
+            // TODO: By now we have to check the connected nodes and if something that is not a mesh
+            //  is connected, we do not reexport, as some crashes may happen.
+            if(MFnDependencyNode(translator2->GetMayaObject()).typeName() != "mesh")
+            {
+               reexport = false;
+               break;
+            }
+
+            translatorsToUpdate.push_back(translator2);
+         }
+
+         if(reexport == false)
+            break;
+      }
+
+      // We only reexport if all nodes connected to the displacement are mesh nodes
+      if (reexport)
+      {
+         for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+            iter != translatorsToUpdate.end(); ++iter)
+         {
+            CNodeTranslator* translator3 = (*iter);
+            if (translator3 != NULL)
+            {
+               translator3->SetUpdateMode(AI_RECREATE_NODE);
+               translator3->RequestUpdate();
+            }
+         }
+      }
+   }
+   CNodeTranslator::NodeChanged(node, plug);
 }
 

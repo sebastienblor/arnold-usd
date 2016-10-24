@@ -28,3 +28,9 @@ MString txTexure(MString filename)
    cmd.format("import mtoa.makeTx; mtoa.makeTx.txTexture('^1s')", filename);
    return MGlobal::executePythonCommandStringResult(cmd);
 }
+
+void updateAllTx()
+{
+   MString cmd = "import mtoa.txManager; mtoa.txManager.UpdateAllTx()";
+   MGlobal::executePythonCommand(cmd);
+}

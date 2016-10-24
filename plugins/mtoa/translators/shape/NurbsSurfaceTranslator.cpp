@@ -1,4 +1,3 @@
-
 #include "NurbsSurfaceTranslator.h"
 
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
@@ -68,7 +67,7 @@ void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params
    params.setSubdivisionFlag(MTesselationParams::kUseTriangleEdgeSwapping, edgeSwap);
 }
 
-MStatus CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
+bool CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
 {
    MStatus status;
    MFnNurbsSurface surface(dagPath, &status);
@@ -97,7 +96,7 @@ MStatus CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
    // This is a member variable. We have to keep hold of it or Maya will release it.
    m_geometry = mesh_mobj;
 
-   return status;
+   return (status == MS::kSuccess);
 }
 
 AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
@@ -108,22 +107,10 @@ AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
       return AddArnoldNode("ginstance");
 }
 
-void CNurbsSurfaceTranslator::Export(AtNode* anode)
+void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode)
 {
-   const char* nodeType = AiNodeEntryGetName (AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, GetMasterInstance());
-   else if (strcmp(nodeType, "polymesh") == 0)
-   {
-      // Early return if we can't tessalate.
-      if (!Tessellate(m_dagPath))
-         return;
-      ExportMesh(anode, false);
-   }
-}
+   ExportMatrix(anode);
 
-void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
-{
    // Re-tessalate the nurbs surface, but only if it's needed.
    if (m_motion && m_motionDeform && IsMasterInstance())
    {
@@ -132,7 +119,7 @@ void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
       if (!Tessellate(m_dagPath)) return;
    }
 
-   CGeometryTranslator::ExportMotion(anode, step);
+   if (IsMasterInstance() && m_motionDeform) ExportMeshGeoData(anode);
 }
 
 // TODO: implement this check for nurbs.
@@ -141,3 +128,14 @@ bool CNurbsSurfaceTranslator::IsGeoDeforming()
    return true;
 }
 
+
+void CNurbsSurfaceTranslator::NodeChanged(MObject& node, MPlug& plug)
+{  
+   // FIXME we could optimize it a bit more and check exactly which parameters can trigger 
+   // a full re-export. 
+   // For now, it seems to me that most of the NurbsSurface parameter affect the geometry
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CPolygonGeometryTranslator::NodeChanged(node, plug);
+}

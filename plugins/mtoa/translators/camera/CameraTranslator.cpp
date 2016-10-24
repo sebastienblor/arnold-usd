@@ -1,6 +1,6 @@
 #include "CameraTranslator.h"
 #include "ImagePlaneTranslator.h"
-
+#include "../NodeTranslatorImpl.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
 
@@ -18,7 +18,8 @@
 
 using namespace std;
 
-void CCameraTranslator::ExportImagePlanes(unsigned int step)
+
+void CCameraTranslator::ExportImagePlanes()
 {   
    MPlug      imagePlanePlug;
    MPlug      imagePlaneNodePlug;
@@ -37,13 +38,40 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
 
          if (status && (connectedPlugs.length() > 0))
          {
-            CNodeTranslator *imgTranslator = m_session->ExportNode(connectedPlugs[0], NULL, NULL, true);
+            CNodeTranslator *imgTranslator = m_impl->m_session->ExportNode(connectedPlugs[0], NULL, NULL, true);
             CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
-            imgPlaneTranslator->SetCamera(GetMayaNodeName());
+
+            if (imgPlaneTranslator)
+            {
+               if (!IsExportingMotion()) imgPlaneTranslator->SetCamera(GetMayaNodeName());
+               else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
+            }
          }
       }
    }
 }
+void CCameraTranslator::Init()
+{
+   CDagTranslator::Init();
+   m_fnCamera.setObject(m_dagPath);
+}
+
+// Do we need this function ? a previous comment said it shouldn't be required
+bool CCameraTranslator::RequiresMotionData()
+{
+   MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");
+   if (motionBlurOverridePlug.isNull())
+      return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+   else
+   {
+      const short motionBlurOverride = motionBlurOverridePlug.asShort();
+      if (motionBlurOverride == 0)
+         return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      else
+         return (motionBlurOverride == 1) ? true : false;
+   }      
+}
+
 
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
@@ -51,9 +79,9 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    if (FindMayaPlug("aiEnableDOF").asBool())
    {
       float distance = FindMayaPlug("aiFocusDistance").asFloat();
-      m_session->ScaleDistance(distance);      
+      m_impl->m_session->ScaleDistance(distance);      
       float apertureSize = FindMayaPlug("aiApertureSize").asFloat();
-      m_session->ScaleDistance(apertureSize);
+      m_impl->m_session->ScaleDistance(apertureSize);
       AiNodeSetFlt(camera, "focus_distance",          distance);
       AiNodeSetFlt(camera, "aperture_size",           apertureSize);
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
@@ -74,6 +102,16 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
 
 void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
+   if (IsExportingMotion())
+   {
+      // for motion steps, only set the matrix at current step
+      AtMatrix matrix;
+      GetMatrix(matrix);
+
+      AtArray* matrices = AiNodeGetArray(camera, "matrix");
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
+      return;
+   }
    AtMatrix matrix;
 
    AiNodeSetFlt(camera, "exposure", FindMayaPlug("aiExposure").asFloat());
@@ -94,7 +132,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, 0, matrix);
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
       AiNodeSetArray(camera, "matrix", matrices);
    }
    else
@@ -108,19 +146,10 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       plug.connectedTo(filtermapPlug, true, false);
       if (filtermapPlug.length() > 0)
       {
-         AtNode* filtermap = ExportNode(filtermapPlug[0]);
+         AtNode* filtermap = ExportConnectedNode(filtermapPlug[0]);
          AiNodeSetPtr(camera, "filtermap", filtermap);
       }
    }
-}
-
-void CCameraTranslator::ExportCameraMBData(AtNode *camera, unsigned int step)
-{
-   AtMatrix matrix;
-   GetMatrix(matrix);
-
-   AtArray* matrices = AiNodeGetArray(camera, "matrix");
-   AiArraySetMtx(matrices, step, matrix);
 }
 
 double CCameraTranslator::GetDeviceAspect()
@@ -336,14 +365,14 @@ void CCameraTranslator::GetMatrix(AtMatrix& matrix)
    MMatrix mayaMatrix = m_dagPath.inclusiveMatrix(&status);
    if (status)
    {
-      if (m_session)
+      if (m_impl->m_session)
       {
          MTransformationMatrix trMat = mayaMatrix;
-         trMat.addTranslation((-1.0) * m_session->GetOrigin(), MSpace::kWorld);
+         trMat.addTranslation((-1.0) * m_impl->m_session->GetOrigin(), MSpace::kWorld);
          MMatrix copyMayaMatrix = trMat.asMatrix();
-         copyMayaMatrix[3][0] = m_session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
-         copyMayaMatrix[3][1] = m_session->ScaleDistance(copyMayaMatrix[3][1]);
-         copyMayaMatrix[3][2] = m_session->ScaleDistance(copyMayaMatrix[3][2]);
+         copyMayaMatrix[3][0] = m_impl->m_session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
+         copyMayaMatrix[3][1] = m_impl->m_session->ScaleDistance(copyMayaMatrix[3][1]);
+         copyMayaMatrix[3][2] = m_impl->m_session->ScaleDistance(copyMayaMatrix[3][2]);
 
          for (int J = 0; (J < 4); ++J)
          {
@@ -365,3 +394,16 @@ void CCameraTranslator::GetMatrix(AtMatrix& matrix)
       }
    }
 }
+void CCameraTranslator::RequestUpdate()
+{
+   // if this is not the default camera, and if it doesn't have any back connection
+   // we should not request an update
+
+   AtNode *node = GetArnoldNode();
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   if (node == renderCam || !m_impl->m_backReferences.empty())
+      CDagTranslator::RequestUpdate();
+   else
+      m_impl->m_session->QueueForUpdate(this); // still queue me for update, so that arnold scene remains sync'ed
+}
+

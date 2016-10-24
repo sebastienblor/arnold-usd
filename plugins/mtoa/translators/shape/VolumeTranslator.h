@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
-class CArnoldVolumeTranslator : public CGeometryTranslator
+class CArnoldVolumeTranslator : public CShapeTranslator
 {
 public:
    static void* creator()
@@ -13,18 +13,13 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void Update(AtNode* anode);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
-
+   void ExportMotion(AtNode* anode);
+   
 protected:
-   CArnoldVolumeTranslator()  :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "volume";
-   }
+   CArnoldVolumeTranslator() :
+      CShapeTranslator()
+   {}
+   
    void ExportBoundingBox(AtNode* procedural);
 
    void ExportVolumeShaders(AtNode* procedural);

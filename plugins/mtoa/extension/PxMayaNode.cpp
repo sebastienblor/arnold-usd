@@ -22,7 +22,7 @@ CPxMayaNode::CPxMayaNode(const MString &typeName,
                          MPxNode::Type typeNode,
                          const MString &classif)
 {
-   name = typeName;
+   SetName(typeName);
    if (typeId.id() != 0)
       id = typeId;
    else
@@ -53,29 +53,29 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       const char* mayaNodeNameMtd;
       if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &mayaNodeNameMtd))
       {
-         name = MString(mayaNodeNameMtd);
+         SetName(MString(mayaNodeNameMtd));
       }
       else if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", &mayaNodeNameMtd))
       {
          AiMsgWarning("[mtoa] [%s] [node %s] The use of the maya.counterpart metadata is deprecated, use maya.name instead.",
                ext, node);
-         name = MString(mayaNodeNameMtd);
+         SetName(MString(mayaNodeNameMtd));
       }
       else if (arnoldNodeTypeName == "camera")
       {
-         name = "camera";
+         SetName("camera");
       }
       else if (arnoldNodeTypeName == "driver")
       {
-         name = "aiAOVDriver";
+         SetName("aiAOVDriver");
       }
       else if (arnoldNodeTypeName == "filter")
       {
-         name = "aiAOVFilter";
+         SetName("aiAOVFilter");
       }
       else
       {
-         name = toMayaStyle(MString("ai_") + node);
+         SetName(toMayaStyle(MString("ai_") + node));
       }
    }
    if (id.id() == 0)
@@ -244,7 +244,6 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       if (drawdbClassification.numChars() != 0)
          classification += drawdbClassification;
    }
-
    return MStatus::kSuccess;
 }
 

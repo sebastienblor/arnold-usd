@@ -40,19 +40,14 @@ AtNode* CXgSplineDescriptionTranslator::CreateArnoldNodes()
 }
 
 void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
-{
-    Update(procedural);
-}
-
-void CXgSplineDescriptionTranslator::Update(AtNode* procedural)
-{
+{  
     static const std::string sDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgenSpline_procedural.so");
     MStatus status;
 
     MFnDagNode fnDagNode(m_dagPath);
 
     // Set matrix for step 0
-    ExportMatrix(procedural, 0);
+    ExportMatrix(procedural);
 
     // Export render flags
     ProcessRenderFlags(procedural);
@@ -62,7 +57,7 @@ void CXgSplineDescriptionTranslator::Update(AtNode* procedural)
     MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
     if (!shadingGroupPlug.isNull())
     {
-        AtNode* shader = ExportNode(shadingGroupPlug);
+        AtNode* shader = ExportConnectedNode(shadingGroupPlug);
         if (shader)
         {
             AiNodeSetPtr(procedural, "shader", shader);
@@ -88,10 +83,11 @@ void CXgSplineDescriptionTranslator::Update(AtNode* procedural)
     if (IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
     {
         // Motion blur is enabled. Output the motion frames.
-        const std::vector<double> motionFrames = GetSession()->GetMotionFrames();
-
-        AtArray* sampleTimes = AiArrayAllocate(motionFrames.size(), 1, AI_TYPE_FLOAT);
-        for (size_t i = 0; i < motionFrames.size(); i++)
+        unsigned int motionFramesCount;
+        const double *motionFrames = GetMotionFrames(motionFramesCount);
+        
+        AtArray* sampleTimes = AiArrayAllocate(motionFramesCount, 1, AI_TYPE_FLOAT);
+        for (unsigned int i = 0; i < motionFramesCount; i++)
             AiArraySetFlt(sampleTimes, i, float(motionFrames[i]));
         AiNodeSetArray(procedural, "sampleTimes", sampleTimes);
     }
@@ -128,18 +124,18 @@ void CXgSplineDescriptionTranslator::Update(AtNode* procedural)
     }
 }
 
-void CXgSplineDescriptionTranslator::ExportMotion(AtNode* procedural, unsigned int step)
+void CXgSplineDescriptionTranslator::ExportMotion(AtNode* procedural)
 {
     // Check if motionblur is enabled and early out if it's not.
     if (!IsMotionBlurEnabled()) return;
 
     // Set transform matrix
-    ExportMatrix(procedural, step);
+    ExportMatrix(procedural);
 
     // Same for object deformation, early out if it's not set.
     if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
-    ExportSplineData(procedural, step);
+    ExportSplineData(procedural, GetMotionStep());
 }
 
 extern void CXgSplineDescriptionTranslator_ExportSplineData(MDagPath& dagPath, AtNode* procedural, unsigned int step);

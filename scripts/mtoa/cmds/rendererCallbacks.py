@@ -21,6 +21,20 @@ except:
 global arnoldAOVCallbacks
 
 try:
+    import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
+    import mtoa.core as core
+
+    class ArnoldRenderSettingsCallbacks(rendererCallbacks.RenderSettingsCallbacks):
+    
+        # Create the default Arnold nodes
+        def createDefaultNodes(self):
+            core.createOptions()
+
+    arnoldRenderSettingsCallbacks = ArnoldRenderSettingsCallbacks()
+except:
+    arnoldRenderSettingsCallbacks = None
+
+try:
     import maya.app.renderSetup.model.renderSetup as renderSetup
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
     import maya.app.renderSetup.model.typeIDs as typeIDs
@@ -286,10 +300,11 @@ try:
             else:
                 # The first item in the returned list of connections should be the attached aiAOV node.
                 aiAOVNode = cmds.listConnections(aovNode)[0]
+                nodeType = cmds.nodeType(aiAOVNode)
                 if nodeType == "aiAOV":
                     return self.getAOVName(aiAOVNode)
                 else:
-                    raise ValueError(_L10N(kAiAOVNodeNotFound, 'The attached item is not an aiAOV node as required.'))
+                    raise ValueError('The attached item is not an aiAOV node as required.')
 
         # Creates a selector for the AOV Collection that selects all aovNodes (aiAOV, aiAOVDriver, aiAOVFilter nodes)
         def getCollectionSelector(self, selectorName):
@@ -447,6 +462,15 @@ def aiRenderSettingsBuiltCallback(currentRenderer):
                                                     utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
 
+def aiRendererAddOneTabToGlobalsWindowCreateProcCallback(createProc):
+    createProcs = ['createArnoldRendererCommonGlobalsTab',
+                   'createArnoldRendererGlobalsTab',
+                   'createArnoldRendererSystemTab',
+                   'createArnoldRendererDiagnosticsTab']
+
+    if createProc in createProcs:
+        pm.mel.eval(createProc)
+        
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
     aiExport( self, self.invokeArgs[0], self.invokeArgs[1], self.invokeArgs[2], self.invokeArgs[3] )
@@ -477,9 +501,12 @@ def registerCallbacks():
     if cmds.about(batch=True):
         return
         
-    if not arnoldAOVCallbacks is None:
+    if arnoldAOVCallbacks is not None:
         rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_AOVS, arnoldAOVCallbacks)
         
+    if arnoldRenderSettingsCallbacks is not None:
+        rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_RENDER_SETTINGS, arnoldRenderSettingsCallbacks)
+
     cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
                    hook="hyperShadePanelBuildCreateMenu",
                    owner="arnold")
@@ -533,6 +560,11 @@ def registerCallbacks():
 
     cmds.callbacks(addCallback=aiRenderSettingsBuiltCallback,
                    hook="renderSettingsBuilt",
+                   owner="arnold")
+
+    # This callback is new for Maya 2018.
+    cmds.callbacks(addCallback=aiRendererAddOneTabToGlobalsWindowCreateProcCallback,
+                   hook="rendererAddOneTabToGlobalsWindowCreateProc",
                    owner="arnold")
 
 def clearCallbacks():

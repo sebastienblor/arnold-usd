@@ -3,6 +3,7 @@
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
 #include "session/ArnoldSession.h"
+#include "common/AiStream.h"
 
 #include <ai_nodes.h>
 
@@ -16,6 +17,7 @@
 #include <maya/MFnCamera.h>
 #include <maya/MVectorArray.h>
 #include <maya/MMessage.h>
+#include <maya/MDagMessage.h>
 #include <maya/MPlug.h>
 #include <maya/MCommonRenderSettingsData.h>
 
@@ -89,16 +91,19 @@ private:
    static void ClearIPRCallbacks();
 
    static void IPRNewNodeCallback(MObject & node, void *);
+   static void IPRParentingChangedCallback(MDagPath &child, MDagPath &parent, void *);
    static void IPRIdleCallback(void *);
    static void QuitApplicationCallback(void *);
    static void FileOpenCallback(void *);
-
+   
 
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;
    static MCallbackId s_NewNodeCallbackId;
    static MCallbackId s_QuitApplicationCallbackId;
    static MCallbackId s_FileOpenCallbackId;
+   static MCallbackId s_AddParentCallbackId;
+   static MCallbackId s_RemoveParentCallbackId;
 
    
    // Currently there can be only one export and render session

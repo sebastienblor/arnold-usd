@@ -1,8 +1,5 @@
 #include "ParticleTranslator.h"
-
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
@@ -13,9 +10,12 @@
 #include <maya/MFnMesh.h>
 #include <maya/MVectorArray.h>
 #include <maya/MStringArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MSelectionList.h>
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
+#include <ai_noise.h>
 
 
 #ifdef _DEBUG
@@ -111,13 +111,6 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputFloat(data);
 }
 
-void CParticleTranslator::UpdateMotion(AtNode* anode, unsigned int step)
-{
-   // ProcessRenderFlags(anode);
-   // FIXME: Crashes
-   // ExportMatrix(anode, step);
-}
-
 void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
@@ -125,7 +118,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
          AiNodeSetPtr(particle, "shader", rootShader);
@@ -380,9 +373,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
    MDoubleArray*   spriteScaleYPP = new MDoubleArray;
 
    MStatus status;
-
-   AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName().asChar());
-
+   
    GatherStandardPPData( MAnimControl::currentTime(),
                          positionArray,
                          radiusArray,
@@ -399,23 +390,29 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
    m_instantVeloArray = velocityArray;
    m_instantAcceArray = accelerationArray;
 
-   // push back a "starter" array for this step
-   m_out_positionArrays.push_back(positionArray);
+   int numStep = GetNumMotionSteps();
+   int step = GetMotionStep();
+   
+   m_out_positionArrays.assign(numStep, NULL);
+   m_out_positionArrays[step] = positionArray;
 
    if (m_isSprite)
    {
-      m_out_spriteScaleXArrays.push_back(spriteScaleXPP);
-      m_out_spriteScaleYArrays.push_back(spriteScaleYPP);
+      m_out_spriteScaleXArrays.assign(numStep, NULL);
+      m_out_spriteScaleXArrays[step] = spriteScaleXPP;
+      m_out_spriteScaleYArrays.assign(numStep, NULL);
+      m_out_spriteScaleYArrays[step] = spriteScaleYPP;
    }
    else
-      m_out_radiusArrays.push_back(radiusArray);
+   {
+      m_out_radiusArrays.assign(numStep, NULL);
+      m_out_radiusArrays[step] = radiusArray;
+   }
 
    //  create the map  from particleID to array index in the "out_*"  arrays
    for (int i=0; i < m_particleCount; i++)
-   {
-      int id = particleId[i];
-      m_particleIDMap[id] = i;
-   }
+      m_particleIDMap[particleId[i]] = i;
+   
 
    m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes").asString();
 
@@ -452,16 +449,17 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       int numParticles = m_fnParticleSystem.count();
 
       //Interpolation using the first two points. That are calculated from first particle data.
+
       for (int j = 0; j < numParticles; j++)
       {
          MVector p0, p1;
-         p0 = (*m_out_positionArrays[0])[j] - velocityArray[j]*dt*evaluateEvery;
-         p1 = (*m_out_positionArrays[0])[j];
+         p0 = (*m_out_positionArrays[step])[j] - velocityArray[j]*dt*evaluateEvery;
+         p1 = (*m_out_positionArrays[step])[j];
             
          MVector result = diff*((2-diff)*diff - 1)*p0;
          result += (diff*diff*(3*diff - 5) + 2)*p1;
 
-         (*m_out_positionArrays[0])[j] = result;
+         (*m_out_positionArrays[step])[j] = result;
 
       }
 
@@ -487,11 +485,12 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
       numParticles = m_fnParticleSystem.count();
 
-      std::map <int, int> tempMap = m_particleIDMap;
-      std::map <int, int>::iterator it;
+      // FIXME this system doesn't seem very optimized...
+      unordered_map <int, int> tempMap = m_particleIDMap;
+      unordered_map <int, int>::iterator it;
 
-      std::map <int, int> pos2Map;
-      std::map <int, int>::iterator it2;
+      unordered_map <int, int> pos2Map;
+      unordered_map <int, int>::iterator it2;
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -508,7 +507,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
             
             MVector result = diff*((4 - 3*diff)*diff + 1) * p2;
 
-            (*m_out_positionArrays[0])[pindex] += result;
+            (*m_out_positionArrays[step])[pindex] += result;
 
             // to speed up the  search, we remove the particles we've already found..
             tempMap.erase(it);
@@ -522,7 +521,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
          {
             // here we Support removing of dead particles via looping and culling by particle map in the final output loop
             int pindex = it->second;
-            (*m_out_radiusArrays[0])[pindex] = 0.0;
+            (*m_out_radiusArrays[step])[pindex] = 0.0;
          }
       }
 
@@ -568,8 +567,8 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
             
             MVector result = (diff - 1) * diff * diff * p3;
 
-            (*m_out_positionArrays[0])[pindex] += result;
-            (*m_out_positionArrays[0])[pindex] *= 0.5;
+            (*m_out_positionArrays[step])[pindex] += result;
+            (*m_out_positionArrays[step])[pindex] *= 0.5;
 
             // to speed up the  search, we remove the particles we've already found..
             tempMap.erase(it);
@@ -586,7 +585,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
             it2 = pos2Map.find(pindex);
             if (it2 == pos2Map.end())   // found the particle in the scene already
             {
-               (*m_out_radiusArrays[0])[pindex] = 0.0;
+               (*m_out_radiusArrays[step])[pindex] = 0.0;
             }
             else
             {
@@ -597,16 +596,15 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
             
                MVector result = (diff - 1) * diff * diff * p3;
 
-               (*m_out_positionArrays[0])[pindex] += result;
-               (*m_out_positionArrays[0])[pindex] *= 0.5;
+               (*m_out_positionArrays[step])[pindex] += result;
+               (*m_out_positionArrays[step])[pindex] *= 0.5;
             }
 
          }
       }
 
    }
-}// end step == 0
-
+}
 ///
 
 void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
@@ -644,9 +642,23 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
    // and later if particles don't exist in this step, we already have a value in this index and we don't have to go thru
    // another set of loops to fill in the gaps  for particles that have died as well.
 
+   int previousStep = step - 1;
+   if (previousStep < 0)
+   {
+      for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+      {
+         if (i == step) continue;
+         if (m_exportedSteps[i])
+         {
+            previousStep = i;
+            break;
+         }
+      }
+   }
+   if (previousStep < 0) return; // shouldn't happen
 
-   MVectorArray   *newPositionArray = new MVectorArray((*m_out_positionArrays[step-1]));
-   m_out_positionArrays.push_back(newPositionArray);
+   MVectorArray   *newPositionArray = new MVectorArray((*m_out_positionArrays[previousStep]));
+   m_out_positionArrays[step] = newPositionArray;
 
    MDoubleArray *newSSXArray = NULL;
    MDoubleArray *newSSYArray = NULL;
@@ -654,18 +666,18 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
 
    if (m_isSprite)
    {
-      newSSXArray = new MDoubleArray((*m_out_spriteScaleXArrays[step-1]));
-      newSSYArray = new MDoubleArray((*m_out_spriteScaleYArrays[step-1]));
-      m_out_spriteScaleXArrays.push_back(newSSXArray);
-      m_out_spriteScaleYArrays.push_back(newSSYArray);
+      newSSXArray = new MDoubleArray((*m_out_spriteScaleXArrays[previousStep]));
+      newSSYArray = new MDoubleArray((*m_out_spriteScaleYArrays[previousStep]));
+      m_out_spriteScaleXArrays[step] = newSSXArray;
+      m_out_spriteScaleYArrays[step] = newSSYArray;
    }
    else if (multipleRadiuses)
    {
-      newRadiusArray = new MDoubleArray((*m_out_radiusArrays[step-1]));
-      m_out_radiusArrays.push_back(newRadiusArray);
+      newRadiusArray = new MDoubleArray((*m_out_radiusArrays[previousStep]));
+      m_out_radiusArrays[step] = newRadiusArray;
    }
 
-   particle = GetArnoldRootNode();
+   particle = GetArnoldNode();
 
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
@@ -677,8 +689,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
    // tempMap is destroyed  little by little as we progress thru the particle list
    // to speed up the search for particles as we go.. then whatever is left over  in tempMap
    // gets iterated over  because they are "the particles that died" in this frameStep
-   std::map <int, int> tempMap = m_particleIDMap;
-   std::map <int, int>::iterator it;
+   unordered_map <int, int> tempMap = m_particleIDMap;
+   unordered_map <int, int>::iterator it;
 
    int newParticleCount = 0;
    for (int j = 0; j < numParticles; j++)
@@ -718,9 +730,14 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
 
          // Because we are dealing with a new particle, we need to create all its past step data, so we loop thru steps
          // here  and fill in the gaps with the current frame's  data and only compute its  position from current velocity
-         for (uint k = 0; k <= step; k++)
+
+         for (size_t k = 0; k < m_exportedSteps.size(); k++)
          {
-            // add particle to this steps arrays
+            // the steps that haven't been processed yet
+            // can be ignored as they'll be filled later
+            if (!m_exportedSteps[k])
+               continue;
+            
             int s = (k-step);
             if (s != 0)
             {
@@ -779,8 +796,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
          else
          {
             // get last step's position
-            MVector velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
-            MVector newVeloPosition = (*m_out_positionArrays[step-1])[it->second] + velocitySubstep;
+            MVector velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1)) * (step - previousStep);
+            MVector newVeloPosition = (*m_out_positionArrays[previousStep])[it->second] + velocitySubstep;
             (*newPositionArray)[it->second] = newVeloPosition;
          }
       }
@@ -803,24 +820,38 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
    //uint totalSteps = GetNumMotionSteps(); // not needed
 
-   particle = GetArnoldRootNode();
+   particle = GetArnoldNode();
 
+   int previousStep = step - 1;
+   if (previousStep < 0)
+   {
+      for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+      {
+         if (i == step) continue;
+         if (m_exportedSteps[i])
+         {
+            previousStep = i;
+            break;
+         }
+      }
+   }
+   if (previousStep < 0) return; // shouldn't happen
 
    // add in a new vector entry for this step to all the  maps/vectors
    // this is just making a copy of the last steps data and placing it onto the stack of the out*Arrays
    // these will be modified with the data from this step
 
-   MVectorArray   *newPositionArray = new MVectorArray((*m_out_positionArrays[step-1]));
+   MVectorArray   *newPositionArray = new MVectorArray((*m_out_positionArrays[previousStep]));
 
    const float evaluateEvery = FindMayaPlug("aiEvaluateEvery").asFloat();
 
 
    if (m_isSprite)
    {
-      MDoubleArray *newSSXArray = new MDoubleArray((*m_out_spriteScaleXArrays[step-1]));
-      MDoubleArray *newSSYArray = new MDoubleArray((*m_out_spriteScaleYArrays[step-1]));
-      m_out_spriteScaleXArrays.push_back(newSSXArray);
-      m_out_spriteScaleYArrays.push_back(newSSYArray);
+      MDoubleArray *newSSXArray = new MDoubleArray((*m_out_spriteScaleXArrays[previousStep]));
+      MDoubleArray *newSSYArray = new MDoubleArray((*m_out_spriteScaleYArrays[previousStep]));
+      m_out_spriteScaleXArrays[step] = newSSXArray;
+      m_out_spriteScaleYArrays[step] = newSSYArray;
    }
 
    
@@ -869,12 +900,12 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
    int numParticles = m_fnParticleSystem.count();
 
-   std::map <int, int> tempMap = m_particleIDMap;
-   std::map <int, int>::iterator it;
+   unordered_map <int, int> tempMap = m_particleIDMap;
+   unordered_map <int, int>::iterator it;
 
    MDoubleArray *newRadiusArray =NULL;
-   newRadiusArray = new MDoubleArray((*m_out_radiusArrays[step-1]));
-   m_out_radiusArrays.push_back(newRadiusArray);
+   newRadiusArray = new MDoubleArray((*m_out_radiusArrays[previousStep]));
+   m_out_radiusArrays[step] = newRadiusArray;
 
    float fra1 = (float) curTime.as(MTime::uiUnit());
    float diff = 0.0;
@@ -896,12 +927,15 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       else
       {
           //add new particles to the  arrays
-         m_particleIDMap[partId] = (*m_out_positionArrays[step-1]).length();
+         m_particleIDMap[partId] = (*m_out_positionArrays[previousStep]).length();
 
          // Because we are dealing with a new particle, we need to create all its past step data, so we loop thru steps
          // here  and fill in the gaps with the current frame's  data and only compute its  position from current velocity
-         for (uint k = 0; k <= step; k++)
+         for (size_t k = 0; k < m_exportedSteps.size(); k++)
          {
+            if (!m_exportedSteps[k])
+               continue;
+
             // add particle to this steps arrays
             if (k == step)
             {
@@ -930,7 +964,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       for (it = tempMap.begin(); it != tempMap.end(); it++)
       {
          int pindex = it->second;
-         (*newPositionArray)[pindex] = (*m_out_positionArrays[step-1])[pindex];
+         (*newPositionArray)[pindex] = (*m_out_positionArrays[previousStep])[pindex];
          (*m_out_radiusArrays[step])[pindex] = 0.0;
       }
    }
@@ -993,8 +1027,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
       tempMap = m_particleIDMap;
 
-      std::map <int, int> pos2Map;
-      std::map <int, int>::iterator it2;
+      unordered_map <int, int> pos2Map;
+      unordered_map <int, int>::iterator it2;
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -1023,7 +1057,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
          for (it = tempMap.begin(); it != tempMap.end(); it++)
          {
             int pindex = it->second;
-            (*newPositionArray)[pindex] = (*m_out_positionArrays[step-1])[pindex];
+            (*newPositionArray)[pindex] = (*m_out_positionArrays[previousStep])[pindex];
             (*m_out_radiusArrays[step])[pindex] = 0.0;
          }
       }
@@ -1088,7 +1122,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
             it2 = pos2Map.find(pindex);
             if (it2 == pos2Map.end())   // found the particle in the scene already
             {
-               (*newPositionArray)[pindex] = (*m_out_positionArrays[step-1])[pindex];
+               (*newPositionArray)[pindex] = (*m_out_positionArrays[previousStep])[pindex];
                (*m_out_radiusArrays[step])[pindex] = 0.0;
             }
             else
@@ -1108,7 +1142,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    }
 
 
-   m_out_positionArrays.push_back(newPositionArray);
+   m_out_positionArrays[step] =newPositionArray;
 }
 
 
@@ -1149,7 +1183,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       MMatrix mpm;
       mpm = m_dagPath.inclusiveMatrix();
       // convert it to AtMatrix
-      ConvertMatrix (inclMatrix, mpm, m_session); // util From CNodeTranslator
+      ConvertMatrix (inclMatrix, mpm); // util From CNodeTranslator
    }
 
    const unsigned int numMotionSteps = (m_motionDeform && RequiresMotionData()) ? GetNumMotionSteps() : 1;
@@ -1181,7 +1215,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    if(m_hasOpacity)
       a_opacityPPArray = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
    
-   std::map <int, int>::iterator it;
+   unordered_map <int, int>::iterator it;
    
    for (unsigned int s = 0; s < numMotionSteps; s++)
    {
@@ -1323,9 +1357,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    if (m_doExtraAttributes)
    {
-      std::map <std::string, MVectorArray*>::iterator vecIt;
-      std::map <std::string, MDoubleArray*>::iterator doubleIt;
-      std::map <std::string, MIntArray*>::iterator intIt;
+      unordered_map <std::string, MVectorArray*>::iterator vecIt;
+      unordered_map <std::string, MDoubleArray*>::iterator doubleIt;
+      unordered_map <std::string, MIntArray*>::iterator intIt;
 
       // Extra export attrs
       for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
@@ -1499,8 +1533,13 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   m_fnParticleSystem.position(*positionArray);
-   //m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
+   if (MAYA_API_VERSION >= 201700 && IsCached())
+   {
+      m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
+   } else
+   {
+      m_fnParticleSystem.position(*positionArray);
+   }
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.acceleration(accelerationArray);
    MDoubleArray tempDoubleParticleId;
@@ -1515,13 +1554,13 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
 
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
    int instanceNum =  m_dagPath.instanceNumber();
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -1553,7 +1592,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    if (iogConnectionsMaster[0].node() != iogConnections[0].node())
    {
       //FIXME : Is it ok to assume that the shader is the first Dag member ?
-      AtNode *shader = ExportNode(iogConnections[0]);
+      AtNode *shader = ExportConnectedNode(iogConnections[0]);
       AiNodeSetPtr(instance, "shader", shader);
    }
 
@@ -1563,10 +1602,23 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
 AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int step)
 {
-   if (step == 0)
+   if (!IsExportingMotion())
    {
-      if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-          CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+      // first export -> clear data 
+      m_out_positionArrays.clear();
+      m_out_radiusArrays.clear();
+      m_out_spriteScaleXArrays.clear();
+      m_out_spriteScaleYArrays.clear();
+      m_out_opacityArray.clear();
+      m_out_colorArray.clear();
+      m_out_customVectorAttrArrays.clear();
+      m_out_customDoubleAttrArrays.clear();
+      m_out_customIntAttrArrays.clear();
+      m_particleIDMap.clear();
+      m_instantVeloArray.clear();
+      m_instantAcceArray.clear();
+      
+      if (RequiresShaderExport())
          ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);
@@ -1581,7 +1633,16 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    }
 
    /// write out final data
-   if (step == (GetNumMotionSteps()-1))
+   bool missingStep = false;
+   for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+   {
+      if (!m_exportedSteps[i])
+      {
+         missingStep = true;
+         break;
+      }
+   }
+   if (!missingStep)
       WriteOutParticle(particle);
    /// visibility flags
    ProcessRenderFlags(particle);
@@ -1589,32 +1650,19 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    return particle;
 }
 
-
-void CParticleTranslator::Update(AtNode *anode)
-{
-   ProcessRenderFlags(anode);
-   //ExportMatrix(anode, 0);
-}
-
-void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)
-{
-   if (IsMasterInstance())
-   {
-      //ExportMatrix(anode, step);
-      if (m_motionDeform)
-         ExportParticleNode(anode, step);
-      else if (step == (GetNumMotionSteps() - 1))
-      {
-         WriteOutParticle(anode);
-         ProcessRenderFlags(anode);
-      }
-   }
-   else
-      ExportMatrix(anode, step);
-}
-
 void CParticleTranslator::Export(AtNode* anode)
 {
+   if (IsExported())
+   {
+      // During Updates we only re-exported the render flags
+      // make sure it's really what we want !
+      ProcessRenderFlags(anode);
+      ExportMatrix(anode);
+
+      // shouldn't we re-export the shaders ?
+      return;
+   }
+
    // check if the particle system is linked to an instancer
    m_fnParticleSystem.setObject(m_dagPath.node());
    if (m_fnParticleSystem.isValid() == false)
@@ -1623,17 +1671,25 @@ void CParticleTranslator::Export(AtNode* anode)
       return;
    }
 
-
    if (IsMasterInstance())
    {
-      ///MTimer exportParticleTimer;
-      //exportParticleTimer.beginTimer();
-      ExportParticleNode(anode, 0);
-      //exportParticleTimer.endTimer();
-      //double elapsed = exportParticleTimer.elapsedTime();
-      //AiMsgDebug("[mtoa] Particle system %s export took : %f seconds", m_fnParticleSystem.partialPathName().asChar(), elapsed);
-      if (!RequiresMotionData() && (GetNumMotionSteps() > 1))
+      // reset the list of processed steps.
+      // Once they're all processed, we can write out the particles
+      m_exportedSteps.clear();
+      m_exportedSteps.assign(GetNumMotionSteps(), false);
+      int step = GetMotionStep();
+      m_exportedSteps[step]=true;
+      ExportMatrix(anode);
+
+      ExportParticleNode(anode, step);
+
+      //
+      if (!RequiresMotionData() && (m_exportedSteps.size() > 1))
       {
+         // Motion blur is enabled, but this particle node is not motion blurred
+         // so we can write out the particle now
+         m_exportedSteps.assign(m_exportedSteps.size(), true);
+
          WriteOutParticle(anode);
          ProcessRenderFlags(anode);
       }
@@ -1642,5 +1698,48 @@ void CParticleTranslator::Export(AtNode* anode)
    else
       ExportInstance(anode, GetMasterInstance());
 
+}
 
+void CParticleTranslator::ExportMotion(AtNode* anode)
+{
+   if (IsExported())
+   {
+      // FIXME: This used to crash with IPR & motion blurred particles (#691)
+      // so let's check if this is obsolete now...we do need to exported the motion matrix
+      ExportMatrix(anode);
+      return;
+   }
+
+   int step = GetMotionStep();
+   if (IsMasterInstance())
+   {
+      m_exportedSteps[step] = true;
+      // matrix export used to be commented. Check if it works fine now
+      ExportMatrix(anode);
+      if (m_motionDeform)
+         ExportParticleNode(anode, step);
+      else
+      {
+         for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+         {
+            // one of the motion steps is still missing
+            if (!m_exportedSteps[i])
+            return;
+         }
+
+         // all steps have been processed, it's time to write out
+         // the particles
+         WriteOutParticle(anode);
+         ProcessRenderFlags(anode);
+      }
+   }
+   else
+      ExportMatrix(anode);
+}
+
+void CParticleTranslator::RequestUpdate()
+{
+   // FIXME: verify if we can optimize this and only re-generate the particles for given attribute changes
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
 }

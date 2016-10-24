@@ -181,7 +181,6 @@ shader_evaluate
 {
 
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
-   AtRGB color = AI_RGB_BLACK;
    float density = 0.f;
 
    float scaled_density = 1.f;
@@ -212,9 +211,7 @@ shader_evaluate
       // get Absorb
       AtColor absorb = AiShaderEvalParamRGB(p_absorption_color) *  AiShaderEvalParamFlt(p_absorption_intensity);
 
-      AtColor baseScatter = scatter;
       scatter *= scaled_density;
-      AtColor baseAbsorb = absorb;
       absorb *= scaled_density;
 
       if (sg->Rt & AI_RAY_SHADOW) 

@@ -24,24 +24,25 @@
 #include <maya/MColorArray.h>
 #include <maya/MNodeMessage.h>
 
-class  CGeometryTranslator : public CShapeTranslator
+class  CPolygonGeometryTranslator : public CShapeTranslator
 {
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
+   virtual void Init()
    {
+      CShapeTranslator::Init();
+
       m_displaced = false;
       m_isRefSmooth = false;
       m_useMotionVectors = false;
-      m_geometry = dagPath.node();
-      return CShapeTranslator::Init(session, dagPath, outputAttr);
+      m_geometry = m_dagPath.node();
    }
-   virtual void Update(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
+   
+   virtual void Export(AtNode* anode);
    static void NodeInitializer(CAbTranslator context);
-   virtual void AddUpdateCallbacks();
-
+   
 protected:
+   virtual bool Tessellate(const MDagPath &dagPath) {return false;}
+
    bool GetVertices(const MObject& geometry,
          const float*& vertices);
    bool GetPerVertexNormals(const MObject &geometry,
@@ -65,7 +66,7 @@ protected:
          AtArray*& refTangents,
          AtArray*& refBitangents);
    bool GetVertexColors(const MObject &geometry,
-         std::map<std::string, std::vector<float> > &vcolors);
+         unordered_map<std::string, std::vector<float> > &vcolors);
    bool GetComponentIDs(const MObject &geometry,
          AtArray*& nsides,
          AtArray*& vidxs,
@@ -84,15 +85,13 @@ protected:
    virtual void ExportShaders();
 
    void ExportBBox(AtNode* polymesh);
-   void ExportMeshGeoData(AtNode* polymesh, unsigned int step);
+   void ExportMeshGeoData(AtNode* polymesh);
    void ExportMeshParameters(AtNode* polymesh);
    AtNode* ExportMesh(AtNode* polymesh, bool update);
    void ExportMeshMotion(AtNode* polymesh, unsigned int step);
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, unsigned int step);
 
-   static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
-   void AddShaderAssignmentCallbacks(MObject & dagNode);
    virtual bool IsGeoDeforming();
 
 protected:

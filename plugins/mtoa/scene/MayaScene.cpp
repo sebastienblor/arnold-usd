@@ -42,6 +42,9 @@ MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 MCallbackId CMayaScene::s_QuitApplicationCallbackId = 0;
 MCallbackId CMayaScene::s_FileOpenCallbackId = 0;
+MCallbackId CMayaScene::s_AddParentCallbackId = 0;
+MCallbackId CMayaScene::s_RemoveParentCallbackId = 0;
+
 
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
@@ -441,7 +444,11 @@ MStatus CMayaScene::SetupIPRCallbacks()
    // Add the node added callback
    if (s_NewNodeCallbackId == 0)
    {
-      id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dependNode", NULL, &status);
+      // We used to call the callback for every "dependNode", but now we're just doing it
+      // for dag nodes. This is introduced for #2540 when hypershade is opened, but more generically
+      // it shouldn't be necessary to restart when every node is created. Depend nodes should
+      // only appear once they're connected to other exported nodes
+      id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dagNode", NULL, &status);
       if (status == MS::kSuccess)
       {
          s_NewNodeCallbackId = id;
@@ -451,6 +458,32 @@ MStatus CMayaScene::SetupIPRCallbacks()
          AiMsgError("[mtoa] Unable to install IPR node added callback");
       }
    }
+
+   if (s_AddParentCallbackId == 0)
+   {
+      id = MDagMessage::addParentAddedCallback(IPRParentingChangedCallback, NULL, &status);
+      if (status == MS::kSuccess)
+      {
+         s_AddParentCallbackId = id;
+      }
+      else
+      {
+         AiMsgError("[mtoa] Unable to install IPR parent added callback");
+      }
+   }
+   if (s_RemoveParentCallbackId == 0)
+   {
+      id = MDagMessage::addParentRemovedCallback(IPRParentingChangedCallback, NULL, &status);
+      if (status == MS::kSuccess)
+      {
+         s_RemoveParentCallbackId = id;
+      }
+      else
+      {
+         AiMsgError("[mtoa] Unable to install IPR parent removed callback");
+      }
+   }
+   
    // TODO : might add a forceUpdateCallback to re-export when frame changes
    // static MCallbackId 	addForceUpdateCallback (MMessage::MTimeFunction func, void *clientData=NULL, MStatus *ReturnStatus=NULL)
  	// This method registers a callback that is called after the time changes and after all nodes have been evaluated in the dependency graph. 
@@ -472,7 +505,16 @@ void CMayaScene::ClearIPRCallbacks()
       MMessage::removeCallback(s_NewNodeCallbackId);
       s_NewNodeCallbackId = 0;
    }
-
+   if (s_AddParentCallbackId != 0)
+   {
+      MMessage::removeCallback(s_AddParentCallbackId);
+      s_AddParentCallbackId = 0;
+   }
+   if (s_RemoveParentCallbackId != 0)
+   {
+      MMessage::removeCallback(s_RemoveParentCallbackId);
+      s_RemoveParentCallbackId = 0;
+   }
    // Clear the callbacks on the translators of the current export session
    if (NULL != s_arnoldSession)
    {
@@ -482,20 +524,19 @@ void CMayaScene::ClearIPRCallbacks()
 
 // Actuall callback functions
 
-// FIXME: we probably need to be able to directly pass a path or add an instance number here
+// We used to call the callback for every "dependNode", but now we're just doing it
+// for dag nodes. This is introduced for #2540 when hypershade is opened, but more generically
+// it shouldn't be necessary to restart when every node is created. Depend nodes should
+// only appear once they're connected to other exported nodes
 void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 {
-   // If this is a node we've exported before (e.g. user deletes then undos)
-   // we can shortcut and just call the update for it's already existing translator.
-   // Interupt rendering
-   MFnDependencyNode depNodeFn(node);
 
-   // Getting name can impact performance
-#ifndef NDEBUG
-   MString name = depNodeFn.name();
+   MFnDependencyNode depNodeFn(node);
    MString type = depNodeFn.typeName();
+
+   
+   MString name = depNodeFn.name();
    AiMsgDebug("[mtoa] IPRNewNodeCallback on %s(%s)", name.asChar(), type.asChar());
-#endif
 
    CArnoldSession* arnoldSession = GetArnoldSession();
 
@@ -510,9 +551,23 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    {
       arnoldSession->QueueForUpdate(node);
    }
+
+   // FIXME : instead of testing specific types, we could 
+   // simply get a translator for this type (as ArnoldSession::ExportDagPath does).
+   // if no translator is provided then we skip it
+   if(type == "transform" ||type == "locator") return; // no need to do anything with a simple transform node
+
+   // new cameras shouldn't restart IPR
+   if (node.hasFn(MFn::kCamera)) 
+      return;
+
    arnoldSession->RequestUpdate();
 }
 
+void CMayaScene::IPRParentingChangedCallback(MDagPath &child, MDagPath &parent, void *clientData)
+{
+   GetArnoldSession()->RecursiveUpdateDagChildren(child); 
+}
 void CMayaScene::FileOpenCallback(void *)
 {
    // something we might want to do when a new file is opened
@@ -555,7 +610,6 @@ void CMayaScene::IPRIdleCallback(void *)
       }
       else
       {
-         s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
          s_arnoldSession->DoUpdate();
       }
       
@@ -567,7 +621,6 @@ void CMayaScene::IPRIdleCallback(void *)
 
 void CMayaScene::UpdateSceneChanges()
 {
-   s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
    s_arnoldSession->DoUpdate();
 }
 

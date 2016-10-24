@@ -1,8 +1,9 @@
 #include "AutoCameraTranslator.h"
+#include "../NodeTranslatorImpl.h"
 
 AtNode* CAutoCameraTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode(m_abstract.arnold.asChar());
+   return AddArnoldNode(m_impl->m_abstract.arnold.asChar());
 }
 
 void CAutoCameraTranslator::Export(AtNode* camera)
@@ -59,7 +60,7 @@ void CAutoCameraTranslator::Export(AtNode* camera)
       if (RequiresMotionData() && m_fovAnimated)
       {
          AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-         AiArraySetFlt(fovs, 0, GetFOV(camera));
+         AiArraySetFlt(fovs, GetMotionStep(), GetFOV(camera));
          AiNodeSetArray(camera, "fov", fovs);
       }
       else
@@ -67,13 +68,13 @@ void CAutoCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CAutoCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CAutoCameraTranslator::ExportMotion(AtNode* camera)
 {
-   ExportCameraMBData(camera, step);
+   ExportCameraData(camera);
    if (m_fovAnimated)
    {      
       AtArray* fovs = AiNodeGetArray(camera, "fov");
-      AiArraySetFlt(fovs, step, GetFOV(camera));
+      AiArraySetFlt(fovs, GetMotionStep(), GetFOV(camera));
    }
 }
 

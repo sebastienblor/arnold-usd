@@ -15,7 +15,7 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
                              TCreatorFunction creatorFunction,
                              TNodeInitFunction nodeInitFunction)
 {
-   name = translatorName;
+   SetName(translatorName);
    arnold = "";
    provider = providerName;
    // if (name.numChars() == 0) name = provider;
@@ -33,11 +33,11 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
       const char* translatorName;
       if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.translator", &translatorName))
       {
-         name = MString(translatorName);
+         SetName(MString(translatorName));
       }
       else
       {
-         name = provider;
+         SetName(provider);
       }
    }
    // If no explicit translator was specified, choose a default one using Arnold node type
@@ -83,6 +83,6 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
       }
       // No default strategy to create the rest
    }
-
+   
    return MStatus::kSuccess;
 }
