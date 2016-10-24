@@ -1533,7 +1533,7 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   if (MAYA_API_VERSION >= 201700 && IsCached())
+   if (MAYA_API_VERSION >= 201800 && IsCached())
    {
       m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    } else
