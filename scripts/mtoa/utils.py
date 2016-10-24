@@ -574,6 +574,9 @@ def getSourceImagesDir():
         return [cmds.workspace(expandName='sourceimages')]
 
 def getActiveRenderLayerName():
+    if not cmds.objExists('renderLayerManager.renderLayerId'):
+        return ''
+        
     renderLayers = cmds.listConnections('renderLayerManager.renderLayerId')
     if (len(renderLayers) > 1):
         layer = cmds.editRenderLayerGlobals(query=True, currentRenderLayer=True)
