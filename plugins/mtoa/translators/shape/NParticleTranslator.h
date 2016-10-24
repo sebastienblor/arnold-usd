@@ -19,12 +19,8 @@ class CNParticleTranslator
 public:
    CNParticleTranslator() :
       CParticleTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "points";
-   }
-
+   {}
+   
    static void* creator()
    {
       return new CNParticleTranslator();

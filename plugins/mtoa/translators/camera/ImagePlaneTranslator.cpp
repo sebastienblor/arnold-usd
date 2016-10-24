@@ -2,6 +2,8 @@
 #include "CameraTranslator.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
+#include "session/ArnoldSession.h"
+#include "translators/NodeTranslatorImpl.h"
 
 #include <ai_cameras.h>
 #include <ai_constants.h>
@@ -11,6 +13,8 @@
 #include <maya/MPlugArray.h>
 #include <maya/MVector.h>
 #include <maya/MVectorArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MString.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MImage.h>
@@ -21,18 +25,18 @@ using namespace std;
 void CImagePlaneTranslator::Export(AtNode *imagePlane)
 {
    CNodeTranslator::Export(imagePlane);
-   ExportImagePlane(0u);
+   ExportImagePlane();
 }
-void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane, unsigned int step)
+void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane)
 {
-   CNodeTranslator::ExportMotion(imagePlane, step);
-   ExportImagePlane(step);
+   CNodeTranslator::ExportMotion(imagePlane);
+   ExportImagePlane();
 
 }
 void CImagePlaneTranslator::SetCamera(MString cameraName)
 {
    m_camera = cameraName;
-   ExportImagePlane(0u);
+   ExportImagePlane();
 }
 static void GetCameraRotationMatrix(MDagPath camera, AtMatrix& matrix)
 {
@@ -86,8 +90,12 @@ static void GetCameraMatrix(MDagPath camera, CArnoldSession *session, AtMatrix& 
    }
 }
 
+bool CImagePlaneTranslator::RequiresMotionData()
+{
+   return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+}
 
-void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
+void CImagePlaneTranslator::ExportImagePlane()
 {
    MObject imgPlane = GetMayaObject();
    // get the dependency node of the image plane
@@ -124,7 +132,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
       bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
       MFnCamera fnCamera(pathCamera);
       
-      if(displayOnlyIfCurrent && (GetSession()->GetExportCamera().partialPathName() != fnCamera.partialPathName()))  visible = false;
+      if(displayOnlyIfCurrent && (m_impl->m_session->GetExportCamera().partialPathName() != fnCamera.partialPathName()))  visible = false;
       else visible = true;
 
       camFocal = fnCamera.findPlug("focalLength").asDouble();
@@ -272,7 +280,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
          ipHeight = planeSizeY;
       }
 
-      if (step == 0)
+      if (!IsExportingMotion())
       {
          AtNode* imagePlane = GetArnoldNode("polymesh");
          AiNodeSetStr(imagePlane, "name", imagePlaneName.asChar());
@@ -337,7 +345,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
          MPlug colorPlug;
          MPlugArray conn;
 
-         AtNode* imagePlaneShader = GetArnoldRootNode();
+         AtNode* imagePlaneShader = GetArnoldNode();
          //AtNode* imagePlaneShader = AiNode("flat");
          char nodeName[MAX_NAME_SIZE];
          AiNodeSetStr(imagePlaneShader, "name", NodeUniqueName(imagePlaneShader, nodeName));
@@ -386,7 +394,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             if (requestUpdateTx)
             {
                AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
-               m_session->RequestUpdateTx();
+               m_impl->m_session->RequestUpdateTx();
             }
 
             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
@@ -399,8 +407,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
               AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
             else
             {
-               MPlug outputPlug = conn[0];
-               ExportNode(outputPlug);
+               AiNodeLink(ExportConnectedNode(conn[0]), "colorGain", imagePlaneShader);
             }
 
             colorPlug  = fnRes.findPlug("colorOffset");
@@ -409,8 +416,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
                AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
             else
             {
-               MPlug outputPlug = conn[0];
-               ExportNode(outputPlug);
+               AiNodeLink(ExportConnectedNode(conn[0]), "colorOffset", imagePlaneShader);
             }
 
             float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
@@ -425,14 +431,14 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             if (conn.length())
             {
                MPlug outputPlug = conn[0];
-               AiNodeLink(ExportNode(outputPlug), "color", imagePlaneShader);
+               AiNodeLink(ExportConnectedNode(outputPlug), "color", imagePlaneShader);
             }
          }
 
          AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
          AiNodeSetBool(imagePlane, "opaque", 0);
 
-      }// (step == 0)
+      }
 
       AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
 
@@ -496,23 +502,23 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             // get cam's matrix
             AtMatrix translateMatrix;
 
-            GetCameraMatrix(pathCamera, m_session, translateMatrix);
+            GetCameraMatrix(pathCamera, m_impl->m_session, translateMatrix);
             AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, translateMatrix);
          }
 
          // image plane should move with the camera to render it with no motion blur
-         if (m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
+         if (m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
          {
-            if (step == 0)
+            if (!IsExportingMotion())
             {
                AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-               AiArraySetMtx(matrices, 0, imagePlaneMatrix);
+               AiArraySetMtx(matrices, GetMotionStep(), imagePlaneMatrix);
                AiNodeSetArray(imagePlane, "matrix", matrices);
             }
             else
             {
                AtArray* matrices = AiNodeGetArray(imagePlane, "matrix");
-               AiArraySetMtx(matrices, step, imagePlaneMatrix);
+               AiArraySetMtx(matrices, GetMotionStep(), imagePlaneMatrix);
             }
          }
          else

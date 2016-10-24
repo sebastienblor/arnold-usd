@@ -1,11 +1,12 @@
 #include "LightTranslators.h"
-
 #include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
 #include <maya/MFnSpotLight.h>
 #include <maya/MFnMesh.h>
 #include <maya/MItMeshPolygon.h>
+#include <maya/MPlugArray.h>
+#include <maya/MMatrix.h>
 
 // DirectionalLight
 //
@@ -39,9 +40,8 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   float radius = FindMayaPlug("aiRadius").asFloat(); 
-   m_session->ScaleDistance(radius); 
-   AiNodeSetFlt(light, "radius", radius); 
+   double radius = FindMayaPlug("aiRadius").asDouble() *  GetSessionOptions().GetScaleFactor(); 
+   AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
@@ -74,9 +74,8 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   float radius = FindMayaPlug("aiRadius").asFloat(); 
-   m_session->ScaleDistance(radius); 
-   AiNodeSetFlt(light, "radius", radius); 
+   double radius = FindMayaPlug("aiRadius").asDouble() * GetSessionOptions().GetScaleFactor(); 
+   AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
@@ -119,6 +118,7 @@ void CQuadLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
    AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
+   //AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool()); removed it from here as we now have a dedicated light portal node
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
@@ -142,6 +142,7 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("decay_type");
    helper.MakeInput("resolution");
    helper.MakeInput("spread");
+   //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }
@@ -208,6 +209,12 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CSkyDomeLightTranslator::Export(AtNode* light)
 {
+   if (m_flushCache)
+   {
+      AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      m_flushCache = false;
+   }
+   
    CLightTranslator::Export(light);
 
    AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
@@ -232,7 +239,22 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("shadow_color");
 }
 
+void CSkyDomeLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // at next Export we'll want to flush the background cache.
+   // This used to be done during the NodeDirty callback
+   // but we must NOT interrupt renders or call arnold flush functions during maya's callbacks. 
 
+   // only the following parameters affect the skydome cache
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "color" || plugName == "resolution" || plugName == "aiUseColorTemperature" 
+      || plugName == "aiColorTemperature" || plugName == "format")
+   {
+      m_flushCache = true;
+   }
+
+   CLightTranslator::NodeChanged(node, plug);
+}
 void CPhotometricLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
@@ -312,9 +334,11 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
-   AtArray* vlist = AiArrayAllocate(m_numVertices, IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? steps : 1, AI_TYPE_POINT);
+   bool deformMotion = RequiresMotionData() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+   AtArray* vlist = AiArrayAllocate(m_numVertices, deformMotion ? steps : 1, AI_TYPE_POINT);
+   int vlistOffset = deformMotion ? m_numVertices * GetMotionStep() : 0;
    for (int i = 0; i < m_numVertices; ++i)
-      AiArraySetVec(vlist, i, vertices[i]);
+      AiArraySetVec(vlist, i + vlistOffset, vertices[i]);
 
    AiNodeSetArray(meshNode, "vlist", vlist);
 
@@ -479,13 +503,6 @@ void CMeshLightTranslator::Export(AtNode* light)
    }
 }
 
-void CMeshLightTranslator::Delete()
-{
-   for (std::map<std::string, AtNode*>::iterator it = m_atNodes.begin(); it != m_atNodes.end(); ++it)
-      AiNodeDestroy(it->second);
-   m_atNode = NULL;
-   m_atNodes.clear();
-}
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -536,11 +553,12 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputBoolean(data);
 }
 
-void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
+void CMeshLightTranslator::ExportMotion(AtNode* light)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
-
+   int step = GetMotionStep();
+   
    AtArray* matrices = AiNodeGetArray(light, "matrix");
    AiArraySetMtx(matrices, step, matrix);
    
@@ -550,6 +568,7 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
 
+      // As motion deform was disabled, I just allocated a single key
       if (vlist->nkeys == 1)
          return;
        
@@ -582,4 +601,40 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
       }
       
    }  
+}
+
+MObject CMeshLightNewTranslator::GetMeshObject() const
+{
+   MPlug inMesh = GetPlug(m_dagPath.node(), "inMesh");
+   if (inMesh.isDestination())
+   {
+      MPlugArray plugArray;
+      
+      inMesh.connectedTo(plugArray,  true, false);
+      MObject sourceNode;
+
+      if (plugArray.length() > 0)
+         sourceNode = plugArray[0].node();
+      
+      // equivalent code in maya 2017 
+      //MObject sourceNode = inMesh.source().node();      
+      
+      if (sourceNode.hasFn(MFn::kMesh))
+         return sourceNode;
+      
+   }
+   return MObject::kNullObj;
+}
+void CMeshLightNewTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+
+   const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
+   
+   if (recreate_geom)
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CMeshLightTranslator::NodeChanged(node, plug);
 }

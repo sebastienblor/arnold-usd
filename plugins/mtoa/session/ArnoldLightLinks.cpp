@@ -108,7 +108,7 @@ void CArnoldLightLinks::ParseLights()
 const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDependencyNode& objectSet)
 {
    std::string setName = objectSet.name().asChar();
-   std::map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
+   unordered_map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
    if (it == m_cachedObjectSets.end())
    {      
       std::vector<AtNode*> lights;
@@ -142,7 +142,7 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                if (!status)
                   continue;            
                MFnDependencyNode linkedLight(childPath.node(), &status);            
-               std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+               unordered_map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
                if (it2 == m_arnoldLights.end())
                   it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
                if (it2 == m_arnoldLights.end())
@@ -163,8 +163,42 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
             // append the mesh lights as they're not included in "defaultLightSet"
             if (!m_arnoldMeshLights.empty()) 
             {
-               lights.insert(lights.end(), m_arnoldMeshLights.begin(), m_arnoldMeshLights.end());
+               // Note that using the new system (#2385), mesh lights are now part of maya lights and no longer need to be 
+               // considered separately.
+               // So we shouldn't duplicate them here
+
+               // Since old method is still supported, we need to loop over mesh lights to see if they're already in the list,
+               // but this might be overkill on big scenes
+
+               // so we first count the amount of meshLights in current list.
+               int prevMeshLightCount = 0;
+               for (size_t i = 0; i < lights.size(); ++i)
+               {
+                  if (AiNodeIs(lights[i], "mesh_light")) prevMeshLightCount++;
+               }
+
+               // if this amount is the same as our "mesh lights" list, then the user
+               // is exclusively relying on the new method
+
+               // otherwise, we need to add the missing ones.
+
+               if (prevMeshLightCount == 0)
+               {
+                  // only using the old method
+                  // copy all at once to optimize
+                  lights.insert(lights.end(), m_arnoldMeshLights.begin(), m_arnoldMeshLights.end());
+
+               } else if (prevMeshLightCount < (int) m_arnoldMeshLights.size())
+               {
+                  // we're using both methods in this scene
+                  lights.reserve(lights.size() + m_arnoldMeshLights.size() - prevMeshLightCount);
+                  for (size_t i = 0; i < m_arnoldMeshLights.size(); ++i)
+                  {
+                     if (std::find(lights.begin(), lights.end(), m_arnoldMeshLights[i]) == lights.end()) lights.push_back(m_arnoldMeshLights[i]);
+                  }
+               }
             }
+
             // if it's the first time defaultLightSet's lights list is filled,
             // keep the list in m_arnoldDefaultLights
 
@@ -220,7 +254,7 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
             // let's check if this item is already present here
             if (std::find(existingList->begin(), existingList->end(), lightName) != existingList->end()) return;
          }
-         std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
+         unordered_map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
          if (it == m_arnoldLights.end())
          {
             //if the shapeName is not unique we are testing the full path name
@@ -383,7 +417,8 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
    //clear m_groupLights before filling it
    m_groupLights.clear();
 
-   bool defaultAllLights = (m_arnoldDefaultLights.size() == m_arnoldLights.size());
+   // we could test equality, but for safety we're testing >=
+   bool defaultAllLights = (m_arnoldDefaultLights.size() >= m_arnoldLights.size());
 
    // If no information was stored, we don't need to set anything
    if (linkList.empty() && ignoreList.empty() &&  defaultAllLights) return false;
@@ -402,7 +437,7 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
       {
          m_groupLights.reserve(m_arnoldLights.size());
 
-         for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+         for (unordered_map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
          {
             m_groupLights.push_back(it->second);
          }
@@ -416,7 +451,7 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
    for (size_t i = 0; i < linkList.size(); ++i)
    {
       const std::string &setName = linkList[i];
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
+      unordered_map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
       if (it == m_cachedObjectSets.end()) continue;
    
       // This is an ObjectSet (Sets can't have the same name as Lights)
@@ -432,7 +467,7 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
    for (size_t i = 0; i < ignoreList.size(); ++i)
    {
       const std::string &setName = ignoreList[i];
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
+      unordered_map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
       if (it == m_cachedObjectSets.end()) continue;
 
       // This is an ObjectSet (Sets can't have the same name as Lights)
@@ -451,7 +486,7 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
       // skip objectSets
       if (m_cachedObjectSets.find(lightName) != m_cachedObjectSets.end()) continue;
       
-      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
+      unordered_map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
       if (it != m_arnoldLights.end() &&
          std::find(m_groupLights.begin(), m_groupLights.end(), it->second) == m_groupLights.end())
       {
@@ -466,7 +501,7 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
       //skip ObjectSets
       if (m_cachedObjectSets.find(lightName) != m_cachedObjectSets.end()) continue;
 
-      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
+      unordered_map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
       if (it != m_arnoldLights.end())
       {
          std::vector<AtNode*>::iterator nodeIt = std::find(m_groupLights.begin(), m_groupLights.end(), it->second);

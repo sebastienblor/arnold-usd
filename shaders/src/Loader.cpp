@@ -99,6 +99,7 @@ extern AtNodeMethods* CameraUvMapperMtd;
 extern AtNodeMethods* MPlayDriverMtd;
 extern AtNodeMethods* VolumeSampleRgbMethods;
 extern AtNodeMethods* VolumeSampleFloatMethods;
+extern AtNodeMethods* CurvatureMethods;
 
 
 enum{
@@ -197,6 +198,7 @@ enum{
    SHADER_CAMERAUVMAPPER,
    SHADER_VOLUME_SAMPLE_FLOAT,
    SHADER_VOLUME_SAMPLE_RGB,
+   SHADER_CURVATURE, 
    DRIVER_MPLAY
 };
 
@@ -869,6 +871,12 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case SHADER_CURVATURE:
+      node->methods = CurvatureMethods;
+      node->output_type = AI_TYPE_RGB;
+      node->name =      "curvature";
+      node->node_type = AI_NODE_SHADER;
+      break;
    case DRIVER_MPLAY:
       node->methods     = MPlayDriverMtd;
       node->name        = "driver_mplay";

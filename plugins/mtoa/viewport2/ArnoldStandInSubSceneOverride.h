@@ -9,7 +9,7 @@
 #include <maya/MMessage.h>
 
 #if MAYA_API_VERSION >= 201650
-
+#include "common/UnorderedContainer.h"
 #include <ai_vector.h>
 #include <vector>
 #include <map>
@@ -112,7 +112,7 @@ private:
         InstanceInfo(const MDagPath& instance, const MMatrix& matrix, bool selected, bool lead) : 
             fTransform(matrix), fSelected(selected), fLead(lead), fInstance(instance) {}
     };
-    typedef std::map<unsigned int, InstanceInfo> InstanceInfoMap;
+    typedef unordered_map<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
 	bool fLastTimeInvisible;
 };

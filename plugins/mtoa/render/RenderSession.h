@@ -115,6 +115,7 @@ public:
 
    void StartRenderView();
    void UpdateRenderView();
+   void CloseRenderView();
 
    void ObjectNameChanged(MObject& node, const MString& str);
 
@@ -169,6 +170,7 @@ public:
    static void ClearIdleRenderViewCallback();
 
    bool RenderSequence();
+   void UpdateRenderOptions();
       
 private:
 

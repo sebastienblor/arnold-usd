@@ -8,16 +8,38 @@
 #include <maya/MFnAttribute.h>
 #include <maya/MString.h>
 #include <maya/MFnDependencyNode.h>
+#include <common/UnorderedContainer.h>
 
-struct MObjectCompare
-{
-   bool operator()(MObjectHandle h1, MObjectHandle h2) const
-   {
-      return h1.hashCode() < h2.hashCode();
+namespace std {
+#ifdef UNORDERED_NEEDS_TR1
+   namespace tr1 {
+      template <>
+      struct hash<MObjectHandle>
+      {
+         std::size_t operator()(const MObjectHandle& k) const
+         {
+            using std::size_t;
+            using std::tr1::hash;
+
+            return (hash<unsigned int>()(k.hashCode()));
+         }
+      };
    }
-};
+#else
+   template <>
+   struct hash<MObjectHandle>
+   {
+      std::size_t operator()(const MObjectHandle& k) const
+      {
+         using std::size_t;
+         using std::hash;
 
-/// Designed to serve as a key for a std::multimap.
+         return (hash<unsigned int>()(k.hashCode()));
+      }
+   };
+#endif
+}
+
 
 /// The key can be as specific or generic as desired, specifying at least a depend node MObject,
 /// and optionally a DAG instance number and/or attribute name. When comparing two instances of
@@ -72,6 +94,7 @@ public:
       m_instanceNum = instanceNum;
    }
 
+   /*
    bool operator<(const CNodeAttrHandle &other) const
    {
       // check if same node
@@ -109,6 +132,8 @@ public:
       if (m_nodeHandle.object() == other.m_nodeHandle.object())
       {
          // only check instance if provided
+         // only check instance if provided
+         
          if (m_instanceNum >= 0 && other.m_instanceNum >= 0)
          {
             // test if same dag node
@@ -131,6 +156,20 @@ public:
          return true; // they are same depend node
       }
       return false;
+   }
+   */
+   void GetHashString(MString &hashCode, bool includeAttr=false) const
+   {
+      hashCode = m_nodeHandle.hashCode();
+      if (m_instanceNum >= 0)
+      {
+         hashCode += "#";
+         hashCode += m_instanceNum;
+      }
+      if (includeAttr && m_attrName.length() > 0)
+      {
+         hashCode += ":" + m_attrName;
+      }
    }
 private :
    MObjectHandle m_nodeHandle;

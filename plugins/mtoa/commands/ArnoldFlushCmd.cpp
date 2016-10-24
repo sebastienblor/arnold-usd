@@ -14,6 +14,7 @@ MSyntax CArnoldFlushCmd::newSyntax()
 
    syntax.addFlag("t", "textures", MSyntax::kBoolean);
    syntax.addFlag("s", "skydome", MSyntax::kBoolean);
+   syntax.addFlag("st", "selected_textures", MSyntax::kBoolean);
    syntax.addFlag("q", "quads", MSyntax::kBoolean);
    syntax.addFlag("fa", "flushall", MSyntax::kBoolean);
 
@@ -28,8 +29,11 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
       // this is an image node
       MString filename = AiNodeGetStr(node, "filename");
       MStringArray expandedFilenames = expandFilename(filename);
-      for (size_t i = 0; i < expandedFilenames.length(); ++i)
+      for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
+      {
+         AiMsgDebug("[mtoa.flush] Flushing texture %s", expandedFilenames[i].asChar());
          AiTextureInvalidate(expandedFilenames[i].asChar());
+      }
       
       return;
    }
@@ -50,12 +54,7 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 {
    MStatus status;
    MArgDatabase args(syntax(), argList);
-
-   if (!AiUniverseIsActive()) return MS::kSuccess;
-
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession != NULL)
-      renderSession->InterruptRender();
+  
    
    if (args.isFlagSet("textures"))
       AiUniverseCacheFlush(AI_CACHE_TEXTURE);
@@ -84,6 +83,46 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("flushall"))
       AiUniverseCacheFlush(AI_CACHE_ALL);
    
+   if (args.isFlagSet("selected_textures"))
+   {
+      MSelectionList activeList;
+      MGlobal::getActiveSelectionList(activeList);
+      for (unsigned int i = 0; i < activeList.length(); ++i)
+      {
+         MObject depNode;
+         activeList.getDependNode(i, depNode);
+         if (depNode.hasFn(MFn::kTransform))
+         {
+            // from Transform to Shape
+            MDagPath dagPath;
+            activeList.getDagPath(0, dagPath);
+            depNode = dagPath.child(0);
+         }
+         MFnDependencyNode nodeFn( depNode );
+
+         // note that this considers the node has the same name in maya and arnold
+         // based on the same code as ARV "shade with selected"
+         AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+         if (selected)
+         {
+            if (AiNodeIs(selected, "MayaFile") || AiNodeIs(selected, "image") ||  AiNodeIs(selected, "MayaImagePlane"))
+            {
+               MString filename = AiNodeGetStr(selected, "filename");
+               MStringArray expandedFilenames = expandFilename(filename);
+               for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
+               {
+                  AiMsgDebug("[mtoa.flush] Flushing texture %s", expandedFilenames[i].asChar());
+                  AiTextureInvalidate(expandedFilenames[i].asChar());
+               }
+            }
+         }
+      }
+      
+   }
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   if (renderSession != NULL && AiUniverseIsActive())
+      renderSession->InterruptRender();
+
    return MS::kSuccess;
 }
 

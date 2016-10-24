@@ -71,6 +71,7 @@ MObject CArnoldVolumeShape::s_velocity_scale;
 MObject CArnoldVolumeShape::s_velocity_fps;
 MObject CArnoldVolumeShape::s_velocity_shutter_start;
 MObject CArnoldVolumeShape::s_velocity_shutter_end;
+MObject CArnoldVolumeShape::s_velocity_threshold;
 
 enum VolumeType{
    VT_CUSTOM,
@@ -223,6 +224,11 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_velocity_shutter_end);
+
+   s_velocity_threshold = nAttr.create("velocityThreshold", "vThreshold", MFnNumericData::kFloat, 0.001f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_velocity_threshold);
    
    return MStatus::kSuccess;
 }
@@ -266,7 +272,9 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
 		plug == s_velocity_scale ||
 		plug == s_velocity_fps ||
 		plug == s_velocity_shutter_start ||
-		plug == s_velocity_shutter_end)
+		plug == s_velocity_shutter_end || 
+      plug == s_velocity_threshold  
+      )
 	{
 		// Signal to VP2 that we require an update
 		MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());

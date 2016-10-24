@@ -1,9 +1,6 @@
 #include "VolumeTranslator.h"
-
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -14,8 +11,6 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MRenderUtil.h>
-
-
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 
@@ -54,42 +49,23 @@ void CArnoldVolumeTranslator::Export(AtNode* anode)
    }
    else
    {
-      ExportVolume(anode, false);
+      ExportVolume(anode, IsExported());
    }
 }
 
-void CArnoldVolumeTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CArnoldVolumeTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
-}
-
-void CArnoldVolumeTranslator::Update(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else
-   {
-      ExportVolume(anode, true);
-   }
-}
-
-void CArnoldVolumeTranslator::UpdateMotion(AtNode* anode, unsigned int step)
-{
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 
-//
 AtNode* CArnoldVolumeTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -104,7 +80,7 @@ void CArnoldVolumeTranslator::ExportShaders()
 {
    AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
    /// TODO: Test shaders with Volume.
-   ExportVolumeShaders(GetArnoldRootNode());
+   ExportVolumeShaders(GetArnoldNode());
 }
 
 void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
@@ -116,7 +92,7 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *shader = ExportNode(shadingGroupPlug);
+      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
          AiNodeSetPtr(volume, "shader", shader);
@@ -157,9 +133,9 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 {
    m_DagNode.setObject(m_dagPath.node());
 
-   AiNodeSetStr(volume, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(volume, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
-   ExportMatrix(volume, 0);
+   ExportMatrix(volume);
    ProcessRenderFlags(volume);
    
    ExportVolumeShaders(volume);
@@ -280,6 +256,9 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
          
          AiNodeDeclare(volume, "bounds_slack", "constant FLOAT" );
          AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("padding").asFloat());
+
+         AiNodeDeclare( volume, "velocity_outlier_threshold", "constant FLOAT" );
+         AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold").asFloat());         
          
       }
 

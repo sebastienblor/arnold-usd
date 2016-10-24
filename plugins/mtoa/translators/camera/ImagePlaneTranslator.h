@@ -9,7 +9,7 @@ class DLLEXPORT CImagePlaneTranslator
 {
 public:
    void Export(AtNode* imagePlane);
-   void ExportMotion(AtNode* imagePlane, unsigned int step);
+   void ExportMotion(AtNode* imagePlane);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -18,11 +18,9 @@ public:
    AtNode* CreateArnoldNodes();
    void SetCamera(MString cameraName);
    
-   virtual bool RequiresMotionData()
-   {
-      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
-   }
-   void ExportImagePlane(unsigned int step);
+   virtual bool RequiresMotionData();
+   
+   void ExportImagePlane();
 protected:
 
 

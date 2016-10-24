@@ -56,10 +56,16 @@ CSphereLocator::~CSphereLocator()
 {
 }
 
-bool CSphereLocator::isAbstractClass()
+// FIXME : This function used to return true, but its signature was
+// wrong (const was missing). Because of that, it was never called.
+// And everything worked fine. Now that OSX compilation warning told us to fix this,
+// this method is being called.... and we realize it shouldn't be (some nodes like aiSkydome can't be created anymore)
+/*
+bool CSphereLocator::isAbstractClass() const
 {
    return true;
 }
+*/
 
 #ifdef ENABLE_VP2
 #if MAYA_API_VERSION >= 201700

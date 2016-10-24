@@ -1,18 +1,15 @@
+#include "../common/XgArnoldExpand.h"
+
 #include "extension/Extension.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
 #include <maya/MGlobal.h>
+#include <maya/MFnCamera.h>
+#include <maya/MMatrix.h>
 
 #include "XGenTranslator.h"
-
-#include "session/SessionOptions.h"
-
-
-#include <string>
-#include <vector>
 
 
 static void SetEnv(const MString& env, const MString& val)
@@ -33,15 +30,32 @@ inline bool alembicExists(const std::string& name)
 }
 
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
-{
+{   
+   m_expandedProcedural = NULL;
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
    return AddArnoldNode("procedural");
 }
 
-void CXgDescriptionTranslator::Export(AtNode* instance)
+void CXgDescriptionTranslator::Delete()
 {
-   //AiMsgInfo("[CXgDescriptionTranslator] Exporting %s", GetMayaNodeName().asChar());
-   Update(instance);
+   // If the procedural has been expanded at export,
+   // we need to delete all the created nodes here 
+   if (m_expandedProcedural)
+   {
+      int numNodes = m_expandedProcedural->NumNodes();
+      for (int i = 0; i < numNodes; ++i)
+      {
+         AtNode *node = m_expandedProcedural->GetNode(i);
+         if (node == NULL) continue; 
+         AiNodeDestroy(node);
+      }
+      m_expandedProcedural->Cleanup();
+
+      delete m_expandedProcedural;
+      m_expandedProcedural = NULL;
+      m_exportedSteps.clear();
+   }
+   CShapeTranslator::Delete();
 }
 
 struct DescInfo
@@ -114,9 +128,14 @@ struct DescInfo
    }
 };
 
-void CXgDescriptionTranslator::Update(AtNode* procedural)
+void CXgDescriptionTranslator::Export(AtNode* procedural)
 {
-   //AiMsgInfo("[CXgDescriptionTranslator] Update()");
+   if (IsExported())
+   {
+      // Since we always use AI_RECREATE_NODE during IPR (see RequestUpdate)
+      // we should never get here. Early out for safety
+      return;
+   }
 
    // Build the path to the procedural dso
    static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgen_procedural.so");
@@ -133,7 +152,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 #endif
 
       // In Batch render, file name has a number added. Get the original name
-      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+      if(GetSessionOptions().IsBatch())
       {
          int exists = 0;
             MGlobal::executeCommand("objExists defaultArnoldRenderOptions.mtoaOrigFileName", exists);
@@ -248,10 +267,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                //  use render globals moblur settings
                if (info.moblur == 0)
                {
-                  if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
+                  if(GetSessionOptions().IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
                   {
-                     info.motionBlurSteps = CMayaScene::GetArnoldSession()->GetMotionFrames().size();
-                     info.moblurFactor = float(CMayaScene::GetArnoldSession()->GetMotionByFrame());
+                     GetMotionFrames(info.motionBlurSteps);
+                     info.moblurFactor = (float)GetMotionByFrame();
                   }
                }
                // use  xgen per  description moblur settings
@@ -348,50 +367,46 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // Hardcoded values for now.
       //float s = 100000.f * fUnitConvFactor;
       //info.setBoundingBox( -s,-s,-s, s, s, s );
+      MDagPath camera = GetSessionOptions().GetExportCamera();
 
-      if(CMayaScene::GetArnoldSession())
+      if (camera.isValid())
       {
-         MDagPath camera = m_session->GetExportCamera();
+         MStatus status;
+         MFnDependencyNode fnNode(camera.node());
+         MFnCamera fnCamera(camera.node());
 
-         if (camera.isValid())
+         // info.bCameraOrtho
+         MPlug plug = fnNode.findPlug("aiTranslator", status);
+         if (status && !plug.isNull())
          {
-            MStatus status;
-            MFnDependencyNode fnNode(camera.node());
-            MFnCamera fnCamera(camera.node());
-
-            // info.bCameraOrtho
-            MPlug plug = fnNode.findPlug("aiTranslator", status);
-            if (status && !plug.isNull())
-            {
-               if (plug.asString() == MString("orthographic"))
-                  info.bCameraOrtho = true;
-               else if(plug.asString() == MString("perspective"))
-                  info.bCameraOrtho = false;
-               else
-                  info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
-            }
+            if (plug.asString() == MString("orthographic"))
+               info.bCameraOrtho = true;
+            else if(plug.asString() == MString("perspective"))
+               info.bCameraOrtho = false;
             else
                info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
-
-            // info.setCameraPos
-            MMatrix tm = camera.inclusiveMatrix(&status);
-            info.setCameraPos( (float)tm[3][0], (float)tm[3][1], (float)tm[3][2] );
-
-            // info.fCameraFOV
-            info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * AI_RTOD;
-
-            // info.setCameraInvMat
-            // This is correct. Maya expects a mix of the inverted and not inverted matrix
-            //  values, and also with translation values in a different place.
-            MMatrix tmi = camera.inclusiveMatrixInverse(&status);
-            info.setCameraInvMat((float)tm[0][0], (float)tm[1][0], (float)tm[2][0], (float)tm[0][3],
-                                 (float)tm[0][1], (float)tm[1][1], (float)tm[2][1], (float)tm[1][3],
-                                 (float)tm[0][2], (float)tm[1][2], (float)tm[2][2], (float)tm[2][3],
-                                 (float)tmi[3][0], (float)tmi[3][1], (float)tmi[3][2], (float)tm[3][3]);
-
-            // info.fCamRatio
-            info.fCamRatio = (float)fnCamera.aspectRatio(&status);
          }
+         else
+            info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
+
+         // info.setCameraPos
+         MMatrix tm = camera.inclusiveMatrix(&status);
+         info.setCameraPos( (float)tm[3][0], (float)tm[3][1], (float)tm[3][2] );
+
+         // info.fCameraFOV
+         info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * AI_RTOD;
+
+         // info.setCameraInvMat
+         // This is correct. Maya expects a mix of the inverted and not inverted matrix
+         //  values, and also with translation values in a different place.
+         MMatrix tmi = camera.inclusiveMatrixInverse(&status);
+         info.setCameraInvMat((float)tm[0][0], (float)tm[1][0], (float)tm[2][0], (float)tm[0][3],
+                              (float)tm[0][1], (float)tm[1][1], (float)tm[2][1], (float)tm[1][3],
+                              (float)tm[0][2], (float)tm[1][2], (float)tm[2][2], (float)tm[2][3],
+                              (float)tmi[3][0], (float)tmi[3][1], (float)tmi[3][2], (float)tm[3][3]);
+
+         // info.fCamRatio
+         info.fCamRatio = (float)fnCamera.aspectRatio(&status);
       }
    }
 
@@ -441,19 +456,26 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          //AiNodeSetPtr( instance, "node", shape );
 
          // Export shaders
-         rootShader = ExportShaders( shape );
+         rootShader = ExportRootShader(shape);
 
-         ExportMatrix(shape, 0);
+         ExportMatrix(shape);
       }
       // For other patches we reuse the shaders and create new procedural
       else
       {
-         shape = AiNode("procedural");
+         MString nameKey = "proc";
+         nameKey += i;
+         // we store this procedural in our translator using a key based on its index.
+         // This way it'll be properly cleared or re-used later in the IPR session
+         shape = GetArnoldNode(nameKey.asChar());
+         if (shape == NULL)
+            shape = AddArnoldNode("procedural", nameKey.asChar());
 
          AiNodeDeclare( shape, "xgen_shader", "constant ARRAY NODE" );
          AiNodeSetArray(shape, "xgen_shader", AiArray(1, 1, AI_TYPE_NODE, rootShader));
 
-         /*AtNode* otherInstance = AiNode("ginstance");
+         /*AtNode* otherInstance = GetArnoldNode(nameKey.asChar());
+         if (otherInstance == NULL) otherInstance = AddArnoldNode("ginstance", nameKey.asChar());
          AiNodeSetStr(otherInstance, "name", NodeUniqueName(otherInstance, buf));
          AiNodeSetPtr( otherInstance, "node", shape );
          AiNodeSetPtr( otherInstance, "shader", rootShader );
@@ -483,7 +505,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       bool batchModeOk = false;
       
       // if maya session is in batch or  xgen render mode is batch we want to 
-      if((CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch()) || (info.renderMode == 3))
+      if(GetSessionOptions().IsBatch() || (info.renderMode == 3))
       {
          batchModeOk = true;
       }
@@ -518,12 +540,14 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
          if (info.moblur == 0) // use render globals
          {
-            if(CMayaScene::GetArnoldSession())
+
+            AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
+            AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
+            
+            unsigned int motionFramesCount;
+            const double *steps = GetMotionFrames(motionFramesCount);
+            if (steps != NULL && motionFramesCount > 0)
             {
-               AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
-               AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
-               
-               std::vector<double> steps = CMayaScene::GetArnoldSession()->GetMotionFrames();
             
                for (uint sampCount = 0; sampCount < info.motionBlurSteps; sampCount ++)
                {
@@ -539,11 +563,6 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                   AiArraySetFlt(samples, sampCount, sample);
                }
                AiNodeSetArray(shape, "time_samples", samples);
-            }
-            else
-            {
-               AiMsgWarning("[xgen] Motion blur sample settings cannot be acquired from Arnold Render Globals");
-               mbSamplesString += std::string("0.0 ");
             }
          }
          
@@ -689,20 +708,63 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
        AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
        AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
        
-
       }
       
       ExportLightLinking(shape);
    }
+
+   m_exportedSteps.clear();
+
+   // For now we're only expanding the procedurals during export if we are on an interactive render
+   // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+   // can be updated while tweaking the XGen attributes
+   if (GetSessionOptions().IsInteractiveRender())
+   {
+      // if there is no motion blur for this node, then we're good to expand the geometries
+      bool hasMotion = IsMotionBlurEnabled() && RequiresMotionData();
+
+      // If there is motion blur, we'll want to expand the procedural only
+      // at the final motion step
+      if (hasMotion)
+      {
+         m_exportedSteps.assign(GetNumMotionSteps(), false);
+         m_exportedSteps[GetMotionStep()] = true;
+      } else
+         ExpandProcedural();
+      
+   }
+}
+void CXgDescriptionTranslator::ExportShaders()
+{
+   ExportRootShader(GetArnoldNode());
 }
 
-void CXgDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
+void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(shape, step);
+   ExportMatrix(shape);
+
+   if (m_exportedSteps.empty())
+      return;
+
+   // If we're here, it means that we're on an interactive render
+   // where the procedural has to be expanded during export
+
+   m_exportedSteps[GetMotionStep()] = true; // motion step done
+
+   // check if all motion steps have been exported
+   for (size_t i = 0; i < m_exportedSteps.size(); ++i)
+   {
+      // a motion step is still missing. We'll expand later
+      if (!m_exportedSteps[i])
+         return;
+   }
+
+   // All motion steps have been exported, it's time to expand the procedural
+   ExpandProcedural();
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -775,12 +837,12 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputString ( data );
 }
 
-AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
+AtNode* CXgDescriptionTranslator::ExportRootShader(AtNode* instance)
 {
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
          AiNodeDeclare( instance, "xgen_shader", "constant ARRAY NODE" );
@@ -790,4 +852,45 @@ AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
    }
 
    return NULL;
+}
+
+// this forces the refresh during IPR. All nodes have to be deleted
+// which will happen in the Delete() function
+void CXgDescriptionTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}
+
+// For now we're only expanding the procedurals during export if we are on an interactive render
+// (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+// can be updated while tweaking the XGen attributes
+void CXgDescriptionTranslator::ExpandProcedural()
+{
+   if (m_expandedProcedural)
+      return;
+
+   s_bCleanDescriptionCache = true;
+   AtNode *node = GetArnoldNode();
+   m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
+   m_expandedProcedural->Init( node );
+
+   // FIXME verify if we need to do something about the procedural matrix ?
+
+   // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
+   // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now
+   AiNodeSetDisabled(node, true);
+   int i = 1;
+
+   while(true)
+   {
+      MString nameKey = "proc";
+      nameKey += i;
+      AtNode * procNode = GetArnoldNode(nameKey.asChar());
+      if (procNode == NULL)
+         break;
+
+      AiNodeSetDisabled(procNode, true);
+      i++;
+   }
 }

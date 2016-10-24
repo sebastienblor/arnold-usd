@@ -662,6 +662,18 @@ void CRenderSession::UpdateRenderView()
 
 }
 
+void CRenderSession::CloseRenderView()
+{  
+   if(s_renderView != NULL) // for now always return true
+   {
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->CloseRenderView();
+   }
+
+}
+
+
 void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 {
    if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;
@@ -840,3 +852,15 @@ bool CRenderSession::RenderSequence()
    return true;
 }
 
+void CRenderSession::UpdateRenderOptions()
+{
+   m_renderOptions.GetFromMaya(); 
+   m_renderOptions.SetupLog();
+
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView)
+   {
+      s_renderView->SetLogging(m_renderOptions.GetLogConsoleVerbosity(), m_renderOptions.GetLogFileVerbosity());
+   }
+#endif
+}

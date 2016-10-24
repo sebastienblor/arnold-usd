@@ -112,11 +112,11 @@ MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   char* tool = "/bin/cp";
+   std::string tool = "/bin/cp";
    char* argsCmd[] = { (char *)src, (char *)dst, NULL };
    FILE* pipe = NULL;
 
-   status = AuthorizationExecuteWithPrivileges(authorizationRef, tool, kAuthorizationFlagDefaults, argsCmd, &pipe);
+   status = AuthorizationExecuteWithPrivileges(authorizationRef, tool.c_str(), kAuthorizationFlagDefaults, argsCmd, &pipe);
    if (status != 0)
    {
       // show error message

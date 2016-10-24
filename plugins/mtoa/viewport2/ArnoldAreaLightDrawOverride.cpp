@@ -334,7 +334,7 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 // Generate user data for each primitive type
 void CArnoldAreaLightDrawOverride::initializeUserData()
 {
-   if ((s_isInitialized == false))
+   if (s_isInitialized == false)
    {
       s_isInitialized = true;
       s_isValid = true;

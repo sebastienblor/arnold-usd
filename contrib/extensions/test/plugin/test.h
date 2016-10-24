@@ -9,6 +9,5 @@ class CTestTranslatorCmd
 public:
    AtNode* CreateArnoldNodes();
    void Export(AtNode*);
-   void Update(AtNode*);
    static void* creator();
 };

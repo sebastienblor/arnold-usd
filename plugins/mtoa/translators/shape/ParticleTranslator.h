@@ -1,7 +1,7 @@
 #pragma once
 
-#include "GeometryTranslator.h"
-
+#include "ShapeTranslator.h"
+#include "common/UnorderedContainer.h"
 #include <maya/MFnParticleSystem.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTimer.h>
@@ -14,11 +14,11 @@
 
 
 class CParticleTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
    CParticleTranslator() :
-      CGeometryTranslator(),
+      CShapeTranslator(),
       m_hasRGB(false),
       m_hasOpacity(false),
       m_hasRadiusPP(false),
@@ -38,12 +38,9 @@ public:
       m_inheritCacheTxfm(false),
       m_exportId(false),
       m_minPixelWidth(0.0f)
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "points";
-   }
+   {}
 
+   
    static void* creator()
    {
       return new CParticleTranslator();
@@ -52,11 +49,9 @@ public:
 
 
    static void NodeInitializer(CAbTranslator context);
-   virtual void Update(AtNode* anode);
-   void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
-
+   virtual void Export(AtNode* anode);
+   virtual void ExportMotion(AtNode* anode);
+   
 
 protected:
 
@@ -88,6 +83,8 @@ protected:
 
 protected:
 
+   virtual void RequestUpdate();
+
    // by solid angle's conventions m_renderTypeSphere should be formatted like:  PARTICLE_TYPE_SPHERE
    enum ParticleRenderType
    {
@@ -113,15 +110,16 @@ protected:
 
 
    // these hold each frame steps values  per map entry  for  custom attrs
-   std::map<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
-   std::map<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
-   std::map<std::string,  MIntArray* > m_out_customIntAttrArrays;
+   unordered_map<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
+   unordered_map<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
+   unordered_map<std::string,  MIntArray* > m_out_customIntAttrArrays;
 
 
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays
-   std::map<int, int>  m_particleIDMap;
+   unordered_map<int, int>  m_particleIDMap;
 
-
+   std::vector<bool> m_exportedSteps;
+   
    MVectorArray m_instantVeloArray;
    MVectorArray m_instantAcceArray;
    MFnDagNode m_DagNode;

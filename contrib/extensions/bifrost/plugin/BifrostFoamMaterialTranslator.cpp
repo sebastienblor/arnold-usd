@@ -1,15 +1,11 @@
-#include "extension/Extension.h"
-#include "utils/time.h"
-#include "scene/MayaScene.h"
+//#include "extension/Extension.h"
+//#include "utils/time.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
 #include <maya/MGlobal.h>
 
 #include "BifrostFoamMaterialTranslator.h"
-#include "session/SessionOptions.h"
-
-
 
 #include <string>
 #include <vector>
@@ -72,7 +68,7 @@ void CBfFoamMaterialTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
       colorPlug.connectedTo(conns, true, false, &status);
       if (status && conns.length())
       {
-         AtNode* connectedColor = ExportNode(conns[0]);
+         AtNode* connectedColor = ExportConnectedNode(conns[0]);
          MString attributeName = values_name + MString("[");
          attributeName += i;
          attributeName += "]";

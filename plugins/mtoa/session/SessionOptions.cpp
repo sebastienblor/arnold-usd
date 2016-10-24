@@ -30,25 +30,6 @@ namespace {
    };
 }
 
-void ReplaceSlashes(MString& str, bool isDir = false)
-{
-#ifdef _WIN32
-   MStringArray tmp;
-   str.split('\\', tmp);
-   if (tmp.length() > 1)
-   {
-      str = tmp[0];
-      for (unsigned int i = 1; i < tmp.length(); ++i)
-      {
-         str += "/";
-         str += tmp[i];
-      }
-   }
-#endif
-   if (isDir && (str.length() > 1) && (str.substring(str.length() - 1, str.length() - 1) != "/"))
-      str += "/";
-}
-
 void ExpandEnvVariables(MString& str)
 {
    std::string str2 = str.asChar();
@@ -221,41 +202,3 @@ MStatus CSessionOptions::GetFromMaya()
    return status;
 }
 
-void CSessionOptions::FormatTexturePath(MString& texturePath) const
-{
-   ReplaceSlashes(texturePath);
-   if (!m_absoluteTexturePaths)
-   {
-      // if the filename starts with one of the texture search paths, remove the path from the filename
-      for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
-      {
-         const MString& currentSearchPath = m_textureSearchPaths[i];
-         if (texturePath.indexW(currentSearchPath) == 0)
-         {
-            texturePath = texturePath.substringW(currentSearchPath.length(), texturePath.length());
-            break;
-         }
-      }
-   }
-   // convert to UTF-8
-   texturePath = texturePath.asUTF8();
-}
-
-void CSessionOptions::FormatProceduralPath(MString& proceduralPath) const
-{
-   ReplaceSlashes(proceduralPath);
-   if (!m_absoluteProceduralPaths)
-   {
-      for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
-      {
-         const MString& currentSearchPath = m_proceduralSearchPaths[i];
-         if (proceduralPath.indexW(currentSearchPath) == 0)
-         {
-            proceduralPath = proceduralPath.substringW(currentSearchPath.length(), proceduralPath.length());
-            break;
-         }
-      }
-   }
-   // convert to UTF-8
-   proceduralPath = proceduralPath.asUTF8();
-}

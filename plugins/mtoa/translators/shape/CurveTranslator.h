@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
@@ -26,29 +26,27 @@ struct CCurveLine
 };
 
 class CCurveTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
    CCurveTranslator() :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "curves";
-      exportReferenceObject = false;
-   }
+      CShapeTranslator(),
+      exportReferenceObject(false)
+   {}
+
+   virtual ~CCurveTranslator();
 
    virtual void Export(AtNode* curve);
-   virtual void Update(AtNode* curve);
-   virtual void ExportMotion(AtNode* curve, unsigned int step);
+   virtual void ExportMotion(AtNode* curve);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    static void* creator()
    {
       return new CCurveTranslator();
    }
-   virtual void RequestUpdate(void * clientData = NULL);
-
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
 private:
    void ProcessCurveLines(unsigned int step,
                          AtArray* curvePoints,

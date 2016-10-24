@@ -4,7 +4,6 @@
 
 class CLightBlockerTranslator : public CDagTranslator{
 public:   
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="");   
    bool RequiresMotionData();   
    static void* creator();   
    AtNode* CreateArnoldNodes();

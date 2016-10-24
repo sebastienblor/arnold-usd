@@ -118,14 +118,14 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mBlinnShader(NULL)
 , mShaderFromNode(NULL)
 , mLocatorNode(obj)
+, fLeadIndex(0)
+, fNumInstances(0)
 , mBBChanged(true)
-, mReuseBuffers(false)
 , mOneTimeUpdate(true)
+, mReuseBuffers(false)
 , mAttribChangedID(0)
 , mGlobalOptionsChangedID(0)
 , mGlobalOptionsCreatedID(0)
-, fNumInstances(0)
-, fLeadIndex(0)
 , fLastTimeInvisible(false)
 {
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
@@ -996,7 +996,7 @@ bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
 
         if (((wantSelectedItem && instanceInfo.fSelected) ||
             (wantUnselectedItem && !(instanceInfo.fSelected || instanceInfo.fLead))) &&
-            currentInstance++ == instanceId) // keep track of how many interesting items we visit
+            currentInstance++ == (unsigned int)instanceId) // keep track of how many interesting items we visit
         {
             // we have found the right index so return it.
             dagPath.set(instanceInfo.fInstance);
