@@ -506,6 +506,8 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
 
 void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 {
+   if (!AiUniverseIsActive()) return;
+
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
 
@@ -528,6 +530,8 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 // Selection has changed
 void CRenderViewMtoA::SelectionChangedCallback(void *data)
 {
+   if (!AiUniverseIsActive()) return;
+
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    MSelectionList activeList;
@@ -710,6 +714,12 @@ void CRenderViewMtoA::RenderViewClosed()
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
 
+   MMessage::removeCallback(m_rvLayerManagerChangeCb);
+   m_rvLayerManagerChangeCb = 0;
+
+   MMessage::removeCallback(m_rvLayerChangeCb);
+   m_rvLayerChangeCb = 0;
+   
    MProgressWindow::endProgress();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
