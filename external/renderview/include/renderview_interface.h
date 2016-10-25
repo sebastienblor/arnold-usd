@@ -44,7 +44,7 @@ public:
    CRenderViewInterface() : m_mainWindow(NULL) {}
    virtual ~CRenderViewInterface() {DestroyRenderView();}
 
-   void OpenRenderView(int width, int height, QWidget *parent = 0);
+   void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
    void CloseRenderView();
 
    void DestroyRenderView();
@@ -98,7 +98,7 @@ public:
    // Get a serialized definition of the RenderView options
    const char *Serialize();
    void SetFromSerialized(const char *);
-
+   
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
