@@ -44,6 +44,7 @@ void CRenderViewMtoA::ProgressiveRenderFinished() {}
 
 #if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
+static QWidget *s_workspaceControl = NULL;
 #endif
 
 // Arnold RenderView is defined
@@ -85,7 +86,7 @@ struct CARVSequenceData
    std::string saveImagesValue;
 };
 static CARVSequenceData *s_sequenceData = NULL;
-static QWidget *s_workspaceControl = NULL;
+
 
 static MString s_renderLayer = "";
 
@@ -189,9 +190,9 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 }
 
 #if MAYA_API_VERSION >= 201700
-#ifndef _LINUX
+
 #define ARV_DOCKED 1
-#endif
+
 #endif
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
@@ -231,7 +232,8 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    }
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
 
-   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+
+   OpenRenderView(width, height, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
@@ -248,6 +250,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    s_workspaceControl->show();
 #else
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+
 #endif
 
    if (exists && m_convertOptionsParam)
