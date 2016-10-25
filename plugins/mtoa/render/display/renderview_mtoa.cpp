@@ -190,9 +190,9 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 }
 
 #if MAYA_API_VERSION >= 201700
-#ifndef _LINUX
+
 #define ARV_DOCKED 1
-#endif
+
 #endif
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
