@@ -62,7 +62,20 @@ def doCreateCurveCollector():
                 
     cmds.select(curveNode, replace=True)
 
-
+def doCreateMeshLight():
+    sls = cmds.ls(sl=True, et='transform')
+    if len(sls) == 0:
+        cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
+        return
+    shs = cmds.listRelatives(sls[0], type='mesh')
+    if shs is None:
+        cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
+        return
+    elif len(shs) == 0:
+        cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
+        return
+    cmds.setAttr('%s.aiTranslator' % shs[0], 'mesh_light', type='string')
+ 
 def doCreateLightPortal():
 
     sls = cmds.ls(sl=False, et='aiSkyDomeLight')
@@ -367,7 +380,7 @@ def createArnoldMenu():
         pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
                     c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
         pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light',
-                    c=lambda *args: mutils.createMeshLight())
+                    c=lambda *args: doCreateMeshLight())
         pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light",
                     c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
         pm.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal",
