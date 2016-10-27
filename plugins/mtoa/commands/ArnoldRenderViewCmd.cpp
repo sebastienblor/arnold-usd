@@ -86,6 +86,14 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
+   MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
+   if (mode == "close")
+   {
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->CloseRenderView();
+      return MS::kSuccess;
+   }
+   
    if (args.isFlagSet("option"))
    {
       MString option = args.flagArgumentString("option", 0);
@@ -97,7 +105,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    }
 
    // Get argument to "-mode" flag
-   MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
+   
    int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
    bool is_region = args.isFlagSet("region");
@@ -204,12 +212,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       renderSession->UpdateRenderView();
       // only consider argument "region", ignore camera/width/height, etc...
-   } else if (mode == "close")
-   {
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->CloseRenderView();
-
-   }
+   }  
    
    return status;
 }
