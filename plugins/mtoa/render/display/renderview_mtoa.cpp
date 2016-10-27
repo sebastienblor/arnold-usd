@@ -240,14 +240,18 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
-   s_workspaceControl = MQtUtil::getCurrentParent(); // returns a pointer to th workspace called above
-
+   
    if (firstCreation)
+   {
+      // returns a pointer to th workspace called above, 
+      // but only for the creation ! if I call it with "-edit visible true" it can return 0
+      s_workspaceControl = MQtUtil::getCurrentParent(); 
       MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
+      arv->show();
+      s_workspaceControl->show();
+   }
 
-   // for an unknown reason, maya crashes if I don't call show() as below....
-   arv->show();
-   s_workspaceControl->show();
+   
 #else
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
 
