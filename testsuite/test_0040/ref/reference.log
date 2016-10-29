@@ -1,79 +1,47 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0040\test_0040.log', using stdout instead
 
-Starting "/usr/autodesk/maya2015-x64/bin/maya"
-
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 5.3.1.0. Feature Level 4.
-  Adapter : Quadro 600/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 
-  Driver : 4.4.0 NVIDIA 331.79.
-  API : OpenGL V.2.
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
   Max texture size : 16384 * 16384.
-  Max tex coords : 8
-  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 1024 MB.
-  CPU Memory Limit: 15110.1 MB.
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
 }
-mental ray for Maya 2015 
-mental ray: version 3.12.1.12, Jan 31 2014, revision 213714
-1 error generated.
-Error while processing /usr/autodesk/maya2015-x64/plug-ins/bifrost/db/presets/__rootincludeall__.h.
-00:00:00   419MB         | log started Wed Jun 18 18:17:15 2014
-00:00:00   419MB         | Arnold 4.2.0.4 linux clang-3.4.0 glibc-2.5 oiio-1.2.2 rlm-10.1.2 2014/06/13 10:22:00
-00:00:00   419MB         | running on localhost.localdomain with pid 25547
-00:00:00   419MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   419MB         |  (redhat) CentOS release 6.5 (Final), Linux kernel 2.6.32-431.17.1.el6.centos.plus.x86_64
-00:00:00   419MB         |  
-00:00:00   419MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   419MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   419MB         | loading plugin: /work/deploy/2015/shaders/mtoa_shaders.so ...
-00:00:00   420MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
-00:00:00   420MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
-00:00:00   420MB         | [mtoa] [mtoa_shaders] Generated 40 translators for 40 Maya nodes (12 new and 28 existing) for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
-00:00:00   420MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   420MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   420MB         | [mtoa] Loading extension xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so).
-00:00:00   420MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
-00:00:00   420MB         | [mtoa] [xgenTranslator] Declares a total of 0 new Maya nodes.
-00:00:00   420MB         | [mtoa] [xgenTranslator] Declares a total of 1 translators for 1 Maya nodes (0 new and 1 existing).
-00:00:00   420MB         | [mtoa] Successfully loaded extension library xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so).
-00:00:00   420MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   420MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   420MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   420MB         | [mtoa] [renderview_driver] Generated 1 translators for 1 Maya nodes (0 new and 1 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   420MB         | loading plugin: /work/deploy/shaders/Gecko.so ...
-00:00:00   420MB         | loaded 3 plugins from 1 lib(s) in 0:00.00
-00:00:00   420MB WARNING | [mtoa] [Gecko] [node dGecko] Assigning temporary node id 1138176 to associated Maya type name aiDGecko.
-00:00:00   420MB WARNING | [mtoa] [Gecko] [node dArmadillo] Assigning temporary node id 1138177 to associated Maya type name aiDArmadillo.
-00:00:00   420MB WARNING | [mtoa] [Gecko] [node dSubsurface] Assigning temporary node id 1138178 to associated Maya type name aiDSubsurface.
-00:00:00   420MB         | [mtoa] [Gecko] Generated 3 new Maya nodes for Arnold plugin /work/deploy/shaders/Gecko.so.
-00:00:00   420MB         | [mtoa] [Gecko] Generated 3 translators for 3 Maya nodes (3 new and 0 existing) for Arnold plugin /work/deploy/shaders/Gecko.so.
-00:00:00   420MB         | loading plugin: /work/deploy/shaders/testShaders.so ...
-00:00:00   420MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   420MB WARNING | [mtoa] [testShaders] [node maya_bump2d] Assigning temporary node id 1138179 to associated Maya type name aiMayaBump2d.
-00:00:00   420MB         | [mtoa] [testShaders] Generated 1 new Maya nodes for Arnold plugin /work/deploy/shaders/testShaders.so.
-00:00:00   420MB         | [mtoa] [testShaders] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/shaders/testShaders.so.
-00:00:00   420MB         | [mtoa] Registering 6 loaded extensions:
-00:00:00   420MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   420MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2015/shaders/mtoa_shaders.so.
-00:00:00   420MB WARNING | [mtoa] Extension xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-00:00:00   420MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   420MB         | [mtoa] Registered extension Gecko provided by /work/deploy/shaders/Gecko.so.
-00:00:00   420MB         | [mtoa] Registered extension testShaders provided by /work/deploy/shaders/testShaders.so.
-libai.so already loaded
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-00:00:00   420MB         | Successfully imported python module 'arnold'
-00:00:00   420MB         | Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, rotateHelper, MayaMuscle, tiffFloatReader, bifrostvisplugin, matrixNodes, Mayatomr, AbcImport, BifrostMain, ikSpringSolver, autoLoader, sceneAssembly, ik2Bsolver, AbcExport, gpuCache, Substance, retargeterNodes, shaderFXPlugin, ArubaTessellator, mayaCharacterization, quatNodes, mtoa, fbxmaya
-Maya 2015 importing module pymel 1.0.6 (/usr/autodesk/maya2015-x64/lib/python2.7/site-packages/pymel/__init__.py)
-00:00:01   507MB         |  
-00:00:01   507MB         | releasing resources
-00:00:01   507MB         | Arnold shutdown
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 298: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 298: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 299: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 299: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 300: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 300: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 301: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 301: setAttr: No object matches name: .tgamma
+Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.36 seconds.
-Result: /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0040/test.ma
-Scene /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0040/test.ma completed.
-mental ray: wallclock  0:00:06.21 total
-mental ray: CPU usage  0:00:06.49 total
-mental ray: current mem usage 4 MB, max mem usage 8 MB
+File read in  1.2 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+[maketx] Skipping native TX texture: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/uv.tx
+[maketx] Skipping native TX texture: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/uv.tx
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0040\test.ma completed.

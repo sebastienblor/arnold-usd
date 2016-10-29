@@ -1,124 +1,68 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0137\test_0137.log', using stdout instead
 
-Starting "/usr/autodesk/maya2012-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-00:00:00   169MB WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:3) Node entry does not exist
-00:00:00   169MB WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:10) Found attribute outside a node
-00:00:00   169MB WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:12) Found attribute outside a node
-00:00:00   169MB WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:15) Found attribute outside a node
-00:00:00   169MB WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:18) Found attribute outside a node
-00:00:00   169MB WARNING |  too many messages (>5) of type: "[metadata] (%s:%u) %s" -- not printing any more!
-00:00:00   170MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
-00:00:00   172MB WARNING | [mtoa] Extension shave(/work/deploy/2012/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-00:00:00   172MB WARNING | [mtoa] Extension FumeExtension(/work/deploy/2012/extensions/FumeExtension.so) requires Maya plugin FumeFX, registering will be deferred until plugin is loaded.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
-libai.so already loaded
-
-Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:3) Node entry does not exist
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:10) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:15) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:18) Found attribute outside a node
-00:00:00 WARNING |  too many messages (>5) of type: "[metadata] (%s:%u) %s" -- not printing any more!
-mental ray for Maya 2012 
-// Mental ray for Maya: using startup file /usr/autodesk/maya2012-x64/mentalray/maya.rayrc.
-mental ray for Maya: setup
-mental ray for Maya: initialize
-mental ray: version 3.9.1.48, Dec  8 2011, revision 162457
-mental ray for Maya: using 1 license
-mental ray for Maya: register extensions
-// mental ray Node Factory: loaded
-mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: /usr/autodesk/maya2012-x64/mentalray/maya.rayrc
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/AdskShaderSDKWrappers.mi
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/architectural.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/architectural.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/base.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/base.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/contour.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/contour.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/paint.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/paint.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/physics.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/physics.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/production.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/production.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/shaveMRShader.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/shaveMRShader.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/subsurface.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/subsurface.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/surfaceSampler.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/surfaceSampler.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/userdata.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/userdata.so
-// generating Maya nodes...
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:3) Node entry does not exist
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:10) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:15) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:18) Found attribute outside a node
-00:00:00 WARNING |  too many messages (>5) of type: "[metadata] (%s:%u) %s" -- not printing any more!
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:3) Node entry does not exist
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:10) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:15) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:18) Found attribute outside a node
-00:00:00 WARNING |  too many messages (>5) of type: "[metadata] (%s:%u) %s" -- not printing any more!
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2404: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2405: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2410: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2411: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2604: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2605: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2610: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2611: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2625: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2626: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2633: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2634: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2644: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2645: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2675: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2676: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2699: setAttr: Error reading data element number 5: nan
-Error: file: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma line 2700: setAttr: Error reading data element number 5: nan
-File read in 0 seconds.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2382: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2382: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2383: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2383: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2384: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2384: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2385: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2385: setAttr: No object matches name: .tgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2404: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2405: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2410: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2411: setAttr: Error reading data element number 5: nan
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2493: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2494: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2497: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2589: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2604: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2605: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2610: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2611: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2625: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2626: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2633: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2634: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2644: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2645: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2675: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2676: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2699: setAttr: Error reading data element number 5: nan
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0137/test.ma line 2700: setAttr: Error reading data element number 5: nan
+Viewport 2.0 floating point render target is turned off.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:3) Node entry does not exist
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:10) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:15) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (/work/deploy/2012/shaders/mtoa_shaders.mtd:18) Found attribute outside a node
-00:00:00 WARNING |  too many messages (>5) of type: "[metadata] (%s:%u) %s" -- not printing any more!
-Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0137/test.ma completed.
+File read in  1.4 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0137\test.ma completed.

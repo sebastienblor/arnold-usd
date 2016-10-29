@@ -1,46 +1,45 @@
-Cannot open log file 'C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0038\test_0038.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0038\test_0038.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 5.3.1.100. Feature Level 5.
-  Adapter : AMD FirePro W8000 (FireGL V)
-  Vendor ID: 4098. Device ID : 26506
-  Driver : aticfx64.dll:13.352.1014.0.
-  API : DirectX V.11.  Max texture size : 16384 * 16384.
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
   Max tex coords : 32
   Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 4095 MB.
-  CPU Memory Limit: 15523.9 MB.
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
 }
-1 error generated.
-Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
-00:00:00   319MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
-00:00:00   320MB WARNING | [mtoa] Extension xgenTranslator(C:/work/deploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-ai.dll loaded from non standard location C:\arnold4210\bin
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, VectorRender, AutodeskPacketFile, OpenEXRLoader, Unfold3D, mayaCharacterization, SOuP, mtoa, modelingToolkit, MayaMuscle, rotateHelper, DirectConnect, dx11Shader, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, shaderFXPlugin, objExport, bifrostshellnode, ArubaTessellator, quatNodes, fbxmaya
-Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.pyc)
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-Warning: file: C:/Users/Pal/Documents/maya/2015-x64/scripts/userSetup.mel line 1: Loading plug-in "mtoa" has resulted in changes to the scene that may need to be saved.
-
-----------------------------------------------------------
-Time: 2014/9/8 16:12:44
-----------------------------------------------------------
-
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 351: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 351: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 352: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 352: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 353: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 353: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 354: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0038/test.ma line 354: setAttr: No object matches name: .tgamma
+Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.34 seconds.
-Result: C:/work/mtoa/build/windows_x86_64/201501/msvc_opt/testsuite/test_0038/test.ma
-Scene C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0038\test.ma completed.
-
-----------------------------------------------------------
-Time: 2014/9/8 16:12:46
-----------------------------------------------------------
-
-
-----------------------------------------------------------
-Time: 2014/9/8 16:12:46
-----------------------------------------------------------
-
+File read in  1.3 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0038\test.ma completed.

@@ -1,73 +1,47 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0084\test_0084.log', using stdout instead
 
-Starting "/usr/autodesk/maya2014-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-[Fri Oct 31 16:40:23 2014] Yeti 1.3.15hotfix-v1.3.15: Yeti v1.3.15hotfix-v1.3.15, built on Oct 28 2014 at 14:46:37
-[Fri Oct 31 16:40:23 2014] Yeti 1.3.15hotfix-v1.3.15: (c) 2010-Present Peregrine Labs a division of Peregrine Visual Storytelling Ltd. All rights reserved.
-mental ray for Maya 2014 
-mental ray: version 3.11.1.13, Sep 12 2013, revision 204885
-[
-00:00:00   355MB         | log started Fri Oct 31 16:40:25 2014
-00:00:00   355MB         | Arnold 4.2.1.2 linux clang-3.4.0 glibc-2.5 oiio-1.4.10 rlm-10.1.2 2014/09/17 16:06:59
-00:00:00   355MB         | running on localhost.localdomain with pid 29250
-00:00:00   355MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   355MB         |  (redhat) CentOS release 6.5 (Final), Linux kernel 2.6.32-431.29.2.el6.centos.plus.x86_64
-00:00:00   355MB         |  
-00:00:00   355MB         | [mtoa] [<built-in>] Generated 18 new Maya nodes for Arnold built-in nodes.
-00:00:00   355MB         | [mtoa] [<built-in>] Generated 47 translators for 30 Maya nodes (18 new and 12 existing) for Arnold built-in nodes.
-00:00:00   355MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   355MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
-00:00:00   355MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   355MB         | [mtoa] [mtoa_shaders] Generated 40 translators for 40 Maya nodes (12 new and 28 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   355MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   355MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   355MB         | [mtoa] Loading extension libtbb(/work/deploy/yeti/plug-ins/libtbb.so).
-00:00:00   355MB ERROR   | [mtoa] Error loading extension library: /work/deploy/yeti/plug-ins/libtbb.so: file too short.
-00:00:00   355MB         | [mtoa] Loading extension libtbbmalloc(/work/deploy/yeti/plug-ins/libtbbmalloc.so).
-00:00:00   355MB ERROR   | [mtoa] Error loading extension library: /work/deploy/yeti/plug-ins/libtbbmalloc.so: file too short.
-00:00:00   355MB         | [mtoa] Loading extension pgYetiMaya(/work/deploy/yeti/plug-ins/pgYetiMaya.so).
-00:00:00   355MB ERROR   | [mtoa] Error initializing extension library: /work/deploy/yeti/plug-ins/pgYetiMaya.so: undefined symbol: initializeExtension.
-00:00:00   355MB         | [mtoa] Loading extension pgYetiArnoldMtoa(/work/deploy/yeti/plug-ins/pgYetiArnoldMtoa.so).
-00:00:00   355MB ERROR   | [mtoa] Error loading extension library: /work/deploy/yeti/plug-ins/pgYetiArnoldMtoa.so: undefined symbol: _ZN14CDagTranslator18AddUpdateCallbacksEv.
-00:00:00   355MB         | [mtoa] Loading extension shave(/work/deploy/2014/extensions/shave.so).
-00:00:00   355MB ERROR   | [mtoa] Error loading extension library: /work/deploy/2014/extensions/shave.so: undefined symbol: _ZN14CDagTranslator18AddUpdateCallbacksEv.
-00:00:00   355MB         | [mtoa] Loading extension xgenTranslator(/work/deploy/2014/extensions/xgenTranslator.so).
-00:00:00   355MB ERROR   | [mtoa] Error loading extension library: /work/deploy/2014/extensions/xgenTranslator.so: undefined symbol: _ZN14CDagTranslator18AddUpdateCallbacksEv.
-00:00:00   355MB         | loading plugin: /work/deploy/2014/shaders/shave_shaders.so ...
-00:00:00   356MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   356MB         | [mtoa] [shave_shaders] Generated 0 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
-00:00:00   356MB         | [mtoa] [shave_shaders] Generated 1 translators for 1 Maya nodes (0 new and 1 existing) for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
-00:00:00   356MB         | [mtoa] Registering 3 loaded extensions:
-00:00:00   356MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   356MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   356MB         | [mtoa] Registered extension shave_shaders provided by /work/deploy/2014/shaders/shave_shaders.so.
-libai.so already loaded
-
-00:00:00   357MB         | Successfully imported python module 'arnold'
 Successfully imported python module 'arnold'
-00:00:00   357MB         | Successfully imported python module 'mtoa'
 Successfully imported python module 'mtoa'
-pymel.internal.factories : INFO : MFnDagNode.model is deprecated
-pymel.core : INFO : Updating pymel with pre-loaded plugins: pgYetiMaya, modelingToolkit, xgenToolkit, shaveNode, AbcImport, mtoa, Mayatomr, AbcExport, autoLoader, fbxmaya, SOuP, objExport
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type pgYetiGroomManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type pgYetiGroomManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type shaveBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type shaveBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type boundingObjectManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type boundingObjectManip
-Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-00:00:01   442MB         |  
-00:00:01   442MB         | releasing resources
-00:00:01   442MB         | Arnold shutdown
-Error: file: /work/mtoa/build/linux_x86_64/201459/gcc_opt/testsuite/test_0084/test.ma line 8620: No object matches name: aiUtility1SG.message
-Error: file: /work/mtoa/build/linux_x86_64/201459/gcc_opt/testsuite/test_0084/test.ma line 8625: No object matches name: aiUtility1SG.message
-File read in 0 seconds.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6796: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6796: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6797: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6797: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6798: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6798: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6799: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 6799: setAttr: No object matches name: .tgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 8620: No object matches name: aiUtility1SG.message
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0084/test.ma line 8625: No object matches name: aiUtility1SG.message
+Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: /work/mtoa/build/linux_x86_64/201459/gcc_opt/testsuite/test_0084/test.ma
-Scene /work/mtoa/build/linux_x86_64/201459/gcc_opt/testsuite/test_0084/test.ma completed.
+File read in  1.5 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0084\test.ma completed.

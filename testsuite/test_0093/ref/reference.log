@@ -1,117 +1,50 @@
-Cannot open log file 'C:\solidangle\mtoa\build\windows_x86_64\201507\msvc_opt\testsuite\test_0093\test_0093.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0093\test_0093.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 5.3.2.800. Feature Level 4.
-  Adapter : NVIDIA GeForce GTX 750
-  Vendor ID: 4318. Device ID : 4993
-  Driver : nvoglv64.dll:9.18.13.4052.
-  API : OpenGL V.2.
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
   Max texture size : 16384 * 16384.
-  Max tex coords : 8
-  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 3938.29 MB.
-  CPU Memory Limit: 31086.4 MB.
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
 }
-00:00:00   244MB WARNING | [mtoa] [mtoa_shaders] [node volume_collector] Assigning temporary node id 1138176 to associated Maya type name aiVolumeCollector.
-00:00:00   244MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
-00:00:00   245MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
-.
-00:00:00   245MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
-.
-00:00:00   248MB WARNING | [mtoa] Extension xgenTranslator(C:/solidangle/mtoadeploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-00:00:00   248MB WARNING | [mtoa] Extension pgYetiArnoldMtoa(C:/yeti/plug-ins/pgYetiArnoldMtoa.dll) requires Maya plugin pgYetiMaya, registering will be deferred until plugin is loaded.
-ai.dll loaded from non standard location C:\solidangle\releases\Arnold-4.2.4.0-windows\bin
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, VectorRender, OpenEXRLoader, Unfold3D, ikSpringSolver, mayaCharacterization, ik2Bsolver, mtoa, AbcExport, retargeterNodes
-Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.py)
-1 error generated.
-Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
-Error: file: C:/ProgramData/Autodesk/ApplicationPlugins/MayaBonusTools/Contents/scripts-2015/bonusToolsMenu.mel line 1546: UI commands can't be run in batch mode.
-
-----------------------------------------------------------
-Time: 2015/3/10 19:26:36
-----------------------------------------------------------
-
-mental ray for Maya 2015 
-// Mental ray for Maya: using startup file C:/Program Files/Autodesk/mentalrayForMaya2015//maya.rayrc.
-mental ray for Maya: setup
-mental ray for Maya: initialize
-mental ray: version 3.12.1.18, Jul 30 2014, revision 224509
-mental ray for Maya: register extensions
-// mental ray Node Factory: loaded
-mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: C:/Program Files/Autodesk/mentalrayForMaya2015//maya.rayrc
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/abcimport.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/abcimport.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/AdskShaderSDKWrappers.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/architectural.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/architectural.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/base.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/base.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/basehair.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/basehair.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/bifrostMR.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/bifrostMR.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/bifrostphenMR.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/builtin_bsdf.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/builtin_object_light.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/contour.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/contour.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/layering.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/layering.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/layering_phen.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/mrptex.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/mrptex.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/paint.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/paint.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/physics.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/physics.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/production.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/production.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/subsurface.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/subsurface.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/surfaceSampler.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/surfaceSampler.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/userdata.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/userdata.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/useribl.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/useribl.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/xgenMR.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/xgenMR.dll
-// generating Maya nodes...
-Warning: file: C:/solidangle/mtoa/build/windows_x86_64/201507/msvc_opt/testsuite/test_0093/test.ma line 2297: 'miDefaultOptions.message' is already connected to 'mentalrayItemsList.options'.
-Warning: file: C:/solidangle/mtoa/build/windows_x86_64/201507/msvc_opt/testsuite/test_0093/test.ma line 2298: 'miDefaultFramebuffer.message' is already connected to 'mentalrayItemsList.framebuffers'.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  1.1 seconds.
-Result: C:/solidangle/mtoa/build/windows_x86_64/201507/msvc_opt/testsuite/test_0093/test.ma
-Scene C:\solidangle\mtoa\build\windows_x86_64\201507\msvc_opt\testsuite\test_0093\test.ma completed.
-
-----------------------------------------------------------
-Time: 2015/3/10 19:26:39
-----------------------------------------------------------
-
-mental ray: wallclock  0:00:02.02 total
-mental ray: current mem usage 4 MB, max mem usage 8 MB
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1915: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1915: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1916: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1916: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1917: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1917: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1918: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 1918: setAttr: No object matches name: .tgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 2082: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 2083: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 2086: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0093/test.ma line 2181: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Viewport 2.0 floating point render target is turned off.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  1.3 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0093\test.ma completed.
