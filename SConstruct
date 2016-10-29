@@ -673,21 +673,12 @@ else:
 
 Depends(MTOA, MTOA_API[0])
 
-DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
-                          duplicate   = 0,
-                          exports     = 'env')
-
-TIFF2JPEG = env.SConscript(os.path.join('tools', 'tiff2jpeg', 'SConscript'),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'tiff2jpeg'),
-                          duplicate   = 0,
-                          exports     = 'env')
 
 SConscriptChdir(0)
 TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
                            variant_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
                            duplicate   = 0,
-                           exports     = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
+                           exports     = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS ')
 
 MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
                      variant_dir = os.path.join(BUILD_BASE_DIR, 'docs', 'api'),
