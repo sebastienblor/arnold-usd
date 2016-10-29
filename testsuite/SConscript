@@ -10,6 +10,7 @@ import time
 import subprocess
 import sys
 import signal
+import subprocess
 from colorama import Fore, Style, Back
 
 Import('env')
@@ -263,7 +264,7 @@ class MayaTestRunner(object):
 
     def create_job(self):
         job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'index.html')),
-                                MTOA + MTOA_SHADERS + DIFFTIFF + TIFF2JPEG + self.install_files, # + SHADERS,
+                                MTOA + MTOA_SHADERS + self.install_files, # + SHADERS,
                                 PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
                                 chdir = 1
                                 )
@@ -320,19 +321,23 @@ class MayaTestRunner(object):
     
         show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
+        oiiotool_path = os.path.join(test_env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', system.os(), 'oiiotool')
         self.tests.sort()
         if not self.multiprocess:
             # disable multi-threading for windows
             lock = DummyLock()
             for test_name in self.tests:
                 test_dir       = os.path.join(self.build_dir, test_name)
+                test_script = self.script
+
                 t, files = run_test(test_name,
                                     lock,
                                     test_dir,
-                                    self.script,
+                                    test_script,
                                     self.output_image,
                                     os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                                     self.force_result,
+                                    oiiotool_path,
                                     test_env['UPDATE_REFERENCE'],
                                     show_test_output,
                                 test_env['COLOR_CMDS'])
@@ -571,7 +576,7 @@ class MayaTestRunner(object):
 
 
 if __name__ == 'SCons.Script':
-    Import('env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
+    Import('env BUILD_BASE_DIR MTOA MTOA_SHADERS ')
 
     # process build targets
     TESTSUITE = []
@@ -613,9 +618,7 @@ if __name__ == 'SCons.Script':
     # we need to link against libai for some reason?
     test_env.Append(LIBS = Split('ai'))
     
-    ## make sure we can find difftiff and any generated programs
-    append_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))
-    append_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
+    ## make sure we can find any generated programs
     prepend_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
     prepend_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
     ## as well as Arnold executables

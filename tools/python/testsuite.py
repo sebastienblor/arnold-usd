@@ -11,6 +11,7 @@ import string
 import system
 import glob
 import colorama
+import subprocess
 from colorama import Fore, Style
 
 from build_tools import process_return_code, saferemove
@@ -40,7 +41,7 @@ def print_banner(test_name, color_cmds=False):
         print test_name.ljust(15) + summary
         print '-'*80
 
-def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename, expected_result, update_reference=False, show_test_output=True, color_cmds=False):
+def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename, expected_result, oiiotool_path, update_reference=False, show_test_output=True, color_cmds=False):
     os.chdir(test_dir)
 
     # make a glob out of the output image
@@ -91,6 +92,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     cmd = string.replace(cmd, "%dir%", test_dir)
     cmd = string.replace(cmd, "%file%", os.path.join(test_dir, 'test.ma'))
     
+    print cmd
     # this is a little hack to keep non-AOV tests working. a proper fix would involve
     # opening each file and ensuring that it has "testrender" as its output prefix.
     options = ''
@@ -145,6 +147,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     if status != 'OK':
         cause = 'non-zero return code'
 
+    use_shell = (system.os() != 'windows')
     has_diff = False
     cause = None
     results = []
@@ -175,35 +178,41 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
             dif = 'dif_%s.jpg' % output_stripped
             ref = 'ref_%s.jpg' % reference_stripped
             
+            diff_hardfail = 0.01
+            diff_fail=0.01
+            diff_failpercent = 1
+            diff_warnpercent = 1
+            channels = 'R,G,B'
+            alpha = 'A'
+
             results.append((new, ref, dif))
             if True : #status =='OK': 
                 if os.path.exists(output) and os.path.exists(reference):
 
-                    ## if the test passed - compare the generated image to the reference
-                    difftiff_cmd = 'difftiff -f compare_%s -a 0.5 -m 27 %s %s' % (output, output, reference)
-                    if show_test_output:
-                        print difftiff_cmd
-                    else:
-                        if system.os() == 'windows':
-                            difftiff_cmd = '%s 1> %s.diff.log 2>&1' % (difftiff_cmd, test_name)
-                        else:
-                            difftiff_cmd = '%s > %s.diff.log 2>>%s.diff.log' % (difftiff_cmd, test_name, test_name)
-                    diff_retcode = os.system(difftiff_cmd)
+                    img_diff_opt = '--threads 1 --hardfail %f --fail %f --failpercent %f --warnpercent %f' % (diff_hardfail, diff_fail, diff_failpercent, diff_warnpercent)
+                    img_diff_cmd = ('%s ' + img_diff_opt + ' --diff %s %s') % (oiiotool_path, output, reference)
+            
+                    img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o dif_testrender.jpg ' % tuple([channels] + [alpha] * 4)
+                    
+                    f = open(os.path.join(test_dir, "%s.diff.log") % test_name, 'w')
+                    p = subprocess.Popen(img_diff_cmd, cwd=test_dir, shell=0, stdout=f, stderr=subprocess.STDOUT)
+                    f.close()
+
+                    diff_retcode = p.wait()
                     if diff_retcode != 0:
                         status = 'FAILED'
-                        current_status = 'FAILED'
                         cause = 'images differ'
-                        ## run difftiff again (!) to make one with a solid alpha...
-                        if system.os() == 'windows':
-                            os.system('difftiff -s -f dif.tif %s %s > nul 2> nul' % (output, reference))
-                        else:
-                            os.system('difftiff -s -f dif.tif %s %s > /dev/null 2>> /dev/null' % (output, reference))
-                        os.system('tiff2jpeg dif.tif %s' % dif)
-                        saferemove('dif.tif')
+                        current_status = 'FAILED'
+                    else:
+                        #success !
+                        # remove the diff file so that we know there is no difference
+                        if os.path.exists('dif_testrender.jpg'):
+                            os.remove('dif_testrender.jpg')
+
         
                 ## convert these to jpg form for makeweb
                 if os.path.exists(output):
-                    os.system('tiff2jpeg %s %s' % (output, new))
+                    os.system('%s -i %s -ch "R","G","B" -resize 160x120 -o %s' % (oiiotool_path, output, new))
                 else:
                     status = 'FAILED'
                     current_status = 'FAILED'
@@ -212,7 +221,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                     else:
                         cause = "output image does not exist: '%s'" % output
             if os.path.exists(reference):
-                os.system('tiff2jpeg %s %s' % (reference, ref))
+                os.system('%s -i %s -ch "R","G","B" -resize 160x120 -o %s' % (oiiotool_path, reference, ref))
+                
                 
             ## create the html file with the results
             f = open('STATUS_'+dif+'.txt', 'w')
@@ -301,6 +311,7 @@ Arnold testsuite - %s
             or '''file'''))
     
     for new, ref, dif in results:
+
         bgcolor = os.path.exists(dif) and '#ffa0a0' or '#ececec'
         f.write('''
             <tr>
