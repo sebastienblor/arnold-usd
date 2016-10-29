@@ -10,6 +10,7 @@ import time
 import subprocess
 import sys
 import signal
+import subprocess
 from colorama import Fore, Style, Back
 
 Import('env')
@@ -320,19 +321,23 @@ class MayaTestRunner(object):
     
         show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
+        oiiotool_path = os.path.join(test_env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', system.os(), 'oiiotool')
         self.tests.sort()
         if not self.multiprocess:
             # disable multi-threading for windows
             lock = DummyLock()
             for test_name in self.tests:
                 test_dir       = os.path.join(self.build_dir, test_name)
+                test_script = self.script
+
                 t, files = run_test(test_name,
                                     lock,
                                     test_dir,
-                                    self.script,
+                                    test_script,
                                     self.output_image,
                                     os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                                     self.force_result,
+                                    oiiotool_path,
                                     test_env['UPDATE_REFERENCE'],
                                     show_test_output,
                                 test_env['COLOR_CMDS'])
