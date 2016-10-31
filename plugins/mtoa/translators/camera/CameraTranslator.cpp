@@ -407,3 +407,17 @@ void CCameraTranslator::RequestUpdate()
       m_impl->m_session->QueueForUpdate(this); // still queue me for update, so that arnold scene remains sync'ed
 }
 
+void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "overscan") return;
+   if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
+
+   if (plugName == "panZoomEnabled" || plugName == "horizontalPan" || plugName == "verticalPan" || plugName == "zoom")
+   {
+      if (!FindMayaPlug("renderPanZoom").asBool())
+         return;
+   }
+
+   CDagTranslator::NodeChanged(node, plug);
+}

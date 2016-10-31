@@ -32,6 +32,7 @@ public:
 protected:
    virtual void GetMatrix(AtMatrix& matrix);
    virtual void RequestUpdate();
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
 
 //-----------------
 
