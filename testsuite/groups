@@ -29,6 +29,7 @@ darwin:
 # Tests in this group will never be executed (you can use it to temporarily disable some tests and/or groups)
 ignore: test_0004 test_0005 test_0006 test_0007 test_0019 test_0020 test_0029 test_0092 test_0118
 
+gui: test_0143 test_0153
 # ignored because they produce no image
 
 ############################
