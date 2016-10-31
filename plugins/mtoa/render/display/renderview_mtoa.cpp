@@ -528,7 +528,7 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 
    s_renderLayer = layerName;
 #endif
-   renderViewMtoA->SetOption("Update Full Scene", "1");
+   renderViewMtoA->SetOption("Full IPR Update", "1");
 
 
 }
@@ -1289,7 +1289,7 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    }
 
    if(updateRender)      
-      renderViewMtoA->SetOption("Update Full Scene", "1");
+      renderViewMtoA->SetOption("Full IPR Update", "1");
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
 {
