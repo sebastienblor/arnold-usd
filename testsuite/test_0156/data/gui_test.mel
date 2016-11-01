@@ -1,0 +1,105 @@
+file -f -o "test.ma";
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "Debug Shading" "Basic";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_basic.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Debug Shading" "Occlusion";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_occlusion.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Debug Shading" "Wireframe";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_wireframe.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+arnoldRenderView -option "Debug Shading" "Normal";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_normal.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Debug Shading" "UV";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_uv.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Debug Shading" "Primitive ID";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_primitive_id.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Debug Shading" "Object";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_object.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Debug Shading" "Barycentric";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_barycentric.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+arnoldRenderView -option "Debug Shading" "Isolate Selected";
+pause -sec 3;
+
+select -r pTorus1 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_is_torus.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -tgl pCube1 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_is_multisel.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -r directionalLight1 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_is_dirLight.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -r aiStandard2 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_is_material.tif";
+arnoldRenderView -option "Save Image" $img;
+
+select -r bulge1 ;
+pause -sec 3;
+
+select -tgl bump2d1 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_is_shaders.tif";
+arnoldRenderView -option "Save Image" $img;
+
+quit -force -abort;
+
+
