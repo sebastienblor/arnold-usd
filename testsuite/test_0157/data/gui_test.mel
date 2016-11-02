@@ -1,0 +1,55 @@
+file -f -o "test.ma";
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+
+arnoldRenderView -option "Store Snapshot" "1";
+setAttr "aiStandard3.color" -type double3 1 0 0 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+
+arnoldRenderView -option "Store Snapshot" "1";
+
+arnoldRenderView -option "Next Snapshot" "1";
+
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Next Snapshot" "1";
+arnoldRenderView -option "Previous Snapshot" "1";
+arnoldRenderView -option "Delete Snapshot" "1";
+
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Delete Snapshot" "1";
+
+select -r pCone1;
+doDelete;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+
+arnoldRenderView -option "Store Snapshot" "1";
+
+string $snapshot = `pwd`;
+$snapshot = $snapshot + "/snapshot.jpg";
+arnoldRenderView -option "Load Snapshot Image" $snapshot;
+arnoldRenderView -option "Previous Snapshot" "1";
+
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Delete Snapshot" "1";
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Delete Snapshot" "1";
+
+arnoldRenderView -option "Delete Snapshot" "1";
+
+quit -force -abort;
