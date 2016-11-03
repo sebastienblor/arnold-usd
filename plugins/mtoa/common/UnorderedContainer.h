@@ -11,12 +11,7 @@
 #define UNORDERED_NEEDS_TR1 1
 #endif
 
-#ifdef _DARWIN
-#include <maya/MTypes.h>
-#if MAYA_API_VERSION < 201600
-#define UNORDERED_NEEDS_TR1 1
-#endif
-#endif
+ 
 
 #ifdef UNORDERED_NEEDS_TR1
 #include <tr1/unordered_map>

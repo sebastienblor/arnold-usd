@@ -418,12 +418,8 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
 
-        if int(maya_version_base) > 2015:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
-        else:
-            env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.7'))
-            env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
 
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
