@@ -17,7 +17,6 @@
 #include <maya/MTypes.h>
 #endif
 
-//#include "XgExternalAPI.h"
 
 
 #include <vector>
@@ -25,7 +24,15 @@
 #include <string>
 
 #include <XgRenderAPI.h>
+
+#ifdef _WIN32
+#if MAYA_API_VERSION < 201600
+#undef min
+#undef max
+#endif
+#endif
 #include <XgRenderAPIUtils.h>
+
 
 extern bool s_bCleanDescriptionCache;
 
