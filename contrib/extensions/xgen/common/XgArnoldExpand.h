@@ -17,7 +17,7 @@
 #include <maya/MTypes.h>
 #endif
 
-#include "XgExternalAPI.h"
+//#include "XgExternalAPI.h"
 
 
 #include <vector>
