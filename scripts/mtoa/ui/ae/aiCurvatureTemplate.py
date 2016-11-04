@@ -20,7 +20,7 @@ class AEaiCurvatureTemplate(ShaderAETemplate):
 
         self.addControl('samples', label='Samples')
         self.addControl('radius', label='Radius')        
-        self.addControl('sread', label='Spread')
+        self.addControl('spread', label='Spread')
         self.addControl('threshold', label='Threshold')
         self.addControl('bias', label='Bias')
         self.addControl('multiply', label='multiply')
