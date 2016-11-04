@@ -62,7 +62,7 @@ def doCreateCurveCollector():
                 
     cmds.select(curveNode, replace=True)
 
-def doCreateMeshLight():
+def doCreateOldMeshLight():
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
         cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
@@ -380,7 +380,7 @@ def createArnoldMenu():
         pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
                     c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
         pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light',
-                    c=lambda *args: doCreateMeshLight())
+                    c=lambda *args: mutils.createMeshLight())
         pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light",
                     c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
         pm.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal",
