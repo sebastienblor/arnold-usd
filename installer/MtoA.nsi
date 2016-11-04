@@ -68,7 +68,49 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
     "MtoA for Maya $%MAYA_VERSION% is already installed. Remove installed version?" \
     IDOK Uninstall IDCANCEL QuitPart
   Uninstall:
-    Exec $R0
+
+    ; Copied from the Uninstall section at the end of this file
+    ; FIXME is there a way to put both in a single piece of code ?
+
+    RMDir /r /REBOOTOK $INSTDIR
+  
+    SetRegView 32
+    DeleteRegKey /ifempty HKCU "Software\MtoA$%MAYA_VERSION%"
+    ReadRegStr $R1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" CommonW6432Dir
+    
+    Delete "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod"
+    
+    SetRegView 64
+    ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
+    StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
+    Delete "$R1$R2"
+    
+    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+    ${If} "$%MAYA_VERSION%" >= "2017"
+    Delete "$R1\maya\RSTemplates\MatteOverride-Arnold.json"
+    Delete "$R1\maya\RSTemplates\RenderLayerExample-Arnold.json"
+    ${EndIf}
+    
+    IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
+    deleteMayaEnv:
+    Delete "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
+    CopyFiles "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
+    RMDir /r "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup"
+    
+    removeMenu:
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+      Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
+      RMDir "$SMPROGRAMS\$StartMenuFolder"
+    
+    SetRegView 64
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayName"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayVersion"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayIcon"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "Publisher"
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%"
+    Goto NotInstalled
+
   QuitPart:
     Quit
 
@@ -164,7 +206,10 @@ SectionEnd
 
 Section "Uninstall"
 
-  ;ADD YOUR OWN FILES HERE...
+  ; If you do some changes here, don't forget to port them above in the Uninstall: part
+  ; FIXME is there a way to put both in a single piece of code ?
+
+  ;add your own files here...
   
   RMDir /r /REBOOTOK $INSTDIR
   
