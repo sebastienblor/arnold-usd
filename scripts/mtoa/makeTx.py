@@ -6,6 +6,7 @@ import subprocess
 import maya.cmds as cmds
 import shlex
 from arnold import *
+import os.path
 import pymel.versions as versions
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
@@ -48,8 +49,12 @@ _token_generic_rx = re.compile('<[^>]*>')
 def expandFilename(filename):
 
     if filename.find('<') < 0:
-        #no tokens, let's just return the filename in a single-element array
-        return [filename]
+        #no tokens, let's just return the filename in a single-element array if this file exists
+        #(otherwise an empty array)
+        if os.path.isfile(filename):
+            return [filename]
+
+        return []
 
 
     '''Return a list of image filenames with all tokens expanded.
