@@ -1,0 +1,91 @@
+file -f -o "test.ma";
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+
+// add motion blur
+setAttr "defaultArnoldRenderOptions.motion_blur_enable" 1;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+string $img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// add camera blur
+setAttr "defaultArnoldRenderOptions.mb_camera_enable" 1;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// change the shutter length
+setAttr "defaultArnoldRenderOptions.motion_frames" 1;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// switch range to start on frame
+setAttr "defaultArnoldRenderOptions.range_type" 0;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// switch range to custom, and switch multiple times the range values
+setAttr "defaultArnoldRenderOptions.range_type" 3;
+pause -sec 1;
+setAttr "defaultArnoldRenderOptions.motion_start" -0.54;
+pause -sec 1;
+setAttr "defaultArnoldRenderOptions.motion_end" 0.68;
+setAttr "defaultArnoldRenderOptions.motion_end" 0.9;
+pause -sec 2;
+setAttr "defaultArnoldRenderOptions.motion_start" -0.3;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// change the motion steps
+setAttr "defaultArnoldRenderOptions.motion_steps" 5;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;
+
+// change the current frame multiple times, going through frames where objects are static
+currentTime 1;
+pause -sec 3;
+currentTime 2;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_7.tif";
+arnoldRenderView -option "Save Image" $img;
+
+currentTime 10;
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+currentTime 4;
+setAttr "defaultArnoldRenderOptions.range_type" 2;
+//arnoldRenderView -option "Update Full Scene"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_7.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+quit -force -abort;
