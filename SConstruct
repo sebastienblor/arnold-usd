@@ -288,27 +288,27 @@ if int(maya_version) >= 201700:
     env["ENABLE_COLOR_MANAGEMENT"] = 1
     env["MTOA_AFM"] = 1
 
-mercurial_id = ""
+build_id = ""
 
 try:
     p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
-    mercurial_id, err = p.communicate()
-    mercurial_id = mercurial_id.rstrip('\n')
+    build_id, err = p.communicate()
+    build_id = build_id.rstrip('\n')
 except:
     pass #hg is not in the path
-mercurial_id_file_contents = '#pragma once\n#define MERCURIAL_ID "%s"\n\n' % mercurial_id
-mercurial_id_file_read = ''
+build_id_file_contents = '#pragma once\n#define BUILD_ID "%s"\n\n' % build_id
+build_id_file_read = ''
 try:
-    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'r')
-    mercurial_id_file_read = open.read()
-    mercurial_id_file.close()
+    build_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'BuildID.h'), 'r')
+    build_id_file_read = open.read()
+    build_id_file.close()
 except:
     pass # the file doesn't exists yet
-if mercurial_id_file_read != mercurial_id_file_contents:
-    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'w')
-    mercurial_id_file.write(mercurial_id_file_contents)
-    mercurial_id_file.flush()
-    mercurial_id_file.close()
+if build_id_file_read != build_id_file_contents:
+    build_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'BuildID.h'), 'w')
+    build_id_file.write(build_id_file_contents)
+    build_id_file.flush()
+    build_id_file.close()
 # print build info
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
@@ -328,7 +328,7 @@ if system.os() == 'linux':
         pass
 elif system.os() == 'windows':
     print 'MSVC version   : %s' % (env['MSVC_VERSION'])
-print 'Mercurial ID   : %s' % mercurial_id
+print 'Build ID       : %s' % build_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 

@@ -15,16 +15,16 @@ def createPhysicalSky():
       cmds.confirmDialog(message='The Arnold Render Options node does not exists!')
 
 def createArnoldShelf():
-   mtoaMercurialID = cmds.arnoldPlugins(getMercurialID=True)
+   mtoaBuildID = cmds.arnoldPlugins(getBuildID=True)
    try:
-      if cmds.optionVar(exists='mtoaMercurialID'):
-         mercurialID = cmds.optionVar(query='mtoaMercurialID')
-         if mtoaMercurialID == mercurialID:
+      if cmds.optionVar(exists='mtoaBuildID'):
+         buildID = cmds.optionVar(query='mtoaBuildID')
+         if mtoaBuildID == buildID:
             return
          else:
-            cmds.optionVar(sv=('mtoaMercurialID', mtoaMercurialID))
+            cmds.optionVar(sv=('mtoaBuildID', mtoaBuildID))
       else:
-         cmds.optionVar(sv=('mtoaMercurialID', mtoaMercurialID))
+         cmds.optionVar(sv=('mtoaBuildID', mtoaBuildID))
    except:
       pass
    removeArnoldShelf()

@@ -2,7 +2,7 @@
 #include "../scene/MayaScene.h"
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
-#include "../utils/MercurialID.h"
+#include "../utils/BuildID.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -289,7 +289,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AiNodeSetArray(options_node, "outputs", outputs);
 
    MString mayaVersion = MGlobal::mayaVersion();     
-   MString appString = MString("MtoA ") + MTOA_VERSION + " " + MERCURIAL_ID + " Maya " + mayaVersion;
+   MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
    AiSetAppString(appString.asChar());
 
    // Dirty hack... this is initializing all the polymeshes triangles

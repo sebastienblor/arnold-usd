@@ -3,7 +3,7 @@
 #include "attributes/AttrHelper.h"
 #include "scene/MayaScene.h"
 #include "utils/Universe.h"
-#include "utils/MercurialID.h"
+#include "utils/BuildID.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
@@ -26,7 +26,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
 
    syntax.addFlag("llx", "listLoadedExtensions", MSyntax::kNoArg);
    syntax.addFlag("gev", "getExtensionApiVersion", MSyntax::kString);
-   syntax.addFlag("gmi", "getMercurialID", MSyntax::kNoArg);
+   syntax.addFlag("gbi", "getBuildID", MSyntax::kNoArg);
    return syntax;
 }
 
@@ -176,9 +176,9 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       if (extension != 0)
          setResult(extension->GetApiVersion());
    }
-   else if(args.isFlagSet("getMercurialID"))
+   else if(args.isFlagSet("getBuildID"))
    {
-      setResult(MString(MERCURIAL_ID));
+      setResult(MString(BUILD_ID));
    }
 
    // FIXME: error on unknown flag

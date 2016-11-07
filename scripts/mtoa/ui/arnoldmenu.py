@@ -150,9 +150,9 @@ Portions related to argparse that is part of OpenColorIO Copyright 2008 Larry Gr
     
     arnoldAboutText =  u"Arnold for Maya\n\n"
     arnoldAboutText += "MtoA " + cmds.pluginInfo( 'mtoa', query=True, version=True)
-    arnoldMercurialID = cmds.arnoldPlugins(getMercurialID=True)
-    if not '(Master)' in arnoldMercurialID:
-        arnoldAboutText += " - " + arnoldMercurialID
+    arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
+    if not '(Master)' in arnoldBuildID:
+        arnoldAboutText += " - " + arnoldBuildID
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())+"\n\n"
     arnoldAboutText += u"Copyright (c) 2001-2009 Marcos Fajardo and\nCopyright (c) 2009-2016 Solid Angle  S.L.\nAll rights reserved\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Ortega\n\n"
