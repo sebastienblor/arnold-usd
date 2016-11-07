@@ -1494,8 +1494,9 @@ void CRenderViewMtoA::Resize(int width, int height)
       return;
 
 #ifdef ARV_DOCKED
+
    int isFloating = 0;
-   MGlobal::executeCommand("workspaceControl -q -fl", isFloating);
+   MGlobal::executeCommand("workspaceControl -q -fl \"ArnoldRenderView\"", isFloating);
 
    // only resize the workspace if the window is floating
    if (isFloating)
@@ -1503,10 +1504,21 @@ void CRenderViewMtoA::Resize(int width, int height)
       MString workspaceCmd = "workspaceControl -edit";
       workspaceCmd += " -iw ";
       workspaceCmd += width;
-      workspaceCmd += " ih ";
+      workspaceCmd += " -ih ";
       workspaceCmd += height;
+      workspaceCmd += " \"ArnoldRenderView\"";
+      MGlobal::executeCommand(workspaceCmd);
+
+      // this is supposed to resize the workspace control, but apparenlty it isn't working
+      workspaceCmd = "workspaceControl -edit";
+      workspaceCmd += " -wp \"fixed\" -hp \"fixed\" \"ArnoldRenderView\" ";
+      MGlobal::executeCommand(workspaceCmd);
+
+      workspaceCmd = "workspaceControl -edit";
+      workspaceCmd += " -wp \"free\" -hp \"free\" \"ArnoldRenderView\" ";
       MGlobal::executeCommand(workspaceCmd);
    }
+
 
 #endif
 }
