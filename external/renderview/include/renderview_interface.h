@@ -133,6 +133,11 @@ public:
    // in the scene, so that we can advert the host
    virtual void NodeParamChanged(AtNode *node, const char *paramName) = 0;
 
+   // This function is invoked whenever the render buffer is resized by other than 
+   // manual resizing. User can invoke it to resize the viewer. One can also override this function
+   // in case the host application needs to be adverted
+   virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
+
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
@@ -151,6 +156,8 @@ public:
 
 private:
 
+   // internal method, used to avoid linking issues with
+   void ResizeMainWindow(int w, int h);
    CRenderViewMainWindow *m_mainWindow;
 
 };

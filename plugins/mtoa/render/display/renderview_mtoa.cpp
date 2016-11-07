@@ -40,6 +40,8 @@ void CRenderViewMtoA::PostProgressiveStep() {}
 void CRenderViewMtoA::ProgressiveRenderStarted() {}
 void CRenderViewMtoA::ProgressiveRenderFinished() {}
 
+void CRenderViewMtoA::Resize(int w, int h){}
+
 #else
 
 #if MAYA_API_VERSION >= 201700
@@ -87,7 +89,7 @@ struct CARVSequenceData
 };
 static CARVSequenceData *s_sequenceData = NULL;
 
-
+static bool s_creatingARV = false;
 static MString s_renderLayer = "";
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
@@ -211,6 +213,8 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    // Docking in maya workspaces only supported from maya 2017.
    // For older versions, we tried using QDockWindows (see branch FB-2470)
    // but the docking was way too sensitive, and not very usable in practice
+
+   s_creatingARV = true;
    MString workspaceCmd = "workspaceControl ";
 
    bool firstCreation = true;
@@ -250,11 +254,11 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       arv->show();
       s_workspaceControl->show();
    }
+   s_creatingARV = false;
 
    
 #else
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
-
 #endif
 
    if (exists && m_convertOptionsParam)
@@ -1264,6 +1268,7 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    MStatus status;
    int width = 1;
    int height = 1;
+   float pixelAspectRatio = 1.f;
    bool updateRender = false;
    
    MPlug plug = depNode.findPlug("width", &status);
@@ -1281,15 +1286,23 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    plug = depNode.findPlug("deviceAspectRatio", &status);
    if (status == MS::kSuccess)
    {
-      float pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+      pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
       if (ABS(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
       {
          updateRender = true;
       }
    }
 
-   if(updateRender)      
+   if(updateRender)
+   {
       renderViewMtoA->SetOption("Full IPR Update", "1");
+
+      // want to resize the window
+      if (width  > 1 && height > 1 && pixelAspectRatio > 0.f)
+         renderViewMtoA->Resize(width * pixelAspectRatio, height);
+   }
+
+
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
 {
@@ -1472,6 +1485,30 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 {
    if (!m_hasProgressiveRenderFinished) return;
    CMayaScene::ExecuteScript(m_progressiveRenderFinished, false, true);
+}
+
+void CRenderViewMtoA::Resize(int width, int height)
+{
+   CRenderViewInterface::Resize(width, height);
+   if (s_creatingARV)
+      return;
+
+#ifdef ARV_DOCKED
+   int isFloating = 0;
+   MGlobal::executeCommand("workspaceControl -q -fl", isFloating);
+
+   // only resize the workspace if the window is floating
+   if (isFloating)
+   {
+      MString workspaceCmd = "workspaceControl -edit";
+      workspaceCmd += " -iw ";
+      workspaceCmd += width;
+      workspaceCmd += " ih ";
+      workspaceCmd += height;
+      MGlobal::executeCommand(workspaceCmd);
+   }
+
+#endif
 }
 
 #endif

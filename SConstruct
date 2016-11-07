@@ -732,6 +732,10 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 
 OCIO_DYLIBPATH =""
 
+if int(maya_version) < 201500:
+    # 2014 no longer supported. Skipping ARV libs
+    env['MTOA_DISABLE_RV'] = 1
+
 if not env['MTOA_DISABLE_RV']:
     if system.os() == 'windows':
         RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
