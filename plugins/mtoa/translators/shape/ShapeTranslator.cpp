@@ -14,11 +14,17 @@
 void CShapeTranslator::Init()
 {
    CDagTranslator::Init();
-   m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
-   m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+   const CSessionOptions &session = GetSessionOptions();
+   m_motion = session.IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+   m_motionDeform = session.IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
 }
 bool CShapeTranslator::RequiresMotionData()
 {
+   // m_motion / m_motionDeform need to be updated here otherwise these variables might be outdated (#2660)
+   const CSessionOptions &session = GetSessionOptions();
+   m_motion = session.IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+   m_motionDeform = session.IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+
    return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
 }
 
