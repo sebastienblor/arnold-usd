@@ -104,6 +104,12 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CQuadLightTranslator::Export(AtNode* light)
 {
+   if (m_flushCache)
+   {
+      AiUniverseCacheFlush(AI_CACHE_QUAD);
+      m_flushCache = false;
+   }
+   
    CLightTranslator::Export(light);
 
    AtPoint vertices[4];
@@ -130,8 +136,30 @@ void CQuadLightTranslator::Export(AtNode* light)
    {
       AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
    }
+
+   // Check if "color" is connected to a texture.
+   // If so, we'll have to flush cache when color receives a signal
+   MPlug colorPlug = FindMayaPlug("color");
+   MPlugArray conn;
+   colorPlug.connectedTo(conn, true, false);
+   m_colorTexture = (conn.length() > 0);
 }
 
+void CQuadLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   CLightTranslator::NodeChanged(node, plug);
+
+   // If nothing is plugged to the color attribute, we're done
+   if (!m_colorTexture)
+      return;
+
+   // only the following parameters affect the quad light cache
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "color" || plugName == "resolution")
+   {
+      m_flushCache = true;
+   }
+}
 void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "quad_light");

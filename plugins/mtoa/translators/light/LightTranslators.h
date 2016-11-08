@@ -53,6 +53,7 @@ class CQuadLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
+   
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -60,8 +61,16 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      m_flushCache = false; // initialize to false
+      m_colorTexture = false;
       return AddArnoldNode("quad_light");
    }
+protected:
+   void NodeChanged(MObject& node, MPlug& plug);
+
+private:
+   bool m_colorTexture;
+   bool m_flushCache;
 };
 
 class CCylinderLightTranslator : public CLightTranslator
