@@ -523,8 +523,8 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
    if ((m_lightMode == MTOA_LIGHTLINK_NONE && m_shadowMode == MTOA_SHADOWLINK_NONE) ||
            m_numArnoldLights == 0)
       return;
-   MDagPath pathCopy = path;
 
+   MDagPath pathCopy = path;
    // clear all the temporary lists
    m_linkedLights.clear();
    m_ignoredLights.clear();
@@ -540,19 +540,19 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
       CheckNode(pathCopy.transform());
       pathCopy.pop();
    }
-   
+
    if (m_lightMode == MTOA_LIGHTLINK_MAYA)
    {   
       // Follow Maya's light linking in Arnold
       if (FillLights(m_linkedLights, m_ignoredLights))
       {
-          AiNodeSetBool(shape, "use_light_group", true);
+         AiNodeSetBool(shape, "use_light_group", true);
 
          // m_groupLights contains now the exact list of lights to be applied to current Shape
          AtArray* lightsArray = AiArrayAllocate((AtUInt32)m_groupLights.size(), 1, AI_TYPE_NODE);
          for (size_t i = 0; i < m_groupLights.size(); ++i)            
             AiArraySetPtr(lightsArray, (AtUInt32)i, m_groupLights[i]);
-
+         
          AiNodeSetArray(shape, "light_group", lightsArray);
 
          if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
@@ -561,6 +561,11 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
             AiNodeSetBool(shape, "use_shadow_group", true);
             AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lightsArray));
          }            
+      } else
+      {
+         // resetting this for IPR
+         AiNodeSetBool(shape, "use_light_group", false);
+         AiNodeSetArray(shape, "light_group", NULL);
       }
    }
 

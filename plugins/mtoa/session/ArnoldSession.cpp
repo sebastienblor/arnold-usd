@@ -1620,8 +1620,8 @@ UPDATE_BEGIN:
          // will be requested if they're connected to an exported node
       }
    }
-         
-   if (newDag || IsLightLinksDirty())
+   bool isLightLinksDirty = IsLightLinksDirty();
+   if (newDag || isLightLinksDirty)
       UpdateLightLinks();
    
    // Need something finer to determine if the changes have an influence
@@ -1641,7 +1641,29 @@ UPDATE_BEGIN:
          if (translator != NULL) translator->m_impl->DoUpdate();
       }
    }
-   //--------
+
+   if (isLightLinksDirty)
+   {
+      //-------- now that everything was exported, since light links required an update
+      // we need to make sure all shapes are correctly light-linked.
+      // We could achieve this by re-exporting the shapes, but it's not actually necessary to do such a 
+      // heavy process just for the light links
+
+      ObjectToTranslatorMap::iterator it;
+      for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
+      {     
+         if (it->second == NULL || !it->second->m_impl->IsMayaTypeDag())
+            continue;
+         CDagTranslator *tr = (CDagTranslator*)it->second;
+         AtNode *node = tr->GetArnoldNode();
+         if (node == NULL)
+            continue;
+         if (AiNodeEntryGetType(AiNodeGetNodeEntry(node)) != AI_NODE_SHAPE)
+            continue;
+         // this is a shape, exporting light linking for it
+         m_arnoldLightLinks.ExportLightLinking(node, tr->GetMayaDagPath());
+      }
+   }
 
    // During nodes export in DoUpdate(), some new translators can be created by the export of other ones 
    //( e.g. connections in the shading tree). So once update is finished, we might get a new list of
