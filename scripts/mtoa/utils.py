@@ -527,29 +527,9 @@ def createMeshLight(legacy=False, centerPivot=True):
 
         cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
 
-        # FIXME ignoring this for now
+        cmds.parent(lightTransform, meshTransform, relative=True)
         
-        # Center pivot of mesh if requested
-        # This will make sure that the point light used for approximate
-        # vewport lighting is placed in the center of the mesh
-        #if centerPivot:
-        #    cmds.xform(meshTransform, centerPivots=True)
-        #    p = cmds.xform(meshTransform, query=True, objectSpace=True, scalePivot=True)
-        #    oldPos = [
-        #        (p[0]*m[0] + p[1]*m[4]+ p[2]*m[8]  + m[12]),
-        #        (p[0]*m[1] + p[1]*m[5]+ p[2]*m[9]  + m[13]),
-        #        (p[0]*m[2] + p[1]*m[6]+ p[2]*m[10] + m[14])
-        #    ]
-        #    cmds.xform(meshTransform, zeroTransformPivots=True)
-        #    # Translate back to previous pivot (preserving child transform positions and geometry positions)
-        #    [newPos] = cmds.getAttr(meshTransform + ".translate")
-        #    cmds.move(oldPos[0]-newPos[0], oldPos[1]-newPos[1], oldPos[2]-newPos[2], meshTransform,
-        #        preserveChildPosition=True, preserveGeometryPosition=True, localSpace=True, relative=True)
-
-        # Copy transform
-        #cmds.matchTransform(lightTransform, meshTransform)
-        
-        # Hide the original mesh using the lodVisibility attribute
+         # Hide the original mesh using the lodVisibility attribute
         # Using lodVisibility keeps the mesh dirty propagation enabled
 
         cmds.connectAttr('%s.showOriginalMesh' % lightShape, '%s.lodVisibility' % meshShape)
