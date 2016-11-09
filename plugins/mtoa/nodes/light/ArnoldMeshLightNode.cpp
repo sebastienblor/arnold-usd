@@ -73,6 +73,7 @@ MObject CArnoldMeshLightNode::aShadowColor;
 CArnoldMeshLightNode::CArnoldMeshLightNode()
    : m_attrChangeId(0)
    , m_meshDirtyId(0)
+   , m_preDeleteId(0)
    , m_vp1GeometryUpdate(true)
    , m_vp2GeometryUpdate(true)
 #if MAYA_API_VERSION >= 201700
@@ -87,6 +88,8 @@ CArnoldMeshLightNode::~CArnoldMeshLightNode()
       MMessage::removeCallback(m_attrChangeId);
    if (m_meshDirtyId != 0)
       MMessage::removeCallback(m_meshDirtyId);
+   if (m_preDeleteId != 0)
+      MMessage::removeCallback(m_preDeleteId);
 }
 
 void CArnoldMeshLightNode::postConstructor()
@@ -103,12 +106,16 @@ void CArnoldMeshLightNode::postConstructor()
    plug.setValue(false);
 #endif
 
-   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallback, this);
+   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, AttrChangedCallback, this);
+
+   m_preDeleteId = MNodeMessage::addNodeAboutToDeleteCallback(me,
+                                                   PreDeleteCallback,
+                                                   this);
    scheduleGeometryUpdate();
 }
 
 // Map node's attribute value changes to ones understood by Maya
-void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
+void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
 {
    CArnoldMeshLightNode *node = static_cast<CArnoldMeshLightNode*>(clientData);
    if (!node)
@@ -189,7 +196,7 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
                MMessage::removeCallback(node->m_meshDirtyId);
             }
             MObject otherPlugObject = otherPlug.node();
-            node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlugObject, meshDirtyCallback, node);
+            node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlugObject, MeshDirtyCallback, node);
             node->scheduleGeometryUpdate();
          }
       }
@@ -204,7 +211,7 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
    }
 }
 
-void CArnoldMeshLightNode::meshDirtyCallback(MObject& node, MPlug& plug, void *clientData)
+void CArnoldMeshLightNode::MeshDirtyCallback(MObject& node, MPlug& plug, void *clientData)
 {
    CArnoldMeshLightNode *lightNode = static_cast<CArnoldMeshLightNode*>(clientData);
    if (!lightNode)
@@ -215,6 +222,13 @@ void CArnoldMeshLightNode::meshDirtyCallback(MObject& node, MPlug& plug, void *c
    {
       lightNode->scheduleGeometryUpdate();
    }
+}
+
+void CArnoldMeshLightNode::PreDeleteCallback(MObject& node, MDGModifier& modifier, void* clientData)
+{
+   MFnDependencyNode fnNode(node);
+   MPlug plug = fnNode.findPlug("showOriginalMesh");
+   plug.setValue(true);
 }
 
 MStatus CArnoldMeshLightNode::compute(const MPlug& plug, MDataBlock& block)

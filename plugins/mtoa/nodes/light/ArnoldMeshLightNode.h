@@ -33,8 +33,10 @@ public:
    virtual ~CArnoldMeshLightNode();
 
    virtual void            postConstructor();
-   static void             attrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
-   static void             meshDirtyCallback(MObject& node, MPlug& plug, void *clientData);
+   static void             AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
+   static void             MeshDirtyCallback(MObject& node, MPlug& plug, void *clientData);
+   static void             PreDeleteCallback(MObject& node, MDGModifier& modifier, void* clientData);
+
 
    virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
@@ -99,6 +101,8 @@ private:
 
    MCallbackId m_attrChangeId;
    MCallbackId m_meshDirtyId;
+   MCallbackId m_preDeleteId;
+
    bool m_vp1GeometryUpdate;
    bool m_vp2GeometryUpdate;
    CMeshPrimitive m_drawPrimitive;
