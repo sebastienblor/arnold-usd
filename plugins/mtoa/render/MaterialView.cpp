@@ -353,7 +353,10 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    {
       // Shader found among our translatated shaders
       CNodeTranslator* shaderTranslator = it->second;
-      shaderNode = shaderTranslator->GetArnoldNode();
+      if (shaderTranslator->m_impl->m_sourceTranslator)
+         shaderTranslator = shaderTranslator->m_impl->m_sourceTranslator;
+
+         shaderNode = shaderTranslator->GetArnoldNode();
    }
    else
    {
@@ -674,6 +677,10 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    {
       CNodeTranslator* translator = it->second;
       arnoldNode = UpdateNode(translator, updateMode);
+
+      if(translator->m_impl->m_sourceTranslator)
+         UpdateNode(translator->m_impl->m_sourceTranslator, updateMode);
+      
    }
 
    if (arnoldNode)
