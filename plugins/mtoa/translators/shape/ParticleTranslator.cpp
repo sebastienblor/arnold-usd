@@ -1553,8 +1553,8 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
 
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-
-   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
+   CNodeTranslator *masterTr = GetTranslator(masterInstance);
+   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
 
    int instanceNum =  m_dagPath.instanceNumber();
 

@@ -396,7 +396,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          if (!fnDag.isIntermediateObject())
          {
             // Check if the node is in the scene already.
-            AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
+
+            CNodeTranslator *masterTr = GetTranslator(dagPathMaster);
+            AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
+
             // if not, we export it
             if (!masterNode)
             {

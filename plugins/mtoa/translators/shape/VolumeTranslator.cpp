@@ -61,7 +61,8 @@ void CArnoldVolumeTranslator::ExportMotion(AtNode* anode)
 
 AtNode* CArnoldVolumeTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
+   CNodeTranslator *masterTr = GetTranslator(masterInstance);
+   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
 
    AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 

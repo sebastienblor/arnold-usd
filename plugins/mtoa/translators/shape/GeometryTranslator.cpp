@@ -1172,7 +1172,8 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 
 AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
+   CNodeTranslator *masterTr = GetTranslator(masterInstance);
+   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
 
    int instanceNum = m_dagPath.instanceNumber();
 

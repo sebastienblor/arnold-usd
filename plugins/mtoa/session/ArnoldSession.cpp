@@ -1370,7 +1370,6 @@ void CArnoldSession::RequestUpdate()
 
 void CArnoldSession::DoUpdate()
 {
-
    MStatus status;
    assert(AiUniverseIsActive());
 
@@ -1614,6 +1613,34 @@ UPDATE_BEGIN:
                   exportMotion = true;
                   mbRequiresFrameChange = true;
                }
+            } else
+            {
+               // if we create a maya instance (duplicate special), then the shape will never emit a "new node created" signal
+               // and will therefore never be updated (#2657). So we're checking this new node shape and see if it is an instance
+               MDagPath shapePath = path;
+               shapePath.extendToShape();
+
+               int instanceNum = shapePath.instanceNumber();
+
+               if (instanceNum > 0)
+               {
+                  dagTr = ExportDagPath(shapePath);
+                  if (dagTr)
+                  {
+                     name = shapePath.partialPathName();
+                     AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
+                     newDag = true;
+                     dagFound = true;
+                     translatorsToUpdate.push_back(dagTr);
+                     if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                     {
+                        // Find out if we need to call ExportMotion for each motion step
+                        // or if a single Export is enough. 
+                        exportMotion = true;
+                        mbRequiresFrameChange = true;
+                     }
+                  }
+               }
             }
          }
          // Dependency nodes are not exported by themselves, their export
@@ -1771,7 +1798,6 @@ UPDATE_BEGIN:
       
    m_objectsToUpdate.clear();
    m_requestUpdate = false;
-   
 }
 
 void CArnoldSession::ClearUpdateCallbacks()

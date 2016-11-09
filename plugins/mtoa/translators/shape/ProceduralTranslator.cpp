@@ -135,7 +135,9 @@ void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
 void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
 {
    MDagPath masterInstance = GetMasterInstance();
-   AtNode* masterNode = AiNodeLookUpByName(GetArnoldNaming(masterInstance).asChar());
+   CNodeTranslator *masterTr = GetTranslator(masterInstance);
+   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
+
    AiNodeSetStr(instance, "name", GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
