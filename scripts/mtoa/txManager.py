@@ -292,7 +292,7 @@ class MtoATxManager(object):
         for x in range(listSize,0,-1):
             cmds.textScrollList(ctrlPath, edit=True, removeIndexedItem=x);
         
-        textureIndex = 0
+        txIndex = 0
         self.lineIndex = {}
 
         for txItem in self.txItems:
@@ -316,12 +316,13 @@ class MtoATxManager(object):
                 
             if textureLine not in self.lineIndex:
                 cmds.textScrollList(ctrlPath, edit=True, append=[textureLine]);
-                self.lineIndex[textureLine] = textureIndex
-                textureIndex += 1    
+                self.lineIndex[textureLine] = txIndex
             else:
                 prevIndex = self.lineIndex[textureLine]
                 if prevIndex < len(self.txItems):
                     self.txItems[prevIndex][3].append(txItem[3][0])
+
+            txIndex = txIndex + 1
 
         self.listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
                 
