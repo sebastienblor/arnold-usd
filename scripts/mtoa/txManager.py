@@ -212,9 +212,11 @@ def GetTxList(txItems, filesCount):
                         txFlag = 2
                         break
 
-        # set textures element as a list : [filename, txFlag, textureColorSpace, node]
         nodesList = [nodes[i]]
-        txItems.append([texturesList[i], txFlag, colorSpaces[i], nodesList, inputFiles])
+        baseFilename = os.path.basename(texturesList[i])
+
+
+        txItems.append([texturesList[i], txFlag, colorSpaces[i], nodesList, inputFiles, baseFilename])
 
 
 
@@ -240,9 +242,12 @@ class MtoATxManager(object):
         self.filesCreated = 0
         self.createdErrors = 0
         self.deletedFiles = 0
+        self.totalFiles = 0
+        self.missingFiles = 0
         
         self.thread = []
         self.process = True
+        self.showFullPaths = False
         self.lineIndex = {}
         
     def create(self):
@@ -273,27 +278,16 @@ class MtoATxManager(object):
         ctrlPath = '|'.join([self.window, 'groupBox_2', 'lineEdit']);
         cmds.textField(ctrlPath, edit=True, text="-v -u --unpremult --oiio");
     
-
-    # Update the Scroll List with the texture files in the scene and check its status
-    def updateList(self):
-        
-        self.txItems = []
-        filesCount = []
-        #total files
-        filesCount.append(0)
-        #missing files
-        filesCount.append(0)
-         
-        GetTxList(self.txItems, filesCount)
-
+    def displayList(self):
         ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
 
         listSize = cmds.textScrollList(ctrlPath, query=True, numberOfItems=True);
         for x in range(listSize,0,-1):
             cmds.textScrollList(ctrlPath, edit=True, removeIndexedItem=x);
         
-        txIndex = 0
         self.lineIndex = {}
+
+        txIndex = 0
 
         for txItem in self.txItems:
 
@@ -308,33 +302,77 @@ class MtoATxManager(object):
             elif(txItem[1] == -1):
                 texturePrefix = '~~  '
 
-            textureLine = texturePrefix+txItem[0] 
-
+            textureSuffix = ''
             maya_version = versions.shortName()
             if int(float(maya_version)) >= 2017:
-                textureLine +=' ('+txItem[2]+')'
-                
-            if textureLine not in self.lineIndex:
-                cmds.textScrollList(ctrlPath, edit=True, append=[textureLine]);
-                self.lineIndex[textureLine] = txIndex
-            else:
-                prevIndex = self.lineIndex[textureLine]
-                if prevIndex < len(self.txItems):
-                    self.txItems[prevIndex][3].append(txItem[3][0])
+                textureSuffix =' ('+txItem[2]+')'
 
-            txIndex = txIndex + 1
+
+            if self.showFullPaths:
+                textureLine = texturePrefix+txItem[0]+textureSuffix 
+                if textureLine not in self.lineIndex:
+                    cmds.textScrollList(ctrlPath, edit=True, append=[textureLine]);
+                    self.lineIndex[textureLine] = txIndex
+                    
+                else:
+                    prevIndex = self.lineIndex[textureLine]
+                    if prevIndex < len(self.txItems):
+                        self.txItems[prevIndex][3].append(txItem[3][0])
+
+            else:
+                #partial paths
+                textureLine = texturePrefix+txItem[5]+textureSuffix
+                foundFullName = False
+
+                while textureLine in self.lineIndex:
+                    #basename already found, let's check the full names
+                    prevIndex = self.lineIndex[textureLine]
+                    if prevIndex < len(self.txItems):
+                        if txItem[0] == self.txItems[prevIndex][0]:
+                            # same fullname, just append the list of nodes
+                            self.txItems[prevIndex][3].append(txItem[3][0])
+                            foundFullName = True
+                            break
+                    
+                    textureLine = textureLine + ' '
+
+                if not foundFullName:
+                    # this fullname wasn't found yet, need to add it
+                    cmds.textScrollList(ctrlPath, edit=True, append=[textureLine]);
+                    self.lineIndex[textureLine] = txIndex
+                
+
+            txIndex = txIndex+1
+
 
         self.listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
                 
         ctrlPath = '|'.join([self.window, 'groupBox', 'label_5']);
-        cmds.text(ctrlPath, edit=True, label="Total Files: {0}".format(filesCount[0]));
+        cmds.text(ctrlPath, edit=True, label="Total Files: {0}".format(self.totalFiles));
         
         ctrlPath = '|'.join([self.window, 'groupBox', 'label_6']);
-        if(filesCount[1] > 0):
-            cmds.text(ctrlPath, edit=True, label="<font color=#FE6565>Missing Files: {0}</font>".format(filesCount[1]));
+        if(self.missingFiles > 0):
+            cmds.text(ctrlPath, edit=True, label="<font color=#FE6565>Missing Files: {0}</font>".format(self.missingFiles));
         else:
             cmds.text(ctrlPath, edit=True, label="");
     
+    # Update the Scroll List with the texture files in the scene and check its status
+    def updateList(self):
+        
+        self.txItems = []
+        filesCount = []
+        #total files
+        filesCount.append(0)
+        #missing files
+        filesCount.append(0)
+         
+        GetTxList(self.txItems, filesCount)
+        self.totalFiles = filesCount[0]
+        self.missingFiles = filesCount[1]
+
+        self.displayList()
+
+
     def stopCreation(self, *args):
         self.process = False
     
@@ -478,6 +516,11 @@ class MtoATxManager(object):
         cmds.text(ctrlPath, edit=True, label="");
 
 
+    def showFullPathChange(self, *args):
+        self.showFullPaths = args[0]
+        self.displayList()
+
+
     # Open a dialog to select a folder and update the information about it
     def selectFolder(self, *args):
         ctrlPath = '|'.join([self.window, 'groupBox_4', 'lineEdit_2']);
@@ -539,6 +582,9 @@ def UpdateAllTx():
     filesCount.append(0)
 
     GetTxList(txItems, filesCount)
+    self.totalFiles = filesCount[0]
+    self.missingFiles = filesCount[1]
+
     print 'Updating TX textures :'
     filesCreated = 0
     createdErrors = 0
@@ -588,4 +634,6 @@ def UpdateAllTx():
             filesCreated += status[0]
             createdErrors += status[2]
             
+
+
             
