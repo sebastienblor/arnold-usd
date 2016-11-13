@@ -155,54 +155,18 @@ double BBSpectrum(double wavelength, double bbTemp)
            (exp(1.4388e-2 / (wlm * bbTemp)) - 1.0);
 }
 
-AtRGB XYZtoRGB(double x, double y, double z)
-{   
-   // using the standard CIE color space
-   
-   static const double xr = 0.7355;
-   static const double xg = 0.2658;
-   static const double xb = 0.1669;
-   static const double yr = 0.2645;
-   static const double yg = 0.7243;
-   static const double yb = 0.0085;
-   static const double zr = 1. - (xr + yr);
-   static const double zg = 1. - (xg + yg);
-   static const double zb = 1. - (xb + yb);
-   static const double xw = 0.33333333;
-   static const double yw = 0.33333333;
-   static const double zw = 1. - (xw + yw);
-   
-   /* xyz -> rgb matrix, before scaling to white. */   
-   double rx = (yg * zb) - (yb * zg);
-   double ry = (xb * zg) - (xg * zb);
-   double rz = (xg * yb) - (xb * yg);
-   double gx = (yb * zr) - (yr * zb);
-   double gy = (xr * zb) - (xb * zr);
-   double gz = (xb * yr) - (xr * yb);
-   double bx = (yr * zg) - (yg * zr);
-   double by = (xg * zr) - (xr * zg);
-   double bz = (xr * yg) - (xg * yr);
+AtRGB XYZtoRGB(float x, float y, float z)
+{
+   // using sRGB color space
+   float m[3][3] =  { { 3.2404542f, -1.5371385f, -0.4985314f},
+                      {-0.9692660f,  1.8760108f,  0.0415560f},
+                      { 0.0556434f, -0.2040259f,  1.0572252f} };
 
-   /* White scaling factors.
-      Dividing by yw scales the white luminance to unity, as conventional. */
-
-   double rw = ((rx * xw) + (ry * yw) + (rz * zw)) / yw;
-   double gw = ((gx * xw) + (gy * yw) + (gz * zw)) / yw;
-   double bw = ((bx * xw) + (by * yw) + (bz * zw)) / yw;
-
-   /* xyz -> rgb matrix, correctly scaled to white. */
-
-   rx = rx / rw;  ry = ry / rw;  rz = rz / rw;
-   gx = gx / gw;  gy = gy / gw;  gz = gz / gw;
-   bx = bx / bw;  by = by / bw;  bz = bz / bw;
-
-   /* rgb of the desired point */
    AtRGB rgb;
-
-   rgb.r = static_cast<float>((rx * x) + (ry * y) + (rz * z));
-   rgb.g = static_cast<float>((gx * x) + (gy * y) + (gz * z));
-   rgb.b = static_cast<float>((bx * x) + (by * y) + (bz * z));
+   for (int i = 0; i < 3; i++)
+      rgb[i] = x * m[i][0] + y * m[i][1] + z * m[i][2];
    return rgb;
+
 }
 
 // reference, public domain code : http://www.fourmilab.ch/documents/specrend/specrend.c
@@ -257,7 +221,7 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
    Y /= XYZ;
    Z /= XYZ;
    
-   AtRGB rgb = XYZtoRGB(X, Y, Z);
+   AtRGB rgb = XYZtoRGB((float)X, (float)Y, (float)Z);
    float w;
    w = (0.f < rgb.r) ? 0.f : rgb.r;
    w = (w < rgb.g) ? w : rgb.g;
