@@ -56,9 +56,11 @@ class MakeTxThread (threading.Thread):
             
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
         utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True);
-            
+        maya_version = versions.shortName()
+    
         for textureLine in self.txManager.selectedItems:
             texture = textureLine[0]
+            print texture
             
             # we could use textureLine[2] for the colorSpace
             # but in case it hasn't been updated correctly
@@ -66,15 +68,19 @@ class MakeTxThread (threading.Thread):
             nodes = textureLine[3]
             colorSpace = 'auto'
             conflictSpace = False
-            for node in nodes:
-                nodeColorSpace = cmds.getAttr(node+'.colorSpace')
-                if colorSpace != 'auto' and colorSpace != nodeColorSpace:
-                    conflictSpace=True
-                    
-                colorSpace = nodeColorSpace
 
-            if colorSpace == 'auto' and textureLine[2] != '':
-                colorSpace = textureLine[2]
+            # color spaces are ignored for maya versions < 2017
+            if int(float(maya_version)) >= 2017:
+                for node in nodes:
+                    nodeColorSpace = cmds.getAttr(node+'.colorSpace')
+                    if colorSpace != 'auto' and colorSpace != nodeColorSpace:
+                        conflictSpace=True
+                        
+                    colorSpace = nodeColorSpace
+
+                if colorSpace == 'auto' and textureLine[2] != '':
+                    colorSpace = textureLine[2]
+
             if not texture:
                 continue;
             # stopCreation has been called   
@@ -536,6 +542,8 @@ def UpdateAllTx():
     filesCreated = 0
     createdErrors = 0
     arg_options = "-v -u --unpremult --oiio"
+    maya_version = versions.shortName()
+
     for textureLine in txItems:
         texture = textureLine[0]
         print '-filename ' + texture
@@ -545,15 +553,20 @@ def UpdateAllTx():
         nodes = textureLine[3]
         colorSpace = 'auto'
         conflictSpace = False
-        for node in nodes:
-            nodeColorSpace = cmds.getAttr(node+'.colorSpace')
-            if colorSpace != 'auto' and colorSpace != nodeColorSpace:
-                conflictSpace=True
-                
-            colorSpace = nodeColorSpace
 
-        if colorSpace == 'auto' and textureLine[2] != '':
-            colorSpace = textureLine[2]
+        # just check  the color space conflicts for maya 2017 and above
+        if int(float(maya_version)) >= 2017:
+            for node in nodes:
+                nodeColorSpace = cmds.getAttr(node+'.colorSpace')
+                if colorSpace != 'auto' and colorSpace != nodeColorSpace:
+                    conflictSpace=True
+                    
+                colorSpace = nodeColorSpace
+
+            if colorSpace == 'auto' and textureLine[2] != '':
+                colorSpace = textureLine[2]
+        
+
         if not texture:
             continue;
         if conflictSpace:
