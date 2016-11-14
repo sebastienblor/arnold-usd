@@ -257,6 +257,19 @@ void CFileTranslator::Export(AtNode* shader)
 
       options.FormatTexturePath(resolvedFilename);
 
+      // need to handle <f> tokens, in case they are combined with other (eventually arnold) tokens
+      static const MString fTokenStr = "<f>";
+      int fTokenIndex = resolvedFilename.indexW(fTokenStr);
+      if (fTokenIndex > 0)
+      {
+         // the MString frameNumber adds a '0' before the frame value.
+         // Do we really want that ? doesn't make much sense....so well, removing it here
+         int fileFrame = FindMayaPlug("useFrameExtension").asBool() ? FindMayaPlug("frameExtension").asInt() + FindMayaPlug("frameOffset").asInt() : (int)GetExportFrame();
+         frameNumber = fileFrame;
+         MString filenameExt = resolvedFilename.substringW(fTokenIndex + 3, resolvedFilename.length() - 1);
+         resolvedFilename = resolvedFilename.substringW(0, fTokenIndex - 1) + frameNumber + filenameExt;
+      }
+
       MString colorSpace = FindMayaPlug("colorSpace").asString();
       
       // if the color space has changed, we'll need to re-generate TX anyway
