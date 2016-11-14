@@ -1533,13 +1533,8 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   if (MAYA_API_VERSION >= 201800 && IsCached())
-   {
-      m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
-   } else
-   {
-      m_fnParticleSystem.position(*positionArray);
-   }
+   m_fnParticleSystem.position(*positionArray);
+
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.acceleration(accelerationArray);
    MDoubleArray tempDoubleParticleId;
