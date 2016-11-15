@@ -552,6 +552,10 @@ void CMaterialView::InitOptions()
    AiNodeSetStr(options, "pin_threads", "off");
    AiNodeSetInt(options, "threads", m_job.maxThreads);
 
+   // displacement not correctly supported in material viewer yet
+   // just ignoring it for now
+   AiNodeSetBool(options, "ignore_displacement", true);
+
    // Setup ray depth and sampling options
    // Default setting will be used if the options node
    // has not been created yet
