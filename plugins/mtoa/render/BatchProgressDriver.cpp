@@ -10,6 +10,8 @@
 
 #include <maya/MRenderUtil.h>
 #include <maya/MString.h>
+#include <maya/MAtomic.h>
+#include <maya/MMutexLock.h>
 
 AI_DRIVER_NODE_EXPORT_METHODS(batch_progress_driver_mtd);
 
@@ -98,18 +100,25 @@ driver_needs_bucket
 
 driver_process_bucket
 {
+   MAtomic::increment(&g_calculatedPixels, bucket_size_x * bucket_size_y);
+   bool need_update = true; // should we use a timer ?
 
+   static MMutexLock lock;
+   if (need_update && lock.tryLock())
+   {
+      sendProgress((int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)));
+      lock.unlock();
+   } 
 }
 
 driver_prepare_bucket
 {
-     
+
 }
 
 driver_write_bucket
 {  
-    g_calculatedPixels += bucket_size_x * bucket_size_y;
-    sendProgress((int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)));
+   
 }
 
 driver_close
