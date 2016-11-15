@@ -429,7 +429,11 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
    AtNode * const options = AiUniverseGetOptions();
    AiNodeSetBool(options, "skip_license_check", true);
    AiNodeSetBool(options, "texture_automip", false);
-   AiNodeSetInt(options, "texture_autotile", 0);
+
+   // Commenting this as it was causing crashes (#2482)
+   // when this value has changed since last render, but 
+   // a texture is still in the texture cache
+   //AiNodeSetInt(options, "texture_autotile", 0);
 
    // Read whatever "swatch" attribute we find on the node
    MStatus status;
