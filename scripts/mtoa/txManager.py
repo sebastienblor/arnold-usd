@@ -136,7 +136,18 @@ def GetTxList(txItems, filesCount):
 
     list = cmds.ls(type='file')
     for node in list:
-        texture = cmds.getAttr(node+'.fileTextureName')
+        texture = ''
+        # regarding tiling, porting the code from CFileTranslator
+        tilingMode = int(float(cmds.getAttr(node+'.uvTilingMode')))
+        if tilingMode == 0:
+            texture = cmds.getAttr(node+'.fileTextureName')
+        else:
+            # in CfileTranslator we first check fileTextureNamePattern, then 
+            # if it's empty we check computedFileTextureNamePattern
+            # not sure why...
+            texture = cmds.getAttr(node+'.fileTextureNamePattern')
+            if not texture:
+                texture = cmds.getAttr(node+'.computedFileTextureNamePattern')
         if texture:
             texturesList.append(texture)
             colorSpace = cmds.getAttr(node+'.colorSpace')
