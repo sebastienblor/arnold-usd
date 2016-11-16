@@ -286,6 +286,7 @@ if int(maya_version_base) >= 2014:
 
 if int(maya_version) >= 201700:
     env["ENABLE_COLOR_MANAGEMENT"] = 1
+    env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
     env["MTOA_AFM"] = 1
 
 build_id = ""

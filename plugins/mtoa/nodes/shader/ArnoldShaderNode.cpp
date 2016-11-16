@@ -18,7 +18,9 @@
 #include <ai_params.h>
 #include <ai_metadata.h>
 
-//#include <maya/MColorManagementUtilities.h>
+#ifdef ENABLE_COLOR_MANAGEMENT
+#include <maya/MColorManagementUtilities.h>
+#endif
 
 
 CAbMayaNode CArnoldShaderNode::s_abstract;
