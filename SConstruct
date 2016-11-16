@@ -291,11 +291,13 @@ if int(maya_version) >= 201700:
 build_id = ""
 
 try:
-    p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['git', 'rev-parse','--short=8','HEAD'], stdout=subprocess.PIPE)
     build_id, err = p.communicate()
-    build_id = build_id.rstrip('\n')
+    p = subprocess.Popen(['git', 'rev-parse','--abbrev-ref','HEAD'], stdout=subprocess.PIPE)
+    build_branch, err = p.communicate()
+    build_id = build_id.rstrip('\n') + " (" + build_branch.rstrip('\n') + ")"
 except:
-    pass #hg is not in the path
+    pass #git is not in the path
 build_id_file_contents = '#pragma once\n#define BUILD_ID "%s"\n\n' % build_id
 build_id_file_read = ''
 try:
