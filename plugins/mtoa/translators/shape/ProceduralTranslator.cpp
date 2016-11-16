@@ -136,6 +136,11 @@ void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
 {
    MDagPath masterInstance = GetMasterInstance();
    CNodeTranslator *masterTr = GetTranslator(masterInstance);
+
+   // in case master instance wasn't exported (#648)
+   if (masterTr == NULL)
+      masterTr = CDagTranslator::ExportDagPath(masterInstance);
+   
    AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
 
    AiNodeSetStr(instance, "name", GetArnoldNaming(m_dagPath).asChar());
