@@ -45,7 +45,8 @@ void CArnoldShaderNode::postConstructor()
 #ifdef ENABLE_COLOR_MANAGEMENT
    if (typeName() == "aiImage")
    {
-      MColorManagementUtilities::connectDependencyNodeToColorManagement(thisMObject());
+      MObject obj = thisMObject();
+      MColorManagementUtilities::connectDependencyNodeToColorManagement(obj);
    }
 #endif
 }
