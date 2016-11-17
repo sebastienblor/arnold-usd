@@ -341,12 +341,15 @@ def arnoldRenderToTexture():
     win = mtoa.renderToTexture.MtoARenderToTexture()
     win.create()
 
+def arnoldOpenMtoARenderView():
+    core.createOptions()
+    cmds.arnoldRenderView(mode ="open")
+
 def arnoldMtoARenderView():
     # core.ACTIVE_CAMERA is not set, anything we could do here ?
     #if core.ACTIVE_CAMERA != None:
     #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
     # so instead we're calling it without any argument
-
     core.createOptions()
     cmds.arnoldRenderView()
 
@@ -359,8 +362,11 @@ def createArnoldMenu():
         else:
             pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )
 
-        pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',
+        pm.menuItem('ArnoldRender', label='Render', parent='ArnoldMenu',
                     c=lambda *args: arnoldMtoARenderView())
+        
+        pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',
+                    c=lambda *args: arnoldOpenMtoARenderView())
         pm.menuItem(parent='ArnoldMenu', divider=True)
 
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
