@@ -476,7 +476,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          renderSession->SetRenderViewPanelName(renderViewPanelName);
 
       // Start the render.
-      renderSession->DoInteractiveRender();
+      int stat = renderSession->DoInteractiveRender();
+      if (stat != AI_SUCCESS)
+         status = MS::kFailure;
 
       CMayaScene::End();
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);
