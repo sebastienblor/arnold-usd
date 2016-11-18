@@ -2038,21 +2038,31 @@ const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
 
 void CArnoldSession::ExportTxFiles()
 {
-
    // Do not call makeTx if we're doing swatch rendering or material view
    int sessionMode = GetSessionMode();
-   if (sessionMode == MTOA_SESSION_MATERIALVIEW || sessionMode == MTOA_SESSION_SWATCH ||
+   if (sessionMode == MTOA_SESSION_MATERIALVIEW ||
       sessionMode == MTOA_SESSION_UNDEFINED) return;
 
-   // FIXME really inconvenient
-   // we must not do this from the global render options, or we might override some export 
-   // command line settings
-   CRenderOptions renderOptions; 
-   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-   renderOptions.GetFromMaya(); 
-   
-   bool autoTx = renderOptions.autoTx();
-   bool useTx = renderOptions.useExistingTiledTextures();
+   bool autoTx = false;
+   bool useTx = false;
+
+   if (sessionMode == MTOA_SESSION_SWATCH )
+   {
+      // This function is only called by swatch if useTx is true, and we want all this to be fast
+      // so it's useless to get the value once again
+      useTx = true;
+   } else
+   {
+      // FIXME really inconvenient
+      // we must not do this from the global render options, or we might override some export 
+      // command line settings
+      CRenderOptions renderOptions; 
+      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+      renderOptions.GetFromMaya(); 
+      
+      autoTx = renderOptions.autoTx();
+      useTx = renderOptions.useExistingTiledTextures();
+   }
 
    if (useTx == false && autoTx == false) return;
 

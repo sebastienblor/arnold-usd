@@ -190,6 +190,7 @@ public:
    void QueueProceduralUpdate(CNodeTranslator *tr);
    void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
    void UnRegisterProcedural(AtNode *node);
+   void ExportTxFiles();
 
 private:
 
@@ -245,7 +246,7 @@ private:
    bool IsVisible(MFnDagNode &node) const;
    bool IsVisiblePath(MDagPath dagPath) const;
 
-   void ExportTxFiles();
+   
    void RecursiveUpdateDagChildren(MDagPath &parent);
 
    void UpdateProceduralReferences();

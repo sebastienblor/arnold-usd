@@ -541,6 +541,14 @@ bool CRenderSwatchGenerator::doIteration()
                          4,                               // RGBA
                          MImage::kFloat);                // Has to be for swatches it seems.
 
+
+
+            // if use tx is enabled, call exportTx that will *not* try to convert the mipmaps
+            // but will check for existing tx for sake of optimization
+            if (ArnoldRenderOptionsNode.isNull() || MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("use_existing_tiled_textures").asBool())
+               CMayaScene::GetArnoldSession()->ExportTxFiles();
+
+
             CMayaScene::GetRenderSession()->DoSwatchRender(image(), resolution());
 #ifndef NDEBUG
             // Catch this as it would lead to a Maya UI crash
