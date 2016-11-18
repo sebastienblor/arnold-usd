@@ -395,6 +395,9 @@ if env['COMPILER'] == 'gcc':
     ## Hardcode '.' directory in RPATH in linux
     if system.os() == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
+        if int(maya_version_base) >= 2018:
+            env.Append(CXXFLAGS = Split('-std=c++11'))
+            env.Append(CCFLAGS = Split('-std=c++11'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
     ## warning level

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/Platform.h"
+#include <maya/MTypes.h>
 #include <ai.h>
 
 /**
@@ -8,7 +9,9 @@
  *  for Maps and Sets on the different Os
  **/
 #ifdef _LINUX
+#if MAYA_API_VERSION < 201800
 #define UNORDERED_NEEDS_TR1 1
+#endif
 #endif
 
  
