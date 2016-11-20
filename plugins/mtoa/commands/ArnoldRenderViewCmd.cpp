@@ -137,6 +137,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          CMayaScene::End();
          CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
          CRenderSession *renderSession = CMayaScene::GetRenderSession();
+         renderSession->UpdateRenderOptions();
          renderSession->StartRenderView();
          renderSession->SetRenderViewOption("Run IPR", "0");
          renderSession->SetRenderViewOption("Full IPR Update", "1");
