@@ -87,6 +87,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MArgDatabase args(syntax(), argList);
 
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
+
    if (mode == "close")
    {
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -129,6 +130,18 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          // A render view session has already been started
          // let's pop-up the window, and eventually re-render
          CMayaScene::GetRenderSession()->StartRenderView();
+         return MS::kSuccess;
+      }
+      if (mode == "open")
+      {
+         CMayaScene::End();
+         CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
+         CRenderSession *renderSession = CMayaScene::GetRenderSession();
+         renderSession->StartRenderView();
+         renderSession->SetRenderViewOption("Run IPR", "0");
+         renderSession->SetRenderViewOption("Full IPR Update", "1");
+         
+         CMayaScene::End();
          return MS::kSuccess;
       }
       MDagPath defaultCamera;
@@ -180,7 +193,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       // Start off the render.
       // Unless we are in "open" mode
-      if (mode == "render") renderSession->RunRenderView();
+      renderSession->RunRenderView();
    } else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
@@ -229,7 +242,6 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
    CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
-   
    
    if (!renderGlobals.renderAll)
    {
