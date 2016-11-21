@@ -565,7 +565,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
       {
          // resetting this for IPR
          AiNodeSetBool(shape, "use_light_group", false);
-         AiNodeSetArray(shape, "light_group", NULL);
+         AiNodeResetParameter(shape, "light_group");
       }
    }
 
@@ -582,6 +582,10 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
             AiArraySetPtr(lightsArray, (AtUInt32)i, m_groupLights[i]);
 
          AiNodeSetArray(shape, "shadow_group", lightsArray);
+      } else
+      {
+         AiNodeSetBool(shape, "use_shadow_group", false);
+         AiNodeResetParameter(shape, "shadow_group");
       }
    }
 }
