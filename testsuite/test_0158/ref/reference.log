@@ -25,6 +25,6 @@ pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-File read in  0.21 seconds.
+File read in  0.2 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0158/test.ma
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0158\test.ma completed.
