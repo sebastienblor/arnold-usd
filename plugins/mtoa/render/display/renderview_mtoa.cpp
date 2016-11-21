@@ -230,6 +230,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       workspaceCmd += " -iw "; // initiall height
       workspaceCmd += height;
 
+      workspaceCmd += " -requiredPlugin \"mtoa\"";
        // command called when closed. It's not ARV itself that is closed now, but the workspace !
       workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
       workspaceCmd += " -l \"Arnold RenderView\" "; // label
@@ -253,7 +254,16 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
       arv->show();
       s_workspaceControl->show();
+
    }
+   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\" \"ArnoldRenderView\"");
+   MGlobal::executeCommand(uiScriptCommand);
+
+//   MString visChangeCommand("workspaceControl -e -vcc \"arnoldRenderView -mode workspaceChange\" \"ArnoldRenderView\"");
+//   MGlobal::executeCommand(visChangeCommand);
+
+
    s_creatingARV = false;
 
    
