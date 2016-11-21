@@ -1993,14 +1993,16 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    if (status == MStatus::kFailure || !visPlug.asBool())
       return false;
 
-
+/*
+   Reverting this lodVisibility code, as explained in #2679
+   
    // FIXME do we really want lodVisibility to affect the visibility in arnold ?
    // Maya viewport seems indeed to take it into account. Note that this is used
    // only by Mesh lights
    MPlug lodVisPlug = node.findPlug("lodVisibility", &status);
    if (status == MStatus::kFailure || !lodVisPlug.asBool())
       return false;
-
+*/
    // Check override visibility
    MPlug overPlug = node.findPlug("overrideEnabled", &status);
    if (status == MStatus::kSuccess && overPlug.asBool())
