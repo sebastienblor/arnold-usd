@@ -22,6 +22,7 @@ def doCreateStandInFile():
 
 def doExportStandIn():
     #Save the defaultType
+    core.createOptions()
     default = cmds.optionVar(q='defaultFileExportActiveType')
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
@@ -35,6 +36,7 @@ def doExportStandIn():
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
 def doExportOptionsStandIn():
+    core.createOptions()
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
 
