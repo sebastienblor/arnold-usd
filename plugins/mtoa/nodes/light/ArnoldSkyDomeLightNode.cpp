@@ -27,6 +27,7 @@ MObject CArnoldSkyDomeLightNode::s_intensity;
 // MObject CArnoldSkyDomeLightNode::s_normalize;
 MObject CArnoldSkyDomeLightNode::s_affectDiffuse;
 MObject CArnoldSkyDomeLightNode::s_affectSpecular;
+MObject CArnoldSkyDomeLightNode::s_portalMode;
 // Arnold outputs
 MObject CArnoldSkyDomeLightNode::s_OUT_colorR;
 MObject CArnoldSkyDomeLightNode::s_OUT_colorG;
@@ -71,8 +72,9 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    // Metadata must be present to get it as Maya attributes emitDiffuse and emitSpecular
    s_affectDiffuse = s_attributes.MakeInput("affect_diffuse");
-   s_affectDiffuse = s_attributes.MakeInput("affect_specular");
+   s_affectSpecular = s_attributes.MakeInput("affect_specular");
 
+   s_portalMode = s_attributes.MakeInput("portal_mode");
    // Removed so they are added as dynamic and have same ai prefix as other lights will
    // s_castShadows = s_attributes.MakeInput("cast_shadows");
    // s_exposure = s_attributes.MakeInput("exposure");
@@ -204,6 +206,7 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    // attributeAffects(s_normalize, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
+   attributeAffects(s_portalMode, aLightData);
 
    return MS::kSuccess;
 }
