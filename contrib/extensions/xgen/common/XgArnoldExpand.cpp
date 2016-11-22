@@ -27,6 +27,22 @@ using namespace XGenRenderAPI::Utils;
 using namespace XGenArnold;
 using namespace std;
 
+
+// For maya > 2015 we need to call xgapi::initConfig
+#if MAYA_API_VERSION > 201500
+
+// We have linking problems in OSX for versions < 2017
+#ifdef _DARWIN
+#if MAYA_API_VERSION >= 201700
+#define MTOA_XG_INIT_CONFIG 1
+#endif
+#else // not DARWIN
+#define MTOA_XG_INIT_CONFIG 1
+#endif
+
+#endif 
+
+
 bool s_bCleanDescriptionCache = true;
 
 struct XgMergedData
@@ -233,7 +249,8 @@ int Procedural::Init(AtNode* node)
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
-#if MAYA_API_VERSION > 201500
+
+#ifdef MTOA_XG_INIT_CONFIG
    char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
    if(xgenConfigPath != NULL)
       xgapi::initConfig(string(xgenConfigPath));

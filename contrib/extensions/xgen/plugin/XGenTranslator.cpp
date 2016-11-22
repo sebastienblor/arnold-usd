@@ -458,7 +458,11 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          // Export shaders
          rootShader = ExportRootShader(shape);
 
+
+         // Only exporting matrix for maya < 2017 (#2681)
+#if MAYA_API_VERSION < 201700
          ExportMatrix(shape);
+#endif
       }
       // For other patches we reuse the shaders and create new procedural
       else
@@ -595,8 +599,6 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
             }
             AiNodeSetArray(shape, "time_samples", samples);
          }
-         
-         
       }
       // if motion blur is disabled
       else
@@ -697,23 +699,23 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          sprintf(buf,"%f", info.fCamRatio );
          AiNodeSetStr( shape, "irRenderCamRatio", buf );
 
-       AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
-       sprintf(buf,"%i",info.renderMode);
-       AiNodeSetStr( shape, "xgen_renderMethod", buf );
-       
-       
-       AiNodeDeclare( shape, "ai_mode", "constant INT");
-       AiNodeSetInt(shape, "ai_mode", info.aiMode);
-       
-       AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
-       AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
-       
+         AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
+         sprintf(buf,"%i",info.renderMode);
+         AiNodeSetStr( shape, "xgen_renderMethod", buf );
+
+
+         AiNodeDeclare( shape, "ai_mode", "constant INT");
+         AiNodeSetInt(shape, "ai_mode", info.aiMode);
+
+         AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
+         AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
       }
       
       ExportLightLinking(shape);
    }
 
    m_exportedSteps.clear();
+
 
    // For now we're only expanding the procedurals during export if we are on an interactive render
    // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
@@ -744,9 +746,10 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
-   // Set transform matrix
+  // Only exporting matrix for maya < 2017 (#2681)
+#if MAYA_API_VERSION < 201700
    ExportMatrix(shape);
-
+#endif
    if (m_exportedSteps.empty())
       return;
 
