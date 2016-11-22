@@ -22,13 +22,13 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.16.0-windows\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0161/test.ma line 7: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-File read in  0.82 seconds.
+File read in  0.67 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0161/test.ma
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0161\test.ma completed.

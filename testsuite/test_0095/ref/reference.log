@@ -22,14 +22,10 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 6: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.16.0-windows\bin
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 8: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 6: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 296: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 296: setAttr: No object matches name: .dgamma
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 297: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
@@ -44,7 +40,7 @@ Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/tes
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/test.ma line 526: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
 Viewport 2.0 floating point render target is turned off.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  1.3 seconds.
+File read in  0.72 seconds.
 Error: line 1: Error reading file.
 Error: line 1: Error reading file.
 [maketx] Skipping native TX texture: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0095/normal_map.tx

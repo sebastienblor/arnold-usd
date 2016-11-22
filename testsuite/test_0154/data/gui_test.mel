@@ -69,4 +69,3 @@ $img += "/testrender_6.tif";
 arnoldRenderView -option "Save Image" $img;
 
 
-quit -force -abort;

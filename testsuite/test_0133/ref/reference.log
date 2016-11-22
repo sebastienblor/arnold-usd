@@ -22,17 +22,13 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.16.0-windows\bin
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0133/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0133/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
 Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  1.3 seconds.
+File read in  0.62 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0133/test.ma
 [maketx] Skipping native TX texture: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0133/happy_face.tx
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0133\test.ma completed.
