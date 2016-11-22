@@ -496,6 +496,21 @@ def createLocator(locatorType, asLight=False):
         pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
+# in theory we could merge this function with the one above easily,
+# but we need to make sure first it's not breaking other calls
+def createLocatorWithName(locatorType, nodeName, asLight=False):
+    
+    lNode = pm.createNode('transform', name='%s' % nodeName)
+    lName = lNode.name()
+    lId = lName[len(locatorType):]
+    shapeName = '%sShape' % nodeName
+    if asLight:
+        cmds.shadingNode(locatorType, name=shapeName, parent=lName, asLight=True)
+    else:
+        pm.createNode(locatorType, name=shapeName, parent=lNode)       
+    return (shapeName, lName)
+
+
 def createMeshLight(legacy=False, centerPivot=True):
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
@@ -523,7 +538,8 @@ def createMeshLight(legacy=False, centerPivot=True):
             cmds.confirmDialog(title='Error', message='The mesh has multiple instances. Light instances are not supported!', button='Ok')
             return
 
-        (lightShape,lightTransform) = createLocator('aiMeshLight', asLight=True)
+        lightName = 'light_%s' % meshTransform
+        (lightShape,lightTransform) = createLocatorWithName('aiMeshLight', nodeName=lightName, asLight=True)
 
         cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
 
