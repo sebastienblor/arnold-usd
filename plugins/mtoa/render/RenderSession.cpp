@@ -190,11 +190,7 @@ MStatus CRenderSession::End()
 
    }
    
-   if (!AiUniverseIsActive())
-   {
-      AiMsgWarning("[mtoa] No active Arnold Universe present.");
-   }
-   else
+   if (AiUniverseIsActive())
    {
       if (m_renderOptions.m_forceTextureCacheFlushAfterRender)
       {
