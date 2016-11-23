@@ -56,7 +56,7 @@ static MDagPath GetDefaultCamera()
    }
    return MDagPath();
 
-   MGlobal::displayWarning("No renderable camera was found");
+//   MGlobal::displayWarning("No renderable camera was found");
 }
 
 MSyntax CArnoldRenderViewCmd::newSyntax()

@@ -51,8 +51,8 @@ public :
       m_sourceTranslator(NULL),
       m_inUpdateQueue(false),
       m_animArrays(false),
-      m_overrideSetsDirty(false),
       m_isExported(false),
+      m_overrideSetsDirty(false),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
 
