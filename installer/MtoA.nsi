@@ -65,7 +65,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
       Goto NotInstalled
     
   MessageBox MB_TOPMOST|MB_OKCANCEL  \
-    "MtoA for Maya $%MAYA_VERSION% is already installed. Remove installed version?" \
+    "MtoA for Maya $%MAYA_VERSION% is already installed. Replace existing version ?" \
     IDOK Uninstall IDCANCEL QuitPart
   Uninstall:
 
