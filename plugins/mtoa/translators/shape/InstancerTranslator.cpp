@@ -617,8 +617,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       return;
    
    int globalIndex = 0;
-   const char *arnoldBaseName = (instancer) ? AiNodeGetName(instancer) : "";
-
+   
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
         it !=  m_particleIDMap.end(); ++it)
    {
@@ -638,9 +637,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             // Create and register this ginstance node, so that it is properly cleared later
             instance = AddArnoldNode("ginstance", instanceKey.asChar());
 
-            MString instanceName(arnoldBaseName);
-            instanceName += globalIndex;
-            AiNodeSetStr(instance, "name", instanceName.asChar());
+            // We no longer set the name of these instances since AddArnoldNode already does,
+            // and takes the prefix into account (#2684)
+   
          }
          int idx = m_particlePathsMap[partID][k];
          if (idx >= (int)m_objectNames.length()) continue;

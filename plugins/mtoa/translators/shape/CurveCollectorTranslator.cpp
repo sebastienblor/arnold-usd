@@ -321,14 +321,10 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
       if (shader == NULL)
       {
          // check if the internal root shader was already created in a previous export
-         shader = GetArnoldNode("rootShader");
+         shader = GetArnoldNode("hairShader");
          if (shader == NULL)
-            shader = AddArnoldNode("hair", "rootShader");
-            
-         MString hairShaderName = GetMayaNodeName();
-         hairShaderName += "_hairShader";
-         AiNodeSetStr(shader, "name", hairShaderName.asChar());
-
+            shader = AddArnoldNode("hair", "hairShader");
+         
          // Add shader uparam and vparam names
          AiNodeSetStr(shader, "uparam", "uparamcoord");
          AiNodeSetStr(shader, "vparam", "vparamcoord");

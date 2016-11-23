@@ -129,15 +129,15 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
    }
    
    // First check if the internal SG node has already been created
-   AtNode *shadingEngine = GetArnoldNode("shadingEngine");
+   AtNode *shadingEngine = GetArnoldNode("SG");
    if (shadingEngine == NULL)
    {
       // register this AtNode in our Translator, so that it is properly cleared later
-      shadingEngine = AddArnoldNode("MayaShadingEngine", "shadingEngine");
+      shadingEngine = AddArnoldNode("MayaShadingEngine", "SG");
       std::vector<AtNode*> aovShaders;
       m_impl->AddAOVDefaults(shadingEngine, aovShaders);
    }
-   AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
+
    AiNodeLink(rootShader, "beauty", shadingEngine);
 
    AtNode *shape = GetArnoldNode();
