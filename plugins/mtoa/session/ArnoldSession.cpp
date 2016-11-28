@@ -628,7 +628,7 @@ AtNode* CArnoldSession::ExportOptions()
    MFnDependencyNode fnNode(options);
    AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
    MPlug optPlug = fnNode.findPlug("message");
-   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, true);
+   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, false);
 
    return m_optionsTranslator->GetArnoldNode();
 }
