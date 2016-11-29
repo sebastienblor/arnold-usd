@@ -245,12 +245,14 @@ void CRenderOptions::SetupLog() const
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
       AiMsgSetLogFileFlags(m_log_verbosity);
       AiMsgResetCallback();
-   } else if (m_log_to_console)
+   } else if (m_log_to_console && MGlobal::mayaState() != MGlobal::kBatch)
    {
-      // no "Log to File" enabled. Therefore we can rely on MtoA's callback
+      // no "Log to File" enabled, and we're not doing batch rendering.
+      // Therefore we can rely on MtoA's callback
       // that invokes Maya log functions.
       // The reason why we don't always enable it is that it should also 
       // handle the "log to file" and we prefer letting arnold do it.
+
       AiMsgSetCallback(MtoaLogCallback);
    } else
       AiMsgResetCallback();
