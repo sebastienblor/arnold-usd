@@ -254,10 +254,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    {
       CMayaScene::Export();
    }
-   // make sure this camera is exported. It might not be "renderable" but 
-    // we specially chose this one as default so it should be exported.
-   if (camera.isValid())
-      CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+   
    // SetExportCamera mus be called AFTER CMayaScene::Export
    CMayaScene::GetArnoldSession()->SetExportCamera(camera);
    

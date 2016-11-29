@@ -1822,6 +1822,11 @@ void CArnoldSession::ClearUpdateCallbacks()
 void CArnoldSession::SetExportCamera(MDagPath camera)
 {
    AiMsgDebug("[mtoa.session] Setting export camera to \"%s\"", camera.partialPathName().asChar());
+
+   // first we need to make sure this camera is properly exported
+   if (camera.isValid())
+      ExportDagPath(camera);
+   
    m_sessionOptions.SetExportCamera(camera);
 
    if (m_optionsTranslator == NULL) return;
