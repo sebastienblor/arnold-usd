@@ -1,14 +1,17 @@
 #include "BifrostTranslator.h"
 #include "BifrostFoamMaterialTranslator.h"
 #include "BifrostAeroMaterialTranslator.h"
+#include "BifrostHydroTranslator.h"
+#include "BifrostPointTranslator.h"
+#include "BifrostAeroTranslator.h"
 
 #include "extension/Extension.h"
 #include <maya/MTypes.h> 
+#include <iostream>
 
 extern "C"
 {
 #ifdef ENABLE_BIFROST
-	
 	DLLEXPORT void initializeExtension ( CExtension& extension )
     {
         MStatus status;
@@ -21,10 +24,9 @@ extern "C"
         extension.LoadArnoldPlugin("bifrost_shaders");
         
         status = extension.RegisterTranslator ( "bifrostShape",
-                                                "",
-                                                CBfDescriptionTranslator::creator,
-                                                CBfDescriptionTranslator::NodeInitializer );
-
+												"",
+                                                BifrostShapeTranslator::creator,
+                                                BifrostShapeTranslator::NodeInitializer );
 
         status = extension.RegisterTranslator ( "bifrostFoamMaterial",
                                                 "",
@@ -35,8 +37,20 @@ extern "C"
                                                 CBfAeroMaterialTranslator::creator,
                                                 CBfAeroMaterialTranslator::NodeInitializer );
 
-       
+        status = extension.RegisterTranslator ( "bifrostHydro",
+                                                "",
+                                                BifrostHydroTranslator::creator,
+                                                BifrostHydroTranslator::NodeInitializer );
 
+        status = extension.RegisterTranslator ( "bifrostPoint",
+                                                "",
+                                                BifrostPointTranslator::creator,
+                                                BifrostPointTranslator::NodeInitializer );
+
+        status = extension.RegisterTranslator ( "bifrostAero",
+                                                "",
+                                                BifrostAeroTranslator::creator,
+                                                BifrostAeroTranslator::NodeInitializer );
     }
 
     DLLEXPORT void deinitializeExtension ( CExtension& extension )
