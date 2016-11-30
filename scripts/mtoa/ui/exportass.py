@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.callbacks import *
+import mtoa.core as core
 
 def pushOptionsUITemplate():
     if (not cmds.uiTemplate('oa_optionsTemplate', exists=True)):
@@ -139,6 +140,9 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
     
     # print 'parent: %(p)s, action: %(a)s, initialSettings: %(s)s, resultCallback: %(c)s\n' % \
     #  {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
+
+    #first make sure the options node exists
+    core.createOptions()
 
     retval = 0
     currentOptions = ''
