@@ -185,7 +185,7 @@ if system.os() == 'windows':
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
         msvc_version = '10.0'
     elif int(maya_version_base) >= 2015:
-        msvc_version = '11.0'
+        msvc_version = '14.0'
     if int(maya_version_base) >= 2018:
         msvc_version = '14.0'
     if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:

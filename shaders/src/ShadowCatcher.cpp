@@ -106,7 +106,7 @@ shader_evaluate
       
       if (AiShaderEvalParamBool(p_legacy))
       {
-         matte = AiLightsGetShadowMatte(sg);
+         matte = AiLightsIntegrateShadowMatte(sg);
       } else
       {
          float Kb = AiShaderEvalParamFlt(p_backlighting);

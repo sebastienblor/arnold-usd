@@ -778,7 +778,7 @@ shader_evaluate
                   AtString value;
                   if (AiUDataGetStr(AtString((const char*)token->extra), value)) // TODO: store as AtString
                   {
-                     int len = value.length();
+                     size_t len = value.length();
                      memcpy(&(idata->processPath[sg->tid][pos]),value.c_str(),len);
                      pos += (unsigned int) len;
                      // Copy next text chunk to the "processPath"
@@ -921,7 +921,7 @@ shader_evaluate
          }
 
          if (success)
-            sg->out.RGBA() = AiTextureAccess(sg, idata->processPath[sg->tid], texparams, successP);
+            sg->out.RGBA() = AiTextureAccess(sg, idata->processPath[sg->tid], AtString(), texparams, successP);
       }
       else if (idata->texture_handle != NULL)
       {
@@ -929,7 +929,7 @@ shader_evaluate
       }
       else
       {       
-         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), texparams, successP);
+         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), AtString(), texparams, successP);
       }
       sg->u = oldU;
       sg->v = oldV;

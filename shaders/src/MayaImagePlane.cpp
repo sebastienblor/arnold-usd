@@ -10,6 +10,7 @@
 #include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaImagePlaneMtd);
+namespace {
 
 enum ImagePlaneParams {
     p_filename,
@@ -53,6 +54,7 @@ const char* display_mode_enum[] =
    "alpha",
    NULL
 };
+}
 
 node_parameters
 {

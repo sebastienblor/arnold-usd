@@ -131,7 +131,7 @@ void openPipeCommand(DriverData* ctx)
                 &ctx->process_information
             );
 
-        if (success != true)
+        if (success != TRUE)
         {
             ctx->fp = 0;
             DWORD lastError = GetLastError();
@@ -166,7 +166,7 @@ bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData
     DWORD bytesToWrite = static_cast<DWORD>(elem_size * elem_count);
     LPOVERLAPPED pOverlapped = reinterpret_cast<LPOVERLAPPED>(malloc(sizeof(OVERLAPPED)));
     ZeroMemory(pOverlapped, sizeof(OVERLAPPED));
-    if (WriteFileEx(ctx->write_pipe, data, bytesToWrite, pOverlapped, writeCompletionCallback) == true)
+    if (WriteFileEx(ctx->write_pipe, data, bytesToWrite, pOverlapped, writeCompletionCallback) == TRUE)
         return true;
     else
     {

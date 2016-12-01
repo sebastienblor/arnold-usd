@@ -46,41 +46,40 @@ namespace
 }
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
-   AiParameterINT("numWaves", 8);
-   AiParameterFLT("waveTime", 0.0f);
-   AiParameterFLT("waveVelocity", 1.0f);
-   AiParameterFLT("waveAmplitude", 0.05f);
+   AiParameterInt("numWaves", 8);
+   AiParameterFlt("waveTime", 0.0f);
+   AiParameterFlt("waveVelocity", 1.0f);
+   AiParameterFlt("waveAmplitude", 0.05f);
 
-   AiParameterFLT("waveFrequency", 4.0f);
-   AiParameterFLT("subWaveFrequency", 0.125f);
-   AiParameterFLT("smoothness", 2.0f);
-   AiParameterPNT2("windUV", 1.0f, 0.0f);
+   AiParameterFlt("waveFrequency", 4.0f);
+   AiParameterFlt("subWaveFrequency", 0.125f);
+   AiParameterFlt("smoothness", 2.0f);
+   AiParameterVec2("windUV", 1.0f, 0.0f);
 
-   AiParameterFLT("rippleTime", 0.0f);
-   AiParameterFLT("rippleFrequency", 25.0f);
-   AiParameterFLT("rippleAmplitude", 0.05f);
-   AiParameterFLT("dropSize", 0.3f);
-   AiParameterPNT2("rippleOrigin", 0.5f, 0.5f);
+   AiParameterFlt("rippleTime", 0.0f);
+   AiParameterFlt("rippleFrequency", 25.0f);
+   AiParameterFlt("rippleAmplitude", 0.05f);
+   AiParameterFlt("dropSize", 0.3f);
+   AiParameterVec2("rippleOrigin", 0.5f, 0.5f);
 
-   AiParameterFLT("groupVelocity", 1.0f);
-   AiParameterFLT("phaseVelocity", 2.5f);
-   AiParameterFLT("spreadRate", 0.3f);
-   AiParameterFLT("spreadStart", 0.005f);
+   AiParameterFlt("groupVelocity", 1.0f);
+   AiParameterFlt("phaseVelocity", 2.5f);
+   AiParameterFlt("spreadRate", 0.3f);
+   AiParameterFlt("spreadStart", 0.005f);
 
 
-   AiParameterBOOL("reflectionBox", false);
-   AiParameterPNT2("boxMin", 0.0f, 0.0f);
-   AiParameterPNT2("boxMax", 1.0f, 1.0f);
+   AiParameterBool("reflectionBox", false);
+   AiParameterVec2("boxMin", 0.0f, 0.0f);
+   AiParameterVec2("boxMax", 1.0f, 1.0f);
 
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
 
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "water");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "water");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize
@@ -93,10 +92,10 @@ node_update
     // should use globals as following Maya's behavior
     if (!AiNodeGetLink(node, "uvCoord"))
     {
-        AtPoint2 uv = AI_P2_ZERO;
+        AtVector2 uv = AI_P2_ZERO;
         if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
         if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-        AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+        AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
     }
 }
 
@@ -106,14 +105,14 @@ node_finish
 
 shader_evaluate
 {
-    AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
+    AtVector2 uv = AiShaderEvalParamVec2(p_uvCoord);
     // Will be set to GLOBALS by update if unconnected
     if (uv.x == UV_GLOBALS) uv.x = sg->u;
     if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
     if (!IsValidUV(uv))
     {
-       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
        return;
     }
 
@@ -129,9 +128,9 @@ shader_evaluate
     bool reflections = AiShaderEvalParamBool(p_reflectionBox);
 
     //Tboolean isLum = block.value(attrAlphaIsLuminance()).asBoolean();
-    AtPoint2 boxMin = AiShaderEvalParamPnt2(p_boxMin);
-    AtPoint2 boxMax = AiShaderEvalParamPnt2(p_boxMax);
-    AtPoint2 origin = AiShaderEvalParamPnt2(p_rippleOrigin);
+    AtVector2 boxMin = AiShaderEvalParamVec2(p_boxMin);
+    AtVector2 boxMax = AiShaderEvalParamVec2(p_boxMax);
+    AtVector2 origin = AiShaderEvalParamVec2(p_rippleOrigin);
 
     float value = 0.5f;		// Water elevation to be returned
 
@@ -221,7 +220,7 @@ shader_evaluate
     //
     if (numWaves < 0) numWaves = 0;
 
-    AtPoint2 wind = AiShaderEvalParamPnt2(p_windUV);
+    AtVector2 wind = AiShaderEvalParamVec2(p_windUV);
     float windNorm = sqrtf(wind[0] * wind[0] + wind[1] * wind[1]);
     if (windNorm < 0.000001f)
         windNorm = 0.000001f;
@@ -283,6 +282,6 @@ shader_evaluate
     outColor.g = value;
     outColor.b = value;
 
-    AiRGBtoRGBA(outColor, sg->out.RGBA);
-    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+    sg->out.RGBA() = AtRGBA(outColor);
+    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 }
