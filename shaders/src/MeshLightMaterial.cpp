@@ -42,7 +42,7 @@ node_finish
 
 shader_evaluate
 {
-   if (sg->Rt & (AI_RAY_DIFFUSE | AI_RAY_GLOSSY | AI_RAY_SHADOW))
+   if (sg->Rt & (AI_RAY_DIFFUSE_REFLECT | AI_RAY_SPECULAR_REFLECT | AI_RAY_SHADOW))
    {
       sg->out.RGBA() = AI_RGBA_ZERO;   
       return;

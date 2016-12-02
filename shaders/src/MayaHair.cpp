@@ -187,7 +187,7 @@ shader_evaluate
       specularColor = HSVtoRGB(origHSV);
    }   
    
-   if (!AiColorIsSmall(specularColor) && !(sg->Rt & AI_RAY_DIFFUSE)) // specular contribution
+   if (!AiColorIsSmall(specularColor) && !(sg->Rt & AI_RAY_DIFFUSE_REFLECT)) // specular contribution
    {
       const float specularPower = AiShaderEvalParamFlt(p_specular_power);
       AtLightSample light_sample;

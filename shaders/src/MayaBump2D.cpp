@@ -141,7 +141,7 @@ shader_evaluate
       return;
    }
    
-   if (sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_SHADOW || (data->bumpMode == BM_BUMP && data->bumpMap == 0))
+   if (sg->Rt & AI_RAY_DIFFUSE_REFLECT || sg->Rt & AI_RAY_SHADOW || (data->bumpMode == BM_BUMP && data->bumpMap == 0))
    {      
       AiShaderEvaluate(data->shader, sg);
       if (data->isShaderRGBA == false)
@@ -191,7 +191,7 @@ shader_evaluate
               normalMap.g * bitangent +
               normalMap.b * oldN;
       sg->N = AiV3Normalize(sg->N);
-      if (!AiV3Exists(sg->N))
+      if (!AiV3IsFinite(sg->N))
          sg->N = oldN;
       else
       {

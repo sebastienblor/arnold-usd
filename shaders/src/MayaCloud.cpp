@@ -1,5 +1,7 @@
 #include <ai.h>
 
+#include <limits.h>
+
 #include "MayaUtils.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaCloudMtd);

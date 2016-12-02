@@ -206,7 +206,7 @@ shader_evaluate
       sg->N = AiShaderGlobalsTransformPoint(sg, sg->N, 0);
       AiV3Normalize(sg->N); 
 
-      if (!AiV3Exists(sg->N))
+      if (!AiV3IsFinite(sg->N))
           sg->N = inNormal;
       else
       {

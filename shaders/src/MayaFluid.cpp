@@ -369,7 +369,7 @@ shader_evaluate
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
       const float opacity = AiMax(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
-      AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
+      sg->out.CLOSURE() = AiClosureVolumeAbsorption(sg, data->transparency * opacity);
       return;
    }
    
@@ -536,7 +536,7 @@ shader_evaluate
    if (sg->Rt & AI_RAY_SHADOW)
    {
       const float opacity = AiMax(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
-      AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
+      sg->out.CLOSURE() = AiClosureVolumeAbsorption(sg, data->transparency * opacity);
       return;
    }
    
@@ -555,7 +555,6 @@ shader_evaluate
    incandescence.g = AiMax(0.f, incandescence.g);
    incandescence.b = AiMax(0.f, incandescence.b);
    
-   AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
-   AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
-   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, CLAMP(AiShaderEvalParamFlt(p_phase_func), -1.0f, 1.0f));
+   const float anisotropy = CLAMP(AiShaderEvalParamFlt(p_phase_func), -1.0f, 1.0f);
+   sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, opacity * (AI_RGB_WHITE - color), opacity * color, opacity * incandescence, anisotropy);
 }

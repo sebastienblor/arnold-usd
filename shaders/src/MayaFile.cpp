@@ -706,7 +706,7 @@ shader_evaluate
       AiTextureParamsSetDefaults(texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
       texparams.filter = AiShaderEvalParamInt(p_filter);
-      if ((sg->Rt & AI_RAY_DIFFUSE) && (texparams.filter > AI_TEXTURE_BILINEAR))
+      if ((sg->Rt & AI_RAY_DIFFUSE_REFLECT) && (texparams.filter > AI_TEXTURE_BILINEAR))
          texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
       bool useDefaultColor = AiShaderEvalParamBool(p_use_default_color);

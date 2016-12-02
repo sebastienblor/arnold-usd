@@ -184,21 +184,21 @@ node_update
 
     data->scattering_source          = AiNodeGetInt(node, "scattering_source");
     data->scattering                 = AiNodeGetRGB(node, "scattering");
-    data->scattering_channel         = AiNodeGetStr(node, "scattering_channel");
+    data->scattering_channel         = AiNodeGetStr(node, AtString("scattering_channel"));
     data->scattering_color           = AiNodeGetRGB(node, "scattering_color");
     data->scattering_intensity       = AiNodeGetFlt(node, "scattering_intensity");
     data->anisotropy                 = AiNodeGetFlt(node, "anisotropy");
 
     data->attenuation_source         = AiNodeGetInt(node, "attenuation_source");
     data->attenuation                = AiNodeGetRGB(node, "attenuation");
-    data->attenuation_channel        = AiNodeGetStr(node, "attenuation_channel");
+    data->attenuation_channel        = AiNodeGetStr(node, AtString("attenuation_channel"));
     data->attenuation_color          = AiNodeGetRGB(node, "attenuation_color");
     data->attenuation_intensity      = AiNodeGetFlt(node, "attenuation_intensity");
     data->attenuation_mode           = AiNodeGetInt(node, "attenuation_mode");
 
     data->emission_source            = AiNodeGetInt(node, "emission_source");
     data->emission                   = AiNodeGetRGB(node, "emission");
-    data->emission_channel           = AiNodeGetStr(node, "emission_channel");
+    data->emission_channel           = AiNodeGetStr(node, AtString("emission_channel"));
     data->emission_color             = AiNodeGetRGB(node, "emission_color");
     data->emission_intensity         = AiNodeGetFlt(node, "emission_intensity");
 
@@ -296,22 +296,24 @@ shader_evaluate
     ShaderData* data = reinterpret_cast<ShaderData*>(AiNodeGetLocalData(node));
 
     // sampling position offset
-    AtVector Po_orig;
+    AtVector Po_orig = sg->Po;
+    AtVector P_orig = sg->P;
 
     switch (data->position_offset_from)
     {
     case INPUT_FROM_EVALUATE:
-        Po_orig = sg->Po;
+    {
         sg->Po += AiShaderEvalParamVec(p_position_offset);
+        sg->P = AiM4PointByMatrixMult(sg->M, sg->Po);
         break;
+    }
 
     case INPUT_FROM_CACHE:
-        Po_orig = sg->Po;
         sg->Po += data->position_offset;
+        sg->P = AiM4PointByMatrixMult(sg->M, sg->Po);
         break;
 
     default:
-        Po_orig = AI_V3_ZERO;
         break;
     }
 
@@ -319,6 +321,11 @@ shader_evaluate
     // or NaNs will occur in optimized builds (htoa#374)
     AtRGB scattering  = AI_RGB_BLACK;
     AtRGB attenuation = AI_RGB_BLACK;
+
+    AtRGB absorption_result = AI_RGB_BLACK;
+    AtRGB scattering_result = AI_RGB_BLACK;
+    AtRGB emission_result   = AI_RGB_BLACK;
+    float anisotropy_result = 0.0f;
 
     // scattering
     if (!(sg->Rt & AI_RAY_SHADOW) || (data->attenuation_from == INPUT_FROM_SCATTERING) || (data->attenuation_mode == ATTENUATION_MODE_ABSORPTION))
@@ -336,13 +343,10 @@ shader_evaluate
             // color, intensity, anisotropy and clipping
             const AtRGB scattering_color     = data->scattering_color_is_linked     ? AiShaderEvalParamRGB(p_scattering_color)     : data->scattering_color;
             const float scattering_intensity = data->scattering_intensity_is_linked ? AiShaderEvalParamFlt(p_scattering_intensity) : data->scattering_intensity;
-            const float anisotropy           = data->anisotropy_is_linked           ? AiShaderEvalParamFlt(p_anisotropy)           : data->anisotropy;
+            anisotropy_result                = data->anisotropy_is_linked           ? AiShaderEvalParamFlt(p_anisotropy)           : data->anisotropy;
 
-            AtRGB scattering_result = scattering * scattering_color * scattering_intensity;
+            scattering_result = scattering * scattering_color * scattering_intensity;
             AiColorClipToZero(scattering_result);
-
-            // update volume shader globals
-            AiShaderGlobalsSetVolumeScattering(sg, scattering_result, anisotropy);
        }
     }
 
@@ -365,8 +369,8 @@ shader_evaluate
     // update volume shader globals
     switch (data->attenuation_mode)
     {
-    case ATTENUATION_MODE_ABSORPTION: AiShaderGlobalsSetVolumeAbsorption(sg, attenuation); break;
-    case ATTENUATION_MODE_EXTINCTION: AiShaderGlobalsSetVolumeAttenuation(sg, attenuation); break;
+    case ATTENUATION_MODE_ABSORPTION: absorption_result = attenuation; break;
+    case ATTENUATION_MODE_EXTINCTION: absorption_result = attenuation - scattering_result; break;
     }
 
     // emission
@@ -389,11 +393,17 @@ shader_evaluate
         AiColorClipToZero(emission);
 
         // update volume shader globals
-        if (AiAny(emission > AI_EPSILON))
-            AiShaderGlobalsSetVolumeEmission(sg, emission);
+        if (!AiColorIsSmall(emission))
+            emission_result = emission;
     }
+
+    // create closure
+    sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorption_result, scattering_result, emission_result, anisotropy_result);
 
     // restore sampling position
     if (data->position_offset_from != INPUT_FROM_NONE)
+    {
         sg->Po = Po_orig;
+        sg->P = P_orig;
+    }
 }

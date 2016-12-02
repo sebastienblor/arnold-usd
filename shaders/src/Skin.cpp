@@ -1,20 +1,9 @@
 #include <ai.h>
 
-namespace MSTR
-{
-   static const AtString previous_roughness("previous_roughness");
-}
-
-
 AI_SHADER_NODE_EXPORT_METHODS(SkinMtd);
 
 struct SkinData
 {
-    AtString aov_specular;
-    AtString aov_sheen;
-    AtString aov_sss;
-    AtString aov_direct_sss;
-    AtString aov_indirect_sss;
     bool     specular_in_secondary_rays;
     bool     fresnel_affect_sss;
 };
@@ -46,11 +35,6 @@ node_parameters
    AiParameterFlt("sheen_ior", 1.44f);
    AiParameterFlt("global_sss_radius_multiplier", 1.0f);
    AiParameterBool("specular_in_secondary_rays", false);
-   AiParameterStr("aov_specular", "specular");
-   AiParameterStr("aov_sheen", "sheen");
-   AiParameterStr("aov_sss", "sss");
-   AiParameterStr("aov_direct_sss", "direct_sss");
-   AiParameterStr("aov_indirect_sss", "indirect_sss");
    AiParameterBool("fresnel_affect_sss", true);
    AiParameterFlt("opacity", 1.0f);
    AiParameterRGB("opacity_color", 1.0f, 1.0f, 1.0f);
@@ -64,11 +48,6 @@ node_parameters
     // unlinkable parameters
    AiMetaDataSetBool(nentry, "specular_in_secondary_rays", "linkable", false);
    AiMetaDataSetBool(nentry, "fresnel_affect_sss", "linkable", false);
-   AiMetaDataSetBool(nentry, "aov_specular", "linkable", false);
-   AiMetaDataSetBool(nentry, "aov_sheen", "linkable", false);
-   AiMetaDataSetBool(nentry, "aov_sss", "linkable", false);
-   AiMetaDataSetBool(nentry, "aov_direct_sss", "linkable", false);
-   AiMetaDataSetBool(nentry, "aov_indirect_sss", "linkable", false);
 }
 enum SSSParams {
    p_sss_weight,
@@ -91,11 +70,6 @@ enum SSSParams {
    p_sheen_ior,
    p_global_sss_radius_multiplier,
    p_specular_in_secondary_rays,
-   p_aov_specular,
-   p_aov_sheen,
-   p_aov_sss,
-   p_aov_direct_sss,
-   p_aov_indirect_sss,
    p_fresnel_affect_sss,
    p_opacity,
    p_opacity_color   
@@ -110,21 +84,8 @@ node_update
 {
    SkinData *data = (SkinData*)AiNodeGetLocalData(node);
 
-   data->aov_specular     = AiNodeGetStr(node, AtString("aov_specular"));
-   data->aov_sheen        = AiNodeGetStr(node, AtString("aov_sheen"));
-   data->aov_sss          = AiNodeGetStr(node, AtString("aov_sss"));
-   data->aov_direct_sss   = AiNodeGetStr(node, AtString("aov_direct_sss"));
-   data->aov_indirect_sss = AiNodeGetStr(node, AtString("aov_indirect_sss"));
-
    data->specular_in_secondary_rays = AiNodeGetBool(node, AtString("specular_in_secondary_rays"));
    data->fresnel_affect_sss         = AiNodeGetBool(node, AtString("fresnel_affect_sss"));
-
-   AiAOVRegister(data->aov_specular, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(data->aov_sheen, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(data->aov_sss, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(data->aov_direct_sss, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(data->aov_indirect_sss, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-
 }
 
 node_finish
@@ -145,27 +106,29 @@ float SimpleFresnel(float dt, float ior)
 
 shader_evaluate
 {
-   if (sg->Rt & AI_RAY_SHADOW)
+   // handle opacity
+   AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color);
+   opacity = AiShaderGlobalsStochasticOpacity(sg, opacity);
+
+   if (opacity != AI_RGB_WHITE)
    {
-      sg->out_opacity *= AiRGBClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
-      return;
+      sg->out.CLOSURE() = AiClosureTransparent(sg, AI_RGB_WHITE - opacity);
+
+      // early out for nearly fully transparent objects
+      if (AiAll(opacity < AI_OPACITY_EPSILON))
+         return;
    }
+
+   // early out for shadow rays
+   if (sg->Rt & AI_RAY_SHADOW)
+      return;
+
+   AtClosureList closures;
 
    SkinData *data = (SkinData*)AiNodeGetLocalData(node);
    bool sampleOnlySSS = false;
-   if ((sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_GLOSSY) && (!data->specular_in_secondary_rays))
+   if (sg->bounces > 0 && (!data->specular_in_secondary_rays))
       sampleOnlySSS = true;
-
-   float minRoughness = 0.0f;
-   if (sg->Rr_diff > 0)
-      minRoughness = 0.1f;
-   else if (sg->Rr_gloss > 0)
-   {
-      // after a specular bounce clamp in proportion to its roughness (scaled by a "sharpness" coefficient)
-      float minRoughness = 0;
-      AiStateGetMsgFlt(MSTR::previous_roughness, &minRoughness);
-      minRoughness  = 0.9f * minRoughness;
-   }
 
    float sheenFresnel = 0.0f;
    AtRGB sheen = AI_RGB_BLACK;
@@ -173,7 +136,7 @@ shader_evaluate
    float specularFresnel = 0.0f;
    AtRGB specular = AI_RGB_BLACK;
    
-   if ((sg->Rr_diff == 0) && !sampleOnlySSS)
+   if ((sg->bounces_diffuse == 0) && !sampleOnlySSS)
    {
       AtRGB sheenWeight = AiShaderEvalParamRGB(p_sheen_color);
       AtVector reflected = AiReflect(sg->Rd, sg->Ns);
@@ -187,16 +150,8 @@ shader_evaluate
       {
          float specularExponent = AiShaderEvalParamFlt(p_sheen_roughness);
          specularExponent *= specularExponent;
-         if (sg->Rr_gloss > 0)
-            specularExponent = AiMax(specularExponent, minRoughness);
-         if (specularExponent < lastSpecRoughness)
-            AiStateSetMsgFlt(MSTR::previous_roughness, specularExponent);
-         AtBSDF* bsdfData = AiMicrofacetBSDF(sg, AI_MICROFACET_BECKMANN, sg->Nf, &sg->dPdu, 0.0f, specularExponent, specularExponent);
-
-         AtRGB direct, indirect;
-         AiBSDFIntegrate(sg, &direct, &indirect, bsdfData, AI_RGB_WHITE);
-         sheen += direct + indirect;
-         sheen *= sheenWeight;
+         AtBSDF* bsdfData = AiMicrofacetBSDF(sg, sheenWeight, AI_MICROFACET_BECKMANN, sg->Nf, &sg->dPdu, 0.0f, specularExponent, specularExponent);
+         closures.add(bsdfData);
       }
 
       AtRGB specularWeight = AiShaderEvalParamRGB(p_specular_color);
@@ -207,15 +162,8 @@ shader_evaluate
       {
          float specularExponent = AiShaderEvalParamFlt(p_specular_roughness); 
          specularExponent *= specularExponent;
-         if (sg->Rr_gloss > 0)
-            specularExponent = AiMax(specularExponent, minRoughness);
-         AiStateSetMsgFlt(MSTR::previous_roughness, specularExponent);
-         AtBSDF* bsdfData = AiMicrofacetBSDF(sg, AI_MICROFACET_BECKMANN, sg->Nf, &sg->dPdu, 0.0f, specularExponent, specularExponent);
-            
-         AtRGB direct, indirect;
-         AiBSDFIntegrate(sg, &direct, &indirect, bsdfData, AI_RGB_WHITE);
-         sheen += direct + indirect;
-         specular *= specularWeight;
+         AtBSDF* bsdfData = AiMicrofacetBSDF(sg, specularWeight, AI_MICROFACET_BECKMANN, sg->Nf, &sg->dPdu, 0.0f, specularExponent, specularExponent);
+         closures.add(bsdfData);
       }
    }
 
@@ -239,20 +187,19 @@ shader_evaluate
          AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
 
-      AiBSSRDFCubicSeparate(sg, directSSS, indirectSSS, radiuses, colorWeights, 3);
-      sss = directSSS + indirectSSS;
-      // sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
+      closures.add(AiClosureCubicBSSRDF(sg, colorWeights[0], AtVector(radiuses[0], radiuses[0], radiuses[0])));
+      closures.add(AiClosureCubicBSSRDF(sg, colorWeights[1], AtVector(radiuses[1], radiuses[1], radiuses[1])));
+      closures.add(AiClosureCubicBSSRDF(sg, colorWeights[2], AtVector(radiuses[2], radiuses[2], radiuses[2])));
    }
 
-   sg->out.RGB() = specular + sheen + sss;
-   sg->out_opacity = AiRGBClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
-
-   if (sg->Rt & AI_RAY_CAMERA)
-   {      
-      AiAOVSetRGB(sg, data->aov_specular, specular);
-      AiAOVSetRGB(sg, data->aov_sheen, sheen);
-      AiAOVSetRGB(sg, data->aov_sss, sss);
-      AiAOVSetRGB(sg, data->aov_direct_sss, directSSS);
-      AiAOVSetRGB(sg, data->aov_indirect_sss, indirectSSS);
+   // write closures
+   if (opacity != AI_RGB_WHITE)
+   {
+      closures *= opacity;
+      sg->out.CLOSURE().add(closures);
+   }
+   else
+   {
+      sg->out.CLOSURE() = closures;
    }
 }
