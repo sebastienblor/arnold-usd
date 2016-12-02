@@ -443,6 +443,22 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    for (size_t i = 0; i < curvesData.curveWidthsPerResolution.size(); ++i)
       delete curvesData.curveWidthsPerResolution[i];
 
+   plug = FindMayaPlug("aiExportHairIDs");
+   bool export_curve_id = false;
+   if (!plug.isNull())
+      export_curve_id = plug.asBool();
+
+
+   if (export_curve_id)
+   {
+      AtArray* curveID = AiArrayAllocate(curvesData.numPoints.size(), 1, AI_TYPE_UINT);
+      for (unsigned int i = 0; i < curvesData.numPoints.size(); ++i)
+         AiArraySetUInt(curveID, i, i);
+      AiNodeDeclare(curve, "curve_id", "uniform UINT");
+      AiNodeSetArray(curve, "curve_id", curveID);
+   }
+
+
 }
 
 void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
