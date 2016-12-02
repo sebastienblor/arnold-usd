@@ -88,6 +88,7 @@ MStatus CArnoldCurveCollector::initialize()
    s_mode = eAttr.create("aiMode", "aiMode", 0);
    eAttr.addField("ribbon", 0);
    eAttr.addField("thick", 1);
+   eAttr.addField("oriented", 2);
    addAttribute(s_mode);
 
    /*data.name = "widthProfile";
