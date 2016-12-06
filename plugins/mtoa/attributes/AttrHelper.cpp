@@ -64,7 +64,7 @@ bool CBaseAttrHelper::IsHidden(const char* paramName) const
 // Add ai prefix to avoid clashes
 MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 {
-   const char* attrName;
+   AtString attrName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
       return MString(attrName);
    else
@@ -75,7 +75,7 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 // parameter name
 MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName) const
 {
-   const char* attrShortName;
+   AtString attrShortName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
       return MString(attrShortName);
    else
@@ -127,7 +127,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    if (data.type == AI_TYPE_ARRAY)
    {
       const AtParamValue* real = AiParamGetDefault(paramEntry);
-      data.type = real->ARRAY->type;
+      data.type = AiArrayGetType(real->ARRAY());
       bool animatable;
       // if a parameter is marked as animatable, this means that the value can
       // change over the course of a single render. if this is the case, and the
@@ -158,8 +158,6 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          case AI_TYPE_RGB:
          case AI_TYPE_RGBA:
          case AI_TYPE_VECTOR:
-         case AI_TYPE_POINT:
-         case AI_TYPE_POINT2:
          case AI_TYPE_STRING:
          case AI_TYPE_POINTER:
          {
@@ -194,22 +192,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          int val;
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min.INT = val;
+            data.min.INT() = val;
             data.hasMin = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max.INT = val;
+            data.max.INT() = val;
             data.hasMax = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin.INT = val;
+            data.softMin.INT() = val;
             data.hasSoftMin = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax.INT = val;
+            data.softMax.INT() = val;
             data.hasSoftMax = true;
          }
          break;
@@ -219,22 +217,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          int val;
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min.BYTE = (int)val;
+            data.min.BYTE() = (int)val;
             data.hasMin = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max.BYTE = (int)val;
+            data.max.BYTE() = (int)val;
             data.hasMax = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin.BYTE = (int)val;
+            data.softMin.BYTE() = (int)val;
             data.hasSoftMin = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax.BYTE = (int)val;
+            data.softMax.BYTE() = (int)val;
             data.hasSoftMax = true;
          }
          break;
@@ -244,22 +242,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          int val;
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min.INT = (val < 0 ? 0 : val);
+            data.min.INT() = (val < 0 ? 0 : val);
             data.hasMin = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max.INT = (val < 0 ? 0 : val);
+            data.max.INT() = (val < 0 ? 0 : val);
             data.hasMax = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin.INT = (val < 0 ? 0 : val);
+            data.softMin.INT() = (val < 0 ? 0 : val);
             data.hasSoftMin = true;
          }
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax.INT = (val < 0 ? 0 : val);
+            data.softMax.INT() = (val < 0 ? 0 : val);
             data.hasSoftMax = true;
          }
          break;
@@ -269,22 +267,22 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          float val;
          if (AiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min.FLT = val;
+            data.min.FLT() = val;
             data.hasMin = true;
          }
          if (AiMetaDataGetFlt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max.FLT = val;
+            data.max.FLT() = val;
             data.hasMax = true;
          }
          if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin.FLT = val;
+            data.softMin.FLT() = val;
             data.hasSoftMin = true;
          }
          if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax.FLT = val;
+            data.softMax.FLT() = val;
             data.hasSoftMax = true;
          }
          break;
@@ -303,7 +301,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       }
       case AI_TYPE_STRING:
       {
-         data.stringDefault = data.defaultValue.STR;
+         data.stringDefault = data.defaultValue.STR();
       }
    }
    return true;
@@ -330,16 +328,16 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
    MStatus status;
-   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kInt, data.defaultValue.INT, &status);
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kInt, data.defaultValue.INT(), &status);
    CHECK_MSTATUS(status);
    if (data.hasMin)
-      nAttr.setMin((int)data.min.INT);
+      nAttr.setMin((int)data.min.INT());
    if (data.hasMax)
-      nAttr.setMax((int)data.max.INT);
+      nAttr.setMax((int)data.max.INT());
    if (data.hasSoftMin)
-      nAttr.setSoftMin((int)data.softMin.INT);
+      nAttr.setSoftMin((int)data.softMin.INT());
    if (data.hasSoftMax)
-      nAttr.setSoftMax((int)data.softMax.INT);
+      nAttr.setSoftMax((int)data.softMax.INT());
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -370,16 +368,16 @@ void CBaseAttrHelper::MakeInputByte(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
    MStatus status;
-   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kByte, data.defaultValue.BYTE, &status);
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kByte, data.defaultValue.BYTE(), &status);
    CHECK_MSTATUS(status);
    if (data.hasMin)
-      nAttr.setMin(data.min.BYTE);
+      nAttr.setMin(data.min.BYTE());
    if (data.hasMax)
-      nAttr.setMax(data.max.BYTE);
+      nAttr.setMax(data.max.BYTE());
    if (data.hasSoftMin)
-      nAttr.setSoftMin(data.softMin.BYTE);
+      nAttr.setSoftMin(data.softMin.BYTE());
    if (data.hasSoftMax)
-      nAttr.setSoftMax(data.softMax.BYTE);
+      nAttr.setSoftMax(data.softMax.BYTE());
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -457,7 +455,7 @@ void CBaseAttrHelper::MakeInputBoolean(CAttrData& data)
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
-   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL);
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL());
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -487,15 +485,15 @@ void CBaseAttrHelper::MakeInputFloat(CAttrData& data)
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
-   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kFloat, data.defaultValue.FLT);
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kFloat, data.defaultValue.FLT());
    if (data.hasMin)
-      nAttr.setMin((float)data.min.FLT);
+      nAttr.setMin((float)data.min.FLT());
    if (data.hasMax)
-      nAttr.setMax((float)data.max.FLT);
+      nAttr.setMax((float)data.max.FLT());
    if (data.hasSoftMin)
-      nAttr.setSoftMin((float)data.softMin.FLT);
+      nAttr.setSoftMin((float)data.softMin.FLT());
    if (data.hasSoftMax)
-      nAttr.setSoftMax((float)data.softMax.FLT);
+      nAttr.setSoftMax((float)data.softMax.FLT());
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -527,7 +525,7 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    MFnNumericAttribute nAttr;
 
    attrib = nAttr.createColor(data.name, data.shortName);
-   nAttr.setDefault(data.defaultValue.RGB.r, data.defaultValue.RGB.g, data.defaultValue.RGB.b);
+   nAttr.setDefault(data.defaultValue.RGB().r, data.defaultValue.RGB().g, data.defaultValue.RGB().b);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -562,7 +560,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    MFnNumericAttribute nAttr;
 
    attrib = nAttr.createColor(data.name, data.shortName);
-   nAttr.setDefault(data.defaultValue.RGBA.r, data.defaultValue.RGBA.g, data.defaultValue.RGBA.b);
+   nAttr.setDefault(data.defaultValue.RGBA().r, data.defaultValue.RGBA().g, data.defaultValue.RGBA().b);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -571,7 +569,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
 
-   attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
+   attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA().a);
    nAttr.setHidden(true);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -605,7 +603,7 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    MFnNumericAttribute nAttr;
 
    attrib = nAttr.createPoint(data.name, data.shortName);
-   nAttr.setDefault(data.defaultValue.VEC.x, data.defaultValue.VEC.y, data.defaultValue.VEC.z);
+   nAttr.setDefault(data.defaultValue.VEC().x, data.defaultValue.VEC().y, data.defaultValue.VEC().z);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -615,64 +613,33 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    nAttr.setChannelBox(data.channelBox);
 }
 
-void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
+void CBaseAttrHelper::MakeInputVector2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
 {
    CAttrData data;
    if (GetAttrData(paramName, data))
    {
-      MakeInputPoint(attrib, data);
+      MakeInputVector2(attrib, attribX, attribY, data);
       addAttribute(attrib);
    }
 }
 
-void CBaseAttrHelper::MakeInputPoint(CAttrData& data)
-{
-   MObject attrib;
-   MakeInputPoint(attrib, data);
-   addAttribute(attrib);
-}
-
-void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
-{
-   MFnNumericAttribute nAttr;
-
-   attrib = nAttr.createPoint(data.name, data.shortName);
-   nAttr.setDefault(data.defaultValue.PNT.x, data.defaultValue.PNT.y, data.defaultValue.PNT.z);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
-   nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   nAttr.setChannelBox(data.channelBox);
-}
-void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
-{
-   CAttrData data;
-   if (GetAttrData(paramName, data))
-   {
-      MakeInputPoint2(attrib, attribX, attribY, data);
-      addAttribute(attrib);
-   }
-}
-
-void CBaseAttrHelper::MakeInputPoint2(CAttrData& data)
+void CBaseAttrHelper::MakeInputVector2(CAttrData& data)
 {
    MObject attrib;
    MObject attribX;
    MObject attribY;
-   MakeInputPoint2(attrib, attribX, attribY, data);
+   MakeInputVector2(attrib, attribX, attribY, data);
    addAttribute(attrib);
 }
 
-void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
+void CBaseAttrHelper::MakeInputVector2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
 
-   attribX = nAttr.create(data.name + "X", data.shortName + "x", MFnNumericData::kFloat, data.defaultValue.PNT2.x);
-   attribY = nAttr.create(data.name + "Y", data.shortName + "y", MFnNumericData::kFloat, data.defaultValue.PNT2.y);
+   attribX = nAttr.create(data.name + "X", data.shortName + "x", MFnNumericData::kFloat, data.defaultValue.VEC2().x);
+   attribY = nAttr.create(data.name + "Y", data.shortName + "y", MFnNumericData::kFloat, data.defaultValue.VEC2().y);
    attrib = nAttr.create(data.name, data.shortName, attribX, attribY);
-   nAttr.setDefault(float(data.defaultValue.PNT2.x), float(data.defaultValue.PNT2.y));
+   nAttr.setDefault(float(data.defaultValue.VEC2().x), float(data.defaultValue.VEC2().y));
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -769,7 +736,7 @@ void CBaseAttrHelper::MakeInputEnum(CAttrData& data)
 void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
 {
    MFnEnumAttribute eAttr;
-   attrib = eAttr.create(data.name, data.shortName, data.defaultValue.INT);
+   attrib = eAttr.create(data.name, data.shortName, data.defaultValue.INT());
    for (unsigned int ei = 0; ei < data.enums.length(); ++ei)
       eAttr.addField(data.enums[ei], ei);
    eAttr.setArray(data.isArray);
@@ -910,17 +877,12 @@ void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
          MakeInputVector(input, attrData);
          break;
       }
-      case AI_TYPE_POINT:
-      {
-         MakeInputPoint(input, attrData);
-         break;
-      }
-      case AI_TYPE_POINT2:
+      case AI_TYPE_VECTOR2:
       {
          MObject inputX;
          MObject inputY;
 
-         MakeInputPoint2(input, inputX, inputY, attrData);
+         MakeInputVector2(input, inputX, inputY, attrData);
          m_attributes[std::string(attrData.name.asChar()) + "X"] = inputX;
          m_attributes[std::string(attrData.name.asChar()) + "Y"] = inputY;
          break;
@@ -1030,16 +992,8 @@ void CBaseAttrHelper::MakeOutputVector(MObject& attrib, CAttrData& data)
    MAKE_OUTPUT(nAttr, attrib);
 }
 
-void CBaseAttrHelper::MakeOutputPoint(MObject& attrib, CAttrData& data)
-{
-   MFnNumericAttribute nAttr;
 
-   attrib = nAttr.createPoint(data.name, data.shortName);
-   nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
-}
-
-void CBaseAttrHelper::MakeOutputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
+void CBaseAttrHelper::MakeOutputVector2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
 
@@ -1099,7 +1053,7 @@ MObject CBaseAttrHelper::MakeOutput()
       data.type = AiNodeEntryGetOutputType(m_nodeEntry);
    }
    const char* typeName = AiParamGetTypeName(data.type);
-   const char* attrName;
+   AtString attrName;
 
    if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.output_name", &attrName))
    {
@@ -1117,7 +1071,7 @@ MObject CBaseAttrHelper::MakeOutput()
          data.name = OUT_NAME;
       }
    }
-   const char* attrShortName;
+   AtString attrShortName;
    if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.output_shortname", &attrShortName))
    {
       data.shortName = MString(attrShortName);
@@ -1163,17 +1117,12 @@ MObject CBaseAttrHelper::MakeOutput()
          MakeOutputVector(output, data);
          break;
       }
-      case AI_TYPE_POINT:
-      {
-         MakeOutputPoint(output, data);
-         break;
-      }
-      case AI_TYPE_POINT2:
+      case AI_TYPE_VECTOR2:
       {
          MObject outputX;
          MObject outputY;
 
-         MakeOutputPoint2(output, outputX, outputY, data);
+         MakeOutputVector2(output, outputX, outputY, data);
          m_attributes[std::string(data.name.asChar()) + "X"] = outputX;
          m_attributes[std::string(data.name.asChar()) + "Y"] = outputY;
          break;
@@ -1215,7 +1164,7 @@ void CBaseAttrHelper::ReadPrefixMetadata()
 {
    if (m_nodeEntry != NULL)
    {
-      const char* tmp;
+      AtString tmp;
       if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.attr_prefix", &tmp))
          m_prefix = tmp;
    }

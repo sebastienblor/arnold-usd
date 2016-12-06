@@ -18,7 +18,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
    bool isArray = false;
    if (type == AI_TYPE_ARRAY)
    {
-      type = value.ARRAY->type;
+      type = AiArrayGetType(value.ARRAY());
       isArray = true;
    }
    switch (type)
@@ -29,11 +29,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          int result;
          if (AiMetaDataGetInt(entry, param, "default", &result))
          {
-               value.INT = result;
+               value.INT() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.INT = AiArrayGetInt(value.ARRAY, 0);
+               value.INT() = AiArrayGetInt(value.ARRAY(), 0);
          }
          break;
       }
@@ -42,11 +42,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          int result;
          if (AiMetaDataGetInt(entry, param, "default", &result))
          {
-               value.UINT = result;
+               value.UINT() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.UINT = AiArrayGetUInt(value.ARRAY, 0);
+               value.UINT() = AiArrayGetUInt(value.ARRAY(), 0);
          }
          break;
       }
@@ -55,11 +55,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          bool result;
          if (AiMetaDataGetBool(entry, param, "default", &result))
          {
-               value.BOOL = result;
+               value.BOOL() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.BOOL = AiArrayGetBool(value.ARRAY, 0);
+               value.BOOL() = AiArrayGetBool(value.ARRAY(), 0);
          }
          break;
       }
@@ -68,24 +68,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          float result;
          if (AiMetaDataGetFlt(entry, param, "default", &result))
          {
-               value.FLT = result;
+               value.FLT() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.FLT = AiArrayGetFlt(value.ARRAY, 0);
-         }
-         break;
-      }
-      case AI_TYPE_POINT:
-      {
-         AtPoint result;
-         if (AiMetaDataGetPnt(entry, param, "default", &result))
-         {
-               value.PNT = result;
-         }
-         else if (isArray && value.ARRAY->nelements > 0)
-         {
-               value.PNT = AiArrayGetPnt(value.ARRAY, 0);
+               value.FLT() = AiArrayGetFlt(value.ARRAY(), 0);
          }
          break;
       }
@@ -94,24 +81,24 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          AtVector result;
          if (AiMetaDataGetVec(entry, param, "default", &result))
          {
-               value.VEC = result;
+               value.VEC() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.VEC = AiArrayGetVec(value.ARRAY, 0);
+               value.VEC() = AiArrayGetVec(value.ARRAY(), 0);
          }
          break;
       }
-      case AI_TYPE_POINT2:
+      case AI_TYPE_VECTOR2:
       {
-         AtPoint2 result;
-         if (AiMetaDataGetPnt2(entry, param, "default", &result))
+         AtVector2 result;
+         if (AiMetaDataGetVec2(entry, param, "default", &result))
          {
-               value.PNT2 = result;
+               value.VEC2() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.PNT2 = AiArrayGetPnt2(value.ARRAY, 0);
+               value.VEC2() = AiArrayGetVec2(value.ARRAY(), 0);
          }
          break;
       }
@@ -121,24 +108,24 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          AtRGB result;
          if (AiMetaDataGetRGB(entry, param, "default", &result))
          {
-               value.RGB = result;
+               value.RGB() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.RGB = AiArrayGetRGB(value.ARRAY, 0);
+               value.RGB() = AiArrayGetRGB(value.ARRAY(), 0);
          }
          break;
       }
       case AI_TYPE_STRING:
       {
-         const char* result;
+         AtString result;
          if (AiMetaDataGetStr(entry, param, "default", &result))
          {
-               value.STR = result;
+               value.STR() = result;
          }
-         else if (isArray && value.ARRAY->nelements > 0)
+         else if (isArray && AiArrayGetNumElements(value.ARRAY()) > 0)
          {
-               value.STR = AiArrayGetStr(value.ARRAY, 0);
+               value.STR() = AiArrayGetStr(value.ARRAY(), 0);
          }
          break;
       }
