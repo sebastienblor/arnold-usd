@@ -424,8 +424,8 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
    m_requestUpdate = false;
 
    m_scaleFactor = options.GetScaleFactor();
-   AtVector s = {static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor)};
-   AiM4Scaling(m_scaleFactorAtMatrix, &s);
+   AtVector s(static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor));
+   m_scaleFactorAtMatrix = AiM4Scaling(s);
 
    double sc[3] = {m_scaleFactor, m_scaleFactor, m_scaleFactor};
    m_scaleFactorMMatrix.setToIdentity();
@@ -748,7 +748,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    {
       for (size_t i = 0; i < m_motion_frames.size(); ++i)
       {
-         if (ABS(m_motion_frames[i] - m_sessionOptions.m_frame) < 
+         if (std::abs(m_motion_frames[i] - m_sessionOptions.m_frame) < 
             (m_motion_frames[1] - m_motion_frames[0]) /10.)
          {            
             currentFrameIndex = m_motionStep = i;
@@ -1477,7 +1477,7 @@ UPDATE_BEGIN:
 
       for (size_t i = 0; i < m_motion_frames.size(); ++i)
       {
-         if (ABS(m_motion_frames[i] - m_sessionOptions.m_frame) < 
+         if (std::abs(m_motion_frames[i] - m_sessionOptions.m_frame) < 
             (m_motion_frames[1] - m_motion_frames[0]) /10.)
          {            
             currentFrameIndex = m_motionStep = i;
@@ -1652,8 +1652,9 @@ UPDATE_BEGIN:
       UpdateLightLinks();
    
    // Need something finer to determine if the changes have an influence
-   if (dagFound)
-      AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
+   // FIXME Arnold5 make sure we remove "dagFound" once Arnold-5.0 branch is merged
+   //if (dagFound)
+   //   AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    
    
    // Now update all the translators in our list
@@ -1877,7 +1878,7 @@ MMatrix& CArnoldSession::ScaleMatrix(MMatrix& matrix) const
 
 AtMatrix& CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
 {
-   AiM4Mult(matrix, m_scaleFactorAtMatrix, matrix);
+   matrix = AiM4Mult(m_scaleFactorAtMatrix, matrix);
    return matrix;
 }
 
@@ -2421,7 +2422,8 @@ void CArnoldSession::UpdateProceduralReferences()
             {
                AtArray *arr = AiNodeGetArray(node, paramName);
                if (arr == NULL) continue; // shouldn't happen since this is linked
-               for (int a = 0; a < (int)arr->nelements; ++a)
+               int numElements = (int)AiArrayGetNumElements(arr);
+               for (int a = 0; a < numElements; ++a)
                {
                   target = AiNodeGetLink(node, paramName, &a);
                   if (target) 
@@ -2436,9 +2438,10 @@ void CArnoldSession::UpdateProceduralReferences()
          } else if (paramType == AI_TYPE_ARRAY)
          {
             AtArray *arr = AiNodeGetArray(node, paramName);
-            if (arr && arr->type == AI_TYPE_NODE)
+            if (arr && AiArrayGetType(arr) == AI_TYPE_NODE)
             {
-               for (int a = 0; a < (int)arr->nelements; ++a)
+               int numElements = AiArrayGetNumElements(arr);
+               for (int a = 0; a < numElements; ++a)
                {
                   target = (AtNode*)AiArrayGetPtr(arr, a);
                   if (target) 

@@ -178,7 +178,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
       // TODO : would it be possible / interesting to allow preview of cameras?
       AtNode* camera = AiNode("persp_camera");
       AiNodeSetStr(camera, "name", "camera");
-      AiNodeSetPnt(camera, "position", 0.f, 0.f, 1.14f);
+      AiNodeSetVec(camera, "position", 0.f, 0.f, 1.14f);
       // Apply any swatch options (overrides) that are present on mayaNode
       if (MStatus::kSuccess != ApplyOverrides(translator))
       {
@@ -227,10 +227,10 @@ MStatus CRenderSwatchGenerator::DefaultArnoldScene()
       {
          AiNodeSetStr(geometry, "name", "geometry");
          AiNodeSetBool(geometry, "opaque", false);
-         AtMatrix matrix = { { 1.0f, 0.0f, 0.0f, 0.0f },
+         AtMatrix matrix = {{ { 1.0f, 0.0f, 0.0f, 0.0f },
                             { 0.0f, -1.0f, 0.0f, 0.0f },
                             { 0.0f, 0.0f, 1.0f, 0.0f },
-                            { 0.0f, 0.0f, 0.0f, 1.0f } };
+                            { 0.0f, 0.0f, 0.0f, 1.0f } }};
          AiNodeSetMatrix(geometry, "matrix", matrix);
          return MStatus::kSuccess;
       }
@@ -326,11 +326,11 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       // which is what we want for swatching
       AtMatrix matrix;
       AtVector frame[4];
-      AiV3Create(frame[0], 0.f, 0.f, 1.73f);
-      AiV3Create(frame[1], 0.707107f, 0.408248f, -0.57735f);
-      AiV3Create(frame[2], 0.0f, 0.816497f, 0.57735f);
-      AiV3Create(frame[3], 0.707107f, -0.408248f, 0.57735f);
-      AiM4Frame(matrix, &frame[0], &frame[1], &frame[2], &frame[3]);
+      frame[0] = AtVector(0.f, 0.f, 1.73f);
+      frame[1] = AtVector(0.707107f, 0.408248f, -0.57735f);
+      frame[2] = AtVector(0.0f, 0.816497f, 0.57735f);
+      frame[3] = AtVector(0.707107f, -0.408248f, 0.57735f);
+      matrix = AiM4Frame(frame[0], frame[1], frame[2], frame[3]);
 
       if (strcmp(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)), "mesh_light") == 0)
       {
@@ -369,8 +369,8 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       AtNode *light = AiNode("spot_light");
       AiNodeSetStr(light, "name", "light");
       AiNodeSetFlt(light, "intensity", 1.f);
-      AiNodeSetPnt(light, "position", -1.f, 1.f, 1.f);
-      AiNodeSetPnt(light, "look_at", 0.f, 0.f, 0.f);
+      AiNodeSetVec(light, "position", -1.f, 1.f, 1.f);
+      AiNodeSetVec(light, "look_at", 0.f, 0.f, 0.f);
       // AiNodeSetFlt(light, "cone_angle", 30.f);
 
       if (m_swatchClass == SWATCH_LIGHTFILTER)
@@ -638,7 +638,7 @@ AtNode* CRenderSwatchGenerator::PolySphere()
                               0.13529903f, 0.46193975f, 0.13529903f, 0.19134173f, 0.46193975f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f
                             };
 
-   AtArray* vlist = AiArrayConvert(58, 1, AI_TYPE_POINT, &(vertices[0]));
+   AtArray* vlist = AiArrayConvert(58, 1, AI_TYPE_VECTOR, &(vertices[0]));
 
    float uvs[158] =         {
                               0.0f, 0.125f, 0.125f, 0.125f, 0.25f, 0.125f, 0.375f, 0.125f, 0.5f, 0.125f, 0.625f, 0.125f, 0.75f, 0.125f, 0.875f, 0.125f,
@@ -653,7 +653,7 @@ AtNode* CRenderSwatchGenerator::PolySphere()
                               0.8125f, 0.99999f, 0.9375f, 0.99999f 
                             };
 
-   AtArray *uvlist = AiArrayConvert(79, 1, AI_TYPE_POINT2, &(uvs[0]));
+   AtArray *uvlist = AiArrayConvert(79, 1, AI_TYPE_VECTOR2, &(uvs[0]));
 
    AiNodeSetArray(sph, "nsides", nsides);
    AiNodeSetArray(sph, "vidxs", vidxs);

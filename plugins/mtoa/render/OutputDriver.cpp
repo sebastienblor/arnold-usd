@@ -32,12 +32,6 @@ time_t s_start_time;
 
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
-enum MayaDisplayDriverParams
-{
-   p_gamma,
-   p_progressive,
-   p_swatch
-};
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
 static COutputDriverData                       s_outputDriverData;
@@ -65,21 +59,21 @@ static double FPS = 6.0;
 /// \{
 node_parameters
 {
-   AiParameterFLT ("gamma", 1.0f);
-   AiMetaDataSetBool(mds, "gamma", "maya.hide", true);
-   AiParameterBOOL("progressive", false);
-   AiMetaDataSetBool(mds, "progressive", "maya.hide", true);
-   AiParameterPTR("swatch", NULL);
-   AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
-   AiMetaDataSetStr(mds, NULL, "maya.translator", "maya");
-   AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
-   AiMetaDataSetBool(mds, NULL, "single_layer_driver", true);
-   AiMetaDataSetBool(mds, NULL, "display_driver", true);
+   AiParameterFlt ("gamma", 1.0f);
+   AiMetaDataSetBool(nentry, "gamma", "maya.hide", true);
+   AiParameterBool("progressive", false);
+   AiMetaDataSetBool(nentry, "progressive", "maya.hide", true);
+   AiParameterPtr("swatch", NULL);
+   AiMetaDataSetBool(nentry, "swatch", "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "maya.translator", "maya");
+   AiMetaDataSetStr(nentry, NULL, "maya.attr_prefix", "");
+   AiMetaDataSetBool(nentry, NULL, "single_layer_driver", true);
+   AiMetaDataSetBool(nentry, NULL, "display_driver", true);
 }
 
 node_initialize
 {
-   s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
+   s_outputDriverData.swatchPixels = (float*)AiNodeGetPtr(node, "swatch");
    MString cameraName = "";
    AtNode* cameraNode = AiUniverseGetCamera();
    if (cameraNode != 0)
@@ -92,7 +86,7 @@ node_initialize
 
    InitializeDisplayUpdateQueue(cameraName, layerName, "renderView");
 
-   AiDriverInitialize(node, false, NULL);
+   AiDriverInitialize(node, false);
 
    s_firstOpen = true;
 }
@@ -107,9 +101,8 @@ driver_supports_pixel_type
    {
       case AI_TYPE_RGB:
       case AI_TYPE_RGBA:
-      case AI_TYPE_POINT:
       case AI_TYPE_VECTOR:
-      case AI_TYPE_POINT2:
+      case AI_TYPE_VECTOR2:
       case AI_TYPE_FLOAT:
          return true;
       default:
@@ -124,16 +117,17 @@ driver_extension
 
 driver_open
 {
-   AtParamValue *params = AiNodeGetParams(node);
-   s_outputDriverData.gamma = params[p_gamma].FLT;
+   s_outputDriverData.gamma = AiNodeGetFlt(node, "gamma");
    s_outputDriverData.clearBeforeRender = CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
 
-   if (params[p_swatch].PTR == NULL)
+   void *swatchPtr = AiNodeGetPtr(node, "swatch");
+
+   if (swatchPtr == NULL)
    {
       unsigned int imageWidth  = display_window.maxx - display_window.minx + 1;
       unsigned int imageHeight = display_window.maxy - display_window.miny + 1;
 
-      s_outputDriverData.isProgressive = params[p_progressive].BOOL;
+      s_outputDriverData.isProgressive = AiNodeGetBool(node, "progressive");
 
       if (  (data_window.maxx == display_window.maxx) &&
             (data_window.maxy == display_window.maxy) &&
@@ -228,7 +222,6 @@ driver_process_bucket
          break;
       }
       case AI_TYPE_VECTOR:
-      case AI_TYPE_POINT:
       {
          for (int j = miny; (j <= maxy); ++j)
          {
@@ -252,14 +245,14 @@ driver_process_bucket
          }
          break;
       }
-      case AI_TYPE_POINT2:
+      case AI_TYPE_VECTOR2:
       {
          for (int j = miny; (j <= maxy); ++j)
          {
             for (int i = minx; (i <= maxx); ++i)
             {
                unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
-               AtPoint2 vec = ((AtPoint2*)bucket_data)[in_idx]; 
+               AtVector2 vec = ((AtVector2*)bucket_data)[in_idx]; 
 
                // Flip vertically
                int targetX = i - minx;
@@ -292,7 +285,7 @@ driver_process_bucket
                unsigned int out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
-               AiColorGamma(&rgb, s_outputDriverData.gamma);
+               //AiRGBGamma(&rgb, s_outputDriverData.gamma); commenting as it is deprecated now
 
                pixel->r = rgb.r;
                pixel->g = rgb.g;
@@ -318,7 +311,7 @@ driver_process_bucket
                unsigned int out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
-               AiRGBAGamma(&rgba, s_outputDriverData.gamma);
+               //AiRGBAGamma(&rgba, s_outputDriverData.gamma); commenting as it is deprecated now
 
                pixel->r = rgba.r;
                pixel->g = rgba.g;
@@ -362,8 +355,7 @@ node_finish
    msg.msgType = MSG_RENDER_END;
    s_displayUpdateQueue.push(msg);
 
-   // release the driver
-   AiDriverDestroy(node);
+
 }
 
 /// \}
@@ -421,7 +413,7 @@ void RefreshRenderViewBBox()
                         s_outputDriverData.refresh_bbox.maxx,
                         s_outputDriverData.refresh_bbox.miny,
                         s_outputDriverData.refresh_bbox.maxy);
-   int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
+   int progress = AiMin((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
    MString cmd;
    cmd += "global string $gMainProgressBar;";
    cmd += "progressBar -edit -progress ";

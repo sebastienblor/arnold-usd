@@ -3,8 +3,6 @@
 #include "platform/Platform.h"
 #include "AOV.h"
 
-#include <ai_types.h>
-
 #include <maya/MString.h>
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MFnDagNode.h>
@@ -16,6 +14,10 @@
 #include <string>
 
 class CMayaScene;
+
+// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
+typedef unsigned AtUInt32;
+typedef size_t AtUInt64;
 
 enum RenderType
 {

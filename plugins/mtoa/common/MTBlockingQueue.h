@@ -1,8 +1,11 @@
 #pragma once
 
+// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
+typedef unsigned AtUInt32;
+typedef size_t AtUInt64;
+
 #include "platform/Platform.h"
 #include <ai_critsec.h>
-#include <ai_types.h>
 #include <queue>
 #include <climits>
 

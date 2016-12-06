@@ -61,7 +61,7 @@ void LoadPlugins()
    for (unsigned int i=0; i<plugins.length(); ++i)
    {
       const MString pluginFile = plugins[i];
-      AiLoadPlugin(pluginFile.asChar());
+      AiLoadPlugins(pluginFile.asChar());
    }
 }
 

@@ -397,7 +397,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    if (num_aa_samples == 0)
       num_aa_samples = 1;
    const int progressive_start = renderSession->m_renderOptions.isProgressive() ? 
-                                 MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
+                                 AiMin(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
                                  : num_aa_samples;
    int ai_status(AI_SUCCESS);
    CMayaScene::ExecuteScript(IPRRefinementStarted, false, true);

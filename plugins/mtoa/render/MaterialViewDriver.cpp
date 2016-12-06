@@ -20,10 +20,6 @@ AI_DRIVER_NODE_EXPORT_METHODS(materialview_driver_mtd);
 namespace 
 {
 
-enum MaterialViewDriverParams
-{
-   p_view,
-};
 
 static CMaterialView* s_view;
 
@@ -32,19 +28,19 @@ static CMaterialView* s_view;
 node_parameters
 {
    // Use a pointer parameter to set the view pointer
-   AiParameterPTR("view", NULL);
-   AiMetaDataSetBool(mds, "view", "maya.hide", true);
+   AiParameterPtr("view", NULL);
+   AiMetaDataSetBool(nentry, "view", "maya.hide", true);
 
-   AiMetaDataSetStr(mds, NULL, "maya.translator", "maya");
-   AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
-   AiMetaDataSetBool(mds, NULL, "single_layer_driver", true);
-   AiMetaDataSetBool(mds, NULL, "display_driver", true);
+   AiMetaDataSetStr(nentry, NULL, "maya.translator", "maya");
+   AiMetaDataSetStr(nentry, NULL, "maya.attr_prefix", "");
+   AiMetaDataSetBool(nentry, NULL, "single_layer_driver", true);
+   AiMetaDataSetBool(nentry, NULL, "display_driver", true);
 }
 
 node_initialize
 {
-   s_view = (CMaterialView*)params[p_view].PTR;
-   AiDriverInitialize(node, false, NULL);
+   s_view = (CMaterialView*)AiNodeGetPtr(node, "view");
+   AiDriverInitialize(node, false);
 }
 
 node_update
@@ -130,7 +126,5 @@ driver_close
 node_finish
 {
    s_view = NULL;
-
-   // release the driver
-   AiDriverDestroy(node);
+   
 }

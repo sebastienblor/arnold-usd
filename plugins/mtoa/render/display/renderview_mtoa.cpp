@@ -844,7 +844,7 @@ void CRenderViewMtoAZoom::MouseDelta(int deltaX, int deltaY)
       delta = 0.9f;
       while (diff > 0.f)
       {
-         delta += MIN(diff, 1.f) * (1.f - delta) * 0.5f;
+         delta += AiMin(diff, 1.f) * (1.f - delta) * 0.5f;
          diff -= 1.f;
       }
    }
@@ -964,7 +964,7 @@ void CRenderViewMtoAZoom::FrameSelection()
    maxBox.x /= maxBox.z;
    maxBox.y /= maxBox.z;
    
-   float maxScreen = float(MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y))));
+   float maxScreen = float(AiMax(AiMax(std::abs(minBox.x), std::abs(maxBox.x)), AiMax(std::abs(minBox.y), std::abs(maxBox.y))));
    // if maxScreen == 1 -> don't zoom
    // > 1 need to zoom out
    // < 1 need to zoom in
@@ -1297,7 +1297,7 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    if (status == MS::kSuccess)
    {
       pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
-      if (ABS(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
+      if (std::abs(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
       {
          updateRender = true;
       }
