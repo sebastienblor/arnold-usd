@@ -49,7 +49,8 @@ void CBfFoamMaterialTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
    // check for the existing links, and unlink them
    // this is required to be able to change the connections in ipr
    AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
-   for (AtUInt32 i = 0; i < valuesOld->nelements; i++)
+   unsigned nelements = AiArrayGetNumElements(valuesOld);
+   for (AtUInt32 i = 0; i < nelements; i++)
    {
       MString attributeName = values_name + MString("[");
       attributeName += i;
@@ -76,9 +77,9 @@ void CBfFoamMaterialTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
       }
       else
       {
-         AtRGB color = {colorPlug.child(0).asFloat(),
+         AtRGB color = AtRGB(colorPlug.child(0).asFloat(),
                         colorPlug.child(1).asFloat(),
-                        colorPlug.child(2).asFloat()};
+                        colorPlug.child(2).asFloat());
          AiArraySetRGB(values, i, color);
       }
       AiArraySetInt(interps, i, plugElement.child(2).asInt());

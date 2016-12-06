@@ -31,7 +31,7 @@ using namespace XGenRenderAPI;
 
 // Forward Decl
 struct AtNode;
-struct AtArray;
+
 struct XgMergedData;
 class XgMutex;
 

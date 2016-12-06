@@ -84,31 +84,32 @@ struct XgMergedData
    void merge_arrays(AtNode *node, const char *name, std::vector<AtArray*>& arrays)
    {
       // count total number of elements
-      AtUInt32 nelements = 0;
+      unsigned nelements = 0;
       for (size_t i = 0; i < arrays.size(); i++)
       {
          AtArray *array = arrays[i];
-         nelements += array->nelements;
+         nelements += AiArrayGetNumElements(array);
       }
 
       // create new array
       AtArray *first_array = arrays[0];
-      AtArray *concat_array = AiArrayAllocate(nelements, first_array->nkeys, first_array->type);
-      char *concat_array_data = (char *)concat_array->data;
+      AtArray *concat_array = AiArrayAllocate(nelements, AiArrayGetNumKeys(first_array), AiArrayGetType(first_array));
+      // FIXME Arnold5 make sure we're doing the right thing
+      char *concat_array_data = (char *)AiArrayMap(concat_array);//->data;
 
-      size_t type_size = AiParamGetTypeSize(first_array->type);
+      size_t type_size = AiParamGetTypeSize(AiArrayGetType(first_array));
       size_t key_size = nelements * type_size;
       size_t elements_offset = 0;
 
       for (size_t i = 0; i < arrays.size(); i++)
       {
          AtArray *array = arrays[i];
-         char *array_data = (char *)array->data;
+         char *array_data = (char *)AiArrayMap(array);//->data;
 
          // copy array data into concatenated array data
-         size_t elements_size = type_size * array->nelements;
+         size_t elements_size = type_size * AiArrayGetNumElements(array);
 
-         for (int k = 0; k < array->nkeys; k++)
+         for (int k = 0; k < AiArrayGetNumKeys(array); k++)
          {
             memcpy(concat_array_data + k *key_size + elements_offset, array_data + k * elements_size, elements_size);
          }
@@ -276,7 +277,7 @@ int Procedural::Init(AtNode* node)
          m_sphere = AiNode("sphere");
          AiNodeSetStr( m_sphere, "name", getUniqueName(buf,( strParentName + string("_sphere_shape") ).c_str() ) );
          AiNodeSetFlt( m_sphere, "radius", 0.5f );
-         AiNodeSetPnt( m_sphere, "center", 0.0f, 0.0f, 0.0f );
+         AiNodeSetVec( m_sphere, "center", 0.0f, 0.0f, 0.0f );
          AiNodeSetByte( m_sphere, "visibility", 0 );
          m_nodes.push_back( m_sphere );
       }
@@ -450,7 +451,8 @@ bool Procedural::getFloatArray( AtNode* in_node, const char* in_name, const floa
       AtArray* a = AiNodeGetArray( in_node, in_name );
       if( a )
       {
-         out_value = ((float*)a->data);
+        // FIXME Arnold5 make sure we're doing the right thing
+         out_value = ((float*)AiArrayMap(a));//->data);
          return true;
       }
    }
@@ -472,7 +474,7 @@ bool Procedural::getMatrixArray( AtNode* in_node, const char* in_name, const AtM
       AtArray* a = AiNodeGetArray( in_node, in_name );
       if( a )
       {
-         out_value = ((const AtMatrix*)a->data);
+         out_value = (const AtMatrix*)AiArrayMap(a);//->data);
          return true;
       }
    }
@@ -489,14 +491,14 @@ unsigned int Procedural::getArraySize( AtNode* in_node, const char* in_name, int
       {
          AtArray* a = AiNodeGetArray( in_node, in_name );
          if( a )
-            return a->nelements;
+            return AiArrayGetNumElements(a);
       }
    }
    else
    {
       AtArray* a = AiNodeGetArray( in_node, in_name );
       if( a )
-         return a->nelements;
+         return AiArrayGetNumElements(a);
    }
 
    return 0;
@@ -861,13 +863,13 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
 void Procedural::convertMatrix( const AtMatrix in_mat, mat44& out_mat )
 {
-   memcpy( &out_mat, in_mat, sizeof(float)*16 );
+   // FIXME Arnold5 is it correct ?
+   memcpy( &out_mat, &in_mat[0][0], sizeof(float)*16 );
 }
 
 void Procedural::getTransform( float in_time, mat44& out_mat )const
 {
-   AtMatrix result;
-   AiM4Identity( result );
+   AtMatrix result = AiM4Identity();
    //AiArrayInterpolateMtx( AiNodeGetArray( m_node, "matrix" ), in_time, 0, result );
 
    convertMatrix( result, out_mat );
@@ -918,21 +920,22 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     unsigned int widthsSize = pc->getSize( PC(Widths) );
 
     AtArray* num_points = AiArrayAllocate( numPointsTotal, numSamples, AI_TYPE_UINT );
-    AtArray* points = AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_POINT );
+    AtArray* points = AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
     AtArray* radius = AiArrayAllocate( widthsSize>0 ? widthsSize : 1, 1, AI_TYPE_FLOAT );
     AtArray* orientations = (bFaceCamera || (mode == 1)) ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
 
-    unsigned int* curNumPoints = (unsigned int*)num_points->data;
-    AtPoint* curPoints = (AtPoint*)points->data;
-    AtVector* curOrientations = orientations ? (AtVector*)orientations->data : NULL;
-    float* curRadius = (float*)radius->data;
+    // FIXME Arnold5
+    unsigned int* curNumPoints = (unsigned int*)AiArrayMap(num_points);//->data;
+    AtVector* curPoints = (AtVector*)AiArrayMap(points);//->data;
+    AtVector* curOrientations = orientations ? (AtVector*)AiArrayMap(orientations)/*->data*/ : NULL;
+    float* curRadius = (float*)AiArrayMap(radius);//->data;
 
     // Add NumPoints
     for ( int i=0; i < (int)numSamples; i++ )
     {
         // Add the points.
         XGRenderAPIDebug( "Adding points." );
-        memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtPoint )*pointsTotal );
+        memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtVector )*pointsTotal );
         curPoints+=pointsTotal;
 
         const vec3* pNorms = pc->get( PC(Norms), i );
@@ -1160,10 +1163,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
                xP0 = xP;
 
             const float* xPi = &xP._00;
-            AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
+            AtMatrix tmp = {{{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
-                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}};
+                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
 
             AiArraySetMtx( matrix, i, tmp );
         }
@@ -1202,7 +1205,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
    string strParentName = AiNodeGetName( m_node_face );
 
     AtArray* knots = AiArrayAllocate( 7, 1, AI_TYPE_FLOAT );
-    float* pKnots = (float*)knots->data;
+    float* pKnots = (float*)AiArrayMap(knots);//->data;
     pKnots[0] = 0;
     pKnots[1] = 0;
     pKnots[2] = 0;
@@ -1221,10 +1224,10 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
     for ( unsigned int j=0; j<cacheCount; j++ ) {
       // Add the points.
       XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points.");
-      AtPoint* pointPtr = (AtPoint *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
+      AtVector* pointPtr = (AtVector *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
 
       AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
-      memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
+      memcpy( AiArrayMap(cvs), pointPtr, sizeof(AtVector)*16*numSamples );
 
       string strID = itoa( (int)m_nodes.size() );
 
@@ -1257,7 +1260,7 @@ struct CustomParamTypeEntry
    string m_arnold;
    size_t m_sizeOf;
    size_t m_components;
-   AtByte m_type;
+   uint8_t m_type;
    bool   m_constant;
 };
 
@@ -1271,8 +1274,6 @@ const static CustomParamTypeEntry g_mapCustomParamTypes[]=
    { "constant vector ",  "constant VECTOR",   sizeof(AtVector),    3, AI_TYPE_VECTOR, true },
    { "uniform normal ",   "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR, false },
    { "constant normal ",  "constant VECTOR",   sizeof(AtVector),    3, AI_TYPE_VECTOR, true },
-   { "uniform point ",    "uniform POINT",     sizeof(AtPoint),     3, AI_TYPE_POINT,  false },
-   { "constant point ",   "constant POINT",    sizeof(AtPoint),     3, AI_TYPE_POINT,  true },
 };
 const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / sizeof(CustomParamTypeEntry);
 
@@ -1324,16 +1325,13 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
                      case AI_TYPE_VECTOR:
                         AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
                         break;
-                     case AI_TYPE_POINT:
-                        AiNodeSetPnt( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
-                        break;
                   }
                }
             }
             else // uniform attribute
             {
                AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
-               memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
+               memcpy( AiArrayMap(a)/*->data*/, attrValue, e.m_sizeOf*fixAttrCount );
                if ( m_merged_data )
                   m_merged_data->add_array( fixedAttrName.c_str(), a );
                else
@@ -1548,10 +1546,10 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                xP0 = xP;
 
             float* xPi = &xP._00;
-            AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
+            AtMatrix tmp = {{{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
-                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}};
+                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
             AiArraySetMtx( matrix, i, tmp );
 
             //std::cout << "Procedural::flushArchives: Transform: " << instance_name << ": " << float(xPi[12])<< ": " <<float(xPi[13])<< ": " <<float(xPi[14])<< ": " <<float(xPi[15]) << "\n";
@@ -1775,8 +1773,8 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
    AtNode* abcProc = AiNode("procedural");
    AiNodeSetStr( abcProc, "dso", dso.c_str() );
    //AiNodeSetStr( abcProc, "data", dso_data.c_str() );
-   AiNodeSetPnt( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
-   AiNodeSetPnt( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );
+   AiNodeSetVec( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
+   AiNodeSetVec( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );
 
    return abcProc;
 }

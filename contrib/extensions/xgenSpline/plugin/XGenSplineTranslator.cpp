@@ -19,7 +19,7 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
     CAttrData data;
 
-    data.defaultValue.FLT = 0.0f;
+    data.defaultValue.FLT() = 0.0f;
     data.name = "aiMinPixelWidth";
     data.shortName = "ai_min_pixel_width";
     helper.MakeInputFloat(data);
@@ -27,7 +27,7 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
     MStringArray curveTypeEnum;
     curveTypeEnum.append("Ribbon");
     curveTypeEnum.append("Thick");
-    data.defaultValue.INT = 0;
+    data.defaultValue.INT() = 0;
     data.name = "aiMode";
     data.shortName = "ai_mode";
     data.enums= curveTypeEnum;
@@ -73,8 +73,8 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
     // Set procedural parameters
     {
         AiNodeSetBool(procedural, "load_at_init", true);
-        AiNodeSetPnt(procedural, "min", -1.0f, -1.0f, -1.0f);
-        AiNodeSetPnt(procedural, "max",  1.0f,  1.0f,  1.0f);
+        AiNodeSetVec(procedural, "min", -1.0f, -1.0f, -1.0f);
+        AiNodeSetVec(procedural, "max",  1.0f,  1.0f,  1.0f);
         AiNodeSetStr(procedural, "dso", sDSO.c_str());
     }
 

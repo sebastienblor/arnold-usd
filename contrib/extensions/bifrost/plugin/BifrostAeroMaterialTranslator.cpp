@@ -52,7 +52,8 @@ void CBfAeroMaterialTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
    // check for the existing links, and unlink them
    // this is required to be able to change the connections in ipr
    AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
-   for (AtUInt32 i = 0; i < valuesOld->nelements; i++)
+   unsigned nelements = AiArrayGetNumElements(valuesOld);
+   for (AtUInt32 i = 0; i < nelements; i++)
    {
       MString attributeName = values_name + MString("[");
       attributeName += i;
@@ -79,9 +80,9 @@ void CBfAeroMaterialTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
       }
       else
       {
-         AtRGB color = {colorPlug.child(0).asFloat(),
+         AtRGB color = AtRGB(colorPlug.child(0).asFloat(),
                         colorPlug.child(1).asFloat(),
-                        colorPlug.child(2).asFloat()};
+                        colorPlug.child(2).asFloat());
          AiArraySetRGB(values, i, color);
       }
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
@@ -160,57 +161,57 @@ void CBfAeroMaterialTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    data.hasSoftMin = true;
-   data.softMin.FLT = 0.f;
+   data.softMin.FLT() = 0.f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 1.f;
+   data.softMax.FLT() = 1.f;
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasMax = false;
-   data.defaultValue.FLT = 0.1f;
+   data.defaultValue.FLT() = 0.1f;
    helper.MakeInputFloat(data);
 
 
    data.name = "aiMaxSteps";
    data.shortName = "ai_max_steps";
    data.hasMin = true;
-   data.min.INT = 1;
+   data.min.INT() = 1;
    data.hasMax = false;
    data.hasSoftMin = true;
-   data.softMin.INT = 1;
+   data.softMin.INT() = 1;
    data.hasSoftMax = true;
-   data.softMax.INT = 1000000;
-   data.defaultValue.INT = 1000;
+   data.softMax.INT() = 1000000;
+   data.defaultValue.INT() = 1000;
    helper.MakeInputInt(data);
 
 
    data.name = "aiShadowing";
    data.shortName = "ai_shadowing";
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    helper.MakeInputBoolean(data);
 
 
    data.name = "aiShadowingStepSize";
    data.shortName = "ai_shadowing_step_size";
    data.hasSoftMin = true;
-   data.softMin.FLT = 0.f;
+   data.softMin.FLT() = 0.f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 5.f;
+   data.softMax.FLT() = 5.f;
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasMax = false;
-   data.defaultValue.FLT = 1.1f;
+   data.defaultValue.FLT() = 1.1f;
    helper.MakeInputFloat(data);
 
 
    data.name = "aiShadowingMaxSteps";
    data.shortName = "ai_shadowing_max_steps";
    data.hasMin = true;
-   data.min.INT = 1;
+   data.min.INT() = 1;
    data.hasMax = false;
    data.hasSoftMin = true;
-   data.softMin.INT = 1;
+   data.softMin.INT() = 1;
    data.hasSoftMax = true;
-   data.softMax.INT = 1000000;
-   data.defaultValue.INT = 100;
+   data.softMax.INT() = 1000000;
+   data.defaultValue.INT() = 100;
    helper.MakeInputInt(data);
 }

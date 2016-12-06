@@ -675,8 +675,8 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          AiNodeSetBool( shape, "load_at_init", true );
          AiNodeSetStr( shape, "dso", strDSO.c_str() );
          AiNodeSetStr( shape, "data", strData.c_str() );
-         AiNodeSetPnt( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
-         AiNodeSetPnt( shape, "max", info.fBoundingBox[3], info.fBoundingBox[4], info.fBoundingBox[5] );
+         AiNodeSetVec( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
+         AiNodeSetVec( shape, "max", info.fBoundingBox[3], info.fBoundingBox[4], info.fBoundingBox[5] );
 
          AiNodeDeclare( shape, "irRenderCam", "constant STRING" );
          AiNodeDeclare( shape, "irRenderCamFOV", "constant STRING" );
@@ -779,12 +779,12 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    CAttrData data;
    
    // render mode  1 = live  3 = batch
-   data.defaultValue.INT = 1;
+   data.defaultValue.INT() = 1;
    data.name = "renderMode";
    data.shortName = "render_mode";
    helper.MakeInputInt ( data );
 
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "motionBlurOverride";
    data.shortName = "motion_blur_override";
    helper.MakeInputInt ( data );
@@ -794,28 +794,28 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    enumNames.append ( "Center On Frame" );
    enumNames.append ( "End On Frame" );
    enumNames.append ( "Use RenderGlobals" );
-   data.defaultValue.INT = 3;
+   data.defaultValue.INT() = 3;
    data.name = "motionBlurMode";
    data.shortName = "motion_blur_mode";
    data.enums= enumNames;
    helper.MakeInputEnum ( data );
 
-   data.defaultValue.INT = 3;
+   data.defaultValue.INT() = 3;
    data.name = "motionBlurSteps";
    data.shortName = "motion_blur_steps";
    helper.MakeInputInt ( data );
 
-   data.defaultValue.FLT = 1.0;
+   data.defaultValue.FLT() = 1.0;
    data.name = "motionBlurFactor";
    data.shortName = "motion_blur_factor";
    helper.MakeInputFloat ( data );
 
-   data.defaultValue.FLT = 1.0;
+   data.defaultValue.FLT() = 1.0;
    data.name = "motionBlurMult";
    data.shortName = "motion_blur_mult";
    helper.MakeInputFloat ( data );
 
-   data.defaultValue.FLT = 0.0;
+   data.defaultValue.FLT() = 0.0;
    data.name = "aiMinPixelWidth";
    data.shortName = "ai_min_pixel_width";
    helper.MakeInputFloat ( data );
@@ -823,18 +823,18 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    MStringArray  curveTypeEnum;
    curveTypeEnum.append ( "Ribbon" );
    curveTypeEnum.append ( "Thick" );
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "aiMode";
    data.shortName = "ai_mode";
    data.enums= curveTypeEnum;
    helper.MakeInputEnum ( data );
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiUseAuxRenderPatch";
    data.shortName = "ai_use_aux_render_patch";
    helper.MakeInputBoolean ( data );
     
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "aiAuxRenderPatch";
    data.shortName = "ai_batch_render_patch";
    helper.MakeInputString ( data );
