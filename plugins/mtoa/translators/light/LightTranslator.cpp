@@ -297,7 +297,7 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
       rgb.b -= w;
    }
    
-   float greatest = MAX(rgb.r, MAX(rgb.g, rgb.b));
+   float greatest = AiMax(rgb.r, AiMax(rgb.g, rgb.b));
     
    if (greatest > 0)
    {

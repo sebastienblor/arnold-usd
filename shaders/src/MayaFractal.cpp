@@ -188,7 +188,7 @@ shader_evaluate
       noiseval = (noiseval * 0.5f + 0.5f);
    }
    noiseval += threshold;
-   noiseval = CLAMP(noiseval, 0.0f, 1.0f);
+   noiseval = AiClamp(noiseval, 0.0f, 1.0f);
      
    float n = noiseval;
    

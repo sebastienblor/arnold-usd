@@ -266,7 +266,7 @@ void BifrostAeroVolumePluginRayExtents(void* user_ptr,
    int i = 0;
    for (float t = tmin; t < tmax && i < volData->max_steps; t+= step, i++)
    {
-      AiVolumeAddIntersection(info, t, MIN(t+step, tmax));
+      AiVolumeAddIntersection(info, t, AiMin(t+step, tmax));
    }
 }
 

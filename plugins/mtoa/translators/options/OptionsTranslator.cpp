@@ -668,7 +668,7 @@ void COptionsTranslator::Export(AtNode *options)
          case MTOA_MBLUR_TYPE_CUSTOM:
             float motionStart = FindMayaPlug("motion_start").asFloat();
             float motionEnd = FindMayaPlug("motion_end").asFloat();
-            referenceTime = CLAMP((-motionStart) / MAX((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
+            referenceTime = AiClamp((-motionStart) / AiMax((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
          break;
          }
       }

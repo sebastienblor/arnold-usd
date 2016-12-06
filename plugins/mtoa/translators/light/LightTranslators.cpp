@@ -70,7 +70,7 @@ void CSpotLightTranslator::Export(AtNode* light)
 
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + MAX(0.0, fnLight.penumbraAngle()) * 2.0f) * AI_RTOD));
+   AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + AiMax(0.0, fnLight.penumbraAngle()) * 2.0f) * AI_RTOD));
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 

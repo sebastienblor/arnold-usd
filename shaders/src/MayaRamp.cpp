@@ -85,7 +85,7 @@ static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, flo
       p.x = (16 * sf * u + 0.75f);
       p.y = (16 * sf * v + 0.75f);
       hsv.y += sa * AiPerlin2(p);
-      hsv.y = CLAMP(hsv.y, 0.0f, 1.0f);
+      hsv.y = AiClamp(hsv.y, 0.0f, 1.0f);
    }
 
    if (va > 0.0f)
@@ -93,7 +93,7 @@ static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, flo
       p.x = (16 * vf * u + 0.75f);
       p.y = (16 * vf * v + 0.75f);
       hsv.z += va * AiPerlin2(p);
-      hsv.z = CLAMP(hsv.z, 0.0f, 1.0f);
+      hsv.z = AiClamp(hsv.z, 0.0f, 1.0f);
    }
 
    hsv.x *= 360.0f;

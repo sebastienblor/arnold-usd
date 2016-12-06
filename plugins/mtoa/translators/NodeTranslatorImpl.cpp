@@ -137,7 +137,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       {
          // main goal is to make it fast on the most common cases,
          // which is when the list of references doesn't change during updates
-         unsigned int minSize = MIN(previousRefs.size(), m_references.size());
+         unsigned int minSize = AiMin(previousRefs.size(), m_references.size());
          for (unsigned int i = 0; i < minSize; ++i)
          {
             // as it happens quite often, we first check if the reference is in the same index as before

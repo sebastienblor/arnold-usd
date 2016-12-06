@@ -96,7 +96,7 @@ shader_evaluate
 {
    MayaFluidTexture2D* data = reinterpret_cast<MayaFluidTexture2D*>(AiNodeGetLocalData(node));
    AtVector lPt(sg->u, sg->v, 0.0f);
-   float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType);
+   float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, AiClamp(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType);
    const AtRGB opacity = AiMax(0.f, GetValue(sg, data->fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, AI_V3_ONE)) * dropoff * AI_RGB_WHITE; // * data->transparency;
    AtRGB color = AI_RGB_BLACK;
    if (data->fluidData->colorGridEmpty())

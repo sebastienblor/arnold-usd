@@ -97,7 +97,7 @@ float SimpleFresnel(float dt, float ior)
 {
    const float iorn = ior - 1.0f;
    const float iorp = ior + 1.0f;
-   const float dtc = 1.0f - CLAMP(dt, 0.0f, 1.0f);
+   const float dtc = 1.0f - AiClamp(dt, 0.0f, 1.0f);
    float dt5 = dtc * dtc;
    dt5 *= dt5;
    dt5 *= dtc;

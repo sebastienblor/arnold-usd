@@ -246,9 +246,9 @@ node_update
    data->filterType = AiNodeGetInt(node, "filter_type");
    
    data->transparency = AiNodeGetRGB(node, "transparency");
-   data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
-   data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
-   data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
+   data->transparency.r = AiClamp((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
+   data->transparency.g = AiClamp((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
+   data->transparency.b = AiClamp((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
 
    data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
    if (data->fluidData != 0)
@@ -363,7 +363,7 @@ shader_evaluate
    
    AtVector scaledDir = AiM4VectorByMatrixMult(sg->Minv, sg->Rd);
 
-   float dropoff = CalculateDropoff(fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType)
+   float dropoff = CalculateDropoff(fluidData, lPt, data->dropoffShape, AiClamp(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType)
                    * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
@@ -555,6 +555,6 @@ shader_evaluate
    incandescence.g = AiMax(0.f, incandescence.g);
    incandescence.b = AiMax(0.f, incandescence.b);
    
-   const float anisotropy = CLAMP(AiShaderEvalParamFlt(p_phase_func), -1.0f, 1.0f);
+   const float anisotropy = AiClamp(AiShaderEvalParamFlt(p_phase_func), -1.0f, 1.0f);
    sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, opacity * (AI_RGB_WHITE - color), opacity * color, opacity * incandescence, anisotropy);
 }

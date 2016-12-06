@@ -5,8 +5,6 @@
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
 
-#include <ai_types.h>
-
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
 #else

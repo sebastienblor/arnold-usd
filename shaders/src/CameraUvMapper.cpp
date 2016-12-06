@@ -106,8 +106,8 @@ public:
       const float grid_f = (float)mGrid->mGridSize;
 
       // get index in the grid for given UV coordinates
-      const int grid_coord = CLAMP((int)(uv.x * grid_f), 0, (int)grid_max)
-         + CLAMP((int)(uv.y * grid_f), 0, (int)grid_max) * mGrid->mGridSize;
+      const int grid_coord = AiClamp((int)(uv.x * grid_f), 0, (int)grid_max)
+         + AiClamp((int)(uv.y * grid_f), 0, (int)grid_max) * mGrid->mGridSize;
 
       // looping over the triangles overlapping this grid element
       for (std::vector<unsigned int>::const_iterator it = mGrid->mElements[grid_coord].begin(); it != mGrid->mElements[grid_coord].end(); ++it)
@@ -219,10 +219,10 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          bbox[3] = AiMax(uv[0].y, uv[1].y, uv[2].y);
 
          // convert that into XY grid coordinates
-         coords[0] = (unsigned int)CLAMP((int)((bbox[0] - 0.001f) * grid_f), 0, (int)grid_max);
-         coords[1] = (unsigned int)CLAMP((int)((bbox[1] - 0.001f) * grid_f), 0, (int)grid_max);
-         coords[2] = (unsigned int)CLAMP((int)((bbox[2] + 0.001f) * grid_f), 0, (int)grid_max) + 1;
-         coords[3] = (unsigned int)CLAMP((int)((bbox[3] + 0.001f) * grid_f), 0, (int)grid_max) + 1;
+         coords[0] = (unsigned int)AiClamp((int)((bbox[0] - 0.001f) * grid_f), 0, (int)grid_max);
+         coords[1] = (unsigned int)AiClamp((int)((bbox[1] - 0.001f) * grid_f), 0, (int)grid_max);
+         coords[2] = (unsigned int)AiClamp((int)((bbox[2] + 0.001f) * grid_f), 0, (int)grid_max) + 1;
+         coords[3] = (unsigned int)AiClamp((int)((bbox[3] + 0.001f) * grid_f), 0, (int)grid_max) + 1;
 
          for (unsigned int y = coords[1]; y < coords[3]; ++y)
          {

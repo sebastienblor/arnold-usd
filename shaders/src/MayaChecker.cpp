@@ -94,10 +94,10 @@ shader_evaluate
 
    f = 0.5f + (f - 0.5f) * AiShaderEvalParamFlt(p_contrast);
 
-   sg->out.RGBA().r = CLAMP(color1.r + (color2.r - color1.r) * f, 0.0f, 1.0f);
-   sg->out.RGBA().g = CLAMP(color1.g + (color2.g - color1.g) * f, 0.0f, 1.0f);
-   sg->out.RGBA().b = CLAMP(color1.b + (color2.b - color1.b) * f, 0.0f, 1.0f);
-   sg->out.RGBA().a = CLAMP(1.0f - f, 0.0f, 1.0f);
+   sg->out.RGBA().r = AiClamp(color1.r + (color2.r - color1.r) * f, 0.0f, 1.0f);
+   sg->out.RGBA().g = AiClamp(color1.g + (color2.g - color1.g) * f, 0.0f, 1.0f);
+   sg->out.RGBA().b = AiClamp(color1.b + (color2.b - color1.b) * f, 0.0f, 1.0f);
+   sg->out.RGBA().a = AiClamp(1.0f - f, 0.0f, 1.0f);
 
    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 }

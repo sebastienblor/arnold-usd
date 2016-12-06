@@ -14,7 +14,7 @@ AtRGB convertToRGB(const AtRGB& color, int from_space)
         else if (hue6 > 2.0f) hue2 -= 2.0f;
 
         float chroma;
-        float sat = CLAMP(color.g, 0.0f, 1.0f);
+        float sat = AiClamp(color.g, 0.0f, 1.0f);
         if (from_space == COLOR_SPACE_HSV)
             chroma = sat * color.b;
         else // HSL

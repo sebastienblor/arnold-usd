@@ -149,13 +149,13 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
          AtPoint pnt = AiArrayGetPnt(vlist, i);
          if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
             pnt = AI_V3_ZERO;
-         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         m_BBMin.x = AiMin(m_BBMin.x, pnt.x);
+         m_BBMin.y = AiMin(m_BBMin.y, pnt.y);
+         m_BBMin.z = AiMin(m_BBMin.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+         m_BBMax.x = AiMax(m_BBMax.x, pnt.x);
+         m_BBMax.y = AiMax(m_BBMax.y, pnt.y);
+         m_BBMax.z = AiMax(m_BBMax.z, pnt.z);
          
          m_vlist[i] = pnt;
       }
@@ -164,13 +164,13 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
          AtPoint pnt = AiArrayGetPnt(vlist, i);
          if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
             continue;
-         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         m_BBMin.x = AiMin(m_BBMin.x, pnt.x);
+         m_BBMin.y = AiMin(m_BBMin.y, pnt.y);
+         m_BBMin.z = AiMin(m_BBMin.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+         m_BBMax.x = AiMax(m_BBMax.x, pnt.x);
+         m_BBMax.y = AiMax(m_BBMax.y, pnt.y);
+         m_BBMax.z = AiMax(m_BBMax.z, pnt.z);
       }
    }
    else
@@ -497,13 +497,13 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeome
       {
          AtVector pnt = AiArrayGetVec(points, i);
          
-         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         m_BBMin.x = AiMin(m_BBMin.x, pnt.x);
+         m_BBMin.y = AiMin(m_BBMin.y, pnt.y);
+         m_BBMin.z = AiMin(m_BBMin.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+         m_BBMax.x = AiMax(m_BBMax.x, pnt.x);
+         m_BBMax.y = AiMax(m_BBMax.y, pnt.y);
+         m_BBMax.z = AiMax(m_BBMax.z, pnt.z);
          
          m_points[i] = pnt;
       }

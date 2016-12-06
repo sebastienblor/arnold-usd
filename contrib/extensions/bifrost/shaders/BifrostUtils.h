@@ -151,8 +151,8 @@ T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>
    {
       const float p = v * resolution;
       const int pi = (int)p;
-      const int b = CLAMP(pi, 0, resolution - 1);
-      const int e = MIN(b + 1, resolution - 1);
+      const int b = AiClamp(pi, 0, resolution - 1);
+      const int e = AiMin(b + 1, resolution - 1);
       const float pf = p - (float)pi;
 
       //T dd = data[b] * (1.f - pf) + data[e] * pf;
@@ -256,21 +256,21 @@ T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>
             }
 
             const static float tanSize = .2f;
-            const float tx = MAX(tanSize * dp, AI_EPSILON);
+            const float tx = AiMax(tanSize * dp, AI_EPSILON);
 
-            float sx = MAX(p2 - p0, AI_EPSILON);
+            float sx = AiMax(p2 - p0, AI_EPSILON);
             T sy = v2 - v0;
 
             sy *= tanSize * dp / sx;
             const T m1 = sy / tx;
-            sx = MAX(p3 - p1, AI_EPSILON);
+            sx = AiMax(p3 - p1, AI_EPSILON);
             sy = v3 - v1;
 
             sy *= tanSize * dp / sx;
             const T m2 = sy / tx;
 
             float tFromP1 = (v - p1);
-            float length = MIN(1.f / (dp * dp), AI_BIG);
+            float length = AiMin(1.f / (dp * dp), AI_BIG);
             const T d1 = dp * m1;
             const T d2 = dp * m2;
 
@@ -402,7 +402,7 @@ public:
       Release();
 
       inputMin = _inputMin;
-      inputMax = MAX(_inputMax, inputMin + AI_EPSILON);
+      inputMax = AiMax(_inputMax, inputMin + AI_EPSILON);
       invInputDelta = 1.f / (inputMax - inputMin);
 
       points_op = (sg) ? sg->Op : 0;
@@ -414,7 +414,7 @@ public:
          return false;
       }
       
-      nelements = MIN(MIN(positionsArray->nelements, valuesArray->nelements), interpsArray->nelements) ;
+      nelements = AiMin(AiMin(positionsArray->nelements, valuesArray->nelements), interpsArray->nelements) ;
       
       if (nelements == 0)
          elements = 0;
@@ -462,7 +462,7 @@ public:
 
       if (positionsArray == 0 || valuesArray == 0 || interpsArray == 0) return;
 
-      nExtraScalarElements = MIN(MIN(positionsArray->nelements, valuesArray->nelements), interpsArray->nelements) ;
+      nExtraScalarElements = AiMin(AiMin(positionsArray->nelements, valuesArray->nelements), interpsArray->nelements) ;
       
       extraScalarElements = (GradientDescriptionElement<float>*)AiMalloc(sizeof(GradientDescriptionElement<float>) * nExtraScalarElements);
       for (AtUInt32 i = 0; i < nExtraScalarElements; ++i)

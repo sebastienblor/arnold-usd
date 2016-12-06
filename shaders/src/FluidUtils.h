@@ -138,7 +138,7 @@ public:
          // the cache already contains the applied bias
          const float p = v * resolution;
          const int pi = (int)p;
-         const int b = CLAMP(pi, 0, resolution - 1);
+         const int b = AiClamp(pi, 0, resolution - 1);
          const int e = AiMin(b + 1, resolution - 1);
          const float pf = p - (float)pi;
          return data[b] * (1.f - pf) + data[e] * pf;
@@ -409,7 +409,7 @@ float DropoffGradient(float value, float edgeDropoff)
          return 0.0f;
       ret = (value - (2.f* (edgeDropoff - .5f))) / (1.f - 2.f * (edgeDropoff - .5f));
    }
-   return CLAMP(ret, 0.f, 1.f);
+   return AiClamp(ret, 0.f, 1.f);
 }
 
 template <bool IS3D>

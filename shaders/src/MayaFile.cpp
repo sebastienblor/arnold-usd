@@ -131,8 +131,8 @@ namespace { // anonymus namespace
          // lookups. Since they might (rare) we make sure by construction that the lookup
          // is inside the triangle. We nudge the lookup point towards the centroid
          // to prevent fp errors in case the triangle grazes a tile's edge (#4624 &co)
-         float udim_bu = CLAMP(sg->bu, 0.0f, 1.0f);
-         float udim_bv = CLAMP(sg->bv, 0.0f, 1.0f);
+         float udim_bu = AiClamp(sg->bu, 0.0f, 1.0f);
+         float udim_bv = AiClamp(sg->bv, 0.0f, 1.0f);
          float udim_bw = 1.0f - udim_bu - udim_bv;
 
          udim_bu = LERP(AI_EPSILON, udim_bu, (1.0f / 3.0f));
@@ -146,9 +146,9 @@ namespace { // anonymus namespace
          col = static_cast<int>(ceilf(adjusted_u) - 1 );
          // rows cannot be negative, and there are idata->udim_dim columns
          row = AiMax(row, 0);
-         col = CLAMP(col, 0, udim_dim - 1);
-         udim_u = CLAMP(sg->u - col, 0.0f, 1.0f);
-         udim_v = CLAMP(sg->v - row, 0.0f, 1.0f);
+         col = AiClamp(col, 0, udim_dim - 1);
+         udim_u = AiClamp(sg->u - col, 0.0f, 1.0f);
+         udim_v = AiClamp(sg->v - row, 0.0f, 1.0f);
       }
       else
       {
@@ -168,7 +168,7 @@ namespace { // anonymus namespace
          udim_u = col < 0 ? 0 : (col >= udim_dim ? 1 : udim_u);
          udim_v = row < 0 ? 0 : udim_v;
          row = AiMax(row, 0);
-         col = CLAMP(col, 0, udim_dim - 1);
+         col = AiClamp(col, 0, udim_dim - 1);
       }
    }
 }
@@ -827,7 +827,7 @@ shader_evaluate
                   udim_v = row < 0 ? 0.0f : udim_v;
 
                   row = AiMax(row, 0);
-                  col = CLAMP(col, 0, dim - 1);
+                  col = AiClamp(col, 0, dim - 1);
 
                   const float eps = static_cast<float>(dim) / 65536.0f;
                   AdjustUDIMLookup(sg, udim_u, udim_v, col, row, eps, dim);*/

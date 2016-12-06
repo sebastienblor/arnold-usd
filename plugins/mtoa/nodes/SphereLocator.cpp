@@ -317,9 +317,9 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
          {
             MFloatVector fv = colors[i];
             fv *= 255;
-            m_colorData[(i * 4) + 0] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.x), 0, 255));
-            m_colorData[(i * 4) + 1] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.y), 0, 255));
-            m_colorData[(i * 4) + 2] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.z), 0, 255));
+            m_colorData[(i * 4) + 0] = static_cast<unsigned char>(AiClamp(static_cast<int>(fv.x), 0, 255));
+            m_colorData[(i * 4) + 1] = static_cast<unsigned char>(AiClamp(static_cast<int>(fv.y), 0, 255));
+            m_colorData[(i * 4) + 2] = static_cast<unsigned char>(AiClamp(static_cast<int>(fv.z), 0, 255));
             m_colorData[(i * 4) + 3] = static_cast<unsigned char>(alpha);
          }
       }

@@ -124,9 +124,9 @@ shader_evaluate
     AiBuildLocalFrameShirley(&u, &v, &sg->Nf);
 
     // radius, bias, facing
-    const float radius = MAX(AiShaderEvalParamFlt(p_radius), AI_EPSILON);
+    const float radius = AiMax(AiShaderEvalParamFlt(p_radius), AI_EPSILON);
     const float radius_inv = 1.0f / radius;
-    const float inv_bias = 1.0f / CLAMP(AiShaderEvalParamFlt(p_bias), AI_EPSILON, 1.0f - AI_EPSILON);
+    const float inv_bias = 1.0f / AiClamp(AiShaderEvalParamFlt(p_bias), AI_EPSILON, 1.0f - AI_EPSILON);
     const float front_facing = (float)SGN(AiV3Dot(sg->N, sg->Nf));
     const float dot_threshold = 2.0f * AiShaderEvalParamFlt(p_threshold) - 1.0f;
 

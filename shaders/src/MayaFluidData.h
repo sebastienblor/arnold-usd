@@ -388,9 +388,9 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
       // position in the voxel grid
       const AtVector fc(lPt.x * (float)xres, lPt.y * (float)yres, lPt.z * (float)zres);
       // voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
-      const int lcz = CLAMP((int)fc.z, 0, zres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
+      const int lcz = AiClamp((int)fc.z, 0, zres - 1);
       return arrayDesc.data[lcx + lcy * xres + lcz * xres * yres];
    }
    else if (filterType == FT_LINEAR)
@@ -399,9 +399,9 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
       const AtVector fc(lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f);
 
       // lower voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
-      const int lcz = CLAMP((int)fc.z, 0, zres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
+      const int lcz = AiClamp((int)fc.z, 0, zres - 1);
 
       // higher voxel coordinates
       const int hcx = AiMin(lcx + 1, xres - 1);
@@ -433,9 +433,9 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
       // position in the voxel grid
       const AtVector fc(lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f);
       // lower voxel coordiantes
-      const int t2x = CLAMP((int)fc.x, 0, xres - 1);
-      const int t2y = CLAMP((int)fc.y, 0, yres - 1);
-      const int t2z = CLAMP((int)fc.z, 0, zres - 1);
+      const int t2x = AiClamp((int)fc.x, 0, xres - 1);
+      const int t2y = AiClamp((int)fc.y, 0, yres - 1);
+      const int t2z = AiClamp((int)fc.z, 0, zres - 1);
       
       const AtVector t(fc.x - (float)t2x, fc.y - (float)t2y, fc.z - (float)t2z);
       
@@ -578,8 +578,8 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
       // position in the voxel grid
       const AtVector2 fc(lPt.x * (float)xres, lPt.y * (float)yres);
       // voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
       return arrayDesc.data[lcx + lcy * xres];
    }
    else
@@ -587,8 +587,8 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
       // position in the voxel grid
       const AtVector2 fc(lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f);
 
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
 
       const int hcx = AiMin(lcx + 1, xres - 1);
       const int hcy = AiMin(lcy + 1, yres - 1);

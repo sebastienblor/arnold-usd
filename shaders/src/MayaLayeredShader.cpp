@@ -137,7 +137,7 @@ AtRGBA post_process(const AtRGB &curColor, const AtRGB &curOpacity)
       result.b /= curOpacity.b;
    }
 
-   result.a = CLAMP(Luminance(curOpacity), 0.0f, 1.0f);
+   result.a = AiClamp(Luminance(curOpacity), 0.0f, 1.0f);
    return result;
 }
 

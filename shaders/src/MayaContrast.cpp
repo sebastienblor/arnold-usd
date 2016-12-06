@@ -70,9 +70,9 @@ shader_evaluate
    outValue.z = modifiedValue.z < 0.5f ? 0.5f * powf(2.0f * modifiedValue.z, contrast.z) : 1.0f - 0.5f * powf(2.0f * (1.0f - modifiedValue.z), contrast.z);
 
    // Clamp 0 to 1 to avoid INF00 or -INF00
-   outValue.x = CLAMP(outValue.x, 0.0f, 1.0f);
-   outValue.y = CLAMP(outValue.y, 0.0f, 1.0f);
-   outValue.z = CLAMP(outValue.z, 0.0f, 1.0f);
+   outValue.x = AiClamp(outValue.x, 0.0f, 1.0f);
+   outValue.y = AiClamp(outValue.y, 0.0f, 1.0f);
+   outValue.z = AiClamp(outValue.z, 0.0f, 1.0f);
 
    sg->out.RGBA().r = outValue.x;
    sg->out.RGBA().g = outValue.y;

@@ -656,7 +656,7 @@ float FilteredPulseTrain(float edge, float period, float x, float dx)
 float SmoothStep(float e0, float e1, float x)
 {
    float t = (x - e0) / (e1 - e0);
-   t = CLAMP(t, 0.0f, 1.0f);
+   t = AiClamp(t, 0.0f, 1.0f);
    return t * t * (3.0f - 2.0f * t);
 }
 
@@ -697,7 +697,7 @@ float fBm(AtShaderGlobals *sg,
 
    if (pixel > pixelSize && i <= octaves[1])
    {
-      float weight = CLAMP(pixel/pixelSize - 1.0f, 0.0f, 1.0f);
+      float weight = AiClamp(pixel/pixelSize - 1.0f, 0.0f, 1.0f);
       sum += weight * amp * AiPerlin4(pp * lacunarity, time);
    }
 
@@ -738,7 +738,7 @@ float fTurbulence(AtShaderGlobals *sg,
    if (pixel > pixelSize && i <= octaves[1])
    {
       AtVector2 offset(lacunarity, lacunarity);
-      float weight = CLAMP((pixel/pixelSize - 1.0f), 0.0f, 1.0f);
+      float weight = AiClamp((pixel/pixelSize - 1.0f), 0.0f, 1.0f);
       mix += weight * amp * fabs(AiPerlin4((pp+AiPerlin2(offset)) * lacunarity, time));
    }
 
@@ -877,7 +877,7 @@ float ParticleDensity(int falloff,
 
       if (falloff == 3)
       {
-         fadeout = CLAMP(1.0f-fadeout, 0.0f, 1.0f);
+         fadeout = AiClamp(1.0f-fadeout, 0.0f, 1.0f);
          fadeout += 1 - SmoothStep(0.0, 0.1f, fadeout);
       }
    }
@@ -930,7 +930,7 @@ float BillowNoise(const AtVector &p,
 
             if (sizeRand != 0.0f)
             {
-               radiusScale = (0.5f - CLAMP((AiPerlin3(particles[j])+1)*0.5f * 0.75f - 0.25f, 0.0f, 0.5f) * sizeRand) * 2.0f;
+               radiusScale = (0.5f - AiClamp((AiPerlin3(particles[j])+1)*0.5f * 0.75f - 0.25f, 0.0f, 0.5f) * sizeRand) * 2.0f;
             }
 
             float density = ParticleDensity(falloff, particles[j], pp*lacunarity, radius*radiusScale);
@@ -940,7 +940,7 @@ float BillowNoise(const AtVector &p,
                AtVector v(1.0f, 7.0f, 1023.0f);
                float l = spottyness * (AiCellNoise3(particles[j]+v)*2.0f-1.0f);
                density += density * l;
-               density = CLAMP(density, 0.0f, 1.0f);
+               density = AiClamp(density, 0.0f, 1.0f);
             }
 
             sum += amp * density;

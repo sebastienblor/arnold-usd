@@ -360,7 +360,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
       MPoint point;
       for(unsigned int i = 0; i < (numcvs - 1); i++)
       {
-         nurbsCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+         nurbsCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
          AiV3Create(mayaCurve.points[i], (float)point.x, (float)point.y, (float)point.z);
       }
       nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
@@ -442,7 +442,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
                mayaCurve.referencePoints.resize(numcvs);
                for(unsigned int i = 0; i < numcvs - 1; i++)
                {
-                  referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+                  referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
                   AiV3Create(mayaCurve.referencePoints[i], (float)point.x, (float)point.y, (float)point.z);
                }
                referenceCurve.getPointAtParam(end, point, MSpace::kWorld);

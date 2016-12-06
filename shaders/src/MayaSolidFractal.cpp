@@ -208,7 +208,7 @@ shader_evaluate
          noise = a * noise + b;
       }
 
-      noise = CLAMP(noise, 0.0f, 1.0f);
+      noise = AiClamp(noise, 0.0f, 1.0f);
 
       sg->out.RGBA() = AtRGBA(noise, noise, noise, 1.0f);
       MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());

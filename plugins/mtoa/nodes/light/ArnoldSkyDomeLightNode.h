@@ -3,7 +3,6 @@
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
 
-#include <ai_types.h>
 #include <maya/MSelectionMask.h>
 
 class CArnoldSkyDomeLightNode

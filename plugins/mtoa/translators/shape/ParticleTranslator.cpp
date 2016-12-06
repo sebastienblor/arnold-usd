@@ -1259,14 +1259,14 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                   AiArraySetFlt (a_aspectArray, index, a_a);
                   if (writeRadius)
                   {
-                     a_r = CLAMP((((float)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
+                     a_r = AiClamp((((float)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
                      a_r *= radiusMult;
                      AiArraySetFlt(a_radiusArray, index, a_r);
                   }
                }
                else if (writeRadius)
                {
-                  a_r = CLAMP(((float)(*m_out_radiusArrays[s])[pindex]), minRadius, maxRadius);
+                  a_r = AiClamp(((float)(*m_out_radiusArrays[s])[pindex]), minRadius, maxRadius);
                   a_r *= radiusMult;
                   AiArraySetFlt(a_radiusArray, index, a_r);
                }                  

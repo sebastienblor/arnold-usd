@@ -88,7 +88,7 @@ shader_evaluate
          amp *= 0.5f;
       }
 
-      noise = CLAMP(0.5f * (noise + 1.0f), 0.0f, 1.0f);
+      noise = AiClamp(0.5f * (noise + 1.0f), 0.0f, 1.0f);
 
       float a = shaker / 10.0f;
 

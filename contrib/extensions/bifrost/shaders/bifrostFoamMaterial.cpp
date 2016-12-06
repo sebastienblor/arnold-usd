@@ -411,9 +411,9 @@ shader_evaluate
       
       transparency_color *= w_transp;
 
-      sg->out_opacity.r = CLAMP( 1.f - transparency_color.r, 0.f, 1.f);
-      sg->out_opacity.g = CLAMP( 1.f - transparency_color.g, 0.f, 1.f);
-      sg->out_opacity.b = CLAMP( 1.f - transparency_color.b, 0.f, 1.f);
+      sg->out_opacity.r = AiClamp( 1.f - transparency_color.r, 0.f, 1.f);
+      sg->out_opacity.g = AiClamp( 1.f - transparency_color.g, 0.f, 1.f);
+      sg->out_opacity.b = AiClamp( 1.f - transparency_color.b, 0.f, 1.f);
       AiShaderGlobalsApplyOpacity(sg, sg->out_opacity);
    }
 

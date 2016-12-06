@@ -231,7 +231,7 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
          incPerSample = (end - start) / (double)numcvs;
          for(unsigned int i = 0; i < numcvs - 1; i++)
          {
-            referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+            referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
             curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
          }
          referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
@@ -241,7 +241,7 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
 
    for(unsigned int i = 0; i < (numcvs - 1); i++)
    {
-      nurbsCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+      nurbsCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
       curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
       if (step > 0 && i == 0)
          curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
@@ -493,7 +493,7 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
 
    int stepOffset = step * totalNumPointsInterp;
 
-   totalNumPointsInterp = MIN(totalNumPointsInterp, (unsigned int)curvesData.points.size());
+   totalNumPointsInterp = AiMin(totalNumPointsInterp, (unsigned int)curvesData.points.size());
 
    for (unsigned int i = 0; i < totalNumPointsInterp; ++i)
       AiArraySetPnt(curvePoints, i + stepOffset, curvesData.points[i]);

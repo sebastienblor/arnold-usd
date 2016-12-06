@@ -133,11 +133,11 @@ shader_evaluate
          loop += 1.0f;
       }
 
-      noise = CLAMP((0.5f * noise) + 0.5f, 0.0f, 1.0f);
+      noise = AiClamp((0.5f * noise) + 0.5f, 0.0f, 1.0f);
 
       noise = 0.5f * noise + 0.5f;
 
-      noise = CLAMP((2.5f - centerThresh) / 2.5f, 0.0f, 1.0f) * pow(noise, 1.0f + edgeThresh);
+      noise = AiClamp((2.5f - centerThresh) / 2.5f, 0.0f, 1.0f) * pow(noise, 1.0f + edgeThresh);
 
       noise = SmoothStep(0.5f * (1.0f - transpRange), 0.5f * (1.0f + transpRange), noise);
 

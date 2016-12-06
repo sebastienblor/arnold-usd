@@ -190,7 +190,7 @@ shader_evaluate
       }
    }
 
-   cloth = CLAMP(cloth, 0.0f, 1.0f);
+   cloth = AiClamp(cloth, 0.0f, 1.0f);
 
    AtRGB a = (1.0f - cloth) * AiShaderEvalParamRGB(p_gapColor) +
              cloth * (threadColor ? AiShaderEvalParamRGB(p_uColor) : AiShaderEvalParamRGB(p_vColor));
