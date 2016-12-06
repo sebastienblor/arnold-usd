@@ -39,6 +39,11 @@ MString toMayaStyle(MString s);
 
 MString toMayaStyle(MString s);
 
+// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
+typedef uint8_t  AtByte;
+typedef unsigned AtUInt32;
+typedef size_t AtUInt64;
+
 /// Structure for holding attribute properties
 struct CAttrData
 {

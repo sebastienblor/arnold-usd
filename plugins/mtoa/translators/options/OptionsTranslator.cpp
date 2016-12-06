@@ -249,10 +249,10 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             if (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL)
             {
                
-               const char* ext = "";
+               AtString ext("");
                AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
-               if(strcmp (ext,"deepexr") == 0)
-                  ext = "exr";
+               if (ext == AtString("deepexr"))
+                  ext = AtString("exr");
                
                MString tokens = aovData.tokens;
                MString path = output.prefix;
@@ -283,7 +283,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                fileFrameNumber,
                                                sceneFileName,
                                                nameCamera,
-                                               ext,
+                                               ext.c_str(),
                                                renderLayer,
                                                tokens,
                                                true,
@@ -620,11 +620,11 @@ void COptionsTranslator::Export(AtNode *options)
             // FIXME: we can't use the default method since the options names don't
             // follow the standard "toMayaStyle" behavior when no metadata is present
             // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
-            const char* attrName;
+            AtString attrName;
             MPlug plug;
             if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
             {
-               plug = FindMayaPlug(attrName);
+               plug = FindMayaPlug(attrName.c_str());
             }
             else
             {

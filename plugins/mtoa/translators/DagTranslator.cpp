@@ -237,7 +237,7 @@ void CDagTranslator::ExportMatrix(AtNode* node)
       if (matrices)
       {
          int step = GetMotionStep();
-         if (step >= (int)(matrices->nkeys * matrices->nelements))
+         if (step >= (int)(AiArrayGetNumKeys(matrices) * AiArrayGetNumElements(matrices)))
          {
             AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
 
@@ -283,25 +283,25 @@ AtByte CDagTranslator::ComputeVisibility()
    plug = FindMayaPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFLECTED;
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
 
    plug = FindMayaPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFRACTED;
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
    }
 
    plug = FindMayaPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_DIFFUSE;
+      visibility &= ~AI_RAY_ALL_DIFFUSE;
    }
 
    plug = FindMayaPlug("aiVisibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_GLOSSY;
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
 
    return visibility;
@@ -319,27 +319,27 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
 {
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "primaryVisibility";
    data.shortName = "vis";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "receiveShadows";
    data.shortName = "rsh";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "castsShadows";
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "visibleInReflections";
    data.shortName = "vir";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "visibleInRefractions";
    data.shortName = "vif";
    helper.MakeInputBoolean(data);
@@ -357,14 +357,14 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 {
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiVisibleInDiffuse";
    data.shortName = "ai_vid";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiVisibleInGlossy";
    data.shortName = "ai_vig";
    data.channelBox = false;

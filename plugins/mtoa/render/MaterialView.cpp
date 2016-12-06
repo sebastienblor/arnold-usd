@@ -38,7 +38,7 @@ void SleepMS(unsigned int ms)
 
 }
 
-extern AtNodeMethods* materialview_driver_mtd;
+extern const AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
 CMaterialView::CMaterialView()

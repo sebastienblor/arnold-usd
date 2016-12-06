@@ -66,11 +66,8 @@ MString GetAOVNodeType(int type)
    case AI_TYPE_VECTOR:
       nodeType = "aovWriteVector";
       break;
-   case AI_TYPE_POINT:
-      nodeType = "aovWritePoint";
-      break;
-   case AI_TYPE_POINT2:
-      nodeType = "aovWritePoint2";
+   case AI_TYPE_VECTOR2:
+      nodeType = "aovWritePoint2"; // not renaming the shader for now...
       break;
    default:
       {
@@ -541,7 +538,7 @@ template <>
 void TExportArrayAttribute<AI_TYPE_RGB>(AtArray* arr, MPlug& plug, unsigned int element)
 {
    MPlug p = plug[element];
-   AtRGB rgb = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AtRGB rgb = AtRGB(p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat());
    AiArraySetRGB(arr, element, rgb);
 }
 
@@ -549,7 +546,7 @@ template <>
 void TExportArrayAttribute<AI_TYPE_RGBA>(AtArray* arr, MPlug& plug, unsigned int element)
 {
    MPlug p = plug[element];
-   AtRGBA rgba = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat(), p.child(3).asFloat()};
+   AtRGBA rgba = AtRGBA (p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat(), p.child(3).asFloat());
    AiArraySetRGBA(arr, element, rgba);
 }
 
@@ -557,24 +554,17 @@ template <>
 void TExportArrayAttribute<AI_TYPE_VECTOR>(AtArray* arr, MPlug& plug, unsigned int element)
 {
    MPlug p = plug[element];
-   AtVector vec = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AtVector vec = AtVector(p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat());
    AiArraySetVec(arr, element, vec);
 }
 
-template <>
-void TExportArrayAttribute<AI_TYPE_POINT>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   MPlug p = plug[element];
-   AtPoint pnt = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
-   AiArraySetPnt(arr, element, pnt);
-}
 
 template <>
-void TExportArrayAttribute<AI_TYPE_POINT2>(AtArray* arr, MPlug& plug, unsigned int element)
+void TExportArrayAttribute<AI_TYPE_VECTOR2>(AtArray* arr, MPlug& plug, unsigned int element)
 {
    MPlug p = plug[element];
-   AtPoint2 pnt2 = {p.child(0).asFloat(), p.child(1).asFloat()};
-   AiArraySetPnt2(arr, element, pnt2);
+   AtVector2 vec2 = AtVector2(p.child(0).asFloat(), p.child(1).asFloat());
+   AiArraySetVec2(arr, element, vec2);
 }
 
 template <>
@@ -629,15 +619,9 @@ void TExportAttribute<AI_TYPE_VECTOR>(AtNode* node, MPlug& plug, const char* att
 }
 
 template <>
-void TExportAttribute<AI_TYPE_POINT>(AtNode* node, MPlug& plug, const char* attrName)
+void TExportAttribute<AI_TYPE_VECTOR2>(AtNode* node, MPlug& plug, const char* attrName)
 {
-   AiNodeSetPnt(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_POINT2>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetPnt2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
+   AiNodeSetVec2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
 }
 
 template <>
@@ -715,28 +699,28 @@ void TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(AtArray* array, MFnI
 template <>
 void TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
 {
-   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AtVector vec = AtVector((float)data[element].x, (float)data[element].y, (float)data[element].z);
    AiArraySetVec(array, element, vec);
 }
 
 template <>
 void TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
 {
-   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AtRGB rgb = AtRGB((float)data[element].x, (float)data[element].y, (float)data[element].z);
    AiArraySetRGB(array, element, rgb);
 }
 
 template <>
 void TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
 {
-   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AtVector vec = AtVector((float)data[element].x, (float)data[element].y, (float)data[element].z);
    AiArraySetVec(array, element, vec);
 }
 
 template <>
 void TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
 {
-   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AtRGB rgb = AtRGB((float)data[element].x, (float)data[element].y, (float)data[element].z);
    AiArraySetRGB(array, element, rgb);
 }
 
@@ -833,7 +817,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
             break;
          case MFnNumericData::k2Float:
          case MFnNumericData::k2Double:
-            TExportUserAttribute<AI_TYPE_POINT2>(anode, pAttr, aname, attributeDeclaration);
+            TExportUserAttribute<AI_TYPE_VECTOR2>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k3Float:
          case MFnNumericData::k3Double:
@@ -1033,7 +1017,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
    {
       const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
       const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
-      arnoldParamType = defaultValue->ARRAY->type;
+      arnoldParamType = AiArrayGetType(defaultValue->ARRAY());
    }
    // index matters tells us whether to condense a sparse array or try to export everything
 //         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();

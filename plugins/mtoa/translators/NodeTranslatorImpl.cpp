@@ -747,7 +747,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
             if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
             {
-               if (mentry->value.INT == 1) // scale distance
+               if (mentry->value.INT() == 1) // scale distance
                   m_session->ScaleDistance(val);
             }
             continue;
@@ -757,13 +757,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          AiNodeSetFlt(arnoldNode, arnoldParamName, val);
       }
       break;
-   case AI_TYPE_POINT2:
+   case AI_TYPE_VECTOR2:
       {
          float x, y;
          MObject numObj = plug.asMObject();
          MFnNumericData numData(numObj);
          numData.getData2Float(x, y);
-         AiNodeSetPnt2(arnoldNode, arnoldParamName, x, y);
+         AiNodeSetVec2(arnoldNode, arnoldParamName, x, y);
       }
       break;
    case AI_TYPE_MATRIX:
@@ -831,14 +831,6 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                       plug.child(2).asFloat());
       }
       break;
-   case AI_TYPE_POINT:
-      {
-         AiNodeSetPnt(arnoldNode, arnoldParamName,
-                      plug.child(0).asFloat(),
-                      plug.child(1).asFloat(),
-                      plug.child(2).asFloat());
-      }
-      break;
    case AI_TYPE_NODE:
       // handled above by ProcessParameterInputs
       break;
@@ -877,9 +869,8 @@ void CNodeTranslatorImpl::ProcessArrayParameterElement(AtNode* arnoldNode, AtArr
          {
          case AI_TYPE_RGB:
          case AI_TYPE_RGBA:
-         case AI_TYPE_POINT2:
+         case AI_TYPE_VECTOR2:
          case AI_TYPE_VECTOR:
-         case AI_TYPE_POINT:
             {
                if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
                {
@@ -940,15 +931,15 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          AiArraySetFlt(array, i, elem.asFloat());
       }
       break;
-   case AI_TYPE_POINT2:
+   case AI_TYPE_VECTOR2:
       {
          float x, y;
          MObject numObj = elem.asMObject();
          MFnNumericData numData(numObj);
          numData.getData2Float(x, y);
-         AtPoint2 vec2;
-         AiV2Create(vec2, x, y);
-         AiArraySetPnt2(array, i, vec2);
+         AtVector2 vec2;
+         vec2 = AtVector2(x, y);
+         AiArraySetVec2(array, i, vec2);
       }
       break;
    case AI_TYPE_MATRIX:
@@ -988,16 +979,8 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
       break;
    case AI_TYPE_VECTOR:
       {
-         AtVector vec3;
-         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
+         AtVector vec3 = AtVector(elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
          AiArraySetVec(array, i, vec3);
-      }
-      break;
-   case AI_TYPE_POINT:
-      {
-         AtVector vec3;
-         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
-         AiArraySetPnt(array, i, vec3);
       }
       break;
    case AI_TYPE_NODE:
@@ -1084,116 +1067,110 @@ void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // it would be nice if this could be done in arnold core
 static inline bool IsArrayAnimated(const AtArray* array)
 {
-   switch (array->type)
+   unsigned numElements = AiArrayGetNumElements(array);
+   uint8_t numKeys = AiArrayGetNumKeys(array);
+
+   switch (AiArrayGetType(array))
    {
       case AI_TYPE_BOOLEAN:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             bool valInit = AiArrayGetBool(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetBool(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetBool(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_BYTE:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtByte valInit = AiArrayGetByte(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetByte(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetByte(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_INT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             int valInit = AiArrayGetInt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetInt(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetInt(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_UINT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtUInt32 valInit = AiArrayGetUInt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetUInt(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetUInt(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_FLOAT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             float valInit = AiArrayGetFlt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetFlt(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetFlt(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_RGB:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtRGB valInit = AiArrayGetRGB(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetRGB(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetRGB(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_RGBA:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtRGBA valInit = AiArrayGetRGBA(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetRGBA(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetRGBA(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_VECTOR:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtVector valInit = AiArrayGetVec(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetVec(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetVec(array, i + (k * numElements))) return true;
             }
          }
       return false;
-      case AI_TYPE_POINT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+      case AI_TYPE_VECTOR2:
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
-            AtPoint valInit = AiArrayGetPnt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            AtVector2 valInit = AiArrayGetVec2(array, i);
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetPnt(array, i + (k * array->nelements))) return true;
-            }
-         }
-      return false;
-      case AI_TYPE_POINT2:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
-         {
-            AtPoint2 valInit = AiArrayGetPnt2(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
-            {
-               if (valInit != AiArrayGetPnt2(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetVec2(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_MATRIX:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtMatrix mtxInit, mtx;
-            AiArrayGetMtx(array, i, mtxInit);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            mtxInit = AiArrayGetMtx(array, i);
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               AiArrayGetMtx(array, i + (k * array->nelements), mtx);
+               mtx = AiArrayGetMtx(array, i + (k * numElements));
                for (int x = 0; x < 4; ++x)
                {
                   for (int y = 0; y < 4; ++y)
@@ -1205,22 +1182,22 @@ static inline bool IsArrayAnimated(const AtArray* array)
          }
       return false;
       case AI_TYPE_STRING:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             const char *valInit = AiArrayGetStr(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if(strcmp(valInit, AiArrayGetStr(array, i + (k * array->nelements))) != 0) return true; 
+               if(strcmp(valInit, AiArrayGetStr(array, i + (k * numElements))) != 0) return true; 
             }
          }
       return false;
       case AI_TYPE_POINTER:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             void *valInit = AiArrayGetPtr(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if(valInit != AiArrayGetPtr(array, i + (k * array->nelements))) return true; 
+               if(valInit != AiArrayGetPtr(array, i + (k * numElements))) return true; 
             }
          }
       return false;
@@ -1243,7 +1220,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
    // if motion length is null, return true otherwise next change won't be updated properly
    double motion_start, motion_end;
    m_session->GetMotionRange(motion_start, motion_end);
-   if (ABS(motion_end - motion_start) < AI_EPSILON)
+   if (std::abs(motion_end - motion_start) < AI_EPSILON)
       return true;
 
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(m_atNode));
@@ -1255,7 +1232,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
          continue;
       }
       AtArray *array = AiNodeGetArray(m_atNode, AiParamGetName(paramEntry));
-      if (array != NULL && array->nkeys > (AtByte)1)
+      if (array != NULL && AiArrayGetNumKeys(array) > (AtByte)1)
       {
          // we need to compare the array's keys to check if it's really animated or not
          if (IsArrayAnimated(array))
@@ -1286,7 +1263,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
                continue;
             }
             AtArray *array = AiNodeGetArray(node, AiParamGetName(paramEntry));
-            if (array != NULL && array->nkeys > (AtByte)1)
+            if (array != NULL && AiArrayGetNumKeys(array) > (AtByte)1)
             {
                // we need to compare the array's keys to check if it's really animated or not
                if (IsArrayAnimated(array))

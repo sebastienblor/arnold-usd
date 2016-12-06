@@ -11,8 +11,8 @@
 
 #include <maya/MGlobal.h>
 
-extern AtNodeMethods* mtoa_driver_mtd;
-extern AtNodeMethods* progress_driver_mtd;
+extern const AtNodeMethods* mtoa_driver_mtd;
+extern const AtNodeMethods* progress_driver_mtd;
 
 MString g_metafile = "";
 
