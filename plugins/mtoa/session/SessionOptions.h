@@ -8,6 +8,7 @@
 #include <maya/MString.h>
 #include <maya/MVector.h>
 
+typedef uint8_t AtByte;
 /// Specify the Session mode for current export
 enum ArnoldSessionMode
 {
