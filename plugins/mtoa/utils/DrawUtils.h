@@ -20,6 +20,7 @@
 #include <maya/MPointArray.h>
 #include <maya/MFloatVectorArray.h>
 #include <maya/MUintArray.h>
+class MObject;
 
 class CLinePrimitiveData{
 protected:
@@ -30,6 +31,7 @@ public:
    std::vector<unsigned int> indices;
 
    virtual void draw();
+   virtual void update(const MObject& obj) {};
 };
 
 // use for static initialization
@@ -60,6 +62,13 @@ class CPhotometricLightPrimitive : public CLinePrimitiveData{
 public:
    CPhotometricLightPrimitive();
 };
+
+class CMeshPrimitive : public CLinePrimitiveData{
+public:
+   CMeshPrimitive() {}
+   virtual void update(const MObject& obj);
+};
+
 
 #ifdef ENABLE_VP2
 

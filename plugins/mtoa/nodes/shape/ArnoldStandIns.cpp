@@ -1628,16 +1628,24 @@ void CArnoldStandInShapeUI::getDrawRequestsWireFrame(MDrawRequest& request, cons
 
 bool CArnoldStandInShapeUI::select(MSelectInfo &selectInfo, MSelectionList &selectionList,
       MPointArray &worldSpaceSelectPts) const
+{
 //
 // Select function. Gets called when the bbox for the object is selected.
 // This function just selects the object without doing any intersection tests.
 //
-{
-   MSelectionMask priorityMask(MSelectionMask::kSelectObjectsMask);
+// Arguments:
+//
+//     selectInfo           - the selection state information
+//     selectionList        - the list of selected items to add to
+//     worldSpaceSelectPts  -
+//
+   MSelectionMask priorityMask(MSelectionMask::kSelectMeshes);
    MSelectionList item;
    item.add(selectInfo.selectPath());
    MPoint xformedPt;
+
    selectInfo.addSelection(item, xformedPt, selectionList, worldSpaceSelectPts, priorityMask, false);
    return true;
+
 }
 

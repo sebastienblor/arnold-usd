@@ -1,131 +1,52 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0131\test_0131.log', using stdout instead
 
-Starting "/usr/autodesk/maya2014-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-00:00:00   226MB         | log started Tue Dec 10 16:01:49 2013
-00:00:00   226MB         | Arnold 4.1.3.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/12/10 14:16:56
-00:00:00   226MB         | running on localhost.localdomain
-00:00:00   226MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   226MB         |  CentOS 6.5 (Final), Linux kernel 2.6.32-431.el6.centos.plus.x86_64
-00:00:00   226MB         |  
-00:00:00   226MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   226MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   226MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   226MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
-00:00:00   227MB         | [mtoa] [mtoa_shaders] Generated 14 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   227MB         | [mtoa] [mtoa_shaders] Generated 41 translators for 41 Maya nodes (14 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   227MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   227MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   227MB         | [mtoa] Registered extension xgen provided by xgen.
-00:00:00   227MB         | [mtoa] Loading extension shave(/work/deploy/2014/extensions/shave.so).
-00:00:00   228MB         | loading plugin: /work/deploy/2014/shaders/shave_shaders.so ...
-00:00:00   228MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   228MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
-00:00:00   228MB         | [mtoa] [shave] Generated 1 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
-00:00:00   228MB         | [mtoa] [shave] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
-00:00:00   228MB         | [mtoa] [shave] Declares a total of 1 new Maya nodes.
-00:00:00   228MB         | [mtoa] [shave] Declares a total of 1 translators for 1 Maya nodes (1 new and 0 existing).
-00:00:00   228MB         | [mtoa] Successfully loaded extension library shave(/work/deploy/2014/extensions/shave.so).
-00:00:00   228MB         | [mtoa] Registering 4 loaded extensions:
-00:00:00   228MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   229MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   229MB WARNING | [mtoa] Extension shave(/work/deploy/2014/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-libai.so already loaded
-
-00:00:00   230MB         | Successfully imported python module 'arnold'
-00:00:00   230MB         | Successfully imported python module 'mtoa'
-pymel.internal.factories : INFO : MFnDagNode.model is deprecated
-pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, xgenToolkit, mtoa
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-00:00:01   317MB         |  
-00:00:01   317MB         | releasing resources
-00:00:01   316MB         | Arnold shutdown
-mental ray for Maya 2014 
-// Mental ray for Maya: using startup file /usr/autodesk/mentalrayForMaya2014//maya.rayrc.
-mental ray for Maya: setup
-mental ray for Maya: initialize
-mental ray: version 3.11.1.12, Aug  6 2013, revision 202006
-mental ray for Maya: register extensions
-// mental ray Node Factory: loaded
-mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: /usr/autodesk/mentalrayForMaya2014//maya.rayrc
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/AdskShaderSDKWrappers.mi
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/abcimport.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/abcimport.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/architectural.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/architectural.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/base.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/base.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/basehair.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/basehair.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/builtin_bsdf.mi
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/contour.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/contour.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/paint.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/paint.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/physics.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/physics.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/production.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/production.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/ptex.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/ptex.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/realflowShaders.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/realflowShaders.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/shaveMRShader.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/shaveMRShader.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/subsurface.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/subsurface.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/surfaceSampler.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/surfaceSampler.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/userdata.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/userdata.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/useribl.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/useribl.so
-// generating Maya nodes...
-// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/xgenMR.mi
-// loading /usr/autodesk/mentalrayForMaya2014/shaders/xgenMR.so
-// generating Maya nodes...
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 224: The aiOptions 'defaultArnoldRenderOptions' has no '.shuto' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 224: setAttr: No object matches name: .shuto
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 502: The aiSkin 'aiSkin1' has no '.primary_specular_roughness' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 502: setAttr: No object matches name: .primary_specular_roughness
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 503: The aiSkin 'aiSkin1' has no '.primary_specular_fresnel_weight' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 503: setAttr: No object matches name: .primary_specular_fresnel_weight
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 504: The aiSkin 'aiSkin1' has no '.secondary_specular_roughness' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 504: setAttr: No object matches name: .secondary_specular_roughness
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 505: The aiSkin 'aiSkin1' has no '.secondary_specular_fresnel_weight' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 505: setAttr: No object matches name: .secondary_specular_fresnel_weight
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 506: The aiSkin 'aiSkin1' has no '.combine_sss_queries' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 506: setAttr: No object matches name: .combine_sss_queries
-Warning: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 810: 'miDefaultOptions.message' is already connected to 'mentalrayItemsList.options'.
-Warning: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma line 811: 'miDefaultFramebuffer.message' is already connected to 'mentalrayItemsList.framebuffers'.
-File read in 0 seconds.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 217: The aiOptions 'defaultArnoldRenderOptions' has no '.sss_bssrdf_samples' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 217: setAttr: No object matches name: .sss_bssrdf_samples
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 219: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 219: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 220: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 220: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 221: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 221: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 222: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 222: setAttr: No object matches name: .tgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 310: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 311: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 314: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0131/test.ma line 406: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Viewport 2.0 floating point render target is turned off.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  1.4 seconds.
 Error: line 1: Error reading file.
 Error: line 1: Error reading file.
-Warning: file: /tmp/ASTMPa0Troz.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /tmp/ASTMPa0Troz.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Scene /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0131/test.ma completed.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0131\test.ma completed.

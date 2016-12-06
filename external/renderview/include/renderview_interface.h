@@ -44,7 +44,7 @@ public:
    CRenderViewInterface() : m_mainWindow(NULL) {}
    virtual ~CRenderViewInterface() {DestroyRenderView();}
 
-   void OpenRenderView(int width, int height, QWidget *parent = 0);
+   void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
    void CloseRenderView();
 
    void DestroyRenderView();
@@ -64,8 +64,9 @@ public:
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
-   // and call us back in UpdateSceneChanges
-   void SceneChanged();
+   // and call us back in UpdateSceneChanges.
+   // Return value tells us if render will actually update
+   bool SceneChanged();
 
    // If ReceiveSelectionChanges is set to true, then the Host
    // should call this function whenever its current selection
@@ -97,7 +98,7 @@ public:
    // Get a serialized definition of the RenderView options
    const char *Serialize();
    void SetFromSerialized(const char *);
-
+   
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
@@ -132,6 +133,11 @@ public:
    // in the scene, so that we can advert the host
    virtual void NodeParamChanged(AtNode *node, const char *paramName) = 0;
 
+   // This function is invoked whenever the render buffer is resized by other than 
+   // manual resizing. User can invoke it to resize the viewer. One can also override this function
+   // in case the host application needs to be adverted
+   virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
+
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
@@ -150,6 +156,8 @@ public:
 
 private:
 
+   // internal method, used to avoid linking issues with
+   void ResizeMainWindow(int w, int h);
    CRenderViewMainWindow *m_mainWindow;
 
 };

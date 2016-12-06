@@ -17,10 +17,9 @@
 #include <maya/MEulerRotation.h>
 #include <maya/MAngle.h>
 #include <assert.h>
-#ifdef _LINUX
+#ifndef _WIN64
 #include <unistd.h>
 #endif
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -354,7 +353,10 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    {
       // Shader found among our translatated shaders
       CNodeTranslator* shaderTranslator = it->second;
-      shaderNode = shaderTranslator->GetArnoldNode();
+      if (shaderTranslator->m_impl->m_sourceTranslator)
+         shaderTranslator = shaderTranslator->m_impl->m_sourceTranslator;
+
+         shaderNode = shaderTranslator->GetArnoldNode();
    }
    else
    {
@@ -550,6 +552,10 @@ void CMaterialView::InitOptions()
    AiNodeSetStr(options, "pin_threads", "off");
    AiNodeSetInt(options, "threads", m_job.maxThreads);
 
+   // displacement not correctly supported in material viewer yet
+   // just ignoring it for now
+   AiNodeSetBool(options, "ignore_displacement", true);
+
    // Setup ray depth and sampling options
    // Default setting will be used if the options node
    // has not been created yet
@@ -675,6 +681,10 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    {
       CNodeTranslator* translator = it->second;
       arnoldNode = UpdateNode(translator, updateMode);
+
+      if(translator->m_impl->m_sourceTranslator)
+         UpdateNode(translator->m_impl->m_sourceTranslator, updateMode);
+      
    }
 
    if (arnoldNode)

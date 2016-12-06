@@ -43,6 +43,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("fsh", "forceTranslateShadingEngines");
    syntax.addFlag("fp", "fullPath");
    syntax.addFlag("ep", "exportPrefix", MSyntax::kString);
+   syntax.addFlag("shg", "exportAllShadingGroups");
 
 
    syntax.setObjectType(MSyntax::kStringObjects);
@@ -392,6 +393,24 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       else
       {
          CMayaScene::Export();
+      }
+      if (argDB.isFlagSet("exportAllShadingGroups"))
+      {
+         MStringArray shadingGroups;
+         if (exportSelected)
+            MGlobal::executeCommand("ls -sl -typ shadingEngine", shadingGroups); // get selected shading groups and export them
+         else
+            MGlobal::executeCommand("ls -typ shadingEngine", shadingGroups); // get all shading groups in the scene and export them
+         
+         
+         for (unsigned int shg = 0; shg < shadingGroups.length(); ++shg)
+         {
+            MSelectionList shgElem;
+            shgElem.add(shadingGroups[shg]);
+            MPlug shgPlug;
+            shgElem.getPlug(0, shgPlug);
+            arnoldSession->ExportNode(shgPlug);
+         }
       }
 
       for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)

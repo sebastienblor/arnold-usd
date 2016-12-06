@@ -190,7 +190,13 @@ void CArnoldStandInsTranslator::ExportMotion(AtNode* anode)
 //
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(CDagTranslator::GetArnoldNaming(masterInstance).asChar());
+   CNodeTranslator *masterTr = GetTranslator(masterInstance);
+
+   // in case master instance wasn't exported (#648)
+   if (masterTr == NULL)
+      masterTr = CDagTranslator::ExportDagPath(masterInstance);
+   
+   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
 
    AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
@@ -441,4 +447,12 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       }
    }
    return procedural;
+}
+
+
+void CArnoldStandInsTranslator::RequestUpdate()
+{  
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+   // this should propagate a request update on all other procedurals, standins, referencing me
 }

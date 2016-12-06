@@ -1,154 +1,42 @@
-Cannot open log file 'C:\solidangle\mtoa\build\windows_x86_64\201506\msvc_opt\testsuite\test_0123\test_0123.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0123\test_0123.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 5.3.2.800. Feature Level 4.
-  Adapter : NVIDIA GeForce GTX 750
-  Vendor ID: 4318. Device ID : 4993
-  Driver : nvoglv64.dll:9.18.13.4052.
-  API : OpenGL V.2.
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
   Max texture size : 16384 * 16384.
-  Max tex coords : 8
-  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 1024 MB.
-  CPU Memory Limit: 31086.4 MB.
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
 }
-1 error generated.
-Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
-Error: file: C:/ProgramData/Autodesk/ApplicationPlugins/MayaBonusTools/Contents/scripts-2015/bonusToolsMenu.mel line 1546: UI commands can't be run in batch mode.
-
-----------------------------------------------------------
-Time: 2015/1/16 17:00:13
-----------------------------------------------------------
-
-00:00:00   302MB ERROR   | [mtoa.attr] Unable to create static attribute corresponding to procedural.overrideMatte
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1247
-: (kInvalidParameter): Object already exists
-00:00:00   304MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
-00:00:00   305MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
-.
-00:00:00   305MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
-.
-00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
-00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
-00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
-00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
-00:00:00   308MB WARNING | [mtoa] [skin_sss] [node skin_sss] Assigning temporary node id 1138176 to associated Maya type name aiSkinSss.
-00:00:00   309MB WARNING | [mtoa] Extension xgenTranslator(C:/solidangle/mtoadeploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-00:00:00   309MB WARNING | [mtoa] Extension pgYetiArnoldMtoa(C:/yeti/plug-ins/pgYetiArnoldMtoa.dll) requires Maya plugin pgYetiMaya, registering will be deferred until plugin is loaded.
-ai.dll loaded from non standard location C:\solidangle\releases\Arnold-4.2.2.0-windows\bin
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, VectorRender, AutodeskPacketFile, OpenEXRLoader, Unfold3D, mayaCharacterization, mtoa, modelingToolkit, MayaMuscle, rotateHelper, DirectConnect, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, Substance, shaderFXPlugin, bifrostshellnode, ArubaTessellator, quatNodes, modelingToolkitStd, fbxmaya
-Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.py)
-Warning: [mtoa] Registering UI for unknown translator "myCamera" for Maya node stereoRigCamera. Valid choices are: "cylindrical", "fisheye", "myCamera2", "orthographic", "perspective", "spherical"
-Warning: [mtoa] Registering UI for unknown translator "myCamera" for Maya node camera. Valid choices are: "cylindrical", "fisheye", "orthographic", "perspective", "spherical"
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
-mental ray for Maya 2015 
-// Mental ray for Maya: using startup file C:/Program Files/Autodesk/mentalrayForMaya2015//maya.rayrc.
-mental ray for Maya: setup
-mental ray for Maya: initialize
-mental ray: version 3.12.1.18, Jul 30 2014, revision 224509
-mental ray for Maya: register extensions
-// mental ray Node Factory: loaded
-mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: C:/Program Files/Autodesk/mentalrayForMaya2015//maya.rayrc
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/abcimport.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/abcimport.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/AdskShaderSDKWrappers.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/architectural.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/architectural.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/base.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/base.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/basehair.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/basehair.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/bifrostMR.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/bifrostMR.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/bifrostphenMR.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/builtin_bsdf.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/builtin_object_light.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/contour.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/contour.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/layering.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/layering.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/layering_phen.mi
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/mrptex.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/mrptex.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/paint.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/paint.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/physics.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/physics.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/production.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/production.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/subsurface.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/subsurface.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/surfaceSampler.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/surfaceSampler.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/userdata.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/userdata.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/useribl.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/useribl.dll
-// generating Maya nodes...
-// parsing C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/include/xgenMR.mi
-// loading C:/Program Files/Autodesk/mentalrayForMaya2015/shaders/xgenMR.dll
-// generating Maya nodes...
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
-Warning: file: C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/test.ma line 706: 'miDefaultOptions.message' is already connected to 'mentalrayItemsList.options'.
-Warning: file: C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/test.ma line 708: 'miDefaultFramebuffer.message' is already connected to 'mentalrayItemsList.framebuffers'.
-I/O warning : failed to load external entity "C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/nParticleShape1Deformed.xml"
-I/O warning : failed to load external entity "C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/nParticleShape1.xml"
-Warning: line 1: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  2.8 seconds.
-Error: line 1: RuntimeError: file C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\core\__init__.py line 151: (kInvalidParameter): No element at given index
-Warning: line 1: Python callback failed
-Result: C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/test.ma
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
-00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
-I/O warning : failed to load external entity "C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/nParticleShape1Deformed.xml"
-I/O warning : failed to load external entity "C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0123/nParticleShape1.xml"
-Scene C:\solidangle\mtoa\build\windows_x86_64\201506\msvc_opt\testsuite\test_0123\test.ma completed.
-
-----------------------------------------------------------
-Time: 2015/1/16 17:00:18
-----------------------------------------------------------
-
-
-----------------------------------------------------------
-Time: 2015/1/16 17:00:18
-----------------------------------------------------------
-
-mental ray: wallclock  0:00:02.93 total
-mental ray: current mem usage 4 MB, max mem usage 8 MB
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 333: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 335: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 339: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 482: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma line 483: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Viewport 2.0 floating point render target is turned off.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  1.2 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0123/test.ma
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0123\test.ma completed.

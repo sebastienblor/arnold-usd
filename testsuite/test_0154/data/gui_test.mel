@@ -1,0 +1,71 @@
+file -f -o "test.ma";
+arnoldRenderView;
+pause -sec 3;
+//arnoldRenderView -option "Wait Render"  "1";
+
+arnoldRenderView -option "Camera" "cameraShape1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "AOVs" "indirect_diffuse";
+arnoldRenderView -option "Camera" "cameraShape2";
+arnoldRenderView -option "Crop Region" "40  60  130 110";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+arnoldRenderView -option "AOVs" "Beauty";
+arnoldRenderView -option "Camera" "frontShape";
+// to be fixed -> now we have to write more than 4 elements to clear the region 
+arnoldRenderView -option "Crop Region" "0 0 0 0 0";
+pause -sec 3;
+arnoldRenderView -option "Wait Render"  "1";
+
+arnoldRenderView -option "Refresh Render" "1";
+arnoldRenderView -option "Abort Render" "1";
+arnoldRenderView -option "Update Full Scene" "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Camera" "cameraShape3";
+arnoldRenderView -option "Run IPR"  "0";
+
+select -r pSolid1 ;
+doDelete;
+select -r pCone1 ;
+move -r 2.310387 0 0 ;
+setAttr "aiStandard3.color" -type double3 1 0 0 ;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+arnoldRenderView -option "Refresh Render"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+setAttr "aiStandard3.Kd" 0.116883;
+
+arnoldRenderView -option "Run IPR"  "1";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;
+
+quit -force -abort;

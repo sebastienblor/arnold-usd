@@ -1,46 +1,32 @@
-Cannot open log file 'C:\solidangle\mtoa\build\windows_x86_64\201507\msvc_opt\testsuite\test_0103\test_0103.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0103\test_0103.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 5.3.2.800. Feature Level 4.
-  Adapter : NVIDIA GeForce GTX 750
-  Vendor ID: 4318. Device ID : 4993
-  Driver : nvoglv64.dll:9.18.13.4052.
-  API : OpenGL V.2.
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
   Max texture size : 16384 * 16384.
-  Max tex coords : 8
-  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 3938.29 MB.
-  CPU Memory Limit: 31086.4 MB.
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
 }
-00:00:00   245MB WARNING | [mtoa] [mtoa_shaders] [node volume_collector] Assigning temporary node id 1138176 to associated Maya type name aiVolumeCollector.
-00:00:00   245MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
-00:00:00   246MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
-.
-00:00:00   246MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
-.
-00:00:00   248MB WARNING | [mtoa] Extension xgenTranslator(C:/solidangle/mtoadeploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-00:00:00   248MB WARNING | [mtoa] Extension pgYetiArnoldMtoa(C:/yeti/plug-ins/pgYetiArnoldMtoa.dll) requires Maya plugin pgYetiMaya, registering will be deferred until plugin is loaded.
-ai.dll loaded from non standard location C:\solidangle\releases\Arnold-4.2.4.0-windows\bin
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, VectorRender, OpenEXRLoader, Unfold3D, ikSpringSolver, mayaCharacterization, ik2Bsolver, mtoa, AbcExport, retargeterNodes
-Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.py)
-1 error generated.
-Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
-Error: file: C:/ProgramData/Autodesk/ApplicationPlugins/MayaBonusTools/Contents/scripts-2015/bonusToolsMenu.mel line 1546: UI commands can't be run in batch mode.
-
-----------------------------------------------------------
-Time: 2015/3/10 19:28:10
-----------------------------------------------------------
-
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.44 seconds.
-Result: C:/solidangle/mtoa/build/windows_x86_64/201507/msvc_opt/testsuite/test_0103/test.ma
-Scene C:\solidangle\mtoa\build\windows_x86_64\201507\msvc_opt\testsuite\test_0103\test.ma completed.
-
-----------------------------------------------------------
-Time: 2015/3/10 19:28:12
-----------------------------------------------------------
-
+File read in  0.57 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0103/test.ma
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0103\test.ma completed.

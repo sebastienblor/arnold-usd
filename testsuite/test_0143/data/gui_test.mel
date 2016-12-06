@@ -1,0 +1,8 @@
+file -f -o "test.ma";
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "WaitRender"  "1";
+string $imgOut = `pwd`;
+$imgOut += "/testrender.tif";
+arnoldRenderView -option "Save Image" $imgOut;
+quit -force -abort;

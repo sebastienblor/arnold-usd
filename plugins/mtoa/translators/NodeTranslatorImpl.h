@@ -38,18 +38,21 @@ public :
    CNodeTranslatorImpl(CNodeTranslator &translator) : 
       m_handle(CNodeAttrHandle()),
       m_updateMode(CNodeTranslator::AI_UPDATE_ONLY),
-      m_holdUpdates(false),
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
       m_additionalAtNodes(NULL),
+      m_atRoot(NULL),
+      m_isProcedural(false),
       m_overrideSets(),
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
       m_sourceTranslator(NULL),
-      m_isExported(false),
+      m_inUpdateQueue(false),
       m_animArrays(false),
+      m_isExported(false),
+      m_overrideSetsDirty(false),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
 
@@ -83,9 +86,9 @@ public :
 
    // Remove callbacks installed. 
    void RemoveUpdateCallbacks();
-   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
+   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="", int instanceNumber = -1)
    {
-      Init(session, CNodeAttrHandle(nodeObject, attrName));
+      Init(session, CNodeAttrHandle(nodeObject, attrName, instanceNumber));
    }
    void Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
@@ -99,7 +102,8 @@ public :
    // call ExportRootShader, which call CreateShadingGroupShader, which call AddAOVDefaults
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    
-   MStatus ExportOverrideSets();
+   virtual MStatus ExportOverrideSets();
+   static void DirtyOverrideSets(CNodeTranslator *tr);
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -112,17 +116,32 @@ public :
    AtNode* ExportConnectedNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = NULL);
    bool HasAnimatedArrays() const;
 
+   void SetSourceTranslator(CNodeTranslator *tr);
+
+   inline bool DependsOnOutputPlug() {return m_tr.DependsOnOutputPlug();}
+   /// Get the name of the Arnold node
+   const char* GetArnoldNodeName();
+   /// Get the type of the Arnold node
+   const char* GetArnoldTypeName();
+   /// Get the type of the Maya node. Mainly used for debug logs : do we want to keep it in the API?
+   MString GetMayaNodeTypeName() const;
+
+
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
-   bool m_holdUpdates; // for Arnold RenderView only
-   bool m_animArrays;
    CAbTranslator m_abstract;
 
    CArnoldSession* m_session;
 
    AtNode* m_atNode;
-   std::map<std::string, AtNode*> *m_additionalAtNodes;
+   unordered_map<std::string, AtNode*> *m_additionalAtNodes;
+   AtNode *m_atRoot; // shortcut to the node which is at the root of this translator
+   // do not delete, it is supposed to be one of the translators nodes
 
+   // FIXME : make sure we get rid of this isProcedural stuff 
+   // once dependency graph is properly implemented in arnold....
+   bool m_isProcedural;
+   
    std::vector<CNodeTranslator*> m_overrideSets;
 
    AOVSet m_localAOVs;
@@ -137,7 +156,10 @@ public :
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
+   bool m_inUpdateQueue; // for Arnold RenderView only
+   bool m_animArrays;
    bool m_isExported;
+   bool m_overrideSetsDirty;
 
    virtual void ExportUserAttribute(AtNode *anode);
 
@@ -198,8 +220,8 @@ public :
    void RemoveAllBackReferences()
    {
       if (m_backReferences.empty()) return;
-      std::set<CNodeTranslator*>::iterator it = m_backReferences.begin();
-      std::set<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
+      unordered_set<CNodeTranslator*>::iterator it = m_backReferences.begin();
+      unordered_set<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
       for( ; it != itEnd; ++it)
       {
          (*it)->m_impl->RemoveReference(&m_tr);
@@ -207,11 +229,11 @@ public :
       m_backReferences.clear();
    }
 
-   // we could use std::set for both, but in practice a node is usually connected to only a few other nodes.
+   // we could use AmSet for both, but in practice a node is usually connected to only a few other nodes.
    // On the other hand a single node could be referenced by thousands of other ones, 
    // for example a single shader assigned to the whole scene
    std::vector<CNodeTranslator *> m_references;
-   std::set<CNodeTranslator *> m_backReferences;
+   unordered_set<CNodeTranslator *> m_backReferences;
 protected:
 
 

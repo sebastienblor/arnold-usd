@@ -142,6 +142,8 @@ void COptionsTranslator::ExportAOVs()
 /// Set the filenames for all output drivers
 void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 {
+   m_imageFilenames.clear();
+
    const CSessionOptions &options = GetSessionOptions();
    MDagPath camera = options.GetExportCamera();
    if (!camera.isValid())
@@ -172,7 +174,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (options.IsBatch() || options.GetSessionMode() == MTOA_SESSION_SEQUENCE)
+   if (options.IsBatch())
    {
       pathType = defaultRenderGlobalsData.kFullPathImage;
    }
@@ -292,11 +294,12 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                eyeToken);
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
-               std::map<std::string, AtNode*>::iterator it;
+               unordered_map<std::string, AtNode*>::iterator it;
                it = m_multiDriverMap.find(filename.asChar());
                if (it == m_multiDriverMap.end())
                {
                   // The filename has not been encountered yet.
+                  m_imageFilenames.append(filename);
 
                   // The same AtNode* driver may appear in m_aovData several times.  This happens because
                   // ExportNode() caches the results of previous exports to avoid creating duplicates.
@@ -643,6 +646,35 @@ void COptionsTranslator::Export(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
 
+   // Setting the reference time properly (used when ignore motion blur is turned on)
+   float referenceTime = 0.f;
+   if (FindMayaPlug("mb_en").asBool())
+   {
+      // if motion blur is enabled, check the motion's range type 
+      int motionRange = FindMayaPlug("range_type").asInt();
+      switch(motionRange)
+      {
+         case MTOA_MBLUR_TYPE_START:
+            referenceTime = 0.f;
+         break;
+         default:
+         case MTOA_MBLUR_TYPE_CENTER:
+            referenceTime = 0.5f;
+         break;
+         case MTOA_MBLUR_TYPE_END:
+            referenceTime = 1.f;
+         break;
+         {
+         case MTOA_MBLUR_TYPE_CUSTOM:
+            float motionStart = FindMayaPlug("motion_start").asFloat();
+            float motionEnd = FindMayaPlug("motion_end").asFloat();
+            referenceTime = CLAMP((-motionStart) / MAX((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
+         break;
+         }
+      }
+   }
+   AiNodeSetFlt(options, "reference_time", referenceTime);
+
    AddProjectFoldersToSearchPaths(options);
    
    // BACKGROUND SHADER
@@ -821,7 +853,27 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
          plugName == "motion_start" || plugName == "motion_end")
    {
       // Need to re-export all the nodes that Require Motion
-      m_impl->m_session->RecomputeMotionData();
+      m_impl->m_session->RequestUpdateMotion();
+   } else if (plugName.length() > 4 && plugName.substringW(0, 3) == "log_")
+   {
+      m_impl->m_session->RequestUpdateOptions();
+   } else if (plugName == "legacyLightTemperature")
+   {
+      // dirty all lights in the scene
+      MDagPath lightPath;
+      MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
+
+      for (; (!dagIterLights.isDone()); dagIterLights.next())
+      {
+         if (dagIterLights.getPath(lightPath))
+         {
+            CNodeTranslator *lightTr = GetTranslator(lightPath);
+            if (lightTr)
+               lightTr->RequestUpdate();
+            
+         }
+      }
+   
    }
 
    CNodeTranslator::NodeChanged(node, plug);

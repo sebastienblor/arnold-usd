@@ -63,6 +63,7 @@ public:
    virtual void ReceiveSelectionChanges(bool receive);
    virtual void NodeParamChanged(AtNode *node, const char *paramName);
    virtual void RenderViewClosed();
+   virtual void Resize(int width, int height);
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators

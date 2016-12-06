@@ -50,10 +50,9 @@
 // internal use only
 AtNode* CNodeTranslatorImpl::DoExport()
 {
-   AtNode* node = m_tr.GetArnoldNode("");
+   AtNode* node = m_atNode;
    MString outputAttr = m_tr.GetMayaOutputAttributeName();
-   int step = m_tr.GetMotionStep();
-
+   
    // FIXME : for now we're setting isExported to false when we ask for a full re-export
    // but as refactoring continues we'll stop doing it. 
    // And we'll restore it to false only when Delete() is called
@@ -64,10 +63,9 @@ AtNode* CNodeTranslatorImpl::DoExport()
                    m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
       return NULL;
    }
+   if (m_overrideSetsDirty) ExportOverrideSets();
 
-   // FIXME couldn't we just call the same functions for whatever step, 
-   // and do an early out on the other methods when GetMotionStep() > 0 ?
-   if (step == 0)
+   if (!m_session->IsExportingMotion())
    {
       if (outputAttr != "")
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting on plug %s (%s)",
@@ -104,8 +102,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
    assert(AiUniverseIsActive());
    AtNode* node = m_tr.GetArnoldNode("");
-   int step = m_tr.GetMotionStep();
-
+   
    if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
@@ -118,7 +115,9 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
               AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
               node);
 
-   if (step == 0)
+   if (m_overrideSetsDirty) ExportOverrideSets();
+
+   if (!m_session->IsExportingMotion())
    {
 #ifdef NODE_TRANSLATOR_REFERENCES 
       // before exporting, clear all the references
@@ -127,6 +126,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       m_references.clear();
 #endif
       m_sourceTranslator = NULL; // this will be set during Export
+
 
       m_tr.Export(node);
       ExportUserAttribute(node);
@@ -164,7 +164,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       }
 #endif
 
-
    }
    else if (m_tr.RequiresMotionData())
    {
@@ -176,11 +175,32 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
 void CNodeTranslatorImpl::DoCreateArnoldNodes()
 {   
-   m_atNode = m_tr.CreateArnoldNodes();
+   // m_atRoot is what's at the root of this translator
+   // It is not necessarily the main node (which happens with aov_write shaders)
+   m_atRoot = m_tr.CreateArnoldNodes();
+
+   // if no main arnold node has been created, set it here
+   if (m_atNode == NULL)
+      m_atNode = m_atRoot;
+
+   // if CreateArnoldNodes forgot to return the root node, let's use 
+   // the main arnold node
+   if (m_atRoot == NULL)
+      m_atRoot = m_atNode;
    
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
-            m_tr.GetMayaNodeName().asChar(), m_tr.GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
+            m_tr.GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
+   else if (AiNodeIs(m_atNode, "procedural"))
+   {
+      // FIXME : make sure we get rid of this once a DG is implemented in arnold
+      
+      // this is a procedural node, so it can "contain"
+      // other arnold nodes, we're flagging it this way
+      m_isProcedural = true;
+      // need to register to arnold session, that will keep track of it
+      m_session->RegisterProcedural(m_atNode, &m_tr);
+   }
 }
 
 
@@ -297,7 +317,6 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
    return compConnected == numComponents;
 }
 
-// FIXME: store translators list instead of MObject list for m_overrideSets
 // ExportNode and ExportDagPath should return a pointer to translator, much easier
 // than a pointer to Arnold Node
 /// Get a plug for that attribute name on the maya override sets, if any
@@ -309,6 +328,7 @@ MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus
    std::vector<CNodeTranslator*>::iterator it;
    std::vector<CNodeTranslator*> translators;
    unsigned int novr = m_overrideSets.size();
+   
    for (unsigned int i=0; i<novr; i++)
    {
       CNodeTranslator* translator = m_overrideSets[i];
@@ -355,10 +375,11 @@ void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& o
 {
    m_session = session;
    m_handle = object;
-   ExportOverrideSets();
    
    // first eventually initialize the translator
    m_tr.Init();
+
+   ExportOverrideSets();
 
    // then create the arnoldNodes
    DoCreateArnoldNodes();
@@ -368,50 +389,6 @@ void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& o
    if (m_abstract.arnold.length() == 0 && m_atNode)
       m_abstract.arnold = AiNodeEntryGetName(AiNodeGetNodeEntry(m_atNode));
    
-}
-
-
-/// get override sets containing the passed Maya dag path
-/// and add them to the passed MObjectArray
-/// and we also need to check the parent nodes, so groups are handled properly
-static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
-{
-   MStatus status;
-   MDagPath pathRec = path;
-   for(;pathRec.length();pathRec.pop(1))
-   {
-      MFnDagNode fnDag(pathRec);
-      unsigned int instNum = pathRec.instanceNumber();
-      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
-      CHECK_MSTATUS(status)
-      MPlugArray connections;
-      MFnSet fnSet;
-      // MString plugName = instObjGroups.name();
-      if (instObjGroups.connectedTo(connections, false, true, &status))
-      {
-         unsigned int nc = connections.length();
-         for (unsigned int i=0; i<nc; i++)
-         {
-            MObject set = connections[i].node();
-            MFnDependencyNode setDNode(set);
-            if (setDNode.typeName() == MString("objectSet"))
-            {
-               if (!fnSet.setObject(set))
-                  continue;
-               // MString setName = fnSet.name();
-               // Also add sets with override turned off to allow chaining
-               // on these as well
-               MPlug p = fnSet.findPlug("aiOverride", true, &status);
-               if ((MStatus::kSuccess == status) && !p.isNull())
-               {
-                  overrideSets.append(set);
-               }
-            }
-         }
-      }
-   }
-
-   return status;
 }
 
 /// find override sets containing the passed Maya node
@@ -431,6 +408,9 @@ static MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets)
       for (unsigned int i=0; i<nc; i++)
       {
          MObject set = connections[i].node();
+         /*
+         Commented out from ticket #2112, this seems to be useless now
+            
          MFnDependencyNode setDNode(set);
          if (setDNode.typeName() == MString("objectSet"))
          {
@@ -444,12 +424,14 @@ static MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets)
             {
                overrideSets.append(set);
             }
-         }
+         }*/
+         if (set.hasFn(MFn::kSet))
+            overrideSets.append(set);
       }
    }
-
    return status;
 }
+
 
 
 bool CNodeTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
@@ -464,7 +446,7 @@ void CNodeTranslatorImpl::ComputeAOVs()
 
    MStringArray aovAttrs;
 
-   MString typeName = m_tr.GetMayaNodeTypeName();
+   MString typeName = GetMayaNodeTypeName();
    CExtensionsManager::GetNodeAOVs(typeName, aovAttrs);
    // FIXME: use more efficient insertion method
    MStatus stat;
@@ -485,42 +467,15 @@ void CNodeTranslatorImpl::ComputeAOVs()
    }
 }
 
-
-
 /// gather the active override sets containing this node
 MStatus CNodeTranslatorImpl::ExportOverrideSets()
 {
    MStatus status;
+
+   MString nodeName = m_tr.GetMayaNodeName();
    m_overrideSets.clear();
-
    MObjectArray overrideSetObjs;
-
-   if (IsMayaTypeDag())
-   {
-      MDagPath path;
-      MDagPath::getAPathTo(m_tr.GetMayaObject(), path);
-      MDagPath nodePath = path;
-
-      status = GetOverrideSets(path, overrideSetObjs);
-      // If passed path is a shape, check for its transform as well
-      // FIXME: do we want to consider full hierarchy ?
-      // Also consider the sets the transform of that shape might be in
-      const MObject transformObj = path.transform(&status);
-      while ((MStatus::kSuccess == status) && (transformObj != path.node(&status)))
-      {
-         status = path.pop();
-      }
-      if (!(path == nodePath))
-      {
-         status = GetOverrideSets(path, overrideSetObjs);
-      }
-
-   } else
-   {
-      status = GetOverrideSets(m_tr.GetMayaObject(), overrideSetObjs);
-   }
-
-
+   status = GetOverrideSets(m_handle.object(), overrideSetObjs);
    // Exporting a set creates no Arnold object but allows IPR to track it
    MFnSet fnSet;
    unsigned int ns = overrideSetObjs.length();
@@ -529,12 +484,19 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
       fnSet.setObject(overrideSetObjs[i]);
       m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
    }
-   if (ns > 0)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
               m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar(), ns);
-   }
+
+   m_overrideSetsDirty = false;
    return status;
+
+}
+void CNodeTranslatorImpl::DirtyOverrideSets(CNodeTranslator *tr)
+{
+   if (tr == NULL)
+      return;
+   tr->m_impl->m_overrideSetsDirty = true;
+   tr->RequestUpdate();
 }
 void CNodeTranslatorImpl::SetShadersList(AtNodeSet* nodes)
 {
@@ -811,10 +773,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          if (m_tr.RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
          {
             // create an interpolation node for matrices
-            AtNode* animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+            AtNode* animNode = m_tr.GetArnoldNode(arnoldParamName);
+            if (animNode == NULL)
+               animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+
             AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
 
-            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
+            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, m_tr.GetMotionStep(), plug);
 
             // Set the parameter for the interpolation node
             AiNodeSetArray(animNode, "values", matrices);
@@ -1074,7 +1039,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       AddReference(translator);
 #endif
 
-      return translator->GetArnoldNode();
+      return translator->m_impl->m_atRoot; // return the node that is at the root of this translator
    }
    return NULL;
 }
@@ -1119,7 +1084,6 @@ void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // it would be nice if this could be done in arnold core
 static inline bool IsArrayAnimated(const AtArray* array)
 {
-   AtByte type = array->type;
    switch (array->type)
    {
       case AI_TYPE_BOOLEAN:
@@ -1276,6 +1240,12 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
    // for all nodes related to this translator
    if (m_atNode == NULL) return false;
 
+   // if motion length is null, return true otherwise next change won't be updated properly
+   double motion_start, motion_end;
+   m_session->GetMotionRange(motion_start, motion_end);
+   if (ABS(motion_end - motion_start) < AI_EPSILON)
+      return true;
+
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(m_atNode));
    while (!AiParamIteratorFinished(nodeParam))
    {
@@ -1299,8 +1269,8 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
 
    if (m_additionalAtNodes != NULL)
    {
-      std::map<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
-      std::map<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
+      unordered_map<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
+      unordered_map<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
 
       for ( ; it != itEnd; ++it)
       {
@@ -1334,6 +1304,40 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
    return false;
 }
 
+void CNodeTranslatorImpl::SetSourceTranslator(CNodeTranslator *tr)
+{
+   if (tr == NULL)
+   {
+      m_sourceTranslator = NULL;
+      return;
+   }
+   while (tr->m_impl->m_sourceTranslator)
+   {
+      tr = tr->m_impl->m_sourceTranslator;
+   }
+   m_sourceTranslator = tr;
+}
+
+const char* CNodeTranslatorImpl::GetArnoldNodeName()
+{
+   AtNode *node = m_tr.GetArnoldNode();
+   if (node == NULL) return "";
+   return AiNodeGetName(node);
+}
+
+const char* CNodeTranslatorImpl::GetArnoldTypeName()
+{
+   AtNode* node = m_tr.GetArnoldNode();
+   if (NULL == node)
+   {
+      return NULL;
+   }
+   else
+   {
+      return AiNodeEntryGetName(AiNodeGetNodeEntry(node));
+   }
+}
+MString CNodeTranslatorImpl::GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
 
 
 

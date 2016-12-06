@@ -16,6 +16,7 @@
 #define ARNOLD_NODEID_DRIVER                    0x00115C03
 #define ARNOLD_NODEID_FILTER                    0x00115C04
 #define ARNOLD_NODEID_VOLUME                    0x00115C05
+#define ARNOLD_NODEID_CURVES_COLLECTOR          0x00115C06
 
 // Arnold Lights and light filters
 #define ARNOLD_NODEID_BARNDOOR                  0x00115C80
@@ -26,6 +27,9 @@
 #define ARNOLD_NODEID_SKYDOME_LIGHT             0x00115C85
 #define ARNOLD_NODEID_AREA_LIGHT                0x00115C86
 #define ARNOLD_NODEID_PHOTOMETRIC_LIGHT         0x00115C87
+#define ARNOLD_NODEID_MESH_LIGHT                0x00115C88
+#define ARNOLD_NODEID_LIGHT_PORTAL              0x00115C89
+
 // Arnold Shaders
 #define ARNOLD_NODEID_CUSTOM                    0x00115D00
 #define ARNOLD_NODEID_STANDARD                  0x00115D01

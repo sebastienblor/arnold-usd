@@ -1,45 +1,44 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0049\test_0049.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0049\test_0049.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
-mental ray for Maya 2012 
-mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
-
-Error: TypeError: 'bool' object is not iterable
-00:00:00   237MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
-ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, mtoa, ikSpringSolver, Mayatomr, decomposeMatrix, tiffFloatReader, shaveNode, VectorRender, studioImport, mayaCharacterization, rotateHelper, MayaMuscle, Substance, OneClick, fbxmaya, ik2Bsolver
-Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.pyc)
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/startup/buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/renderCreateBarUI.mel
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-File read in 1 seconds.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201217/msvc_opt/testsuite/test_0049/test.ma
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0049\test.ma completed.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 166: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 166: setAttr: No object matches name: .dgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 217: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 220: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 226: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0049/test.ma line 320: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Viewport 2.0 floating point render target is turned off.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  1.3 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0049\test.ma completed.

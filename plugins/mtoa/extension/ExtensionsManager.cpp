@@ -451,7 +451,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    // translators (overriding for subclasses of a node class only)
    AiMsgDebug("[mtoa] [%s] Registering new translators provided by %s.",
          extName.asChar(), extFile.asChar());
-   MayaNodeToTranslatorsMap::iterator tnodeIt;
+   MayaNodeToTranslatorsOldMap::iterator tnodeIt;
    for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
          tnodeIt != extension->m_impl->m_registeredTranslators.end();
          tnodeIt++)
@@ -662,7 +662,7 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    // remove translators from the list
    AiMsgDebug("[mtoa.ext]  Deregistering translators provided by %s(%s).",
          extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
-   MayaNodeToTranslatorsMap::iterator tnodeIt;
+   MayaNodeToTranslatorsOldMap::iterator tnodeIt;
    for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
          tnodeIt != extension->m_impl->m_registeredTranslators.end();
          tnodeIt++)
@@ -846,7 +846,7 @@ void CExtensionsManager::GetAOVs(MStringArray& result)
          extIt != s_extensions.end();
          extIt++)
    {
-      std::map<std::string, int>::iterator it;
+      unordered_map<std::string, int>::iterator it;
       for (it = extIt->m_impl->aovTypes.begin(); it != extIt->m_impl->aovTypes.end(); ++it)
       {
          result.append(it->first.c_str());
@@ -880,7 +880,7 @@ void CExtensionsManager::GetNodeTypesWithAOVs(MStringArray& result)
          extIt != s_extensions.end();
          extIt++)
    {
-      std::map<std::string, std::vector<CAOVData> >::iterator it;
+      unordered_map<std::string, std::vector<CAOVData> >::iterator it;
       for (it = extIt->m_impl->aovAttrs.begin(); it!=extIt->m_impl->aovAttrs.end(); ++it)
       {
          result.append(it->first.c_str());
@@ -1159,8 +1159,7 @@ const CPxMayaNode* CExtensionsManager::FindRegisteredMayaNode(const CPxMayaNode 
 const CPxTranslator* CExtensionsManager::FindRegisteredTranslator(const CPxMayaNode &mayaNode,
                                              const CPxTranslator &translator)
 {
-   TranslatorsSet *allTranslators;
-   allTranslators = FindRegisteredTranslators(mayaNode);
+   TranslatorsSet *allTranslators = FindRegisteredTranslators(mayaNode);
    if (NULL == allTranslators || allTranslators->empty()) return NULL;
 
    const CPxTranslator* result = NULL;
@@ -1170,9 +1169,17 @@ const CPxTranslator* CExtensionsManager::FindRegisteredTranslator(const CPxMayaN
       // TODO : actually check s_extensions to use the last loaded translator?
       TranslatorsSet::iterator it = allTranslators->find(GetDefaultTranslator(mayaNode.name));
       if (it == allTranslators->end())
-         result = &(*--allTranslators->end());
-      else
-         result = &(*it);
+      {
+         // need to get the last element. This code is ugly, but is there
+         // a better way to get the last element of an unordered_set ?
+         int setSize = (allTranslators->size() - 1);
+         it = allTranslators->begin();
+         for (int j = 0; j < setSize; ++j)
+            it++;
+         
+      }
+
+      result = &(*it);
    }
    else
    {

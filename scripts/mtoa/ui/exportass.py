@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.callbacks import *
+import mtoa.core as core
 
 def pushOptionsUITemplate():
     if (not cmds.uiTemplate('oa_optionsTemplate', exists=True)):
@@ -140,6 +141,9 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
     # print 'parent: %(p)s, action: %(a)s, initialSettings: %(s)s, resultCallback: %(c)s\n' % \
     #  {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
 
+    #first make sure the options node exists
+    core.createOptions()
+
     retval = 0
     currentOptions = ''
         
@@ -185,6 +189,8 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.checkBoxGrp('oa_forceTranslateShadingEngines',
                          label1='Force Translate Shading Engines',
                          value1=settings.get('forceTranslateShadingEngines', False))
+        cmds.checkBoxGrp('oa_export_all_shading_groups', label1='Export All Shading Groups', value1=False)
+        
         cmds.text("oa_exportSeparatorOther",label="")
         lightsOn = cmds.checkBoxGrp('oa_export_lights', query=True, value1=True)
         
@@ -255,7 +261,8 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         settings['compressed'] = cmds.checkBoxGrp('oa_compressed', query=True, value1=True)
         settings['boundingBox'] = cmds.checkBoxGrp('oa_write_bbox', query=True, value1=True)
         settings['asciiAss'] = not cmds.checkBoxGrp('oa_binary_ass', query=True, value1=True)      
-        
+        settings['exportAllShadingGroups'] = cmds.checkBoxGrp('oa_export_all_shading_groups', query=True, value1=True)      
+
         # export mask and options
         settings['mask'] = getMaskValues()
         

@@ -6,6 +6,7 @@
 # sky                         0x00115C84
 # skydome_light               0x00115C85
 # area_light                  0x00115C86
+# mesh_light                  0x00115C88
 
 # standard                    0x00115D01
 # utility                     0x00115D03
@@ -113,12 +114,10 @@
         maya.keyable        BOOL    False
         min                 INT     0
         max                 INT     999
-        default             INT     999
         linkable            BOOL    False
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
         maya.keyable        BOOL    False
-        default             FLOAT   1024
         linkable            BOOL    False
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
@@ -206,7 +205,6 @@
         max                 INT     100
         softmin             INT     0
         softmax             INT     10        
-        default             INT     2
         linkable            BOOL    False
     [attr GI_volume_samples]
         maya.keyable        BOOL    False
@@ -768,8 +766,8 @@
 
 
 [node mesh_light]
-    maya.name               STRING  "aiAreaLight"
-    maya.id                 INT     0x00115C86
+    maya.name               STRING  "aiMeshLight"
+    maya.id                 INT     0x00115C88
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
     [attr color]
@@ -882,7 +880,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
+    maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight aiMeshLight mesh"
     maya.output             INT     0x05
     maya.swatch             BOOL    False
     [attr density]
@@ -909,7 +907,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight mesh"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight aiMeshLight mesh"
     maya.swatch             BOOL    False
     [attr far_end]
         min                 FLOAT   0.0

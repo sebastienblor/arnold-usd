@@ -1,7 +1,7 @@
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
-#include "utils/MercurialID.h"
+#include "utils/BuildID.h"
 #include "nodes/ShaderUtils.h"
 #include "render/MaterialView.h"
 
@@ -120,7 +120,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       s_arnoldSession = new CArnoldSession();
 
    MString mayaVersion = MGlobal::mayaVersion();     
-   MString appString = MString("MtoA ") + MTOA_VERSION + " " + MERCURIAL_ID + " Maya " + mayaVersion;
+   MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
    AiSetAppString(appString.asChar());
 
    MSelectionList    list;

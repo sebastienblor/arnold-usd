@@ -1,55 +1,50 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\2011\msvc_opt\testsuite\test_0085\test_0085.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0085\test_0085.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2011\bin\mayabatch.exe"
-mental ray for Maya 2011 
-mental ray: version 3.8.1.33, Aug 20 2010, revision 124793
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
-Maya 2011 importing module pymel 1.0.0 (C:\Program Files\Autodesk\Maya2011\Python\lib\site-packages\pymel\__init__.pyc)
-Maya 2011 reloading patched pymel
-pymel.core : INFO : Updating pymel with pre-loaded plugins: VectorRender, DirectConnect, shaveNode, mayaHIK, studioImport, mtoa, Mayatomr, ikSpringSolver, rotateHelper, decomposeMatrix, MayaMuscle, fbxmaya
-Patched pymel version 1.0.0 loaded
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\AEobjectSetTemplate.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\AEobjectSetTemplate.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\AEshadingEngineTemplate.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\AEshadingEngineTemplate.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\buildShaderMenus.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\buildShaderMenus.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\hyperShadePanel.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\hyperShadePanel.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\renderCreateBarUI.mel
-Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\renderCreateBarUI.mel
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-File read in 0 seconds.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/2011/msvc_opt/testsuite/test_0085/test.ma
-00:00:00   305MB         | log started Wed Jun 20 12:25:23 2012
-00:00:00   305MB         | Arnold 4.0.6.0 windows 64-bit icc110 oiio1008 rlm932 sse (build date: Jun 15 2012 21:06:26)
-00:00:00   305MB         | running on borja-PC
-00:00:00   305MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 8148MB
-00:00:00   305MB         |  Windows 7 Professional Service Pack 1 (version 6.1, build 7601)
-00:00:00   305MB         |  
-00:00:00   305MB         |  
-00:00:00   305MB         | [rlm] checkout of arnold (version 400) from 192.168.1.10 OK
-00:00:00   305MB         |  
-00:00:00   305MB         | there are 1 light and 2 objects:
-00:00:00   305MB         |  2 polymeshes
-00:00:00   305MB         |  
-00:00:00   305MB         | rendering image at 160 x 120, 6 AA samples, 2 GI samples, 1 GI bounces
-00:00:00   305MB         |  active camera: 'perspShape'
-00:00:00   305MB         |  initializing 17 nodes ...
-00:00:00   305MB         |  node initialization done in 0:00.01
-00:00:00   308MB         |  creating root object list ...
-00:00:00   308MB         |   scene bounds: (-10.9479 -1.37011 -4.49805) -> (-1.79968 1.37011 4.62884)
-00:00:00   308MB         |  updating 18 nodes ...
-00:00:00   308MB         |  node update done in 0:00.00
-00:00:00   308MB         |  [aov] registered driver: "driver_tiff" (driver_tiff)
-00:00:00   308MB         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
-00:00:00   309MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   309MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:01   318MB         |  bucket workers done in 0:00.95
-00:00:01   318MB         | render done
-00:00:01   318MB         | [driver_tiff] writing file `C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/2011/msvc_opt/testsuite/test_0085/testrender.tif'
-00:00:01   318MB         |  
-00:00:01   318MB         | releasing resources
-00:00:01   307MB         | Arnold shutdown
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\2011\msvc_opt\testsuite\test_0085\test.ma completed.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 352: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 352: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 353: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 353: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 354: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 354: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 355: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 355: setAttr: No object matches name: .tgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 449: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 450: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 453: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0085/test.ma line 545: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Viewport 2.0 floating point render target is turned off.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  1.3 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0085\test.ma completed.

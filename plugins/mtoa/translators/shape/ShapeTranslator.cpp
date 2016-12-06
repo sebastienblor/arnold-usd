@@ -14,11 +14,17 @@
 void CShapeTranslator::Init()
 {
    CDagTranslator::Init();
-   m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
-   m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+   const CSessionOptions &session = GetSessionOptions();
+   m_motion = session.IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+   m_motionDeform = session.IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
 }
 bool CShapeTranslator::RequiresMotionData()
 {
+   // m_motion / m_motionDeform need to be updated here otherwise these variables might be outdated (#2660)
+   const CSessionOptions &session = GetSessionOptions();
+   m_motion = session.IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+   m_motionDeform = session.IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+
    return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
 }
 
@@ -123,15 +129,15 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
    }
    
    // First check if the internal SG node has already been created
-   AtNode *shadingEngine = GetArnoldNode("shadingEngine");
+   AtNode *shadingEngine = GetArnoldNode("SG");
    if (shadingEngine == NULL)
    {
       // register this AtNode in our Translator, so that it is properly cleared later
-      shadingEngine = AddArnoldNode("MayaShadingEngine", "shadingEngine");
+      shadingEngine = AddArnoldNode("MayaShadingEngine", "SG");
       std::vector<AtNode*> aovShaders;
       m_impl->AddAOVDefaults(shadingEngine, aovShaders);
    }
-   AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
+
    AiNodeLink(rootShader, "beauty", shadingEngine);
 
    AtNode *shape = GetArnoldNode();

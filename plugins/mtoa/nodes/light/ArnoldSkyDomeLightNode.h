@@ -32,6 +32,8 @@ public:
 //   static MObject s_normalize;
    static MObject s_affectDiffuse;
    static MObject s_affectSpecular;
+   static MObject s_portalMode;
+
    // Output attributes
    static MObject s_OUT_colorR;
    static MObject s_OUT_colorG;

@@ -31,7 +31,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
                    GetMayaNodeName().asChar());
       return shader;
    }
-   std::map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
+   unordered_map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray destPlugs;
    MPlugArray sourcePlugs;
@@ -76,7 +76,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
       }
    }
    // at this stage, we only care about the aov names, which are the key in the map
-   std::map<std::string, MPlugArray>::const_iterator it;
+   unordered_map<std::string, MPlugArray>::const_iterator it;
    for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
    {
       const char* aovName = it->first.c_str();
@@ -166,7 +166,7 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
    if (plugName == "normalCamera" || plugName == "aiEnableMatte" || plugName == "aiMatteColor")
    {
       // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }
@@ -228,7 +228,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
          
          if (bumpTranslator != NULL)
          {
-            m_impl->m_sourceTranslator = bumpTranslator;
+            m_impl->SetSourceTranslator(bumpTranslator);
 
 #ifdef NODE_TRANSLATOR_REFERENCES 
             m_impl->AddBackReference(bumpTranslator, true); // "true" in order to add the reverse connection too 
@@ -252,7 +252,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
 bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
 {
    // If this is a multi-output shader, just copy the MPlug
-   if (m_tr.DependsOnOutputPlug()) 
+   if (DependsOnOutputPlug()) 
    {
       resolvedOutputPlug=outputPlug;
       return true;

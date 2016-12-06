@@ -5,6 +5,7 @@
 #include <maya/MFnSpotLight.h>
 #include <maya/MFnMesh.h>
 #include <maya/MItMeshPolygon.h>
+#include <maya/MPlugArray.h>
 #include <maya/MMatrix.h>
 
 // DirectionalLight
@@ -103,6 +104,12 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CQuadLightTranslator::Export(AtNode* light)
 {
+   if (m_flushCache)
+   {
+      AiUniverseCacheFlush(AI_CACHE_QUAD);
+      m_flushCache = false;
+   }
+   
    CLightTranslator::Export(light);
 
    AtPoint vertices[4];
@@ -117,6 +124,7 @@ void CQuadLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
    AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
+   //AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool()); removed it from here as we now have a dedicated light portal node
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
@@ -128,8 +136,30 @@ void CQuadLightTranslator::Export(AtNode* light)
    {
       AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
    }
+
+   // Check if "color" is connected to a texture.
+   // If so, we'll have to flush cache when color receives a signal
+   MPlug colorPlug = FindMayaPlug("color");
+   MPlugArray conn;
+   colorPlug.connectedTo(conn, true, false);
+   m_colorTexture = (conn.length() > 0);
 }
 
+void CQuadLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   CLightTranslator::NodeChanged(node, plug);
+
+   // If nothing is plugged to the color attribute, we're done
+   if (!m_colorTexture)
+      return;
+
+   // only the following parameters affect the quad light cache
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "color" || plugName == "resolution")
+   {
+      m_flushCache = true;
+   }
+}
 void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "quad_light");
@@ -140,6 +170,7 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("decay_type");
    helper.MakeInput("resolution");
    helper.MakeInput("spread");
+   //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }
@@ -218,6 +249,8 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light, "portal_mode", FindMayaPlug("portal_mode").asInt());
+   
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
    if (!shadowColorPlug.isNull())
    {
@@ -331,9 +364,11 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
-   AtArray* vlist = AiArrayAllocate(m_numVertices, IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? steps : 1, AI_TYPE_POINT);
+   bool deformMotion = RequiresMotionData() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+   AtArray* vlist = AiArrayAllocate(m_numVertices, deformMotion ? steps : 1, AI_TYPE_POINT);
+   int vlistOffset = deformMotion ? m_numVertices * GetMotionStep() : 0;
    for (int i = 0; i < m_numVertices; ++i)
-      AiArraySetVec(vlist, i, vertices[i]);
+      AiArraySetVec(vlist, i + vlistOffset, vertices[i]);
 
    AiNodeSetArray(meshNode, "vlist", vlist);
 
@@ -563,6 +598,7 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
 
+      // As motion deform was disabled, I just allocated a single key
       if (vlist->nkeys == 1)
          return;
        
@@ -595,4 +631,40 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
       }
       
    }  
+}
+
+MObject CMeshLightNewTranslator::GetMeshObject() const
+{
+   MPlug inMesh = GetPlug(m_dagPath.node(), "inMesh");
+   if (inMesh.isDestination())
+   {
+      MPlugArray plugArray;
+      
+      inMesh.connectedTo(plugArray,  true, false);
+      MObject sourceNode;
+
+      if (plugArray.length() > 0)
+         sourceNode = plugArray[0].node();
+      
+      // equivalent code in maya 2017 
+      //MObject sourceNode = inMesh.source().node();      
+      
+      if (sourceNode.hasFn(MFn::kMesh))
+         return sourceNode;
+      
+   }
+   return MObject::kNullObj;
+}
+void CMeshLightNewTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+
+   const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
+   
+   if (recreate_geom)
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CMeshLightTranslator::NodeChanged(node, plug);
 }

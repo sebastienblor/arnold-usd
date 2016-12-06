@@ -87,13 +87,12 @@ MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
 }
 
 
-/// set the name of the arnold node
 void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
    MString name = CDagTranslator::GetArnoldNaming(dagTr->GetMayaDagPath());
 
-   if (m_tr.DependsOnOutputPlug())
+   if (DependsOnOutputPlug())
    {
       MString outputAttr = m_handle.attribute();
 
@@ -136,7 +135,6 @@ void CDagTranslator::AddUpdateCallbacks()
    CNodeTranslator::AddUpdateCallbacks();
 }
 
-/// Like IsMasterInstance, but does not cache result
 static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *session, const MDagPath& dagPath, MDagPath &masterDag)
 {
    if (dagPath.isInstanced())
@@ -184,23 +182,6 @@ static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *sessi
 }
 
 
-/// Return whether the current dag object is the master instance.
-///
-/// The master is the first instance that is completely visible (including parent transforms)
-/// for which full geometry should be exported.
-///
-/// Always returns true if this dagPath is not instanced.
-/// If dagPath is instanced, this searches the preceding instances
-/// for the first that is visible. if none are found, dagPath is considered the master.
-///
-/// This function caches the result on the first run and returns the cached results on
-/// subsequent calls.
-///
-/// note: dagPath is assumed to be visible.
-///
-/// @return                  whether or not dagPath is a master
-///
-
 bool CDagTranslator::IsMasterInstance()
 {
    CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
@@ -209,11 +190,6 @@ bool CDagTranslator::IsMasterInstance()
    return dagImpl->m_isMasterDag;
 }
 
-/// Return the master instance for the current dag object.
-///
-/// The master is the first instance that is completely visible (including parent transforms)
-/// for which full geometry should be exported.
-///
 MDagPath& CDagTranslator::GetMasterInstance()
 {
    CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
@@ -239,16 +215,15 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix)
 // at each motion step
 void CDagTranslator::ExportMatrix(AtNode* node)
 {
-   int step = GetMotionStep();
    AtMatrix matrix;
    GetMatrix(matrix);
-   if (step == 0)
+   if (!IsExportingMotion())
    {
       // why not only RequiresMotionData() ??
       if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, 0, matrix);
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
          AiNodeSetArray(node, "matrix", matrices);
       }
       else
@@ -259,7 +234,17 @@ void CDagTranslator::ExportMatrix(AtNode* node)
    else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
       AtArray* matrices = AiNodeGetArray(node, "matrix");
-      AiArraySetMtx(matrices, step, matrix);
+      if (matrices)
+      {
+         int step = GetMotionStep();
+         if (step >= (int)(matrices->nkeys * matrices->nelements))
+         {
+            AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
+
+         } else
+            AiArraySetMtx(matrices, step, matrix);
+         
+      }
    }
 }
 
@@ -410,4 +395,79 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
    }
    else
       CNodeTranslatorImpl::ExportUserAttribute(anode);
+}
+
+static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
+{
+   MStatus status;
+   MDagPath pathRec = path;
+   for(;pathRec.length();pathRec.pop(1))
+   {
+      MFnDagNode fnDag(pathRec);
+      unsigned int instNum = pathRec.instanceNumber();
+      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
+      CHECK_MSTATUS(status)
+      MPlugArray connections;
+      MFnSet fnSet;
+      // MString plugName = instObjGroups.name();
+      if (instObjGroups.connectedTo(connections, false, true, &status))
+      {
+         unsigned int nc = connections.length();
+         for (unsigned int i=0; i<nc; i++)
+         {
+            MObject set = connections[i].node();
+            MFnDependencyNode setDNode(set);
+            if (setDNode.typeName() == MString("objectSet"))
+            {
+               if (!fnSet.setObject(set))
+                  continue;
+               // MString setName = fnSet.name();
+               // Also add sets with override turned off to allow chaining
+               // on these as well
+               MPlug p = fnSet.findPlug("aiOverride", true, &status);
+               if ((MStatus::kSuccess == status) && !p.isNull())
+               {
+                  overrideSets.append(set);
+               }
+            }
+         }
+      }
+   }
+
+   return status;
+}
+
+MStatus CDagTranslatorImpl::ExportOverrideSets()
+{
+
+   MStatus status;
+
+   m_overrideSets.clear();
+   CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+   MDagPath path = dagTr->GetMayaDagPath();
+   // Check for passed path
+   MObjectArray overrideSetObjs;
+   status = GetOverrideSets(path, overrideSetObjs);
+   // If passed path is a shape, check for its transform as well
+   // FIXME: do we want to consider full hierarchy ?
+   // Also consider the sets the transform of that shape might be in
+   const MObject transformObj = path.transform(&status);
+   while ((MStatus::kSuccess == status) && (transformObj != path.node(&status)))
+   {
+      status = path.pop();
+   }
+   if (!(path == dagTr->GetMayaDagPath()))
+   {
+      status = GetOverrideSets(path, overrideSetObjs);
+   }
+   // Exporting a set creates no Arnold object but allow IPR to track it
+   MFnSet fnSet;
+   unsigned int ns = overrideSetObjs.length();
+   for (unsigned int i=0; i<ns; i++)
+   {
+      fnSet.setObject(overrideSetObjs[i]);
+      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
+   }
+
+   return status;
 }

@@ -1,54 +1,45 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0030\test_0030.log', using stdout instead
 
-Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
 
-mental ray for Maya 2013 
-mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
-pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
-libai.so already loaded
-
-Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-File read in 0 seconds.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2228: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2228: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2229: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2229: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2230: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2230: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2231: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0030/test.ma line 2231: setAttr: No object matches name: .tgamma
+Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0030/test.ma
-Warning: file: /usr/tmp/ASTMPqiI0hO.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPqiI0hO.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   297MB         | log started Thu Oct 10 17:55:02 2013
-00:00:00   297MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 15:28:48
-00:00:00   297MB         | running on localhost.localdomain
-00:00:00   297MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   297MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   297MB         |  
-00:00:00   297MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   297MB         | loaded 84 plugins from 1 lib(s) in 0:00.08
-00:00:00   298MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   311MB         |  
-00:00:00   311MB         | there are 1 light and 2 objects:
-00:00:00   311MB         |  1 polymesh
-00:00:00   311MB         |  1 curves
-00:00:00   311MB         |  
-00:00:00   311MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:00   311MB         |  initializing 17 nodes ...
-00:00:00   311MB         |  node initialization done in 0:00.00
-00:00:00   311MB         |  creating root object list ...
-00:00:00   311MB         |   scene bounds: (-5.74077559 -5.93569803 -5.75892925) -> (5.81434965 5.94063902 5.79082537)
-00:00:00   311MB         |  updating 18 nodes ...
-00:00:00   311MB         |  node update done in 0:00.00
-00:00:00   311MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   311MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   312MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   312MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:00   333MB         |    10% done - 11 rays/pixel
-00:00:00   333MB         |    20% done - 10 rays/pixel
-00:00:00   331MB         |    35% done - 16 rays/pixel
-00:00:00   331MB         |    60% done - 18 rays/pixel
-00:00:00   331MB         |    75% done - 32 rays/pixel
-00:00:00   331MB         |   100% done - 37 rays/pixel
-00:00:00   331MB         |  bucket workers done in 0:00.67
-00:00:00   331MB         | render done
-00:00:00   331MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0030/testrender.tif'
-00:00:00   331MB         |  
-00:00:00   331MB         | releasing resources
-00:00:00   323MB         | Arnold shutdown
-Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0030/test.ma completed.
+File read in  1.4 seconds.
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0030\test.ma completed.

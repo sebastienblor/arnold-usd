@@ -121,12 +121,12 @@ bool HasIncomingConnection(const MPlug &plug)
    return false;
 }
 
-//------------ CNodeTranslator ------------//
 CNodeTranslator::CNodeTranslator()
 {
    // we can't call CreateImplementation here as it's a virtual function and we're in the constructor...
    m_impl = NULL;
 }
+
 CNodeTranslator::~CNodeTranslator()
 {
    if (m_impl)
@@ -151,8 +151,6 @@ AtNode* CNodeTranslator::ExportConnectedNode(const MPlug& outputPlug)
 
 
 
-/// Get actual plug to be used for that attribute name, either the one on the translated maya object,
-/// or the one on the override set to be used, if any.
 MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStatus) const
 {
    MStatus status(MStatus::kSuccess);
@@ -208,20 +206,27 @@ void CNodeTranslator::Delete()
    }
    m_impl->m_references.clear();
 
-   for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+   for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
    {
       (*it)->m_impl->RemoveReference(this);
    }
    m_impl->m_backReferences.clear();
 #endif
 
+
+   if (m_impl->m_isProcedural)
+   {
+      // if this node is a procedural, we want to un-register it from the Arnold Session.
+      // FIXME : make we get rid of this once dependency graph is properly implemented in arnold
+      m_impl->m_session->UnRegisterProcedural(m_impl->m_atNode);
+   }
    
    AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
    
    if (m_impl->m_additionalAtNodes)
    {
-      for (std::map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
+      for (unordered_map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
          AiNodeDestroy(it->second);
       
       delete m_impl->m_additionalAtNodes;
@@ -233,9 +238,9 @@ void CNodeTranslator::Delete()
 
    // is there anything else to be deleted ?
    // overrideSets are created at Init (not Export) so I guess we shouldn't be deleting them here
+
 }
 
-/// convert from maya matrix to AtMatrix
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
    const CArnoldSession* session = CMayaScene::GetArnoldSession();
@@ -268,7 +273,6 @@ void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
    
 }
 
-/// Retrieve a node previously created using AddArnoldNode()
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
    if (tag == NULL || strlen(tag) == 0) return m_impl->m_atNode;
@@ -285,7 +289,6 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
    }
 }
 
-/// Create an arnold node of the specified type, and save with the given tag (defaults to "")
 AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
@@ -298,7 +301,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
       if (tag != NULL && strlen(tag))
       {
          if (m_impl->m_additionalAtNodes == NULL) 
-            m_impl->m_additionalAtNodes = new std::map<std::string, AtNode*>();
+            m_impl->m_additionalAtNodes = new unordered_map<std::string, AtNode*>();
          if (m_impl->m_additionalAtNodes->count(tag))
          {
             AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
@@ -306,7 +309,8 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
          }
          else
             (*(m_impl->m_additionalAtNodes))[tag] = node;
-      }
+      } else
+         m_impl->m_atNode = node;
       return node;
    }
    else
@@ -316,45 +320,29 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
 }
 
-const char* CNodeTranslator::GetArnoldNodeName(const char* tag)
-{
-   AtNode *node = GetArnoldNode(tag);
-   if (node == NULL) return "";
-   return AiNodeGetName(node);
-}
-
-const char* CNodeTranslator::GetArnoldTypeName(const char* tag)
-{
-   AtNode* node = GetArnoldNode(tag);
-   if (NULL == node)
-   {
-      return NULL;
-   }
-   else
-   {
-      return AiNodeEntryGetName(AiNodeGetNodeEntry(node));
-   }
-}
-
 void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
    // When the frame is changed for motion blur we can receive signals here,
    // but we want to ignore them
    // FIXME should we test this in RequestUpdate ?
+   
    if (m_impl->m_session->IsExportingMotion() && m_impl->m_session->IsInteractiveRender()) return;
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: translator %s, providing Arnold %s(%s): %p",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-              GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
+              m_impl->GetArnoldNodeName(), m_impl->GetArnoldTypeName(), GetArnoldNode());
 
    // name of the attribute that emitted a signal
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   MString plugName = plug.partialName(false, false, false, false, false, true);
 
    // The Arnold translator has changed :
    // This means the current one won't be able to export as it should.
    // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
    // will be cleared and a new one will be generated
-   if (plugName == ".aiTranslator") SetUpdateMode(AI_RECREATE_TRANSLATOR);
+   if (plugName == "aiTranslator") SetUpdateMode(AI_RECREATE_TRANSLATOR);
+
+   // ignore this signal emitted from "Render Setup" as it shouldn't trigger a refresh
+   if (plugName.length() >= 15 && plugName.substringW(0, 14) == "renderLayerInfo") return;
 
    RequestUpdate();
 }
@@ -431,9 +419,9 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    if (translator != NULL)
    {
       translator->m_impl->SetArnoldNodeName(translator->GetArnoldNode());
-      AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: providing Arnold %s(%s): %p",
+      AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
+                 translator->GetArnoldNode());
    }
    else
    {
@@ -486,12 +474,12 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
    }
 }
 */
-/// add this node's AOVs into the passed AOVSet
+
 void CNodeTranslator::RequestUpdate()
 {
 
    // if hold updates is enabled, don't ask for updates
-   if (m_impl->m_holdUpdates) return;
+   if (m_impl->m_inUpdateQueue) return;
 
    // we're changing the frame to evaluate motion blur, so we don't want more 
    // updates now
@@ -499,11 +487,19 @@ void CNodeTranslator::RequestUpdate()
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-              GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
+              m_impl->GetArnoldNodeName(), m_impl->GetArnoldTypeName(), GetArnoldNode());
 
 
    m_impl->m_session->QueueForUpdate(this);   
 
+   if (m_impl->m_isProcedural && m_impl->m_updateMode >= AI_RECREATE_NODE)
+   {
+      // If this is a procedural being re-generated, we must
+      // advert the arnold session so that it checks for all 
+      // lost connections
+      m_impl->m_session->QueueProceduralUpdate(this);
+   }
+   
    // Pass the update request to the export session
    m_impl->m_session->RequestUpdate();
 }
@@ -917,7 +913,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
    }
 }
 
-/// Using the translator's m_handle Maya Object and specific attrName
+
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                           int arnoldParamType, MString mayaAttrName)
 {
@@ -962,7 +958,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    {
       AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
             GetTranslatorName().asChar(),
-            GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+            GetMayaNodeName().asChar(), m_impl->GetMayaNodeTypeName().asChar(),
             mayaAttrName.asChar(), arnoldParamName,
             AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
       return NULL;
@@ -970,9 +966,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-/// Main entry point to export values to an arnold parameter from a maya plug, recursively following
-/// connections in the dependency graph.
-/// Calls ProcessParameterInputs for parameters that allow linking or ProcessConstantParameter
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                           int arnoldParamType, const MPlug& plug)
 {
@@ -990,10 +983,10 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       return NULL;
    }
 
-   // It doesn't make sense to call this method when step is greater than 0
-   if (GetMotionStep() > 0)
+   // It doesn't make sense to call this method during motion export
+   if (IsExportingMotion())
    {
-      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0",
+      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be called during motion export",
             GetTranslatorName().asChar(), AiNodeGetName(arnoldNode), arnoldParamName);
       return NULL;
    }
@@ -1034,10 +1027,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    return m_impl->ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-
-
-/// Allocate an AtArray, ProcessConstantArrayElement to fill it with values from the array plug, and call AiNodeSetArray.
-/// Also calls ProcessParameterInputs.
 void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int arnoldParamType, MObject *childArray)
 {
    if (arnoldParamType == AI_TYPE_UNDEFINED)
@@ -1126,7 +1115,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
 
       // We'll delete this node at next Render Update
       // We should advert our back references to re-export 
-      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }
@@ -1138,10 +1127,17 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       // be deleted in the next IPR update (CArnoldSession::DoUpdate()).
       // But for now we just want to remove the translator from the session list
       // since it's being accessed in the map based on the MObject/MPlug/MDagPath, etc...
-      m_impl->m_session->EraseActiveTranslator(m_impl->m_handle);
+      m_impl->m_session->EraseActiveTranslator(this);
+   } else if (m >= AI_RECREATE_NODE)
+   {
+      // Since we'll recreate the arnold node, we must tell our back references to re-export
+      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      {
+         (*it)->RequestUpdate();
+      }
    }
 }
-/// for automatically creating parameters
+
 void CNodeTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, context.arnold);
@@ -1160,7 +1156,6 @@ MObject CNodeTranslator::GetMayaObject() const { return m_impl->m_handle.object(
 MString CNodeTranslator::GetMayaNodeName() const { return MFnDependencyNode(m_impl->m_handle.object()).name(); }
 MString CNodeTranslator::GetMayaOutputAttributeName() const { return m_impl->m_handle.attribute(); }
 
-MString CNodeTranslator::GetMayaNodeTypeName() const { return MFnDependencyNode(m_impl->m_handle.object()).typeName(); }
 
 double CNodeTranslator::GetExportFrame()
 {
@@ -1181,12 +1176,12 @@ bool CNodeTranslator::IsLocalMotionBlurEnabled() const
 }
 unsigned int CNodeTranslator::GetMotionStep()
 {   
-   return CMayaScene::GetArnoldSession()->GetMotionStep();
+   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? CMayaScene::GetArnoldSession()->GetMotionStep() : 0;
 }
 
 unsigned int CNodeTranslator::GetNumMotionSteps()
 {
-   return CMayaScene::GetArnoldSession()->GetNumMotionSteps();
+   return (m_impl->m_session->IsExportingMotion() || RequiresMotionData()) ? CMayaScene::GetArnoldSession()->GetNumMotionSteps() : 1;
 }
 const CSessionOptions& CNodeTranslator::GetSessionOptions()
 {
@@ -1221,11 +1216,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(dagPath);
-   session->GetActiveTranslators(handle, translators);
-
-   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
-   // as apparently we're not supposed to have multiple results here
-   return (translators.empty()) ? NULL : translators[0];
+   return session->GetActiveTranslator(handle);
 }
 
 CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
@@ -1233,11 +1224,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(object);
-   session->GetActiveTranslators(handle, translators);
-
-   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
-   // as apparently we're not supposed to have multiple results here
-   return (translators.empty()) ? NULL : translators[0];  
+   return session->GetActiveTranslator(handle);
 }
 
 
@@ -1257,4 +1244,10 @@ MString CNodeTranslator::GetArnoldNaming(const MObject &object)
    if (prefix.length() > 0)
       name = prefix + name;
    return name;
+}
+
+
+bool CNodeTranslator::IsExportingMotion() const
+{
+   return m_impl->m_session->IsExportingMotion();
 }

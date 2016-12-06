@@ -18,7 +18,9 @@
 #include <ai_params.h>
 #include <ai_metadata.h>
 
-//#include <maya/MColorManagementUtilities.h>
+#ifdef ENABLE_COLOR_MANAGEMENT
+#include <maya/MColorManagementUtilities.h>
+#endif
 
 
 CAbMayaNode CArnoldShaderNode::s_abstract;
@@ -43,7 +45,8 @@ void CArnoldShaderNode::postConstructor()
 #ifdef ENABLE_COLOR_MANAGEMENT
    if (typeName() == "aiImage")
    {
-      MColorManagementUtilities::connectDependencyNodeToColorManagement(thisMObject());
+      MObject obj = thisMObject();
+      MColorManagementUtilities::connectDependencyNodeToColorManagement(obj);
    }
 #endif
 }

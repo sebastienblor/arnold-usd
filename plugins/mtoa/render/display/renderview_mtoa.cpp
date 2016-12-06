@@ -40,10 +40,13 @@ void CRenderViewMtoA::PostProgressiveStep() {}
 void CRenderViewMtoA::ProgressiveRenderStarted() {}
 void CRenderViewMtoA::ProgressiveRenderFinished() {}
 
+void CRenderViewMtoA::Resize(int w, int h){}
+
 #else
 
 #if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
+static QWidget *s_workspaceControl = NULL;
 #endif
 
 // Arnold RenderView is defined
@@ -85,7 +88,9 @@ struct CARVSequenceData
    std::string saveImagesValue;
 };
 static CARVSequenceData *s_sequenceData = NULL;
-static QWidget *s_workspaceControl = NULL;
+
+static bool s_creatingARV = false;
+static MString s_renderLayer = "";
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -186,6 +191,11 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    return size;
 }
 
+#if MAYA_API_VERSION >= 201700
+
+#define ARV_DOCKED 1
+
+#endif
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
    // Check if attribute ARV_options exist
@@ -198,11 +208,13 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
    } 
 
-#if MAYA_API_VERSION >= 201700
+#ifdef ARV_DOCKED
 
    // Docking in maya workspaces only supported from maya 2017.
    // For older versions, we tried using QDockWindows (see branch FB-2470)
    // but the docking was way too sensitive, and not very usable in practice
+
+   s_creatingARV = true;
    MString workspaceCmd = "workspaceControl ";
 
    bool firstCreation = true;
@@ -218,27 +230,43 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       workspaceCmd += " -iw "; // initiall height
       workspaceCmd += height;
 
+      workspaceCmd += " -requiredPlugin \"mtoa\"";
        // command called when closed. It's not ARV itself that is closed now, but the workspace !
       workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
       workspaceCmd += " -l \"Arnold RenderView\" "; // label
    }
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
 
-   OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
+
+   OpenRenderView(width, height, MQtUtil::mainWindow(), false); // this creates ARV or restarts the render
 
    QMainWindow *arv = GetRenderView();  
    arv->setWindowFlags(Qt::Widget);
 
    
    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
-   s_workspaceControl = MQtUtil::getCurrentParent(); // returns a pointer to th workspace called above
-
+   
    if (firstCreation)
+   {
+      // returns a pointer to th workspace called above, 
+      // but only for the creation ! if I call it with "-edit visible true" it can return 0
+      s_workspaceControl = MQtUtil::getCurrentParent(); 
       MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
+      arv->show();
+      s_workspaceControl->show();
 
-   // for an unknown reason, maya crashes if I don't call show() as below....
-   arv->show();
-   s_workspaceControl->show();
+   }
+   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\" \"ArnoldRenderView\"");
+   MGlobal::executeCommand(uiScriptCommand);
+
+//   MString visChangeCommand("workspaceControl -e -vcc \"arnoldRenderView -mode workspaceChange\" \"ArnoldRenderView\"");
+//   MGlobal::executeCommand(visChangeCommand);
+
+
+   s_creatingARV = false;
+
+   
 #else
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
 #endif
@@ -267,7 +295,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    }
    if (m_rvLayerChangeCb == 0)
    {
-      m_rvLayerManagerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+      m_rvLayerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
                                       CRenderViewMtoA::RenderLayerChangedCallback,
                                       (void*)this);
    }
@@ -336,6 +364,14 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       SetLogging(consoleLogging, fileLogging);
    }
    UpdateRenderCallbacks();
+
+#if MAYA_API_VERSION >= 201700
+   MGlobal::executePythonCommand("import mtoa.utils;mtoa.utils.getActiveRenderLayerName()", s_renderLayer);
+   if (s_renderLayer.length() == 0)
+      s_renderLayer = "masterLayer";
+
+#endif
+
 }
 /**
   * Preparing MtoA's interface code with the RenderView
@@ -386,12 +422,19 @@ void CRenderViewMtoA::UpdateSceneChanges()
       CMayaScene::Export();
    }
 
-   // SetExportCamera mus be called AFTER CMayaScene::Export
-   CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+   if (cameras.length() > 0)
+   {
+      if (cameras[0].isValid())
+      {
+         CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
+      }
+      // SetExportCamera mus be called AFTER CMayaScene::Export
+      CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
 
-   // Set resolution and camera as passed in.
-   CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-   CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+      // Set resolution and camera as passed in.
+      CMayaScene::GetRenderSession()->SetResolution(-1, -1);
+      CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+   }
 
    UpdateRenderCallbacks();
 }
@@ -484,9 +527,22 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
 
 void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 {
+   if (!AiUniverseIsActive()) return;
+
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
-   renderViewMtoA->SetOption("Update Full Scene", "1");
+
+#if MAYA_API_VERSION >= 201700
+   MString layerName;
+   MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
+
+   // we haven't changed the visible render layer
+   if (layerName.length() == 0 || layerName == s_renderLayer) 
+      return;
+
+   s_renderLayer = layerName;
+#endif
+   renderViewMtoA->SetOption("Full IPR Update", "1");
 
 
 }
@@ -495,6 +551,8 @@ void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
 // Selection has changed
 void CRenderViewMtoA::SelectionChangedCallback(void *data)
 {
+   if (!AiUniverseIsActive()) return;
+
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    MSelectionList activeList;
@@ -677,6 +735,12 @@ void CRenderViewMtoA::RenderViewClosed()
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
 
+   MMessage::removeCallback(m_rvLayerManagerChangeCb);
+   m_rvLayerManagerChangeCb = 0;
+
+   MMessage::removeCallback(m_rvLayerChangeCb);
+   m_rvLayerChangeCb = 0;
+   
    MProgressWindow::endProgress();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
@@ -1214,6 +1278,7 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    MStatus status;
    int width = 1;
    int height = 1;
+   float pixelAspectRatio = 1.f;
    bool updateRender = false;
    
    MPlug plug = depNode.findPlug("width", &status);
@@ -1231,15 +1296,23 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    plug = depNode.findPlug("deviceAspectRatio", &status);
    if (status == MS::kSuccess)
    {
-      float pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+      pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
       if (ABS(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
       {
          updateRender = true;
       }
    }
 
-   if(updateRender)      
-      renderViewMtoA->SetOption("Update Full Scene", "1");
+   if(updateRender)
+   {
+      renderViewMtoA->SetOption("Full IPR Update", "1");
+
+      // want to resize the window
+      if (width  > 1 && height > 1 && pixelAspectRatio > 0.f)
+         renderViewMtoA->Resize(width * pixelAspectRatio, height);
+   }
+
+
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
 {
@@ -1422,6 +1495,42 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 {
    if (!m_hasProgressiveRenderFinished) return;
    CMayaScene::ExecuteScript(m_progressiveRenderFinished, false, true);
+}
+
+void CRenderViewMtoA::Resize(int width, int height)
+{
+   CRenderViewInterface::Resize(width, height);
+   if (s_creatingARV)
+      return;
+
+#ifdef ARV_DOCKED
+
+   int isFloating = 0;
+   MGlobal::executeCommand("workspaceControl -q -fl \"ArnoldRenderView\"", isFloating);
+
+   // only resize the workspace if the window is floating
+   if (isFloating)
+   {
+      MString workspaceCmd = "workspaceControl -edit";
+      workspaceCmd += " -iw ";
+      workspaceCmd += width;
+      workspaceCmd += " -ih ";
+      workspaceCmd += height;
+      workspaceCmd += " \"ArnoldRenderView\"";
+      MGlobal::executeCommand(workspaceCmd);
+
+      // this is supposed to resize the workspace control, but apparenlty it isn't working
+      workspaceCmd = "workspaceControl -edit";
+      workspaceCmd += " -wp \"fixed\" -hp \"fixed\" \"ArnoldRenderView\" ";
+      MGlobal::executeCommand(workspaceCmd);
+
+      workspaceCmd = "workspaceControl -edit";
+      workspaceCmd += " -wp \"free\" -hp \"free\" \"ArnoldRenderView\" ";
+      MGlobal::executeCommand(workspaceCmd);
+   }
+
+
+#endif
 }
 
 #endif

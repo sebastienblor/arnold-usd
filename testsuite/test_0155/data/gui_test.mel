@@ -1,0 +1,56 @@
+file -f -o "test.ma";
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+arnoldRenderView -option "AOVs" "ID";
+$img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "AOVs" "N";
+$img = `pwd`;
+$img += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "AOVs" "indirect_diffuse";
+arnoldRenderView -option "Channels" "Red Channel";
+arnoldRenderView -option "Channels" "Blue Channel";
+arnoldRenderView -option "Channels" "Green Channel";
+arnoldRenderView -option "AOVs" "direct_diffuse";
+arnoldRenderView -option "Channels" "Blue Channel";
+arnoldRenderView -option "Channels" "Alpha Channel";
+arnoldRenderView -option "Channels" "Luma Value";
+arnoldRenderView -option "AOVs" "diffuse_albedo";
+arnoldRenderView -option "Channels" "All Channels";
+$img = `pwd`;
+$img += "/testrender_3.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+arnoldRenderView -option "Test Resolution" "50%";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_4.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Test Resolution" "150%";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_5.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -option "Exposure" "0.5";
+arnoldRenderView -option "Test Resolution" "Fit Window Size";
+pause -sec 3;
+arnoldRenderView -option "Width" "400";
+arnoldRenderView -option "Height" "127";
+pause -sec 3;
+arnoldRenderView -option "Wait Render" "1";
+$img = `pwd`;
+$img += "/testrender_6.tif";
+arnoldRenderView -option "Save Image" $img;
+
+
+quit -force -abort;

@@ -53,6 +53,7 @@ class CQuadLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
+   
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -60,8 +61,16 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      m_flushCache = false; // initialize to false
+      m_colorTexture = false;
       return AddArnoldNode("quad_light");
    }
+protected:
+   void NodeChanged(MObject& node, MPlug& plug);
+
+private:
+   bool m_colorTexture;
+   bool m_flushCache;
 };
 
 class CCylinderLightTranslator : public CLightTranslator
@@ -157,8 +166,35 @@ public:
 
    virtual void ExportMotion(AtNode* light);
 protected:
+   MPlug GetPlug(const MObject& obj, const MString &attrName, MStatus* ReturnStatus = NULL) const
+   {
+      MFnDependencyNode fnNode(obj);
+      return fnNode.findPlug(attrName, ReturnStatus);
+   }
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
    virtual MObject GetMeshObject() const;
 
    int m_numVertices;
 };
+
+
+// Translator for new mesh light representation where
+// the light is a seperate node, with a connection to the
+// mesh representing the light shape
+class CMeshLightNewTranslator : public CMeshLightTranslator
+{
+public:
+   CMeshLightNewTranslator() : CMeshLightTranslator() {}
+   virtual MObject GetMeshObject() const;
+
+   static void* creator()
+   {
+      return new CMeshLightNewTranslator();
+   }
+
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+
+

@@ -11,7 +11,7 @@ CShadingEngineTranslator::~CShadingEngineTranslator()
 
 void CShadingEngineTranslator::Init()
 {
-   m_impl->m_shaders = new std::set<AtNode*>;//AtNodeSet;
+   m_impl->m_shaders = new unordered_set<AtNode*>;//AtNodeSet;
    CNodeTranslator::Init();
 }
 
@@ -201,7 +201,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
 
             // TODO: By now we have to check the connected nodes and if something that is not a mesh
             //  is connected, we do not reexport, as some crashes may happen.
-            if(translator2->GetMayaNodeTypeName() != "mesh")
+            if(MFnDependencyNode(translator2->GetMayaObject()).typeName() != "mesh")
             {
                reexport = false;
                break;

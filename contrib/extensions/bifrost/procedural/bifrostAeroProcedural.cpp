@@ -51,6 +51,7 @@ struct BfVolumeUserData {
    float shadowing_step_size;
    int shadowing_max_steps;
 
+   float shutter_length;
    float inv_fps;
 
 };
@@ -141,6 +142,10 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
    out_data->auto_step_size = data->step_size;
    out_data->private_info = user_ptr;
    data->inv_fps = AiNodeLookUpUserParameter(node, "inv_fps") ? AiNodeGetFlt(node, "inv_fps") : 1.f; 
+
+
+   data->shutter_length = AiNodeLookUpUserParameter(node, "shutter_length") ? AiNodeGetFlt(node, "shutter_length") : 1.f; 
+
    //AiAddMemUsage((AtInt64)grid->memoryUsage(), "BifrostAero volume plugin data");
 
 
@@ -230,7 +235,7 @@ bool BifrostAeroVolumePluginSample(void* user_ptr,
      value->RGB.g = col[1]; 
      value->RGB.b = col[2]; 
 
-     value->RGB *= volData->inv_fps;
+     value->RGB *= volData->inv_fps * volData->shutter_length;
      
      return true;
    }

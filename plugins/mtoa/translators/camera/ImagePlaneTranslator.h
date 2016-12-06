@@ -20,7 +20,7 @@ public:
    
    virtual bool RequiresMotionData();
    
-   void ExportImagePlane(unsigned int step);
+   void ExportImagePlane();
 protected:
 
 

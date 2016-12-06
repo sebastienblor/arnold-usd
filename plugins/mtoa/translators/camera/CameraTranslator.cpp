@@ -43,7 +43,7 @@ void CCameraTranslator::ExportImagePlanes()
 
             if (imgPlaneTranslator)
             {
-               if (GetMotionStep() == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
+               if (!IsExportingMotion()) imgPlaneTranslator->SetCamera(GetMayaNodeName());
                else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
             }
          }
@@ -102,7 +102,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
 
 void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
-   if (GetMotionStep() > 0)
+   if (IsExportingMotion())
    {
       // for motion steps, only set the matrix at current step
       AtMatrix matrix;
@@ -132,7 +132,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, 0, matrix);
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
       AiNodeSetArray(camera, "matrix", matrices);
    }
    else
@@ -407,3 +407,17 @@ void CCameraTranslator::RequestUpdate()
       m_impl->m_session->QueueForUpdate(this); // still queue me for update, so that arnold scene remains sync'ed
 }
 
+void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "overscan") return;
+   if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
+
+   if (plugName == "panZoomEnabled" || plugName == "horizontalPan" || plugName == "verticalPan" || plugName == "zoom")
+   {
+      if (!FindMayaPlug("renderPanZoom").asBool())
+         return;
+   }
+
+   CDagTranslator::NodeChanged(node, plug);
+}

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <set>
-
+#include "common/UnorderedContainer.h"
 #include <maya/MObject.h>
 #include <maya/MDagPath.h>
 #include <maya/MAnimControl.h>
@@ -9,33 +8,35 @@
 #include <maya/MString.h>
 #include <maya/MVector.h>
 
-// Export
+/// Specify the Session mode for current export
 enum ArnoldSessionMode
 {
-   MTOA_SESSION_UNDEFINED = 0,
-   MTOA_SESSION_RENDER = 1,
-   MTOA_SESSION_BATCH,
-   MTOA_SESSION_IPR,
-   MTOA_SESSION_SWATCH,
-   MTOA_SESSION_ASS,
-   MTOA_SESSION_AIR,
-   MTOA_SESSION_RENDERVIEW,
-   MTOA_SESSION_MATERIALVIEW,
-   MTOA_SESSION_SEQUENCE,
+   MTOA_SESSION_UNDEFINED = 0,  ///< Unknown
+   MTOA_SESSION_RENDER = 1, ///< Render in Maya Render View
+   MTOA_SESSION_BATCH, ///< Batch Render
+   MTOA_SESSION_IPR,  ///< IPR Rendering in Maya Render View
+   MTOA_SESSION_SWATCH, ///< Simple rendering performed for the swatches (e.g. Attribute Editor)
+   MTOA_SESSION_ASS, ///< Exporting the scene to .ASS file
+   MTOA_SESSION_AIR,  
+   MTOA_SESSION_RENDERVIEW, ///< Render with Arnold RenderView
+   MTOA_SESSION_MATERIALVIEW, ///< Material Viewer rendering
+   MTOA_SESSION_SEQUENCE,  ///< Render a Sequence from Maya interface
    MTOA_SESSION_ANY
 };
 
+/// Determines the Light-linking rules for this export
 enum ArnoldLightLinkMode
 {
-   MTOA_LIGHTLINK_NONE,
-   MTOA_LIGHTLINK_MAYA
+   MTOA_LIGHTLINK_NONE,  ///< Ignore Light-linking
+   MTOA_LIGHTLINK_MAYA ///<  Follow Maya's Light linking
 };
 
+///< Determines the Shadow Linking rules for this export
 enum ArnoldShadowLinkMode
 {
-   MTOA_SHADOWLINK_NONE,
-   MTOA_SHADOWLINK_LIGHT,
-   MTOA_SHADOWLINK_MAYA,
+   MTOA_SHADOWLINK_NONE, ///< Ignore Shadow linking
+   MTOA_SHADOWLINK_LIGHT, ///< Follow same rules as light-linking
+   MTOA_SHADOWLINK_MAYA, ///< Follow Maya's shadow linking
 };
 
 // Filters
@@ -45,7 +46,7 @@ enum ArnoldShadowLinkMode
 #define MTOA_FILTER_LAYER     0x0004
 #define MTOA_FILTER_ANY       0xFFFF
 
-typedef std::set<MFn::Type> MFnTypeSet;
+typedef unordered_set<MFn::Type, hash<int> > MFnTypeSet;
 
 struct CMayaExportFilter
 {

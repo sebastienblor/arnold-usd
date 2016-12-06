@@ -160,7 +160,8 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False)
+    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
+    BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False)
 )
 
 if system.os() == 'darwin':
@@ -285,29 +286,32 @@ if int(maya_version_base) >= 2014:
 
 if int(maya_version) >= 201700:
     env["ENABLE_COLOR_MANAGEMENT"] = 1
+    env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
     env["MTOA_AFM"] = 1
 
-mercurial_id = ""
+build_id = ""
 
 try:
-    p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
-    mercurial_id, err = p.communicate()
-    mercurial_id = mercurial_id.rstrip('\n')
+    p = subprocess.Popen(['git', 'rev-parse','--short=8','HEAD'], stdout=subprocess.PIPE)
+    build_id, err = p.communicate()
+    p = subprocess.Popen(['git', 'rev-parse','--abbrev-ref','HEAD'], stdout=subprocess.PIPE)
+    build_branch, err = p.communicate()
+    build_id = build_id.rstrip('\n') + " (" + build_branch.rstrip('\n') + ")"
 except:
-    pass #hg is not in the path
-mercurial_id_file_contents = '#pragma once\n#define MERCURIAL_ID "%s"\n\n' % mercurial_id
-mercurial_id_file_read = ''
+    pass #git is not in the path
+build_id_file_contents = '#pragma once\n#define BUILD_ID "%s"\n\n' % build_id
+build_id_file_read = ''
 try:
-    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'r')
-    mercurial_id_file_read = open.read()
-    mercurial_id_file.close()
+    build_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'BuildID.h'), 'r')
+    build_id_file_read = open.read()
+    build_id_file.close()
 except:
     pass # the file doesn't exists yet
-if mercurial_id_file_read != mercurial_id_file_contents:
-    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'w')
-    mercurial_id_file.write(mercurial_id_file_contents)
-    mercurial_id_file.flush()
-    mercurial_id_file.close()
+if build_id_file_read != build_id_file_contents:
+    build_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'BuildID.h'), 'w')
+    build_id_file.write(build_id_file_contents)
+    build_id_file.flush()
+    build_id_file.close()
 # print build info
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
@@ -327,7 +331,7 @@ if system.os() == 'linux':
         pass
 elif system.os() == 'windows':
     print 'MSVC version   : %s' % (env['MSVC_VERSION'])
-print 'Mercurial ID   : %s' % mercurial_id
+print 'Build ID       : %s' % build_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
@@ -401,6 +405,9 @@ if env['COMPILER'] == 'gcc':
     ## Hardcode '.' directory in RPATH in linux
     if system.os() == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
+        if int(maya_version_base) >= 2018:
+            env.Append(CXXFLAGS = Split('-std=c++11'))
+            env.Append(CCFLAGS = Split('-std=c++11'))
         #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
     ## warning level
@@ -427,8 +434,10 @@ if env['COMPILER'] == 'gcc':
         ## tell gcc to compile a 64 bit binary
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
-        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.8'))
-        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.8'))
+
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.9'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.9'))
+
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
@@ -677,21 +686,12 @@ else:
 
 Depends(MTOA, MTOA_API[0])
 
-DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
-                          duplicate   = 0,
-                          exports     = 'env')
-
-TIFF2JPEG = env.SConscript(os.path.join('tools', 'tiff2jpeg', 'SConscript'),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'tiff2jpeg'),
-                          duplicate   = 0,
-                          exports     = 'env')
 
 SConscriptChdir(0)
 TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
                            variant_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
                            duplicate   = 0,
-                           exports     = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
+                           exports     = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS ')
 
 MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
                      variant_dir = os.path.join(BUILD_BASE_DIR, 'docs', 'api'),
@@ -749,6 +749,10 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 
 OCIO_DYLIBPATH =""
 
+if int(maya_version) < 201500:
+    # 2014 no longer supported. Skipping ARV libs
+    env['MTOA_DISABLE_RV'] = 1
+
 if not env['MTOA_DISABLE_RV']:
     if system.os() == 'windows':
         RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
@@ -791,6 +795,7 @@ apiheaders = [
                 #os.path.join('attributes', 'Components.h'),
                 #os.path.join('common', 'MObjectCompare.h'),
                 os.path.join('common', 'UtilityFunctions.h'),
+                os.path.join('common', 'UnorderedContainer.h'),
                 os.path.join('extension', 'Extension.h'),
                 #os.path.join('extension', 'ExtensionsManager.h'),
                 #os.path.join('extension', 'AbMayaNode.h'),
@@ -926,15 +931,21 @@ env['BUILDERS']['PackageDeploy']  = Builder(action = Action(deploy,  "Deploying 
 ## EXTENSIONS
 ################################
 
-print 'extensions'
-
 ext_env = maya_env.Clone()
 
-ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
-
-# Instead of including our whole MtoA folder, we should just include what's provided in the public API
-#ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
-ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+# In theory we should always build our extensions against the resulting "target" includes folder. 
+# However, when there are changes in the API files they aren't always updated before the build starts. 
+# We might have been doing something wrong here,
+# but for now we will only build extensions against target API include folder if this variable is defined.
+# It is important to try that regularly, in order to make sure our extensions aren't cheating by including more
+# files than what they're supposed to
+if env['BUILD_EXT_TARGET_INCLUDES'] == 1:
+    ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
+    # Instead of including our whole MtoA folder, we should just include what's provided in the public API
+    ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+else:
+    ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+    
 
 ext_env.Append(LIBPATH = ['.', ARNOLD_API_LIB, ARNOLD_BINARIES])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),

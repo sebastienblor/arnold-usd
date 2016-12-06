@@ -74,7 +74,7 @@ MStringArray CExtension::Required()
 unsigned int CExtension::TranslatorCount() const
 {
    unsigned int sum = 0;
-   MayaNodeToTranslatorsMap::const_iterator it;
+   MayaNodeToTranslatorsOldMap::const_iterator it;
    for (it = m_impl->m_registeredTranslators.begin();
         it != m_impl->m_registeredTranslators.end();
         it++)
@@ -214,7 +214,7 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
 MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, int dataType, const MString &aovAttr)
 {
    CPxMayaNode mayaNode(mayaTypeName);
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_impl->m_registeredTranslators.find(mayaNode);
    if (nodeIt != m_impl->m_registeredTranslators.end())
    {
@@ -638,7 +638,8 @@ MStatus CExtensionImpl::NewMappedMayaNode(CPxMayaNode mayaNode,
    // it doesnt' exist and we have all required information or use defaults
    if (mayaNode.name == "")
    {
-      mayaNode.name = toMayaStyle(MString("ai_")+arnoldNode.name);
+      mayaNode.SetName(toMayaStyle(MString("ai_")+arnoldNode.name));
+      
       AiMsgWarning("[mtoa] [%s] [node %s] Using auto generated associated Maya type name %s.",
             mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
    }
@@ -744,7 +745,7 @@ MStatus CExtensionImpl::MapMayaNode(const CPxMayaNode &mayaNode,
    // Not found, add it
    it = m_arnoldToMayaNodes.insert(range.first, std::make_pair(arnoldNode, mayaNode));
    // Add an empty translator set for that node
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt == m_registeredTranslators.end())
    {
@@ -774,7 +775,7 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
    if (NULL != trs)
    {
       trs->CreateImplementation();
-      if (trsProxy.name == "") trsProxy.name = trs->m_impl->m_abstract.name;
+      if (trsProxy.name == "") trsProxy.SetName(trs->m_impl->m_abstract.name);
       if (trsProxy.arnold == "") trsProxy.arnold = trs->m_impl->m_abstract.arnold;
       // if (trsProxy.maya == "") trsProxy.maya = trs->m_abstract.maya;
       if (trsProxy.provider == "") trsProxy.provider = trs->m_impl->m_abstract.provider;
@@ -788,7 +789,7 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
       return MStatus::kFailure;
    }
    TranslatorsSet nodeTranslators;
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt != m_registeredTranslators.end())
    {
@@ -858,7 +859,7 @@ const CPxMayaNode* CExtensionImpl::FindRegisteredMayaNode(const CPxMayaNode &may
 /// Find a std::set of all registered translators for a Maya node.
 const TranslatorsSet* CExtensionImpl::FindRegisteredTranslators(const CPxMayaNode &mayaNode)
 {
-   MayaNodeToTranslatorsMap::iterator nodeIt;
+   MayaNodeToTranslatorsOldMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt != m_registeredTranslators.end())
    {

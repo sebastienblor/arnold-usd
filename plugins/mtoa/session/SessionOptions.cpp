@@ -62,7 +62,8 @@ MStatus CSessionOptions::GetFromMaya()
          m_shadowlink = ArnoldShadowLinkMode(plug.asInt());
 
       // Motion blur options
-      if (fnArnoldRenderOptions.findPlug("mb_en").asBool())
+      // disable motion for material viewer and swatch rendering
+      if (m_mode != MTOA_SESSION_MATERIALVIEW && m_mode != MTOA_SESSION_SWATCH && fnArnoldRenderOptions.findPlug("mb_en").asBool())
       {
          m_motion.enable_mask   = (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_LIGHT)
                                 | (fnArnoldRenderOptions.findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA)

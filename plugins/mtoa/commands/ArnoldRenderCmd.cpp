@@ -352,7 +352,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          for (double framerender = startframe; framerender <= endframe; framerender += byframestep)
             frameSet.insert(framerender);
       }
-      
+
+      size_t frameIndex = 1, frameCount = frameSet.size();
+      // Get Layer display name
+      MObject layerObj = MFnRenderLayer::currentLayer();
+      MString layerDisplayName = MFnDependencyNode(layerObj).name();
+      int scriptExists = 0;
+
+      MGlobal::executeCommand("exists renderLayerDisplayName", scriptExists);
+      if (scriptExists)
+         MGlobal::executeCommand("​renderLayerDisplayName " + layerDisplayName, layerDisplayName);
 
       for (std::set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
       {
@@ -424,6 +433,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
             else
             {
+               std::stringstream msg;
+               
+               msg << "[mtoa] Rendering Frame: " << framerender << " (" << frameIndex << "/" << frameCount
+                  << ")  Camera: " << cameraDagPath.partialPathName() << "  Layer: " << layerDisplayName.asChar();
+
+               MGlobal::displayInfo(msg.str().c_str());
+               MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+               for (size_t i = 0; i < imageFilenames.length(); ++i)
+                  MGlobal::displayInfo("\t" + imageFilenames[i]);
+
                int status = renderSession->DoInteractiveRender();
                if (status != AI_SUCCESS)
                {
@@ -443,6 +462,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
          CMayaScene::End();
          CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+         ++frameIndex;
       }
    }
 
@@ -476,7 +496,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          renderSession->SetRenderViewPanelName(renderViewPanelName);
 
       // Start the render.
-      renderSession->DoInteractiveRender();
+      int stat = renderSession->DoInteractiveRender();
+      if (stat != AI_SUCCESS)
+         status = MS::kFailure;
 
       CMayaScene::End();
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);

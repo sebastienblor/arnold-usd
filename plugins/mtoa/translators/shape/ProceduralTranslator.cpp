@@ -135,7 +135,14 @@ void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
 void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
 {
    MDagPath masterInstance = GetMasterInstance();
-   AtNode* masterNode = AiNodeLookUpByName(GetArnoldNaming(masterInstance).asChar());
+   CNodeTranslator *masterTr = GetTranslator(masterInstance);
+
+   // in case master instance wasn't exported (#648)
+   if (masterTr == NULL)
+      masterTr = CDagTranslator::ExportDagPath(masterInstance);
+   
+   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
+
    AiNodeSetStr(instance, "name", GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
@@ -192,6 +199,16 @@ void CArnoldProceduralTranslator::ExportShaders()
    }
 
 }
+void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   if (plugName == ".deferStandinLoad" || plugName == ".dso" || plugName == ".data")
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShapeTranslator::NodeChanged(node, plug);
+}
+
 
 void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
 {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ShapeTranslator.h"
-
+#include "common/UnorderedContainer.h"
 #include <maya/MFnParticleSystem.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTimer.h>
@@ -83,6 +83,8 @@ protected:
 
 protected:
 
+   virtual void RequestUpdate();
+
    // by solid angle's conventions m_renderTypeSphere should be formatted like:  PARTICLE_TYPE_SPHERE
    enum ParticleRenderType
    {
@@ -108,15 +110,16 @@ protected:
 
 
    // these hold each frame steps values  per map entry  for  custom attrs
-   std::map<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
-   std::map<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
-   std::map<std::string,  MIntArray* > m_out_customIntAttrArrays;
+   unordered_map<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
+   unordered_map<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
+   unordered_map<std::string,  MIntArray* > m_out_customIntAttrArrays;
 
 
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays
-   std::map<int, int>  m_particleIDMap;
+   unordered_map<int, int>  m_particleIDMap;
 
-
+   std::vector<bool> m_exportedSteps;
+   
    MVectorArray m_instantVeloArray;
    MVectorArray m_instantAcceArray;
    MFnDagNode m_DagNode;

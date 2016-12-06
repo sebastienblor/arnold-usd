@@ -92,8 +92,10 @@ void CLambertTranslator::Export(AtNode* shader)
          // Need to reverse it
          if (inNode != NULL)
          {
-            MString tag = GetMayaNodeName() + ".transparency";
-            AtNode* reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
+            MString tag = "transparency";
+            AtNode* reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
             AiNodeLink(inNode, "input", reverseNode);
             AiNodeLink(reverseNode, "opacity", shader);
          }
@@ -255,6 +257,19 @@ void CFileTranslator::Export(AtNode* shader)
 
       options.FormatTexturePath(resolvedFilename);
 
+      // need to handle <f> tokens, in case they are combined with other (eventually arnold) tokens
+      static const MString fTokenStr = "<f>";
+      int fTokenIndex = resolvedFilename.indexW(fTokenStr);
+      if (fTokenIndex > 0)
+      {
+         // the MString frameNumber adds a '0' before the frame value.
+         // Do we really want that ? doesn't make much sense....so well, removing it here
+         int fileFrame = FindMayaPlug("useFrameExtension").asBool() ? FindMayaPlug("frameExtension").asInt() + FindMayaPlug("frameOffset").asInt() : (int)GetExportFrame();
+         frameNumber = fileFrame;
+         MString filenameExt = resolvedFilename.substringW(fTokenIndex + 3, resolvedFilename.length() - 1);
+         resolvedFilename = resolvedFilename.substringW(0, fTokenIndex - 1) + frameNumber + filenameExt;
+      }
+
       MString colorSpace = FindMayaPlug("colorSpace").asString();
       
       // if the color space has changed, we'll need to re-generate TX anyway
@@ -405,7 +420,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 #ifdef MTOA_ENABLE_GAMMA
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
 #else
-   AiNodeSetFlt(shader, "gamma_correct", 1.f);
+   AiNodeSetBool(shader, "gamma_correct", false);
 #endif
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");
@@ -1096,7 +1111,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    if (RequiresMotionData())
    {
       AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(values, 0, value);
+      AiArraySetFlt(values, GetMotionStep(), value);
       AiNodeSetArray(shader, "values", values);
    }
    else

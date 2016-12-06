@@ -93,7 +93,7 @@ void CLightTranslator::Export(AtNode* light)
    if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, 0, matrix);
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
       AiNodeSetArray(light, "matrix", matrices);
    }
    else
@@ -155,10 +155,24 @@ double BBSpectrum(double wavelength, double bbTemp)
            (exp(1.4388e-2 / (wlm * bbTemp)) - 1.0);
 }
 
-AtRGB XYZtoRGB(double x, double y, double z)
-{   
+AtRGB XYZtoRGB(float x, float y, float z)
+{
+   // using sRGB color space
+   float m[3][3] =  { { 3.2404542f, -1.5371385f, -0.4985314f},
+                      {-0.9692660f,  1.8760108f,  0.0415560f},
+                      { 0.0556434f, -0.2040259f,  1.0572252f} };
+
+   AtRGB rgb;
+   for (int i = 0; i < 3; i++)
+      rgb[i] = x * m[i][0] + y * m[i][1] + z * m[i][2];
+   return rgb;
+
+}
+
+
+AtRGB OldXYZtoRGB(double x, double y, double z)
+{
    // using the standard CIE color space
-   
    static const double xr = 0.7355;
    static const double xg = 0.2658;
    static const double xb = 0.1669;
@@ -203,6 +217,7 @@ AtRGB XYZtoRGB(double x, double y, double z)
    rgb.g = static_cast<float>((gx * x) + (gy * y) + (gz * z));
    rgb.b = static_cast<float>((bx * x) + (by * y) + (bz * z));
    return rgb;
+
 }
 
 // reference, public domain code : http://www.fourmilab.ch/documents/specrend/specrend.c
@@ -256,8 +271,20 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
    X /= XYZ;
    Y /= XYZ;
    Z /= XYZ;
-   
-   AtRGB rgb = XYZtoRGB(X, Y, Z);
+
+   // should we use legacy temperature ?
+   bool legacy = false;
+   MSelectionList list;
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      MObject optionsNode;
+      list.getDependNode(0, optionsNode);
+      MFnDependencyNode fnArnoldRenderOptions(optionsNode);
+      legacy = fnArnoldRenderOptions.findPlug("legacyLightTemperature").asBool();
+   }
+
+   AtRGB rgb = legacy ? OldXYZtoRGB(X, Y, Z) : XYZtoRGB((float)X, (float)Y, (float)Z);
    float w;
    w = (0.f < rgb.r) ? 0.f : rgb.r;
    w = (w < rgb.g) ? w : rgb.g;
@@ -280,4 +307,17 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
    }
 
    return rgb;
+}
+
+
+void CLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{  
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   // this plug is dirtied when the light editor is opened
+   // so we don't want to take it into account
+   if (plugName == ".childIndex")
+      return;
+
+   CDagTranslator::NodeChanged(node, plug);
 }

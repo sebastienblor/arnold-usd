@@ -5,7 +5,7 @@
 #include "render/AOV.h"
 #include "SessionOptions.h"
 #include "ArnoldLightLinks.h"
-
+#include "common/AiStream.h"
 #include <ai_nodes.h>
 
 #include <maya/MStatus.h>
@@ -47,16 +47,16 @@ class COptionsTranslator;
 // for Maya node with multiple outputs (until Arnold nodes support multiple outputs)
 // (Trac #351)
 // FIXME: careful that multiple occurrence of same translator will cause a crash when clearing map and deleting them!
-typedef std::multimap<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorMap;
+typedef unordered_map<std::string, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 typedef std::pair<CNodeAttrHandle, MCallbackId> HiddenObjectCallbackPair;
 
 // Map dag object handles to master instance
-typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
+typedef unordered_map<MObjectHandle, MDagPath> ObjectHandleToDagMap;
 
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
-typedef std::set<AtNode*> AtNodeSet;
+typedef unordered_set<AtNode*> AtNodeSet;
 
 /// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
 /// file or any other use. It has methods to export individual objects or whole scenes, and tracks the list
@@ -81,7 +81,7 @@ public:
                       bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
-   unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
+   CNodeTranslator *GetActiveTranslator(const CNodeAttrHandle &handle);
    bool IsRenderablePath(MDagPath dagPath);
 
    inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }
@@ -146,7 +146,7 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
    void RequestUpdate();
-   void EraseActiveTranslator(const CNodeAttrHandle &handle);
+   void EraseActiveTranslator(CNodeTranslator *translator);
 
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
@@ -158,6 +158,8 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
+   MStringArray GetActiveImageFilenames() const;
+   
    DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const; 
 
    void FormatTexturePath(MString& texturePath);
@@ -170,8 +172,6 @@ public:
    float& ScaleArea(float& area) const;
    float& ScaleLightExposure(float& exposure) const;
    MVector GetOrigin() const;
-   //void SetContinuousUpdates(bool b);
-   //bool GetContinuousUpdates() const { return m_continuousUpdates;}
    bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
    MString GetMayaObjectName(const AtNode *node) const;
@@ -179,31 +179,21 @@ public:
    // from a Maya name, get corresponding name in Arnold scene
    const char *GetArnoldObjectName(const MString &mayaName) const;
 
-   // this is going to recreate all nodes that require motion data (when MB parameters are edited)
-   void RecomputeMotionData();
-/*
-   bool IsActiveAOV(CAOV &aov) const
-   {
-      if (m_aovs.count(aov))
-         return true;
-      else
-         return false;
-   }
-
-   AOVSet GetActiveAOVs() const
-   {
-      return m_aovs;
-   }
-
-   unsigned int NumAOVs() const
-   {
-      return static_cast<unsigned int>(m_aovs.size());
-   }
-*/
    const MStringArray &GetTextureSearchPaths() const;
    const MStringArray &GetProceduralSearchPaths() const;
 
    void RequestUpdateTx() {m_updateTx = true;}   
+   
+   // this is going to recreate all nodes that require motion data (when MB parameters are edited)
+   void RequestUpdateMotion();
+
+   void RequestUpdateOptions();
+
+   void QueueProceduralUpdate(CNodeTranslator *tr);
+   void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
+   void UnRegisterProcedural(AtNode *node);
+   void ExportTxFiles();
+
 private:
 
    CArnoldSession()
@@ -218,10 +208,7 @@ private:
       ,  m_is_active(false)
       ,  m_updateTx(false)
       ,  m_updateMotionData(false)
-
-
-      //,  m_continuousUpdates(true)
-
+      ,  m_updateOptions(false)
    {
    }
 
@@ -261,9 +248,10 @@ private:
    bool IsVisible(MFnDagNode &node) const;
    bool IsVisiblePath(MDagPath dagPath) const;
 
-   void ExportTxFiles();
+   
    void RecursiveUpdateDagChildren(MDagPath &parent);
 
+   void UpdateProceduralReferences();
 
 private:
 
@@ -281,7 +269,6 @@ private:
    bool m_requestUpdate;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
    
-   // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
    
    double m_scaleFactor;
@@ -289,6 +276,8 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
+   unordered_set<CNodeTranslator *> m_proceduralsToUpdate;
+   
 protected:
    ObjectHandleToDagMap m_masterInstances;
 
@@ -296,6 +285,5 @@ protected:
    bool                 m_is_active;
    bool                 m_updateTx;
    bool                 m_updateMotionData;
-   //bool                 m_continuousUpdates;
-   //AOVSet m_aovs;
+   bool                 m_updateOptions;
 };  // class CArnoldSession

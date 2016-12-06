@@ -39,7 +39,7 @@
 #include <cstdio>
 #include <assert.h>
 
-#ifdef _LINUX
+#ifndef _WIN64
 #include <unistd.h>
 #endif
 
@@ -190,11 +190,7 @@ MStatus CRenderSession::End()
 
    }
    
-   if (!AiUniverseIsActive())
-   {
-      AiMsgWarning("[mtoa] No active Arnold Universe present.");
-   }
-   else
+   if (AiUniverseIsActive())
    {
       if (m_renderOptions.m_forceTextureCacheFlushAfterRender)
       {
@@ -852,3 +848,15 @@ bool CRenderSession::RenderSequence()
    return true;
 }
 
+void CRenderSession::UpdateRenderOptions()
+{
+   m_renderOptions.GetFromMaya(); 
+   m_renderOptions.SetupLog();
+
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView)
+   {
+      s_renderView->SetLogging(m_renderOptions.GetLogConsoleVerbosity(), m_renderOptions.GetLogFileVerbosity());
+   }
+#endif
+}

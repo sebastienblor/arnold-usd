@@ -1,4 +1,5 @@
 #include "ObjectSetTranslator.h"
+#include "NodeTranslatorImpl.h"
 
 #include <maya/MFnSet.h>
 #include <maya/MDagPathArray.h>
@@ -31,34 +32,26 @@ void CObjectSetTranslator::Export(AtNode *set)
    // We don't call CNodeTranslator::Export
    // because we don't want to export anything
 
+   // do we want to fill the member translators here ?
+   // FillMembersTranslators();
+
    AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s).",
-               GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+               GetTranslatorName().asChar(), GetMayaNodeName().asChar(), MFnDependencyNode(GetMayaObject()).typeName().asChar());
 
 }
 
 /// Sets have extra specific callback addAttributeChangedCallback
 void CObjectSetTranslator::AddUpdateCallbacks()
 {
+   CNodeTranslator::AddUpdateCallbacks();
+
    AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add update callbacks on translator %p",
          GetMayaNodeName().asChar(), GetTranslatorName().asChar(), this);
    MStatus status;
    MCallbackId id;
 
    MObject object = GetMayaObject();
-   // So we update on attribute/input changes.
-   id = MNodeMessage::addNodeDirtyCallback(object,
-                                           NodeDirtyCallback,
-                                           this,
-                                           &status);
-   if (MS::kSuccess == status) RegisterUpdateCallback(id);
-
-   // In case we're deleted!
-   id = MNodeMessage::addNodeAboutToDeleteCallback(object,
-                                                   NodeAboutToBeDeletedCallback,
-                                                   this,
-                                                   &status);
-   if (MS::kSuccess == status) RegisterUpdateCallback(id);
-
+      
    // Set members change (with precise info of what was added or removed)
    id = MNodeMessage::addAttributeChangedCallback(object,
                                                   AttributeChangedCallback,
@@ -77,22 +70,45 @@ void CObjectSetTranslator::AddUpdateCallbacks()
 
 void CObjectSetTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
+   m_membersListDirty = true;
+
    MString plugName = plug.name();
    if ((plug.partialName()=="dsm") || (plug.partialName()=="dnsm"))
    {
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: ignoring plug %s.",
+      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: ignoring plug %s.",
                   GetMayaNodeName().asChar(), plugName.asChar());
+      return;
    }
-   else if ((plug.partialName()=="ai_override") || FindMayaPlug("aiOverride").asBool())
+   if ((plug.partialName()=="ai_override") || FindMayaPlug("aiOverride").asBool())
    {
       // Only update if THIS set is active (not containing sets)
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s",
+      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: client data is translator %s",
                        GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      
+      // Get list of nodes on it
+
+      FillMembersTranslators();
+      if (m_membersTranslators.empty())
+         return;
+
+      // we want to keep NodeChanged protected. Calling the static NodeDirty callback instead
+      // (it will end up calling NodeChanged)
+      for (size_t i = 0; i < m_membersTranslators.size(); ++i)
+         NodeDirtyCallback(node, plug, m_membersTranslators[i]);
+
       RequestUpdate();
    }
 
 }
 
+void CObjectSetTranslator::DirtyElement(CNodeTranslator *elemTr)
+{
+   if (elemTr == NULL)
+      return;
+
+   CNodeTranslatorImpl::DirtyOverrideSets(elemTr);
+   
+}
 void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                                     MPlug& plug, MPlug& otherPlug,
                                                     void* clientData)
@@ -100,6 +116,8 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
    CObjectSetTranslator * translator = static_cast< CObjectSetTranslator* >(clientData);
    if (translator != NULL)
    {
+      translator->m_membersListDirty = true;
+
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: AttributeChangedCallback %s to or from %s, attributeMessage %i, clientData %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  plug.name().asChar(), otherPlug.name().asChar(), msg, clientData);
@@ -136,23 +154,16 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                   path = allPaths[instanceNumber];
                }
                if (path.isValid())
-               {
-                  CNodeTranslator *elemTr = GetTranslator(path); 
-                  if (elemTr)  elemTr->RequestUpdate();
-               }
+                  translator->DirtyElement(GetTranslator(path));
+                 
+               
                // Check also for shapes
                if (MStatus::kSuccess == path.extendToShape())
-               {
-                  CNodeTranslator *elemTr = GetTranslator(path); 
-                  if (elemTr)  elemTr->RequestUpdate();
-               }
+                  translator->DirtyElement(GetTranslator(path)); 
+               
             }
             else if (pname == "dnsm")
-            {
-               // dependency node
-               CNodeTranslator *elemTr = GetTranslator(otherPlug.node()); 
-               if (elemTr)  elemTr->RequestUpdate();
-            }
+               translator->DirtyElement(GetTranslator(otherPlug.node())); 
          }
       }
       else if (msg & (MNodeMessage::kAttributeAdded | MNodeMessage::kAttributeRemoved))
@@ -192,6 +203,8 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
    CObjectSetTranslator * translator = static_cast< CObjectSetTranslator* >(clientData);
    if (translator != NULL)
    {
+      translator->m_membersListDirty = true;
+
       // Should be a translator for that node
       if (node != translator->GetMayaObject())
       {
@@ -229,8 +242,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          }
          else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
          {
-            CNodeTranslator *elemTr = GetTranslator(linker); 
-            if (elemTr)  elemTr->RequestUpdate();
+            translator->DirtyElement(GetTranslator(linker)); 
          }
          else
          {
@@ -245,20 +257,20 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
                      nodeName.asChar(), clientData);
    }
 }
-
-static void RecursiveRequestUpdate(MDagPath path)
+static void FillMembersDagTranslators(MDagPath path, std::vector<CNodeTranslator*> &translators)
 {   
-
    std::vector<CNodeTranslator*>::iterator it;
    
    CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
-   if (elemTr)  elemTr->RequestUpdate();
+   if (elemTr) 
+      translators.push_back(elemTr);
 
    // Check also for shape
    if (MStatus::kSuccess == path.extendToShape())
    {
       CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
-      if (elemTr)  elemTr->RequestUpdate();
+      if (elemTr)
+         translators.push_back(elemTr);
    }
 
    // Check for child in the hierarchy
@@ -266,19 +278,18 @@ static void RecursiveRequestUpdate(MDagPath path)
    {
       MObject childObject = path.child(child);
       path.push(childObject);
-      RecursiveRequestUpdate(path);
+      FillMembersDagTranslators(path, translators);
       path.pop(1);
    }
 }
 
-/// Update a set means update all members
-// Note that this function RequestUpdate is local to this class.
-// It will never be called from CNodeTranslator as we're overriding the callbacks here
-void CObjectSetTranslator::RequestUpdate()
+void CObjectSetTranslator::FillMembersTranslators()
 {
-   // Update means all members should be updated
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate for set updates all set members.",
-              GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+   if (!m_membersListDirty)
+      return;
+
+   m_membersTranslators.clear();
+
    MFnSet fnSet(GetMayaObject());
    MSelectionList list;
    fnSet.getMembers(list, false);
@@ -289,25 +300,19 @@ void CObjectSetTranslator::RequestUpdate()
    unsigned int l = list.length();
    if (l > 0)
    {
-      // The code from CNodeTranslator::RequestUpdate was duplicated here
-      // we're now just calling the base class. Only difference is that
-      // CArnoldSession::Request is being called now, while before it
-      // was called explicitely a few lines below. But does it make a difference,
-      // since we're about to call RequestUpdate on several other translators ?
-      CNodeTranslator::RequestUpdate();
-
+      
       // loop ove all elements in the list
       for (unsigned int i=0; i<l; i++)
       {
          if (MStatus::kSuccess == list.getDagPath(i, path))
          {
-            RecursiveRequestUpdate(path);
-
+            FillMembersDagTranslators(path, m_membersTranslators);
          }
          else if (MStatus::kSuccess == list.getDependNode(i, element))
          {
             CNodeTranslator *elemTr = GetTranslator(element); 
-            if (elemTr)  elemTr->RequestUpdate();
+            if (elemTr)
+               m_membersTranslators.push_back(elemTr);
          }
          else
          {
@@ -315,8 +320,42 @@ void CObjectSetTranslator::RequestUpdate()
                    GetMayaNodeName().asChar(), "objectSet", i);
          }
       }
-      // removed the explicit call to CArnoldSession::RequestUpdate 
-      // as this is being done by each of the calls to CNodeTranslator::RequestUpdate Above
    }
+
+   m_membersListDirty = false;
 }
 
+/// Update a set means update all members
+// Note that this function RequestUpdate is local to this class.
+// It will never be called from CNodeTranslator as we're overriding the callbacks here
+void CObjectSetTranslator::RequestUpdate()
+{
+   FillMembersTranslators();
+   if (m_membersTranslators.empty())
+      return;
+
+   // The code from CNodeTranslator::RequestUpdate was duplicated here
+   // we're now just calling the base class. Only difference is that
+   // CArnoldSession::Request is being called now, while before it
+   // was called explicitely a few lines below. But does it make a difference,
+   // since we're about to call RequestUpdate on several other translators ?
+   CNodeTranslator::RequestUpdate();
+
+   for (size_t i = 0; i < m_membersTranslators.size(); ++i)
+      m_membersTranslators[i]->RequestUpdate();
+
+
+   // Update means all members should be updated
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate for set updates all set members.",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+   
+}
+
+void CObjectSetTranslator::Delete()
+{
+   for (size_t i = 0; i < m_membersTranslators.size(); ++i)
+      CNodeTranslatorImpl::DirtyOverrideSets(m_membersTranslators[i]);
+
+   CNodeTranslator::Delete();
+
+}
