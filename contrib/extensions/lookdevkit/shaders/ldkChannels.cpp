@@ -43,8 +43,8 @@ node_parameters
    AiParameterEnum("channelB", CHANNEL_B, OperationNames);
    AiParameterEnum("channelA", CHANNEL_A, OperationNames);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "channels");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81648);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "channels");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81648);
 }
 
 node_initialize
@@ -66,7 +66,7 @@ shader_evaluate
    const int channelB = AiShaderEvalParamEnum(p_channelB);
    const int channelA = AiShaderEvalParamEnum(p_channelA);
 
-   AtRGBA input = AiRGBACreate(0.0f, 0.0f, 0.0f, 0.0f);
+   AtRGBA input(0.0f, 0.0f, 0.0f, 0.0f);
 
    // Evaluate color input if needed
    if (channelR < CHANNEL_A || channelG < CHANNEL_A || channelB < CHANNEL_A || channelA < CHANNEL_A) 
@@ -84,8 +84,5 @@ shader_evaluate
    }
 
    // Pick the right channel from the input
-   sg->out.RGBA.r = input[channelR];
-   sg->out.RGBA.g = input[channelG];
-   sg->out.RGBA.b = input[channelB];
-   sg->out.RGBA.a = input[channelA];
+   sg->out.RGBA() = AtRGBA(input[channelR], input[channelG], input[channelB], input[channelA]);
 }

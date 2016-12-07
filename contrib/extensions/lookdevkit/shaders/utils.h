@@ -41,7 +41,7 @@ inline float CompositeSubtract(float a, float b, float factor)
 
 inline float CompositeMix(float a, float b, float factor)
 {
-   return LERP(factor, a, b);
+   return AiLerp(factor, a, b);
 }
 
 inline float CompositeMultiply(float a, float b, float factor)
@@ -66,12 +66,12 @@ inline float CompositeDifference(float a, float b, float factor)
 
 inline float CompositeDodge(float a, float b, float factor)
 {
-   return Clamp(LERP(factor, a, a / AiMax(1.0f - b, 0.00001f)), a, b);
+   return Clamp(AiLerp(factor, a, a / AiMax(1.0f - b, 0.00001f)), a, b);
 }
 
 inline float CompositeBurn(float a, float b, float factor)
 {
-   return Clamp(LERP(factor, a, 1.0f - (a / AiMax(1.0f - b, 0.00001f))), a, b);
+   return Clamp(AiLerp(factor, a, 1.0f - (a / AiMax(1.0f - b, 0.00001f))), a, b);
 }
 
 AtVector RGBtoHSV(const AtRGB& inRgb);

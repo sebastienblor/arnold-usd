@@ -20,8 +20,8 @@ node_parameters
    AiParameterFlt("floatB", 1.0f);
    AiParameterBool("condition", false);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatCondition");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x816832 );
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatCondition");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x816832 );
 }
 
 node_initialize
@@ -38,7 +38,7 @@ node_finish
 
 shader_evaluate
 {
-   sg->out.FLT = AiShaderEvalParamBool(p_condition) ? 
+   sg->out.FLT() = AiShaderEvalParamBool(p_condition) ? 
       AiShaderEvalParamFlt(p_floatA) :
       AiShaderEvalParamFlt(p_floatB);
 }

@@ -18,8 +18,8 @@ node_parameters
    AiParameterFlt("inFloat", 1.0f);
    AiParameterFlt("mask", 0.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatMask");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81624);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatMask");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81624);
 }
 
 node_initialize
@@ -39,9 +39,9 @@ shader_evaluate
    const float inFloat = AiShaderEvalParamFlt(p_inFloat);
    const float mask = AiShaderEvalParamFlt(p_mask);
 
-   sg->out.FLT = inFloat;
+   sg->out.FLT() = inFloat;
    if (mask > 0.0f)
    {
-      sg->out.FLT -= mask;
+      sg->out.FLT() -= mask;
    }
 }

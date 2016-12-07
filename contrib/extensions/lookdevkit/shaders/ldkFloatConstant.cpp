@@ -14,10 +14,10 @@ enum ldkFloatMathParams
 
 node_parameters
 {
-   AiParameterFLT("inFloat", 1.0f);
+   AiParameterFlt("inFloat", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatConstant");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81620);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatConstant");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81620);
 }
 
 node_initialize
@@ -34,5 +34,5 @@ node_finish
 
 shader_evaluate
 {
-   sg->out.FLT = AiShaderEvalParamFlt(p_inFloat);
+   sg->out.FLT() = AiShaderEvalParamFlt(p_inFloat);
 }

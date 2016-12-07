@@ -18,8 +18,8 @@ node_parameters
    AiParameterRGB("inColor", 0.3f, 0.3f, 0.3f);
    AiParameterFlt("inAlpha", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "premultiply");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81644);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "premultiply");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81644);
 }
 
 node_initialize
@@ -41,6 +41,6 @@ shader_evaluate
 
    resultColor *= resultAlpha;
 
-   sg->out.RGB = resultColor;
-   sg->out.RGBA.a = resultAlpha;
+   sg->out.RGB() = resultColor;
+   sg->out.RGBA().a = resultAlpha;
 }

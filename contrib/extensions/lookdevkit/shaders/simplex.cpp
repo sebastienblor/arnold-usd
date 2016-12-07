@@ -3,6 +3,11 @@
 
 namespace simplex
 {
+   float SGN(float a)
+   {
+      return a < 0.f ? -1.f : 1.f;
+   }
+   
    struct float2
    {
       float2() {};
