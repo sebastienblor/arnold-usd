@@ -10,10 +10,10 @@ enum HairPhysicalShaderSpecularWeightAdapterParams
 
 node_parameters
 {
-    AiParameterFLT("intensity", 0.55f);
-    AiParameterFLT("longitudinalWidth", 3.5f);
+    AiParameterFlt("intensity", 0.55f);
+    AiParameterFlt("longitudinalWidth", 3.5f);
 
-    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -36,5 +36,5 @@ shader_evaluate
     // We keep the overall intensity by multiplying a scale factor.
     const float intensity         = AiShaderEvalParamFlt(p_intensity);
     const float longitudinalWidth = AiShaderEvalParamFlt(p_longitudinalWidth);
-    sg->out.FLT = intensity * longitudinalWidth * 0.1f;
+    sg->out.FLT() = intensity * longitudinalWidth * 0.1f;
 }

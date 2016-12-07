@@ -8,7 +8,7 @@ node_parameters
    AiParameterInt("original", 0);
    AiParameterInt("value", 0);
    AiParameterBool("enabled", false);
-   AiMetaDataSetStr(mds, NULL, "maya.name", "applyAbsIntOverride");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "applyAbsIntOverride");
 }
 
 IMPLEMENT_APPLY_ABS_OVERRIDE_SHADER(INT, AiShaderEvalParamInt)
