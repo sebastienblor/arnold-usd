@@ -63,23 +63,23 @@ static int Init(AtNode *mynode, void **user_ptr)
       {
          AiNodeSetInt(particleSystem, "visibility", 0);
 
-         if (pathMatrixArray->nelements == 0)
+         if (AiArrayGetNumElements(pathMatrixArray) == 0)
          {
             AiMsgError("[INSTANCER] No matrix datas.");
             AiMsgError("[INSTANCER] Check preserve_scene_data option.");
             AiRenderAbort();
          }
 
-         nbInsts = pathIndicesArray->nelements;
+         nbInsts = AiArrayGetNumElements(pathIndicesArray);
 
          AiMsgInfo("[INSTANCER] instanciating %i objects", nbInsts);
 
          indxArray = AiArrayAllocate(nbInsts, 1, AI_TYPE_INT);
 
-         partArray = AiArrayAllocate(nbInsts, pathMatrixArray->nkeys, AI_TYPE_INT);
+         partArray = AiArrayAllocate(nbInsts, AiArrayGetNumKeys(pathMatrixArray), AI_TYPE_INT);
 
 
-         matrixArray = AiArrayAllocate(nbInsts, pathMatrixArray->nkeys, AI_TYPE_MATRIX);
+         matrixArray = AiArrayAllocate(nbInsts, AiArrayGetNumKeys(pathMatrixArray), AI_TYPE_MATRIX);
 
          // Preparing array for user attributes
          AtUserParamIterator *iter = AiNodeGetUserParamIterator(particleSystem);
@@ -91,9 +91,9 @@ static int Init(AtNode *mynode, void **user_ptr)
 
             AtArray* paramArray = AiNodeGetArray(particleSystem, attrName);
 
-            int type = paramArray->type;
+            int type = AiArrayGetType(paramArray);
 
-            params.push_back(AiArrayAllocate(nbInsts, paramArray->nkeys, type));
+            params.push_back(AiArrayAllocate(nbInsts, AiArrayGetNumKeys(paramArray), type));
 
             paramsName.push_back(attrName);
 
@@ -105,7 +105,9 @@ static int Init(AtNode *mynode, void **user_ptr)
 
          int index = 0;
 
-         for (size_t i = 0; i < pathMatrixArray->nelements; ++i)
+         unsigned arrayNumElements = AiArrayGetNumElements(pathMatrixArray);
+
+         for (size_t i = 0; i < arrayNumElements; ++i)
          {
 
 
@@ -120,19 +122,19 @@ static int Init(AtNode *mynode, void **user_ptr)
                {
 
                   AiArraySetInt(indxArray, index, AiArrayGetInt(pathIndicesArray,j ));
+                  int arrayNumKeys  = AiArrayGetNumKeys(pathMatrixArray);
 
-                  for (int step = 0; step < pathMatrixArray->nkeys; step++)
+                  for (int step = 0; step < arrayNumKeys; step++)
                   {
 
-                     AtMatrix curPathMatrix;
-                     AiArrayGetMtx(pathMatrixArray, j * pathMatrixArray->nkeys + step, curPathMatrix);
-                     AiArraySetMtx(matrixArray, index * pathMatrixArray->nkeys + step, curPathMatrix);
+                     AtMatrix curPathMatrix = AiArrayGetMtx(pathMatrixArray, j * arrayNumKeys + step);
+                     AiArraySetMtx(matrixArray, index * arrayNumKeys + step, curPathMatrix);
                   }
 
-                  for (int step = 0; step < pathMatrixArray->nkeys; step++)
+                  for (int step = 0; step < arrayNumKeys; step++)
                   {
                      int offset = nbInsts * step;
-                     AiArraySetInt(partArray, index + offset, (unsigned long)(i + pathMatrixArray->nelements*step));
+                     AiArraySetInt(partArray, index + offset, (unsigned long)(i + arrayNumElements*step));
 
 
 
@@ -152,30 +154,29 @@ static int Init(AtNode *mynode, void **user_ptr)
 //                     {
                         AtArray* paramArray = AiNodeGetArray(particleSystem, attrName);
 
-                        int type = paramArray->type;
+                        int type = AiArrayGetType(paramArray);
+                        int nkeys = AiArrayGetNumKeys(paramArray);
+                        unsigned nelements = AiArrayGetNumElements(paramArray);
 
-                        for (int step = 0; step < paramArray->nkeys; step++)
+                        for (int step = 0; step < nkeys; step++)
                         {
                            int offset = nbInsts * step;
                            switch (type)
                            {
-                           case 1:
-                              AiArraySetInt(params[k], index + offset, AiArrayGetInt(paramArray,j + paramArray->nelements*step));
+                           case AI_TYPE_INT:
+                              AiArraySetInt(params[k], index + offset, AiArrayGetInt(paramArray,j + nelements*step));
                               break;
-                           case 4:
-                              AiArraySetFlt(params[k], index + offset, AiArrayGetFlt(paramArray,j + paramArray->nelements*step));
+                           case AI_TYPE_FLOAT:
+                              AiArraySetFlt(params[k], index + offset, AiArrayGetFlt(paramArray,j + nelements*step));
                               break;
-                           case 5:
-                              AiArraySetRGB(params[k], index + offset, AiArrayGetRGB(paramArray,j + paramArray->nelements*step));
+                           case AI_TYPE_RGB:
+                              AiArraySetRGB(params[k], index + offset, AiArrayGetRGB(paramArray,j + nelements*step));
                               break;
-                           case 7:
-                              AiArraySetVec(params[k], index + offset, AiArrayGetVec(paramArray,j + paramArray->nelements*step));
+                           case AI_TYPE_VECTOR:
+                              AiArraySetVec(params[k], index + offset, AiArrayGetVec(paramArray,j + nelements*step));
                               break;
-                           case 8:
-                              AiArraySetPnt(params[k], index + offset, AiArrayGetPnt(paramArray,j + paramArray->nelements*step));
-                              break;
-                           case 10:
-                              AiArraySetStr(params[k], index + offset, AiArrayGetStr(paramArray,j + paramArray->nelements*step));
+                           case AI_TYPE_STRING:
+                              AiArraySetStr(params[k], index + offset, AiArrayGetStr(paramArray,j + nelements*step));
                               break;
                            }
 
@@ -198,7 +199,7 @@ static int Init(AtNode *mynode, void **user_ptr)
          if (AiNodeLookUpUserParameter(mynode, "objects") != NULL)
          {
             objArray = AiArrayCopy(AiNodeGetArray(mynode, "objects"));
-            nbObjects = objArray->nelements;
+            nbObjects = AiArrayGetNumElements(objArray);
          }
 
          if (nbObjects == 0)
@@ -225,7 +226,7 @@ static int Init(AtNode *mynode, void **user_ptr)
 }
 
 // All done, deallocate stuff
-static int Cleanup(void *user_ptr)
+static int Cleanup(const AtNode *node, void *user_ptr)
 {
 
    AiMsgInfo("[INSTANCER] Cleaning datas");
@@ -248,7 +249,7 @@ static int Cleanup(void *user_ptr)
 }
 
 // Get number of nodes
-static int NumNodes(void *user_ptr)
+static int NumNodes(const AtNode *node, void *user_ptr)
 {
    return nbInsts;
 }
@@ -256,9 +257,8 @@ static int NumNodes(void *user_ptr)
 // Get the i_th node
 
 
-static AtNode *GetNode(void *user_ptr, int i)
+static AtNode *GetNode(const AtNode *node, void *user_ptr, int i)
 {
-   AtNode *procnode = (AtNode*) user_ptr;
    AtNode *instance;
    instance = AiNode("ginstance");
    char nodeName[MAX_NAME_SIZE];
@@ -269,14 +269,9 @@ static AtNode *GetNode(void *user_ptr, int i)
    AtNode* obj = AiNodeLookUpByName(AiArrayGetStr(objArray,idx));
    AiNodeSetPtr(instance, "node", obj);
    AiNodeSetBool(instance, "inherit_xform", false);
-   int steps = partArray->nkeys;
+   int steps = AiArrayGetNumKeys(partArray);
 
-   AtMatrix instancerMatrix;
-   AiNodeGetMatrix(procnode, "matrix", instancerMatrix);
-
-
-
-
+   AtMatrix instancerMatrix = AiNodeGetMatrix(node, "matrix");
 
    AtArray* matrices = AiArrayAllocate(1, steps, AI_TYPE_MATRIX);
 
@@ -285,9 +280,9 @@ static AtNode *GetNode(void *user_ptr, int i)
 
       AtMatrix matrix;
 
-      int index = AiArrayGetInt(partArray, i * matrixArray->nkeys + step);
+      int index = AiArrayGetInt(partArray, i * AiArrayGetNumKeys(matrixArray) + step);
 
-      AiArrayGetMtx(matrixArray,index, matrix);
+      matrix = AiArrayGetMtx(matrixArray,index);
 
 
       AiArraySetMtx(matrices, step, matrix);
@@ -300,47 +295,41 @@ static AtNode *GetNode(void *user_ptr, int i)
    for (size_t j = 0; j < params.size(); ++j)
    {
 
-      int type = params[j]->type;
-      int steps = params[j]->nkeys;
+      int type = AiArrayGetType(params[j]);
+      int steps = AiArrayGetNumKeys(params[j]);
 
       AtVector value;
       for (int step = 0; step < steps; ++step)
       {
+         unsigned nelements = AiArrayGetNumElements(params[j]);
          switch (type)
          {
-         case 1:
+         case AI_TYPE_INT:
             AiNodeDeclare(instance, paramsName[j], "constant INT");
             AiNodeSetInt(instance, paramsName[j],
-                  AiArrayGetInt(params[j], i + (params[j]->nelements*step)));
+                  AiArrayGetInt(params[j], i + (nelements*step)));
             break;
-         case 4:
+         case AI_TYPE_FLOAT:
             AiNodeDeclare(instance, paramsName[j], "constant FLOAT");
             AiNodeSetFlt(instance, paramsName[j],
-                  AiArrayGetFlt(params[j], i + (params[j]->nelements*step)));
+                  AiArrayGetFlt(params[j], i + (nelements*step)));
             break;
-         case 5:
+         case AI_TYPE_RGB:
             AiNodeDeclare(instance, paramsName[j], "constant RGB");
-            value.x = AiArrayGetRGB(params[j], i + (params[j]->nelements*step)).r;
-            value.y = AiArrayGetRGB(params[j], i + (params[j]->nelements*step)).g;
-            value.z = AiArrayGetRGB(params[j], i + (params[j]->nelements*step)).b;
+            value.x = AiArrayGetRGB(params[j], i + (nelements*step)).r;
+            value.y = AiArrayGetRGB(params[j], i + (nelements*step)).g;
+            value.z = AiArrayGetRGB(params[j], i + (nelements*step)).b;
             AiNodeSetRGB(instance, paramsName[j], value.x, value.y, value.z);
             break;
-         case 7:
+         case AI_TYPE_VECTOR:
             AiNodeDeclare(instance, paramsName[j], "constant VECTOR");
-            value = AiArrayGetVec(params[j], i + (params[j]->nelements*step));
+            value = AiArrayGetVec(params[j], i + (nelements*step));
             AiNodeSetVec(instance, paramsName[j], value.x, value.y, value.z);
             break;
-         case 8:
-            AiNodeDeclare(instance, paramsName[j], "constant POINT");
-            value.x = AiArrayGetPnt(params[j], i + (params[j]->nelements*step)).x;
-            value.y = AiArrayGetPnt(params[j], i + (params[j]->nelements*step)).y;
-            value.z = AiArrayGetPnt(params[j], i + (params[j]->nelements*step)).z;
-            AiNodeSetPnt(instance, paramsName[j], value.x, value.y, value.z);
-            break;
-         case 10:
+         case AI_TYPE_STRING:
             AiNodeDeclare(instance, paramsName[j], "constant STRING");
             AiNodeSetStr(instance, paramsName[j],
-                  AiArrayGetStr(params[j], i + (params[j]->nelements*step)));
+                  AiArrayGetStr(params[j], i + (nelements*step)));
             break;
          }
 
@@ -356,14 +345,15 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB int ProcLoader(AtProcVtable *vtable)
+AI_EXPORT_LIB int ProcLoader(AtProceduralNodeMethods *vtable)
 {
    vtable->Init = Init;
    vtable->Cleanup = Cleanup;
    vtable->NumNodes = NumNodes;
    vtable->GetNode = GetNode;
 
-   sprintf(vtable->version, AI_VERSION);
+   // FIXME Arnold5
+   //sprintf(vtable->version, AI_VERSION);
    return 1;
 }
 

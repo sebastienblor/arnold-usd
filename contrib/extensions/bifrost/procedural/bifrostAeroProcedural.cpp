@@ -57,7 +57,26 @@ struct BfVolumeUserData {
 };
 
 
-bool BifrostAeroVolumePluginInit(void** user_ptr)
+
+bool BifrostAeroVolumePluginCleanup(const AtNode* node,
+                                  AtVolumeData* out_data)
+{
+   if (out_data == NULL) return false;
+     
+   BfVolumeUserData *data = (BfVolumeUserData*)out_data->private_info; 
+   if (data)
+   {
+      if (data->object_ref) delete data->object_ref;
+      delete data;
+   }
+   out_data->private_info = NULL;
+
+   return true;
+}
+
+bool BifrostAeroVolumePluginCreateVolume(
+                                  const AtNode* node,
+                                  AtVolumeData* out_data)
 {
    BfVolumeUserData *data = new BfVolumeUserData;
    data->object_ref = 0;
@@ -66,29 +85,6 @@ bool BifrostAeroVolumePluginInit(void** user_ptr)
    memset(data->temperature_samplers, 0, AI_MAX_THREADS * sizeof(void*));
    memset(data->velocity_samplers, 0, AI_MAX_THREADS * sizeof(void*));
    
-   *user_ptr = data;
-   return true;
-}
-
-bool BifrostAeroVolumePluginCleanup(void* user_ptr)
-{
-   BfVolumeUserData *data = (BfVolumeUserData*)user_ptr; 
-   if (data)
-   {
-      if (data->object_ref) delete data->object_ref;
-      delete data;
-   }
-   return true;
-}
-
-bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
-                                  const char* user_config,
-                                  const AtNode* node,
-                                  AtVolumeData* out_data)
-{
-   BfVolumeUserData *data = (BfVolumeUserData*)user_ptr;
-   
-
    std::string object_name = AiNodeLookUpUserParameter(node, "object_name") ? AiNodeGetStr(node, "object_name") : "";
    std::string file_name = AiNodeLookUpUserParameter(node, "file_name") ? AiNodeGetStr(node, "file_name") : "";
    if (true || object_name != data->object_name || file_name != data->file) // in case we change the frame ?
@@ -102,8 +98,8 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
    }
 
 
-   data->bbox.min = AiNodeGetPnt(node, "min");
-   data->bbox.max = AiNodeGetPnt(node, "max");
+   data->bbox.min = AiNodeGetVec(node, "min");
+   data->bbox.max = AiNodeGetVec(node, "max");
    
    data->smoke_channel = data->object_ref->findVoxelChannel("smoke");
    data->density_channel = data->object_ref->findVoxelChannel("density");
@@ -140,7 +136,7 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
    }
 
    out_data->auto_step_size = data->step_size;
-   out_data->private_info = user_ptr;
+   out_data->private_info = data;
    data->inv_fps = AiNodeLookUpUserParameter(node, "inv_fps") ? AiNodeGetFlt(node, "inv_fps") : 1.f; 
 
 
@@ -152,24 +148,13 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
    return true;
 }
 
-bool BifrostAeroVolumePluginCleanupVolume(void* user_ptr, AtVolumeData* data, const AtNode* node)
-{
-   if (!user_ptr) return false;
-
-     
-  // AiAddMemUsage(-((AtInt64)grid->memoryUsage()), "BifrostAero volume plugin data");
-  
-   data->private_info = NULL;
-   return true;
-}
-
-bool BifrostAeroVolumePluginSample(void* user_ptr,
+bool BifrostAeroVolumePluginSample(
                             const AtVolumeData* data,
                             const AtString channel,
                             const AtShaderGlobals* sg,
                             int interp,
                             AtParamValue *value,
-                            AtByte *type)
+                            uint8_t *type)
 {
 
    if (!data->private_info) return false;
@@ -189,7 +174,7 @@ bool BifrostAeroVolumePluginSample(void* user_ptr,
             Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
       }
       *type = AI_TYPE_FLOAT;
-      value->FLT =thread_sampler->sample<float>(pos);
+      value->FLT() =thread_sampler->sample<float>(pos);
 
       
       return true;
@@ -203,7 +188,7 @@ bool BifrostAeroVolumePluginSample(void* user_ptr,
            Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
      }
      *type = AI_TYPE_FLOAT;
-     value->FLT =thread_sampler->sample<float>(pos);
+     value->FLT() =thread_sampler->sample<float>(pos);
      
      return true;
    } 
@@ -216,7 +201,7 @@ bool BifrostAeroVolumePluginSample(void* user_ptr,
            Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
      }
      *type = AI_TYPE_FLOAT;
-     value->FLT =thread_sampler->sample<float>(pos);
+     value->FLT() =thread_sampler->sample<float>(pos);
      return true;
    }
    if (!strcmp(channel, "velocity"))
@@ -231,30 +216,28 @@ bool BifrostAeroVolumePluginSample(void* user_ptr,
      amino::Math::vec3f col = thread_sampler->sample<amino::Math::vec3f>(pos);
 
      // velocity is expressed in seconds, need to convert to frames
-     value->RGB.r = col[0]; 
-     value->RGB.g = col[1]; 
-     value->RGB.b = col[2]; 
+     value->RGB() = AtRGB(col[0], col[1], col[2]);
 
-     value->RGB *= volData->inv_fps * volData->shutter_length;
+     value->RGB() *= volData->inv_fps * volData->shutter_length;
      
      return true;
    }
    return false;
 }
 
-void BifrostAeroVolumePluginRayExtents(void* user_ptr,
+void BifrostAeroVolumePluginRayExtents(
                                 const AtVolumeData* data,
                                 const AtVolumeIntersectionInfo* info,
-                                AtByte tid,
+                                int tid,
                                 float time,
-                                const AtPoint* origin,
+                                const AtVector* origin,
                                 const AtVector* direction,
                                 float t0,
                                 float t1)
 {
 
    //if (!data->private_info) return;
-   BfVolumeUserData *volData = (BfVolumeUserData*)user_ptr;
+   BfVolumeUserData *volData = (BfVolumeUserData*)data->private_info;
    if (volData == 0) return;
 
 
@@ -280,15 +263,15 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB bool VolumePluginLoader(AtVolumePluginVtable* vtable)
+AI_EXPORT_LIB bool VolumePluginLoader(AtVolumeNodeMethods* vtable)
 {
-   vtable->Init           = BifrostAeroVolumePluginInit;
    vtable->Cleanup        = BifrostAeroVolumePluginCleanup;
-   vtable->CreateVolume   = BifrostAeroVolumePluginCreateVolume;
-   vtable->CleanupVolume  = BifrostAeroVolumePluginCleanupVolume;
+   vtable->Create         = BifrostAeroVolumePluginCreateVolume;
    vtable->Sample         = BifrostAeroVolumePluginSample;
    vtable->RayExtents     = BifrostAeroVolumePluginRayExtents;
-   strcpy(vtable->version, AI_VERSION);
+   
+   // FIXME Arnold5
+   //strcpy(vtable->version, AI_VERSION); 
    return true;
 }
 

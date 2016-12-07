@@ -40,7 +40,7 @@ static int Init( AtNode* node, void** user_ptr )
 }
 
 // Cleanup
-static int Cleanup( void* user_ptr )
+static int Cleanup( const AtNode *node, void* user_ptr )
 {
    //AiMsgInfo("[xgArnoldProcedural] Cleanup()");
 
@@ -53,7 +53,7 @@ static int Cleanup( void* user_ptr )
 }
 
 // Get number of nodes
-static int NumNodes( void* user_ptr )
+static int NumNodes(const AtNode *node,  void* user_ptr )
 {
    //AiMsgInfo("[xgArnoldProcedural] NumNodes()");
 
@@ -64,7 +64,7 @@ static int NumNodes( void* user_ptr )
 }
 
 // Get the i_th node
-static AtNode* GetNode( void* user_ptr, int i )
+static AtNode* GetNode( const AtNode *node, void* user_ptr, int i )
 {
    //AiMsgInfo("[xgArnoldProcedural] GetNode()");
 
@@ -80,7 +80,7 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB int ProcLoader(AtProcVtable *vtable)
+AI_EXPORT_LIB int ProcLoader(AtProceduralNodeMethods *vtable)
 {
    vtable->Init = Init;
    vtable->Cleanup = Cleanup;
@@ -88,7 +88,9 @@ AI_EXPORT_LIB int ProcLoader(AtProcVtable *vtable)
    vtable->GetNode = GetNode;
 
    s_bCleanDescriptionCache = true;
-   sprintf(vtable->version, AI_VERSION);
+
+   // FIXME Arnold5
+   //sprintf(vtable->version, AI_VERSION);
    return 1;
 }
 
