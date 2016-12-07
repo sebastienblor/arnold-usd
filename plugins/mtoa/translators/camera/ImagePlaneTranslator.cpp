@@ -332,7 +332,7 @@ void CImagePlaneTranslator::ExportImagePlane()
          AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_VECTOR, p1, p2, p3, p4));
          AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
          AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_VECTOR2, uv1, uv2, uv3, uv4));
-         AtByte visibilityFlag = AI_RAY_CAMERA | AI_RAY_ALL_DIFFUSE;
+         AtByte visibilityFlag = AI_RAY_CAMERA | AI_RAY_ALL_DIFFUSE | AI_RAY_VOLUME;
          if (fnRes.findPlug("visibleInReflections").asBool())
             visibilityFlag |= AI_RAY_SPECULAR_REFLECT;
          if (fnRes.findPlug("visibleInRefractions").asBool())

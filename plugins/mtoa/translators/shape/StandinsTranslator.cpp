@@ -102,7 +102,7 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       plug = FindMayaPlug("aiVisibleInDiffuse");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_ALL_DIFFUSE;
+         visibility &= ~(AI_RAY_ALL_DIFFUSE|AI_RAY_VOLUME);
       }
    }
    

@@ -119,7 +119,7 @@ void CHairTranslator::Export( AtNode *curve )
       visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
    plug = fnDepNodeHair.findPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_ALL_DIFFUSE;
+      visibility &= ~(AI_RAY_ALL_DIFFUSE|AI_RAY_VOLUME);
    plug = fnDepNodeHair.findPlug("aiVisibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_SPECULAR_REFLECT;   

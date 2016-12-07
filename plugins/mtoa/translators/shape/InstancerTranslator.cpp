@@ -84,7 +84,7 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    plug = fnNode.findPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_ALL_DIFFUSE;
+      visibility &= ~(AI_RAY_ALL_DIFFUSE|AI_RAY_VOLUME);
    }
 
    plug = fnNode.findPlug("aiVisibleInGlossy");
