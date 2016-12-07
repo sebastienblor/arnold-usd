@@ -49,7 +49,8 @@ void CXgSplineDescriptionTranslator_ExportSplineData(MDagPath& dagPath, AtNode* 
     AtArray* dataArray = AiArrayAllocate(nelements, 1, AI_TYPE_UINT);
     // FIXME Arnold5 : make sure this is the right thing to do 
     void *arrayData = AiArrayMap(dataArray);
-    memcpy(arrayData, &data[0], data.size());
+    if (arrayData)
+        memcpy(arrayData, &data[0], data.size());
     //------------------------
     AiNodeSetArray(procedural, dataParam.asChar(), dataArray);
 }

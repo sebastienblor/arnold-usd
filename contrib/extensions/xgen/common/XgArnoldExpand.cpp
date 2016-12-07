@@ -91,32 +91,43 @@ struct XgMergedData
          nelements += AiArrayGetNumElements(array);
       }
 
+      if (nelements == 0)
+         return;
+
       // create new array
       AtArray *first_array = arrays[0];
       AtArray *concat_array = AiArrayAllocate(nelements, AiArrayGetNumKeys(first_array), AiArrayGetType(first_array));
       // FIXME Arnold5 make sure we're doing the right thing
-      char *concat_array_data = (char *)AiArrayMap(concat_array);//->data;
+      char *concat_array_data = (char *)AiArrayMap(concat_array);
+      if (concat_array_data == NULL)
+         return;
 
-      size_t type_size = AiParamGetTypeSize(AiArrayGetType(first_array));
-      size_t key_size = nelements * type_size;
+      size_t key_size = AiArrayGetKeySize(concat_array);
       size_t elements_offset = 0;
 
       for (size_t i = 0; i < arrays.size(); i++)
       {
          AtArray *array = arrays[i];
-         char *array_data = (char *)AiArrayMap(array);//->data;
+         char *array_data = (char *)AiArrayMap(array);
+         if (array_data == NULL)
+            continue; // shouldn't happen
 
          // copy array data into concatenated array data
-         size_t elements_size = type_size * AiArrayGetNumElements(array);
+         size_t array_key_size = AiArrayGetKeySize(array);
+         uint8_t array_num_keys = AiArrayGetNumKeys(array);
 
-         for (int k = 0; k < AiArrayGetNumKeys(array); k++)
+         for (int k = 0; k < array_num_keys; k++)
          {
-            memcpy(concat_array_data + k *key_size + elements_offset, array_data + k * elements_size, elements_size);
+            memcpy(concat_array_data + k *key_size + elements_offset, array_data + k * array_key_size, array_key_size);
          }
-         elements_offset += elements_size;
+         elements_offset += array_key_size;
       }
 
-      // set new array in first node
+      // Now need to unmap all these arrays
+      for (size_t i = 0; i < arrays.size(); i++)
+         AiArrayUnmap(arrays[i]);
+
+      // set new array in first node, no need to unmap it
       AiNodeSetArray(node, name, concat_array);
    }
 };
@@ -451,8 +462,8 @@ bool Procedural::getFloatArray( AtNode* in_node, const char* in_name, const floa
       AtArray* a = AiNodeGetArray( in_node, in_name );
       if( a )
       {
-        // FIXME Arnold5 make sure we're doing the right thing
-         out_value = ((float*)AiArrayMap(a));//->data);
+        // FIXME Arnold5 this is not the right thing to do, we need to unpmap this after the whole function was called
+         out_value = ((float*)AiArrayMap(a));//
          return true;
       }
    }
@@ -474,7 +485,8 @@ bool Procedural::getMatrixArray( AtNode* in_node, const char* in_name, const AtM
       AtArray* a = AiNodeGetArray( in_node, in_name );
       if( a )
       {
-         out_value = (const AtMatrix*)AiArrayMap(a);//->data);
+         // FIXME Arnold5 this is not the right thing to do, we need to unpmap this after the whole function was called
+         out_value = (const AtMatrix*)AiArrayMap(a);
          return true;
       }
    }
@@ -925,70 +937,74 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     AtArray* orientations = (bFaceCamera || (mode == 1)) ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
 
     // FIXME Arnold5
-    unsigned int* curNumPoints = (unsigned int*)AiArrayMap(num_points);//->data;
+    unsigned int* curNumPoints = (unsigned int*)AiArrayMap(num_points);
     AtVector* curPoints = (AtVector*)AiArrayMap(points);//->data;
     AtVector* curOrientations = orientations ? (AtVector*)AiArrayMap(orientations)/*->data*/ : NULL;
     float* curRadius = (float*)AiArrayMap(radius);//->data;
 
     // Add NumPoints
-    for ( int i=0; i < (int)numSamples; i++ )
+    if (curNumPoints != NULL && curPoints != NULL)
     {
-        // Add the points.
-        XGRenderAPIDebug( "Adding points." );
-        memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtVector )*pointsTotal );
-        curPoints+=pointsTotal;
+       for ( int i=0; i < (int)numSamples; i++ )
+       {
+           // Add the points.
+           XGRenderAPIDebug( "Adding points." );
+           memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtVector )*pointsTotal );
+           curPoints+=pointsTotal;
 
-        const vec3* pNorms = pc->get( PC(Norms), i );
+           const vec3* pNorms = pc->get( PC(Norms), i );
 
-        int* numVertsPtr = (int*)pc->get( PC(NumVertices), i );
-        for( unsigned int j=0; j<pc->getSize2( PC(NumVertices), i ); ++j )
-        {
-           *curNumPoints = (unsigned int)numVertsPtr[j];
+           int* numVertsPtr = (int*)pc->get( PC(NumVertices), i );
+           for( unsigned int j=0; j<pc->getSize2( PC(NumVertices), i ); ++j )
+           {
+              *curNumPoints = (unsigned int)numVertsPtr[j];
 
-           // Add the normals if necessary.
-         if( orientations )
-         {
-            XGRenderAPIDebug( "Adding normals." );
+              // Add the normals if necessary.
+            if( curOrientations )
+            {
+               XGRenderAPIDebug( "Adding normals." );
 
-            unsigned int numVarying = *curNumPoints - 2;
+               unsigned int numVarying = *curNumPoints - 2;
 
-            memcpy( curOrientations, &pNorms[0], sizeof(AtVector) );
-            curOrientations++;
+               memcpy( curOrientations, &pNorms[0], sizeof(AtVector) );
+               curOrientations++;
 
-            memcpy( curOrientations, pNorms, sizeof(AtVector)*numVarying );
-            curOrientations+=numVarying;
+               memcpy( curOrientations, pNorms, sizeof(AtVector)*numVarying );
+               curOrientations+=numVarying;
 
-            memcpy( curOrientations, &pNorms[numVarying-1], sizeof(AtVector) );
-            curOrientations++;
+               memcpy( curOrientations, &pNorms[numVarying-1], sizeof(AtVector) );
+               curOrientations++;
 
-            pNorms += numVarying;
-         }
+               pNorms += numVarying;
+            }
 
-           curNumPoints++;
+              curNumPoints++;
+           }
         }
-
     }
 
-    // Add the constant widths.
-    if( widthsSize==0 )
+    if (curRadius)
     {
-      float constantWidth = pc->get( PC(ConstantWidth) );
+       // Add the constant widths.
+       if( widthsSize==0 )
+       {
+         float constantWidth = pc->get( PC(ConstantWidth) );
 
-      XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
-      *curRadius = constantWidth * 0.5f;
+         XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
+         *curRadius = constantWidth * 0.5f;
+       }
+       // Add Varying Widths
+       else
+       {
+         const float* pWidths = pc->get( PC(Widths) );
+
+         XGRenderAPIDebug( "Non-constant width.");
+         for( unsigned int w=0; w<widthsSize; ++w )
+         {
+            curRadius[w] = pWidths[w] * 0.5f;
+         }
+       }
     }
-    // Add Varying Widths
-    else
-    {
-      const float* pWidths = pc->get( PC(Widths) );
-
-      XGRenderAPIDebug( "Non-constant width.");
-      for( unsigned int w=0; w<widthsSize; ++w )
-      {
-         curRadius[w] = pWidths[w] * 0.5f;
-      }
-    }
-
     char buf[512];
 
    // Create only one node, all arrays get merged into it at the end
@@ -1024,6 +1040,16 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    m_merged_data->add_array( "points", points );
    m_merged_data->add_array( "radius", radius );
    if( orientations ) m_merged_data->add_array( "orientations", orientations );
+
+   if (num_points)
+      AiArrayUnmap(num_points);
+   if (points)
+      AiArrayUnmap(points);
+   if (orientations)
+      AiArrayUnmap(orientations);
+   if (radius)
+      AiArrayUnmap(radius);
+
 }
 
 /**
@@ -1205,7 +1231,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
    string strParentName = AiNodeGetName( m_node_face );
 
     AtArray* knots = AiArrayAllocate( 7, 1, AI_TYPE_FLOAT );
-    float* pKnots = (float*)AiArrayMap(knots);//->data;
+    float* pKnots = (float*)AiArrayMap(knots);
     pKnots[0] = 0;
     pKnots[1] = 0;
     pKnots[2] = 0;
@@ -1227,7 +1253,9 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AtVector* pointPtr = (AtVector *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
 
       AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
-      memcpy( AiArrayMap(cvs), pointPtr, sizeof(AtVector)*16*numSamples );
+      void *cvsData = AiArrayMap(cvs);
+      if (cvsData)
+         memcpy( cvsData, pointPtr, sizeof(AtVector)*16*numSamples );
 
       string strID = itoa( (int)m_nodes.size() );
 
@@ -1251,6 +1279,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       // Keep our new nodes.
       m_nodes.push_back( nodeCard );
     }
+    AiArrayUnmap(knots);
 
 }
 
@@ -1331,11 +1360,15 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
             else // uniform attribute
             {
                AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
-               memcpy( AiArrayMap(a)/*->data*/, attrValue, e.m_sizeOf*fixAttrCount );
+               void *aData = AiArrayMap(a);
+               if (aData)
+                  memcpy( aData, attrValue, e.m_sizeOf*fixAttrCount );
                if ( m_merged_data )
                   m_merged_data->add_array( fixedAttrName.c_str(), a );
                else
                   AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+
+               AiArrayUnmap(a);
             }
             break;
          }

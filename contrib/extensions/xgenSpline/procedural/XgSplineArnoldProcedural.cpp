@@ -115,9 +115,12 @@ private:
             std::stringstream opaqueStrm;
             
             void *arrayData = AiArrayMap(sampleData);
-            opaqueStrm.write(reinterpret_cast<const char*>(arrayData), sampleSize);
-            opaqueStrm.flush();
-            opaqueStrm.seekp(0);
+            if (arrayData)
+            {
+                opaqueStrm.write(reinterpret_cast<const char*>(arrayData), sampleSize);
+                opaqueStrm.flush();
+                opaqueStrm.seekp(0);
+            }
             AiArrayUnmap(sampleData);
 
             // Load the sample for i-th motion step
