@@ -172,10 +172,10 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
             dir = SphereVertex(phi, theta);            
             switch (format)
             {
-               case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
-               case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
-               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong
-               default: AiMappingLatLong(&dir, &u, &v);
+               case 0: AiMappingMirroredBall(dir, u, v); break;   // Mirrored Ball
+               case 1: AiMappingAngularMap(dir, u, v); break;     // Angular
+               case 2: AiMappingLatLong(dir, u, v); break;        // Latlong
+               default: AiMappingLatLong(dir, u, v);
             }
             const int id = x + y * divisionsX1;
             m_UVData[id].x = u;

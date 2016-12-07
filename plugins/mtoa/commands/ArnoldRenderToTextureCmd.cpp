@@ -432,9 +432,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          /// find all affected udims
          if (allUdims)
          {
-            for (size_t j = 0; j < uv_list->nelements; ++j)
+            for (size_t j = 0; j < AiArrayGetNumElements(uv_list); ++j)
             {
-               AtPoint2 uv = AiArrayGetPnt2(uv_list, j);
+               AtVector2 uv = AiArrayGetVec2(uv_list, j);
                if (uv.x>AI_EPSILON && uv.y > AI_EPSILON&&
                   uv.x < 10 - AI_EPSILON && uv.y < 10 - AI_EPSILON)
                   udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON)));

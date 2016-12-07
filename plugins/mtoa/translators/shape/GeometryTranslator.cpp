@@ -16,29 +16,14 @@ namespace
    {
       unsigned int index = 0;
 
-      switch(arr->type)
+      if (AiArrayGetType(arr) == AI_TYPE_VECTOR)
       {
-         case AI_TYPE_POINT:
+         AtVector vec;
+         for(unsigned int J = 0; (J < size); ++J)
          {
-            AtPoint pnt;
-            for(unsigned int J = 0; (J < size); ++J)
-            {
-               AiV3Create(pnt, data[index+0], data[index+1], data[index+2]);
-               index += 3;
-               AiArraySetPnt(arr, J + (size * step), pnt);
-            }
-         }
-         break;
-
-         case AI_TYPE_VECTOR:
-         {
-            AtVector vec;
-            for(unsigned int J = 0; (J < size); ++J)
-            {
-               AiV3Create(vec, data[index+0], data[index+1], data[index+2]);
-               index += 3;
-               AiArraySetVec(arr, J + (size * step), vec);
-            }
+            vec = AtVector(data[index+0], data[index+1], data[index+2]);
+            index += 3;
+            AiArraySetVec(arr, J + (size * step), vec);
          }
       }
    }
@@ -365,17 +350,17 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
       int numUVs = fnMesh.numUVs(uvName);
       if (numUVs < 1)
          continue;
-      AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
+      AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_VECTOR2);
       
       MFloatArray uArray, vArray;
       fnMesh.getUVs(uArray, vArray, &uvName);
       
       for (int j = 0; j < numUVs; ++j)
       {
-         AtPoint2 atv;
+         AtVector2 atv;
          atv.x = uArray[j];
          atv.y = vArray[j];
-         AiArraySetPnt2(uv, j, atv);
+         AiArraySetVec2(uv, j, atv);
       }
       uvs.push_back(uv);
       uvNames.push_back(uvName);
@@ -832,7 +817,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       if (exportReferenceObjects)
       {
          if (exportRefVerts)
-            AiNodeDeclare(polymesh, "Pref", "varying POINT");
+            AiNodeDeclare(polymesh, "Pref", "varying VECTOR");
          if (exportRefNorms)
             AiNodeDeclare(polymesh, "Nref", "indexed VECTOR");
             AiNodeDeclare(polymesh, "Nrefidxs", "indexed UINT");
@@ -875,7 +860,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                const short motionVectorUnit = FindMayaPlug("aiMotionVectorUnit").asShort();
                std::vector<float>& motionVectors = vcolors[m_motionVectorSource.asChar()];
                const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
-               AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
+               AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_VECTOR);
                const float* vert = vertices;
                float motionRange = float(GetMotionByFrame()) * motionVectorScale;
                if (motionVectorUnit == 1)
@@ -890,12 +875,12 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                   vec.x = *(vert++);
                   vec.y = *(vert++);
                   vec.z = *(vert++);
-                  AiArraySetPnt(verticesArray, i, vec);
+                  AiArraySetVec(verticesArray, i, vec);
                   const AtRGBA* motionVector = motionVectorColors + i;
                   vec.x += motionVector->r * motionRange;
                   vec.y += motionVector->g * motionRange;
                   vec.z += motionVector->b * motionRange;
-                  AiArraySetPnt(verticesArray, i + numVerts, vec);
+                  AiArraySetVec(verticesArray, i + numVerts, vec);
                }
                AiNodeSetArray(polymesh, "vlist", verticesArray);
             }
@@ -919,7 +904,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          {
             if (exportVertices)
             {
-               AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_POINT);
+               AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
                SetKeyData(vlist_array, step, vertices, numVerts);
                AiNodeSetArray(polymesh, "vlist", vlist_array);
             }
@@ -947,12 +932,11 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          {
             AtMatrix worldMatrix;
             ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
-            AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
+            AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_VECTOR);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)
             {
-               AtVector v;
-               AiM4PointByMatrixMult(&v, worldMatrix, vRefVertices + i);
+               AtVector v = AiM4PointByMatrixMult(worldMatrix, *(vRefVertices + i));
                AiArraySetVec(aRefVertices, i, v);
             }
             AiNodeSetArray(polymesh, "Pref", aRefVertices);
@@ -977,7 +961,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                if (uvNames.size() > i && uvidxs.size() > i)
                {
                   MString idxsName = uvNames[i] + MString("idxs");
-                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
+                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed VECTOR2");
                   AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
                   AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
                }
@@ -1063,9 +1047,9 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
          if (vlist_array == NULL)
             return;
-         if (vlist_array->nelements != numVerts)
+         if (AiArrayGetNumElements(vlist_array) != numVerts)
             AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
-                       GetMayaNodeName().asChar(), vlist_array->nelements, numVerts);
+                       GetMayaNodeName().asChar(), AiArrayGetNumElements(vlist_array), numVerts);
          else
             SetKeyData(vlist_array, step, vertices, numVerts);
 
@@ -1074,9 +1058,9 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       if (exportNormals)
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
-         if (nlist_array->nelements != numNorms)
+         if (AiArrayGetNumElements(nlist_array) != numNorms)
             AiMsgError("[mtoa.translator]  %-30s | Number of normals changed between motion steps: %d -> %d",
-                       GetMayaNodeName().asChar(), nlist_array->nelements, numNorms);
+                       GetMayaNodeName().asChar(), AiArrayGetNumElements(nlist_array), numNorms);
          else
             SetKeyData(nlist_array, step, normals, numNorms);
       }
@@ -1148,8 +1132,8 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
 
    MFnMesh fnMesh(m_geometry);
    MBoundingBox bbox = fnMesh.boundingBox();
-   AiNodeSetPnt(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-   AiNodeSetPnt(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
+   AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
+   AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
    AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
@@ -1320,49 +1304,49 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportTangents";
    data.shortName = "ai_exptan";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportColors";
    data.shortName = "ai_expcol";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiExportRefPoints";
    data.shortName = "ai_exprpt";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportRefNormals";
    data.shortName = "ai_exprnrm";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportRefTangents";
    data.shortName = "ai_exprtan";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
       
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    data.channelBox = false;
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 1.f;
+   data.softMax.FLT() = 1.f;
    helper.MakeInputFloat(data);
 
    data.stringDefault = "velocityPV";
@@ -1371,7 +1355,7 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.channelBox = false;
    helper.MakeInputString(data);
 
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "aiMotionVectorUnit";
    data.shortName = "ai_motion_vector_unit";
    data.channelBox = false;
@@ -1380,15 +1364,15 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.enums.append("Per Second");
    helper.MakeInputEnum(data);
 
-   data.defaultValue.FLT = 1.f;
+   data.defaultValue.FLT() = 1.f;
    data.name = "aiMotionVectorScale";
    data.shortName = "ai_motion_vector_scale";
    data.hasMin = false;
    data.hasMax = false;
    data.hasSoftMin = true;
    data.hasSoftMax = true;
-   data.softMin.FLT = 0.f;
-   data.softMax.FLT = 2.f;
+   data.softMin.FLT() = 0.f;
+   data.softMax.FLT() = 2.f;
    data.channelBox = false;
    helper.MakeInputFloat(data);
 }

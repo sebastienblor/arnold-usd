@@ -201,18 +201,18 @@ void CFileTranslator::Export(AtNode* shader)
          // until multiple outputs are supporte, place2d outputs are added to
          // inputs on the file node itself
          // FIXME do this with a translator
-         ProcessParameter(shader, "coverage", AI_TYPE_POINT2, srcNodeFn.findPlug("coverage"));
+         ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
          ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
-         ProcessParameter(shader, "translateFrame", AI_TYPE_POINT2, srcNodeFn.findPlug("translateFrame"));
+         ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
          ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
          ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
          ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapU"));
          ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapV"));
          ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
-         ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2, srcNodeFn.findPlug("repeatUV"));
+         ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
          ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateUV"));
-         ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, srcNodeFn.findPlug("offset"));
-         ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2, srcNodeFn.findPlug("noiseUV"));
+         ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
+         ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
          srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
          if (connections.length() > 0)
          {
@@ -352,7 +352,7 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("useDefaultColor");
 
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
@@ -365,7 +365,7 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "bump2d");
    
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiFlipR";
    data.shortName = "flip_r";
    helper.MakeInputBoolean(data);
@@ -374,12 +374,12 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "flip_g";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiSwapTangents";
    data.shortName = "swap_tangents";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiUseDerivatives";
    data.shortName = "use_derivatives";
    helper.MakeInputBoolean(data);
@@ -849,7 +849,7 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
    
    CAttrData data;
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiUseReferenceObject";
    data.shortName = "ai_use_reference_object";
    helper.MakeInputBoolean(data);
@@ -883,7 +883,7 @@ void CRampTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
    AiNodeSetBool(shader, "alphaIsLuminance", true);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "uvCoord", AI_TYPE_POINT2);
+   ProcessParameter(shader, "uvCoord", AI_TYPE_VECTOR2);
 
    MPlug plug, elem, pos, col;
 
@@ -907,18 +907,18 @@ AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "coverage", AI_TYPE_POINT2);
+   ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2);
    ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "translateFrame", AI_TYPE_POINT2);
+   ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2);
    ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2);
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, "offset");
-   ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, "offset");
+   ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2);
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
@@ -1250,17 +1250,17 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    
    CAttrData data;
    
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiDisplacementPadding";
    data.shortName = "ai_displacement_padding";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiDisplacementZeroValue";
    data.shortName = "ai_displacement_zero_value";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
@@ -1476,21 +1476,21 @@ void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 
    data.name = "aiEnableMatte";
    data.shortName = "ai_enable_matte";
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    helper.MakeInputBoolean(data);
 
    data.name = "aiMatteColor";
    data.shortName = "ai_matte_color";
-   data.defaultValue.RGB = AI_RGB_BLACK;
+   data.defaultValue.RGB() = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
    
    data.name = "aiMatteColorA";
    data.shortName = "ai_matte_color_a";
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasMax = true;
-   data.max.FLT = 1.0;
-   data.defaultValue.FLT = 0.0f;
+   data.max.FLT() = 1.0;
+   data.defaultValue.FLT() = 0.0f;
    helper.MakeInputFloat(data);   
 }
 
@@ -1580,37 +1580,37 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "image");
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "autoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "colorManagementConfigFileEnabled";
    data.shortName = "cmcf";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "colorManagementConfigFilePath";
    data.shortName = "cmcp";
    helper.MakeInputString(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "colorManagementEnabled";
    data.shortName = "cme";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "colorProfile";
    data.shortName = "cp";
    helper.MakeInputInt(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "colorSpace";
    data.shortName = "cs";
    helper.MakeInputString(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "workingSpace";
    data.shortName = "ws";
    helper.MakeInputString(data);
@@ -1624,7 +1624,7 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "in";
    helper.MakeInputString(data);
 */
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "ignoreColorSpaceFileRules";
    data.shortName = "ifr";
    helper.MakeInputBoolean(data);
@@ -1689,7 +1689,7 @@ void* CreateSingleShadingSwitchTranslator()
 
 void* CreateDoubleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_POINT2);
+   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_VECTOR2);
 }
 
 void* CreateTripleShadingSwitchTranslator()

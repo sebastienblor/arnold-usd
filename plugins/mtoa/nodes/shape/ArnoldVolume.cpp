@@ -337,8 +337,7 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       
       AiNodeSetStr(volume, "name", "myvolume");
 
-      AtMatrix matrix;
-      AiM4Identity(matrix);
+      AtMatrix matrix = AiM4Identity();
       AiNodeSetMatrix(volume, "matrix", matrix);
 
 	  MString dso;
@@ -437,9 +436,9 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       
       if (AiUniverseCreated) ArnoldUniverseEnd();
 
-	  if (AiBBoxIsEmpty(bbox))
+	  if (bbox.isEmpty())
 	  {
-		 m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
+		 m_bbox = MBoundingBox (MVector(-1,-1,-1), MVector(1,1,1));
          return &m_bbox;
 	  }
 

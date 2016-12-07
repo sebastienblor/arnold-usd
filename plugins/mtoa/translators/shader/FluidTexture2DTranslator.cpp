@@ -60,7 +60,8 @@ void CFluidTexture2DTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
    // check for the existing links, and unlink them
    // this is required to be able to change the connections in ipr
    AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
-   for (AtUInt32 i = 0; i < valuesOld->nelements; i++)
+   unsigned oldNelements = AiArrayGetNumElements(valuesOld);
+   for (unsigned i = 0; i < oldNelements; i++)
    {
       MString attributeName = values_name + MString("[");
       attributeName += i;
@@ -87,9 +88,9 @@ void CFluidTexture2DTranslator::ExportRGBGradient(MPlug plug, AtNode* node, cons
       }
       else
       {
-         AtRGB color = {colorPlug.child(0).asFloat(),
+         AtRGB color (colorPlug.child(0).asFloat(),
                         colorPlug.child(1).asFloat(),
-                        colorPlug.child(2).asFloat()};
+                        colorPlug.child(2).asFloat());
          AiArraySetRGB(values, i, color);
       }
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
@@ -221,7 +222,7 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
          AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
-            AtVector cVector = {x[i], y[i], z[i]};
+            AtVector cVector(x[i], y[i], z[i]);
             cVector.x = cVector.x < AI_EPSILON ? 0.f : cVector.x;
             cVector.y = cVector.y < AI_EPSILON ? 0.f : cVector.y;
             cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
@@ -235,11 +236,11 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
    mayaFluid.getCoordinates(u, v, w);
    if (u != 0 && v != 0)
    {
-      AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_POINT2);
+      AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR2);
       for (unsigned int i = 0; i < numVoxels; ++i)
       {
-         AtPoint2 cCoord = {u[i], v[i]};
-         AiArraySetPnt2(array, i, cCoord);
+         AtVector2 cCoord(u[i], v[i]);
+         AiArraySetVec2(array, i, cCoord);
       }
       AiNodeSetArray(fluid2d, "coordinates", array);
    }
@@ -257,7 +258,7 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
          AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_RGB);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
-            AtColor cColor = {r[i], g[i], b[i]};
+            AtRGB cColor (r[i], g[i], b[i]);
             cColor.r = cColor.r < AI_EPSILON ? 0.f : cColor.r;
             cColor.g = cColor.g < AI_EPSILON ? 0.f : cColor.g;
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;

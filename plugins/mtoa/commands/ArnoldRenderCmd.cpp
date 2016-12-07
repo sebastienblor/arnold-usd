@@ -24,7 +24,7 @@
 #include <sstream>
 #include <set>
 
-extern AtNodeMethods* batch_progress_driver_mtd;
+extern const AtNodeMethods* batch_progress_driver_mtd;
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -402,9 +402,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             {
                AtNode* options = AiUniverseGetOptions();
                AtArray* oldOutputs = AiNodeGetArray(options, "outputs");
-               const AtUInt32 oldCount = oldOutputs->nelements;
+               const unsigned oldCount = AiArrayGetNumElements(oldOutputs);
                AtArray* newOutputs = AiArrayAllocate(oldCount + 1, 1, AI_TYPE_STRING);
-               for (AtUInt32 i = 0; i < oldCount; ++i)
+               for (unsigned i = 0; i < oldCount; ++i)
                   AiArraySetStr(newOutputs, i, AiArrayGetStr(oldOutputs, i));
 
                AtNode* filterNode = AiNode("box_filter");

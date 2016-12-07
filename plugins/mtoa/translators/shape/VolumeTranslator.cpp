@@ -123,12 +123,12 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
 
 void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
 {
-   AiNodeSetPnt(volume, "min",
+   AiNodeSetVec(volume, "min",
                         m_DagNode.findPlug("min").child(0).asFloat(),
                         m_DagNode.findPlug("min").child(1).asFloat(),
                         m_DagNode.findPlug("min").child(2).asFloat());
                         
-   AiNodeSetPnt(volume, "max",
+   AiNodeSetVec(volume, "max",
                         m_DagNode.findPlug("max").child(0).asFloat(),
                         m_DagNode.findPlug("max").child(1).asFloat(),
                         m_DagNode.findPlug("max").child(2).asFloat());

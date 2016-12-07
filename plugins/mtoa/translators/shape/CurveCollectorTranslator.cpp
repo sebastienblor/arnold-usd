@@ -232,25 +232,25 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
          for(unsigned int i = 0; i < numcvs - 1; i++)
          {
             referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
-            curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+            curvesData.referencePoints.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
          }
          referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
-         curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+         curvesData.referencePoints.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
       } 
    }
 
    for(unsigned int i = 0; i < (numcvs - 1); i++)
    {
       nurbsCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
-      curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+      curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
       if (step > 0 && i == 0)
-         curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+         curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
 
    }
    nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
-   curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+   curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
    if (step > 0)
-      curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+      curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
 
    
    if (widthPlug)
@@ -400,9 +400,9 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    // FIXME verify the first call to IsMotionBlurEnabled() is not necessary
    bool deformedPoints = IsMotionBlurEnabled() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && RequiresMotionData();
 
-   AtArray* curvePoints     = AiArrayAllocate(totalNumPointsInterp, (deformedPoints) ? GetNumMotionSteps() : 1, AI_TYPE_POINT);
+   AtArray* curvePoints     = AiArrayAllocate(totalNumPointsInterp, (deformedPoints) ? GetNumMotionSteps() : 1, AI_TYPE_VECTOR);
    AtArray* curveWidths     = (widthConnected) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_FLOAT) : NULL;
-   AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_POINT) : NULL;
+   AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_VECTOR) : NULL;
 
    int pointIndex = 0;
    int pointArrayIndex = 0;
@@ -411,22 +411,22 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    for (size_t i = 0; i < curvesData.numPoints.size(); ++i)
    {
       // duplicating first point for this curve
-      AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex]);
+      AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex]);
 
       // fill each CV
       for (int j = 0; j < curvesData.numPoints[i]; ++j)
       {
          if (referenceCurvePoints)
-            AiArraySetPnt(referenceCurvePoints, pointIndex, curvesData.referencePoints[pointIndex]);
+            AiArraySetVec(referenceCurvePoints, pointIndex, curvesData.referencePoints[pointIndex]);
 
          if (curveWidths)
             AiArraySetFlt(curveWidths, pointIndex, curvesData.curveWidthsPerResolution[curvesData.numPoints[i]]->at(j));
 
-         AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
+         AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
       }
 
       // duplicate last CV for this curve
-      AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex - 1]);
+      AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex - 1]);
    }
    AiNodeSetArray(curve, "points", curvePoints);
 
@@ -489,14 +489,14 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
 
    // just export the points for motion steps
    AtArray *curvePoints = AiNodeGetArray(curve, "points");
-   unsigned int totalNumPointsInterp = curvePoints->nelements;
+   unsigned int totalNumPointsInterp = AiArrayGetNumElements(curvePoints);
 
    int stepOffset = step * totalNumPointsInterp;
 
    totalNumPointsInterp = AiMin(totalNumPointsInterp, (unsigned int)curvesData.points.size());
 
    for (unsigned int i = 0; i < totalNumPointsInterp; ++i)
-      AiArraySetPnt(curvePoints, i + stepOffset, curvesData.points[i]);
+      AiArraySetVec(curvePoints, i + stepOffset, curvesData.points[i]);
 
 
 }

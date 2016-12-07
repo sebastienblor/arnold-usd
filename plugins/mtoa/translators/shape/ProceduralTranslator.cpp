@@ -25,7 +25,7 @@ void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "deferStandinLoad";
    data.shortName = "deferStandinLoad";
    data.channelBox = false;
@@ -224,8 +224,8 @@ void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   AiNodeSetPnt(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
-   AiNodeSetPnt(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
+   AiNodeSetVec(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
+   AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
 
 

@@ -50,26 +50,26 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    CAttrData data;
 
    // FIXME: all attributes that are arnold-specific should have an "ai" prefix
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiRenderCurve";
    data.shortName = "rcurve";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.FLT = 0.01f;
+   data.defaultValue.FLT() = 0.01f;
    data.name = "aiCurveWidth";
    data.shortName = "cwdth";
    data.hasMin = true;
-   data.min.FLT = 0.0f;
+   data.min.FLT() = 0.0f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 1.0f;
+   data.softMax.FLT() = 1.0f;
    helper.MakeInputFloat(data);
 
-   data.defaultValue.INT = 5;
+   data.defaultValue.INT() = 5;
    data.name = "aiSampleRate";
    data.shortName = "srate";
    data.hasMin = true;
-   data.min.INT = 1;
-   data.softMax.INT = 20;
+   data.min.INT() = 1;
+   data.softMax.INT() = 20;
    helper.MakeInputInt(data);
 
    data.hasSoftMax = false;
@@ -77,10 +77,10 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiCurveShader";
    data.shortName = "ai_curve_shader";
    data.hasMin = false;
-   data.defaultValue.RGB = AI_RGB_BLACK;
+   data.defaultValue.RGB() = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiExportRefPoints";
    data.shortName = "ai_exprpt";
    data.channelBox = false;
@@ -210,10 +210,10 @@ void CCurveTranslator::Export( AtNode *curve )
    bool requireMotion = RequiresMotionData();
 
    // Allocate memory for all curve points and widths
-   AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
+   AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_VECTOR);
    AtArray* curveWidths = AiArrayAllocate(numPoints,              (requireMotion && mayaCurve.widthConnected) ? GetNumMotionSteps() : 1, AI_TYPE_FLOAT);
    AtArray* curveColors = AiArrayAllocate(1,                      1, AI_TYPE_RGB);
-   AtArray* referenceCurvePoints = exportReferenceObject ? AiArrayAllocate(numPoints, 1, AI_TYPE_POINT) : 0;
+   AtArray* referenceCurvePoints = exportReferenceObject ? AiArrayAllocate(numPoints, 1, AI_TYPE_VECTOR) : 0;
 
    ProcessCurveLines(step,
                     curvePoints,
@@ -226,7 +226,7 @@ void CCurveTranslator::Export( AtNode *curve )
 
    if (exportReferenceObject)
    {
-      AiNodeDeclare(curve, "Pref", "varying POINT");
+      AiNodeDeclare(curve, "Pref", "varying VECTOR");
       AiNodeSetArray(curve, "Pref", referenceCurvePoints);
    }
 
@@ -294,19 +294,19 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
    {
       // We need a couple extra points for interpolation
       // One at the beginning and one at the end (JUST POINTS , NO ATTRS)
-      AiArraySetPnt(curvePoints, (step * numPointsPerStep), mayaCurve.points[0]);
+      AiArraySetVec(curvePoints, (step * numPointsPerStep), mayaCurve.points[0]);
       if (curveColors)
          AiArraySetRGB(curveColors, step, mayaCurve.color);
 
       // Run down the strand adding the points and widths.
       for (int j = 0; j < renderLineLength; ++j)
       {
-         AiArraySetPnt(curvePoints, j + 1 + (step * numPointsPerStep), mayaCurve.points[j]);
+         AiArraySetVec(curvePoints, j + 1 + (step * numPointsPerStep), mayaCurve.points[j]);
          // Animated widths are not supported, so just export on current frame
          if (!IsExportingMotion())
          {
             if (exportReferenceObject)
-               AiArraySetPnt(referenceCurvePoints, j, mayaCurve.referencePoints[j]);
+               AiArraySetVec(referenceCurvePoints, j, mayaCurve.referencePoints[j]);
 
             if (RequiresMotionData() && mayaCurve.widthConnected)
                AiArraySetFlt(curveWidths, j + (step * renderLineLength), static_cast<float>(mayaCurve.widths[j] / 2.0));
@@ -316,7 +316,7 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
          else if (mayaCurve.widthConnected)
             AiArraySetFlt(curveWidths, j + (step * renderLineLength), static_cast<float>(mayaCurve.widths[j] / 2.0));
       }
-      AiArraySetPnt(curvePoints, renderLineLength + 1 +  (step * numPointsPerStep), mayaCurve.points[renderLineLength - 1]);
+      AiArraySetVec(curvePoints, renderLineLength + 1 +  (step * numPointsPerStep), mayaCurve.points[renderLineLength - 1]);
     }
  }
 
@@ -361,10 +361,10 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
       for(unsigned int i = 0; i < (numcvs - 1); i++)
       {
          nurbsCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
-         AiV3Create(mayaCurve.points[i], (float)point.x, (float)point.y, (float)point.z);
+         mayaCurve.points[i] = AtVector((float)point.x, (float)point.y, (float)point.z);
       }
       nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
-      AiV3Create(mayaCurve.points[numcvs - 1], (float)point.x, (float)point.y, (float)point.z);
+      mayaCurve.points[numcvs - 1] = AtVector((float)point.x, (float)point.y, (float)point.z);
 
       mayaCurve.widths.resize(numcvs);
       mayaCurve.color = AI_RGB_WHITE;
@@ -443,10 +443,10 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
                for(unsigned int i = 0; i < numcvs - 1; i++)
                {
                   referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
-                  AiV3Create(mayaCurve.referencePoints[i], (float)point.x, (float)point.y, (float)point.z);
+                  mayaCurve.referencePoints[i] = AtVector((float)point.x, (float)point.y, (float)point.z);
                }
                referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
-               AiV3Create(mayaCurve.referencePoints[numcvs - 1], (float)point.x, (float)point.y, (float)point.z);
+               mayaCurve.referencePoints[numcvs - 1] = AtVector((float)point.x, (float)point.y, (float)point.z);
             }
             else exportReferenceObject = false;
          }

@@ -21,12 +21,12 @@ void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
    CShapeTranslator::MakeCommonAttributes(helper);
 
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "overrideLightLinking";
    data.shortName = "oll";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "overrideShaders";
    data.shortName = "osh";
    helper.MakeInputBoolean(data);
@@ -82,7 +82,7 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       plug = FindMayaPlug("visibleInReflections");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_REFLECTED;
+         visibility &= ~AI_RAY_SPECULAR_REFLECT;
       }
    }
    
@@ -92,7 +92,7 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       plug = FindMayaPlug("visibleInRefractions");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_REFRACTED;
+         visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
       }
    }
    
@@ -102,7 +102,7 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       plug = FindMayaPlug("aiVisibleInDiffuse");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_DIFFUSE;
+         visibility &= ~AI_RAY_ALL_DIFFUSE;
       }
    }
    
@@ -112,7 +112,7 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       plug = FindMayaPlug("aiVisibleInGlossy");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_GLOSSY;
+         visibility &= ~AI_RAY_SPECULAR_REFLECT;
       }
    }
    
@@ -298,8 +298,8 @@ void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   AiNodeSetPnt(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
-   AiNodeSetPnt(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
+   AiNodeSetVec(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
+   AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
 
 

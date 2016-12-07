@@ -8,7 +8,7 @@
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)
 {
-   AiM4Copy(outMatrix, matrix);
+   outMatrix = matrix;
 
    outMatrix[3][0] = matrix[3][0] + (float)velocityVector.x;
    outMatrix[3][1] = matrix[3][1] + (float)velocityVector.y;
@@ -72,25 +72,25 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    plug = fnNode.findPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFLECTED;
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
 
    plug = fnNode.findPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFRACTED;
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
    }
 
    plug = fnNode.findPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_DIFFUSE;
+      visibility &= ~AI_RAY_ALL_DIFFUSE;
    }
 
    plug = fnNode.findPlug("aiVisibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_GLOSSY;
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
    
    return visibility;
@@ -589,7 +589,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
             if (it->second < (int)m_vec_matrixArrays.size())
             {
-               AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep, substepMatrix);
+               substepMatrix = AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep);
                addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
             }

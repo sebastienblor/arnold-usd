@@ -58,8 +58,7 @@ MStatus CArnoldAOVNode::initialize()
    eAttr.addField("rgb",     AI_TYPE_RGB);
    eAttr.addField("rgba",    AI_TYPE_RGBA);
    eAttr.addField("vector",  AI_TYPE_VECTOR);
-   eAttr.addField("point",   AI_TYPE_POINT);
-   eAttr.addField("point2",  AI_TYPE_POINT2);
+   eAttr.addField("vector2",  AI_TYPE_VECTOR2);
    eAttr.addField("pointer", AI_TYPE_POINTER);
    eAttr.setKeyable(false);
    addAttribute(s_type);
