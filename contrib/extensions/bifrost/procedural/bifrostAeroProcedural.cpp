@@ -58,89 +58,103 @@ struct BfVolumeUserData {
 
 
 
-bool BifrostAeroVolumePluginCleanup(const AtNode* node,
-                                  AtVolumeData* out_data)
+AI_VOLUME_NODE_EXPORT_METHODS(BifrostAeroVolumeMtd);
+
+node_parameters
 {
-   if (out_data == NULL) return false;
+}
+
+volume_cleanup
+ {
+   if (data == NULL) return false;
      
-   BfVolumeUserData *data = (BfVolumeUserData*)out_data->private_info; 
-   if (data)
+   BfVolumeUserData *volData = (BfVolumeUserData*)data->private_info; 
+   if (volData)
    {
-      if (data->object_ref) delete data->object_ref;
-      delete data;
+      if (volData->object_ref) delete volData->object_ref;
+      delete volData;
    }
-   out_data->private_info = NULL;
+   data->private_info = NULL;
 
    return true;
 }
-
-bool BifrostAeroVolumePluginCreateVolume(
-                                  const AtNode* node,
-                                  AtVolumeData* out_data)
+volume_update
 {
-   BfVolumeUserData *data = new BfVolumeUserData;
-   data->object_ref = 0;
-   memset(data->smoke_samplers, 0, AI_MAX_THREADS * sizeof(void*));
-   memset(data->density_samplers, 0, AI_MAX_THREADS * sizeof(void*));
-   memset(data->temperature_samplers, 0, AI_MAX_THREADS * sizeof(void*));
-   memset(data->velocity_samplers, 0, AI_MAX_THREADS * sizeof(void*));
+   VolumeCleanup(node, data);
+   return VolumeCreate(node, data);
+}
+// FIXME Arnold5 what should we return here? This function wasn't defined before
+volume_gradient
+{
+   *gradient = AI_V3_ZERO;
+   return false;
+}
+
+volume_create
+{
+   BfVolumeUserData *volData = new BfVolumeUserData;
+   volData->object_ref = 0;
+   memset(volData->smoke_samplers, 0, AI_MAX_THREADS * sizeof(void*));
+   memset(volData->density_samplers, 0, AI_MAX_THREADS * sizeof(void*));
+   memset(volData->temperature_samplers, 0, AI_MAX_THREADS * sizeof(void*));
+   memset(volData->velocity_samplers, 0, AI_MAX_THREADS * sizeof(void*));
    
    std::string object_name = AiNodeLookUpUserParameter(node, "object_name") ? AiNodeGetStr(node, "object_name") : "";
    std::string file_name = AiNodeLookUpUserParameter(node, "file_name") ? AiNodeGetStr(node, "file_name") : "";
-   if (true || object_name != data->object_name || file_name != data->file) // in case we change the frame ?
+   if (true || object_name != volData->object_name || file_name != volData->file) // in case we change the frame ?
    {
     // need to update objet_ref
-      if (data->object_ref) delete data->object_ref;
+      if (volData->object_ref) delete volData->object_ref;
 
-      data->object_ref = new BifrostObjectUserData(object_name, file_name);
-      data->object_name = object_name;
-      data->file = file_name;
+      volData->object_ref = new BifrostObjectUserData(object_name, file_name);
+      volData->object_name = object_name;
+      volData->file = file_name;
    }
 
 
-   data->bbox.min = AiNodeGetVec(node, "min");
-   data->bbox.max = AiNodeGetVec(node, "max");
+   volData->bbox.min = AiNodeGetVec(node, "min");
+   volData->bbox.max = AiNodeGetVec(node, "max");
    
-   data->smoke_channel = data->object_ref->findVoxelChannel("smoke");
-   data->density_channel = data->object_ref->findVoxelChannel("density");
-   data->temperature_channel = data->object_ref->findVoxelChannel("temperature");
-   data->velocity_channel = data->object_ref->findVoxelChannel("velocity");
+   volData->smoke_channel = volData->object_ref->findVoxelChannel("smoke");
+   volData->density_channel = volData->object_ref->findVoxelChannel("density");
+   volData->temperature_channel = volData->object_ref->findVoxelChannel("temperature");
+   volData->velocity_channel = volData->object_ref->findVoxelChannel("velocity");
 
 
-   cleanVoxelSamplers(data->smoke_samplers);
-   cleanVoxelSamplers(data->density_samplers);
-   cleanVoxelSamplers(data->temperature_samplers);
-   cleanVoxelSamplers(data->velocity_samplers);
+   cleanVoxelSamplers(volData->smoke_samplers);
+   cleanVoxelSamplers(volData->density_samplers);
+   cleanVoxelSamplers(volData->temperature_samplers);
+   cleanVoxelSamplers(volData->velocity_samplers);
    
-   out_data->bbox = data->bbox;
+   data->bbox = volData->bbox;
 
    AtNode *shader = (AtNode*)AiNodeGetPtr(node, "shader");
    
 
    if(shader)
    {
-       data->step_size = AiNodeGetFlt(shader, "aiStepSize");
-       data->max_steps = AiNodeGetInt(shader, "aiMaxSteps");
-       data->shadowing = AiNodeGetBool(shader, "aiShadowing");
-       data->shadowing_step_size = AiNodeGetFlt(shader, "aiShadowingStepSize");
-       data->shadowing_max_steps = AiNodeGetInt(shader, "aiShadowingMaxSteps");
+       volData->step_size = AiNodeGetFlt(shader, "aiStepSize");
+       volData->max_steps = AiNodeGetInt(shader, "aiMaxSteps");
+       volData->shadowing = AiNodeGetBool(shader, "aiShadowing");
+       volData->shadowing_step_size = AiNodeGetFlt(shader, "aiShadowingStepSize");
+       volData->shadowing_max_steps = AiNodeGetInt(shader, "aiShadowingMaxSteps");
 
 
    } else
    {
-       data->step_size = 0.1f;
-       data->max_steps = 1000;
-       data->shadowing = true;
-       data->shadowing_step_size = 0.1f;
-       data->shadowing_max_steps = 1000;
+       volData->step_size = 0.1f;
+       volData->max_steps = 1000;
+       volData->shadowing = true;
+       volData->shadowing_step_size = 0.1f;
+       volData->shadowing_max_steps = 1000;
    }
 
-   out_data->auto_step_size = data->step_size;
-   out_data->private_info = data;
-   data->inv_fps = AiNodeLookUpUserParameter(node, "inv_fps") ? AiNodeGetFlt(node, "inv_fps") : 1.f; 
+   data->auto_step_size = volData->step_size;
+   data->private_info = volData;
+   volData->inv_fps = AiNodeLookUpUserParameter(node, "inv_fps") ? AiNodeGetFlt(node, "inv_fps") : 1.f; 
 
 
-   data->shutter_length = AiNodeLookUpUserParameter(node, "shutter_length") ? AiNodeGetFlt(node, "shutter_length") : 1.f; 
+   volData->shutter_length = AiNodeLookUpUserParameter(node, "shutter_length") ? AiNodeGetFlt(node, "shutter_length") : 1.f; 
 
    //AiAddMemUsage((AtInt64)grid->memoryUsage(), "BifrostAero volume plugin data");
 
@@ -148,13 +162,7 @@ bool BifrostAeroVolumePluginCreateVolume(
    return true;
 }
 
-bool BifrostAeroVolumePluginSample(
-                            const AtVolumeData* data,
-                            const AtString channel,
-                            const AtShaderGlobals* sg,
-                            int interp,
-                            AtParamValue *value,
-                            uint8_t *type)
+volume_sample
 {
 
    if (!data->private_info) return false;
@@ -225,17 +233,8 @@ bool BifrostAeroVolumePluginSample(
    return false;
 }
 
-void BifrostAeroVolumePluginRayExtents(
-                                const AtVolumeData* data,
-                                const AtVolumeIntersectionInfo* info,
-                                int tid,
-                                float time,
-                                const AtVector* origin,
-                                const AtVector* direction,
-                                float t0,
-                                float t1)
+volume_ray_extents
 {
-
    //if (!data->private_info) return;
    BfVolumeUserData *volData = (BfVolumeUserData*)data->private_info;
    if (volData == 0) return;
@@ -263,17 +262,21 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB bool VolumePluginLoader(AtVolumeNodeMethods* vtable)
+
+node_loader
 {
-   vtable->Cleanup        = BifrostAeroVolumePluginCleanup;
-   vtable->Create         = BifrostAeroVolumePluginCreateVolume;
-   vtable->Sample         = BifrostAeroVolumePluginSample;
-   vtable->RayExtents     = BifrostAeroVolumePluginRayExtents;
-   
-   // FIXME Arnold5
-   //strcpy(vtable->version, AI_VERSION); 
+   if (i>0)
+      return false;
+
+   node->methods      = BifrostAeroVolumeMtd;
+   node->output_type  = AI_TYPE_NONE;
+   node->name         = "bifrostAero";
+   node->node_type    = AI_NODE_SHAPE_VOLUME;
+   strcpy(node->version, AI_VERSION);
+
    return true;
 }
+
 
 #ifdef __cplusplus
 }

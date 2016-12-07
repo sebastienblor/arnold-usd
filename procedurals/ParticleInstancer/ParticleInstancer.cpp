@@ -31,29 +31,35 @@ AtArray* partArray = AiArrayAllocate(1, 1, AI_TYPE_INT);
 
 AtNode* particleSystem;
 
-static int Init(AtNode *mynode, void **user_ptr)
+AI_PROCEDURAL_NODE_EXPORT_METHODS(ParticleInstancerMtd);
+
+node_parameters
+{
+}
+
+procedural_init
 {
 
-   *user_ptr = mynode;
-   particleSystem = AiNodeLookUpByName(AiNodeGetStr(mynode, "data"));
+   *user_ptr = node;
+   particleSystem = AiNodeLookUpByName(AiNodeGetStr(node, "data"));
 
-   if (AiNodeLookUpUserParameter(mynode, "pathIndices") == NULL)
+   if (AiNodeLookUpUserParameter(node, "pathIndices") == NULL)
    {
       AiMsgError("[INSTANCER] No path Indices");
       AiRenderAbort();
    }
 
-   AtArray* pathIndicesArray = AiArrayCopy(AiNodeGetArray(mynode, "pathIndices"));
+   AtArray* pathIndicesArray = AiArrayCopy(AiNodeGetArray(node, "pathIndices"));
 
-   if (AiNodeLookUpUserParameter(mynode, "pathStartIndices") == NULL)
+   if (AiNodeLookUpUserParameter(node, "pathStartIndices") == NULL)
    {
       AiMsgError("[INSTANCER] No path Start Indices");
       AiRenderAbort();
    }
 
-   AtArray* pathStartIndices = AiArrayCopy(AiNodeGetArray(mynode, "pathStartIndices"));
+   AtArray* pathStartIndices = AiArrayCopy(AiNodeGetArray(node, "pathStartIndices"));
 
-   AtArray* pathMatrixArray = AiArrayCopy(AiNodeGetArray(mynode, "instanceMatrix"));
+   AtArray* pathMatrixArray = AiArrayCopy(AiNodeGetArray(node, "instanceMatrix"));
 
 
    if (particleSystem)
@@ -196,9 +202,9 @@ static int Init(AtNode *mynode, void **user_ptr)
 
          // OBJS
 
-         if (AiNodeLookUpUserParameter(mynode, "objects") != NULL)
+         if (AiNodeLookUpUserParameter(node, "objects") != NULL)
          {
-            objArray = AiArrayCopy(AiNodeGetArray(mynode, "objects"));
+            objArray = AiArrayCopy(AiNodeGetArray(node, "objects"));
             nbObjects = AiArrayGetNumElements(objArray);
          }
 
@@ -225,10 +231,8 @@ static int Init(AtNode *mynode, void **user_ptr)
    return true;
 }
 
-// All done, deallocate stuff
-static int Cleanup(const AtNode *node, void *user_ptr)
+procedural_cleanup
 {
-
    AiMsgInfo("[INSTANCER] Cleaning datas");
 
    for (size_t i = 0; i < params.size(); ++i)
@@ -249,15 +253,19 @@ static int Cleanup(const AtNode *node, void *user_ptr)
 }
 
 // Get number of nodes
-static int NumNodes(const AtNode *node, void *user_ptr)
+procedural_num_nodes
 {
    return nbInsts;
 }
 
 // Get the i_th node
+procedural_init_bounds
+{
+   // FIXME Arnold5 return true or false? 
+   return false;
+}
 
-
-static AtNode *GetNode(const AtNode *node, void *user_ptr, int i)
+procedural_get_node
 {
    AtNode *instance;
    instance = AiNode("ginstance");
@@ -345,17 +353,21 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB int ProcLoader(AtProceduralNodeMethods *vtable)
+node_loader
 {
-   vtable->Init = Init;
-   vtable->Cleanup = Cleanup;
-   vtable->NumNodes = NumNodes;
-   vtable->GetNode = GetNode;
+   if (i>0)
+      return false;
 
-   // FIXME Arnold5
-   //sprintf(vtable->version, AI_VERSION);
-   return 1;
+   node->methods      = ParticleInstancerMtd;
+   node->output_type  = AI_TYPE_NONE;
+   node->name         = "particleInstancer"; // FIXME Arnold5
+   node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
+   strcpy(node->version, AI_VERSION);
+
+   return true;
 }
+
+
 
 #ifdef __cplusplus
 }

@@ -322,10 +322,17 @@ private:
     float       _aiMinPixelWidth;
     int         _aiMode;
 };
-
 // ============================================================================
 
-int Init(AtNode* node, void** user_ptr)
+
+AI_PROCEDURAL_NODE_EXPORT_METHODS(XgSplineProceduralMtd);
+
+
+node_parameters
+{
+}
+
+procedural_init
 {
     XgSplineProcedural* proc = new XgSplineProcedural();
     if (!proc->init(node))
@@ -337,35 +344,40 @@ int Init(AtNode* node, void** user_ptr)
     return proc ? 1 : 0;
 }
 
-int Cleanup(const AtNode *node, void* user_ptr)
+procedural_cleanup
 {
     delete reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return 1;
 }
-
-int NumNodes(const AtNode *node, void* user_ptr)
+procedural_init_bounds
+{
+    // FIXME Arnold5 should we return true or false ?
+    return false;
+}
+procedural_num_nodes
 {
     XgSplineProcedural* proc = reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return proc ? proc->numNodes() : 0;
 }
 
-AtNode* GetNode(const AtNode *node, void* user_ptr, int i)
+procedural_get_node
 {
     XgSplineProcedural* proc = reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return proc ? proc->getNode(i) : NULL;
 }
 
-} // namespace XgArnoldInternal
 
-// FIXME Arnold5 this used to be "proc_loader{"
-AI_EXPORT_LIB int ProcLoader(AtProceduralNodeMethods *vtable)
+node_loader
 {
-    vtable->Init        = XgArnoldInternal::Init;
-    vtable->Cleanup     = XgArnoldInternal::Cleanup;
-    vtable->NumNodes    = XgArnoldInternal::NumNodes;
-    vtable->GetNode     = XgArnoldInternal::GetNode;
+   if (i>0)
+      return false;
 
-    // FIXME Arnold5
-    //strcpy(vtable->version, AI_VERSION);
-    return 1;
+   node->methods      = XgSplineProceduralMtd;
+   node->output_type  = AI_TYPE_NONE;
+   node->name         = "xgenProcedural";
+   node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
+   strcpy(node->version, AI_VERSION);
+   return true;
 }
+
+};

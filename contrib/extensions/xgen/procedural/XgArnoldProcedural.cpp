@@ -12,8 +12,17 @@
 
 using namespace XGenArnold;
 
-// Redirect Init/Cleanup/NumNodes/GetNode to our XGenArnoldProcedural class wrapped in the user data.
-static int Init( AtNode* node, void** user_ptr )
+AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
+
+node_parameters
+{
+}
+procedural_init_bounds
+{
+   // FIXME Arnold5 should we return true or false
+   return false;
+}
+procedural_init
 {
    //AiMsgInfo("[xgArnoldProcedural] Init()");
 
@@ -40,7 +49,7 @@ static int Init( AtNode* node, void** user_ptr )
 }
 
 // Cleanup
-static int Cleanup( const AtNode *node, void* user_ptr )
+procedural_cleanup
 {
    //AiMsgInfo("[xgArnoldProcedural] Cleanup()");
 
@@ -53,7 +62,7 @@ static int Cleanup( const AtNode *node, void* user_ptr )
 }
 
 // Get number of nodes
-static int NumNodes(const AtNode *node,  void* user_ptr )
+procedural_num_nodes
 {
    //AiMsgInfo("[xgArnoldProcedural] NumNodes()");
 
@@ -64,7 +73,7 @@ static int NumNodes(const AtNode *node,  void* user_ptr )
 }
 
 // Get the i_th node
-static AtNode* GetNode( const AtNode *node, void* user_ptr, int i )
+procedural_get_node
 {
    //AiMsgInfo("[xgArnoldProcedural] GetNode()");
 
@@ -80,18 +89,19 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB int ProcLoader(AtProceduralNodeMethods *vtable)
+
+node_loader
 {
-   vtable->Init = Init;
-   vtable->Cleanup = Cleanup;
-   vtable->NumNodes = NumNodes;
-   vtable->GetNode = GetNode;
+   if (i>0)
+      return false;
 
-   s_bCleanDescriptionCache = true;
+   node->methods      = XgArnoldProceduralMtd;
+   node->output_type  = AI_TYPE_NONE;
+   node->name         = "xgen_procedural";
+   node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
+   strcpy(node->version, AI_VERSION);
 
-   // FIXME Arnold5
-   //sprintf(vtable->version, AI_VERSION);
-   return 1;
+   return true;
 }
 
 #ifdef __cplusplus
