@@ -135,9 +135,9 @@ namespace { // anonymus namespace
          float udim_bv = AiClamp(sg->bv, 0.0f, 1.0f);
          float udim_bw = 1.0f - udim_bu - udim_bv;
 
-         udim_bu = LERP(AI_EPSILON, udim_bu, (1.0f / 3.0f));
-         udim_bv = LERP(AI_EPSILON, udim_bv, (1.0f / 3.0f));
-         udim_bw = LERP(AI_EPSILON, udim_bw, (1.0f / 3.0f));
+         udim_bu = AiLerp(AI_EPSILON, udim_bu, (1.0f / 3.0f));
+         udim_bv = AiLerp(AI_EPSILON, udim_bv, (1.0f / 3.0f));
+         udim_bw = AiLerp(AI_EPSILON, udim_bw, (1.0f / 3.0f));
 
          float adjusted_u = udim_bu * uvs[1].x + udim_bv * uvs[2].x + udim_bw * uvs[0].x;
          float adjusted_v = udim_bu * uvs[1].y + udim_bv * uvs[2].y + udim_bw * uvs[0].y;

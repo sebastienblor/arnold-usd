@@ -162,13 +162,13 @@ shader_evaluate
    {
       float cs = ss - 0.5f * uWidth;
       float ct = 2.0f * tt / vWidth - 1.0f;
-      cloth = 0.75f * (SQR(cs) + SQR(ct));
+      cloth = 0.75f * (AiSqr(cs) + AiSqr(ct));
    }
    else if (ss < uWidth)
    {
       float cs = 2.0f * ss / uWidth - 1.0f;
       float ct = tt - 0.5f * vWidth - 1.0f;
-      cloth = 0.75f * (SQR(cs) + SQR(ct));
+      cloth = 0.75f * (AiSqr(cs) + AiSqr(ct));
       threadColor = 1.0f - threadColor;
    }
    else

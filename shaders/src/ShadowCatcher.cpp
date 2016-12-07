@@ -144,7 +144,7 @@ shader_evaluate
       
       if (AiShaderEvalParamBool(p_enable_transparency))
          resultOpacity = matte * (1.0f - AiShaderEvalParamRGB(p_shadow_transparency));
-      result = LERP(matte, backgroundColor, shadowColor);
+      result = AiLerp(matte, backgroundColor, shadowColor);
    }
    else
       result = backgroundColor;

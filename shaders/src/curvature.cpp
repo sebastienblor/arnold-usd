@@ -13,7 +13,10 @@ inline float bias(float x, float inv_bias)
 {
     return x / ((inv_bias - 2.0f) * (1.0f - x) + 1.0f);
 }
-
+inline float SGN(float a)
+{
+    return a < 0.f ? -1.f : 1.f;
+}
 static const char* enum_output[] =
 {
     "convex",
@@ -46,7 +49,7 @@ enum Params
 struct ShaderData
 {
     Output output;
-    AtUInt32 samples;
+    unsigned samples;
     AtSampler* sampler;
     AtString trace_set;
     bool inclusive;
@@ -68,11 +71,11 @@ node_parameters
     AiParameterBool("inclusive", true);
     AiParameterBool("self_only", false);
 
-    AiMetaDataSetBool(mds, "output", "linkable", false);
-    AiMetaDataSetBool(mds, "samples", "linkable", false);
-    AiMetaDataSetBool(mds, "trace_set", "linkable", false);
-    AiMetaDataSetBool(mds, "inclusive", "linkable", false);
-    AiMetaDataSetBool(mds, "self_only", "linkable", false);
+    AiMetaDataSetBool(nentry, "output", "linkable", false);
+    AiMetaDataSetBool(nentry, "samples", "linkable", false);
+    AiMetaDataSetBool(nentry, "trace_set", "linkable", false);
+    AiMetaDataSetBool(nentry, "inclusive", "linkable", false);
+    AiMetaDataSetBool(nentry, "self_only", "linkable", false);
 
 }
 
@@ -88,7 +91,10 @@ node_update
     ShaderData *data = reinterpret_cast<ShaderData*>(AiNodeGetLocalData(node));
 
     if (data->sampler) AiSamplerDestroy(data->sampler);
-    data->sampler = AiSampler(AiNodeGetUInt(node, "samples"), 2);
+    
+    // using the node name as a seed for the sampler
+    static const uint32_t seed = static_cast<uint32_t>(AiNodeEntryGetNameAtString(AiNodeGetNodeEntry(node)).hash());
+    data->sampler = AiSampler(seed, AiNodeGetUInt(node, "samples"), 2);
 
     static const AtString output("output");
     data->output = static_cast<Output>(AiNodeGetInt(node, output));
@@ -116,12 +122,12 @@ node_finish
 shader_evaluate
 {
     // early out for shadow rays and really transparent hits
-    if ((sg->Rt & AI_RAY_SHADOW) || AiColorIsZero(sg->out_opacity))
+    if ((sg->Rt & AI_RAY_SHADOW) || AiColorIsSmall(sg->out_opacity))
        return;
 
     // local frame
     AtVector u, v;
-    AiBuildLocalFrameShirley(&u, &v, &sg->Nf);
+    AiV3BuildLocalFrame(u, v, sg->Nf);
 
     // radius, bias, facing
     const float radius = AiMax(AiShaderEvalParamFlt(p_radius), AI_EPSILON);
@@ -137,8 +143,7 @@ shader_evaluate
     const float spread_gap = 2.0f * spread_sin;
 
     // ray
-    AtRay ray;
-    AiMakeRay(&ray, AI_RAY_DIFFUSE, &sg->P, NULL, radius, sg);
+    AtRay ray = AiMakeRay(AI_RAY_DIFFUSE_REFLECT, sg->P, NULL, radius, sg);
     ShaderData *data = reinterpret_cast<ShaderData*>(AiNodeGetLocalData(node));
     ray.traceset = data->trace_set;
     ray.inclusive_traceset = data->inclusive;
@@ -167,7 +172,7 @@ shader_evaluate
         AiV3RotateToFrame(ray.dir, u, v, sg->Nf);
 
         AtShaderGlobals hit_sg;
-        if (AiTraceProbe(&ray, &hit_sg))
+        if (AiTraceProbe(ray, &hit_sg))
         {
             if (data->self_only && hit_sg.Op != sg->Op) continue;
 
@@ -195,26 +200,26 @@ shader_evaluate
     switch (data->output)
     {
     case OUTPUT_CONVEX:
-        sg->out.RGB = curvature > 0.0f ? AiColor(curvature) : AI_RGB_BLACK;
+        sg->out.RGB() = curvature > 0.0f ? AtRGB(curvature) : AI_RGB_BLACK;
         break;
 
     case OUTPUT_CONCAVE:
-        sg->out.RGB = curvature < 0.0f ? AiColor(-curvature) : AI_RGB_BLACK;
+        sg->out.RGB() = curvature < 0.0f ? AtRGB(-curvature) : AI_RGB_BLACK;
         break;
 
     case OUTPUT_BOTH:
         if (curvature > 0.0f)
         {
-            sg->out.RGB.r = curvature;
-            sg->out.RGB.g = 0.0f;
+            sg->out.RGB().r = curvature;
+            sg->out.RGB().g = 0.0f;
         }
         else
         {
-            sg->out.RGB.r = 0.0f;
-            sg->out.RGB.g = -curvature;
+            sg->out.RGB().r = 0.0f;
+            sg->out.RGB().g = -curvature;
         }
 
-        sg->out.RGB.b = 0.0f;
+        sg->out.RGB().b = 0.0f;
         break;
     }
 }

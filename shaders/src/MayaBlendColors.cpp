@@ -35,7 +35,7 @@ shader_evaluate
    {
       AtRGB   color1 = AiShaderEvalParamRGB(p_color1);
       AtRGB   color2 = AiShaderEvalParamRGB(p_color2);
-      sg->out.RGB() = LERP(blend, color2, color1);
+      sg->out.RGB() = AiLerp(blend, color2, color1);
    }
 }
 

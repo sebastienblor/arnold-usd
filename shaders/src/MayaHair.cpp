@@ -100,7 +100,7 @@ shader_evaluate
       {
          const AtRGB b0 = AiArrayGetRGB(hairColorScale, idb);
          const AtRGB b1 = AiArrayGetRGB(hairColorScale, idb + 1);
-         hairColor *= LERP(AI_RGB_WHITE * (id - idbf), b0, b1);
+         hairColor *= AiLerp(AI_RGB_WHITE * (id - idbf), b0, b1);
       }         
    }
    
@@ -129,9 +129,9 @@ shader_evaluate
       randHSV.y = rand01(&tseed);
       randHSV.z = rand01(&tseed);      
       AtVector origHSV = RGBtoHSV(hairColor);
-      origHSV.x = LERP(hueRand * diffuseRand, origHSV.x, randHSV.x);
-      origHSV.y = LERP(satRand * diffuseRand, origHSV.y, randHSV.y);
-      origHSV.z = LERP(valRand * diffuseRand, origHSV.z, randHSV.z);
+      origHSV.x = AiLerp(hueRand * diffuseRand, origHSV.x, randHSV.x);
+      origHSV.y = AiLerp(satRand * diffuseRand, origHSV.y, randHSV.y);
+      origHSV.z = AiLerp(valRand * diffuseRand, origHSV.z, randHSV.z);
       hairColor = HSVtoRGB(origHSV);
    }
    
@@ -181,9 +181,9 @@ shader_evaluate
       randHSV.y = rand01(&tseed);
       randHSV.z = rand01(&tseed);
       AtVector origHSV = RGBtoHSV(specularColor);
-      origHSV.x = LERP(hueRand * specularRand, origHSV.x, randHSV.x);
-      origHSV.y = LERP(satRand * specularRand, origHSV.y, randHSV.y);
-      origHSV.z = LERP(valRand * specularRand, origHSV.z, randHSV.z);
+      origHSV.x = AiLerp(hueRand * specularRand, origHSV.x, randHSV.x);
+      origHSV.y = AiLerp(satRand * specularRand, origHSV.y, randHSV.y);
+      origHSV.z = AiLerp(valRand * specularRand, origHSV.z, randHSV.z);
       specularColor = HSVtoRGB(origHSV);
    }   
    
