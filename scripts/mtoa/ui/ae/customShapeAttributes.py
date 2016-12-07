@@ -802,14 +802,14 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
         cmds.menuItem( label='INT', data=0)
         cmds.menuItem( label='FLOAT', data=1)
-        cmds.menuItem( label='POINT2', data=2)
+        cmds.menuItem( label='VECTOR2', data=2)
         cmds.menuItem( label='MATRIX', data=3)
         cmds.menuItem( label='STRING', data=4)
         if result[0] == 'INT':
             cmds.optionMenu(menu, edit=True, select=1)
         elif result[0] == 'FLOAT':
             cmds.optionMenu(menu, edit=True, select=2)
-        elif result[0] == 'POINT2':
+        elif result[0] == 'VECTOR2':
             cmds.optionMenu(menu, edit=True, select=3)
         elif result[0] == 'MATRIX':
             cmds.optionMenu(menu, edit=True, select=4)
@@ -1119,14 +1119,14 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
         cmds.menuItem( label='INT', data=0)
         cmds.menuItem( label='FLOAT', data=1)
-        cmds.menuItem( label='POINT2', data=2)
+        cmds.menuItem( label='VECTOR2', data=2)
         cmds.menuItem( label='MATRIX', data=3)
         cmds.menuItem( label='STRING', data=4)
         if result[0] == 'INT':
             cmds.optionMenu(menu, edit=True, select=1)
         elif result[0] == 'FLOAT':
             cmds.optionMenu(menu, edit=True, select=2)
-        elif result[0] == 'POINT2':
+        elif result[0] == 'VECTOR2':
             cmds.optionMenu(menu, edit=True, select=3)
         elif result[0] == 'MATRIX':
             cmds.optionMenu(menu, edit=True, select=4)

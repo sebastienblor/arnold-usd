@@ -6,7 +6,7 @@ from itertools import groupby
 import arnold.ai_params
 
 BUILTIN_AOVS = (
-                ('P',                   'point'),
+                ('P',                   'vector'),
                 ('Z',                   'float'),
                 ('N',                   'vector'),
                 ('opacity',             'rgb'),
@@ -37,8 +37,7 @@ TYPES = (
     ("rgb",    arnold.ai_params.AI_TYPE_RGB),
     ("rgba",   arnold.ai_params.AI_TYPE_RGBA),
     ("vector", arnold.ai_params.AI_TYPE_VECTOR),
-    ("point",  arnold.ai_params.AI_TYPE_POINT),
-    ("point2", arnold.ai_params.AI_TYPE_POINT2),
+    ("vector2", arnold.ai_params.AI_TYPE_VECTOR2),
     ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
 defaultFiltersByName = {'Z' : 'closest', 'motion_vector' : 'closest', 'P' : 'closest', 'N' : 'closest', 'Pref' : 'closest', 'ID' : 'closest'}
