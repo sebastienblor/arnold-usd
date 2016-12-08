@@ -37,13 +37,20 @@ shader_evaluate
 {
    if (sg->sc & AI_CONTEXT_VOLUME)
    {
-      sg->out.RGB() = AiShaderEvalParamRGB(p_volume);
+      // FIXME Arnold5 what about here, how to use closure ?
+      AtRGB volume_rgb = AiShaderEvalParamRGB(p_volume);
+      AtClosureList closures;
+      closures.add(AiClosureEmission(sg, volume_rgb));
+      sg->out.CLOSURE() = closures;
       return;
    }
    if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))
    {
-      // FIXME Arnold5 does this work or should we output a closure with AiClosureEmission ?
-      sg->out.RGBA() = AiShaderEvalParamRGBA(p_matte_color);
+      AtRGBA matte_color = AiShaderEvalParamRGBA(p_matte_color);
+      AtClosureList closures;
+      closures.add(AiClosureEmission(sg, matte_color.rgb()));
+      closures.add(AiClosureMatte(sg, AtRGB(1 - matte_color.a)));
+      sg->out.CLOSURE() = closures;
       return;
    }
    AtArray *inputs = AiShaderEvalParamArray(p_aov_inputs);

@@ -358,8 +358,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          if (fGeometry.drawOverride == 3) 
             AiNodeSetBool(procedural, "load_at_init", false); 
 
-         AtMatrix mtx = AiM4Identity();
-         AiNodeSetMatrix(procedural, "matrix", mtx);
+         AiNodeSetMatrix(procedural, "matrix", AiM4Identity());
          
          if (fGeometry.drawOverride != 3)
          {

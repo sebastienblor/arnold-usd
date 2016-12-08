@@ -102,10 +102,10 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          {
             result.append(paramName);
             result.append(helper.GetMayaAttrName(paramName));
-            AtString label = AtString("");
+            AtString label("");
             AiMetaDataGetStr(nodeEntry, paramName, "label", &label);
             result.append(label.c_str());
-            AtString desc = AtString("");
+            AtString desc("");
             AiMetaDataGetStr(nodeEntry, paramName, "desc", &desc);
             result.append(desc.c_str());
          }

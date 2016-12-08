@@ -337,8 +337,7 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       
       AiNodeSetStr(volume, "name", "myvolume");
 
-      AtMatrix matrix = AiM4Identity();
-      AiNodeSetMatrix(volume, "matrix", matrix);
+      AiNodeSetMatrix(volume, "matrix", AiM4Identity());
 
 	  MString dso;
       if(m_type == VT_CUSTOM)

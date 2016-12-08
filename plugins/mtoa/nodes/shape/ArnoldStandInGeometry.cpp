@@ -14,8 +14,7 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
    m_BBMax.x = -AI_BIG;
    m_BBMax.y = -AI_BIG;
    m_BBMax.z = -AI_BIG;
-   m_matrix = AiM4Identity();
-
+   
    p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
    m_matrix = AiArrayGetMtx(p_matrices, 0);
    m_visible = AiNodeGetByte(node, "visibility") != 0;
@@ -108,13 +107,19 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed) const
       MBoundingBox bboxRet;
       for (unsigned int i = 0; i < AiArrayGetNumKeys(p_matrices); ++i)
       {
-         AtMatrix mtx = AiM4Identity();
-         mtx = AiArrayGetMtx(p_matrices, i);
+         AtMatrix mtx = AiArrayGetMtx(p_matrices, i);
          MBoundingBox bbox(MVector(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 
          // FIXME Arnold5 is this correct?
+         //
+         // this might be correct now, but it could break in the future.  To
+         // make maintenance easier, I'd create a function that does this so
+         // that if it does break, you only need to fix it in one place.  Something like:
+         // MMatrix mmtx = MMatrixToAtMatrix(mtx);
+         // where
+         // AtMatrix& MMatrixToAtMatrix(MMatrix& mtx) { return reinterpret_cast<MMatrix&>(mtx); }
          MMatrix mmtx;
-         memcpy(&mmtx, &(mtx[0][0]), 16*sizeof(float));
+         memcpy(&mmtx, &(mtx[0][0]), sizeof(mtx));
          bbox.transformUsing(mmtx);
          bboxRet.expand(bbox);
       }
@@ -143,7 +148,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
     mTriangulator(NULL)
 {  
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
-   unsigned nelements = (vlist != 0) ? AiArrayGetNumElements(vlist) : 0;
+   unsigned nelements = AiArrayGetNumElements(vlist);
    if ( nelements )
    {
       m_vlist.resize(nelements);
@@ -185,7 +190,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    }
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
-   unsigned vidxElements = (vidxs != 0) ? AiArrayGetNumElements(vidxs) : 0;
+   unsigned vidxElements = AiArrayGetNumElements(vidxs);
    if (vidxElements)
    {
       m_vidxs.resize(vidxElements);
@@ -199,7 +204,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    }
 
    AtArray* nsides = AiNodeGetArray(node, "nsides");
-   unsigned nsidesElements = (nsides != 0) ? AiArrayGetNumElements(nsides) : 0;
+   unsigned nsidesElements = AiArrayGetNumElements(nsides);
    if (nsidesElements)
    {
       m_nsides.resize(nsidesElements);
@@ -214,8 +219,8 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* nlist = AiNodeGetArray(node, "nlist");
    AtArray* nidxs = AiNodeGetArray(node, "nidxs");
-   unsigned nlistElements = (nlist != 0) ? AiArrayGetNumElements(nlist) : 0;
-   unsigned nidxsElements = (nlist != 0) ? AiArrayGetNumElements(nidxs) : 0;
+   unsigned nlistElements = AiArrayGetNumElements(nlist);
+   unsigned nidxsElements = AiArrayGetNumElements(nidxs);
    if (nlistElements > 0 && nidxsElements > 0)
    {
       m_nlist.resize(nlistElements);
@@ -563,11 +568,9 @@ void CArnoldPointsGeometry::GetPoints(float* vertices, const AtMatrix* matrix) c
         memcpy(&vertices[0], &m_points[0][0], m_points.size()*3*sizeof(float));
 }
 
-CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMatrix m, bool i) :
-   p_geom(g), m_inheritXForm(i)
-{
-   m_matrix = m;
-}
+CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, const AtMatrix &m, bool i) :
+   p_geom(g), m_matrix(m), m_inheritXForm(i)
+{}
 
 CArnoldStandInGInstance::~CArnoldStandInGInstance()
 {
