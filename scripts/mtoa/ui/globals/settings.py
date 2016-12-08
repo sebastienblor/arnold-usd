@@ -42,8 +42,8 @@ def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
 def updateComputeSamples(*args):
     AASamples = pm.getAttr('defaultArnoldRenderOptions.AASamples')
     GISamples = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
-    glossySamples = pm.getAttr('defaultArnoldRenderOptions.GIGlossySamples')
-    refractionSamples = pm.getAttr('defaultArnoldRenderOptions.GIRefractionSamples')
+    specularSamples = pm.getAttr('defaultArnoldRenderOptions.GISpecularSamples')
+    transmissionSamples = pm.getAttr('defaultArnoldRenderOptions.GITransmissionSamples')
     
     diffuseDepth = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
     specularDepth = pm.getAttr('defaultArnoldRenderOptions.GISpecularDepth')
@@ -54,11 +54,11 @@ def updateComputeSamples(*args):
     AASamplesComputed = AASamples * AASamples
 
     GISamplesComputed, GISamplesComputedDepth = calculateRayCounts(AASamplesComputed, GISamples, diffuseDepth)
-    glossySamplesComputed, glossySamplesComputedDepth = calculateRayCounts(AASamplesComputed, glossySamples, specularDepth)
-    refractionSamplesComputed, refractionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, refractionSamples, transmissionDepth)
+    specularSamplesComputed, specularSamplesComputedDepth = calculateRayCounts(AASamplesComputed, specularSamples, specularDepth)
+    transmissionSamplesComputed, transmissionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, transmissionSamples, transmissionDepth)
     
-    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
-    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
+    totalSamples = AASamplesComputed + GISamplesComputed + specularSamplesComputed + transmissionSamplesComputed
+    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + specularSamplesComputedDepth + transmissionSamplesComputedDepth
 
     pm.text("textAASamples",
             edit=True, 
@@ -68,13 +68,13 @@ def updateComputeSamples(*args):
             edit=True, 
             label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
-    pm.text("textGlossySamples",
+    pm.text("textSpecularSamples",
             edit=True, 
-            label='Glossy Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+            label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
         
-    pm.text("textRefractionSamples",
+    pm.text("textTransmissionSamples",
             edit=True, 
-            label='Refraction Samples : %i (max : %i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
+            label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
         
     pm.text("textTotalSamples",
             edit=True, 
@@ -396,12 +396,12 @@ def createArnoldSamplingSettings():
                align='left',
                )
     
-    pm.text( "textGlossySamples", 
+    pm.text( "textSpecularSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
 
-    pm.text( "textRefractionSamples", 
+    pm.text( "textTransmissionSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
@@ -436,25 +436,25 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     
-    pm.intSliderGrp('ss_glossy_samples',
-                        label="Glossy",
+    pm.intSliderGrp('ss_specular_samples',
+                        label="Specular",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=1)
-    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=2)
-    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
+    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=1)
+    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=2)
+    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=3)    
     
-    pm.intSliderGrp('ss_refraction_samples',
-                        label='Refraction',
+    pm.intSliderGrp('ss_transmission_samples',
+                        label='Transmission',
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=1)
-    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
-    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=3)    
+    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=1)
+    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=2)
+    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=3)    
 
     pm.attrControlGrp('ss_sss_samples',
                         label='SSS',

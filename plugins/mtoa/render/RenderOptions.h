@@ -269,7 +269,7 @@ private:
    unsigned int m_log_verbosity;
    unsigned int m_AA_samples;
    unsigned int m_GI_diffuse_samples;
-   unsigned int m_GI_glossy_samples;
+   unsigned int m_GI_specular_samples;
    unsigned int m_outputAssMask;
    unsigned int m_progressive_initial_level;
    unsigned int m_threads;

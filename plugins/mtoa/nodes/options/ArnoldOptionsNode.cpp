@@ -261,8 +261,8 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("AA_samples");
    s_attributes.MakeInput("GI_diffuse_samples");
-   s_attributes.MakeInput("GI_glossy_samples");
-   s_attributes.MakeInput("GI_refraction_samples");
+   s_attributes.MakeInput("GI_specular_samples");
+   s_attributes.MakeInput("GI_transmission_samples");
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
    

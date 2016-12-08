@@ -43,8 +43,8 @@ static MString                                 s_last_caption_cmd;
 
 static int s_AA_Samples;
 static int s_GI_diffuse_samples;
-static int s_GI_glossy_samples;
-static int s_GI_refraction_samples;
+static int s_GI_specular_samples;
+static int s_GI_transmission_samples;
 static int s_GI_sss_samples;
 static int s_GI_volume_samples;
 
@@ -617,9 +617,9 @@ void GenerateRenderViewCaptionCmd(time_t elapsed, unsigned int mem_used, MString
       cmd += "/";
       cmd += s_GI_diffuse_samples;
       cmd += "/";
-      cmd += s_GI_glossy_samples;
+      cmd += s_GI_specular_samples;
       cmd += "/";
-      cmd += s_GI_refraction_samples;
+      cmd += s_GI_transmission_samples;
       cmd += "/";
       cmd += s_GI_sss_samples;
       cmd += "/";
@@ -705,8 +705,8 @@ void BeginImage()
    AtNode* options = AiUniverseGetOptions();
    s_AA_Samples               = AiNodeGetInt(options, "AA_samples");
    s_GI_diffuse_samples       = AiNodeGetInt(options, "GI_diffuse_samples");
-   s_GI_glossy_samples        = AiNodeGetInt(options, "GI_glossy_samples");
-   s_GI_refraction_samples    = AiNodeGetInt(options, "GI_refraction_samples");
+   s_GI_specular_samples      = AiNodeGetInt(options, "GI_specular_samples");
+   s_GI_transmission_samples  = AiNodeGetInt(options, "GI_transmission_samples");
    s_GI_sss_samples           = AiNodeGetInt(options, "GI_sss_samples");
    s_GI_volume_samples        = AiNodeGetInt(options, "GI_volume_samples");
 

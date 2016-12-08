@@ -71,8 +71,8 @@
     <sep desc="Samples options"/>
     <attr n="ai:as" s="defaultArnoldRenderOptions.AASamples" t="int" h="Set anti-aliasing samples"/>
     <attr n="ai:hs" s="defaultArnoldRenderOptions.GIDiffuseSamples" t="int" h="Set indirect diffuse samples"/>
-    <attr n="ai:gs" s="defaultArnoldRenderOptions.GIGlossySamples" t="int" h="Set indirect specular samples"/>
-    <attr n="ai:rs" s="defaultArnoldRenderOptions.GIRefractionSamples" t="int" h="Set refraction samples"/>
+    <attr n="ai:gs" s="defaultArnoldRenderOptions.GISpecularSamples" t="int" h="Set indirect specular samples"/>
+    <attr n="ai:rs" s="defaultArnoldRenderOptions.GITransmissionSamples" t="int" h="Set transmission samples"/>
     <attr n="ai:bssrdfs" s="defaultArnoldRenderOptions.sssBssrdfSamples" t="int" h="Number of SSS Samples."/>
     <sep/>
     <!-- ______________________________________________________________ -->
