@@ -12,7 +12,7 @@ static const char* declStrings[][4] = {
    {"constant RGB", "constant ARRAY RGB", "uniform RGB", "varying RGB"}, // AI_TYPE_RGB
    {"constant RGBA", "constant ARRAY RGBA", "uniform RGBA", "varying RGBA"}, // AI_TYPE_RGBA
    {"constant VECTOR", "constant ARRAY VECTOR", "uniform VECTOR", "varying VECTOR"}, // AI_TYPE_VECTOR
-   {"constant VECTOR2", "constant ARRAY VECTOR2", "uniform VECTOR2", "varying VECTOR2"}, // AI_TYPE_POINT2
+   {"constant VECTOR2", "constant ARRAY VECTOR2", "uniform VECTOR2", "varying VECTOR2"}, // AI_TYPE_VECTOR2
    {"constant STRING", "constant ARRAY STRING", "uniform STRING", "varying STRING"}, // AI_TYPE_STRING
    {"constant POINTER", "constant ARRAY POINTER", "uniform POINTER", "varying POINTER"}, // AI_TYPE_POINTER
    {"constant NODE", "constant ARRAY NODE", "uniform NODE", "varying NODE"}, // AI_TYPE_NODE

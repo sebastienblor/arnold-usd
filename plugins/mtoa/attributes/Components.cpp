@@ -13,7 +13,7 @@ const MStringArray& GetComponentNames(int arnoldParamType)
    case AI_TYPE_VECTOR:
       return VECTOR_COMPONENTS;
    case AI_TYPE_VECTOR2:
-      return POINT2_COMPONENTS;
+      return VECTOR2_COMPONENTS;
    // FIXME Arnold5 make sure we don't want any components with closures
    default:
       return INVALID_COMPONENTS;

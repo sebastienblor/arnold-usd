@@ -393,7 +393,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
          // a deeper rewriting of this code
          for (int j = 0; j < m_hairInfo.hairEndIndices[strand] - m_hairInfo.hairStartIndices[strand] + 2; ++j)
          {
-            AiArraySetPnt(curvePoints,
+            AiArraySetVec(curvePoints,
                     (curveLineInterpStartsIdx + j  + (step * numPointsPerStep)),
                     previousPoint);
 
@@ -412,7 +412,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       }
       
 
-      AtPoint arnoldCurvePoint;
+      AtVector arnoldCurvePoint;
       AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
      
 

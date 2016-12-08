@@ -625,7 +625,7 @@ node_loader
 
    case SHADER_SHADINGENGINE:
       node->methods     = MayaShadingEngineMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaShadingEngine";
       node->node_type   = AI_NODE_SHADER;
       break;

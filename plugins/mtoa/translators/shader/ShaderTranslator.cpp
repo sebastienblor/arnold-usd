@@ -211,6 +211,7 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 
 void CShaderTranslator::ExportBump(AtNode* shader)
 {
+   return; // FIXME Arnold5 removing this until bump is properly supported
    MStatus status;
    MPlugArray connections;
    MPlug plug = FindMayaPlug("normalCamera", &status);
