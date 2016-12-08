@@ -286,6 +286,9 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
                                                       const char* arnoldParamName,
                                                       int arnoldParamType)
 {
+
+   // FIXME Arnold5 what should we do with closures ?
+
    const MStringArray componentNames = GetComponentNames(arnoldParamType);
    unsigned int compConnected = 0;
    unsigned int numComponents = componentNames.length();
@@ -692,6 +695,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          }
       }
       break;
+      // FIXME Arnold5 what should we do with closures here ?
    case AI_TYPE_RGBA:
       {
          unsigned int numChildren = plug.numChildren();
@@ -906,6 +910,7 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          AiArraySetRGB(array, i, color);
       }
       break;
+   // FIXME Arnold5 anything to be done with closures here ?
    case AI_TYPE_RGBA:
       {
          AtRGBA color;

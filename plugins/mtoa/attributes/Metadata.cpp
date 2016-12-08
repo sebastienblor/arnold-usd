@@ -134,6 +134,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_ARRAY:
       case AI_TYPE_NODE:
       case AI_TYPE_MATRIX:
+      // FIXME Arnold5 make sure we son't need anything in the metadata for Closure parameters
          break;
       default:
       {

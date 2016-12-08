@@ -25,7 +25,7 @@ node_parameters
    //AiMetaDataSetStr(nentry, NULL, "maya.name", "shadingEngine");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
-   AiParameterRGBA("beauty", 0.f, 0.f, 0.f, 0.f);
+   AiParameterClosure("beauty");
    AiParameterRGB("volume", 0.f, 0.f, 0.f);
    AiParameterArray("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
    AiParameterArray("aov_names", AiArray(0, 0, AI_TYPE_STRING));
@@ -42,6 +42,7 @@ shader_evaluate
    }
    if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))
    {
+      // FIXME Arnold5 does this work or should we output a closure with AiClosureEmission ?
       sg->out.RGBA() = AiShaderEvalParamRGBA(p_matte_color);
       return;
    }
@@ -113,7 +114,7 @@ shader_evaluate
       }
    }
    // This must occur last because AiShaderEvaluate fills sg->out
-   sg->out.RGBA() = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.CLOSURE() = AiShaderEvalParamClosure(p_beauty);
 }
 
 node_initialize

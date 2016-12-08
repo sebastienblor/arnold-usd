@@ -156,6 +156,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          case AI_TYPE_BOOLEAN:
          case AI_TYPE_FLOAT:
          case AI_TYPE_RGB:
+         case AI_TYPE_CLOSURE:
          case AI_TYPE_RGBA:
          case AI_TYPE_VECTOR:
          case AI_TYPE_STRING:
@@ -863,6 +864,7 @@ void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
          MakeInputRGB(input, attrData);
          break;
       }
+      case AI_TYPE_CLOSURE: // doing the same thing for closures ?
       case AI_TYPE_RGBA:
       {
          MObject inputA;
@@ -1062,7 +1064,7 @@ MObject CBaseAttrHelper::MakeOutput()
    else
    {
       if (AI_TYPE_RGB == data.type
-            || AI_TYPE_RGBA == data.type)
+            || AI_TYPE_RGBA == data.type || AI_TYPE_CLOSURE == data.type)
       {
          data.name = OUT_COLOR_NAME;
       }
@@ -1105,6 +1107,7 @@ MObject CBaseAttrHelper::MakeOutput()
          MakeOutputRGB(output, data);
          break;
       }
+      case AI_TYPE_CLOSURE: // do we want to do something different for closures ?
       case AI_TYPE_RGBA:
       {
          MObject outputA;
