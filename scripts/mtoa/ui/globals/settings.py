@@ -46,16 +46,16 @@ def updateComputeSamples(*args):
     refractionSamples = pm.getAttr('defaultArnoldRenderOptions.GIRefractionSamples')
     
     diffuseDepth = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
-    glossyDepth = pm.getAttr('defaultArnoldRenderOptions.GIGlossyDepth')
-    refractionDepth = pm.getAttr('defaultArnoldRenderOptions.GIRefractionDepth')
+    specularDepth = pm.getAttr('defaultArnoldRenderOptions.GISpecularDepth')
+    transmissionDepth = pm.getAttr('defaultArnoldRenderOptions.GITransmissionDepth')
     
     if AASamples <= 0:
         AASamples = 1
     AASamplesComputed = AASamples * AASamples
 
     GISamplesComputed, GISamplesComputedDepth = calculateRayCounts(AASamplesComputed, GISamples, diffuseDepth)
-    glossySamplesComputed, glossySamplesComputedDepth = calculateRayCounts(AASamplesComputed, glossySamples, glossyDepth)
-    refractionSamplesComputed, refractionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, refractionSamples, refractionDepth)
+    glossySamplesComputed, glossySamplesComputedDepth = calculateRayCounts(AASamplesComputed, glossySamples, specularDepth)
+    refractionSamplesComputed, refractionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, refractionSamples, transmissionDepth)
     
     totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
     totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
@@ -520,20 +520,6 @@ def createArnoldGammaSettings():
                         label="Display Driver gamma",
                         attribute='defaultArnoldRenderOptions.display_gamma')
 
-    pm.separator()
-
-    pm.attrControlGrp('ss_light_gamma',
-                        label="Lights",
-                        attribute='defaultArnoldRenderOptions.light_gamma')
-
-    pm.attrControlGrp('ss_shader_gamma',
-                   label="Shaders",
-                   attribute='defaultArnoldRenderOptions.shader_gamma')
-
-    pm.attrControlGrp('ss_texture_gamma',
-                        label="Textures",
-                        attribute='defaultArnoldRenderOptions.texture_gamma')
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -567,40 +553,36 @@ def createArnoldRayDepthSettings():
                         attribute='defaultArnoldRenderOptions.GIDiffuseDepth')
     '''
     
-    pm.intSliderGrp('rs_glossy_depth',
-                        label="Glossy",
+    pm.intSliderGrp('rs_specular_depth',
+                        label="Specular",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=1)
-    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=2)
-    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=3)
+    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=1)
+    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=2)
+    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=3)
     
     '''
-    pm.attrControlGrp('rs_glossy_depth',
-                        label="Glossy depth",
-                        attribute='defaultArnoldRenderOptions.GIGlossyDepth')
+    pm.attrControlGrp('rs_specular_depth',
+                        label="Specular depth",
+                        attribute='defaultArnoldRenderOptions.GISpecularDepth')
     '''
 
-    pm.attrControlGrp('rs_reflection_depth',
-                        label="Reflection",
-                        attribute='defaultArnoldRenderOptions.GIReflectionDepth')
-
-    pm.intSliderGrp('rs_refraction_depth',
-                        label="Refraction ",
+    pm.intSliderGrp('rs_transmission_depth',
+                        label="Transmission ",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=1)
-    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=2)
-    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=3)
+    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=1)
+    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=2)
+    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=3)
 
     '''
-    pm.attrControlGrp('rs_refraction_depth',
+    pm.attrControlGrp('rs_transmission_depth',
                         label="Refraction depth",
-                        attribute='defaultArnoldRenderOptions.GIRefractionDepth')
+                        attribute='defaultArnoldRenderOptions.GITransmissionDepth')
     '''
     
     pm.attrControlGrp('rs_volume_depth',
@@ -613,9 +595,6 @@ def createArnoldRayDepthSettings():
                         label="Transparency Depth",
                         attribute='defaultArnoldRenderOptions.autoTransparencyDepth')
 
-    pm.attrControlGrp('rs_auto_transparency_threshold',
-                        label="Transparency Threshold",
-                        attribute='defaultArnoldRenderOptions.autoTransparencyThreshold')
 
     pm.setParent('..')
 
@@ -892,9 +871,9 @@ def createArnoldTextureSettings():
                         label="Diffuse Blur", 
                         attribute='defaultArnoldRenderOptions.textureDiffuseBlur') 
 
-    cmds.attrControlGrp('texture_glossy_blur', 
-                        label="Glossy Blur", 
-                        attribute='defaultArnoldRenderOptions.textureGlossyBlur') 
+    cmds.attrControlGrp('texture_specular_blur', 
+                        label="Specular Blur", 
+                        attribute='defaultArnoldRenderOptions.textureSpecularBlur') 
 
     pm.setParent('..')
 

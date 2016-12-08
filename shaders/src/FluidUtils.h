@@ -45,34 +45,6 @@ enum gradientInterps{
 };
 
 
-inline void AiColorGamma(AtRGB *color, float gamma)
-{
-   if (gamma == 1.0f)
-      return;
-   gamma = 1.0f / gamma;
-   color->r = powf(color->r, gamma);
-   color->g = powf(color->g, gamma);
-   color->b = powf(color->b, gamma);
-}
-
-template <typename T>
-inline void GammaCorrect(T& d, float gamma)
-{
-   
-}
-
-template <>
-inline void GammaCorrect<AtRGB>(AtRGB& d, float gamma)
-{
-   if (gamma != 1.f)
-   {
-      d.r = AiMax(0.f, d.r);
-      d.g = AiMax(0.f, d.g);
-      d.b = AiMax(0.f, d.b);
-      AiColorGamma(&d, gamma);
-   }
-}
-
 template<typename T, bool M = true, bool G = true>
 class GradientDescription{
 public:
@@ -86,7 +58,6 @@ public:
    GradientDescriptionElement* elements;
    uint32_t nelements;
    float inputBias;
-   float gamma;
    
    T* data;   
    int type;
@@ -266,8 +237,7 @@ public:
          default:
             break;
       }
-      if (G)
-         GammaCorrect(ret, gamma);
+      
       return ret;
    }
    
@@ -276,13 +246,6 @@ public:
       Release();
       
       AtArray* valuesArray = AiNodeGetArray(node, valuesName);
-      
-      AtNode* options = AiUniverseGetOptions();
-      const float invGamma = AiNodeGetFlt(options, "shader_gamma");
-      if (invGamma == 1.f)
-         gamma = 1.f;
-      else
-         gamma = 1.f / invGamma;
       
       nelements = AiArrayGetNumElements(positionsArray);
       if (nelements == 0)
@@ -312,7 +275,7 @@ public:
             }
             else
                elements[i].value = ReadFromArray<T>(valuesArray, i);
-            GammaCorrect(elements[i].value, invGamma);
+            
          }
          if (nelements > 1)
             std::sort(elements, elements + nelements, CompareElements);

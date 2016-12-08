@@ -53,9 +53,6 @@ MObject CArnoldOptionsNode::s_aa_seed;
 MObject CArnoldOptionsNode::s_filterType;
 MObject CArnoldOptionsNode::s_filter;
 MObject CArnoldOptionsNode::s_driver_gamma;
-MObject CArnoldOptionsNode::s_light_gamma;
-MObject CArnoldOptionsNode::s_shader_gamma;
-MObject CArnoldOptionsNode::s_texture_gamma;
 MObject CArnoldOptionsNode::s_light_linking;
 MObject CArnoldOptionsNode::s_shadow_linking;
 MObject CArnoldOptionsNode::s_motion_blur_enable;
@@ -310,45 +307,16 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_driver_gamma);
 
-   // mtoa has overridden arnold's gamma default of 1.0
-   s_light_gamma = nAttr.create("light_gamma", "lgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_light_gamma);
-
-   // mtoa has overridden arnold's gamma default of 1.0
-   s_shader_gamma = nAttr.create("shader_gamma", "sgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_shader_gamma);
-
-   // mtoa has overridden arnold's gamma default of 1.0
-   s_texture_gamma = nAttr.create("texture_gamma", "tgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_texture_gamma);
+   
 #endif
 
    s_attributes.MakeInput("GI_diffuse_depth");
-   s_attributes.MakeInput("GI_glossy_depth");
-   s_attributes.MakeInput("GI_reflection_depth");
-   s_attributes.MakeInput("GI_refraction_depth");
+   s_attributes.MakeInput("GI_specular_depth");
+   s_attributes.MakeInput("GI_transmission_depth");
    s_attributes.MakeInput("GI_volume_depth");
    s_attributes.MakeInput("GI_total_depth");
 
-   s_attributes.MakeInput("enable_fast_opacity");
-   
    s_attributes.MakeInput("auto_transparency_depth");
-   s_attributes.MakeInput("auto_transparency_threshold");
 
    s_light_linking = eAttr.create("lightLinking", "llnk", 0);
       eAttr.setKeyable(false);
@@ -438,7 +406,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
    s_attributes.MakeInput("texture_diffuse_blur");
-   s_attributes.MakeInput("texture_glossy_blur");   
+   s_attributes.MakeInput("texture_specular_blur");   
    
    s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);

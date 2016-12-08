@@ -63,7 +63,6 @@ node_parameters
 
 typedef struct
 {
-   float              gamma;
    int                max_diffuse_depth;
 }
 ShaderData;
@@ -79,7 +78,7 @@ node_update
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    AtNode *options = AiUniverseGetOptions();
    data->max_diffuse_depth = AiNodeGetInt(options, "GI_diffuse_depth");
-   data->gamma = 1.0f / AiNodeGetFlt(options, "shader_gamma");
+
 }
 
 node_finish
@@ -120,7 +119,6 @@ shader_evaluate
 
    AiUDataGetFlt(params[p_uparam].STR, &(sg->u));
    AiUDataGetFlt(params[p_vparam].STR, &(sg->v));
-   //float getGamma   = AiShaderEvalParamFlt(p_gamma);
    float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
    float gloss      = AiShaderEvalParamFlt(p_gloss) * 2000;
    float spec       = AiShaderEvalParamFlt(p_spec);
@@ -134,13 +132,10 @@ shader_evaluate
 
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
-   // FIXME: we need to gamma correct according to global settings
    AiUDataGetRGB(params[p_rootcolor].STR, &root_color);
    AiUDataGetRGB(params[p_tipcolor].STR, &tip_color);
 
-   AiColorGamma(&root_color, data->gamma);
-   AiColorGamma(&tip_color, data->gamma);
-
+   
    // restore original (u,v)
    sg->u = oldU;
    sg->v = oldV;

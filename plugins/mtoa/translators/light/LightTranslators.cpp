@@ -512,9 +512,6 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);
       
       AtRGB colorMultiplier = AI_RGB_WHITE;
-      //const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
-      // FIXME Arnold5 shoudl we remove the gamma
-      //AiColorGamma(&colorMultiplier, light_gamma);
       colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
          powf(2.f, AiNodeGetFlt(light, "exposure"));
       

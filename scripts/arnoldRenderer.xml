@@ -85,12 +85,10 @@
     <sep desc="Depth options"/>
     <attr n="ai:td" s="defaultArnoldRenderOptions.GITotalDepth" t="int" h="Set total depth."/>
     <attr n="ai:dif" s="defaultArnoldRenderOptions.GIDiffuseDepth" t="int" h="Set indirect diffuse depth."/>
-    <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set indirect specular depth."/>
-    <attr n="ai:rfl" s="defaultArnoldRenderOptions.GIReflectionDepth" t="int" h="Set reflection depth."/>
-    <attr n="ai:rfr" s="defaultArnoldRenderOptions.GIRefractionDepth" t="int" h="Set refraction depth."/>
+    <attr n="ai:glo" s="defaultArnoldRenderOptions.GISpecularDepth" t="int" h="Set indirect specular depth."/>
+    <attr n="ai:rfr" s="defaultArnoldRenderOptions.GITransmissionDepth" t="int" h="Set transmission depth."/>
     <attr n="ai:vol" s="defaultArnoldRenderOptions.GIVolumeDepth" t="int" h="Set volume GI depth."/>
     <attr n="ai:atd" s="defaultArnoldRenderOptions.autoTransparencyDepth" t="int" h="Set auto-transparency depth."/>
-    <attr n="ai:att" s="defaultArnoldRenderOptions.autoTransparencyThreshold" t="float" h="Set auto-transparency threshold."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Motion blur"/>
@@ -140,7 +138,7 @@
     <attr n="ai:txmof" s="defaultArnoldRenderOptions.textureMaxOpenFiles" t="int" h="Maximum number of opened textures."/>
     <attr n="ai:txpfs" s="defaultArnoldRenderOptions.texturePerFileStats" t="boolean" h="Per file texture stats."/>
     <attr n="ai:txdb" s="defaultArnoldRenderOptions.textureDiffuseBlur" t="float" h="Texture blur in diffuse rays."/>
-    <attr n="ai:txgb" s="defaultArnoldRenderOptioins.textureGlossyBlur" t="float" h="Texture blur in glossy rays."/>
+    <attr n="ai:txgb" s="defaultArnoldRenderOptions.textureSpecularBlur" t="float" h="Texture blur in specular rays."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Feature Overrides"/>

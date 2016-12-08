@@ -281,7 +281,7 @@ void CRenderOptions::UpdateImageDimensions()
 
    AiNodeSetInt(options, "xres", width());
    AiNodeSetInt(options, "yres", height());
-   AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
+   AiNodeSetFlt(options, "pixel_aspect_ratio", 1.f/AiMax(AI_EPSILON, pixelAspectRatio()));
 }
 
 int CRenderOptions::GetLogConsoleVerbosity() const

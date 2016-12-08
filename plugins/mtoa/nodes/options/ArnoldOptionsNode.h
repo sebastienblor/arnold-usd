@@ -64,9 +64,6 @@ public:
    static MObject s_filter;
 
    static MObject s_driver_gamma;
-   static MObject s_light_gamma;
-   static MObject s_shader_gamma;
-   static MObject s_texture_gamma;
 
    static MObject s_light_linking;
    static MObject s_shadow_linking;

@@ -425,7 +425,7 @@ node_update
    int xres = AiNodeGetInt(univ, "xres");
    int yres = AiNodeGetInt(univ, "yres");
    data->render_aspect = (float(xres) / float(yres));
-   data->output_aspect = AiNodeGetFlt(univ, "aspect_ratio");
+   data->output_aspect = 1.f/ AiMax(AI_EPSILON, AiNodeGetFlt(univ, "pixel_aspect_ratio"));
 }
 
 node_finish

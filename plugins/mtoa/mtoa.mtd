@@ -100,12 +100,6 @@
         softmax             INT     16
         linkable            BOOL    False
         maya.orig_shortname STRING  "at_d"
-    [attr auto_transparency_threshold]
-        maya.keyable        BOOL    False
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-        linkable            BOOL    False
-        maya.orig_shortname STRING  "at_t"
     [attr show_samples]
         maya.keyable        BOOL    False
         linkable            BOOL    False   
@@ -128,7 +122,7 @@
         maya.keyable        BOOL    False
         linkable            BOOL    False
         maya.orig_shortname STRING  "tx_at"
-    [attr texture_glossy_blur]
+    [attr texture_specular_blur]
         maya.keyable        BOOL    False
         default             FLOAT   0
         linkable            BOOL    False
@@ -140,7 +134,7 @@
         default             INT     1
         linkable            BOOL    False
         maya.orig_shortname STRING  "GI_dd"
-    [attr GI_glossy_depth]
+    [attr GI_specular_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
@@ -148,14 +142,7 @@
         default             INT     1
         linkable            BOOL    False
         maya.orig_shortname STRING  "GI_gd"
-    [attr GI_reflection_depth]
-        maya.keyable        BOOL    False
-        min                 INT     0
-        softmin             INT     0
-        softmax             INT     16
-        linkable            BOOL    False
-        maya.orig_shortname STRING  "GI_rld"
-    [attr GI_refraction_depth]
+    [attr GI_transmission_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
@@ -216,9 +203,6 @@
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
         linkable            BOOL    False
-    [attr enable_fast_opacity]
-        default             BOOL    True
-        linkable            BOOL    False        
     [attr background]
         linkable            BOOL    False
     [attr atmosphere]

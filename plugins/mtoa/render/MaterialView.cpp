@@ -572,9 +572,8 @@ void CMaterialView::InitOptions()
       AiNodeSetInt(options, "GI_sss_samples",        fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples")).asInt());
       AiNodeSetInt(options, "GI_total_depth",        fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth")).asInt());
       AiNodeSetInt(options, "GI_diffuse_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth")).asInt());
-      AiNodeSetInt(options, "GI_glossy_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_glossy_depth")).asInt());
-      AiNodeSetInt(options, "GI_reflection_depth",   fnArnoldRenderOptions.findPlug(toMayaStyle("GI_reflection_depth")).asInt());
-      AiNodeSetInt(options, "GI_refraction_depth",   fnArnoldRenderOptions.findPlug(toMayaStyle("GI_refraction_depth")).asInt());
+      AiNodeSetInt(options, "GI_specular_depth",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth")).asInt());
+      AiNodeSetInt(options, "GI_transmission_depth", fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth")).asInt());
    }
 }
 
