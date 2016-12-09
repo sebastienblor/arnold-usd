@@ -29,8 +29,6 @@ public:
 //   static MObject s_castShadows;
 //   static MObject s_samples;
 //   static MObject s_normalize;
-   static MObject s_affectDiffuse;
-   static MObject s_affectSpecular;
    static MObject s_portalMode;
 
    // Output attributes

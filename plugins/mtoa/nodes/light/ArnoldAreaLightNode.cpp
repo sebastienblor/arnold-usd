@@ -32,8 +32,6 @@ MObject CArnoldAreaLightNode::s_colorG;
 MObject CArnoldAreaLightNode::s_colorB;
 MObject CArnoldAreaLightNode::s_color;
 MObject CArnoldAreaLightNode::s_intensity;
-MObject CArnoldAreaLightNode::s_affectDiffuse;
-MObject CArnoldAreaLightNode::s_affectSpecular;
 MObject CArnoldAreaLightNode::s_update;
 // Arnold outputs
 MObject CArnoldAreaLightNode::s_OUT_colorR;
@@ -335,19 +333,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setSoftMax(10);
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
-
-   s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
-   addAttribute(s_affectDiffuse);
-
-   s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
-   addAttribute(s_affectSpecular);
-
+   
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
    nAttr.setKeyable(true);
@@ -463,9 +449,7 @@ MStatus CArnoldAreaLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
-   attributeAffects(s_affectDiffuse, aLightData);
-   attributeAffects(s_affectSpecular, aLightData);
-
+   
 #if MAYA_API_VERSION >= 201700
    // Area light attributes for display control
    aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);

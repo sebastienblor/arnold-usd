@@ -43,8 +43,6 @@ public:
    static  MObject s_colorB;
    static  MObject s_color;
    static  MObject s_intensity;
-   static  MObject s_affectDiffuse;
-   static  MObject s_affectSpecular;
 
    static  MObject s_filename;
 

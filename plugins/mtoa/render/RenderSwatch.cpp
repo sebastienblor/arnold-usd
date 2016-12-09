@@ -346,8 +346,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
          AiNodeSetFlt(light,  "exposure",        AiNodeGetFlt(arnoldNode, "exposure"));
          AiNodeSetInt(light,  "samples",         AiNodeGetInt(arnoldNode, "samples"));
          AiNodeSetBool(light, "normalize",       AiNodeGetBool(arnoldNode, "normalize"));
-         AiNodeSetBool(light, "affect_diffuse",  AiNodeGetBool(arnoldNode, "affect_diffuse"));
-         AiNodeSetBool(light, "affect_specular", AiNodeGetBool(arnoldNode, "affect_specular"));
          AiNodeSetFlt(light,  "diffuse",         AiNodeGetFlt(arnoldNode, "diffuse"));
          AiNodeSetFlt(light,  "specular",        AiNodeGetFlt(arnoldNode, "specular"));
 
@@ -378,7 +376,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       }
       else if (m_swatchClass == SWATCH_ATMOSPHERE)
       {
-         AiNodeSetBool(light, "affect_volumetrics", true);
          AiNodeSetBool(light, "cast_volumetric_shadows", true);
       }
    }

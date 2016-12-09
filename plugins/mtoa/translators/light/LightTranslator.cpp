@@ -82,8 +82,6 @@ void CLightTranslator::Export(AtNode* light)
    
    AiNodeSetStr(light,  "aov",  FindMayaPlug("aiAov").asString().asChar());
    
-   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
-   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
    AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
    AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
 

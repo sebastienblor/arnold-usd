@@ -56,8 +56,6 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         self.setupColorTemperature("ArnoldPhotometric")
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
-        self.addControl('emitDiffuse', label='Emit Diffuse')
-        self.addControl('emitSpecular', label='Emit Specular')
         self.addSeparator()
         self.addControl('format', label='Format')
         self.addControl('aiExposure', label='Exposure')

@@ -159,6 +159,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          case AI_TYPE_CLOSURE:
          case AI_TYPE_RGBA:
          case AI_TYPE_VECTOR:
+         case AI_TYPE_VECTOR2:
          case AI_TYPE_STRING:
          case AI_TYPE_POINTER:
          {

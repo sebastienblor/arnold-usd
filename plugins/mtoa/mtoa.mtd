@@ -269,8 +269,6 @@
         softmax             INT     10
         max                 INT     100
         maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
     [attr color]
@@ -334,8 +332,6 @@
         max                 INT     100
         maya.channelbox     BOOL    True
     [attr normalize]
-        maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
@@ -414,8 +410,6 @@
         softmax             INT     10
         max                 INT     100
         maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
     [attr normalize]
@@ -429,10 +423,6 @@
     maya.id                 INT     0x00115C85
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -480,8 +470,6 @@
         softmax             INT     10
         max                 INT     100
         maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
         
@@ -490,10 +478,6 @@
     maya.id                 INT     0x00115C87
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -544,8 +528,6 @@
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
@@ -617,8 +599,6 @@
         maya.channelbox     BOOL    True
     [attr normalize]
         maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
 
@@ -627,10 +607,6 @@
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -678,8 +654,6 @@
         maya.channelbox     BOOL    True
     [attr normalize]
         maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
 
@@ -688,10 +662,6 @@
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -742,8 +712,6 @@
         max                 INT     100
         maya.channelbox     BOOL    True
     [attr normalize]
-        maya.channelbox     BOOL    True
-    [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
@@ -1550,15 +1518,6 @@
         linkable            BOOL    False
         maya.channelbox     BOOL    True
         
-[node density]
-    desc                    STRING  "Density"
-    maya.name               STRING  "aiDensity"
-    maya.id                 INT     0x00115D21
-    maya.classification     STRING  "shader/volume"
-    [attr scatter_g]
-        min                 FLOAT   -1.0
-        max                 FLOAT   1.0
-        
 # dag nodes
 
 [node polymesh]
@@ -1592,9 +1551,6 @@
         label               STRING  "Visible In Glossy"
 
 # drivers
-
-[node driver_display]
-    maya.hide               BOOL    true
 
 [node driver_deepexr]
     maya.translator         STRING  "deepexr"
