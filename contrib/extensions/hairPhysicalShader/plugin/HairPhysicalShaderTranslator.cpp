@@ -10,7 +10,6 @@ void CHairPhysicalShaderTranslator::NodeInitializer(CAbTranslator context)
 
     // Diffuse
     helper.MakeInput("kd_ind");
-    helper.MakeInput("diffuse_cache");
 
     // UVs
     {
@@ -127,9 +126,6 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 
     // Indirect Diffuse
     ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, "ai_kd_ind");
-
-    // Diffuse Cache
-    ProcessParameter(shader, "diffuse_cache", AI_TYPE_BOOLEAN, "ai_diffuse_cache");
 
     // UVs
     ProcessParameter(shader, "uparam", AI_TYPE_STRING, "ai_uparam");

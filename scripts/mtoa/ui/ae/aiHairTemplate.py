@@ -20,7 +20,6 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.addSeparator()        
         self.addControl('ambdiff', label='Ambient Diffuse')
         self.addControl('kd_ind', label='Indirect Diffuse')
-        self.addControl('diffuse_cache', label='Diffuse Cache')
         self.endLayout()
         
         self.beginLayout('Specular', collapse=False)

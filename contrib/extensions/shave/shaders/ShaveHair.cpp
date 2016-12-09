@@ -24,7 +24,6 @@ enum ShaveHairParams
    p_vparam,
    p_direct_diffuse,
    p_indirect_diffuse,
-   p_diffuse_cache,
    p_aov_direct_diffuse,
    p_aov_direct_specular,
    p_aov_indirect_diffuse
@@ -49,8 +48,7 @@ node_parameters
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "softmax", 1.0f);
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "min",     0.0f);
    AiParameterFLT(       "indirect_diffuse" , 1.0f);
-   AiParameterBOOL(      "diffuse_cache"    , true);
-
+   
    AiParameterSTR ( "aov_direct_diffuse"             , "direct_diffuse"    );
    AiMetaDataSetInt(mds, "aov_direct_diffuse"        , "aov.type", AI_TYPE_RGB);
    AiParameterSTR ( "aov_direct_specular"            , "direct_specular"   );
@@ -143,15 +141,7 @@ shader_evaluate
    // mix root and tip colors
    AtColor diff_color;
    AiColorLerp(diff_color, sg->v, root_color, tip_color);
-
-   if (AiShaderEvalParamBool(p_diffuse_cache) && (sg->Rt & AI_RAY_DIFFUSE))
-   {
-      // quick viz
-      Cdiff = AiHairDirectDiffuseCache(sg);
-      sg->out.RGB = Cdiff * diff_color;
-      return;
-   }
-
+   
    // Since the curves are represented as ray-facing ribbons
    // their normal is usually pointing roughly towards the incoming ray
    // - but not always. It can have discontinuities - which then causes
