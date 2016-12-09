@@ -443,7 +443,7 @@ node_loader
 
    case SHADER_LAYEREDSHADER:
       node->methods     = MayaLayeredShaderMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaLayeredShader";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -499,7 +499,7 @@ node_loader
 
    case SHADER_SURFACESHADER:
       node->methods     = MayaSurfaceShaderMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaSurfaceShader";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -716,7 +716,7 @@ node_loader
       
    case SHADER_BUMP2D:
       node->methods     = MayaBump2DMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "mayaBump2D";
       node->node_type   = AI_NODE_SHADER;
       break;

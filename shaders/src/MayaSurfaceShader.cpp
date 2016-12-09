@@ -45,10 +45,15 @@ node_finish
 
 shader_evaluate
 {
-   sg->out_opacity = AI_RGB_WHITE - AiShaderEvalParamRGB(p_outTransparency);
    AtRGB color = AiShaderEvalParamRGB(p_outColor);
-   sg->out.RGBA().r = color.r;
-   sg->out.RGBA().g = color.g;
-   sg->out.RGBA().b = color.b;
-   sg->out.RGBA().a = Luminance(AiShaderEvalParamRGB(p_outMatteOpacity));
+   AtRGB outMatteOpacity = AiShaderEvalParamRGB(p_outMatteOpacity);
+   AtRGB outTransparency = AiShaderEvalParamRGB(p_outTransparency);
+
+
+   AtClosureList closures;
+   closures.add(AiClosureEmission(sg, color));
+   closures.add(AiClosureMatte(sg, outMatteOpacity));
+   closures *= AI_RGB_WHITE - outTransparency;
+   closures.add(AiClosureTransparent(sg, outTransparency));
+   sg->out.CLOSURE() = closures;
 }

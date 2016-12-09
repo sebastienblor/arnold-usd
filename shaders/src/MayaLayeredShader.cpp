@@ -76,91 +76,26 @@ namespace
    };
 }
 
-struct AOVLayer
-{
-   AtRGB color;
-   AtRGB opacity;
-   AtString name;
-};
-
-struct ShaderData
-{
-   AtArray *aovs;
-   unsigned int naovs;
-};
-
-void layer_op(AtShaderGlobals *sg, int flag, AtRGB color, const AtRGB& transparency, bool useTransparency,
-              AtRGB &curColor, AtRGB &curOpacity)
-{
-   AtRGB opacity = AI_RGB_BLACK;
-   if (useTransparency)
-   {
-      opacity = 1.0f - transparency;
-      // Consider color pre-multiplied already
-   }
-   else
-   {
-      opacity = sg->out_opacity;
-      // Pre-multiply color
-      color.r *= opacity.r;
-      color.g *= opacity.g;
-      color.b *= opacity.b;
-   }
-
-   if (flag == CF_TEXTURE)
-   {
-      color *= opacity;
-   }
-
-   curColor += (1.0f - curOpacity) * color;
-   curOpacity += (1.0f - curOpacity) * opacity;
-}
-
-AtRGBA post_process(const AtRGB &curColor, const AtRGB &curOpacity)
-{
-   AtRGBA result;
-   result.r = curColor.r;
-   result.g = curColor.g;
-   result.b = curColor.b;
-
-   // Un-premultiply color
-   if (curOpacity.r > AI_EPSILON)
-   {
-      result.r /= curOpacity.r;
-   }
-   if (curOpacity.g > AI_EPSILON)
-   {
-      result.g /= curOpacity.g;
-   }
-   if (curOpacity.b > AI_EPSILON)
-   {
-      result.b /= curOpacity.b;
-   }
-
-   result.a = AiClamp(Luminance(curOpacity), 0.0f, 1.0f);
-   return result;
-}
-
 node_parameters
 {
    AiParameterEnum("compositingFlag", 0, gs_CompositingFlagNames);
    AiParameterUInt("numInputs", 0);
-   AiParameterRGB("color0", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color3", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color4", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color5", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color6", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color7", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color8", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color9", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color10", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color11", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color12", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color13", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color14", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color15", 0.0f, 0.0f, 0.0f);
+   AiParameterClosure("color0");
+   AiParameterClosure("color1");
+   AiParameterClosure("color2");
+   AiParameterClosure("color3");
+   AiParameterClosure("color4");
+   AiParameterClosure("color5");
+   AiParameterClosure("color6");
+   AiParameterClosure("color7");
+   AiParameterClosure("color8");
+   AiParameterClosure("color9");
+   AiParameterClosure("color10");
+   AiParameterClosure("color11");
+   AiParameterClosure("color12");
+   AiParameterClosure("color13");
+   AiParameterClosure("color14");
+   AiParameterClosure("color15");
    AiParameterRGB("transparency0", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency1", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency2", 1.0f, 1.0f, 1.0f);
@@ -203,23 +138,10 @@ node_initialize
 
 node_update
 {
-   ShaderData* localData = (ShaderData*) AiMalloc(sizeof(ShaderData));
-   localData->aovs = NULL;
-   localData->naovs = 0;
-
-   if (AiNodeLookUpUserParameter(node, "mtoa_aovs"))
-   {
-      localData->aovs = AiNodeGetArray(node, "mtoa_aovs");
-      if (localData->aovs)
-         localData->naovs = AiArrayGetNumElements(localData->aovs);
-   }
-   AiNodeSetLocalData(node, localData);
 }
 
 node_finish
 {
-   ShaderData* localData = (ShaderData*) AiNodeGetLocalData(node);
-   AiFree(localData);
 }
 
 shader_evaluate
@@ -227,31 +149,14 @@ shader_evaluate
    unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
    int flag = AiShaderEvalParamInt(p_compositingFlag);
 
-   AtRGBA result = AI_RGBA_ZERO;
-   AtRGB outOpacity = AI_RGB_WHITE;
+   AtClosureList result;
+   AtRGB curOpacity = AI_RGB_BLACK;
 
    if (numInputs > 0)
-   {
-      ShaderData* localData = (ShaderData*) AiNodeGetLocalData(node);
-      AOVLayer* AOVValues = 0;
-      if (localData->naovs > 0)
-         AOVValues = (AOVLayer*)AiShaderGlobalsQuickAlloc(sg, sizeof(AOVLayer) * localData->naovs);
-      for (unsigned int ii = 0; ii < localData->naovs; ++ii)
-      {
-         AOVLayer& it = AOVValues[ii];
-         it.color = AI_RGB_BLACK;
-         it.opacity = AI_RGB_BLACK;
-         it.name = AiArrayGetStr(localData->aovs, ii);
-      }
-      
-      AtRGB curColor = AI_RGB_BLACK;
-      AtRGB curOpacity = AI_RGB_BLACK;
+   {      
 
-      AtRGB orgOpacity = sg->out_opacity;
-      
       for (unsigned int i = 0; i < numInputs; ++i)
       {
-         AtRGB color = AI_RGB_BLACK;
          AtRGB transparency = AI_RGB_BLACK;
          bool useTransparency = AiShaderEvalParamBool(p_useTransparency0 + i);
          
@@ -260,48 +165,52 @@ shader_evaluate
          if ((curOpacity.r < 1.f || curOpacity.g < 1.f || curOpacity.b < 1.f ) &&
             ((flag != CF_TEXTURE)  || (transparency.r < 1.f || transparency.g < 1.f || transparency.b < 1.f)))
          {
-            for (unsigned int ii = 0; ii < localData->naovs; ++ii)
-            {
-               AOVLayer& it = AOVValues[ii];
-               // setting a black value before evaluating the layer
-               AiAOVSetRGB(sg, it.name, AI_RGB_BLACK);
-            }
+            AtClosureList closures = AiShaderEvalParamClosure(p_color0 + i);
 
-            color = AiShaderEvalParamRGB(p_color0 + i);
-            layer_op(sg, flag,
-                     color,
-                     transparency,
-                     useTransparency,
-                     curColor, curOpacity);
-
-            sg->out_opacity = orgOpacity;
-            
-            for (unsigned int ii = 0; ii < localData->naovs; ++ii)
+         // use transparency from closure instead of from parameter
+            if (!useTransparency)
             {
-               AOVLayer& it = AOVValues[ii];
-               AtRGB AOVColor = AI_RGB_BLACK;
-               // save the current value
-               AiAOVGetRGB(sg, it.name, AOVColor);
-               // layer it into the accumulated results for this AOV
-               // TODO: look into getting a pointer from AiAOVGetRGB
-               layer_op(sg, flag,
-                        AOVColor,
-                        transparency,
-                        useTransparency,
-                        it.color, it.opacity);
-            }
+            transparency = AI_RGB_BLACK;
+            for (AtClosure closure = closures.front(); closure; closure = closure.next())
+               if (closure.type() == AI_CLOSURE_TRANSPARENT)
+                  transparency += closure.weight();
+
+            // remove transparency, we add our own at the end
+            if (transparency != AI_RGB_BLACK)
+               closures.add(AiClosureTransparent(sg, -transparency));
          }
-      }
-      result = post_process(curColor, curOpacity);
-      outOpacity = curOpacity;
-      for (unsigned int ii = 0; ii < localData->naovs; ++ii)
-      {
-         AOVLayer& it = AOVValues[ii];
-         AtRGBA aovResult = post_process(it.color, it.opacity);
-         AiAOVSetRGBA(sg, it.name, aovResult);
+
+         AtRGB opacity = AI_RGB_WHITE - transparency;
+
+         // TODO texture makes no sense to me, this should actually be changed to
+         // if (useTransparency), so that whenever the transparency is used it is
+         // properly premultiplied in
+            if (flag == CF_TEXTURE)
+            {
+            // premultiply opacity
+            closures *= opacity * (1.0f - curOpacity);
+            }
+         else
+         {
+            // consider opacity pre-multiplied already
+            closures *= (1.0f - curOpacity);
+         }
+
+         result.add(closures);
+            curOpacity += (1.0f - curOpacity) * opacity;
+         }
       }
    }
 
-   sg->out.RGBA() = result;
-   sg->out_opacity = outOpacity;
+   if (curOpacity != AI_RGB_WHITE)
+   {
+      result *= curOpacity;
+      result.add(AiClosureTransparent(sg, 1.0f - curOpacity));
+   }
+
+   sg->out.CLOSURE() = result;
+
+   // NOTES:
+   // removed AOV blending, which closures handle automatically
+   // removed setting of result.a, which is matte alpha and made no sense
 }

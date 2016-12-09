@@ -39,7 +39,7 @@ node_parameters
    AiParameterBool("swap_tangents", false);
    AiParameterBool("use_derivatives", true);
    AiParameterEnum("use_as", 0, useAsNames)
-   AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);
+   AiParameterClosure("shader");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
@@ -60,7 +60,6 @@ struct mayaBump2DData{
    AtNode* bumpMap;
    AtNode* shader;
    int bumpMode;
-   bool isShaderRGBA;
    bool flipR, flipG, swapTangents, useDerivatives;
 };
 
@@ -74,7 +73,6 @@ node_initialize
    data->flipG = true;
    data->swapTangents = false;
    data->useDerivatives = true;
-   data->isShaderRGBA = false;   
    AiNodeSetLocalData(node, data);
 }
 
@@ -84,16 +82,7 @@ node_update
    data->bumpMode = AiNodeGetInt(node, "use_as");
    data->bumpMap = AiNodeGetLink(node, "bump_map");
    data->shader = AiNodeGetLink(node, "shader");
-   if (data->shader == 0)
-      data->shaderValue = AiNodeGetRGBA(node, "shader");
-   else
-   {
-      const AtNodeEntry* nentry = AiNodeGetNodeEntry(data->shader);
-      if (AiNodeEntryGetOutputType(nentry) != AI_TYPE_RGBA)
-         data->isShaderRGBA = false;
-      else
-         data->isShaderRGBA = true;
-   }
+   
    AtNode* options = AiUniverseGetOptions();
    if (AiNodeGetBool(options, "ignore_bump"))
       data->bumpMap = 0;
@@ -127,15 +116,12 @@ shader_evaluate
    mayaBump2DData* data = (mayaBump2DData*)AiNodeGetLocalData(node);
    if (data->shader == 0 || sg->Op == 0)
    {
-      sg->out.RGBA() = data->shaderValue;
       return;
    }
    
    if (sg->Rt & AI_RAY_DIFFUSE_REFLECT || sg->Rt & AI_RAY_SHADOW || (data->bumpMode == BM_BUMP && data->bumpMap == 0))
    {      
       AiShaderEvaluate(data->shader, sg);
-      if (data->isShaderRGBA == false)
-         sg->out.RGBA().a = 1.f;
       return;
    }
    
@@ -198,8 +184,6 @@ shader_evaluate
    }
    
    AiShaderEvaluate(data->shader, sg);
-   if (data->isShaderRGBA == false)
-      sg->out.RGBA().a = 1.f;
    
    sg->N = oldN;
    sg->Nf = oldNf;

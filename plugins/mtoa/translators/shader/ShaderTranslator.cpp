@@ -211,7 +211,8 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 
 void CShaderTranslator::ExportBump(AtNode* shader)
 {
-   return; // FIXME Arnold5 removing this until bump is properly supported
+   // FIXME Arnold5 do we want to continue with this hack, or should we use the new "normal" attribute in standard shader ?
+   
    MStatus status;
    MPlugArray connections;
    MPlug plug = FindMayaPlug("normalCamera", &status);
