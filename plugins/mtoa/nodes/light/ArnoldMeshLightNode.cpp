@@ -136,21 +136,6 @@ void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage ms
          node->m_aiCastVolumetricShadows = plug.asBool();
          updateShadowAttr = true;
       }
-      else if (fnAttr.name() == "aiDecayType")
-      {
-         int decayType = plug.asInt();
-         int decayRate = 2;
-         if (decayType == 0)
-         {
-            decayRate = 0;
-         }
-         else
-         {
-            decayRate = 2;
-         }
-         MPlug plug2(node->thisMObject(), aDecayRate);
-         plug2.setValue( decayRate );
-      }
       else if (fnAttr.name() == "aiShadowColor" ||
                fnAttr.name() == "aiShadowColorR" ||
                fnAttr.name() == "aiShadowColorG" ||

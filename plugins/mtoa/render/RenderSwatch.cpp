@@ -346,7 +346,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
          AiNodeSetFlt(light,  "exposure",        AiNodeGetFlt(arnoldNode, "exposure"));
          AiNodeSetInt(light,  "samples",         AiNodeGetInt(arnoldNode, "samples"));
          AiNodeSetBool(light, "normalize",       AiNodeGetBool(arnoldNode, "normalize"));
-         AiNodeSetInt(light,  "decay_type",      AiNodeGetInt(arnoldNode, "decay_type"));
          AiNodeSetBool(light, "affect_diffuse",  AiNodeGetBool(arnoldNode, "affect_diffuse"));
          AiNodeSetBool(light, "affect_specular", AiNodeGetBool(arnoldNode, "affect_specular"));
          AiNodeSetFlt(light,  "diffuse",         AiNodeGetFlt(arnoldNode, "diffuse"));

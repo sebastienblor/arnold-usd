@@ -286,7 +286,6 @@ templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 class PointLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Point")
-        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -309,7 +308,6 @@ templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 class SpotLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Spot")
-        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -337,7 +335,6 @@ templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 class AreaLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Area")
-        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -360,26 +357,6 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.commonLightAttributes()
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
-
-# Actually currently connecting the other way round, filter's decayRate
-# to light's decay type which might be the best idea
-"""
-def lightDecayChanged(decayPlug, *args):
-    "called to sync first found lightDecay filter when decayRate changes"
-    # fnCam = om.MFnCamera(transPlug.node())
-    # currTrans = transPlug.asString()
-    #orthoPlug = fnCam.findPlug('orthographic')
-    # isOrtho = orthoPlug.asBool()
-    print "lightDecayChanged", decayPlug.name(), decayPlug.asInt()
-    print "filters", lightTemplate.LightTemplate.getConnectedLightFilters()
-    # aiLightDecay
-
-print "Adding attribute changed callback for lights"
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'pointLight', 'decayRate')
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'spotLight', 'decayRate')
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'areaLight', 'decayRate')
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'aiAreaLight', 'decayRate')
-"""
 
 templates.registerAETemplate(templates.TranslatorControl, "camera", label="Camera Type")
 

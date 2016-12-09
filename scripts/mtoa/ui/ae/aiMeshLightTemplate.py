@@ -37,7 +37,6 @@ class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
-        self.addControl("aiDecayType")
         self.addSeparator()
         self.addControl("lightVisible")
         self.addSeparator()

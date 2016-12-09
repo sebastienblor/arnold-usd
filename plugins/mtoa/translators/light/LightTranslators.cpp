@@ -43,7 +43,6 @@ void CPointLightTranslator::Export(AtNode* light)
    double radius = FindMayaPlug("aiRadius").asDouble() *  GetSessionOptions().GetScaleFactor(); 
    AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 }
@@ -54,7 +53,6 @@ void CPointLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // point light attributes
-   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("radius");
@@ -77,7 +75,6 @@ void CSpotLightTranslator::Export(AtNode* light)
    double radius = FindMayaPlug("aiRadius").asDouble() * GetSessionOptions().GetScaleFactor(); 
    AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 
@@ -91,7 +88,6 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // spot light attributes
-   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("aspect_ratio");
@@ -121,7 +117,6 @@ void CQuadLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
    AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
    //AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool()); removed it from here as we now have a dedicated light portal node
@@ -167,7 +162,6 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    // quad light attributes
    helper.MakeInput("shadow_color");
-   helper.MakeInput("decay_type");
    helper.MakeInput("resolution");
    helper.MakeInput("spread");
    //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
@@ -181,7 +175,6 @@ void CCylinderLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
@@ -199,7 +192,6 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
-   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }
@@ -210,7 +202,6 @@ void CDiskLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
@@ -229,7 +220,6 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
-   helper.MakeInput("decay_type");
    helper.MakeInput("spread");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
@@ -475,7 +465,6 @@ void CMeshLightTranslator::Export(AtNode* light)
    
    MFnDependencyNode fnDepNode(m_dagPath.node());
    
-   AiNodeSetInt(light, "decay_type", FindMayaPlug("aiDecayType").asInt());
    AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(),
            FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
@@ -538,7 +527,6 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
-   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_shadows");
    helper.MakeInput("cast_volumetric_shadows");

@@ -33,7 +33,6 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
-        self.addControl("aiDecayType")
         
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
         
@@ -109,7 +108,6 @@ class MeshLightTemplate(BaseAreaLightTemplate):
         self.setupColorTemperature("ArnoldArea")
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
-        self.addControl("aiDecayType")
 
         self.addSeparator()
         self.addControl("lightVisible")
