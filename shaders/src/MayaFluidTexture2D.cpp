@@ -113,5 +113,7 @@ shader_evaluate
    incandescence.b = AiMax(0.f, incandescence.b); // do we need this?
 
    sg->out.RGB() = color + incandescence;
-   sg->out_opacity = opacity;
+   // FIXME Arnold5 closure
+   sg->out.RGBA().a = AiMax(opacity.r, opacity.g, opacity.b);
+   //sg->out_opacity = opacity;
 }

@@ -921,7 +921,7 @@ shader_evaluate
          }
 
          if (success)
-            sg->out.RGBA() = AiTextureAccess(sg, idata->processPath[sg->tid], AtString(), texparams, successP);
+            sg->out.RGBA() = AiTextureAccess(sg, AtString(idata->processPath[sg->tid]), AtString(), texparams, successP);
       }
       else if (idata->texture_handle != NULL)
       {

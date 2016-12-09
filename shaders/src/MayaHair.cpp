@@ -77,12 +77,14 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      sg->out_opacity = opacity;
+      // FIXME Arnold5 closure please
+      //sg->out_opacity = opacity;
       return;
    }   
    
-   if (AiShaderGlobalsApplyOpacity(sg, opacity))
-      return;
+   // FIXME Arnold5
+   //if (AiShaderGlobalsApplyOpacity(sg, opacity))
+      //return;
    
    AtRGB hairColor = AiShaderEvalParamRGB(p_hair_color);
    
@@ -213,5 +215,5 @@ shader_evaluate
    
    sg->out.RGB() = diffuse + specular;
    sg->out.RGBA().a = 1.0f;
-   sg->out_opacity = opacity;
+   //sg->out_opacity = opacity;
 }

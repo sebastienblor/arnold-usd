@@ -86,7 +86,8 @@ shader_evaluate
 {
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      sg->out_opacity = AI_RGB_BLACK;
+      // FIXME Arnold5
+      //sg->out_opacity = AI_RGB_BLACK;
       return;
    }
    
@@ -180,7 +181,8 @@ shader_evaluate
    result += reflection;
 
    sg->out.RGB() = result;
-   sg->out_opacity = resultOpacity;
+   // FIXME Arnold5
+   //sg->out_opacity = resultOpacity;
    sg->out.RGBA().a = resultAlpha;
    
 }

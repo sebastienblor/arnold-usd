@@ -207,7 +207,8 @@ shader_evaluate
    }
    if (displayMode > 2)
    {
-      sg->out_opacity = result.a;
+      sg->out.RGBA().a = result.a;
+      //sg->out_opacity = result.a;
    }
    if (displayMode == 4)
    {
@@ -230,5 +231,6 @@ shader_evaluate
    result.b = (result.b * colorGain.b) + colorOffset.b;
    result.a = (result.a * alphaGain);
    sg->out.RGBA() = result;
-   sg->out_opacity *= alphaGain;
+
+   //sg->out_opacity *= alphaGain;
 }

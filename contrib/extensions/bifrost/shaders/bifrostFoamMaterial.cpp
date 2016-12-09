@@ -391,7 +391,7 @@ shader_evaluate
       if (w_refl < AI_EPSILON) has_reflection = false;
    }
    
-
+   /* FIXME Arnold5
    if (data->opaque) sg->out_opacity = AI_RGB_WHITE;
    else
    {
@@ -415,17 +415,17 @@ shader_evaluate
       sg->out_opacity.g = AiClamp( 1.f - transparency_color.g, 0.f, 1.f);
       sg->out_opacity.b = AiClamp( 1.f - transparency_color.b, 0.f, 1.f);
       AiShaderGlobalsApplyOpacity(sg, sg->out_opacity);
-   }
+   }*/
 
    // shadow ray -> nothing else to compute
    if (sg->Rt & AI_RAY_SHADOW) return;
 
-
+/*  FIXME Arnold5
    // full transparent -> useless to continue
    if ((sg->out_opacity.r < AI_EPSILON &&
       sg->out_opacity.g < AI_EPSILON &&
       sg->out_opacity.b < AI_EPSILON)) return;
-
+*/
 
    bool has_diffuse = data->has_diffuse;
    AtRGB diffuse_color = AI_RGB_BLACK;
