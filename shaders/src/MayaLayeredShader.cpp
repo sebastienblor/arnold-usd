@@ -3,6 +3,7 @@
 #include "MayaUtils.h"
 
 #include <vector>
+#include <iostream>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaLayeredShaderMtd);
 
@@ -64,8 +65,8 @@ namespace
 
    enum CompositingFlag
    {
-      CF_SHADER = 0,
-      CF_TEXTURE
+      CF_SHADER_ADD = 0,
+      CF_TEXTURE_MIX
    };
 
    static const char* gs_CompositingFlagNames[] =
@@ -150,67 +151,66 @@ shader_evaluate
    int flag = AiShaderEvalParamInt(p_compositingFlag);
 
    AtClosureList result;
-   AtRGB curOpacity = AI_RGB_BLACK;
+   AtRGB layerTransparency = AI_RGB_BLACK;
 
-   if (numInputs > 0)
+   // Note: A layer's transparency is actually 1 - weight, not related to transparency at all
+   // Note: The compositing mix mode Shader / Texture means actually  Add / Mix
+
+   // This will provide the accumulated visible opacity for each layer
+   AtRGB currentOpacity = AI_RGB_WHITE;
+   
+   // loop over all layers
+   for (unsigned int i = 0; i < numInputs; ++i)
    {      
-
-      for (unsigned int i = 0; i < numInputs; ++i)
+      // useTransparency is OFF when the connected shader for this layer's transparency
+      // is the same as the one connected in the colo
+      bool useTransparency = AiShaderEvalParamBool(p_useTransparency0 + i);
+      if (useTransparency)
       {
-         AtRGB transparency = AI_RGB_BLACK;
-         bool useTransparency = AiShaderEvalParamBool(p_useTransparency0 + i);
+         layerTransparency = AiShaderEvalParamRGB(p_transparency0 + i);
+         // If my mix mode is CF_SHADER_ADD, the layer's transparency won't affect the weight of the current layer
+         // so we always want to evaluate it. Otherwise, if the mix mode is CF_TEXTURE_MIX and layerTransparency is white
+         // then we can directly skip this texture
+         if (flag == CF_TEXTURE_MIX && AiMax(layerTransparency.r, layerTransparency.g, layerTransparency.b) > 1.f - AI_EPSILON)
+            continue; // passthrough for next layer
          
-         if (useTransparency && (curOpacity.r < 1.f || curOpacity.g < 1.f || curOpacity.b < 1.f))
-            transparency = AiShaderEvalParamRGB(p_transparency0 + i);
-         if ((curOpacity.r < 1.f || curOpacity.g < 1.f || curOpacity.b < 1.f ) &&
-            ((flag != CF_TEXTURE)  || (transparency.r < 1.f || transparency.g < 1.f || transparency.b < 1.f)))
-         {
-            AtClosureList closures = AiShaderEvalParamClosure(p_color0 + i);
-
-         // use transparency from closure instead of from parameter
-            if (!useTransparency)
-            {
-            transparency = AI_RGB_BLACK;
-            for (AtClosure closure = closures.front(); closure; closure = closure.next())
-               if (closure.type() == AI_CLOSURE_TRANSPARENT)
-                  transparency += closure.weight();
-
-            // remove transparency, we add our own at the end
-            if (transparency != AI_RGB_BLACK)
-               closures.add(AiClosureTransparent(sg, -transparency));
-         }
-
-         AtRGB opacity = AI_RGB_WHITE - transparency;
-
-         // TODO texture makes no sense to me, this should actually be changed to
-         // if (useTransparency), so that whenever the transparency is used it is
-         // properly premultiplied in
-            if (flag == CF_TEXTURE)
-            {
-            // premultiply opacity
-            closures *= opacity * (1.0f - curOpacity);
-            }
-         else
-         {
-            // consider opacity pre-multiplied already
-            closures *= (1.0f - curOpacity);
-         }
-
-         result.add(closures);
-            curOpacity += (1.0f - curOpacity) * opacity;
-         }
       }
-   }
 
-   if (curOpacity != AI_RGB_WHITE)
-   {
-      result *= curOpacity;
-      result.add(AiClosureTransparent(sg, 1.0f - curOpacity));
+      // evaluate this layer's closure 
+      AtClosureList layerClosure = AiShaderEvalParamClosure(p_color0 + i);
+      // If use Transparency is OFF, we need to get this layer's shader transparency weight
+      // So we accumulate all its transparent closures
+      if (!useTransparency)
+      {
+         layerTransparency = AI_RGB_BLACK;
+         for (AtClosure closure = layerClosure.front(); closure; closure = closure.next())
+            if (closure.type() == AI_CLOSURE_TRANSPARENT)
+               layerTransparency += closure.weight();
+
+      }
+
+      // in texture mix mode, we attenuate this layer by it weight = 1 - transparency
+      if (flag == CF_TEXTURE_MIX)
+      {
+         AtRGB negMix = AI_RGB_WHITE - layerTransparency;
+         layerClosure *= negMix * currentOpacity;
+      } else
+         layerClosure *= currentOpacity;   
+            
+      // now we accumulate this layer's closures to the final result.
+      // We need to take the current opacity into account, which represents 
+      // the transparency of all previous layers
+      result.add(layerClosure);
+
+      // now we attenuate the current Opacity with this layer's transparency,
+      currentOpacity *= layerTransparency;
+
+      // the accumulated transparency of all layers so far makes the current opacity 
+      // too small. So there's no need to continue, the following layers won't have any effect
+      if (AiMax(currentOpacity.r, currentOpacity.g, currentOpacity.b) < AI_EPSILON)
+         break;
+
    }
 
    sg->out.CLOSURE() = result;
-
-   // NOTES:
-   // removed AOV blending, which closures handle automatically
-   // removed setting of result.a, which is matte alpha and made no sense
 }

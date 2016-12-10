@@ -292,6 +292,11 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
    const MStringArray componentNames = GetComponentNames(arnoldParamType);
    unsigned int compConnected = 0;
    unsigned int numComponents = componentNames.length();
+
+   // closures will return 0 components
+   if (numComponents == 0)
+      return false;
+
    MPlugArray conn;
    for (unsigned int i=0; i < numComponents; i++)
    {
@@ -654,7 +659,7 @@ void CNodeTranslatorImpl::WriteAOVUserAttributes(AtNode* atNode)
 /// false (not all components linked) then AiNodeSet* is called for all components.
 AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                                   int arnoldParamType, const MPlug& plug)
-{
+{   
    MStatus status;
 
    if (plug.isArray())
@@ -695,7 +700,29 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          }
       }
       break;
+   {
       // FIXME Arnold5 what should we do with closures here ?
+   case AI_TYPE_CLOSURE:
+      // so I have a constant closure parameter. if in maya it is a color, I want to plug 
+      // a closure node that returns a basic emission color
+      unsigned int numChildren = plug.numChildren();
+      if (numChildren== 3 || numChildren == 4)
+      {
+         std::string closureName = arnoldParamName;
+         closureName += "_clos";
+         AtNode *child = m_tr.GetArnoldNode(closureName.c_str());
+         if (child == NULL)
+            child = m_tr.AddArnoldNode("MayaFlatClosure", closureName.c_str());
+
+         AiNodeSetRGB(child, "color", plug.child(0).asFloat(),
+                         plug.child(1).asFloat(),
+                         plug.child(2).asFloat());
+         AiNodeLink(child, arnoldParamName, arnoldNode);
+
+      }
+
+      break;
+   }
    case AI_TYPE_RGBA:
       {
          unsigned int numChildren = plug.numChildren();

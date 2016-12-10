@@ -1071,7 +1071,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 
       // sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
       sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
+      ProcessParameter(shader, aiAttr, AI_TYPE_CLOSURE, color);
 
       sprintf(aiAttr, "useTransparency%u", i);
       AiNodeSetBool(shader, aiAttr, useTransparency ? true : false);

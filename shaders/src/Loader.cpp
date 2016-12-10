@@ -99,6 +99,7 @@ extern const AtNodeMethods* MPlayDriverMtd;
 extern const AtNodeMethods* VolumeSampleRgbMethods;
 extern const AtNodeMethods* VolumeSampleFloatMethods;
 extern const AtNodeMethods* CurvatureMethods;
+extern const AtNodeMethods* MayaFlatClosureMtd;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -196,6 +197,7 @@ enum{
    SHADER_VOLUME_SAMPLE_FLOAT,
    SHADER_VOLUME_SAMPLE_RGB,
    SHADER_CURVATURE, 
+   SHADER_FLAT_CLOSURE, 
    DRIVER_MPLAY
 };
 
@@ -867,6 +869,14 @@ node_loader
       node->name =      "curvature";
       node->node_type = AI_NODE_SHADER;
       break;
+
+   case SHADER_FLAT_CLOSURE:
+      node->methods = MayaFlatClosureMtd;
+      node->output_type = AI_TYPE_CLOSURE;
+      node->name =      "MayaFlatClosure";
+      node->node_type = AI_NODE_SHADER;
+      break;
+
    case DRIVER_MPLAY:
       node->methods     = MPlayDriverMtd;
       node->name        = "driver_mplay";
