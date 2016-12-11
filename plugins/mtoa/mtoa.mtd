@@ -10,7 +10,7 @@
 
 # standard                    0x00115D01
 # utility                     0x00115D03
-# ray_switch                  0x00115D04
+# color_ray_switch            0x00115D04
 # ambient_occlusion           0x00115D07
 # wireframe                   0x00115D08
 # fog                         0x00115D0A
@@ -21,7 +21,12 @@
 # motion_vector               0x00115D0F
 # image                       0x00115D17
 # physical_sky                0x00115D1E
-# density                     0x00115D21
+# standard_surface            0x00115D11
+# standard_hair               0x00115D12
+# standard_volume             0x00115D13
+# shader_mix                  0x00115D14
+# standard_surface            0x00115D15
+# shader_ray_switch           0x00115D16
 
 # options
 
@@ -1072,7 +1077,7 @@
     desc                    STRING  "Base all purpose Arnold shader."
     maya.name               STRING  "aiStandard"
     maya.id                 INT     0x00115D01
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "shader/legacy"
     maya.output_name        STRING  "outColor"
     maya.output_shortname   STRING  "out"
     [attr IOR]
@@ -1170,6 +1175,105 @@
     [attr aov_indirect_sss]
     aov.type                INT     0x05
 
+
+[node standard_surface]
+    desc                    STRING  "Basic Surface shader."
+    maya.name               STRING  "aiStandardSurface"
+    maya.id                 INT     0x00115D11
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    [attr base]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr diffuse_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular_roughness]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular_IOR]
+        min                 FLOAT   0.0
+        softmax             FLOAT   5.0
+    [attr specular_anisotropy]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular_rotation]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr metalness]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr transparent]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr transparent_depth_inverse]
+        min             FLOAT   0.0
+        softmax         FLOAT   10.0
+    [attr transparent_scatter_anisotropy]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr transparent_dispersion]
+        min             FLOAT   0.0
+        softmax         FLOAT   1.0
+    [attr scatter]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr scatter_scale]
+        min             FLOAT   0.0
+        softmax         FLOAT   10.0
+    [attr coat]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_roughness]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_IOR]
+        min             FLOAT   0.0
+        softmax         FLOAT   5.0
+    [attr coat_affect_color]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_affect_roughness]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr emission]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr indirect_diffuse]
+        min             FLOAT   0.0
+        softmax         FLOAT   1.0
+    [attr indirect_specular]
+        min             FLOAT   0.0
+        softmax         FLOAT   1.0
+
+    # AOVs
+    [attr aov_emission]
+    aov.type                INT     0x05
+    [attr aov_direct_diffuse]
+    aov.type                INT     0x05
+    [attr aov_direct_specular]
+    aov.type                INT     0x05
+    [attr aov_indirect_diffuse]
+    aov.type                INT     0x05
+    [attr aov_indirect_specular]
+    aov.type                INT     0x05
+    [attr aov_reflection]
+    aov.type                INT     0x05
+    [attr aov_refraction]
+    aov.type                INT     0x05
+    [attr aov_refraction_opacity]
+    aov.type                INT     0x05
+    [attr aov_sss]
+    aov.type                INT     0x05
+    [attr aov_direct_sss]
+    aov.type                INT     0x05
+    [attr aov_indirect_sss]
+    aov.type                INT     0x05
+
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."
     maya.name               STRING  "aiUtility"
@@ -1183,8 +1287,7 @@
         min                 FLOAT 0.0
         softmax             FLOAT 200.0
 
-
-[node ray_switch]
+[node color_ray_switch]
     desc                    STRING  "Switch input depending on ray type."
     maya.name               STRING  "aiRaySwitch"
     maya.id                 INT     0x00115D04  
@@ -1326,7 +1429,7 @@
     desc                    STRING  "Shader for Arnold hair tubes."
     maya.name               STRING  "aiHair"
     maya.id                 INT     0x00115D09  
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "shader/legacy"
     [attr ambdiff]
         desc                STRING  "Ambient diffuse value."
         label               STRING  "Ambient Diffuse"
@@ -1407,6 +1510,104 @@
     aov.type                INT     0x05
     [attr aov_direct_transmission]
     aov.type                INT     0x05
+
+
+[node standard_hair]
+    desc                    STRING  "Basic Arnold Hair Shader"
+    maya.name               STRING  "aiStandardHair"
+    maya.id                 INT    0x00115D12  
+    maya.classification     STRING  "shader/surface"
+    [attr diffuse]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular2]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr transmission]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr ior]
+        min                 FLOAT   0.0
+        softmax             FLOAT   5.0
+    [attr shift]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr eumelanin]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr pheomelanin]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr eumelanin_randomize]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr pheomelanin_randomize]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr emission]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr indirect_diffuse]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect_specular]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+   # AOVs
+    [attr aov_direct_diffuse]
+    aov.type                INT     0x05
+    [attr aov_direct_specular]
+    aov.type                INT     0x05
+    [attr aov_indirect_diffuse]
+    aov.type                INT     0x05
+    [attr aov_direct_transmission]
+    aov.type                INT     0x05
+
+[node standard_volume]
+    desc                    STRING  "Basic Volume Shader"
+    maya.name               STRING  "aiStandardVolume"
+    maya.id                 INT     0x00115D13  
+    maya.classification     STRING  "shader/volume/atmosphere"
+    [attr density]
+        min                 FLOAT   0.0
+        softmax             FLOAT   5.0
+    [attr scattering]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr scattering_anisotropy]
+        min                 FLOAT   -1.0
+        max                 FLOAT   1.0
+    [attr emission]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr blackbody_kelvin]
+        min                 FLOAT   0.0
+        softmax             FLOAT   20000.0
+    [attr blackbody_intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+
+[node shader_mix]
+    desc                    STRING  "Mix between two Arnold Shaders"
+    maya.name               STRING  "aiShaderMix"
+    maya.id                 INT     0x00115D14  
+    maya.classification     STRING  "shader/surface"
+    [attr mix]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+
+[node shader_ray_switch]
+    desc                    STRING  "Ray Switch for Arnold Surface Shaders"
+    maya.name               STRING  "aiShaderRaySwitch"
+    maya.id                 INT     0x00115D16  
+    maya.classification     STRING  "shader/surface"
+
 
 [node sky]
     desc                    STRING  "Sky environment texture."
