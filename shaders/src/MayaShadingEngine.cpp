@@ -26,7 +26,7 @@ node_parameters
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
    AiParameterClosure("beauty");
-   AiParameterRGB("volume", 0.f, 0.f, 0.f);
+   AiParameterClosure("volume");
    AiParameterArray("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
    AiParameterArray("aov_names", AiArray(0, 0, AI_TYPE_STRING));
    AiParameterBool("enable_matte", false);
@@ -37,11 +37,7 @@ shader_evaluate
 {
    if (sg->sc & AI_CONTEXT_VOLUME)
    {
-      // FIXME Arnold5 what about here, how to use closure ?
-      AtRGB volume_rgb = AiShaderEvalParamRGB(p_volume);
-      AtClosureList closures;
-      closures.add(AiClosureEmission(sg, volume_rgb));
-      sg->out.CLOSURE() = closures;
+      sg->out.CLOSURE() = AiShaderEvalParamClosure(p_volume);
       return;
    }
    if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))

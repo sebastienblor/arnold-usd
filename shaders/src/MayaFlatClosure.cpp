@@ -22,7 +22,6 @@ enum MayaFlatClosureShaderParams
 node_parameters
 {
    AiParameterRGB("color", 1.0f, 1.0f, 1.0f);
-   // FIXME Arnold5 we should hide this node from maya
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "MayaFlatShader");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);

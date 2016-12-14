@@ -60,6 +60,7 @@ extern const AtNodeMethods* AnimFloatMtd;
 extern const AtNodeMethods* AnimPointMtd;
 extern const AtNodeMethods* AnimVectorMtd;
 extern const AtNodeMethods* AnimColorMtd;
+extern const AtNodeMethods* AnimMatrixMtd;
 extern const AtNodeMethods* UserDataFloatMtd;
 extern const AtNodeMethods* UserDataVectorMtd;
 extern const AtNodeMethods* UserDataColorMtd;
@@ -158,6 +159,7 @@ enum{
    SHADER_ANIMPOINT,
    SHADER_ANIMVECTOR,
    SHADER_ANIMCOLOR,
+   SHADER_ANIMMATRIX,
    SHADER_USERDATAFLOAT,
    SHADER_USERDATAVECTOR,
    SHADER_USERDATACOLOR,
@@ -597,6 +599,12 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case SHADER_ANIMMATRIX:
+      node->methods     = AnimMatrixMtd;
+      node->output_type = AI_TYPE_MATRIX;
+      node->name        = "anim_matrix";
+      node->node_type   = AI_NODE_SHADER;
+   break;
    case SHADER_USERDATAFLOAT:
       node->methods     = UserDataFloatMtd;
       node->output_type = AI_TYPE_FLOAT;

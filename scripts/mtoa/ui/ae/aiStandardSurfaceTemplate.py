@@ -15,10 +15,10 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
 
-        self.beginLayout("Diffuse", collapse=False)
+        self.beginLayout("Base", collapse=False)
         self.addControl("base",  label="Weight", annotation="Base Weight")
         self.addControl("base_color", label="Color", annotation="Base Color")
-        self.addControl("diffuse_roughness", label="Roughness", annotation="Diffuse Oren-Nayar Roughness")
+        self.addControl("diffuse_roughness", label="Diffuse Roughness", annotation="Diffuse Oren-Nayar Roughness")
         self.endLayout()
 
         self.beginLayout("Specular", collapse=False)
@@ -98,33 +98,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("indirect_diffuse", label="Indirect Diffuse", annotation="Indirect Diffuse")
         self.addControl("indirect_specular", label="Indirect Specular", annotation="Indirect Specular")
         self.endLayout()
-
-
-
-
-        self.beginLayout("Sub-Surface Scattering", collapse=True)
-        self.addControl("Ksss_color", label="Color")
-        self.addControl("Ksss", label="Weight")
-        self.addControl("sss_radius", label="Radius")
-        self.addControl("sss_profile", label="Diffusion Profile")
-        self.endLayout() # End SSS Layout
-
-        self.beginLayout("Emission", collapse=True)
-        self.addControl("emission_color", label="Color")
-        self.addControl("emission", label="Scale")
-        self.endLayout() # End Emission Layout
-
-        self.beginLayout("Caustics", collapse=True)
-        self.beginNoOptimize()
-        self.addControl("enable_glossy_caustics", label="Enable Glossy Caustics")
-        self.addControl("enable_reflective_caustics", label="Enable Reflective Caustics")
-        self.addControl("enable_refractive_caustics", label="Enable Refractive Caustics")
-        self.endNoOptimize()
-        self.endLayout() # End Caustics Layout
-
-        self.beginLayout("Advanced", collapse=True)
-        self.addControl("bounce_factor", label="Bounce Factor")
-        self.endLayout() # End Advanced Layout
+        
 
         self.beginLayout("Hardware Texturing", collapse=True)
         pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')

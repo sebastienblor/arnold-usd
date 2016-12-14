@@ -85,11 +85,7 @@ node_finish
 shader_evaluate
 {
    if (sg->Rt & AI_RAY_SHADOW)
-   {
-      // FIXME Arnold5
-      //sg->out_opacity = AI_RGB_BLACK;
       return;
-   }
    
    AtRGB backgroundColor = AiShaderEvalParamRGB(p_background_color);
    AtRGB shadowColor = AiShaderEvalParamRGB(p_shadow_color);
@@ -180,9 +176,9 @@ shader_evaluate
    result += indirect_diffuse;
    result += reflection;
 
-   sg->out.RGB() = result;
-   // FIXME Arnold5
-   //sg->out_opacity = resultOpacity;
-   sg->out.RGBA().a = resultAlpha;
-   
+   AtClosureList closures;
+   closures.add(AiClosureEmission(sg, resultOpacity * result));
+   closures.add(AiClosureMatte(sg, resultOpacity * (AI_RGB_WHITE - resultAlpha)));
+   closures.add(AiClosureTransparent(sg, AI_RGB_WHITE - resultOpacity));
+   sg->out.CLOSURE() = closures;   
 }

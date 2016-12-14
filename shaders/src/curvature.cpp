@@ -122,8 +122,11 @@ node_finish
 shader_evaluate
 {
     // early out for shadow rays and really transparent hits
-    if ((sg->Rt & AI_RAY_SHADOW) /* || FIXME Arnold5 AiColorIsSmall(sg->out_opacity)*/)
+    if ((sg->Rt & AI_RAY_SHADOW))
+    {
+       sg->out.CLOSURE() = AiClosureTransparent(sg, AI_RGB_WHITE);
        return;
+    }
 
     // local frame
     AtVector u, v;

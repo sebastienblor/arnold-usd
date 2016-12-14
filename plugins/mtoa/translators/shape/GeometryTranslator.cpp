@@ -12,20 +12,14 @@
 namespace
 {
    
-   void SetKeyData(AtArray* arr, unsigned int step, const float* data, unsigned int size)
+   void SetKeyData(AtArray* arr, unsigned int key, const float* data)
    {
-      unsigned int index = 0;
+      if (AiArrayGetType(arr) != AI_TYPE_VECTOR)
+         return;
 
-      if (AiArrayGetType(arr) == AI_TYPE_VECTOR)
-      {
-         AtVector vec;
-         for(unsigned int J = 0; (J < size); ++J)
-         {
-            vec = AtVector(data[index+0], data[index+1], data[index+2]);
-            index += 3;
-            AiArraySetVec(arr, J + (size * step), vec);
-         }
-      }
+      AtVector *vectorList = (AtVector*)AiArrayMapKey(arr, key);
+      memcpy(vectorList, data, AiArrayGetKeySize(arr));
+      AiArrayUnmap(arr);      
    }
 }
 
@@ -905,13 +899,13 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             if (exportVertices)
             {
                AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
-               SetKeyData(vlist_array, step, vertices, numVerts);
+               SetKeyData(vlist_array, step, vertices);
                AiNodeSetArray(polymesh, "vlist", vlist_array);
             }
             if (exportNormals)
             {
                AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
-               SetKeyData(nlist_array, step, normals, numNorms);
+               SetKeyData(nlist_array, step, normals);
                AiNodeSetArray(polymesh, "nlist", nlist_array);
             }
          }
@@ -1051,7 +1045,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
                        GetMayaNodeName().asChar(), AiArrayGetNumElements(vlist_array), numVerts);
          else
-            SetKeyData(vlist_array, step, vertices, numVerts);
+            SetKeyData(vlist_array, step, vertices);
 
       }
       // Normals
@@ -1062,7 +1056,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiMsgError("[mtoa.translator]  %-30s | Number of normals changed between motion steps: %d -> %d",
                        GetMayaNodeName().asChar(), AiArrayGetNumElements(nlist_array), numNorms);
          else
-            SetKeyData(nlist_array, step, normals, numNorms);
+            SetKeyData(nlist_array, step, normals);
       }
    }
 }
