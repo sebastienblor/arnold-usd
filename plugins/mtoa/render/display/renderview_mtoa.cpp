@@ -271,13 +271,6 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
 #endif
 
-   if (exists && m_convertOptionsParam)
-   {
-      // assign the ARV_options parameter as it is the first time since I opened this scene
-      MString optParam;
-      MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-      SetFromSerialized(optParam.asChar());
-   }
    MStatus status;   
    if (m_rvSceneSaveCb == 0)
    {
@@ -319,6 +312,15 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
       if (m_convertOptionsParam) UpdateColorManagement();
    }
+   // Moving the ARV_options load *after* calling UpdateColorManagement because of #2719
+   if (exists && m_convertOptionsParam)
+   {
+      // assign the ARV_options parameter as it is the first time since I opened this scene
+      MString optParam;
+      MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+      SetFromSerialized(optParam.asChar());
+   }
+
    m_convertOptionsParam = false;
 
    MSelectionList resList;

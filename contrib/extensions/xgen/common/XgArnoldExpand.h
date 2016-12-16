@@ -119,7 +119,12 @@ namespace XGenArnold
       }
       ~ProceduralWrapper()
       {
-         if( m_proc && m_cleanup )
+         // FIXME I'm seeing some commented code mentionning a procedural created
+         // so cleanup to top-level patch data. But I don't understand if this situation
+         // is still valid or not. We need to delete the patch at some point, until now
+         // it wasn't cleaned at all. This prevented the refresh when the xgen_procedural DSO 
+         // is used in a standin (#2714)
+         if( m_proc/*  && m_cleanup */)
             delete m_proc;
 
          m_proc = NULL;

@@ -361,7 +361,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       MGlobal::executeCommand("exists renderLayerDisplayName", scriptExists);
       if (scriptExists)
-         MGlobal::executeCommand("​renderLayerDisplayName " + layerDisplayName, layerDisplayName);
+         MGlobal::executeCommand("renderLayerDisplayName " + layerDisplayName, layerDisplayName);
 
       for (std::set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
       {

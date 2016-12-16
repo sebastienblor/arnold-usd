@@ -6,6 +6,34 @@
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnCompoundAttribute.h>
 
+#include "common/UnorderedContainer.h"
+
+static unordered_map<CShaderTranslator *, int> s_bump_instances;
+size_t s_bump_instance_count = 0;
+
+
+CShaderTranslator::~CShaderTranslator()
+{
+   if (s_bump_instances.empty())
+      return;
+
+   unordered_map<CShaderTranslator*, int>::iterator iter = s_bump_instances.find(this);
+   if (iter == s_bump_instances.end())
+      return;
+
+   // get rid of the iterator in the map,
+   // but keep the counter
+   s_bump_instances.erase(iter);
+
+   // when the whole scene has been deleted,
+   // set the counter to 0
+   if (s_bump_instances.empty())
+   {
+      s_bump_instance_count = 0;
+   }
+
+}
+
 void CShaderTranslator::CreateImplementation()
 {
    m_impl = new CShaderTranslatorImpl(*this);

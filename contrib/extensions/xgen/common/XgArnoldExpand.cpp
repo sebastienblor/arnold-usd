@@ -518,7 +518,7 @@ unsigned int Procedural::getArraySize( AtNode* in_node, const char* in_name, int
 
 const char* Procedural::get( EStringAttribute in_attr ) const
 {
-   static string result;
+   //static string result;
    const char* cstr = NULL;
    if( in_attr == BypassFXModulesAfterBGM )
    {
@@ -529,7 +529,7 @@ const char* Procedural::get( EStringAttribute in_attr ) const
    }
    else if( in_attr == CacheDir )
    {
-      result = "xgenCache/";
+      string result = "xgenCache/";
 
       if( getString( m_node, "xgenCache", cstr, true  ) )
       {

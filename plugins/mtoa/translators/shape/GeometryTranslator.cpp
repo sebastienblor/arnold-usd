@@ -672,6 +672,8 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       const size_t numMeshShaders = meshShaders.size();
       if (numMeshShaders > 0)
          AiNodeSetArray(polymesh, "shader", AiArrayConvert(numMeshShaders, 1, AI_TYPE_NODE, &meshShaders[0]));
+      else
+         AiNodeSetPtr(polymesh, "shader", NULL);
 
       const size_t numMeshDisps = meshDisps.size();
       for (size_t i = 0; i < numMeshDisps; ++i)
