@@ -6,6 +6,7 @@ struct SkinData
 {
     bool     specular_in_secondary_rays;
     bool     fresnel_affect_sss;
+    bool     hasNormal;
 };
 
 node_parameters
@@ -38,6 +39,8 @@ node_parameters
    AiParameterBool("fresnel_affect_sss", true);
    AiParameterFlt("opacity", 1.0f);
    AiParameterRGB("opacity_color", 1.0f, 1.0f, 1.0f);
+
+   AiParameterVec("normal", 0.f, 1.f, 0.f);
    AiMetaDataSetBool(nentry, "opacity_color", "always_linear", true);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiSkin");
@@ -72,7 +75,8 @@ enum SSSParams {
    p_specular_in_secondary_rays,
    p_fresnel_affect_sss,
    p_opacity,
-   p_opacity_color   
+   p_opacity_color,
+   p_normal   
 };
 
 node_initialize
@@ -86,6 +90,7 @@ node_update
 
    data->specular_in_secondary_rays = AiNodeGetBool(node, AtString("specular_in_secondary_rays"));
    data->fresnel_affect_sss         = AiNodeGetBool(node, AtString("fresnel_affect_sss"));
+   data->hasNormal = AiNodeIsLinked(node, AtString("normal"));
 }
 
 node_finish
@@ -123,9 +128,18 @@ shader_evaluate
    if (sg->Rt & AI_RAY_SHADOW)
       return;
 
+   SkinData *data = (SkinData*)AiNodeGetLocalData(node);
+
+   AtVector oldN, oldNf;
+   if (data->hasNormal)
+   {
+      oldN = sg->N;
+      oldNf = sg->Nf;
+      sg->N = AiShaderEvalParamVec(p_normal);
+      sg->Nf = AiFaceViewer(sg);
+   }
    AtClosureList closures;
 
-   SkinData *data = (SkinData*)AiNodeGetLocalData(node);
    bool sampleOnlySSS = false;
    if (sg->bounces > 0 && (!data->specular_in_secondary_rays))
       sampleOnlySSS = true;
@@ -190,6 +204,12 @@ shader_evaluate
       closures.add(AiClosureCubicBSSRDF(sg, colorWeights[0], AtVector(radiuses[0], radiuses[0], radiuses[0])));
       closures.add(AiClosureCubicBSSRDF(sg, colorWeights[1], AtVector(radiuses[1], radiuses[1], radiuses[1])));
       closures.add(AiClosureCubicBSSRDF(sg, colorWeights[2], AtVector(radiuses[2], radiuses[2], radiuses[2])));
+   }
+
+   if (data->hasNormal)
+   {
+      sg->N = oldN;
+      sg->Nf = oldNf;
    }
 
    // write closures

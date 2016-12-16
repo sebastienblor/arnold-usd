@@ -1089,14 +1089,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
    m_impl->m_updateMode = m;
 
    if (m == AI_DELETE_NODE)
-   {
-      // needs to delete the sourceTranslator too
-      if (m_impl->m_sourceTranslator) 
-      {
-         m_impl->m_sourceTranslator->SetUpdateMode(AI_DELETE_NODE);
-         m_impl->m_sourceTranslator->RequestUpdate();
-      }
-
+   {      
       // We'll delete this node at next Render Update
       // We should advert our back references to re-export 
       for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)

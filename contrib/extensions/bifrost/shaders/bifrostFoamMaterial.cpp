@@ -386,7 +386,7 @@ shader_evaluate
          
       } else w_refl = AiShaderEvalParamFlt(p_reflection_weight);
 
-      w_refl *= AiFresnelWeight(sg->N, sg->Rd, 0.2f);
+      w_refl *= AiSchlickFresnel(sg->N, sg->Rd, 0.2f);
       
       if (w_refl < AI_EPSILON) has_reflection = false;
    }

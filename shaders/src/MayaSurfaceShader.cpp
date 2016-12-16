@@ -52,8 +52,11 @@ shader_evaluate
 
    AtClosureList closures;
    closures.add(AiClosureEmission(sg, color));
-   closures.add(AiClosureMatte(sg, outMatteOpacity));
-   closures *= AI_RGB_WHITE - outTransparency;
-   closures.add(AiClosureTransparent(sg, outTransparency));
+   if (AiMax(outTransparency.r, outTransparency.b, outTransparency.b) > AI_EPSILON)
+   {
+      closures *= AI_RGB_WHITE - outTransparency;
+      closures.add(AiClosureTransparent(sg, outTransparency));
+   }
+   closures.add(AiClosureMatte(sg, AI_RGB_WHITE - outMatteOpacity));
    sg->out.CLOSURE() = closures;
 }

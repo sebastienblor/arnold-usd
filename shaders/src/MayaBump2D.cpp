@@ -1,17 +1,6 @@
 #include <ai.h>
 #include <algorithm>
 
-inline void AiColorGamma(AtRGB *color, float gamma)
-{
-   if (gamma == 1.0f)
-      return;
-   gamma = 1.0f / gamma;
-   color->r = powf(color->r, gamma);
-   color->g = powf(color->g, gamma);
-   color->b = powf(color->b, gamma);
-   
-}
-
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaBump2DMtd);
 
@@ -39,7 +28,7 @@ node_parameters
    AiParameterBool("swap_tangents", false);
    AiParameterBool("use_derivatives", true);
    AiParameterEnum("use_as", 0, useAsNames)
-   AiParameterClosure("shader");
+   AiParameterVec("normal", 0.f, 1.f, 0.f);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
@@ -52,13 +41,13 @@ enum mayaBump2DParams {
    p_swap_tangents,
    p_use_derivatives,
    p_use_as,
-   p_shader
+   p_normal
 };
 
 struct mayaBump2DData{
    AtRGBA shaderValue;
    AtNode* bumpMap;
-   AtNode* shader;
+   bool hasChainedBump;
    int bumpMode;
    bool flipR, flipG, swapTangents, useDerivatives;
 };
@@ -67,12 +56,12 @@ node_initialize
 {
    mayaBump2DData* data = (mayaBump2DData*)AiMalloc(sizeof(mayaBump2DData));
    data->bumpMap = 0;
-   data->shader = 0;
    data->bumpMode = 0;
    data->flipR = true;
    data->flipG = true;
    data->swapTangents = false;
    data->useDerivatives = true;
+   data->hasChainedBump = false;
    AiNodeSetLocalData(node, data);
 }
 
@@ -81,7 +70,6 @@ node_update
    mayaBump2DData* data = (mayaBump2DData*)AiNodeGetLocalData(node);
    data->bumpMode = AiNodeGetInt(node, "use_as");
    data->bumpMap = AiNodeGetLink(node, "bump_map");
-   data->shader = AiNodeGetLink(node, "shader");
    
    AtNode* options = AiUniverseGetOptions();
    if (AiNodeGetBool(options, "ignore_bump"))
@@ -92,6 +80,7 @@ node_update
    data->swapTangents = AiNodeGetBool(node, "swap_tangents");
    data->useDerivatives = AiNodeGetBool(node, "use_derivatives");
    
+   data->hasChainedBump = AiNodeIsLinked(node, "normal");
 }
 
 node_finish
@@ -114,20 +103,26 @@ static float BumpFunction(AtShaderGlobals* sg, void* d)
 shader_evaluate
 {
    mayaBump2DData* data = (mayaBump2DData*)AiNodeGetLocalData(node);
-   if (data->shader == 0 || sg->Op == 0)
+
+   // If this same shader has bump, evaluate it first so that it 
+   // serves as a basis for this bump
+   if (data->hasChainedBump)
+   {
+      sg->Nf = sg->N = AiShaderEvalParamVec(p_normal);
+      sg->Nf = AiFaceViewer(sg);
+   }
+   AtVector result = sg->N;
+   if (sg->Op == 0)
    {
       return;
    }
    
    if (sg->Rt & AI_RAY_DIFFUSE_REFLECT || sg->Rt & AI_RAY_SHADOW || (data->bumpMode == BM_BUMP && data->bumpMap == 0))
-   {      
-      AiShaderEvaluate(data->shader, sg);
+   { 
       return;
    }
    
-   AtVector oldN = sg->N;
-   AtVector oldNf = sg->Nf;
-   
+
    if (data->bumpMode == BM_BUMP) // do classic bump mapping
    {
       const float bumpHeight = AiShaderEvalParamFlt(p_bump_height);
@@ -136,10 +131,9 @@ shader_evaluate
          BumpEvalData evalData;
          evalData.bumpHeight = bumpHeight;
          evalData.bumpMap = data->bumpMap;
-         sg->N = AiShaderGlobalsEvaluateBump(sg, BumpFunction, &evalData);
-         AiFaceForward(sg->N, oldN);
-         sg->N = -sg->N;
-         sg->Nf = AiFaceViewer(sg);
+         result = AiShaderGlobalsEvaluateBump(sg, BumpFunction, &evalData);
+         AiFaceForward(result, sg->N);
+         result = -result;
       }
    }
    else if(data->bumpMode == BM_TANGENT_NORMAL) // tangent space normal mapping
@@ -162,29 +156,19 @@ shader_evaluate
          normalMap.g *= -1.f;
       if (data->swapTangents)
          std::swap(tangent, bitangent);
-      sg->N = normalMap.r * tangent +
+      result = normalMap.r * tangent +
               normalMap.g * bitangent +
-              normalMap.b * oldN;
-      sg->N = AiV3Normalize(sg->N);
-      if (!AiV3IsFinite(sg->N))
-         sg->N = oldN;
-      else
-      {
-         sg->Nf = sg->N;
-         sg->Nf = AiFaceViewer(sg);
-      }
+              normalMap.b * sg->N;
+      result = AiV3Normalize(result);
+      if (!AiV3IsFinite(result))
+         result = sg->N;
    }
    else // object space normal mapping
    {
       AtRGB normalMap = AiShaderEvalParamRGB(p_normal_map);
       AtVector normalMapV(normalMap.r, normalMap.g, normalMap.b);
-      sg->N = AiM4VectorByMatrixMult(sg->M, normalMapV);
-      sg->Nf = sg->N;
-      sg->Nf = AiFaceViewer(sg);
+      result = AiM4VectorByMatrixMult(sg->M, normalMapV);
    }
    
-   AiShaderEvaluate(data->shader, sg);
-   
-   sg->N = oldN;
-   sg->Nf = oldNf;
+   sg->out.VEC() = result;
 }

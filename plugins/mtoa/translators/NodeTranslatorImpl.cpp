@@ -125,8 +125,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       std::vector<CNodeTranslator *> previousRefs = m_references;
       m_references.clear();
 #endif
-      m_sourceTranslator = NULL; // this will be set during Export
-
 
       m_tr.Export(node);
       ExportUserAttribute(node);
@@ -1044,12 +1042,6 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       if (outTranslator != NULL)
          *outTranslator = translator;
 
-      // this is used when the DG order is different between Maya and Arnold.
-      // For now this only happens with bump mapping. In that case, from the outside the sourceTranslator
-      // will have to be referenced instead of this one.
-      if (translator->m_impl->m_sourceTranslator) 
-         translator = translator->m_impl->m_sourceTranslator;
-
 #ifdef NODE_TRANSLATOR_REFERENCES 
       AddReference(translator);
 #endif
@@ -1311,20 +1303,6 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
 
    // no animated array has been found,
    return false;
-}
-
-void CNodeTranslatorImpl::SetSourceTranslator(CNodeTranslator *tr)
-{
-   if (tr == NULL)
-   {
-      m_sourceTranslator = NULL;
-      return;
-   }
-   while (tr->m_impl->m_sourceTranslator)
-   {
-      tr = tr->m_impl->m_sourceTranslator;
-   }
-   m_sourceTranslator = tr;
 }
 
 const char* CNodeTranslatorImpl::GetArnoldNodeName()

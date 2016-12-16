@@ -726,7 +726,7 @@ node_loader
       
    case SHADER_BUMP2D:
       node->methods     = MayaBump2DMtd;
-      node->output_type = AI_TYPE_CLOSURE;
+      node->output_type = AI_TYPE_VECTOR;
       node->name        = "mayaBump2D";
       node->node_type   = AI_NODE_SHADER;
       break;
