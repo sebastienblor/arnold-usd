@@ -8,6 +8,7 @@
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
+#include "nodes/shader/ArnoldStandardSurfaceNode.h"
 #include "nodes/ArnoldNodeIDs.h"
 
 #include <ai_metadata.h>
@@ -185,6 +186,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             abstract   = &CArnoldStandardNode::s_abstract;
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/arnold/standard";
+         }
+         else if (id == ARNOLD_NODEID_STANDARD_SURFACE) //aiStandardSurface node
+         {
+            creator    = CArnoldStandardSurfaceNode::creator;
+            initialize = CArnoldStandardSurfaceNode::initialize;
+            abstract   = &CArnoldStandardSurfaceNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/standard_surface";
          }
          else if (id == ARNOLD_NODEID_SKIN_SSS)
          {

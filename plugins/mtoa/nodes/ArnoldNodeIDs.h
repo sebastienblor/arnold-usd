@@ -66,5 +66,13 @@
 #define ARNOLD_NODEID_SKIN_SSS                  0x00115D20
 #define ARNOLD_NODEID_DENSITY                   0x00115D21
 
+#define ARNOLD_NODEID_STANDARD_SURFACE          0x00115D51
+#define ARNOLD_NODEID_STANDARD_HAIR             0x00115D52
+#define ARNOLD_NODEID_STANDARD_VOLUME           0x00115D53
+#define ARNOLD_NODEID_SHADER_MIX                0x00115D54
+#define ARNOLD_NODEID_SHADER_RAY_SWITCH         0x00115D55
+
+
+
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

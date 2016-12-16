@@ -21,12 +21,13 @@
 # motion_vector               0x00115D0F
 # image                       0x00115D17
 # physical_sky                0x00115D1E
-# standard_surface            0x00115D11
-# standard_hair               0x00115D12
-# standard_volume             0x00115D13
-# shader_mix                  0x00115D14
-# standard_surface            0x00115D15
-# shader_ray_switch           0x00115D16
+
+# Arnold 5 nodes
+# standard_surface            0x00115D51
+# standard_hair               0x00115D52
+# standard_volume             0x00115D53
+# shader_mix                  0x00115D54
+# shader_ray_switch           0x00115D55
 
 # options
 
@@ -1179,7 +1180,7 @@
 [node standard_surface]
     desc                    STRING  "Basic Surface shader."
     maya.name               STRING  "aiStandardSurface"
-    maya.id                 INT     0x00115D11
+    maya.id                 INT     0x00115D51
     maya.classification     STRING  "shader/surface"
     maya.output_name        STRING  "outColor"
     maya.output_shortname   STRING  "out"
@@ -1515,7 +1516,7 @@
 [node standard_hair]
     desc                    STRING  "Basic Arnold Hair Shader"
     maya.name               STRING  "aiStandardHair"
-    maya.id                 INT    0x00115D12  
+    maya.id                 INT    0x00115D52  
     maya.classification     STRING  "shader/surface"
     [attr diffuse]
         min                 FLOAT   0.0
@@ -1572,7 +1573,7 @@
 [node standard_volume]
     desc                    STRING  "Basic Volume Shader"
     maya.name               STRING  "aiStandardVolume"
-    maya.id                 INT     0x00115D13  
+    maya.id                 INT     0x00115D53  
     maya.classification     STRING  "shader/volume/atmosphere"
     [attr density]
         min                 FLOAT   0.0
@@ -1596,7 +1597,7 @@
 [node shader_mix]
     desc                    STRING  "Mix between two Arnold Shaders"
     maya.name               STRING  "aiShaderMix"
-    maya.id                 INT     0x00115D14  
+    maya.id                 INT     0x00115D54  
     maya.classification     STRING  "shader/surface"
     [attr mix]
         min                 FLOAT   0.0
@@ -1605,7 +1606,7 @@
 [node shader_ray_switch]
     desc                    STRING  "Ray Switch for Arnold Surface Shaders"
     maya.name               STRING  "aiShaderRaySwitch"
-    maya.id                 INT     0x00115D16  
+    maya.id                 INT     0x00115D55  
     maya.classification     STRING  "shader/surface"
 
 
