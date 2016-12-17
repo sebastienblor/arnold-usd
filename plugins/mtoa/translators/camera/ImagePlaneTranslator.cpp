@@ -361,7 +361,7 @@ void CImagePlaneTranslator::ExportImagePlane()
             */
             
             // check if filename has changed. If it has we tell ArnoldSession to update tx
-            MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename");
+            MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename").c_str();
 
             bool requestUpdateTx = true;
             int prevFilenameLength = prevFilename.length();

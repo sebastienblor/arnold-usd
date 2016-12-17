@@ -136,7 +136,7 @@ static void initializeDiffuseGradient(AtNode *node, ShaderData *data, AtShaderGl
       GradientDescription<AtRGB> *grad = new GradientDescription<AtRGB>();
       
        // get the user data type // SPECIFIC TO POINTS using user data
-      std::string userData = AiNodeGetStr(node, "diffuseColorRemapChannel");
+      std::string userData = AiNodeGetStr(node, "diffuseColorRemapChannel").c_str();
       int type = AI_TYPE_FLOAT;
       const AtUserParamEntry* pentry = AiUserGetParameterFunc(AtString(userData.c_str()), sg);
       if (pentry) type = AiUserParamGetType(pentry);
@@ -181,7 +181,7 @@ static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShade
    if (data->reflectionGradient == 0)
    {
       GradientDescription<float> * grad = new GradientDescription<float>();
-      std::string userData = AiNodeGetStr(node, "reflectionWeightRemapChannel");
+      std::string userData = AiNodeGetStr(node, "reflectionWeightRemapChannel").c_str();
       int type = AI_TYPE_FLOAT;
       const AtUserParamEntry* pentry = AiUserGetParameterFunc(AtString(userData.c_str()), sg);
       if (pentry) type = AiUserParamGetType(pentry);
@@ -194,7 +194,7 @@ static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShade
    }
    AiCritSecLeave(&data->lock);
 }
-
+/*
 static void initializeTransparencyGradient(AtNode *node, ShaderData *data, AtShaderGlobals *sg)
 {
    AiCritSecEnter(&data->lock);
@@ -214,7 +214,7 @@ static void initializeTransparencyGradient(AtNode *node, ShaderData *data, AtSha
    }
    AiCritSecLeave(&data->lock);
 }
-
+*/
 
 node_initialize
 {
@@ -255,7 +255,7 @@ node_update
    }
 
 
-   std::string diffuseColorRemapChannel = AiNodeGetStr(node, "diffuseColorRemapChannel");
+   std::string diffuseColorRemapChannel = AiNodeGetStr(node, "diffuseColorRemapChannel").c_str();
 
    if (diffuseColorRemapChannel == "" || diffuseColorRemapChannel == "none")
    {
@@ -277,7 +277,7 @@ node_update
    
    data->has_scatter = true;
 
-   std::string scatterWeightRemapChannel = AiNodeGetStr(node, "scatterWeightRemapChannel");
+   std::string scatterWeightRemapChannel = AiNodeGetStr(node, "scatterWeightRemapChannel").c_str();
    if (scatterWeightRemapChannel == "" || scatterWeightRemapChannel == "none")
    {  
       data->has_scatter_ramp = false;
@@ -297,7 +297,7 @@ node_update
    }
 
    data->has_reflection = true;
-   std::string reflectionWeightRemapChannel = AiNodeGetStr(node, "reflectionWeightRemapChannel");
+   std::string reflectionWeightRemapChannel = AiNodeGetStr(node, "reflectionWeightRemapChannel").c_str();
    if (reflectionWeightRemapChannel == "" || reflectionWeightRemapChannel == "none")
    {  
       data->has_reflection_ramp = false;
@@ -318,7 +318,7 @@ node_update
    }
 
    data->opaque = false;
-   std::string transparencyWeightRemapChannel = AiNodeGetStr(node, "transparencyWeightRemapChannel");   
+   std::string transparencyWeightRemapChannel = AiNodeGetStr(node, "transparencyWeightRemapChannel").c_str();   
    if (transparencyWeightRemapChannel == "" || transparencyWeightRemapChannel == "none") 
    {
       data->has_transparency_ramp = false;

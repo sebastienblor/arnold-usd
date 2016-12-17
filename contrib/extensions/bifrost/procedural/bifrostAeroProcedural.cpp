@@ -99,8 +99,8 @@ volume_create
    memset(volData->temperature_samplers, 0, AI_MAX_THREADS * sizeof(void*));
    memset(volData->velocity_samplers, 0, AI_MAX_THREADS * sizeof(void*));
    
-   std::string object_name = AiNodeLookUpUserParameter(node, "object_name") ? AiNodeGetStr(node, "object_name") : "";
-   std::string file_name = AiNodeLookUpUserParameter(node, "file_name") ? AiNodeGetStr(node, "file_name") : "";
+   std::string object_name = AiNodeLookUpUserParameter(node, "object_name") ? AiNodeGetStr(node, "object_name").c_str() : "";
+   std::string file_name = AiNodeLookUpUserParameter(node, "file_name") ? AiNodeGetStr(node, "file_name").c_str() : "";
    if (true || object_name != volData->object_name || file_name != volData->file) // in case we change the frame ?
    {
     // need to update objet_ref

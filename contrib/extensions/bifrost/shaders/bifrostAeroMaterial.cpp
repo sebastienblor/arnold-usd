@@ -96,7 +96,7 @@ static void initializeEmissionGradient(AtNode *node, ShaderData *data, AtShaderG
       grad->voxels = true;
 
       int type = AI_TYPE_FLOAT;
-      std::string channel = AiNodeGetStr(node, "emissionColorRemapChannel");
+      std::string channel = AiNodeGetStr(node, "emissionColorRemapChannel").c_str();
       if (channel == "velocity") type = AI_TYPE_VECTOR;
 
       grad->ReadValues(sg->Op, sg, channel.c_str(), 
@@ -117,7 +117,7 @@ static void initializeDensityGradient(AtNode *node, ShaderData *data, AtShaderGl
       grad->voxels = true;
 
       int type = AI_TYPE_FLOAT;
-      std::string channel = AiNodeGetStr(node, "densityRemapChannel");
+      std::string channel = AiNodeGetStr(node, "densityRemapChannel").c_str();
       if (channel == "velocity") type = AI_TYPE_VECTOR;
 
       grad->ReadValues(sg->Op, sg, channel.c_str(), 
@@ -153,10 +153,10 @@ node_update
       data->emissionGradient = 0;
    }
 
-   std::string emissionColorRemapChannel = AiNodeGetStr(node, "emissionColorRemapChannel");
+   std::string emissionColorRemapChannel = AiNodeGetStr(node, "emissionColorRemapChannel").c_str();
    data->has_emission_ramp = (emissionColorRemapChannel != "" && emissionColorRemapChannel != "none");
 
-   std::string densityRemapChannel = AiNodeGetStr(node, "densityRemapChannel");
+   std::string densityRemapChannel = AiNodeGetStr(node, "densityRemapChannel").c_str();
    data->has_density_ramp = (densityRemapChannel != "" && densityRemapChannel != "none");
 }
 

@@ -281,7 +281,7 @@ int Procedural::Init(AtNode* node)
       m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
 
       string strParentName = AiNodeGetName( m_node );
-      string strParentDso = AiNodeGetStr( m_node, "dso" );
+      string strParentDso = AiNodeGetStr( m_node, "dso" ).c_str();
 
       // Create a sphere shape node
       {

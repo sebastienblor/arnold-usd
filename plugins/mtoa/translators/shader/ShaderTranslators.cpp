@@ -222,7 +222,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
    }
-   MString prevFilename = AiNodeGetStr(shader, "filename");
+   MString prevFilename = AiNodeGetStr(shader, "filename").c_str();
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
@@ -1500,7 +1500,7 @@ void CAiImageTranslator::Export(AtNode* image)
    const CSessionOptions &options = GetSessionOptions();
 
    // keep the previous filename
-   MString prevFilename = AiNodeGetStr(image, "filename");
+   MString prevFilename = AiNodeGetStr(image, "filename").c_str();
 
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)

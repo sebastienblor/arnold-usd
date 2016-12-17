@@ -373,20 +373,20 @@ if env['COMPILER'] == 'gcc':
         #env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
 
         # FIXME : To be removed and used through scons variables
-        env['CC']  = '/solidangle/toolchain/3.0/bin/clang'
-        env['CXX'] = '/solidangle/toolchain/3.0/bin/clang++'
+        #env['CC']  = '/solidangle/toolchain/3.0/bin/clang'
+        #env['CXX'] = '/solidangle/toolchain/3.0/bin/clang++'
 
     else:
         compiler_version = env['COMPILER_VERSION']
         if compiler_version != '':
             env['CC']  = 'gcc' + compiler_version
             env['CXX'] = 'g++' + compiler_version
-        else:
+        #else:
             # FIXME to be removed and used through scons variables
-            env['CC']  = '/opt/local/bin/clang'# + compiler_version
-            env['CXX'] = '/opt/local/bin/clang++'# + compiler_version
+        #    env['CC']  = '/opt/local/bin/clang'# + compiler_version
+        #    env['CXX'] = '/opt/local/bin/clang++'# + compiler_version
 
-	env.Append(CCFLAGS = Split('-msse4.2')) # matches Arnold and ensures same math symbols
+	#env.Append(CCFLAGS = Split('-msse4.2')) # matches Arnold and ensures same math symbols
 
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 

@@ -27,7 +27,7 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
    if(AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image"))
    {
       // this is an image node
-      MString filename = AiNodeGetStr(node, "filename");
+      MString filename = AiNodeGetStr(node, "filename").c_str();
       MStringArray expandedFilenames = expandFilename(filename);
       for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
       {
@@ -107,7 +107,7 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
          {
             if (AiNodeIs(selected, "MayaFile") || AiNodeIs(selected, "image") ||  AiNodeIs(selected, "MayaImagePlane"))
             {
-               MString filename = AiNodeGetStr(selected, "filename");
+               MString filename = AiNodeGetStr(selected, "filename").c_str();
                MStringArray expandedFilenames = expandFilename(filename);
                for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
                {
