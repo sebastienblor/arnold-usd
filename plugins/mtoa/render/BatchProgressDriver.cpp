@@ -8,6 +8,9 @@
 #include <climits>
 #endif
 
+#include "session/ArnoldSession.h"
+#include "scene/MayaScene.h"
+
 #include <maya/MRenderUtil.h>
 #include <maya/MString.h>
 #include <maya/MAtomic.h>
@@ -63,13 +66,18 @@ static int g_calculatedPixels;
 driver_open
 {
    AtNode* options = AiUniverseGetOptions();
-   std::stringstream ss;
-   const float frame = AiNodeGetFlt(options, "frame");
-   ss << "frame " << frame;
-   if (AiNodeLookUpUserParameter(options, "render_layer") != 0)
-       ss << ", " << AiNodeGetStr(options, "render_layer");
-   // TODO : Set filename instead of frame number and render layer
-   filename = ss.str();
+
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+
+   MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+   filename.clear();
+   if (imageFilenames.length() > 0)
+   {
+      // Maya's batch progress can only output a single filename
+      // so just send the first filename
+      filename = imageFilenames[0].asChar();
+   }
+
    lastpercent = -1;
    sendProgress(FRAME_START);
 

@@ -74,6 +74,9 @@
 #define DIRENT_H
 
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>

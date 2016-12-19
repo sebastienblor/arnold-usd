@@ -1852,6 +1852,12 @@ AOVSet CArnoldSession::GetActiveAOVs() const
    AOVSet empty;
    return empty;
 }
+MStringArray CArnoldSession::GetActiveImageFilenames() const
+{
+   if (m_optionsTranslator)
+      return m_optionsTranslator->GetActiveImageFilenames();
+   return MStringArray();
+}
 
 void CArnoldSession::FormatTexturePath(MString& texturePath)
 {

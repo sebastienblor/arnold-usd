@@ -6,6 +6,34 @@
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnCompoundAttribute.h>
 
+#include "common/UnorderedContainer.h"
+
+static unordered_map<CShaderTranslator *, int> s_bump_instances;
+size_t s_bump_instance_count = 0;
+
+
+CShaderTranslator::~CShaderTranslator()
+{
+   if (s_bump_instances.empty())
+      return;
+
+   unordered_map<CShaderTranslator*, int>::iterator iter = s_bump_instances.find(this);
+   if (iter == s_bump_instances.end())
+      return;
+
+   // get rid of the iterator in the map,
+   // but keep the counter
+   s_bump_instances.erase(iter);
+
+   // when the whole scene has been deleted,
+   // set the counter to 0
+   if (s_bump_instances.empty())
+   {
+      s_bump_instance_count = 0;
+   }
+
+}
+
 void CShaderTranslator::CreateImplementation()
 {
    m_impl = new CShaderTranslatorImpl(*this);
@@ -219,10 +247,20 @@ void CShaderTranslator::ExportBump(AtNode* shader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         // ugly way to get a unique instance number integer from this translator's pointer.
-         // we should have a better system, like a map that increases an index whenever a new entry is added, or something....
-         size_t instNum64 = (size_t)this;
-         int instanceNumber = (int)(instNum64/8);
+         int instanceNumber = 0;
+
+         unordered_map<CShaderTranslator *, int>::iterator iter = s_bump_instances.find(this);
+         if (iter != s_bump_instances.end())
+         {
+            // this entry already exists in my map            
+            instanceNumber = iter->second;
+         }
+         else
+         {
+            // first time I find this Shader Translator instance
+            instanceNumber = (int)s_bump_instance_count++;
+            s_bump_instances[this] = instanceNumber;
+         }
 
          CNodeTranslator *bumpTranslator = m_impl->m_session->ExportNode(connections[0], m_impl->m_shaders, &m_impl->m_upstreamAOVs, false, instanceNumber);
          
