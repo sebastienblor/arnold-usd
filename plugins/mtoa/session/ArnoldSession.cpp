@@ -1381,14 +1381,15 @@ void CArnoldSession::DoUpdate()
    MString hashCode;
    std::string hashStr;
 
-
+   bool interactiveRender = IsInteractiveRender();
+   
    double frame = MAnimControl::currentTime().as(MTime::uiUnit());
    bool frameChanged = (frame != GetExportFrame());
 
    // only change the frame for interactive renders
    // It appears that Export() doesn't restore the current frame
    // in maya otherwise ( to avoid useless maya evaluations )
-   if (frameChanged && IsInteractiveRender()) SetExportFrame(frame);
+   if (frameChanged && interactiveRender) SetExportFrame(frame);
 
    size_t previousUpdatedTranslators = 0;
 
@@ -1774,27 +1775,24 @@ UPDATE_BEGIN:
       ExportTxFiles();
    }
  
-   if (IsInteractiveRender())
+   // Reset IPR status and eventuall add the IPR callbacks now that export is finished
+   for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+      iter != translatorsToUpdate.end(); ++iter)
    {
-      // Reset IPR status and eventuall add the IPR callbacks now that export is finished
-      for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
-         iter != translatorsToUpdate.end(); ++iter)
-      {
-         CNodeTranslator* translator = (*iter);
-         if (translator == NULL)
-            continue;
+      CNodeTranslator* translator = (*iter);
+      if (translator == NULL)
+         continue;
 
-         CNodeTranslatorImpl *trImpl = translator->m_impl;
-         // we no longer clear the update callbacks
-         // we just add them if they're missing
-         if (trImpl->m_mayaCallbackIDs.length() == 0)
-            translator->AddUpdateCallbacks();
-         
-         trImpl->m_inUpdateQueue = false; // I'm allowed to receive updates once again
-         trImpl->m_isExported = true;
-         // restore the update mode to "update Only"
-         trImpl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
-      }
+      CNodeTranslatorImpl *trImpl = translator->m_impl;
+      // we no longer clear the update callbacks
+      // we just add them if they're missing
+      if (interactiveRender && (trImpl->m_mayaCallbackIDs.length() == 0))
+         translator->AddUpdateCallbacks();
+      
+      trImpl->m_inUpdateQueue = false; // I'm allowed to receive updates once again
+      trImpl->m_isExported = true;
+      // restore the update mode to "update Only"
+      trImpl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
    }
       
    m_objectsToUpdate.clear();

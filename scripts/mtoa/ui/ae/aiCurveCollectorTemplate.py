@@ -13,6 +13,8 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl('aiMode', label='Mode')
         
         self.addControl('aiCurveWidth', label='Width')
+        pm.mel.AEaddRampControl(self.nodeName + '.aiWidthProfile')
+        self.addSeparator()
         self.addControl('aiSampleRate', label='Sample Rate')
 
         self.addControl('aiCurveShader', label='Shader')

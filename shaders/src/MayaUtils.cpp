@@ -40,7 +40,7 @@ float RampLuminance(const AtRGB &color)
 }*/
 
 template <typename ValType>
-void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)
+void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int), const unsigned int *shuffle)
 {
    unsigned int inext = AiArrayGetNumElements(p);
 
@@ -430,12 +430,12 @@ void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out
    InterpolateShuffleT(p, v, it, t, out, _GetArrayRGB, shuffle);
 }
 
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, float &out, unsigned int *shuffle)
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, float &out, const unsigned int *shuffle)
 {
    RampT(p, v, t, it, out, _GetArrayFlt, shuffle);
 }
 
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out, unsigned int *shuffle)
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out, const unsigned int *shuffle)
 {
    RampT(p, v, t, it, out, _GetArrayRGB, shuffle);
 }

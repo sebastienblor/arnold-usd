@@ -7,6 +7,7 @@
 
 #include "MayaUtils.h"
 #include <string>
+#include <algorithm>
 
 namespace MSTR
 {
@@ -14,6 +15,26 @@ namespace MSTR
 }
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRampMtd);
+
+struct MayaRampData {
+
+   unsigned int *shuffle;
+   unsigned int nelements;
+
+   bool isLinked;
+
+   MayaRampData() :  shuffle(NULL),
+                     nelements(0),
+                     isLinked(false)
+   {
+   }
+
+   ~MayaRampData()
+   {      
+      if (shuffle)
+         AiFree(shuffle);
+   }
+};
 
 namespace
 {
@@ -102,6 +123,7 @@ static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, flo
 
 };
 
+
 node_parameters
 {
    AiParameterEnum("type", 1, RampTypeNames);
@@ -130,10 +152,12 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaRampData());
 }
 
 node_update
 {
+   MayaRampData *data = (MayaRampData*)AiNodeGetLocalData(node);
    // Unconnected render attributes (uvCoords, normalCamera, etc)
    // should use globals as following Maya's behavior
    if (!AiNodeGetLink(node, "uvCoord"))
@@ -143,16 +167,39 @@ node_update
       if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
       AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
    }
+
+   AtArray *positions = AiNodeGetArray(node, "position");
+   AtArray *colors = AiNodeGetArray(node, "color");
+
+   unsigned int pElements = (positions) ? AiArrayGetNumElements(positions) : 0;
+   unsigned int cElements = (colors) ? AiArrayGetNumElements(colors) : 0;
+   data->nelements = AiMin(pElements, cElements);
+   data->isLinked = AiNodeIsLinked(node, "position");
+
+   if (data->shuffle)
+      AiFree(data->shuffle);
+
+   data->shuffle = NULL;
+
+   if (data->nelements > 0)
+   {
+      data->shuffle = (unsigned int*)AiMalloc(data->nelements * sizeof(unsigned int));
+      SortFloatIndexArray(positions, data->shuffle);
+   }
 }
 
 node_finish
 {
+   delete reinterpret_cast<MayaRampData*>(AiNodeGetLocalData(node));
 }
+
 
 shader_evaluate
 {
    AtRGB result = AI_RGB_BLACK;
+   MayaRampData *data = (MayaRampData*)AiNodeGetLocalData(node);
    
+
    float hNoiseAmp = AiShaderEvalParamFlt(p_hue_noise);
    float hNoiseFreq = AiShaderEvalParamFlt(p_hue_noise_freq);
    float sNoiseAmp = AiShaderEvalParamFlt(p_sat_noise);
@@ -211,27 +258,35 @@ shader_evaluate
    v = Mod(v, 1.000001f);
    
    // Read positions and colors
-   AtArray* positions = AiShaderEvalParamArray(p_positions);
+   AtArray* positions = AiShaderEvalParamArray(p_positions); 
    AtArray* colors = AiShaderEvalParamArray(p_colors);
 
-   if (AiArrayGetNumElements(positions) > 0)
+   if (data->nelements > 0)
    {
-      if (AiArrayGetNumElements(positions) == 1)
+      if (data->nelements == 1)
       {
          // Only one color entry then it's a plain color / texture
          result = AiArrayGetRGB(colors, 0);
       }
-      else // (AiArrayGetNumElements(positions) > 1)
+      else // (data->nelements > 1)
       {
          // get array with sorted index
-         unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(positions) * sizeof(unsigned int));
-         SortFloatIndexArray(positions, shuffle);
+         
+         unsigned int* shuffle = NULL;
+
+         if (data->isLinked)
+         {
+            shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(positions) * sizeof(unsigned int));
+            SortFloatIndexArray(positions, shuffle);
+         } else
+            shuffle = data->shuffle;
 
          int type = AiShaderEvalParamInt(p_type);
          RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
          switch (type)
          {
          case RT_U:
+
             Ramp(positions, colors, u, interp, result, shuffle);
             break;
          case RT_V:

@@ -87,10 +87,6 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   /*data.name = "widthProfile";
-   data.shortName = "wdthP";
-   helper.MakeInputCurveRamp(data);*/
-
 }
 
 AtNode* CCurveTranslator::CreateArnoldNodes()
