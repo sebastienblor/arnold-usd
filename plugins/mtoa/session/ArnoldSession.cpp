@@ -668,6 +668,29 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    AiMsgDebug("[mtoa.session]     Initializing at frame %f", GetExportFrame());
 
+#if MAYA_API_VERSION >= 201700
+   // Hack for type text (#2422) : 
+   // Since Arnold doesn't support holes yet, we set the attribute "deformableType" to 1 for all 
+   // type texts in the scene before we convert to Arnold.
+   // FIXME : do we want to restore them later on ? This could maybe affect render times since this would be done back and forth ?
+   MStringArray typeNodes;
+   MGlobal::executeCommand("ls -typ type", typeNodes);
+   for (unsigned int t = 0; t < typeNodes.length(); ++t)
+   {
+      int deformableType = 0;
+      MGlobal::executeCommand("getAttr "+typeNodes[t]+".deformableType", deformableType);
+
+      // Already set, let's skip this
+      if (deformableType == 1)
+         continue;
+      
+      MString typeScriptStr = "setAttr "+ typeNodes[t] +".deformableType 1;";
+      typeScriptStr += "string $polyRemeshNode[] = `listConnections -d true -s true "+typeNodes[t]+".remeshMessage`;";
+      typeScriptStr += "setAttr ($polyRemeshNode[0]+\".nodeState\") 0;";
+      MGlobal::executeCommand(typeScriptStr);
+   }
+#endif
+
    ExportOptions();  // inside loop so that we're on the proper frame
 
    // First "real" export
