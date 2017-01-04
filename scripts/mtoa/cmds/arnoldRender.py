@@ -31,10 +31,10 @@ def arnoldBatchRender(option):
     kwargs = {}
     options = option.split(" ")
     i, n = 0, len(options)
-    if cmds.objExists('defaultResolution.mtoaCommandPort'):
-        kwargs['port'] = cmds.getAttr('defaultResolution.mtoaCommandPort')
-    if cmds.objExists('defaultArnoldRenderOptions.mtoaOrigFileName'):
-        kwargs['ofn'] = cmds.getAttr('defaultArnoldRenderOptions.mtoaOrigFileName')
+    if cmds.objExists('arnoldBatchNode.mtoaCommandPort'):
+        kwargs['port'] = cmds.getAttr('arnoldBatchNode.mtoaCommandPort')
+    if cmds.objExists('arnoldBatchNode.mtoaOrigFileName'):
+        kwargs['ofn'] = cmds.getAttr('arnoldBatchNode.mtoaOrigFileName')
     while i < n:
         if options[i] in ["-w", "-width"]:
             i += 1
