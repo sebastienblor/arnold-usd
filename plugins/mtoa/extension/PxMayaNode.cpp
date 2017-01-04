@@ -115,7 +115,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          else
          {
             AiMsgWarning("[mtoa] [%s] [node %s] Unknown Maya type %s in maya.type metadata.",
-                  ext, node, nodeTypeMtd);
+                  ext, node, nodeTypeMtd.c_str());
          }
       }
    }
