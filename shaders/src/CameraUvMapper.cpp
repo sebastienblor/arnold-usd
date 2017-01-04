@@ -169,7 +169,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       // looping over triangles in (subdivided/displaced) mesh
       while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
       {
-         if (!AiShaderGlobalsGetVertexUVs(sg, uv))
+         if (!AiShaderGlobalsGetVertexUVs(sg, AtString(""), uv))
          {
             // If I don't have any UVs, how can I ever render this as a texture ?
             // let's skip this polygon, hoping other ones will have UVs

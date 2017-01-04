@@ -184,12 +184,15 @@ shader_evaluate
    AtRGB sss = AI_RGB_BLACK, directSSS = AI_RGB_BLACK, indirectSSS = AI_RGB_BLACK;
 
    float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
-   if (data->fresnel_affect_sss)
-      sssWeight *= (1.0f - specularFresnel) * (1.0f - sheenFresnel);
-   const bool enableSSS = sssWeight > AI_EPSILON;
+   
+   float sssFresnel = (data->fresnel_affect_sss) ? (1.0f - specularFresnel) * (1.0f - sheenFresnel) : 1.0f;
+   const bool enableSSS = sssWeight * sssFresnel > AI_EPSILON;
+
    if (enableSSS)
    {
-      const float globalSSSRadiusMultiplier = AiShaderEvalParamFlt(p_global_sss_radius_multiplier);
+      // 0.13 to roughly match old cubic radius
+      const float globalSSSRadiusMultiplier = AiShaderEvalParamFlt(p_global_sss_radius_multiplier) * 0.13f;
+       
       const AtRGB colorWeights[3] = {
          AiShaderEvalParamRGB(p_shallow_scatter_color) * AiShaderEvalParamFlt(p_shallow_scatter_weight) * sssWeight,
          AiShaderEvalParamRGB(p_mid_scatter_color) * AiShaderEvalParamFlt(p_mid_scatter_weight) * sssWeight,
@@ -201,9 +204,9 @@ shader_evaluate
          AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
 
-      closures.add(AiClosureCubicBSSRDF(sg, colorWeights[0], AtVector(radiuses[0], radiuses[0], radiuses[0])));
-      closures.add(AiClosureCubicBSSRDF(sg, colorWeights[1], AtVector(radiuses[1], radiuses[1], radiuses[1])));
-      closures.add(AiClosureCubicBSSRDF(sg, colorWeights[2], AtVector(radiuses[2], radiuses[2], radiuses[2])));
+      closures.add(AiClosureEmpiricalBSSRDF(sg, AtRGB(sssFresnel), AtVector(radiuses[0], radiuses[0], radiuses[0]), colorWeights[0]));
+      closures.add(AiClosureEmpiricalBSSRDF(sg, AtRGB(sssFresnel), AtVector(radiuses[1], radiuses[1], radiuses[1]), colorWeights[1]));
+      closures.add(AiClosureEmpiricalBSSRDF(sg, AtRGB(sssFresnel), AtVector(radiuses[2], radiuses[2], radiuses[2]), colorWeights[2]));
    }
 
    if (data->hasNormal)

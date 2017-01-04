@@ -1211,7 +1211,7 @@
     [attr transparent]
         min             FLOAT   0.0
         max             FLOAT   1.0
-    [attr transparent_depth_inverse]
+    [attr transparent_density]
         min             FLOAT   0.0
         softmax         FLOAT   10.0
     [attr transparent_scatter_anisotropy]
@@ -1220,10 +1220,13 @@
     [attr transparent_dispersion]
         min             FLOAT   0.0
         softmax         FLOAT   1.0
-    [attr scatter]
+    [attr transparent_extra_roughness]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr subsurface]
         min             FLOAT   0.0
         max             FLOAT   1.0
-    [attr scatter_scale]
+    [attr subsurface_scale]
         min             FLOAT   0.0
         softmax         FLOAT   10.0
     [attr coat]
@@ -1578,10 +1581,10 @@
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   5.0
-    [attr scattering]
+    [attr scatter]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr scattering_anisotropy]
+    [attr scatter_anisotropy]
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
     [attr emission]

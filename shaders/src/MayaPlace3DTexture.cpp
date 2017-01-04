@@ -49,7 +49,7 @@ class P3DTData
 {
 public:
 
-   typedef std::map<uint8_t, AtMatrix*> ThreadMatrixMap;
+   typedef std::map<uint16_t, AtMatrix*> ThreadMatrixMap;
 
    P3DTData()
       : mBeingDestroyed(false)

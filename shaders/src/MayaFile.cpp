@@ -125,7 +125,7 @@ namespace { // anonymus namespace
                                         int udim_dim)
    {
       AtVector2 uvs[3];
-      if (AiShaderGlobalsGetVertexUVs(sg, uvs))
+      if (AiShaderGlobalsGetVertexUVs(sg, AtString(""), uvs))
       {
          // if triangles never crossed a tile boundary we could use the UV centroid for
          // lookups. Since they might (rare) we make sure by construction that the lookup

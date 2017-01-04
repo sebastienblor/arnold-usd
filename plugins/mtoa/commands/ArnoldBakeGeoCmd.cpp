@@ -234,7 +234,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
                vertexMap[positionHash] = meshVtxId;
                vertexIds.push_back(meshVtxId);
 
-               if (validUvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) validUvs = false;
+               if (validUvs && !AiShaderGlobalsGetVertexUVs(sg, AtString(""), uv)) validUvs = false;
                if (validNormals && !AiShaderGlobalsGetVertexNormals(sg, 0, localNormal)) validNormals = false;
 
 
