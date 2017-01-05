@@ -941,9 +941,10 @@ MStatus CArnoldStandInShape::initialize()
 //
 int CArnoldStandInShape::drawMode()
 {
+	int mode;
     MPlug plug(thisMObject(), s_mode);
-    plug.getValue(fGeometry.mode);
-    return fGeometry.mode;
+    plug.getValue(mode);
+    return mode;
 }
 
 //
