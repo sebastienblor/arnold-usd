@@ -124,11 +124,7 @@ class ColorTemperatureTemplate:
         try:
             temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
             colorTemp = cmds.arnoldTemperatureToColor(temperature)
-            displayColor = colorTemp
-            if pm.mel.exists("colorManagementConvert"):
-                displayColor = cmds.colorManagementConvert(toDisplaySpace=colorTemp)
-
-            cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
+            cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
         except:
             pass
 
@@ -147,11 +143,7 @@ class ColorTemperatureTemplate:
                                 precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=self.updateColorTemperature)
         cmds.setParent('..')
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
-        displayColor = colorTemp
-        if pm.mel.exists("colorManagementConvert"):
-            displayColor = cmds.colorManagementConvert(toDisplaySpace=displayColor)
-
-        cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
         cmds.setUITemplate(popTemplate=True)
 
     def updateLightColorTemperatureUI(self, attrName):
@@ -163,11 +155,7 @@ class ColorTemperatureTemplate:
                                 attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled,
                                 changeCommand=self.updateColorTemperature)
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
-        displayColor = colorTemp
-        if pm.mel.exists("colorManagementConvert"):
-            displayColor = cmds.colorManagementConvert(toDisplaySpace=colorTemp)
-
-        cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
             
     def setupColorTemperature(self, lightType=""):
         self.sliderName = '%s_LightColorTemperature' % lightType
