@@ -180,6 +180,9 @@ void CArnoldVolumeGeometryOverride::updateRenderItems(const MDagPath &path, MHWR
 		wireframeItem->setDrawMode(MHWRender::MGeometry::kAll);
 		wireframeItem->depthPriority(MHWRender::MRenderItem::sDormantWireDepthPriority);
 		wireframeItem->enable(true);
+#if MAYA_API_VERSION >= 201800
+		wireframe->setCompatibleWithMayaInstancer(true);
+#endif
 		list.append(wireframeItem);
 	}
 	else

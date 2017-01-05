@@ -552,6 +552,9 @@ MHWRender::MRenderItem* CArnoldStandInSubSceneOverride::getItem(
         MHWRender::MRenderItem::NonMaterialSceneItem, primitiveType);
     item->setDrawMode(drawMode);
     item->depthPriority(depthPriority);
+#if MAYA_API_VERSION >= 201800
+    item->setCompatibleWithMayaInstancer(true);
+#endif
     container.add(item);
     return item;
 }
