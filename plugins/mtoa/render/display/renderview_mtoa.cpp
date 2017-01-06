@@ -231,8 +231,11 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       workspaceCmd += height;
 
       workspaceCmd += " -requiredPlugin \"mtoa\"";
-       // command called when closed. It's not ARV itself that is closed now, but the workspace !
-      workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
+
+
+      // command called when closed. It's not ARV itself that is closed now, but the workspace !
+      // Now we need to rely on the visibilityChanbe callback so we no longer need the close callback
+      // workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
       workspaceCmd += " -l \"Arnold RenderView\" "; // label
    }
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
@@ -257,7 +260,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\" \"ArnoldRenderView\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\"  -visibleChangeCommand \"arnoldRenderView -mode visChanged\" \"ArnoldRenderView\"");
    MGlobal::executeCommand(uiScriptCommand);
 
 //   MString visChangeCommand("workspaceControl -e -vcc \"arnoldRenderView -mode workspaceChange\" \"ArnoldRenderView\"");
