@@ -115,6 +115,8 @@ private:
     typedef unordered_map<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
 	bool fLastTimeInvisible;
+    MStringArray fLastVisibleLayer;
+    MStringArray fLastMembership;
 };
 
 #endif

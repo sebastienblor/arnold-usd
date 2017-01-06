@@ -128,6 +128,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mGlobalOptionsCreatedID(0)
 , fLastTimeInvisible(false)
 {
+    fLastVisibleLayer.append("defaultRenderLayer");
+
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
     if (!renderer)
         return;
@@ -221,6 +223,27 @@ bool CArnoldStandInSubSceneOverride::requiresUpdate(
 
 bool CArnoldStandInSubSceneOverride::anyChanges(const MHWRender::MSubSceneContainer& container)
 {
+    MStringArray visibleLayer;
+    MGlobal::executeCommand("editRenderLayerGlobals -q -currentRenderLayer", visibleLayer);
+    if(fLastVisibleLayer[0] != visibleLayer[0])
+    {
+        fLastVisibleLayer[0] = visibleLayer[0];
+        return true;
+    }
+    if(visibleLayer[0] != "defaultRenderLayer")
+    {
+        MStringArray oldMembership = fLastMembership;
+        fLastMembership.clear();
+        MGlobal::executeCommand("editRenderLayerMembers -q -fn " + visibleLayer[0], fLastMembership);
+        if(oldMembership.length() != fLastMembership.length())
+            return true;
+        for(unsigned int i=0; i<oldMembership.length(); i++)
+        {
+            if(oldMembership[i] != fLastMembership[i])
+                return true;
+        }
+    }
+
     MStatus status;
     MFnDagNode node(mLocatorNode, &status);
     if (!status) return false;
@@ -937,12 +960,40 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     MDagPathArray instances;
     node.getAllPaths(instances);
 
+    MStringArray visibleLayer;
+    MStringArray layerMembers;
+    MGlobal::executeCommand("editRenderLayerGlobals -q -currentRenderLayer", visibleLayer);
+    if(visibleLayer[0] != "defaultRenderLayer")
+        MGlobal::executeCommand("editRenderLayerMembers -q -fn " + visibleLayer[0], layerMembers);
+
     // loop over the cache and fill the arrays.
     for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
     {
         MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[instIdx]);
         if(displayStatus == MHWRender::kInvisible)
             continue;
+
+        // Check to see if the current object matches one of the layers members
+        if(visibleLayer[0] != "defaultRenderLayer")
+        {
+            bool instanceFound = false;
+            for(unsigned int i=0; i<layerMembers.length(); i++)
+            {
+                // Check to see if the layer member either matches the instance name, or
+                // Make sure the layer member is a parent of the instance
+                if(layerMembers[i] == instances[instIdx].fullPathName() ||
+                   (instances[instIdx].fullPathName().substring(0, layerMembers[i].length()-1) == layerMembers[i] &&
+                    instances[instIdx].fullPathName().length() > layerMembers[i].length() + 1 &&
+                    instances[instIdx].fullPathName().asUTF8()[layerMembers[i].length()] == '|'))
+                {
+                    instanceFound = true;
+                    break;
+                }
+            }
+            // If the instance wasn't found in our layer members then the object is invisible, so skip this object
+            if(!instanceFound)
+                continue;
+        }
 
         InstanceInfo instanceInfo = fInstanceInfoCache[instIdx];
         instanceMatrixArray[instIdx] = instanceInfo.fTransform;
