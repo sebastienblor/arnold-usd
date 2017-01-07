@@ -416,7 +416,7 @@ void CArnoldSession::ProcessAOVs()
 }
 */
    
-void EditTypeTextNode(MObject &typeNode, bool deformable )
+void EditTypeTextNode(MObject typeNode, bool deformable )
 {
    if (typeNode.isNull()) 
       return;
