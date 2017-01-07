@@ -128,6 +128,9 @@ class ColorTemperatureTemplate:
             if pm.mel.exists("colorManagementConvert"):
                 displayColor = cmds.colorManagementConvert(toDisplaySpace=colorTemp)
 
+            displayColor[0] = min(max(displayColor[0], 0.0), 1.0)
+            displayColor[1] = min(max(displayColor[1], 0.0), 1.0)
+            displayColor[2] = min(max(displayColor[2], 0.0), 1.0)
             cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
         except:
             pass
@@ -151,6 +154,10 @@ class ColorTemperatureTemplate:
         if pm.mel.exists("colorManagementConvert"):
             displayColor = cmds.colorManagementConvert(toDisplaySpace=displayColor)
 
+        displayColor[0] = min(max(displayColor[0], 0.0), 1.0)
+        displayColor[1] = min(max(displayColor[1], 0.0), 1.0)
+        displayColor[2] = min(max(displayColor[2], 0.0), 1.0)
+
         cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
         cmds.setUITemplate(popTemplate=True)
 
@@ -167,6 +174,9 @@ class ColorTemperatureTemplate:
         if pm.mel.exists("colorManagementConvert"):
             displayColor = cmds.colorManagementConvert(toDisplaySpace=colorTemp)
 
+        displayColor[0] = min(max(displayColor[0], 0.0), 1.0)
+        displayColor[1] = min(max(displayColor[1], 0.0), 1.0)
+        displayColor[2] = min(max(displayColor[2], 0.0), 1.0)
         cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
             
     def setupColorTemperature(self, lightType=""):
