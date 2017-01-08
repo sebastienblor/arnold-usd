@@ -33,7 +33,9 @@ ArnoldGenericShaderOverride::~ArnoldGenericShaderOverride()
 
 MHWRender::DrawAPI ArnoldGenericShaderOverride::supportedDrawAPIs() const
 {
-   return MHWRender::kOpenGL | MHWRender::kDirectX11;
+   // need to make sure it supports OpenGL core profile (#2551)
+   return MHWRender::kAllDevices;
+   // return MHWRender::kOpenGL | MHWRender::kDirectX11;
 }
 
 MString ArnoldGenericShaderOverride::fragmentName() const
