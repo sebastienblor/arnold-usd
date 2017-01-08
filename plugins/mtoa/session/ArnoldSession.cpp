@@ -1936,7 +1936,10 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
 
    // first we need to make sure this camera is properly exported
    if (camera.isValid())
+   {
+      camera.extendToShape();
       ExportDagPath(camera);
+   }
    
    m_sessionOptions.SetExportCamera(camera);
 
