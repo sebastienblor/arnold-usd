@@ -501,6 +501,7 @@ class MtoATxManager(object):
         ctrlPath = '|'.join([self.window, 'groupBox_4', 'checkBox']);
         recursive = cmds.checkBox(ctrlPath, query=True, value=True);
         
+        maya_version = versions.shortName()
         self.selectedItems = []
         if os.path.isdir(folder):
             if recursive:
@@ -508,7 +509,10 @@ class MtoATxManager(object):
                     for texture in files:
                         if (isImage(texture)):
                             inputFile = os.path.join(folder, texture)
-                            colorSpace = cmds.colorManagementFileRules(evaluate=inputFile)
+                            if int(float(maya_version)) >= 2016:
+                                colorSpace = cmds.colorManagementFileRules(evaluate=inputFile)
+                            else:
+                                colorSpace = 'auto'
                             item = [os.path.join(root, texture), 0, colorSpace, '', [inputFile]]
                             self.selectedItems.append(item)
                             self.filesToCreate += 1
@@ -517,7 +521,10 @@ class MtoATxManager(object):
                 for texture in files:
                     if (isImage(texture)):
                         inputFile = os.path.join(folder, texture)
-                        colorSpace = cmds.colorManagementFileRules(evaluate=inputFile)
+                        if int(float(maya_version)) >= 2016:
+                            colorSpace = cmds.colorManagementFileRules(evaluate=inputFile)
+                        else:
+                            colorSpace = 'auto'
                         item = [os.path.join(folder, texture), 0, colorSpace, '', [inputFile]]
                         self.selectedItems.append(item)
                         self.filesToCreate += 1
