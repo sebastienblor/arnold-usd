@@ -891,19 +891,34 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
       }
       else if (oAttr.hasFn(MFn::kMessageAttribute) && (attributeDeclaration == DECLARATION_CONSTANT))
       {
-         MPlugArray pArr;
-         pAttr.connectedTo(pArr, true, false);
-         if (pArr.length() > 0)
+         // Handling message array attributes #2183
+         if (pAttr.isArray())
          {
-            MPlug connectedPlug = pArr[0];
-            AtNode* connectedNode = translator->ExportConnectedNode(connectedPlug);
-            if (connectedNode != 0)
+            unsigned int numConnected = pAttr.numConnectedElements();
+            AtArray* array = AiArrayAllocate(numConnected, 1, AI_TYPE_NODE);
+            for (unsigned int i = 0; i < numConnected; ++i)
             {
-               if (AiNodeLookUpUserParameter(anode, aname) == NULL) 
+               MPlug elem = pAttr.elementByPhysicalIndex(i);
+               translator->m_impl->ProcessConstantArrayElement(AI_TYPE_NODE, array, i, elem);
+            }
+            if (!AiNodeDeclare(anode, aname, "constant ARRAY NODE")) continue;
+            AiNodeSetArray(anode, aname, array);
+         } else
+         {
+            MPlugArray pArr;
+            pAttr.connectedTo(pArr, true, false);
+            if (pArr.length() > 0)
+            {
+               MPlug connectedPlug = pArr[0];
+               AtNode* connectedNode = translator->ExportConnectedNode(connectedPlug);
+               if (connectedNode != 0)
                {
-                  if (!AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE)) continue;
+                  if (AiNodeLookUpUserParameter(anode, aname) == NULL) 
+                  {
+                     if (!AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE)) continue;
+                  }
+                  AiNodeSetPtr(anode, aname, connectedNode);
                }
-               AiNodeSetPtr(anode, aname, connectedNode);
             }
          }
       }      
