@@ -985,7 +985,6 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
         instanceMatrixArray.remove(invisibleInstanceIndexes[i]);
     }
     fNumInstances = numInstances;
-    instanceMatrixArray.setLength(numInstances);
     selectedInstanceMatrixArray.setLength(numInstanceSelected);
     unselectedInstanceMatrixArray.setLength(numInstanceUnselected);
 }
