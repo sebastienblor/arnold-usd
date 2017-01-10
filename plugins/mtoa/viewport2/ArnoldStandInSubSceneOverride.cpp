@@ -145,8 +145,6 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mGlobalOptionsCreatedID(0)
 , fLastTimeInvisible(false)
 {
-    fLastVisibleLayer.append("defaultRenderLayer");
-
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
     if (!renderer)
         return;
