@@ -99,7 +99,7 @@ private:
     unsigned int fLeadIndex;
     unsigned int fNumInstances;
     bool mBBChanged, mOneTimeUpdate, mReuseBuffers;
-    MCallbackId mAttribChangedID, mGlobalOptionsChangedID, mGlobalOptionsCreatedID;
+    MCallbackId mNodeDirtyPlugID, mAttribChangedID, mRenderLayerManagerChangeID, mGlobalOptionsChangedID, mGlobalOptionsCreatedID;
 
     struct InstanceInfo
     {
