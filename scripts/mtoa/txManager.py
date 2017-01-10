@@ -593,22 +593,25 @@ class MtoATxManager(object):
 
 
 
-def UpdateAllTx():
+def UpdateAllTx(force):
     txItems = []
     filesCount = []
     filesCount.append(0)
     filesCount.append(0)
 
     GetTxList(txItems, filesCount)
-    self.totalFiles = filesCount[0]
-    self.missingFiles = filesCount[1]
+    totalFiles = filesCount[0]
+    missingFiles = filesCount[1]
 
     print 'Updating TX textures :'
     filesCreated = 0
     createdErrors = 0
-    arg_options = "-v -u --unpremult --oiio"
-    maya_version = versions.shortName()
+    arg_options = "-v --unpremult --oiio" 
+    if force == 0:
+        arg_options = "-u " + arg_options
 
+    maya_version = versions.shortName()
+    
     for textureLine in txItems:
         texture = textureLine[0]
         print '-filename ' + texture

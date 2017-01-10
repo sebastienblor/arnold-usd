@@ -11,4 +11,4 @@ DLLEXPORT MStringArray expandFilename(MString filename);
 /// Return the corresponding .tx texture if it exists, or filename if not
 DLLEXPORT MString txTexture(MString filename);
 
-DLLEXPORT void updateAllTx();
+DLLEXPORT void updateAllTx(bool force = false);
