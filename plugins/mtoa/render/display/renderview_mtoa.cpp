@@ -101,6 +101,7 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvColorMgtCb(0),
    m_rvResCb(0),
    m_rvIdleCb(0),
+   m_colorMgtRefreshCb(0),
    m_convertOptionsParam(true),
    m_hasPreProgressiveStep(false),
    m_hasPostProgressiveStep(false),
@@ -150,6 +151,11 @@ CRenderViewMtoA::~CRenderViewMtoA()
    {
       MMessage::removeCallback(m_rvIdleCb);
       m_rvIdleCb = 0;
+   }
+   if (m_colorMgtRefreshCb)
+   {
+      MMessage::removeCallback(m_colorMgtRefreshCb);
+      m_colorMgtRefreshCb = 0;
    }
 }
 // Return all renderable cameras
@@ -294,6 +300,11 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       m_rvLayerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
                                       CRenderViewMtoA::RenderLayerChangedCallback,
                                       (void*)this);
+   }
+
+   if(m_colorMgtRefreshCb == 0)
+   {
+      m_colorMgtRefreshCb = MEventMessage::addEventCallback( MString( "colorMgtRefreshed" ), CRenderViewMtoA::ColorMgtRefreshed, (void*)this);
    }
 
    MSelectionList activeList;
@@ -521,7 +532,13 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
    MGlobal::executeCommand(command);
 
 }
-
+void CRenderViewMtoA::ColorMgtRefreshed(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   renderViewMtoA->SetOption("Color Management.Refresh", "1");
+   MGlobal::displayWarning("[mtoa] OCIO Context might have changed for input textures. If so, you may have to re-generate the textures using 'arnoldUpdateTx -f'");
+}
 void CRenderViewMtoA::SceneOpenCallback(void *data)
 {
    if (data == NULL) return;
