@@ -5,6 +5,7 @@
 	<template name='AEaiImage'>
 		<attribute name='filename' type='maya.string'>
 			<label>Image Name</label>
+			<description language="cb">PPaiFilename</description>
 		</attribute>
 		<attribute name='filter' type='maya.int'>
 			<label>Filter</label>
