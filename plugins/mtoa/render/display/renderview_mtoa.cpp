@@ -69,6 +69,7 @@ static QWidget *s_workspaceControl = NULL;
 #include <maya/MProgressWindow.h>
 #include <maya/MSceneMessage.h>
 #include <maya/MTimerMessage.h>
+#include <maya/MPlugArray.h>
 
 
 #ifdef _DARWIN
@@ -488,17 +489,30 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
    //CArnoldSession *session = CMayaScene::GetArnoldSession();
    //session->FlattenSelection(&activeList, false);
    
-   MObject depNode;
-   activeList.getDependNode(0, depNode);
-   if (depNode.hasFn(MFn::kTransform))
+   MObject objNode;
+   activeList.getDependNode(0, objNode);
+   if (objNode.hasFn(MFn::kTransform))
    {
       // from Transform to Shape
       MDagPath dagPath;
       activeList.getDagPath(0, dagPath);
-      depNode = dagPath.child(0);
+      objNode = dagPath.child(0);
    }
-   MFnDependencyNode nodeFn( depNode );
-
+   if (objNode.hasFn(MFn::kDisplacementShader))
+   {
+      MFnDependencyNode depNode(objNode);
+      MPlug dispPlug = depNode.findPlug("displacement");
+      if (!dispPlug.isNull())
+      {
+         MPlugArray conn;
+         dispPlug.connectedTo(conn, true, false);
+         if (conn.length() > 0)
+            objNode = conn[0].node();
+            
+      }
+    
+   }
+   MFnDependencyNode nodeFn( objNode );
    AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
    if (selected) selectedNodes.push_back(selected);
    
@@ -584,26 +598,39 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
    //CArnoldSession *session = CMayaScene::GetArnoldSession();
    //session->FlattenSelection(&activeList, false);
    
-   MObject depNode;
+   MObject objNode;
    std::vector<AtNode *> selection;
    unsigned int count = activeList.length();
 
    for (unsigned int i = 0; i < count; ++i)
    {
-      activeList.getDependNode(i, depNode);
-      if (depNode.hasFn(MFn::kTransform))
+      activeList.getDependNode(i, objNode);
+      if (objNode.hasFn(MFn::kTransform))
       {
          // from Transform to Shape
          MDagPath dagPath;
          activeList.getDagPath(i, dagPath);
-         depNode = dagPath.child(0);
+         objNode = dagPath.child(0);
+      }
+      if (objNode.hasFn(MFn::kDisplacementShader))
+      {
+         MFnDependencyNode depNode(objNode);
+         MPlug dispPlug = depNode.findPlug("displacement");
+         if (!dispPlug.isNull())
+         {
+            MPlugArray conn;
+            dispPlug.connectedTo(conn, true, false);
+            if (conn.length() > 0)
+               objNode = conn[0].node();
+         }
       }
 
-      MFnDependencyNode nodeFn( depNode );
+      MFnDependencyNode nodeFn( objNode );
 
       AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
       if(selected_shader) selection.push_back(selected_shader);
    }
+
    
    renderViewMtoA->HostSelectionChanged((selection.empty()) ? NULL : (const AtNode **)&selection[0], selection.size());
 
