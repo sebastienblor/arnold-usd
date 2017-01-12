@@ -167,7 +167,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
     mNodeDirtyPlugID = MNodeMessage::addNodeDirtyPlugCallback(mLocatorNode, standInNodeDirtyPlugCallback, this);
     MStatus status;
     MFnDagNode node(mLocatorNode, &status);
-    mAttribChangedID = MNodeMessage::addAttributeChangedCallback(node.parent(0), standInAttributeChangedCallback, this);
+    MObject parentNode = node.parent(0);
+    mAttribChangedID = MNodeMessage::addAttributeChangedCallback(parentNode, standInAttributeChangedCallback, this);
     mRenderLayerManagerChangeID = MEventMessage::addEventCallback("renderLayerManagerChange", renderLayerChangeCallback, this);
     mGlobalOptionsCreatedID = MDGMessage::addNodeAddedCallback(CArnoldStandInSubSceneOverride::globalOptionsAdded, "aiOptions", this);
 
