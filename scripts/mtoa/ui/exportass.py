@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.callbacks import *
 import mtoa.core as core
+import pymel.versions as versions
 
 def pushOptionsUITemplate():
     if (not cmds.uiTemplate('oa_optionsTemplate', exists=True)):
@@ -45,6 +46,11 @@ def getMaskValues():
         mask += 64
     if cmds.checkBoxGrp('oa_export_filters', q=True, value1=True):
         mask += 128
+
+    maya_version = versions.shortName()
+    if int(float(maya_version)) >= 2017:
+        # color manager
+        mask += 2048
 
     return mask
 

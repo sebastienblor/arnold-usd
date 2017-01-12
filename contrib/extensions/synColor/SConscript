@@ -1,0 +1,51 @@
+# vim: filetype=python
+
+import system, os
+from build_tools import find_files_recursive
+
+# import build env
+Import('ext_env')
+local_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'synColor', 'plugin')
+
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+EXT = local_env.SharedLibrary('synColor_plugins', source_files, LIBPREFIX='')
+
+if system.os() == 'windows':
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')   
+   local_env.Append(CPPPATH = ['.'])
+else:
+   local_env.Append(CPPPATH = ['.'])
+
+
+# import build env
+Import('env')
+shader_env = env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'synColor', 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+shader_env.Append(CPPPATH = ['.'])
+if system.os() =='windows':
+   shader_env.Append(LIBS=Split('ai.lib'))
+   shader_env.Append(LIBS=Split('synColor.lib'))
+else:
+   shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+
+shader_env.Append(CPPPATH = [os.path.join(local_env['MAYA_ROOT'], 'include')])
+shader_env.Append(LIBPATH = [os.path.join(local_env['MAYA_ROOT'], 'lib')])
+
+EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREFIX='')
+
+if system.os() == 'windows':
+   shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
+
+Return('EXT EXT_SHADERS')

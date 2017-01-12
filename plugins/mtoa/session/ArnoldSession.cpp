@@ -630,6 +630,22 @@ AtNode* CArnoldSession::ExportOptions()
    MPlug optPlug = fnNode.findPlug("message");
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, false);
 
+
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+
+#ifdef ENABLE_COLOR_MANAGEMENT
+   // get the maya node contraining the color management options         
+   if(activeList.length() > 0)
+   {
+      MObject colorMgtObject;
+      activeList.getDependNode(0,colorMgtObject);
+      MFnDependencyNode fnSNode(colorMgtObject);
+      MPlug mgtPlug = fnSNode.findPlug("message");
+      (COptionsTranslator*)ExportNode(mgtPlug, NULL, NULL, false);
+   }
+#endif
+
    return m_optionsTranslator->GetArnoldNode();
 }
 

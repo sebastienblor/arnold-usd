@@ -961,7 +961,8 @@ for ext in os.listdir(ext_base_dir):
             ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
             (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
-            (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup')):
+            (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
+            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1115,6 +1116,9 @@ if env['ENABLE_LOOKDEVKIT'] == 1:
 if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
+
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
