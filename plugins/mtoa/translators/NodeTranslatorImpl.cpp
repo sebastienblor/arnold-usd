@@ -186,10 +186,13 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    if (m_atRoot == NULL)
       m_atRoot = m_atNode;
    
+   static const AtString procedural_str("procedural");
+   
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
             m_tr.GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
-   else if (AiNodeIs(m_atNode, "procedural"))
+
+   else if (AiNodeIs(m_atNode, procedural_str))
    {
       // FIXME : make sure we get rid of this once a DG is implemented in arnold
       

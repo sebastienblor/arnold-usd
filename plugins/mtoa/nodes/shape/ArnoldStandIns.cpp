@@ -394,6 +394,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          // first load all the shapes
          // then resolve all the instances
 
+         static const AtString polymesh_str("polymesh");
+         static const AtString points_str("points");
+         static const AtString procedural_str("procedural");
+         static const AtString box_str("box");
+         static const AtString ginstance_str("ginstance");
+
          AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
 
          while (!AiNodeIteratorFinished(iter))
@@ -404,13 +410,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (node)
             {  
                CArnoldStandInGeometry* g = 0;
-               if (AiNodeIs(node, "polymesh"))
+               if (AiNodeIs(node, polymesh_str))
                   g = new CArnoldPolymeshGeometry(node);
-               else if (AiNodeIs(node, "points"))
+               else if (AiNodeIs(node, points_str))
                   g = new CArnoldPointsGeometry(node);
-               else if(AiNodeIs(node, "procedural"))
+               else if(AiNodeIs(node, procedural_str))
                   g = new CArnoldProceduralGeometry(node);
-               else if(AiNodeIs(node, "box"))
+               else if(AiNodeIs(node, box_str))
                   g = new CArnoldBoxGeometry(node);
                else
                   continue;
@@ -441,7 +447,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                AtMatrix total_matrix = AiM4Identity();
                bool inherit_xform = true;
                bool isInstance = false;
-               while(AiNodeIs(node, "ginstance"))
+               while(AiNodeIs(node, ginstance_str))
                {                  
                   isInstance = true;
                   AtMatrix current_matrix = AiNodeGetMatrix(node, "matrix");
@@ -454,7 +460,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
                if (!isInstance)
                   continue;
-               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points") || AiNodeIs(node, "procedural"))
+               if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
                   CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
                   if (iter != geom->m_geometryList.end())

@@ -2204,6 +2204,11 @@ void CArnoldSession::ExportTxFiles()
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+
+   static const AtString MayaFile_str("MayaFile");
+   static const AtString image_str("image");
+   static const AtString MayaImagePlane_str("MayaImagePlane");
+
    for ( ; it != itEnd; ++it)
    {
       CNodeTranslator *translator = it->second;
@@ -2212,7 +2217,7 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
+      if (AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str) || AiNodeIs(node, MayaImagePlane_str)) textureNodes.push_back(translator);
       
    }
 
@@ -2229,7 +2234,7 @@ void CArnoldSession::ExportTxFiles()
       MString filename = AiNodeGetStr(node, "filename").c_str();
       std::string filenameStr = filename.asChar();
 
-      const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
+      const char *autoTxParam = AiNodeIs(node, image_str) ? "autoTx" : "aiAutoTx";
       bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
       MString searchPath = "";
       bool invalidProgressWin = false;

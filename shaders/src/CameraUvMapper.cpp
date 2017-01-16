@@ -130,11 +130,12 @@ private:
    Grid2DAccel* mGrid;
 };
 
-
+static const AtString polymesh_str("polymesh");
 
 PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 {
-   if (node != 0 && AiNodeIs(node, "polymesh"))
+
+   if (node != 0 && AiNodeIs(node, polymesh_str))
    {
       AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
 

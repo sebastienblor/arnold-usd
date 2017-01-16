@@ -58,7 +58,7 @@ void CArnoldLightLinks::SetLinkingMode(int light, int shadow)
    m_lightMode = light;
    m_shadowMode = shadow;
 }
-
+static const AtString mesh_light_str("mesh_light");
 /**
  *   Parse All lights in the Arnold scene, and create
  *   a hash map to access each AtNode quickly by its name
@@ -67,6 +67,7 @@ void CArnoldLightLinks::ParseLights()
 {
    AtNodeIterator* niter = AiUniverseGetNodeIterator(AI_NODE_LIGHT);
    // loop over all lights
+
    while(!AiNodeIteratorFinished(niter))
    {
       AtNode* node = AiNodeIteratorGetNext(niter);
@@ -75,7 +76,7 @@ void CArnoldLightLinks::ParseLights()
       // keep a list of all Mesh-Lights in our scene, 
       // as they have to be treated in a specific way 
       // (they don't correspond to a light in maya)
-      if (AiNodeIs(node, "mesh_light")) m_arnoldMeshLights.push_back(node);
+      if (AiNodeIs(node, mesh_light_str)) m_arnoldMeshLights.push_back(node);
    }
    AiNodeIteratorDestroy(niter);
    m_numArnoldLights = m_arnoldLights.size();
@@ -174,7 +175,7 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                int prevMeshLightCount = 0;
                for (size_t i = 0; i < lights.size(); ++i)
                {
-                  if (AiNodeIs(lights[i], "mesh_light")) prevMeshLightCount++;
+                  if (AiNodeIs(lights[i], mesh_light_str)) prevMeshLightCount++;
                }
 
                // if this amount is the same as our "mesh lights" list, then the user

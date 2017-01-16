@@ -131,11 +131,13 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
    unordered_map<std::string, matrixAsFloats>  mtxMap;
-   
+   static const AtString polymesh_str("polymesh");
+
+
    while (!AiNodeIteratorFinished(nodeIter))
    {
       AtNode *node = AiNodeIteratorGetNext(nodeIter);
-      if (AiNodeIs(node, "polymesh") )
+      if (AiNodeIs(node, polymesh_str) )
       {
          AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
          matrixAsFloats mtxFlt;
@@ -168,7 +170,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    while (!AiNodeIteratorFinished(nodeIter))
    {
       AtNode *node = AiNodeIteratorGetNext(nodeIter);
-      if (AiNodeIs(node, "polymesh") )
+      if (AiNodeIs(node, polymesh_str) )
       {
          os <<"o "<<AiNodeGetName(node)<<"\n";
         

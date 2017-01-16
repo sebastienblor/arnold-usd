@@ -381,7 +381,8 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
 {
    // testing if anode is ginstance instead of calling IsMasterInstance
    // for efficiency reasons.
-   if (AiNodeIs(anode, "ginstance"))
+   static const AtString ginstance_str("ginstance");
+   if (AiNodeIs(anode, ginstance_str))
    {
       CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
 
