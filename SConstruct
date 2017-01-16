@@ -454,7 +454,7 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /WX"  # treats warnings as errors
 
     if export_symbols:
-        MSVC_FLAGS += " /Zi"  # generates complete debug information
+        MSVC_FLAGS += " /Z7"  # generates complete debug information
 
     LINK_FLAGS  = " /MANIFEST"
 
@@ -1117,6 +1117,7 @@ if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
+if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor_shaders%s' % get_library_extension()), 'shaders'])
 

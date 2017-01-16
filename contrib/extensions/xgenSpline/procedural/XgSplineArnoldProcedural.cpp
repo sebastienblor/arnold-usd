@@ -105,7 +105,6 @@ private:
             // Get the spline data for i-th motion step
             AtArray* sampleData = AiNodeGetArray(procedural, dataParam.c_str());
             if (!sampleData || AiArrayGetType(sampleData) != AI_TYPE_UINT) continue;
-            assert(sampleData->nkeys == 1); // The size may change so we don't use keys.
 
             // Get the number of padding bytes
             const unsigned int padding = AiNodeGetUInt(procedural, paddingParam.c_str());

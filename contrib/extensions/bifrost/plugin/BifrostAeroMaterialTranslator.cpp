@@ -2,10 +2,6 @@
 
 //#include "utils/time.h"
 
-#include <maya/MFileObject.h>
-#include <maya/MTime.h>
-#include <maya/MGlobal.h>
-
 #include "BifrostAeroMaterialTranslator.h"
 
 
