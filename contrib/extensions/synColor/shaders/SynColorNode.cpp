@@ -64,6 +64,8 @@ public:
       : m_enabled(false)
       , m_ocioconfig_enabled(false)
    {
+      m_initialization_done.clear();
+
       AiCritSecInit(&m_output_guard);
       AiCritSecInit(&m_input_guard);
    }
@@ -85,7 +87,8 @@ public:
    }
 
    // Enforce to initialize the synColor library only once
-   static bool m_initialization_done;
+   // and only when needed
+   volatile std::atomic_flag m_initialization_done;
    static bool m_initialization_status;
 
    AtString m_catalog_path;           // Where is the synColor configuration file ?
@@ -108,7 +111,6 @@ public:
    ProcessorMap          m_input_transforms;
 };
 
-bool ColorManagerData::m_initialization_done  = false;
 bool ColorManagerData::m_initialization_status = false;
 
 namespace
@@ -177,6 +179,56 @@ namespace
       }
 
       return pxlFormat;
+   }
+
+   // The method initializes the SynColor library only once.
+   void initializeSynColor(ColorManagerData* colorData)
+   {
+      if(!colorData->m_initialization_done.test_and_set())
+      {
+         SYNCOLOR::SynStatus status = SYNCOLOR::setUp(SYNCOLOR::Maya, SYNCOLOR::LANG_EN);
+         if(status)
+         {
+            status = SYNCOLOR::setLoggerFunction(ColorManagerData::logger);
+            if(status)
+            {
+               status = SYNCOLOR::configureAsStandalone(colorData->m_catalog_path.c_str());
+               if(status)
+               {
+                  AiMsgInfo("[color_manager] Using synColor_color_manager Version %s", SYNCOLOR::getVersionString());
+               }
+            }
+         }
+
+         if(status && colorData->m_enabled)
+         {
+            if(colorData->m_ocioconfig_enabled)
+            {
+               status = SYNCOLOR::loadOCIOTemplate(
+                  SYNCOLOR::InputTemplate, colorData->m_ocioconfig_path, colorData->m_input_template);
+               if(status)
+               {
+                  status = SYNCOLOR::loadOCIOTemplate(
+                     SYNCOLOR::ViewingTemplate, colorData->m_ocioconfig_path, colorData->m_output_template);
+               }
+            }
+            else
+            {
+               status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::InputTemplate, colorData->m_input_template);
+               if(status)
+               {
+                  status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::ViewingTemplate, colorData->m_output_template);
+               }
+            }
+         }
+
+         ColorManagerData::m_initialization_status = (bool)status;
+
+         if(!status)
+         {
+            AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
+         }
+      }
    }
 
    // The method computes a identity color transformation useful for channel layout 
@@ -413,53 +465,6 @@ node_update
 
    colorData->m_input_transforms.clear();
    colorData->m_output_transforms.clear();
-
-   if(!ColorManagerData::m_initialization_done)
-   {
-      SYNCOLOR::SynStatus status = SYNCOLOR::setUp(SYNCOLOR::Maya, SYNCOLOR::LANG_EN);
-      if(status)
-      {
-         status = SYNCOLOR::setLoggerFunction(ColorManagerData::logger);
-         if(status)
-         {
-            status = SYNCOLOR::configureAsStandalone(colorData->m_catalog_path.c_str());
-            if(status)
-            {
-               AiMsgInfo("[color_manager] Using synColor_color_manager Version %s", SYNCOLOR::getVersionString());
-            }
-         }
-      }
-
-      if(status && colorData->m_enabled)
-      {
-         if(colorData->m_ocioconfig_enabled)
-         {
-            status = SYNCOLOR::loadOCIOTemplate(
-               SYNCOLOR::InputTemplate, colorData->m_ocioconfig_path, colorData->m_input_template);
-            if(status)
-            {
-               status = SYNCOLOR::loadOCIOTemplate(
-                  SYNCOLOR::ViewingTemplate, colorData->m_ocioconfig_path, colorData->m_output_template);
-            }
-         }
-         else
-         {
-            status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::InputTemplate, colorData->m_input_template);
-            if(status)
-            {
-               status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::ViewingTemplate, colorData->m_output_template);
-            }
-         }
-      }
-
-      ColorManagerData::m_initialization_done   = true;
-      ColorManagerData::m_initialization_status = (bool)status;
-
-      if(!status)
-      {
-         AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
-      }
-   }
 }
 
 color_manager_transform
@@ -467,7 +472,11 @@ color_manager_transform
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
    if(!ColorManagerData::m_initialization_status)
    {
-      return false;
+      initializeSynColor(colorData);
+      if(!ColorManagerData::m_initialization_status)
+      {
+         return false;
+      }
    }
 
    // Find all the information to finalize the color transformation
