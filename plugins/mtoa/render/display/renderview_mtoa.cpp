@@ -69,6 +69,7 @@ static QWidget *s_workspaceControl = NULL;
 #include <maya/MProgressWindow.h>
 #include <maya/MSceneMessage.h>
 #include <maya/MTimerMessage.h>
+#include <maya/MPlugArray.h>
 
 
 #ifdef _DARWIN
@@ -101,6 +102,7 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvColorMgtCb(0),
    m_rvResCb(0),
    m_rvIdleCb(0),
+   m_colorMgtRefreshCb(0),
    m_convertOptionsParam(true),
    m_hasPreProgressiveStep(false),
    m_hasPostProgressiveStep(false),
@@ -150,6 +152,11 @@ CRenderViewMtoA::~CRenderViewMtoA()
    {
       MMessage::removeCallback(m_rvIdleCb);
       m_rvIdleCb = 0;
+   }
+   if (m_colorMgtRefreshCb)
+   {
+      MMessage::removeCallback(m_colorMgtRefreshCb);
+      m_colorMgtRefreshCb = 0;
    }
 }
 // Return all renderable cameras
@@ -231,8 +238,11 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       workspaceCmd += height;
 
       workspaceCmd += " -requiredPlugin \"mtoa\"";
-       // command called when closed. It's not ARV itself that is closed now, but the workspace !
-      workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
+
+
+      // command called when closed. It's not ARV itself that is closed now, but the workspace !
+      // Now we need to rely on the visibilityChanbe callback so we no longer need the close callback
+      // workspaceCmd += " -cc \"arnoldRenderView -mode close\" ";
       workspaceCmd += " -l \"Arnold RenderView\" "; // label
    }
    workspaceCmd += " \"ArnoldRenderView\""; // name of the workspace, to get it back later
@@ -257,7 +267,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\" \"ArnoldRenderView\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\"  -visibleChangeCommand \"arnoldRenderView -mode visChanged\" \"ArnoldRenderView\"");
    MGlobal::executeCommand(uiScriptCommand);
 
 //   MString visChangeCommand("workspaceControl -e -vcc \"arnoldRenderView -mode workspaceChange\" \"ArnoldRenderView\"");
@@ -291,6 +301,11 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       m_rvLayerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
                                       CRenderViewMtoA::RenderLayerChangedCallback,
                                       (void*)this);
+   }
+
+   if(m_colorMgtRefreshCb == 0)
+   {
+      m_colorMgtRefreshCb = MEventMessage::addEventCallback( MString( "colorMgtRefreshed" ), CRenderViewMtoA::ColorMgtRefreshed, (void*)this);
    }
 
    MSelectionList activeList;
@@ -474,17 +489,30 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
    //CArnoldSession *session = CMayaScene::GetArnoldSession();
    //session->FlattenSelection(&activeList, false);
    
-   MObject depNode;
-   activeList.getDependNode(0, depNode);
-   if (depNode.hasFn(MFn::kTransform))
+   MObject objNode;
+   activeList.getDependNode(0, objNode);
+   if (objNode.hasFn(MFn::kTransform))
    {
       // from Transform to Shape
       MDagPath dagPath;
       activeList.getDagPath(0, dagPath);
-      depNode = dagPath.child(0);
+      objNode = dagPath.child(0);
    }
-   MFnDependencyNode nodeFn( depNode );
-
+   if (objNode.hasFn(MFn::kDisplacementShader))
+   {
+      MFnDependencyNode depNode(objNode);
+      MPlug dispPlug = depNode.findPlug("displacement");
+      if (!dispPlug.isNull())
+      {
+         MPlugArray conn;
+         dispPlug.connectedTo(conn, true, false);
+         if (conn.length() > 0)
+            objNode = conn[0].node();
+            
+      }
+    
+   }
+   MFnDependencyNode nodeFn( objNode );
    AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
    if (selected) selectedNodes.push_back(selected);
    
@@ -518,7 +546,13 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
    MGlobal::executeCommand(command);
 
 }
-
+void CRenderViewMtoA::ColorMgtRefreshed(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   renderViewMtoA->SetOption("Color Management.Refresh", "1");
+   MGlobal::displayWarning("[mtoa] OCIO Context might have changed for input textures. If so, you may have to re-generate the textures using 'arnoldUpdateTx -f'");
+}
 void CRenderViewMtoA::SceneOpenCallback(void *data)
 {
    if (data == NULL) return;
@@ -564,26 +598,39 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
    //CArnoldSession *session = CMayaScene::GetArnoldSession();
    //session->FlattenSelection(&activeList, false);
    
-   MObject depNode;
+   MObject objNode;
    std::vector<AtNode *> selection;
    unsigned int count = activeList.length();
 
    for (unsigned int i = 0; i < count; ++i)
    {
-      activeList.getDependNode(i, depNode);
-      if (depNode.hasFn(MFn::kTransform))
+      activeList.getDependNode(i, objNode);
+      if (objNode.hasFn(MFn::kTransform))
       {
          // from Transform to Shape
          MDagPath dagPath;
          activeList.getDagPath(i, dagPath);
-         depNode = dagPath.child(0);
+         objNode = dagPath.child(0);
+      }
+      if (objNode.hasFn(MFn::kDisplacementShader))
+      {
+         MFnDependencyNode depNode(objNode);
+         MPlug dispPlug = depNode.findPlug("displacement");
+         if (!dispPlug.isNull())
+         {
+            MPlugArray conn;
+            dispPlug.connectedTo(conn, true, false);
+            if (conn.length() > 0)
+               objNode = conn[0].node();
+         }
       }
 
-      MFnDependencyNode nodeFn( depNode );
+      MFnDependencyNode nodeFn( objNode );
 
       AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
       if(selected_shader) selection.push_back(selected_shader);
    }
+
    
    renderViewMtoA->HostSelectionChanged((selection.empty()) ? NULL : (const AtNode **)&selection[0], selection.size());
 

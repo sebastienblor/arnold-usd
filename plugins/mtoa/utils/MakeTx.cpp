@@ -29,8 +29,14 @@ MString txTexure(MString filename)
    return MGlobal::executePythonCommandStringResult(cmd);
 }
 
-void updateAllTx()
+void updateAllTx(bool force)
 {
-   MString cmd = "import mtoa.txManager; mtoa.txManager.UpdateAllTx()";
+   MString cmd = "import mtoa.txManager; mtoa.txManager.UpdateAllTx(";
+   if (force)
+      cmd += "1";
+   else
+      cmd += "0";
+
+   cmd +=");";
    MGlobal::executePythonCommand(cmd);
 }

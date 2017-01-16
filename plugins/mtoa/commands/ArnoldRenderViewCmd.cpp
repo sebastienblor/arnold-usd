@@ -23,8 +23,7 @@
 #include "../render/display/renderview.h"
 #endif
 */
-
-
+static bool s_wasVisible = false;
 
 // Return the default camera
 static MDagPath GetDefaultCamera()
@@ -88,9 +87,35 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
 
-   if (mode == "close")
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+
+   if (mode == "visChanged")
    {
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      // this signal is emitted by maya workspaces when the workspace visibility changes
+      // However, we're receiving this signal a bit too often, so we must only treat it
+      // if it actually changes the current visibility.
+      // So we're storing a static boolean s_wasVisible to keep track of the changes
+
+      int workspaceVisible = 0;
+      // get the information of the workspace visibility. This command only works in Maya 2017 and above
+      // but we're not supposed to get here for previous versions as the argument "visChanged" in only
+      // invoked for workspaces
+      MGlobal::executeCommand("workspaceControl -q -vis \"ArnoldRenderView\"", workspaceVisible);
+      bool isVisible = (workspaceVisible > 0);
+
+      if (isVisible == s_wasVisible) 
+         return status; // nothing has changed, we can leave
+
+
+      if (isVisible)
+         mode = "open"; // turning visibility ON, just open ARV
+      else
+         mode = "close"; // closing ARV
+   }
+
+   if (mode == "close")
+   {  
+      s_wasVisible = false;        
       renderSession->CloseRenderView();
       return MS::kSuccess;
    }
@@ -125,6 +150,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "render" || mode == "open")
    {
+      s_wasVisible = true;
+
       if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
       {
          // A render view session has already been started
