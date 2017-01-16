@@ -84,7 +84,7 @@ public:
       }
    }
 
-   // Is synColor correctly initialized ?
+   // Enforce to initialize the synColor library only once
    static bool m_initialization_done;
    static bool m_initialization_status;
 
@@ -179,6 +179,8 @@ namespace
       return pxlFormat;
    }
 
+   // The method computes a identity color transformation useful for channel layout 
+   // conversion between the source and destination buffers.
    SYNCOLOR::SynStatus computeRawColorTransformation(ColorManagerData* colorData, 
                                                      const SYNCOLOR::PixelFormat& src_pixel_format, 
                                                      const SYNCOLOR::PixelFormat& dst_pixel_format,
@@ -212,6 +214,8 @@ namespace
       return status;
    }
 
+   // The method computes the input color transformation which is the conversion from
+   // the input color space to the rendering color space.
    SYNCOLOR::SynStatus computeInputColorTransformation(ColorManagerData* colorData,
                                                        const AtString& color_space, 
                                                        const SYNCOLOR::PixelFormat& src_pixel_format, 

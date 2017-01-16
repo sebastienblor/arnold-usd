@@ -4,16 +4,14 @@
 
 #include "utils/time.h"
 
-#include <iostream>
-
 
 void CSynColorTranslator::Export(AtNode* node)
 {
-   // Can there be multiple color management nodes in the scene ?
    AtNode *options = AiUniverseGetOptions();
    AiNodeSetPtr(options, "color_manager", (void*)node);
 
    // Take values from the defaultColorMgtGlobals node
+
    MFnDependencyNode defaultColorSettings(GetMayaObject());
    AiNodeSetBool(node, "enabled",                 defaultColorSettings.findPlug("cmEnabled").asBool());
    AiNodeSetBool(node, "ocioconfig_enabled",      defaultColorSettings.findPlug("configFileEnabled").asBool());
@@ -28,6 +26,7 @@ void CSynColorTranslator::Export(AtNode* node)
    AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("outputTransformName").asString().asChar());
 
    // Find the catalog location
+
    MString userPrefsDir;
    MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
    userPrefsDir += "/synColorConfig.xml";
