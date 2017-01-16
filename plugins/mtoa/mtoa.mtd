@@ -1211,9 +1211,11 @@
     [attr transparent]
         min             FLOAT   0.0
         max             FLOAT   1.0
-    [attr transparent_density]
+    [attr transparent_depth]
         min             FLOAT   0.0
-        softmax         FLOAT   10.0
+        softmax         FLOAT   100.0
+        linkable        BOOL    False
+        keyable         BOOL    False
     [attr transparent_scatter_anisotropy]
         min             FLOAT   0.0
         max             FLOAT   1.0
@@ -1246,7 +1248,7 @@
         max             FLOAT   1.0
     [attr emission]
         min             FLOAT   0.0
-        max             FLOAT   1.0
+        softmax         FLOAT   1.0
     [attr indirect_diffuse]
         min             FLOAT   0.0
         softmax         FLOAT   1.0
@@ -1521,6 +1523,9 @@
     maya.name               STRING  "aiStandardHair"
     maya.id                 INT    0x00115D52  
     maya.classification     STRING  "shader/surface"
+    [attr base]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
     [attr diffuse]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
@@ -1541,22 +1546,21 @@
         softmax             FLOAT   5.0
     [attr shift]
         softmin             FLOAT   0.0
-        softmax             FLOAT   1.0
-    [attr eumelanin]
+        softmax             FLOAT   20
+        min                 FLOAT   -90
+        max                 FLOAT   90
+    [attr melanin]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-    [attr pheomelanin]
-        min                 FLOAT   0.0
-        softmax             FLOAT   1.0
-    [attr eumelanin_randomize]
+    [attr melanin_redness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr pheomelanin_randomize]
+    [attr melanin_randomize]
         min                 FLOAT   0.0
-        max                 FLOAT   1.0
+        softmax             FLOAT   1.0
     [attr emission]
         min                 FLOAT   0.0
-        max                 FLOAT   1.0
+        softmax             FLOAT   1.0
     [attr indirect_diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0

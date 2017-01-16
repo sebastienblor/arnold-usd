@@ -26,6 +26,12 @@ class AEaiUtilityTemplate(ShaderAETemplate):
             pm.editorTemplate(dimControl=(nodeName, 'aoDistance', False))
         else:
             pm.editorTemplate(dimControl=(nodeName, 'aoDistance', True))
+        
+        #roughness for plastic and metal
+        if shadeModeValue == 4 or shadeModeValue == 5:
+            pm.editorTemplate(dimControl=(nodeName, 'roughness', False))
+        else:
+            pm.editorTemplate(dimControl=(nodeName, 'roughness', True))
 
     def setup(self):
         self.addSwatch()
@@ -41,6 +47,7 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
         self.addControl('ao_distance', label='AO Distance')
+        self.addControl('roughness', label='Roughness')
         self.endLayout()
 
         # include/call base class/node attributes
