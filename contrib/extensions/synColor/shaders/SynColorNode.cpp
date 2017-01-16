@@ -432,7 +432,6 @@ node_update
 
       if(status && colorData->m_enabled)
       {
-         SYNCOLOR::SynStatus status;
          if(colorData->m_ocioconfig_enabled)
          {
             status = SYNCOLOR::loadOCIOTemplate(
