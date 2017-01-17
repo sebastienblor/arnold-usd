@@ -5,47 +5,6 @@ from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-        
-def ArnoldVolumeTypeChange(nodeName):
-    type = cmds.getAttr(nodeName+'.type')
-    dim = (type == 0) # "Custom"
-    pm.editorTemplate(dimControl=(nodeName, "filename", dim))
-    pm.editorTemplate(dimControl=(nodeName, "grids", dim))
-    pm.editorTemplate(dimControl=(nodeName, "frame", dim))
-    pm.editorTemplate(dimControl=(nodeName, "padding", dim))
-    
-    pm.editorTemplate(dimControl=(nodeName, "velocityGrids", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityScale", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityFps", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityShutterStart", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityShutterEnd", dim))
-
-    pm.editorTemplate(dimControl=(nodeName, "velocityThreshold", dim))
-    pm.editorTemplate(dimControl=(nodeName, "dso", not dim))
-    pm.editorTemplate(dimControl=(nodeName, "data", not dim))
-
-def ArnoldVolumeDsoEdit(nodeName, mPath) :
-    cmds.setAttr(nodeName,mPath,type='string')
-
-def LoadVolumeDsoButtonPush(nodeName):
-    basicFilter = 'Volume Plugin(*.so *.dll *.dylib)'
-    projectDir = cmds.workspace(query=True, directory=True)     
-    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load Volume Plugin',okc='Load',fm=1, startingDirectory=projectDir)
-    if ret is not None and len(ret):
-        ArnoldVolumeDsoEdit(nodeName, ret[0])
-        cmds.textField('arnoldVolumeDsoPath', edit=True, text=ret[0])
-    
-def ArnoldVolumeTemplateDsoNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
-    cmds.text(label='DSO ')
-    path = cmds.textField('arnoldVolumeDsoPath',changeCommand=lambda *args: ArnoldVolumeDsoEdit(nodeName, *args))
-    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
-    cmds.symbolButton('arnoldVolumeDsoPathButton', height=20, image='navButtonBrowse.png', command=lambda *args: LoadVolumeDsoButtonPush(nodeName))
-    
-def ArnoldVolumeTemplateDsoReplace(plugName) :
-    cmds.textField( 'arnoldVolumeDsoPath', edit=True, changeCommand=lambda *args: ArnoldVolumeDsoEdit(plugName, *args))
-    cmds.textField( 'arnoldVolumeDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.symbolButton('arnoldVolumeDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadVolumeDsoButtonPush(plugName))
     
 
 def ArnoldVolumeFilenameEdit(nodeName, mPath) :
@@ -76,12 +35,8 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         
         self.beginLayout('Volume Attributes', collapse=False)        
-        self.addControl('type', changeCommand=ArnoldVolumeTypeChange)
         
         self.addSeparator()
-        
-        self.addCustom('dso', ArnoldVolumeTemplateDsoNew, ArnoldVolumeTemplateDsoReplace)
-        self.addControl('data')
         
         self.addCustom('filename', ArnoldVolumeTemplateFilenameNew, ArnoldVolumeTemplateFilenameReplace)
         self.addControl('grids')
@@ -91,7 +46,12 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('MinBoundingBox')
         self.addControl('MaxBoundingBox')
         self.addControl('stepSize')
+        self.addControl('stepScale')
         self.addControl('loadAtInit')
+        self.addSeparator()
+        self.addControl('disableRayExtents')
+        self.addControl('boundsSlack')
+        self.addControl('compress')
         
         self.addSeparator()
         
@@ -102,7 +62,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('velocityShutterEnd')
         self.addControl('velocityThreshold')
         self.addSeparator()
-        
+
         self.endLayout()
         
         

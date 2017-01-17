@@ -1117,7 +1117,7 @@ if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'shaders'])
 elif system.os() == 'linux':
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'procedurals'])
 elif system.os() == 'darwin':

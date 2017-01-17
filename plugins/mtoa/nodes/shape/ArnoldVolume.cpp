@@ -53,15 +53,19 @@ MTypeId CArnoldVolumeShape::id(ARNOLD_NODEID_VOLUME);
 
 CStaticAttrHelper CArnoldVolumeShape::s_attributes(CArnoldVolumeShape::addAttribute);
 
-MObject CArnoldVolumeShape::s_type;
-MObject CArnoldVolumeShape::s_dso;
-MObject CArnoldVolumeShape::s_data;
 MObject CArnoldVolumeShape::s_loadAtInit;
 MObject CArnoldVolumeShape::s_stepSize;
 MObject CArnoldVolumeShape::s_boundingBoxMin;
 MObject CArnoldVolumeShape::s_boundingBoxMax;
 
 MObject CArnoldVolumeShape::s_filename;
+MObject CArnoldVolumeShape::s_filedata;
+MObject CArnoldVolumeShape::s_disable_ray_extents;
+MObject CArnoldVolumeShape::s_bounds_slack;
+MObject CArnoldVolumeShape::s_step_scale;
+MObject CArnoldVolumeShape::s_step_size;
+MObject CArnoldVolumeShape::s_compress;
+
 MObject CArnoldVolumeShape::s_grids;
 MObject CArnoldVolumeShape::s_frame;
 MObject CArnoldVolumeShape::s_padding;
@@ -73,17 +77,9 @@ MObject CArnoldVolumeShape::s_velocity_shutter_start;
 MObject CArnoldVolumeShape::s_velocity_shutter_end;
 MObject CArnoldVolumeShape::s_velocity_threshold;
 
-enum VolumeType{
-   VT_CUSTOM,
-   VT_OPEN_VDB
-};
-   
 
 CArnoldVolumeShape::CArnoldVolumeShape()
 {
-   m_type = 0;
-   m_dso = "";
-   m_data = "";
    m_filename = "";
    m_grids = "";
    m_frame = 0;
@@ -133,25 +129,10 @@ MStatus CArnoldVolumeShape::initialize()
    MFnNumericAttribute nAttr;
    MFnEnumAttribute eAttr;
 
-   s_attributes.SetNode("volume");
+   s_attributes.SetNode("volume_openvdb");
 
    CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
-   s_type = eAttr.create("type", "type", 1);
-   eAttr.addField("Custom", VT_CUSTOM);
-   eAttr.addField("OpenVDB", VT_OPEN_VDB);
-   addAttribute(s_type);
-   
-   s_dso = tAttr.create("dso", "dso", MFnData::kString);
-   tAttr.setHidden(false);
-   tAttr.setStorable(true);
-   addAttribute(s_dso);
-   
-   s_data = tAttr.create("data", "data", MFnData::kString);
-   tAttr.setHidden(false);
-   tAttr.setStorable(true);
-   addAttribute(s_data);
-   
    s_loadAtInit = nAttr.create("loadAtInit", "loadAtInit", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -174,8 +155,34 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
+
+   s_disable_ray_extents = nAttr.create("disableRayExtents", "disableRayExtents", MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   addAttribute(s_disable_ray_extents);
    
-   
+   s_bounds_slack = nAttr.create("boundsSlack", "boundsSlack", MFnNumericData::kFloat, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_bounds_slack);
+
+   s_step_size = nAttr.create("stepSize", "stepSize", MFnNumericData::kFloat, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_step_size);
+
+   s_step_scale = nAttr.create("stepScale", "stepScale", MFnNumericData::kFloat, 1);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_step_scale);
+
+   s_compress = nAttr.create("compress", "compress", MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   addAttribute(s_compress);
+
    s_filename = tAttr.create("filename", "filename", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
@@ -253,6 +260,7 @@ MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
 
 MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
 {
+   /*
 	// If more attributes are added which require update, they
 	// shoukd be added here
 	if (plug == s_type ||
@@ -278,7 +286,7 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
 	{
 		// Signal to VP2 that we require an update
 		MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
-	}
+	}*/
 	return MS::kSuccess;
 }
 #endif
@@ -286,25 +294,13 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
 
 MBoundingBox* CArnoldVolumeShape::geometry()
 {
-   int tmpType = m_type;
-   MString tmpDso = m_dso;
-   MString tmpData = m_data;
    MString tmpFilename = m_filename;
    MString tmpGrids = m_grids;
    int tmpFrame = m_frame;
    float tmpPadding = m_padding;
 
    MObject this_object = thisMObject();
-   MPlug plug(this_object, s_type);
-   plug.getValue(m_type);
-   
-   plug.setAttribute(s_dso);
-   plug.getValue(m_dso);
-
-   plug.setAttribute(s_data);
-   plug.getValue(m_data);
-   
-   plug.setAttribute(s_filename);
+   MPlug plug(this_object, s_filename);
    plug.getValue(m_filename);
    
    plug.setAttribute(s_grids);
@@ -317,7 +313,7 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    plug.getValue(m_padding);
    
    
-   if (m_type != tmpType || m_dso != tmpDso || m_data != tmpData || m_filename != tmpFilename ||
+   if (m_filename != tmpFilename ||
        m_grids != tmpGrids || m_frame != tmpFrame || m_padding != tmpPadding)
    {
       if (AiUniverseIsActive())
@@ -331,85 +327,47 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       AiNodeSetBool(options, "skip_license_check", true);
       
       
-      AtNode* volume = AiNode("volume");;
+      AtNode* volume = AiNode("volume_openvdb");
       AiNodeSetFlt(volume, "step_size", 0.0f);
       AiNodeSetBool(volume, "load_at_init", true);
       
       AiNodeSetStr(volume, "name", "myvolume");
-
       AiNodeSetMatrix(volume, "matrix", AiM4Identity());
 
-	  MString dso;
-      if(m_type == VT_CUSTOM)
-      {
-         dso = m_dso.expandEnvironmentVariablesAndTilde();
-	  }
-	  else // openvdb
-	  {
-         dso = MString(getenv("MTOA_PATH")) + MString("/procedurals/volume_openvdb.so");
-	  }
-	  unsigned int nchars = dso.numChars();
-	  if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
-	  {
-		  dso = dso.substringW(0, nchars-4)+LIBEXT;
-	  }
-	  else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
-	  {
-		  dso = dso.substringW(0, nchars-5)+LIBEXT;
-	  }
-	  else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
-	  {
-		  dso = dso.substringW(0, nchars-7)+LIBEXT;
-	  }
+         
+      int start = 0;
+      int end = 0;
+      MString newFilename = "";
+      char frameExt[64];
 
-      if(m_type == VT_CUSTOM)
-      {
-         AiNodeSetStr(volume, "dso", dso.asChar());
+      start = m_filename.index('#');
+      end = m_filename.rindex('#');
       
-         int sizeData = strlen(m_data.asChar());
-         if (sizeData != 0)
-         {
-            AiNodeSetStr(volume, "data", m_data.expandEnvironmentVariablesAndTilde().asChar());
-         }
-      }
-      else // openvdb
+      if(start >= 0)
       {
-		 AiNodeSetStr(volume, "dso", dso.expandEnvironmentVariablesAndTilde().asChar());
-         
-         int start = 0;
-         int end = 0;
-         MString newFilename = "";
-         char frameExt[64];
-
-         start = m_filename.index('#');
-         end = m_filename.rindex('#');
-         
-         if(start >= 0)
+         sprintf(frameExt, "%0*d", end - start + 1, m_frame);
+         newFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
+      }
+      else
+      {
+         newFilename = m_filename;
+      }
+      
+      AiNodeDeclare( volume, "filename", "constant STRING" );
+      AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
+      
+      MStringArray gridList;
+      m_grids.split(' ',gridList);
+      
+      if (gridList.length() > 0)
+      {
+         AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
+         AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
+         for(unsigned int i = 0; i < gridList.length(); i++)
          {
-            sprintf(frameExt, "%0*d", end - start + 1, m_frame);
-            newFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
+            AiArraySetStr(ary, i, gridList[i].asChar());
          }
-         else
-         {
-            newFilename = m_filename;
-         }
-         
-         AiNodeDeclare( volume, "filename", "constant STRING" );
-         AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
-         
-         MStringArray gridList;
-         m_grids.split(' ',gridList);
-         
-         if (gridList.length() > 0)
-         {
-            AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
-            AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
-            for(unsigned int i = 0; i < gridList.length(); i++)
-            {
-               AiArraySetStr(ary, i, gridList[i].asChar());
-            }
-            AiNodeSetArray( volume, "grids", ary);
-         }
+         AiNodeSetArray( volume, "grids", ary);
       }
 
       // create a lambert shader
@@ -456,7 +414,6 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       
       m_bbox = MBoundingBox (minCoords, maxCoords);
    }
-   
    return &m_bbox;
 }
 
