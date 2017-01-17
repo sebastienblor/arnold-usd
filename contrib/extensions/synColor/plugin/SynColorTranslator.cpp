@@ -30,7 +30,7 @@ void CSynColorTranslator::Export(AtNode* node)
    MString userPrefsDir;
    MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
    userPrefsDir += "/synColorConfig.xml";
-   AiNodeSetStr (node, "catalog_path", userPrefsDir.asChar());
+   AiNodeSetStr(node, "configuration_path", userPrefsDir.asChar());
 }
 
 void CSynColorTranslator::NodeInitializer(CAbTranslator context)
@@ -39,6 +39,6 @@ void CSynColorTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CSynColorTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("synColor_color_manager");
+   return AddArnoldNode("syncolor_color_manager");
 }
 

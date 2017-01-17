@@ -19,7 +19,7 @@ AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
 
 namespace DataStr
 {
-   const AtString catalog_path("catalog_path");
+   const AtString configuration_path("configuration_path");
    const AtString enabled("enabled");
    const AtString ocioconfig_enabled("ocioconfig_enabled");
    const AtString ocioconfig_path("ocioconfig_path");
@@ -86,12 +86,11 @@ public:
       }
    }
 
-   // Enforce to initialize the synColor library only once
-   // and only when needed
+   // Enforce to initialize the synColor library only once and only when needed
    volatile std::atomic_flag m_initialization_done;
    static bool m_initialization_status;
 
-   AtString m_catalog_path;           // Where is the synColor configuration file ?
+   AtString m_configuration_path;     // Where is the synColor configuration file ?
    bool     m_enabled;                // Is the color mgt enabled ?
    bool     m_ocioconfig_enabled;     // Is the ocio mode enabled ?
    AtString m_ocioconfig_path;        // The ocio config file to use if ocio mode enabled
@@ -192,10 +191,10 @@ namespace
             status = SYNCOLOR::setLoggerFunction(ColorManagerData::logger);
             if(status)
             {
-               status = SYNCOLOR::configureAsStandalone(colorData->m_catalog_path.c_str());
+               status = SYNCOLOR::configureAsStandalone(colorData->m_configuration_path.c_str());
                if(status)
                {
-                  AiMsgInfo("[color_manager] Using synColor_color_manager Version %s", SYNCOLOR::getVersionString());
+                  AiMsgInfo("[color_manager] Using syncolor_color_manager Version %s", SYNCOLOR::getVersionString());
                }
             }
          }
@@ -277,6 +276,7 @@ namespace
    {
       ThreadGuard guard(colorData->m_input_guard);
 
+      // Having a human readable tag is always useful when debugging.
       const AtString key( std::string(
                               std::string(color_space.c_str())
                               + std::string(" to ")
@@ -373,6 +373,7 @@ namespace
          {
             ThreadGuard guard(colorData->m_output_guard);
 
+            // Having a human readable tag is always useful when debugging.
             const AtString key( std::string(
                                     std::string(colorData->m_rendering_color_space.c_str())
                                     + std::string(" to ")
@@ -430,7 +431,7 @@ namespace
 
 node_parameters
 {
-   AiParameterStr (DataStr::catalog_path,            NULL);
+   AiParameterStr (DataStr::configuration_path,      NULL);
 
    AiParameterBool(DataStr::enabled,                 false);
    AiParameterBool(DataStr::ocioconfig_enabled,      false);
@@ -453,7 +454,7 @@ node_update
 {
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
 
-   colorData->m_catalog_path            = AiNodeGetStr (node, DataStr::catalog_path);
+   colorData->m_configuration_path      = AiNodeGetStr (node, DataStr::configuration_path);
 
    colorData->m_enabled                 = AiNodeGetBool(node, DataStr::enabled);
    colorData->m_ocioconfig_enabled      = AiNodeGetBool(node, DataStr::ocioconfig_enabled);
@@ -584,7 +585,7 @@ node_loader
       return false;
 
    node->methods      = synColor_color_manager_Methods;
-   node->name         = "synColor_color_manager";
+   node->name         = "syncolor_color_manager";
    node->node_type    = AI_NODE_COLOR_MANAGER;
    strcpy(node->version, AI_VERSION);
    return true;
