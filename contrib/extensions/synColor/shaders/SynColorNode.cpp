@@ -20,7 +20,7 @@ AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
 
 // All the strings used by the ass file
 namespace DataStr
-{
+{ 
    const AtString configuration_path("configuration_path");
    const AtString enabled("enabled");
    const AtString ocioconfig_enabled("ocioconfig_enabled");
@@ -239,8 +239,6 @@ namespace
                                                      const SYNCOLOR::PixelFormat& dst_pixel_format,
                                                      SYNCOLOR::TransformPtr& transform)
    {
-      ThreadGuard guard(colorData->m_output_guard);
-
       static const AtString tag("<Identity>");
 
       SYNCOLOR::SynStatus status;
@@ -252,14 +250,24 @@ namespace
       }
       else
       {
-         status = SYNCOLOR::createStockTransform(SYNCOLOR::STOCK_TRANSFORM_IDENTITY, transform);
-         if(status)
+         ThreadGuard guard(colorData->m_output_guard);
+
+         it = colorData->m_output_transforms.find(tag);
+         if(it != colorData->m_output_transforms.end())
          {
-            status = SYNCOLOR::finalize(
-               transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+            transform = it->second;
+         }
+         else
+         {
+            status = SYNCOLOR::createStockTransform(SYNCOLOR::STOCK_TRANSFORM_IDENTITY, transform);
             if(status)
             {
-               colorData->m_output_transforms[tag] = transform;
+               status = SYNCOLOR::finalize(
+                  transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+               if(status)
+               {
+                  colorData->m_output_transforms[tag] = transform;
+               }
             }
          }
       }
@@ -276,8 +284,6 @@ namespace
                                                        const SYNCOLOR::TransformDirection& direction,
                                                        SYNCOLOR::TransformPtr& transform)
    {
-      ThreadGuard guard(colorData->m_input_guard);
-
       // Having a human readable tag is always useful when debugging.
       const AtString key( std::string(
                               std::string(color_space.c_str())
@@ -294,40 +300,50 @@ namespace
       }
       else
       {
-         SYNCOLOR::TemplateParameterPtr in_param;
-         status = colorData->m_input_template->getParameter(SYNCOLOR::InputSpace, in_param);
-         if(status)
+         ThreadGuard guard(colorData->m_input_guard);
+
+         it = colorData->m_input_transforms.find(key);
+         if(it != colorData->m_input_transforms.end())
          {
-            status = in_param->select(color_space.c_str());
+            transform = it->second;
+         }
+         else
+         {
+            SYNCOLOR::TemplateParameterPtr in_param;
+            status = colorData->m_input_template->getParameter(SYNCOLOR::InputSpace, in_param);
             if(status)
             {
-               SYNCOLOR::TemplateParameterPtr ws_param;
-               status = colorData->m_input_template->getParameter(SYNCOLOR::WorkingSpace, ws_param);
+               status = in_param->select(color_space.c_str());
                if(status)
                {
-                  status = ws_param->select(colorData->m_rendering_color_space);
+                  SYNCOLOR::TemplateParameterPtr ws_param;
+                  status = colorData->m_input_template->getParameter(SYNCOLOR::WorkingSpace, ws_param);
                   if(status)
                   {
-                     status = colorData->m_input_template->createTransform(transform, direction);
+                     status = ws_param->select(colorData->m_rendering_color_space);
                      if(status)
                      {
+                        status = colorData->m_input_template->createTransform(transform, direction);
                         if(status)
                         {
-                           status = SYNCOLOR::finalize(
-                              transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
                            if(status)
                            {
-                              colorData->m_input_transforms[key] = transform;
+                              status = SYNCOLOR::finalize(
+                                 transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+                              if(status)
+                              {
+                                 colorData->m_input_transforms[key] = transform;
 
-                              if(direction==SYNCOLOR::TransformReverse)
-                              {
-                                 AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'", 
-                                    colorData->m_rendering_color_space.c_str(), color_space.c_str());
-                              }
-                              else
-                              {
-                                 AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'", 
-                                    color_space.c_str(), colorData->m_rendering_color_space.c_str());
+                                 if(direction==SYNCOLOR::TransformReverse)
+                                 {
+                                    AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'", 
+                                       colorData->m_rendering_color_space.c_str(), color_space.c_str());
+                                 }
+                                 else
+                                 {
+                                    AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'", 
+                                       color_space.c_str(), colorData->m_rendering_color_space.c_str());
+                                 }
                               }
                            }
                         }
@@ -373,8 +389,6 @@ namespace
          }
          else
          {
-            ThreadGuard guard(colorData->m_output_guard);
-
             // Having a human readable tag is always useful when debugging.
             const AtString key( std::string(
                                     std::string(colorData->m_rendering_color_space.c_str())
@@ -388,30 +402,40 @@ namespace
             }
             else
             {
-               SYNCOLOR::TemplateParameterPtr ws_param;
-               status = colorData->m_output_template->getParameter(SYNCOLOR::WorkingSpace, ws_param);
-               if(status)
+               ThreadGuard guard(colorData->m_output_guard);
+
+               it = colorData->m_output_transforms.find(key);
+               if(it != colorData->m_output_transforms.end())
                {
-                  status = ws_param->select(colorData->m_rendering_color_space);
+                  transform = it->second;
+               }
+               else
+               {
+                  SYNCOLOR::TemplateParameterPtr ws_param;
+                  status = colorData->m_output_template->getParameter(SYNCOLOR::WorkingSpace, ws_param);
                   if(status)
                   {
-                     SYNCOLOR::TemplateParameterPtr vt_param;
-                     status = colorData->m_output_template->getParameter(SYNCOLOR::ViewTransform, vt_param);
+                     status = ws_param->select(colorData->m_rendering_color_space);
                      if(status)
                      {
-                        status = vt_param->select(color_space.c_str());
+                        SYNCOLOR::TemplateParameterPtr vt_param;
+                        status = colorData->m_output_template->getParameter(SYNCOLOR::ViewTransform, vt_param);
                         if(status)
                         {
-                           status = colorData->m_output_template->createTransform(transform, SYNCOLOR::TransformForward);
+                           status = vt_param->select(color_space.c_str());
                            if(status)
                            {
-                              status = SYNCOLOR::finalize(
-                                 transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+                              status = colorData->m_output_template->createTransform(transform, SYNCOLOR::TransformForward);
                               if(status)
                               {
-                                 colorData->m_output_transforms[key] = transform;
-                                 AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'",
-                                    colorData->m_rendering_color_space.c_str(), colorData->m_output_color_space.c_str());
+                                 status = SYNCOLOR::finalize(
+                                    transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+                                 if(status)
+                                 {
+                                    colorData->m_output_transforms[key] = transform;
+                                    AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'",
+                                       colorData->m_rendering_color_space.c_str(), colorData->m_output_color_space.c_str());
+                                 }
                               }
                            }
                         }
@@ -468,19 +492,13 @@ node_update
 
    colorData->m_input_transforms.clear();
    colorData->m_output_transforms.clear();
+
+   initializeSynColor(colorData);
 }
 
 color_manager_transform
 {
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
-   if(!ColorManagerData::m_initialization_status)
-   {
-      initializeSynColor(colorData);
-      if(!ColorManagerData::m_initialization_status)
-      {
-         return false;
-      }
-   }
 
    // Find all the information to finalize the color transformation
 
