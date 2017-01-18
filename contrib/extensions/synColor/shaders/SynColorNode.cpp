@@ -12,11 +12,13 @@
 
 #include <atomic>
 #include <unordered_map>
+#include <string>
 
 
 AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
 
 
+// All the strings used by the ass file
 namespace DataStr
 {
    const AtString configuration_path("configuration_path");
