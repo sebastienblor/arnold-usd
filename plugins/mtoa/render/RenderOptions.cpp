@@ -145,8 +145,8 @@ MStatus CRenderOptions::ProcessCommonRenderOptions()
          {
             MFnDependencyNode fnRes(resNode);
 
-            m_width  = fnRes.findPlug("width").asShort();
-            m_height = fnRes.findPlug("height").asShort();
+            m_width  = fnRes.findPlug("width").asInt();
+            m_height = fnRes.findPlug("height").asInt();
             m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
          }
       }
@@ -281,7 +281,12 @@ void CRenderOptions::UpdateImageDimensions()
 
    AiNodeSetInt(options, "xres", width());
    AiNodeSetInt(options, "yres", height());
-   AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
+   float aspect_ratio = pixelAspectRatio();
+
+   if (ABS(aspect_ratio - 1.f) < 0.001)
+      aspect_ratio = 1.f;
+
+   AiNodeSetFlt(options, "aspect_ratio", aspect_ratio);
 }
 
 int CRenderOptions::GetLogConsoleVerbosity() const
