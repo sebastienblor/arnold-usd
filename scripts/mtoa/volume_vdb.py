@@ -10,7 +10,7 @@ _libext = {'windows'  :'.dll',
            'darwin'   :'.dylib'}
 
 try:
-    dso_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'procedurals', 'volume_openvdb' + _libext[platform.system().lower()])
+    dso_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'shaders', 'volume_openvdb' + _libext[platform.system().lower()])
     dso = ctypes.CDLL(dso_path)
     
     dso.channelNames.argtypes = [ctypes.c_char_p]
@@ -30,6 +30,35 @@ def GetChannelNames(filename):
         return []    
 
     channel_array = dso.channelNames(filename)
-    channel_names = [AiArrayGetStr(channel_array, i) for i in xrange(channel_array.contents.nelements)]
+    channel_names = [AiArrayGetStr(channel_array, i) for i in xrange(AiArrayGetNumElements(channel_array))]
+
     return channel_names
+
+
+
+def GetChannelBounds(filename, channel_names):
+    if not dso:
+        return []
+    
+    # space separated names is acceptable
+    if isinstance(channel_names, basestring):
+        channel_names = channel_names.split()
+
+    if len(channel_names) == 0:
+        channel_names = GetChannelNames(filename)
+
+    # expand list with clusters that match the beginning of the grid name
+    all_channel_array = dso.channelNames(filename)
+    all_channel_names = [AiArrayGetStr(all_channel_array, i) for i in xrange(AiArrayGetNumElements(all_channel_array))]
+
+    for chan in channel_names:
+        channel_names.extend(filter(lambda x: x != chan and x.startswith(chan), all_channel_names))
+    
+    channel_array = AiArrayAllocate(len(channel_names), 1, AI_TYPE_STRING)
+    for i in xrange(AiArrayGetNumElements(channel_array)):
+        AiArraySetStr(channel_array, i, channel_names[i])
+    
+    bbox = dso.channelBBox(filename, channel_array)
+
+    return [bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z]
 

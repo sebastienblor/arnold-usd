@@ -316,28 +316,9 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    if (m_filename != tmpFilename ||
        m_grids != tmpGrids || m_frame != tmpFrame || m_padding != tmpPadding)
    {
-      if (AiUniverseIsActive())
-         return &m_bbox;
-      
-      bool AiUniverseCreated = false;
-      AiUniverseCreated = ArnoldUniverseBegin();
-      
-      AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
-      AiNodeSetBool(options, "skip_license_check", true);
-      
-      
-      AtNode* volume = AiNode("volume_openvdb");
-      AiNodeSetFlt(volume, "step_size", 0.0f);
-      AiNodeSetBool(volume, "load_at_init", true);
-      
-      AiNodeSetStr(volume, "name", "myvolume");
-      AiNodeSetMatrix(volume, "matrix", AiM4Identity());
-
-         
       int start = 0;
       int end = 0;
-      MString newFilename = "";
+      MString expandedFilename = "";
       char frameExt[64];
 
       start = m_filename.index('#');
@@ -346,73 +327,28 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       if(start >= 0)
       {
          sprintf(frameExt, "%0*d", end - start + 1, m_frame);
-         newFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
+         expandedFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
       }
       else
       {
-         newFilename = m_filename;
+         expandedFilename = m_filename;
       }
+      expandedFilename = expandedFilename.expandEnvironmentVariablesAndTilde();
       
-      AiNodeDeclare( volume, "filename", "constant STRING" );
-      AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
-      
-      MStringArray gridList;
-      m_grids.split(' ',gridList);
-      
-      if (gridList.length() > 0)
-      {
-         AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
-         AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
-         for(unsigned int i = 0; i < gridList.length(); i++)
-         {
-            AiArraySetStr(ary, i, gridList[i].asChar());
-         }
-         AiNodeSetArray( volume, "grids", ary);
-      }
+      MString cmd;
+      cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetChannelBounds('^1s', '^2s')", expandedFilename, m_grids);
 
-      // create a lambert shader
-      //AtNode *shader = AiNode("density");
-      //AiNodeSetStr(shader, "name", "mydensity");
+      MStringArray result;
+      MGlobal::executePythonCommand(cmd, result);   
 
-      // assign the sphere's shader
-      //AiNodeSetPtr(volume, "shader", shader);
-      
-      // create a perspective camera
-      AtNode *camera = AiNode("persp_camera");
-      AiNodeSetStr(camera, "name", "mycamera");
-      
-      if (AiRender(AI_RENDER_MODE_FREE) != AI_SUCCESS)
+      if (result.length() >= 6)   
       {
-         if (AiUniverseCreated) ArnoldUniverseEnd();
+         MPoint minBox(result[0].asFloat(), result[1].asFloat(), result[2].asFloat(), 0.f);
+         MPoint maxBox(result[3].asFloat(), result[4].asFloat(), result[5].asFloat(), 0.f);
+      } else
+      {
          m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
-         return &m_bbox;
       }
-      
-      AtBBox bbox;
-      bbox = AiUniverseGetSceneBounds();
-      
-      if (AiUniverseCreated) ArnoldUniverseEnd();
-
-	  if (bbox.isEmpty())
-	  {
-		 m_bbox = MBoundingBox (MVector(-1,-1,-1), MVector(1,1,1));
-         return &m_bbox;
-	  }
-
-      float minCoords[4];
-      float maxCoords[4];
-      
-      minCoords[0] = bbox.min.x;
-      minCoords[1] = bbox.min.y;
-      minCoords[2] = bbox.min.z;
-      minCoords[3] = 0.0f;
-
-      maxCoords[0] = bbox.max.x;
-      maxCoords[1] = bbox.max.y;
-      maxCoords[2] = bbox.max.z;
-      maxCoords[3] = 0.0f;
-      
-      m_bbox = MBoundingBox (minCoords, maxCoords);
    }
    return &m_bbox;
 }
