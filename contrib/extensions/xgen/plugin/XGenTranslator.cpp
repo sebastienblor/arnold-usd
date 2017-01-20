@@ -155,9 +155,9 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       if(GetSessionOptions().IsBatch())
       {
          int exists = 0;
-            MGlobal::executeCommand("objExists defaultArnoldRenderOptions.mtoaOrigFileName", exists);
+            MGlobal::executeCommand("objExists arnoldBatchNode.mtoaOrigFileName", exists);
          if (exists == 1)
-            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.mtoaOrigFileName\"", mstrCurrentScene);
+            MGlobal::executeCommand("getAttr \"arnoldBatchNode.mtoaOrigFileName\"", mstrCurrentScene);
       }
 
       MFileObject fo;

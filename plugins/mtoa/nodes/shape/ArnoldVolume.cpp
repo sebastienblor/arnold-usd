@@ -53,15 +53,21 @@ MTypeId CArnoldVolumeShape::id(ARNOLD_NODEID_VOLUME);
 
 CStaticAttrHelper CArnoldVolumeShape::s_attributes(CArnoldVolumeShape::addAttribute);
 
-MObject CArnoldVolumeShape::s_type;
-MObject CArnoldVolumeShape::s_dso;
-MObject CArnoldVolumeShape::s_data;
 MObject CArnoldVolumeShape::s_loadAtInit;
 MObject CArnoldVolumeShape::s_stepSize;
 MObject CArnoldVolumeShape::s_boundingBoxMin;
 MObject CArnoldVolumeShape::s_boundingBoxMax;
+MObject CArnoldVolumeShape::s_autoStepSize;
+MObject CArnoldVolumeShape::s_stepScale;
 
 MObject CArnoldVolumeShape::s_filename;
+MObject CArnoldVolumeShape::s_filedata;
+MObject CArnoldVolumeShape::s_disable_ray_extents;
+MObject CArnoldVolumeShape::s_bounds_slack;
+MObject CArnoldVolumeShape::s_step_scale;
+MObject CArnoldVolumeShape::s_step_size;
+MObject CArnoldVolumeShape::s_compress;
+
 MObject CArnoldVolumeShape::s_grids;
 MObject CArnoldVolumeShape::s_frame;
 MObject CArnoldVolumeShape::s_padding;
@@ -73,17 +79,9 @@ MObject CArnoldVolumeShape::s_velocity_shutter_start;
 MObject CArnoldVolumeShape::s_velocity_shutter_end;
 MObject CArnoldVolumeShape::s_velocity_threshold;
 
-enum VolumeType{
-   VT_CUSTOM,
-   VT_OPEN_VDB
-};
-   
 
 CArnoldVolumeShape::CArnoldVolumeShape()
 {
-   m_type = 0;
-   m_dso = "";
-   m_data = "";
    m_filename = "";
    m_grids = "";
    m_frame = 0;
@@ -133,25 +131,10 @@ MStatus CArnoldVolumeShape::initialize()
    MFnNumericAttribute nAttr;
    MFnEnumAttribute eAttr;
 
-   s_attributes.SetNode("volume");
+   s_attributes.SetNode("volume_openvdb");
 
    CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
-   s_type = eAttr.create("type", "type", 1);
-   eAttr.addField("Custom", VT_CUSTOM);
-   eAttr.addField("OpenVDB", VT_OPEN_VDB);
-   addAttribute(s_type);
-   
-   s_dso = tAttr.create("dso", "dso", MFnData::kString);
-   tAttr.setHidden(false);
-   tAttr.setStorable(true);
-   addAttribute(s_dso);
-   
-   s_data = tAttr.create("data", "data", MFnData::kString);
-   tAttr.setHidden(false);
-   tAttr.setStorable(true);
-   addAttribute(s_data);
-   
    s_loadAtInit = nAttr.create("loadAtInit", "loadAtInit", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -162,6 +145,16 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_stepSize);
+
+   s_autoStepSize = nAttr.create("autoStepSize", "autoStepSize", MFnNumericData::kBoolean, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_autoStepSize);
+
+   s_stepScale = nAttr.create("stepScale", "stepScale", MFnNumericData::kFloat, 1.f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_stepScale);
    
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, 0.0);
    nAttr.setHidden(false);
@@ -174,8 +167,34 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
+
+   s_disable_ray_extents = nAttr.create("disableRayExtents", "disableRayExtents", MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   addAttribute(s_disable_ray_extents);
    
-   
+   s_bounds_slack = nAttr.create("boundsSlack", "boundsSlack", MFnNumericData::kFloat, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_bounds_slack);
+
+   s_step_size = nAttr.create("stepSize", "stepSize", MFnNumericData::kFloat, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_step_size);
+
+   s_step_scale = nAttr.create("stepScale", "stepScale", MFnNumericData::kFloat, 1);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_step_scale);
+
+   s_compress = nAttr.create("compress", "compress", MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   addAttribute(s_compress);
+
    s_filename = tAttr.create("filename", "filename", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
@@ -253,26 +272,25 @@ MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
 
 MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
 {
-	// If more attributes are added which require update, they
-	// shoukd be added here
-	if (plug == s_type ||
-		plug == s_dso ||
-		plug == s_data ||
-		plug == s_loadAtInit ||
-		plug == s_stepSize ||
-		plug == s_boundingBoxMin ||
-		plug == s_boundingBoxMax ||
+   // If more attributes are added which require update, they
+   // shoukd be added here
+   if (plug == s_loadAtInit ||
+      plug == s_stepSize ||
+      plug == s_stepScale ||
+      plug == s_autoStepSize ||
+      plug == s_boundingBoxMin ||
+      plug == s_boundingBoxMax ||
 
-		plug == s_filename ||
-		plug == s_grids ||
-		plug == s_frame ||
-		plug == s_padding ||
+      plug == s_filename ||
+      plug == s_grids ||
+      plug == s_frame ||
+      plug == s_padding ||
 
-		plug == s_velocity_grids ||
-		plug == s_velocity_scale ||
-		plug == s_velocity_fps ||
-		plug == s_velocity_shutter_start ||
-		plug == s_velocity_shutter_end || 
+      plug == s_velocity_grids ||
+      plug == s_velocity_scale ||
+      plug == s_velocity_fps ||
+      plug == s_velocity_shutter_start ||
+      plug == s_velocity_shutter_end || 
       plug == s_velocity_threshold  
       )
 	{
@@ -286,25 +304,13 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
 
 MBoundingBox* CArnoldVolumeShape::geometry()
 {
-   int tmpType = m_type;
-   MString tmpDso = m_dso;
-   MString tmpData = m_data;
    MString tmpFilename = m_filename;
    MString tmpGrids = m_grids;
    int tmpFrame = m_frame;
    float tmpPadding = m_padding;
 
    MObject this_object = thisMObject();
-   MPlug plug(this_object, s_type);
-   plug.getValue(m_type);
-   
-   plug.setAttribute(s_dso);
-   plug.getValue(m_dso);
-
-   plug.setAttribute(s_data);
-   plug.getValue(m_data);
-   
-   plug.setAttribute(s_filename);
+   MPlug plug(this_object, s_filename);
    plug.getValue(m_filename);
    
    plug.setAttribute(s_grids);
@@ -317,146 +323,43 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    plug.getValue(m_padding);
    
    
-   if (m_type != tmpType || m_dso != tmpDso || m_data != tmpData || m_filename != tmpFilename ||
+   if (m_filename != tmpFilename ||
        m_grids != tmpGrids || m_frame != tmpFrame || m_padding != tmpPadding)
    {
-      if (AiUniverseIsActive())
-         return &m_bbox;
-      
-      bool AiUniverseCreated = false;
-      AiUniverseCreated = ArnoldUniverseBegin();
-      
-      AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
-      AiNodeSetBool(options, "skip_license_check", true);
-      
-      
-      AtNode* volume = AiNode("volume");;
-      AiNodeSetFlt(volume, "step_size", 0.0f);
-      AiNodeSetBool(volume, "load_at_init", true);
-      
-      AiNodeSetStr(volume, "name", "myvolume");
+      int start = 0;
+      int end = 0;
+      MString expandedFilename = "";
+      char frameExt[64];
 
-      AiNodeSetMatrix(volume, "matrix", AiM4Identity());
-
-	  MString dso;
-      if(m_type == VT_CUSTOM)
+      start = m_filename.index('#');
+      end = m_filename.rindex('#');
+      
+      if(start >= 0)
       {
-         dso = m_dso.expandEnvironmentVariablesAndTilde();
-	  }
-	  else // openvdb
-	  {
-         dso = MString(getenv("MTOA_PATH")) + MString("/procedurals/volume_openvdb.so");
-	  }
-	  unsigned int nchars = dso.numChars();
-	  if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
-	  {
-		  dso = dso.substringW(0, nchars-4)+LIBEXT;
-	  }
-	  else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
-	  {
-		  dso = dso.substringW(0, nchars-5)+LIBEXT;
-	  }
-	  else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
-	  {
-		  dso = dso.substringW(0, nchars-7)+LIBEXT;
-	  }
-
-      if(m_type == VT_CUSTOM)
-      {
-         AiNodeSetStr(volume, "dso", dso.asChar());
-      
-         int sizeData = strlen(m_data.asChar());
-         if (sizeData != 0)
-         {
-            AiNodeSetStr(volume, "data", m_data.expandEnvironmentVariablesAndTilde().asChar());
-         }
+         sprintf(frameExt, "%0*d", end - start + 1, m_frame);
+         expandedFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
       }
-      else // openvdb
+      else
       {
-		 AiNodeSetStr(volume, "dso", dso.expandEnvironmentVariablesAndTilde().asChar());
-         
-         int start = 0;
-         int end = 0;
-         MString newFilename = "";
-         char frameExt[64];
-
-         start = m_filename.index('#');
-         end = m_filename.rindex('#');
-         
-         if(start >= 0)
-         {
-            sprintf(frameExt, "%0*d", end - start + 1, m_frame);
-            newFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
-         }
-         else
-         {
-            newFilename = m_filename;
-         }
-         
-         AiNodeDeclare( volume, "filename", "constant STRING" );
-         AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
-         
-         MStringArray gridList;
-         m_grids.split(' ',gridList);
-         
-         if (gridList.length() > 0)
-         {
-            AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
-            AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
-            for(unsigned int i = 0; i < gridList.length(); i++)
-            {
-               AiArraySetStr(ary, i, gridList[i].asChar());
-            }
-            AiNodeSetArray( volume, "grids", ary);
-         }
+         expandedFilename = m_filename;
       }
-
-      // create a lambert shader
-      //AtNode *shader = AiNode("density");
-      //AiNodeSetStr(shader, "name", "mydensity");
-
-      // assign the sphere's shader
-      //AiNodeSetPtr(volume, "shader", shader);
+      expandedFilename = expandedFilename.expandEnvironmentVariablesAndTilde();
       
-      // create a perspective camera
-      AtNode *camera = AiNode("persp_camera");
-      AiNodeSetStr(camera, "name", "mycamera");
-      
-      if (AiRender(AI_RENDER_MODE_FREE) != AI_SUCCESS)
+      MString cmd;
+      cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetChannelBounds('^1s', '^2s')", expandedFilename, m_grids);
+
+      MStringArray result;
+      MGlobal::executePythonCommand(cmd, result);   
+
+      if (result.length() >= 6)   
       {
-         if (AiUniverseCreated) ArnoldUniverseEnd();
+         MPoint minBox(result[0].asFloat(), result[1].asFloat(), result[2].asFloat(), 0.f);
+         MPoint maxBox(result[3].asFloat(), result[4].asFloat(), result[5].asFloat(), 0.f);
+      } else
+      {
          m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
-         return &m_bbox;
       }
-      
-      AtBBox bbox;
-      bbox = AiUniverseGetSceneBounds();
-      
-      if (AiUniverseCreated) ArnoldUniverseEnd();
-
-	  if (bbox.isEmpty())
-	  {
-		 m_bbox = MBoundingBox (MVector(-1,-1,-1), MVector(1,1,1));
-         return &m_bbox;
-	  }
-
-      float minCoords[4];
-      float maxCoords[4];
-      
-      minCoords[0] = bbox.min.x;
-      minCoords[1] = bbox.min.y;
-      minCoords[2] = bbox.min.z;
-      minCoords[3] = 0.0f;
-
-      maxCoords[0] = bbox.max.x;
-      maxCoords[1] = bbox.max.y;
-      maxCoords[2] = bbox.max.z;
-      maxCoords[3] = 0.0f;
-      
-      m_bbox = MBoundingBox (minCoords, maxCoords);
    }
-   
    return &m_bbox;
 }
 

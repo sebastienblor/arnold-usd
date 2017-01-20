@@ -1149,7 +1149,8 @@ void CDisplacementTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
    ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
    ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
-   if (AiNodeIs(shader, "MayaNormalDisplacement"))
+   static const AtString MayaNormalDisplacement_str("MayaNormalDisplacement");
+   if (AiNodeIs(shader, MayaNormalDisplacement_str))
       ProcessParameter(shader, "zeroValue", AI_TYPE_FLOAT, "aiDisplacementZeroValue");
 }
 void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)

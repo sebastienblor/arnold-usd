@@ -298,6 +298,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AiRenderAbort();
 
    std::vector<AtNode*> nodes;
+   static const AtString polymesh_str("polymesh");
    // convert list of Maya selection to list of AtNodes selection
    for (unsigned int i = 0; i < selected.length(); ++i)
    {
@@ -353,14 +354,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             // test if the root parent node is the one I'm treating
             if (rootNode != node) continue;
             
-            if (AiNodeIs(loopNode, "polymesh") )
+            if (AiNodeIs(loopNode, polymesh_str) )
             {
                nodes.push_back(loopNode);
             }
          }
          AiNodeIteratorDestroy(nodeIter);
 
-      } else if (AiNodeIs(node, "polymesh"))
+      } else if (AiNodeIs(node, polymesh_str))
       {
          nodes.push_back(node);
       } else

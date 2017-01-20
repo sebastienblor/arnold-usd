@@ -159,12 +159,14 @@ class MayaTestRunner(object):
         self.test_results = []
         self.total_running_time = 0
         self.black_list = []
+        self.gui_list = []
         self.install_files = []
         # test source directory, before it has been copied to build dir
         self.source_dir  = os.path.abspath(os.path.join('testsuite')) 
         self.build_dir = None
 
         self.fill_blacklist()
+        self.gui_list = find_test_group('gui')
 
     def fill_blacklist(self):
         # blacklist
@@ -640,12 +642,15 @@ if __name__ == 'SCons.Script':
     testrunner_bld = Builder(action = testRunner.run)
     test_env.Append(BUILDERS = {'Testsuite' : testrunner_bld})
     
-    
+    ind = -1
     ## First stage. Process build targets, expanding the groups and patterns into single tests
     for target in BUILD_TARGETS:
-       
+        ind = ind + 1
+
         (l, s, r) = strpartition(target, ':')
-    
+        if s == ':':
+            BUILD_TARGETS[ind] = l
+
         # Target "maketest[:testname]", creates a new test in the testsuite (defaults to the next available name in ascending order)
         if l == 'maketest':
             if r == '':
@@ -663,7 +668,11 @@ if __name__ == 'SCons.Script':
             if r == '':
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
                 SRC = []
+                GUI_LIST = find_test_group('gui')
+                
                 for name in testlist:
+                    if name in GUI_LIST:
+                        continue
                     SRC += [os.path.join(os.path.basename(name), 'README')]
             else:
                 tags = r.split(',')
@@ -695,7 +704,10 @@ if __name__ == 'SCons.Script':
                 # Special 'testsuite' target is expanded to the whole testsuite, filtered by the value of TEST_PATTERN
                 PATTERNS += [env['TEST_PATTERN']]
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
+                GUI_LIST = find_test_group('gui')
                 for name in testlist:
+                    if name in GUI_LIST:
+                        continue
                     name = os.path.basename(name)
                     testRunner.add_test(name)
             else:
@@ -708,7 +720,7 @@ if __name__ == 'SCons.Script':
                     else:
                         TAGS += [tag]
                         for name in TEST_GROUP:
-                            testRunner.add_test(name)    
+                            testRunner.add_test(name)  
         else:
             if s != ':' and target.startswith('test_'):
                 # Expand test patterns

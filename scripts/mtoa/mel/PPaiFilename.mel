@@ -1,0 +1,95 @@
+//
+// Note: the contents of this file are based upon AEfileTemplate.mel
+//
+
+global proc int AEaiFilenameAssignTextureCB( string $fileAttribute, string $filename, string $fileType )
+{
+    //
+    // Description:
+    //  This procedure is called when the user changes the texture name in
+    //  the associated field. (whether by manually typing it in, or by using
+    //  the file browser to choose a new file).
+    //
+
+    setAttr $fileAttribute -type "string" $filename;
+
+    string $currentDir = `workspace -q -dir`;
+    retainWorkingDirectory ($currentDir);
+
+    return true;
+}
+
+global proc AEaiFilenameBrowser( string $cmd, string $plug, string $fileType )
+{
+    //get the directory where texure is put
+    string $path = `getAttr $plug`;
+
+    //if file exist, then use it as start directory of file browser
+    if(`filetest -f $path`)
+    {
+        $path = dirname( $path );
+
+        workspace -dir $path;
+    }
+    else
+    {
+        string $workspace = `workspace -q -fn`;
+
+        setWorkingDirectory $workspace $fileType "sourceImages";
+    }
+
+    fileBrowser ($cmd, "Open", $fileType, 0);
+}
+
+global proc AEaiFilenameUIChanged( string $plug )
+{
+    string $path = `textField -q -fileName aiFilenameField`;
+    if(!`filetest -f $path`)
+        $path = `workspace -q -fn` + "/" + $path;
+	setAttr $plug -type "string" $path;
+}
+
+// Private helper for recreating image name controls on tiling type change
+proc AEaiFilenameReplaceImageNameControls( string $parent, string $plug )
+{
+    string $oldParent = `setParent -q`;
+    setParent $parent;
+
+    // If we have the column layout and it is the correct one then replace the
+    // appropriate controls
+    if (`columnLayout -exists aiFilenameContainerLayout` &&
+        startsWith(`columnLayout -q -fpn aiFilenameContainerLayout`, $parent))
+    {
+        setUITemplate -pst attributeEditorTemplate;
+
+        // Delete the rowLayout if it exists under the container
+        setParent aiFilenameContainerLayout;
+        if (`rowLayout -exists aiFilenameLayout` &&
+            startsWith(`rowLayout -q -fpn aiFilenameLayout`, $parent))
+        {
+            deleteUI aiFilenameLayout;
+        }
+        // Recreate the rowLayout and its contents
+        string $command = "AEaiFilenameAssignTextureCB " + " " + $plug;
+        string $command2 = "AEaiFilenameUIChanged " + $plug;
+        rowLayout -nc 3 -adj 2 aiFilenameLayout;
+            text -label "Image Name";
+            textField -cc $command2 aiFilenameField;
+            symbolButton -image "navButtonBrowse.png" -c ("AEaiFilenameBrowser \"" + $command + "\" " + "\"" + $plug + "\" \"image\"") browser;
+        setParent ..;
+        connectControl -fileName aiFilenameField $plug;
+
+        setUITemplate -ppt;
+    }
+
+    setParent $oldParent;
+}
+
+global proc PPaiFilename( string $plug, string $attr, string $label )
+{
+    string $parent = `setParent -q`;
+    $parent = `control -q -parent $parent`;
+    columnLayout -adj true aiFilenameContainerLayout;
+        AEaiFilenameReplaceImageNameControls($parent, $plug);
+    setParent ..;
+}

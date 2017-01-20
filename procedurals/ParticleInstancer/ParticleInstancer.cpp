@@ -61,10 +61,10 @@ procedural_init
 
    AtArray* pathMatrixArray = AiArrayCopy(AiNodeGetArray(node, "instanceMatrix"));
 
-
+   static const AtString points_str("points");
    if (particleSystem)
    {
-      if (AiNodeIs(particleSystem, "points"))
+      if (AiNodeIs(particleSystem, points_str))
 
       {
          AiNodeSetInt(particleSystem, "visibility", 0);

@@ -282,24 +282,24 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       
       // This will load correct platform library file independently of current extension
       unsigned int nchars = assfile.numChars();
-      if ((nchars > 3) && (assfile.substringW(nchars - 3, nchars).toLowerCase() == ".so"))
+      if ((nchars > 3) && (assfile.substringW(nchars - 3, nchars-1).toLowerCase() == ".so"))
       {
          assfile = assfile.substringW(0, nchars - 4) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars).toLowerCase() == ".dll"))
+      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars-1).toLowerCase() == ".dll"))
       {
          assfile = assfile.substringW(0, nchars - 5) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 6) && (assfile.substringW(nchars - 6, nchars).toLowerCase() == ".dylib"))
+      else if ((nchars > 6) && (assfile.substringW(nchars - 6, nchars-1).toLowerCase() == ".dylib"))
       {
          assfile = assfile.substringW(0, nchars - 7) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars).toLowerCase() == ".ass"))
+      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars-1).toLowerCase() == ".ass"))
          isAss = true;
-      else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars).toLowerCase() == ".ass.gz"))
+      else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars-1).toLowerCase() == ".ass.gz"))
          isAss = true;
 
       AtNode* options = AiUniverseGetOptions();
@@ -394,6 +394,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          // first load all the shapes
          // then resolve all the instances
 
+         static const AtString polymesh_str("polymesh");
+         static const AtString points_str("points");
+         static const AtString procedural_str("procedural");
+         static const AtString box_str("box");
+         static const AtString ginstance_str("ginstance");
+
          AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
 
          while (!AiNodeIteratorFinished(iter))
@@ -404,13 +410,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (node)
             {  
                CArnoldStandInGeometry* g = 0;
-               if (AiNodeIs(node, "polymesh"))
+               if (AiNodeIs(node, polymesh_str))
                   g = new CArnoldPolymeshGeometry(node);
-               else if (AiNodeIs(node, "points"))
+               else if (AiNodeIs(node, points_str))
                   g = new CArnoldPointsGeometry(node);
-               else if(AiNodeIs(node, "procedural"))
+               else if(AiNodeIs(node, procedural_str))
                   g = new CArnoldProceduralGeometry(node);
-               else if(AiNodeIs(node, "box"))
+               else if(AiNodeIs(node, box_str))
                   g = new CArnoldBoxGeometry(node);
                else
                   continue;
@@ -441,7 +447,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                AtMatrix total_matrix = AiM4Identity();
                bool inherit_xform = true;
                bool isInstance = false;
-               while(AiNodeIs(node, "ginstance"))
+               while(AiNodeIs(node, ginstance_str))
                {                  
                   isInstance = true;
                   AtMatrix current_matrix = AiNodeGetMatrix(node, "matrix");
@@ -454,7 +460,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
                if (!isInstance)
                   continue;
-               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points") || AiNodeIs(node, "procedural"))
+               if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
                   CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
                   if (iter != geom->m_geometryList.end())
@@ -937,9 +943,10 @@ MStatus CArnoldStandInShape::initialize()
 //
 int CArnoldStandInShape::drawMode()
 {
+	int mode;
     MPlug plug(thisMObject(), s_mode);
-    plug.getValue(fGeometry.mode);
-    return fGeometry.mode;
+    plug.getValue(mode);
+    return mode;
 }
 
 //

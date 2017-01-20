@@ -41,6 +41,7 @@
 #include <maya/MFileObject.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MProgressWindow.h>
+#include <maya/MSceneMessage.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -51,6 +52,10 @@
 
 // When we're sure these utilities stay, we can expose them
 // as static method on CArnoldSession or a separate helper class
+
+static std::vector<MObjectHandle *> s_typeNodes;
+static MCallbackId s_BeforeSaveCallback = 0;
+static MCallbackId s_AfterSaveCallback = 0;
 
 namespace // <anonymous>
 {
@@ -410,7 +415,43 @@ void CArnoldSession::ProcessAOVs()
       AiMsgDebug("[mtoa] [aovs] disabled");
 }
 */
+   
+void EditTypeTextNode(MObject typeNode, bool deformable )
+{
+   if (typeNode.isNull()) 
+      return;
 
+   int deformableVal = (deformable) ? 1 : 0;
+
+   MFnDependencyNode fnNode(typeNode);
+   MPlug deformablePlug = fnNode.findPlug("deformableType");
+   if (deformablePlug.isNull())
+      return; // parameter doesn't exist, shouldn't happen
+
+   int previousDeformableType = deformablePlug.asInt();
+   if (previousDeformableType == deformableVal)
+      return; // already null, no need to change it
+
+   deformablePlug.setInt(deformableVal);
+   MPlugArray        typeConnections;
+   MPlug messagePlug = fnNode.findPlug("remeshMessage");
+   if (!messagePlug.isNull())
+      messagePlug.connectedTo(typeConnections, false, true);
+
+   if (typeConnections.length() > 0)
+   {
+      MFnDependencyNode remeshNode(typeConnections[0].node());
+      MPlug statePlug = remeshNode.findPlug("nodeState");
+      if (!statePlug.isNull())
+      {
+         if (statePlug.asInt() == 0)
+            statePlug.setInt(1);
+         else
+            statePlug.setInt(0);
+      }
+   }
+ 
+}
 MStatus CArnoldSession::Begin(const CSessionOptions &options)
 {
  
@@ -475,8 +516,25 @@ MStatus CArnoldSession::End()
    // Clear motion frames storage
    m_motion_frames.clear();
 
-   m_is_active = false;
+   if (s_BeforeSaveCallback)
+      MMessage::removeCallback(s_BeforeSaveCallback);
+   if (s_AfterSaveCallback)
+      MMessage::removeCallback(s_AfterSaveCallback);
+   
+   s_BeforeSaveCallback = 0;
+   s_AfterSaveCallback = 0;
 
+   if (!s_typeNodes.empty())
+   {
+      for (size_t i = 0; i < s_typeNodes.size(); ++i)
+      {
+         if (s_typeNodes[i] == NULL || !s_typeNodes[i]->isValid() || !s_typeNodes[i]->isAlive()) continue;
+         EditTypeTextNode(s_typeNodes[i]->object(), false); // restore deformableType to False
+         delete s_typeNodes[i];
+      }
+      s_typeNodes.clear();
+   }
+   m_is_active = false;
    return status;
 }
 
@@ -649,6 +707,29 @@ AtNode* CArnoldSession::ExportOptions()
    return m_optionsTranslator->GetArnoldNode();
 }
 
+#if MAYA_API_VERSION >= 201700
+// For the type tools hack (#2422) we must be sure to restore the type texts before
+// saving the scene, otherwise it will be saved with the tessellated shape
+static void BeforeSaveCallback(void *data)
+{
+   if (s_typeNodes.empty()) return;
+   for (size_t i = 0; i < s_typeNodes.size(); ++i)
+   {
+      if (s_typeNodes[i] == NULL || !s_typeNodes[i]->isValid() || !s_typeNodes[i]->isAlive()) continue;
+      EditTypeTextNode(s_typeNodes[i]->object(), false); // restore deformableType to False
+   }
+}
+static void AfterSaveCallback(void *data)
+{
+   if (s_typeNodes.empty()) return;
+   for (size_t i = 0; i < s_typeNodes.size(); ++i)
+   {
+      if (s_typeNodes[i] == NULL || !s_typeNodes[i]->isValid() || !s_typeNodes[i]->isAlive()) continue;
+      EditTypeTextNode(s_typeNodes[i]->object(), true); // restore deformableType to False
+   }
+}
+#endif
+
 /// Primary entry point for exporting a Maya scene to Arnold
 MStatus CArnoldSession::Export(MSelectionList* selected)
 {
@@ -683,6 +764,38 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    const bool mb = IsMotionBlurEnabled();
 
    AiMsgDebug("[mtoa.session]     Initializing at frame %f", GetExportFrame());
+
+#if MAYA_API_VERSION >= 201700
+   // Hack for type text (#2422) : 
+   // Since Arnold doesn't support holes yet, we set the attribute "deformableType" to 1 for all 
+   // type texts in the scene before we convert to Arnold.
+   // FIXME : do we want to restore them later on ? This could maybe affect render times since this would be done back and forth ?
+   MStringArray typeNodes;
+   MGlobal::executeCommand("ls -typ type", typeNodes);
+   for (unsigned int t = 0; t < typeNodes.length(); ++t)
+   {
+      MSelectionList typeList;
+      typeList.add(typeNodes[t]);
+      MObject typeObject;
+      typeList.getDependNode(0, typeObject);
+      if (typeObject.isNull())
+         continue;
+      EditTypeTextNode(typeObject, true);
+      s_typeNodes.push_back(new MObjectHandle(typeObject));
+   }
+   if (!s_typeNodes.empty())
+   {
+      // For now we're only getting the callbacks if type nodes exist,
+      // since we're not tracking for newly created nodes anyway (doesn't seem to work properly)
+      if(s_BeforeSaveCallback == 0)
+         s_BeforeSaveCallback = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, BeforeSaveCallback, (void*)this);
+      
+      if (s_AfterSaveCallback == 0)
+         s_AfterSaveCallback = MSceneMessage::addCallback(MSceneMessage::kAfterSave, AfterSaveCallback, (void*)this);
+   }
+
+#endif
+
 
    ExportOptions();  // inside loop so that we're on the proper frame
 
@@ -1840,7 +1953,10 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
 
    // first we need to make sure this camera is properly exported
    if (camera.isValid())
+   {
+      camera.extendToShape();
       ExportDagPath(camera);
+   }
    
    m_sessionOptions.SetExportCamera(camera);
 
@@ -2104,6 +2220,11 @@ void CArnoldSession::ExportTxFiles()
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+
+   static const AtString MayaFile_str("MayaFile");
+   static const AtString image_str("image");
+   static const AtString MayaImagePlane_str("MayaImagePlane");
+
    for ( ; it != itEnd; ++it)
    {
       CNodeTranslator *translator = it->second;
@@ -2112,7 +2233,7 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
+      if (AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str) || AiNodeIs(node, MayaImagePlane_str)) textureNodes.push_back(translator);
       
    }
 
@@ -2129,7 +2250,7 @@ void CArnoldSession::ExportTxFiles()
       MString filename = AiNodeGetStr(node, "filename").c_str();
       std::string filenameStr = filename.asChar();
 
-      const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
+      const char *autoTxParam = AiNodeIs(node, image_str) ? "autoTx" : "aiAutoTx";
       bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
       MString searchPath = "";
       bool invalidProgressWin = false;

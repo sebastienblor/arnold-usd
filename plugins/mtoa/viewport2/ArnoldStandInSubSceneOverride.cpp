@@ -9,6 +9,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MTransformationMatrix.h>
+#include <maya/MEventMessage.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MDGMessage.h>
 #include <maya/MBoundingBox.h>
@@ -68,7 +69,7 @@ static const float cube[][3] = { {0.0f, 0.0f, 0.0f},
 static const int kCubeCount = 24;
 
 namespace {
-    void standInAttributeChanged(MObject& /*node*/, MPlug& plug, void* clientData)
+    void standInNodeDirtyPlugCallback(MObject& /*node*/, MPlug& plug, void* clientData)
     {
         MFnAttribute attr(plug.attribute());
         MString attrName = attr.name();
@@ -79,6 +80,22 @@ namespace {
 
         bool reuse = (attrName == "mode" || attrName == "standInDrawOverride" || attrName == "deferStandinLoad") ? true : false;
         static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(reuse);
+    }
+
+    void standInAttributeChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug,void* clientData)
+    {
+        // The renderLayerInfo connection is added and removed due to render layer membership changed. We need to
+        // invalidate the standIn in this case.
+        MFnAttribute attr(plug.attribute());
+        MString attrName = attr.name();
+        if(attrName == "renderLayerInfo")
+            static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(false);
+    }
+
+    void renderLayerChangeCallback(void* clientData)
+    {
+        // If the render layer visibility has changed, we need to invalidate the standIn.
+        static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(false);
     }
 
     void globalOptionsChanged(MNodeMessage::AttributeMessage /*msg*/, MPlug& plug, MPlug& /*otherPlug*/, void *clientData)
@@ -147,7 +164,12 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
     mBlinnShader->setParameter(diffuseColorParameterName_, solidColor);
 
 
-    mAttribChangedID = MNodeMessage::addNodeDirtyPlugCallback(mLocatorNode, standInAttributeChanged, this);
+    mNodeDirtyPlugID = MNodeMessage::addNodeDirtyPlugCallback(mLocatorNode, standInNodeDirtyPlugCallback, this);
+    MStatus status;
+    MFnDagNode node(mLocatorNode, &status);
+    MObject parentNode = node.parent(0);
+    mAttribChangedID = MNodeMessage::addAttributeChangedCallback(parentNode, standInAttributeChangedCallback, this);
+    mRenderLayerManagerChangeID = MEventMessage::addEventCallback("renderLayerManagerChange", renderLayerChangeCallback, this);
     mGlobalOptionsCreatedID = MDGMessage::addNodeAddedCallback(CArnoldStandInSubSceneOverride::globalOptionsAdded, "aiOptions", this);
 
     MObject arnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
@@ -184,7 +206,9 @@ CArnoldStandInSubSceneOverride::~CArnoldStandInSubSceneOverride()
     mBlinnShader = NULL;
     mShaderFromNode = NULL;
 
+    MNodeMessage::removeCallback(mNodeDirtyPlugID);
     MNodeMessage::removeCallback(mAttribChangedID);
+    MMessage::removeCallback(mRenderLayerManagerChangeID);
     if (mGlobalOptionsCreatedID != 0)
         MNodeMessage::removeCallback(mGlobalOptionsCreatedID);
     if (mGlobalOptionsChangedID != 0)
@@ -241,12 +265,10 @@ bool CArnoldStandInSubSceneOverride::anyChanges(const MHWRender::MSubSceneContai
 	if(invisibleInstance)
 	{
 		fLastTimeInvisible = true;
-		return true;
 	}
 	else if(fLastTimeInvisible)
 	{
 		fLastTimeInvisible = false;
-		return true;
 	}
 
     // there was a change to one or more instances, update required.
@@ -301,9 +323,6 @@ void CArnoldStandInSubSceneOverride::update(
     MFnDagNode node(mLocatorNode, &status);
     CArnoldStandInShape* standIn = static_cast<CArnoldStandInShape*>(node.userNode());
     CArnoldStandInGeom* geom = NULL;
-
-    if (fNumInstances == 0)
-        return; //early out if there are no instances
 
     // shape instance gathering
     // ************************************
@@ -501,41 +520,19 @@ void CArnoldStandInSubSceneOverride::update(
     if (leadDeferItem)
         leadDeferItem->setMatrix(&instanceMatrixArray[leadIndex]);
 
-    // Update the matrices.  Use HW instancing if there is more than one instance.
-    if (fNumInstances == 1)
-    {
-        MMatrix& objToWorld = instanceMatrixArray[0];
+    // Set the transform array for each render item with multiple instances.
+    // Note this has to happen after the geometry and shaders are set, otherwise it will fail.
+    if (shadedItem)
+        setInstanceTransformArray(*shadedItem, instanceMatrixArray);
+    if (selectedItem)
+        setInstanceTransformArray(*selectedItem, selectedInstanceMatrixArray);
+    if (unselectedItem)
+        setInstanceTransformArray(*unselectedItem, unselectedInstanceMatrixArray);
 
-        // When not dealing with multiple instances, don't convert the render items into instanced
-        // mode.  Set the matrices on them directly.
-        if (shadedItem)
-            shadedItem->setMatrix(&objToWorld);
-        if (selectedItem)
-            selectedItem->setMatrix(&objToWorld);
-        if (unselectedItem)
-            unselectedItem->setMatrix(&objToWorld);
-
-        if (selectedDeferItem)
-            selectedDeferItem->setMatrix(&objToWorld);
-        if (unselectedDeferItem)
-            unselectedDeferItem->setMatrix(&objToWorld);
-    }
-    else
-    {
-        // Set the transform array for each render item with multiple instances.
-        // Note this has to happen after the geometry and shaders are set, otherwise it will fail.
-        if (shadedItem)
-            setInstanceTransformArray(*shadedItem, instanceMatrixArray);
-        if (selectedItem)
-            setInstanceTransformArray(*selectedItem, selectedInstanceMatrixArray);
-        if (unselectedItem)
-            setInstanceTransformArray(*unselectedItem, unselectedInstanceMatrixArray);
-
-        if (selectedDeferItem)
-            setInstanceTransformArray(*selectedDeferItem, selectedInstanceMatrixArray);
-        if (unselectedDeferItem)
-            setInstanceTransformArray(*unselectedDeferItem, unselectedInstanceMatrixArray);
-    }
+    if (selectedDeferItem)
+        setInstanceTransformArray(*selectedDeferItem, selectedInstanceMatrixArray);
+    if (unselectedDeferItem)
+        setInstanceTransformArray(*unselectedDeferItem, unselectedInstanceMatrixArray);
 
     mBBChanged = false;
     mReuseBuffers = true;
@@ -552,6 +549,9 @@ MHWRender::MRenderItem* CArnoldStandInSubSceneOverride::getItem(
         MHWRender::MRenderItem::NonMaterialSceneItem, primitiveType);
     item->setDrawMode(drawMode);
     item->depthPriority(depthPriority);
+#if MAYA_API_VERSION >= 201800
+    item->setCompatibleWithMayaInstancer(true);
+#endif
     container.add(item);
     return item;
 }
@@ -925,6 +925,7 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     MMatrixArray& unselectedInstanceMatrixArray,
     int& leadIndex)
 {
+    unsigned int numInstances = 0;
     unsigned int numInstanceSelected = 0;
     unsigned int numInstanceUnselected = 0;
 
@@ -937,13 +938,19 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     MDagPathArray instances;
     node.getAllPaths(instances);
 
+    std::vector<int> invisibleInstanceIndexes;
+
     // loop over the cache and fill the arrays.
     for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
     {
         MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[instIdx]);
         if(displayStatus == MHWRender::kInvisible)
+        {
+            invisibleInstanceIndexes.push_back(instIdx);
             continue;
+        }
 
+        numInstances++;
         InstanceInfo instanceInfo = fInstanceInfoCache[instIdx];
         instanceMatrixArray[instIdx] = instanceInfo.fTransform;
         if (instanceInfo.fLead)
@@ -955,6 +962,11 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     }
 
     //collapse to correct length
+    for(int i=invisibleInstanceIndexes.size()-1; i >= 0; i--)
+    {
+        instanceMatrixArray.remove(invisibleInstanceIndexes[i]);
+    }
+    fNumInstances = numInstances;
     selectedInstanceMatrixArray.setLength(numInstanceSelected);
     unselectedInstanceMatrixArray.setLength(numInstanceUnselected);
 }

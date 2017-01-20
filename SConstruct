@@ -1122,7 +1122,7 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'shaders'])
 elif system.os() == 'linux':
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'procedurals'])
 elif system.os() == 'darwin':
@@ -1230,6 +1230,7 @@ def create_installer(target, source, env):
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
+        mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.close()
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')
