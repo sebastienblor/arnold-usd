@@ -7,6 +7,22 @@ import pymel.core as pm
 import os
 import mtoa.volume_vdb
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+def ArnoldVolumeAutoStepChange(nodeName):
+    autoStep = cmds.getAttr(nodeName+'.autoStepSize')
+    type = cmds.getAttr(nodeName+'.type')
+    if type == 0:
+        # custom volume
+        dimStepSize = False
+        dimStepScale = True
+    else:
+        # vdb
+        dimStepSize = autoStep
+        dimStepScale = not autoStep
+
+    pm.editorTemplate(dimControl=(nodeName, "stepSize",  dimStepSize))
+    pm.editorTemplate(dimControl=(nodeName, "stepScale", dimStepScale))
+    
         
 def ArnoldVolumeTypeChange(nodeName):
     type = cmds.getAttr(nodeName+'.type')
@@ -15,6 +31,7 @@ def ArnoldVolumeTypeChange(nodeName):
     pm.editorTemplate(dimControl=(nodeName, "grids", dim))
     pm.editorTemplate(dimControl=(nodeName, "frame", dim))
     pm.editorTemplate(dimControl=(nodeName, "padding", dim))
+    pm.editorTemplate(dimControl=(nodeName, "autoStepSize", dim))
     
     pm.editorTemplate(dimControl=(nodeName, "velocityGrids", dim))
     pm.editorTemplate(dimControl=(nodeName, "velocityScale", dim))
@@ -25,6 +42,8 @@ def ArnoldVolumeTypeChange(nodeName):
     pm.editorTemplate(dimControl=(nodeName, "velocityThreshold", dim))
     pm.editorTemplate(dimControl=(nodeName, "dso", not dim))
     pm.editorTemplate(dimControl=(nodeName, "data", not dim))
+
+    ArnoldVolumeAutoStepChange(nodeName)
 
 def ArnoldVolumeDsoEdit(nodeName, mPath) :
     cmds.setAttr(nodeName,mPath,type='string')
@@ -49,7 +68,8 @@ def ArnoldVolumeTemplateDsoReplace(plugName) :
     cmds.textField( 'arnoldVolumeDsoPath', edit=True, text=cmds.getAttr(plugName) )
     cmds.symbolButton('arnoldVolumeDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadVolumeDsoButtonPush(plugName))
     
-        
+
+
 class AEaiVolumeTemplate(ShaderAETemplate):
 
     def filenameEdit(self, nodeName, mPath) :
@@ -245,7 +265,9 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('padding')
         self.addControl('MinBoundingBox')
         self.addControl('MaxBoundingBox')
+        self.addControl('autoStepSize', label = "Automatic Step Size", changeCommand=ArnoldVolumeAutoStepChange)
         self.addControl('stepSize')
+        self.addControl('stepScale')
         self.addControl('loadAtInit')
         
         self.addSeparator()

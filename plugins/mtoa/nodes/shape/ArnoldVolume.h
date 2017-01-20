@@ -53,6 +53,8 @@ private:
    static MObject s_stepSize;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
+   static MObject s_autoStepSize;
+   static MObject s_stepScale;
    
    static MObject s_filename;
    static MObject s_grids;
