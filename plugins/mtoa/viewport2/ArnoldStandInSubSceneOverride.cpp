@@ -520,41 +520,19 @@ void CArnoldStandInSubSceneOverride::update(
     if (leadDeferItem)
         leadDeferItem->setMatrix(&instanceMatrixArray[leadIndex]);
 
-    // Update the matrices.  Use HW instancing if there is more than one instance.
-    if (fNumInstances == 1)
-    {
-        MMatrix& objToWorld = instanceMatrixArray[0];
+    // Set the transform array for each render item with multiple instances.
+    // Note this has to happen after the geometry and shaders are set, otherwise it will fail.
+    if (shadedItem)
+        setInstanceTransformArray(*shadedItem, instanceMatrixArray);
+    if (selectedItem)
+        setInstanceTransformArray(*selectedItem, selectedInstanceMatrixArray);
+    if (unselectedItem)
+        setInstanceTransformArray(*unselectedItem, unselectedInstanceMatrixArray);
 
-        // When not dealing with multiple instances, don't convert the render items into instanced
-        // mode.  Set the matrices on them directly.
-        if (shadedItem)
-            shadedItem->setMatrix(&objToWorld);
-        if (selectedItem)
-            selectedItem->setMatrix(&objToWorld);
-        if (unselectedItem)
-            unselectedItem->setMatrix(&objToWorld);
-
-        if (selectedDeferItem)
-            selectedDeferItem->setMatrix(&objToWorld);
-        if (unselectedDeferItem)
-            unselectedDeferItem->setMatrix(&objToWorld);
-    }
-    else
-    {
-        // Set the transform array for each render item with multiple instances.
-        // Note this has to happen after the geometry and shaders are set, otherwise it will fail.
-        if (shadedItem)
-            setInstanceTransformArray(*shadedItem, instanceMatrixArray);
-        if (selectedItem)
-            setInstanceTransformArray(*selectedItem, selectedInstanceMatrixArray);
-        if (unselectedItem)
-            setInstanceTransformArray(*unselectedItem, unselectedInstanceMatrixArray);
-
-        if (selectedDeferItem)
-            setInstanceTransformArray(*selectedDeferItem, selectedInstanceMatrixArray);
-        if (unselectedDeferItem)
-            setInstanceTransformArray(*unselectedDeferItem, unselectedInstanceMatrixArray);
-    }
+    if (selectedDeferItem)
+        setInstanceTransformArray(*selectedDeferItem, selectedInstanceMatrixArray);
+    if (unselectedDeferItem)
+        setInstanceTransformArray(*unselectedDeferItem, unselectedInstanceMatrixArray);
 
     mBBChanged = false;
     mReuseBuffers = true;
