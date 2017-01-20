@@ -7,8 +7,15 @@ import pymel.core as pm
 import os
 import mtoa.volume_vdb
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-    
-        
+
+def ArnoldVolumeAutoStepChange(nodeName):
+    autoStep = cmds.getAttr(nodeName+'.autoStepSize')
+    dimStepSize = autoStep
+    dimStepScale = not autoStep
+
+    pm.editorTemplate(dimControl=(nodeName, "stepSize",  dimStepSize))
+    pm.editorTemplate(dimControl=(nodeName, "stepScale", dimStepScale))
+
 class AEaiVolumeTemplate(ShaderAETemplate):
 
     def filenameEdit(self, nodeName, mPath) :
@@ -26,8 +33,6 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         if len(gridsList) > 0:
             cmds.textScrollList(self.gridsListPath, edit=True, selectIndexedItem=1)
-
-
 
     def filenameButtonPush(self, nodeName):
         basicFilter = 'OpenVDB File(*.vdb)'
@@ -201,6 +206,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('padding')
         self.addControl('MinBoundingBox')
         self.addControl('MaxBoundingBox')
+        self.addControl('autoStepSize', label = "Automatic Step Size", changeCommand=ArnoldVolumeAutoStepChange)
         self.addControl('stepSize')
         self.addControl('stepScale')
         self.addControl('loadAtInit')

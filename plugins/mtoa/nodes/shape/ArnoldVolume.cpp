@@ -57,6 +57,8 @@ MObject CArnoldVolumeShape::s_loadAtInit;
 MObject CArnoldVolumeShape::s_stepSize;
 MObject CArnoldVolumeShape::s_boundingBoxMin;
 MObject CArnoldVolumeShape::s_boundingBoxMax;
+MObject CArnoldVolumeShape::s_autoStepSize;
+MObject CArnoldVolumeShape::s_stepScale;
 
 MObject CArnoldVolumeShape::s_filename;
 MObject CArnoldVolumeShape::s_filedata;
@@ -143,6 +145,16 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_stepSize);
+
+   s_autoStepSize = nAttr.create("autoStepSize", "autoStepSize", MFnNumericData::kBoolean, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_autoStepSize);
+
+   s_stepScale = nAttr.create("stepScale", "stepScale", MFnNumericData::kFloat, 1.f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_stepScale);
    
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, 0.0);
    nAttr.setHidden(false);
@@ -260,33 +272,31 @@ MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
 
 MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
 {
-   /*
-	// If more attributes are added which require update, they
-	// shoukd be added here
-	if (plug == s_type ||
-		plug == s_dso ||
-		plug == s_data ||
-		plug == s_loadAtInit ||
-		plug == s_stepSize ||
-		plug == s_boundingBoxMin ||
-		plug == s_boundingBoxMax ||
+   // If more attributes are added which require update, they
+   // shoukd be added here
+   if (plug == s_loadAtInit ||
+      plug == s_stepSize ||
+      plug == s_stepScale ||
+      plug == s_autoStepSize ||
+      plug == s_boundingBoxMin ||
+      plug == s_boundingBoxMax ||
 
-		plug == s_filename ||
-		plug == s_grids ||
-		plug == s_frame ||
-		plug == s_padding ||
+      plug == s_filename ||
+      plug == s_grids ||
+      plug == s_frame ||
+      plug == s_padding ||
 
-		plug == s_velocity_grids ||
-		plug == s_velocity_scale ||
-		plug == s_velocity_fps ||
-		plug == s_velocity_shutter_start ||
-		plug == s_velocity_shutter_end || 
+      plug == s_velocity_grids ||
+      plug == s_velocity_scale ||
+      plug == s_velocity_fps ||
+      plug == s_velocity_shutter_start ||
+      plug == s_velocity_shutter_end || 
       plug == s_velocity_threshold  
       )
 	{
 		// Signal to VP2 that we require an update
 		MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
-	}*/
+	}
 	return MS::kSuccess;
 }
 #endif

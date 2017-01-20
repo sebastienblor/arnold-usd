@@ -152,10 +152,6 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 
    if (!update)
    {
-     
-      AiNodeSetFlt(volume, "step_size", m_DagNode.findPlug("stepSize").asFloat());
-      AiNodeSetFlt(volume, "step_scale", m_DagNode.findPlug("stepScale").asFloat());
-
       MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
       if (loadAtInit.asBool())
          AiNodeSetBool(volume, "load_at_init", true);
@@ -180,9 +176,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       {
          newFilename = filename;
       }
+      newFilename = newFilename.expandEnvironmentVariablesAndTilde();
       
       AiNodeDeclare( volume, "filename", "constant STRING" );
-      AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
+      AiNodeSetStr( volume, "filename", newFilename.asChar() );
       
       MString grids = m_DagNode.findPlug("grids").asString();
       MStringArray gridList;
@@ -198,6 +195,18 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
          }
          AiNodeSetArray( volume, "grids", ary);
       }
+      float stepSize = m_DagNode.findPlug("stepSize").asFloat();
+      if (m_DagNode.findPlug("autoStepSize").asBool())
+      {
+         MString cmd;
+         cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetMinVoxelSize('^1s', '^2s')", newFilename, grids);
+
+         MString result;
+         if (MGlobal::executePythonCommand(cmd, result) == MS::kSuccess)
+            stepSize = result.asFloat() * m_DagNode.findPlug("stepScale").asFloat();
+         
+      }
+      AiNodeSetFlt(volume, "step_size", stepSize);
       
       MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
       MStringArray vGridList;
@@ -212,8 +221,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
             AiArraySetStr(ary, i, vGridList[i].asChar());
          }
          AiNodeSetArray( volume, "velocity_grids", ary);
-      }
-      
+      }      
       
       AiNodeDeclare( volume, "velocity_scale", "constant FLOAT" );
       AiNodeSetFlt(volume, "velocity_scale", m_DagNode.findPlug("velocityScale").asFloat());
@@ -236,7 +244,6 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeSetBool(volume, "disable_ray_extents", m_DagNode.findPlug("disableRayExtents").asBool());
       AiNodeSetBool(volume, "compress", m_DagNode.findPlug("compress").asBool());
       AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("boundsSlack").asFloat());
-
    }
    return volume;
 }
