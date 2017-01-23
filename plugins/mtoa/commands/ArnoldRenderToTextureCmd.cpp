@@ -486,7 +486,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
             return MS::kSuccess;
          }
-         MString filename = folderName + "/" + meshName + ".exr";
+         std::string meshNameStr = meshName;
+         std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
+         std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
+
+         MString filename = folderName + "/" + meshNameStr.c_str() + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
          AiNodeSetStr(camera, "polymesh", meshName);
