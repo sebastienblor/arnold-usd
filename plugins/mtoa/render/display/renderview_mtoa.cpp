@@ -205,6 +205,9 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 #endif
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
+   // need to add this margin for the status bar + toolbar height
+   height += 70;
+   
    // Check if attribute ARV_options exist
    // if it doesn't create it
    int exists = 0;
@@ -232,9 +235,9 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    } else
    {
       workspaceCmd += " -li 1"; // load immediately
-      workspaceCmd += " -ih "; // initial width
+      workspaceCmd += " -iw "; // initial width
       workspaceCmd += width;
-      workspaceCmd += " -iw "; // initiall height
+      workspaceCmd += " -ih "; // initiall height
       workspaceCmd += height;
 
       workspaceCmd += " -requiredPlugin \"mtoa\"";
