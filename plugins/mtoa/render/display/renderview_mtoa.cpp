@@ -410,6 +410,7 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    // Universe isn't active, oh my....
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   // the renderSession will be NULL if ARV was opened without rendering
    if (renderSession)
    {   
       renderSession->SetRendering(false);
@@ -454,6 +455,12 @@ void CRenderViewMtoA::UpdateSceneChanges()
    }
 
    UpdateRenderCallbacks();
+
+   // GetRenderSession() might have changed since we exported the scene
+   renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
+   
 }
 
 void CRenderViewMtoA::UpdateRenderCallbacks()
