@@ -176,6 +176,7 @@ struct CCurvesData
    std::vector<AtVector> points;
    std::vector<AtVector> referencePoints;
    std::vector<CurveWidths *> curveWidthsPerResolution; 
+   std::vector<CurveWidths *> widthProfilePerResolution; 
 };
 
 
@@ -183,7 +184,7 @@ struct CCurvesData
 // would need to apply the conversion matrix
 
 static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData, 
-      int sampleRate, MPlug *widthPlug, bool exportReference, unsigned int step)
+      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, unsigned int step)
 {
    MFnDependencyNode fnDepNodeCurve(curve);
    MStatus stat;
@@ -259,6 +260,8 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
       {
          curvesData.curveWidthsPerResolution.resize(numcvs + 1, NULL);
       }
+      
+      
       // need to set the widths per amount of cvs here
       if (curvesData.curveWidthsPerResolution[numcvs] == NULL)
       {
@@ -287,9 +290,51 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
       }
    }
 
+   if (rampAttr)
+   {
+      if (numcvs >= curvesData.widthProfilePerResolution.size())
+      {
+         curvesData.widthProfilePerResolution.resize(numcvs + 1, NULL);
+      }
+      if (curvesData.widthProfilePerResolution[numcvs] == NULL)
+      {
+         curvesData.widthProfilePerResolution[numcvs] = new CurveWidths();
+         curvesData.widthProfilePerResolution[numcvs]->resize(numcvs);
+
+         float widthVal;
+         for (unsigned int i = 0; i < numcvs; ++i)
+         {
+            rampAttr->getValueAtPosition((float)i / (float)(numcvs + 1), widthVal);
+            (*(curvesData.widthProfilePerResolution[numcvs]))[i] = widthVal;
+         }
+      }
+   }
+
    return MStatus::kSuccess;
 }
 
+static inline bool IsRampConstant(MRampAttribute &rampAttr)
+{
+   MIntArray indices;
+   MFloatArray positions;
+   MFloatArray values;
+   MIntArray interps;
+   MStatus status;
+
+   rampAttr.getEntries(indices, positions, values, interps, &status);
+   if (status != MS::kSuccess) 
+      return true;
+
+   if (values.length() <= 1)
+      return true;
+
+   for (unsigned int i = 1; i < values.length(); ++i)
+      if (std::abs(values[i] - values[0]) > AI_EPSILON)
+         return false; // found a change, not constant
+
+   // no change was found, this is constant
+   return true;
+}
 
 void CCurveCollectorTranslator::Export( AtNode *curve )
 {
@@ -364,7 +409,25 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    MPlugArray conns;
    widthPlug.connectedTo(conns, true, false);
    bool widthConnected = (conns.length() > 0);
-   if (!widthConnected)
+
+   MPlug widthProfile = FindMayaPlug("aiWidthProfile");
+
+   MStatus status;
+   MRampAttribute widthProfileAttr(widthProfile);
+
+   bool hasWidthProfile = !IsRampConstant(widthProfileAttr);
+
+   if (!hasWidthProfile)
+   {
+      float widthVal = 1.f;
+      // ramp is constant, get the width at the root of the curve;
+      // and apply it to the global width
+      widthProfileAttr.getValueAtPosition(0, widthVal);
+      globalWidth *= widthVal;
+   }
+
+
+   if (!widthConnected && !hasWidthProfile)
       AiNodeSetFlt(curve, "radius", globalWidth);
 
    // now loop over the curve childs
@@ -375,7 +438,8 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
       //MFnDependencyNode fnDepNodeCurve(objectCurveShape);
 
       // Get curve lines
-      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, (widthConnected) ? &widthPlug : NULL, exportReferenceObject, 0);
+      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, 
+            (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 0);
       if (stat != MStatus::kSuccess) 
          continue;
    }
@@ -383,6 +447,8 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    AtArray* curveNumPoints  = AiArrayAllocate(curvesData.numPoints.size(), 1, AI_TYPE_INT);
    unsigned int totalNumPoints = 0;
    unsigned int totalNumPointsInterp = 0;
+
+
 
    for (size_t i = 0; i < curvesData.numPoints.size(); ++i)
    {
@@ -401,17 +467,18 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    bool deformedPoints = IsMotionBlurEnabled() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && RequiresMotionData();
 
    AtArray* curvePoints     = AiArrayAllocate(totalNumPointsInterp, (deformedPoints) ? GetNumMotionSteps() : 1, AI_TYPE_POINT);
-   AtArray* curveWidths     = (widthConnected) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_FLOAT) : NULL;
+   AtArray* curveWidths     = (widthConnected || hasWidthProfile) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_FLOAT) : NULL;
    AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_POINT) : NULL;
 
    int pointIndex = 0;
    int pointArrayIndex = 0;
-
+   
    // loop over each curve
    for (size_t i = 0; i < curvesData.numPoints.size(); ++i)
    {
       // duplicating first point for this curve
       AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex]);
+
 
       // fill each CV
       for (int j = 0; j < curvesData.numPoints[i]; ++j)
@@ -419,8 +486,16 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
          if (referenceCurvePoints)
             AiArraySetPnt(referenceCurvePoints, pointIndex, curvesData.referencePoints[pointIndex]);
 
+
          if (curveWidths)
-            AiArraySetFlt(curveWidths, pointIndex, curvesData.curveWidthsPerResolution[curvesData.numPoints[i]]->at(j));
+         {
+            float pointWidth = (widthConnected) ? curvesData.curveWidthsPerResolution[curvesData.numPoints[i]]->at(j) : globalWidth;
+
+            if (hasWidthProfile)
+               pointWidth *= curvesData.widthProfilePerResolution[curvesData.numPoints[i]]->at(j);
+             
+            AiArraySetFlt(curveWidths, pointIndex, pointWidth);
+         }
 
          AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
       }
@@ -436,13 +511,31 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
       AiNodeSetArray(curve, "Pref", referenceCurvePoints);
    }
 
-   if (widthConnected)
+   if (curveWidths)
       AiNodeSetArray(curve, "radius", curveWidths);
 
    // clear the widths per resolution
    for (size_t i = 0; i < curvesData.curveWidthsPerResolution.size(); ++i)
       delete curvesData.curveWidthsPerResolution[i];
 
+   for (size_t i = 0; i < curvesData.widthProfilePerResolution.size(); ++i)
+      delete curvesData.widthProfilePerResolution[i];
+
+
+   plug = FindMayaPlug("aiExportHairIDs");
+   bool export_curve_id = false;
+   if (!plug.isNull())
+      export_curve_id = plug.asBool();
+
+
+   if (export_curve_id)
+   {
+      AtArray* curveID = AiArrayAllocate(curvesData.numPoints.size(), 1, AI_TYPE_UINT);
+      for (unsigned int i = 0; i < curvesData.numPoints.size(); ++i)
+         AiArraySetUInt(curveID, i, i);
+      AiNodeDeclare(curve, "curve_id", "uniform UINT");
+      AiNodeSetArray(curve, "curve_id", curveID);
+   }
 }
 
 void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
@@ -466,7 +559,7 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
       MObject objectCurveShape(m_curveDagPaths[i].node());
       
       // Get curve lines
-      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, NULL, false, step);
+      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, NULL, NULL, false, step);
       if (stat != MStatus::kSuccess) 
          continue;
    }

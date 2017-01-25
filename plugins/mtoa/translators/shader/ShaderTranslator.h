@@ -23,6 +23,7 @@ public:
    {
       return new CShaderTranslator();
    }
+   virtual ~CShaderTranslator();
    //---- virtual functions derived from CNodeTranslator
    virtual AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* atNode);

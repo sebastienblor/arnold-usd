@@ -124,9 +124,9 @@
     <attr n="ai:alf" s="defaultArnoldRenderOptions.abortOnLicenseFail" t="boolean" h="Abort on License Fail."/>
     <attr n="ai:slc" s="defaultArnoldRenderOptions.skipLicenseCheck" t="boolean" h="Skip License Check."/>
     <attrString n="ai:uopt" s="defaultArnoldRenderOptions.aiUserOptions" t="string" h="User Options."/>   
-    <mel n="ai:port" s="if (!`objExists defaultResolution.mtoaCommandPort`) {addAttr -longName mtoaCommandPort -shortName mtoa_com -at long defaultResolution;} setAttr defaultResolution.mtoaCommandPort %1;
+    <mel n="ai:port" s="if (!`objExists arnoldBatchNode`) {createNode -ss transform -n arnoldBatchNode;} if (!`objExists arnoldBatchNode.mtoaCommandPort`) { addAttr -longName mtoaCommandPort -shortName mtoa_com -at long arnoldBatchNode;} setAttr arnoldBatchNode.mtoaCommandPort %1;
 " p="1" t="int" h="Set the Command Port for the Batch Progress Driver"/>
-    <mel n="ai:ofn" p="1" s='if (!`objExists defaultArnoldRenderOptions.mtoaOrigFileName`) {addAttr -longName mtoaOrigFileName -shortName mtoa_ofn -dt "string" defaultArnoldRenderOptions;} setAttr -type "string" defaultArnoldRenderOptions.mtoaOrigFileName "%1";
+    <mel n="ai:ofn" p="1" s='if (!`objExists arnoldBatchNode`) {createNode -ss transform -n arnoldBatchNode;} if (!`objExists arnoldBatchNode.mtoaOrigFileName`) {addAttr -longName mtoaOrigFileName -shortName mtoa_ofn -dt "string" arnoldBatchNode;} setAttr -type "string" arnoldBatchNode.mtoaOrigFileName "%1";
 ' t="string" h="Original file name."/>
     <sep/>
     <!-- ______________________________________________________________ -->

@@ -42,7 +42,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ep", "expandProcedurals");
    syntax.addFlag("fsh", "forceTranslateShadingEngines");
    syntax.addFlag("fp", "fullPath");
-   syntax.addFlag("ep", "exportPrefix", MSyntax::kString);
+   syntax.addFlag("pr", "exportPrefix", MSyntax::kString);
    syntax.addFlag("shg", "exportAllShadingGroups");
 
 

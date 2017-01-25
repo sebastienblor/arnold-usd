@@ -37,15 +37,13 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 
 	// check render type and exit if not known
 	if ( inData->renderType > PRIM_CURVE ) {
-		printf( "\nRender Type is set to something bad!\nPlease check!n", inData->inputChannelName );
+        printf( "\nRender Type is set to something bad!\nPlease check %s\n", inData->inputChannelName );
 		printf("\tExiting...\n");
 
 		printEndOutput( "[BIFROST PRIMITIVES] END OUTPUT", inData->diagnostics );
 
 		return false;
 	}
-
-    CvFloat radius = inData->radius;
 
 	//
 	//
@@ -130,19 +128,11 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	Bifrost::API::Status loadSt;
 	Bifrost::API::StateServer inSS = om.createStateServer();
 
-	// timer for diagnostics
-	std::time_t start, end;
-
-	start = std::time(NULL);
-
 	if ( inData->clip.on ) {
 		loadSt = fio.load( inSS, frameData->loadChannelNames, clipBox);
 	} else {
 		loadSt = fio.load( inSS, frameData->loadChannelNames);
 	}
-
-	end = std::time(NULL);
-	double duration = difftime( end, start );
 
     if( loadSt == Bifrost::API::Status::Failure ) {
 		printf("Bif file can not be loaded, please check the file!\n");
@@ -368,9 +358,9 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//int xMulti = 0;
 
 	if (frameData->isMultiPointing) {
-		printf("\t\tFinished exporting %ld items including multipointing!\n", xMulti);	
+        printf("\t\tFinished exporting %d items including multipointing!\n", xMulti);
 	} else {
-		printf("\t\tFinished exporting %ld items!\n", xMulti);	
+        printf("\t\tFinished exporting %d items!\n", xMulti);
 	}
 
 	//
@@ -576,7 +566,7 @@ static int ProcCleanup( void *user_ptr )
 			}
 
 			// free the assembled data arrays
-			for (int i = 0; i < frameData->mem.size(); i++) {
+            for ( unsigned int i = 0; i < frameData->mem.size(); i++) {
 				free ( frameData->mem[i] );
 			}
 		}

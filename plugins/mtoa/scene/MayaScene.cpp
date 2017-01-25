@@ -103,6 +103,15 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
    MStatus status = MStatus::kSuccess;
 
+   MSelectionList optionsList;
+   optionsList.add("defaultArnoldRenderOptions");
+   if (optionsList.length() == 0)
+   {
+      // arnold options weren't initialized yet
+      MGlobal::executePythonCommand("import mtoa.core as core; core.createOptions()");
+   }
+
+
    // Suspend material view during all render sessions, except for 
    // sequence rendering that handles this seperatelly, and swatches
    // which has lower priority and will be aborted by material viewer,

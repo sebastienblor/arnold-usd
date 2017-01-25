@@ -60,8 +60,8 @@ enum RampInterpolationType
 extern const char* RampInterpolationNames[];
 
 RampInterpolationType RampInterpolationNameToType(const char *n);
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, float &out, unsigned int *shuffle);
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out, unsigned int *shuffle);
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, float &out, const unsigned int *shuffle);
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out, const unsigned int *shuffle);
 
 #ifndef LOG_05
 #  define LOG_05 -0.693147180559945  /* log(0.5) */

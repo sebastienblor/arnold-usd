@@ -503,23 +503,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 		}
 	}
 
-	//
-	//
-	// GET CACHE CHANNELS
-	//
-	//
-
-	// get channels for common channels
-	const Bifrost::API::Channel& posChannel = component.findChannel( Bifrost::API::String( "position" ) );
-	const Bifrost::API::Channel& velChannel = component.findChannel( Bifrost::API::String( "velocity" ) );
-	const Bifrost::API::Channel& velUChannel = component.findChannel( Bifrost::API::String( "velocity_u") );
-	const Bifrost::API::Channel& velVChannel = component.findChannel( Bifrost::API::String( "velocity_v") );
-	const Bifrost::API::Channel& velWChannel = component.findChannel( Bifrost::API::String( "velocity_w") );
-	const Bifrost::API::Channel& idChannel = component.findChannel( Bifrost::API::String( "id64") );
-	const Bifrost::API::Channel& dropletChannel = component.findChannel( Bifrost::API::String( "droplet") );
-	const Bifrost::API::Channel& airDistanceChannel = component.findChannel( Bifrost::API::String( "airDistance") );
-
-	//
+    //
 	// decide on what type of rendering we are doing
 	//
 	CacheType cacheType = VOXEL;
@@ -879,7 +863,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	data->voxelComponent = component;
 	int samplerChannelCount = 0;
 
-	for ( int i = 0; i < channels.count(); i++ ) {
+    for ( unsigned int i = 0; i < channels.count(); i++ ) {
 		Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
 		AtString tmpString ( channel.name().c_str() );
 		int startIndex = samplerChannelCount * AI_MAX_THREADS;
@@ -932,7 +916,6 @@ bool BifrostImplicitsSample(void* user_ptr,
 	if (!data->private_info) return false;
 
 	BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*) data->private_info;
-	FrameData *frameData = userData->frameData;
 	ImplicitsInputData *inData = userData->inputData;
 
 	amino::Math::vec3f pos;
@@ -998,7 +981,6 @@ bool BifrostImplicitsGradient(void* user_ptr,
 	if (!data->private_info) return false;
 
 	BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*) data->private_info;
-	FrameData *frameData = userData->frameData;
 	ImplicitsInputData *inData = userData->inputData;
 
 	amino::Math::vec3f pos;

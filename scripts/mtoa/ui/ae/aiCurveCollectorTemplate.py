@@ -13,6 +13,8 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl('aiMode', label='Mode')
         
         self.addControl('aiCurveWidth', label='Width')
+        pm.mel.AEaddRampControl(self.nodeName + '.aiWidthProfile')
+        self.addSeparator()
         self.addControl('aiSampleRate', label='Sample Rate')
 
         self.addControl('aiCurveShader', label='Shader')
@@ -21,6 +23,7 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl('aiMinPixelWidth', label='Min Pixel Width')
         self.addSeparator()
         
+        self.addControl("aiExportHairIDs", label="Export Hair IDs")
         self.addControl("aiUserOptions", label="User Options")
         self.addSeparator()
 

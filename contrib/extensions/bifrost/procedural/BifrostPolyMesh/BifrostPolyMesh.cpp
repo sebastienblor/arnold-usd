@@ -143,7 +143,7 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 	}
 
 	// get vertex data and convert to Arnold - BAD
-	for ( int i = 0; i < vertexCount; i++ ) {
+    for ( unsigned int i = 0; i < vertexCount; i++ ) {
 		// set position data
 		int index = i * 3;
 		AtPoint tmpPoint = AiPoint ( pos[index], pos[index + 1], pos[index + 2] );
@@ -166,7 +166,7 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 	}
 
 	// get triangle data
-	for ( int i = 0; i < polyCount; i++ ) {
+    for ( unsigned int i = 0; i < polyCount; i++ ) {
 		// set position data
 		int index = i * 3;
 		AiArraySetUInt( nSidesArray, i, 3 );
@@ -192,8 +192,7 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 	}
 
 	// export primvars too
-	int exported = 0;
-	for ( int var = 0 ; var < frameData->primVars.size(); var++ ) {
+    for ( unsigned int var = 0 ; var < frameData->primVars.size(); var++ ) {
 		if ( frameData->primVars[ var ].exportToRIB ) {
 			int currentArrayIndex = frameData->primVars[ var ].exportArraysIndex;
 
@@ -206,7 +205,7 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 			float *primVarData = (float *)ptr[ currentArrayIndex ];
 			AtArray *primVarArray = AiArrayAllocate( (AtUInt32) vertexCount, 1, AI_TYPE_FLOAT );
 
-			for ( int i = 0; i < vertexCount; i++ ) {
+            for ( unsigned int i = 0; i < vertexCount; i++ ) {
 				AiArraySetFlt(primVarArray, i, primVarData[ i ]);
 			}
 
@@ -218,7 +217,7 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 
 	// report min max for float types
 	int nofFloatPrimVars = 0;
-	for ( int i = 0; i < frameData->primVars.size(); i++ ) {
+    for ( unsigned int i = 0; i < frameData->primVars.size(); i++ ) {
 		if ( frameData->primVars[i].channel.dataType() == Bifrost::API::FloatType ||  frameData->primVars[i].name == "speed" ) {
 			if (nofFloatPrimVars == 0 ) {
 				printf("\nMin-Max ranges for float primvars after voxelization:\n");
@@ -241,10 +240,10 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 		free ( frameData->mem[i] );
 	}
 
-	return true;
 	printf("\n---------------------------------------\n");
 	printf("END OUTPUT FOR BIFROSTPOLYMESH\n");
 	printf("---------------------------------------\n\n");
+    return true;
 }
 
 bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
@@ -625,22 +624,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 	}
 
 	//
-	//
-	// GET CACHE CHANNELS
-	//
-	//
-
-	// get channels for common channels
-	const Bifrost::API::Channel& posChannel = component.findChannel( Bifrost::API::String( "position" ) );
-	const Bifrost::API::Channel& velChannel = component.findChannel( Bifrost::API::String( "velocity" ) );
-	const Bifrost::API::Channel& velUChannel = component.findChannel( Bifrost::API::String( "velocity_u") );
-	const Bifrost::API::Channel& velVChannel = component.findChannel( Bifrost::API::String( "velocity_v") );
-	const Bifrost::API::Channel& velWChannel = component.findChannel( Bifrost::API::String( "velocity_w") );
-	const Bifrost::API::Channel& idChannel = component.findChannel( Bifrost::API::String( "id64") );
-	const Bifrost::API::Channel& dropletChannel = component.findChannel( Bifrost::API::String( "droplet") );
-	const Bifrost::API::Channel& airDistanceChannel = component.findChannel( Bifrost::API::String( "airDistance") );
-
-	//
 	// decide on what type of rendering we are doing
 	//
 	CacheType cacheType = VOXEL;
@@ -993,7 +976,7 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 	// data->voxelComponent = component;
 	int samplerChannelCount = 0;
 
-	for ( int i = 0; i < channels.count(); i++ ) {
+    for ( unsigned int i = 0; i < channels.count(); i++ ) {
 		Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
 		AtString tmpString ( channel.name().c_str() );
 		int startIndex = samplerChannelCount * AI_MAX_THREADS;
@@ -1022,7 +1005,6 @@ static int ProcInit( AtNode *node, void **user_ptr )
 	BifrostPolyMeshUserData *nodeData = (BifrostPolyMeshUserData *) *user_ptr;
 
 	ImplicitsInputData *inData = nodeData->inputData;
-	FrameData *frameData = nodeData->frameData;
 
 	if ( inData->error ) {
         AiMsgWarning("Input data has errors");
@@ -1056,8 +1038,6 @@ static AtNode *ProcGetNode(void *user_ptr, int i)
 
 	if ( i >= 0 && i < (int) nodeData->createdNodes.size() )
 	{
-		const char* nodeName = AiNodeGetName( nodeData->createdNodes[i] );
-
 		return nodeData->createdNodes[i];
 	} else {
 		return NULL;

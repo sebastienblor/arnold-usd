@@ -5,6 +5,7 @@
 	<template name='AEaiImage'>
 		<attribute name='filename' type='maya.string'>
 			<label>Image Name</label>
+			<description language="cb">PPaiFilename</description>
 		</attribute>
 		<attribute name='filter' type='maya.int'>
 			<label>Filter</label>
@@ -17,6 +18,16 @@
 		</attribute>
 		<attribute name='offset' type='maya.float3'>
 			<label>Offset</label>
+		</attribute>
+		<attribute name='colorSpace' type='maya.string'>
+			<label>Color Space</label>
+			<description language="cb">PPcolorSpaceControl</description>
+		</attribute>
+		<attribute name='ignoreColorSpaceFileRules' type='maya.bool'>
+			<label>Ignore CS File Rules</label>
+		</attribute>
+		<attribute name='autoTx' type='maya.bool'>
+			<label>Auto-generate TX Textures</label>
 		</attribute>
 		<attribute name='ignoreMissingTiles' type='maya.bool'>
 			<label>Ignore Missing Tiles</label>
@@ -66,6 +77,9 @@
 			<property name='filter'/>
 			<property name='multiply'/>
 			<property name='offset'/>
+			<property name='colorSpace'/>
+			<property name='ignoreColorSpaceFileRules'/>
+			<property name='autoTx'/>
 			<property name='ignoreMissingTiles'/>
 			<property name='missingTileColor'/>
 		</group>

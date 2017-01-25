@@ -257,10 +257,6 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 
 	out_data->private_info = user_ptr;
 
-	// get shader params
-	AtNode *shader = (AtNode*)AiNodeGetPtr(node, "shader");
-
-
 	// FIX THIS
 	//if(shader) {
 	//	data->stepSize = AiNodeGetFlt(shader, "aiStepSize");
@@ -483,12 +479,6 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	//
 	//
 
-	// get channels for common channels
-	const Bifrost::API::Channel& posChannel = component.findChannel( Bifrost::API::String( "position" ) );
-	const Bifrost::API::Channel& velChannel = component.findChannel( Bifrost::API::String( "velocity" ) );
-	const Bifrost::API::Channel& velUChannel = component.findChannel( Bifrost::API::String( "velocity_u") );
-	const Bifrost::API::Channel& velVChannel = component.findChannel( Bifrost::API::String( "velocity_v") );
-	const Bifrost::API::Channel& velWChannel = component.findChannel( Bifrost::API::String( "velocity_w") );
 	const Bifrost::API::Channel idChannel = component.findChannel( Bifrost::API::String( "id64") );
 	const Bifrost::API::Channel dropletChannel = component.findChannel( Bifrost::API::String( "droplet") );
 	const Bifrost::API::Channel airDistanceChannel = component.findChannel( Bifrost::API::String( "airDistance") );
@@ -791,7 +781,6 @@ bool BifrostVolumePluginSample(	void* user_ptr,
 	if (!data->private_info) return false;
 
 	BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
-	FrameData *frameData = volData->frameData;
 	VolumeInputData *inData = volData->inputData;
 
 	amino::Math::vec3f pos;

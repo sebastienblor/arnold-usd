@@ -33,7 +33,9 @@ ArnoldSkinShaderOverride::~ArnoldSkinShaderOverride()
 
 MHWRender::DrawAPI ArnoldSkinShaderOverride::supportedDrawAPIs() const
 {
-   return MHWRender::kOpenGL | MHWRender::kDirectX11;
+   // need to make sure it supports OpenGL core profile (#2551)
+   return MHWRender::kAllDevices;
+   //return MHWRender::kOpenGL | MHWRender::kDirectX11;
 }
 
 MString ArnoldSkinShaderOverride::fragmentName() const

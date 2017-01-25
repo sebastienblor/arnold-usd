@@ -26,8 +26,7 @@
 MSyntax CArnoldUpdateTxCmd::newSyntax()
 {
    MSyntax syntax;
-   // Do we want to add any argument here ?
-   // maybe a selection ?
+   syntax.addFlag("f", "force"); // force the refresh of ALL textures
    return syntax;
 }
 
@@ -35,8 +34,9 @@ MSyntax CArnoldUpdateTxCmd::newSyntax()
 MStatus CArnoldUpdateTxCmd::doIt(const MArgList& argList)
 {
    MStatus status;
-   //MArgDatabase args(syntax(), argList);
-
-   updateAllTx();
+   MArgDatabase args(syntax(), argList);
+  
+   
+   updateAllTx(args.isFlagSet("force"));
    return MS::kSuccess;
 }

@@ -74,7 +74,9 @@ EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX='')
 ###########################################################3
 #### BIFROST SHADERS
 
-local_env = common_env.Clone()
+Import('ext_env')
+local_env = ext_env.Clone()
+
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(ext_base_dir, 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]

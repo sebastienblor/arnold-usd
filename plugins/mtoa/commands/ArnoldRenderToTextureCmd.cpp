@@ -424,6 +424,19 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshName));
 
+      std::string meshNameStr = meshName;
+      std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
+      std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
+
+      std::string shaderNameStr;
+      if (shader_name)
+      {
+         shaderNameStr = shader_name;
+         std::replace( shaderNameStr.begin(), shaderNameStr.end(), ':', '_'); // replace all ':' to '_'
+         std::replace( shaderNameStr.begin(), shaderNameStr.end(), '/', '_'); // replace all '/' to '_'
+      }
+
+
       if (allUdims || udimsSet.size()>0)
       {
 
@@ -446,7 +459,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             const int& v_offset = it->second;
 
             std::ostringstream ss_filename;
-            ss_filename << folderName.asChar() << "/" << shader_name << "_" << meshName << "_" << 1000 + u_offset + 1 + v_offset * 10 << ".exr";
+            ss_filename << folderName.asChar() << "/" << shaderNameStr << "_" << meshNameStr << "_" << 1000 + u_offset + 1 + v_offset * 10 << ".exr";
 
             // comment for mayabatch
             std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
@@ -486,7 +499,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
             return MS::kSuccess;
          }
-         MString filename = folderName + "/" + meshName + ".exr";
+         
+         MString filename = folderName + "/" + meshNameStr.c_str() + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
          AiNodeSetStr(camera, "polymesh", meshName);

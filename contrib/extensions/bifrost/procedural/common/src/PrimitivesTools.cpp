@@ -140,8 +140,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		}
 
 		// export primvars too
-		int exported = 0;
-		for ( int var = 0 ; var < frameData->primVars.size(); var++ ) {
+        for (unsigned int var = 0 ; var < frameData->primVars.size(); var++ ) {
 			if ( frameData->primVars[ var ].exportToRIB ) {
 				int currentArrayIndex = frameData->primVars[ var ].exportArraysIndex;
 

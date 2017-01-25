@@ -142,6 +142,8 @@ void COptionsTranslator::ExportAOVs()
 /// Set the filenames for all output drivers
 void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 {
+   m_imageFilenames.clear();
+
    const CSessionOptions &options = GetSessionOptions();
    MDagPath camera = options.GetExportCamera();
    if (!camera.isValid())
@@ -172,7 +174,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (options.IsBatch() || options.GetSessionMode() == MTOA_SESSION_SEQUENCE)
+   if (options.IsBatch())
    {
       pathType = defaultRenderGlobalsData.kFullPathImage;
    }
@@ -297,6 +299,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                if (it == m_multiDriverMap.end())
                {
                   // The filename has not been encountered yet.
+                  m_imageFilenames.append(filename);
 
                   // The same AtNode* driver may appear in m_aovData several times.  This happens because
                   // ExportNode() caches the results of previous exports to avoid creating duplicates.
