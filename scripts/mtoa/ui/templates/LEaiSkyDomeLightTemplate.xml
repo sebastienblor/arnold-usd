@@ -28,7 +28,7 @@
 		</attribute>
 		<!-- Custom icon bitmap to be used for button in Light Editor -->
 		<attribute name='LEicon' type='maya.string'>
-			<description language="cb">SkydomeLightShelf.svg</description>
+			<description language="cb">SkydomeLightShelf.png</description>
 		</attribute>
 	</template>
 	<view name='LEDefault' template='LEaiSkyDomeLight'>
