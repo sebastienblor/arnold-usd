@@ -938,7 +938,7 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     MDagPathArray instances;
     node.getAllPaths(instances);
 
-    // loop over the cache and fill the arrays.
+    // loop over the instances and fill the arrays.
     for (unsigned int instIdx=0; instIdx<instances.length(); instIdx++)
     {
         if(!instances[instIdx].isValid() || !instances[instIdx].isVisible())
