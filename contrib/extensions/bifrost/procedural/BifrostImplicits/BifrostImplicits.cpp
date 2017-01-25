@@ -43,17 +43,17 @@
 
 #include <ai.h>
 
-#include <bifrostrendercore/CoreDefs.h>
-#include <bifrostrendercore/CoreTypes.h>
-#include <bifrostrendercore/CoreMath.h>
-#include <bifrostrendercore/CoreTools.h>
-#include <bifrostrendercore/CorePrimVars.h>
-#include <bifrostrendercore/CoreVisitors.h>
-#include <AITools.h>
+#include <bifrostrendercore/bifrostrender_defs.h>
+#include <bifrostrendercore/bifrostrender_types.h>
+#include <bifrostrendercore/bifrostrender_math.h>
+#include <bifrostrendercore/bifrostrender_tools.h>
+#include <bifrostrendercore/bifrostrender_primvars.h>
+#include <bifrostrendercore/bifrostrender_visitors.h>
+#include <Tools.h>
 
-#include <bifrostrendercore/CoreFilters.h>
+#include <bifrostrendercore/bifrostrender_filters.h>
 
-#include <bifrostrendercore/CoreObjectUserData.h>
+#include <bifrostrendercore/bifrostrender_objectuserdata.h>
 
 using namespace Bifrost::RenderCore;
 
@@ -96,16 +96,17 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	bool error = false;
 
 	// get numeric data
-	inData->fps = AiNodeGetFlt(parentNode, "fps");
-	inData->velocityScale = AiNodeGetFlt(parentNode, "velocityScale");
-	inData->spaceScale = AiNodeGetFlt(parentNode, "spaceScale");
-
 	inData->narrowBandThicknessInVoxels = AiNodeGetFlt(parentNode, "narrowBandThicknessInVoxels");
 	inData->stepSize = AiNodeGetFlt(parentNode, "liquidStepSize");
+
 	inData->cullSides.on = AiNodeGetBool( parentNode, "cullSidesOn" );
 	inData->cullSides.start = AiNodeGetFlt(parentNode, "cullSidesStart");
 	inData->cullSides.end = AiNodeGetFlt(parentNode, "cullSidesEnd");
 	inData->cullSides.depthAtStartInVoxels = AiNodeGetFlt(parentNode, "cullDepthAtStartInVoxels");
+
+	inData->velocityScale = AiNodeGetFlt(parentNode, "velocityScale");
+	inData->fps = AiNodeGetFlt(parentNode, "fps");
+	inData->spaceScale = AiNodeGetFlt(parentNode, "spaceScale");
 
 	inData->dilateAmount = AiNodeGetFlt(parentNode, "dilateAmount");
 	inData->erodeAmount = AiNodeGetFlt(parentNode, "erodeAmount");
@@ -125,13 +126,6 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	inData->clip.maxY = AiNodeGetFlt(parentNode, "clipMaxY");
 	inData->clip.minZ = AiNodeGetFlt(parentNode, "clipMinZ");
 	inData->clip.maxZ = AiNodeGetFlt(parentNode, "clipMaxZ");
-	// if there is something fishy, turn off clipBox
-	if ( inData->clip.on ) {
-		if ( inData->clip.maxX <= inData->clip.minX || inData->clip.maxY <= inData->clip.minY || inData->clip.maxZ <= inData->clip.minZ ) {
-			printf("ClipBox coordinates are wrong: one or more of MaxXYZ is smaller than MinXYZ\n");
-			error = true;
-		}
-	}
 
 	inData->infCube.on = AiNodeGetBool( parentNode, "infCubeBlendingOn" );
 	inData->infCube.outputType = (InfCubeOutputType) AiNodeGetInt( parentNode, "infCubeOutputType" );
@@ -140,7 +134,6 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	inData->infCube.topCenterY = AiNodeGetFlt(parentNode, "infCubeTopCenterY");
 	inData->infCube.topCenterZ = AiNodeGetFlt(parentNode, "infCubeTopCenterZ");
 	inData->infCube.dimX = AiNodeGetFlt(parentNode, "infCubeDimX");
-	//inData->infCube.dimY = AiNodeGetFlt(parentNode, "infCubeDimY");
 	inData->infCube.dimZ = AiNodeGetFlt(parentNode, "infCubeDimZ");
 	inData->infCube.blendType = (FalloffType) AiNodeGetInt( parentNode, "blendType" );
 	inData->infCube.blendStart = AiNodeGetFlt(parentNode, "infCubeBlendStart");
@@ -148,7 +141,6 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	inData->infCube.remapMin = AiNodeGetFlt(parentNode, "blendingChannelRemapMin");
 	inData->infCube.remapMax = AiNodeGetFlt(parentNode, "blendingChannelRemapMax");
 	inData->infCube.remapInvert = AiNodeGetBool( parentNode, "blendingChannelRemapInvert" );
-
 
 	inData->resolutionFactor = AiNodeGetFlt(parentNode, "implicitResolutionFactor");
 	inData->dropletRevealFactor = AiNodeGetFlt(parentNode, "implicitDropletRevealFactor");
@@ -158,8 +150,7 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	inData->doMorphologicalDilation = AiNodeGetBool( parentNode, "doMorphologicalDilation" );
 	inData->doErodeSheetsAndDroplets = AiNodeGetBool( parentNode, "doErodeSheetsAndDroplets" );
 
-    inData->diagnostics.debug = AiNodeGetInt( parentNode, "debug" );
-	inData->diagnostics.silent = AiNodeGetInt( parentNode, "silent" );
+	inData->diagnostics.DEBUG = AiNodeGetInt( parentNode, "debug" );
 
 	inData->hotData = AiNodeGetBool( parentNode, "hotData" );
 
@@ -172,7 +163,6 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 
 	const AtString distanceChannelNameParam("distanceChannel");
 	const AtString distanceChannelName = AiNodeGetStr(parentNode, distanceChannelNameParam );
-
 	inputLen = distanceChannelName.length();
 	inData->inputChannelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->inputChannelName, distanceChannelName.c_str() );
@@ -195,10 +185,19 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	inData->primVarNames = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->primVarNames, primVarNames.c_str() );
 
+	const AtString objectNameParam("bifrostObjectName");
+	const AtString objectName = AiNodeGetStr(parentNode, objectNameParam );
+	inputLen = objectName.length();
+	inData->bifrostObjectName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
+	strcpy( inData->bifrostObjectName, objectName.c_str() );
+
 	// arnold specific parameters
 	inData->motionBlur = AiNodeGetBool( parentNode, "motionBlur" );
 	inData->shutterStart = AiNodeGetFlt( parentNode, "shutterStart" );
 	inData->shutterEnd = AiNodeGetFlt( parentNode, "shutterEnd" );
+
+	// check parameters
+	inData->checkParameters( PLUGIN_IMPLICITS );
 
 	return error;
 }
@@ -235,11 +234,13 @@ bool BifrostImplicitsCleanup(void* user_ptr)
 			free( inData->smooth.channelName );
 			free( inData->infCube.channelName );
 			free( inData->primVarNames );
+			free( inData->bifrostObjectName );
 		}
 
 		if ( userData->objectRef ) {
 			delete userData->objectRef;
 		}
+
 		delete userData;
 	}
 
@@ -251,26 +252,12 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 								const AtNode* node,
 								AtVolumeData* out_data )
 {
+	//
+	//
+	// DECLARATIONS
+	//
+	//
 	BifrostImplicitsUserData *data = (BifrostImplicitsUserData *) user_ptr;
-
-	std::string objectName = AiNodeLookUpUserParameter(node, "objectName") ? AiNodeGetStr(node, "objectName") : "";
-	std::string bifFilename = AiNodeLookUpUserParameter(node, "bifFilename") ? AiNodeGetStr(node, "bifFilename") : "";
-	if ( true || objectName != data->objectName || bifFilename != data->file ) // in case we change the frame ?
-	{
-		// need to update objet_ref
-		if (data->objectRef) delete data->objectRef;
-
-		data->objectRef = new CoreObjectUserData(objectName, bifFilename);
-		data->objectName = objectName;
-		data->file = bifFilename;
-	}
-
-	out_data->private_info = user_ptr;
-
-	//data->maxSteps = 1000;
-	//data->shadowing = true;
-	//data->shadowingStepSize = 0.5f;
-	//data->shadowingMaxSteps = 100;
 
 	//
 	//
@@ -282,14 +269,29 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	struct ImplicitsInputData *inData = (struct ImplicitsInputData *) new ( struct ImplicitsInputData);
 	data->inputData = inData;
 
+    // log start
+	printEndOutput( "[BIFROST IMPLICITS] START OUTPUT", inData->diagnostics );
+
 	// get input data
 	bool error = getNodeParameters( inData, node );
 
+	// init in memory class
+	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
+
+	// init user data stuff
+	data->objectRef = inData->inMemoryRef;
+	data->objectName = inData->bifrostObjectName;
+	data->file = inData->bifFilename;
+
+	out_data->private_info = user_ptr;
+
+	//data->maxSteps = 1000;
+	//data->shadowing = true;
+	//data->shadowingStepSize = 0.5f;
+	//data->shadowingMaxSteps = 100;
+
 	// set step size
 	out_data->auto_step_size = inData->stepSize;
-
-    // log start
-	printEndOutput( "[BIFROST IMPLICITS] START OUTPUT", inData->diagnostics );
 
 	//
 	//
@@ -298,15 +300,12 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	//
 	Bifrost::API::String writeToFolder;
 	if ( inData->hotData ) {
-		// declare State Server
-		Bifrost::API::StateServer hotServer( data->objectRef->stateServer() );
-
 		// write in memory data to a temp file
 		Bifrost::API::String writeToFile;
 		if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
-			writeToFile = writeHotDataToDisk( hotServer, inData->bifFilename, "voxel_liquid-volume", inData->diagnostics, writeToFolder );
+			writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-volume", writeToFolder );
 		} else {
-			writeToFile = writeHotDataToDisk( hotServer, inData->bifFilename, "voxel_liquid-particle", inData->diagnostics, writeToFolder );
+			writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-particle", writeToFolder );
 		}
 
 		// realloc for the new name
@@ -337,6 +336,12 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 		}
 	}
 
+	// if there is any error exit
+	if ( error ) {
+		printEndOutput( "[BIFROST IMPLICITS] END OUTPUT", inData->diagnostics );
+		return NULL;
+	}
+
 	IFNOTSILENT {
 		inData->printParameters( correctedFilename.find("particle") != Bifrost::API::String::npos );
 	}
@@ -357,6 +362,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	}
 	frameData->hotData = inData->hotData;
 	frameData->tmpFolder = writeToFolder;
+
 	data->frameData = frameData;
 
 	// process which channels to load
@@ -449,7 +455,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 
 	// print load time
 	IFNOTSILENT {
-        if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf("\nLoad time:%f secs\n", duration);
 		}
 	}
@@ -474,7 +480,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 			}
 		}
 
-        if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			std::cout << "\tChannel count: " << channels.count() << std::endl;
 			for ( size_t i=0; i<channels.count(); i++ ) {
 				std::cout << "\t\tChannel: " << Bifrost::API::Base(channels[i]).name() << std::endl;
@@ -492,7 +498,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 
 	// dump data before channel processing
 	IFNOTSILENT {
-        if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			dumpStateServer( inSS, "BEFORE PROCESSING" );
 		}
 	}
@@ -552,7 +558,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 		channels = component.channels();
 
 		IFNOTSILENT {
-            if ( inData->diagnostics.debug > 1 ) {
+			if ( inData->diagnostics.DEBUG > 1 ) {
 				dumpStateServer( inSS, "AFTER PARTICLE CONVERSION" );
 			}
 		}
@@ -633,14 +639,12 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	//
 	//
 
-	// reset layout voxelscale to accomodate spaceScale
-	layout.setVoxelScale( layout.voxelScale() * inData->spaceScale );
 	frameData->layout = layout;
 	frameData->bifInfo.maxDepth = layout.maxDepth();
 	frameData->voxelScale = layout.voxelScale();
 	frameData->bboxSim.voxelScale = layout.voxelScale();
 	frameData->bboxInf.voxelScale = layout.voxelScale();
-	frameData->orgVoxelScale = layout.voxelScale() / inData->spaceScale;
+	frameData->orgVoxelScale = layout.voxelScale();
 	frameData->bifInfo.calcTileVolumes( layout );
 	frameData->srcChannel = frameData->orgInputChannel;
 	frameData->airDistanceChannel = component.findChannel( Bifrost::API::String( "airDistance" ) );
@@ -661,17 +665,10 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	frameData->shutterSize = 0.0f;
 	IFNOTSILENT { printf("\nMotionBlur: "); }
 
-	// for arnold we dont have a global control in the options node is an ass file
-	// so we need to get the motion blur from the input Data as the translator put that information in there
-	if ( frameData->shutter[1] - frameData->shutter[0] > FLT_EPSILON ) {
+	if ( frameData->shutter[0] < frameData->shutter[1] ) {
 		if ( frameData->velocityExists ) {
 			frameData->motionBlur = true;
-			if ( inData->fps < FLT_EPSILON ) {
-				// assume absolute velocity scale - FOR MPC
-				frameData->velocityScale = inData->velocityScale;
-			} else {
-				frameData->velocityScale = inData->velocityScale * inData->fps;
-			}
+			frameData->velocityScale = inData->velocityScale;
 			frameData->shutterSize = frameData->shutter[1] - frameData->shutter[0];
 
 			IFNOTSILENT { printf("ON\n\tShutter: %.2f %.2f\n\n", (frameData->shutter)[0], (frameData->shutter)[1]); }
@@ -695,7 +692,10 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	//
 	//
 	//
-	if ( inData->dilateAmount != 0.0f || inData->erodeAmount != 0.0f || ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 ) ) {
+	if (	inData->dilateAmount != 0.0f ||
+			inData->erodeAmount != 0.0f ||
+			( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) 
+	) {
 		IFNOTSILENT {
 			printf("\nPost Processing %s channel...\n", inData->inputChannelName);
 			printf("\tPost processing parameters:\n");
@@ -730,8 +730,12 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 		}
 
 		IFNOTSILENT {
-			if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 ) {
-				printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d FilterChannel: %s\n", filterType.c_str(), inData->smooth.amount, inData->smooth.iterations, inData->smooth.channelName );
+			if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+				printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d Weight: %f FilterChannel: %s\n", filterType.c_str(),
+																													inData->smooth.amount,
+																													inData->smooth.iterations,
+																													inData->smooth.weight,
+																													inData->smooth.channelName );
 			}
 
 			if ( inData->erodeAmount != 0.0f ) {
@@ -746,7 +750,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 		}
 
 		// Run the smoothing filter
-		if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 ) {
+		if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
 			IFNOTSILENT { printf("\tSmoothing...\n"); }
 
 			// Run the smoothing filter
@@ -824,16 +828,15 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	// CALC BBOX
 	//
 	//
-	//
 	double bboxMin[3] = { 0.0, 0.0, 0.0 };
 	double bboxMax[3] = { 0.0, 0.0, 0.0 };
 	computeIsosurfaceBounds( frameData->srcChannel, bboxMin, bboxMax);
-	data->bbox.min.x = bboxMin[0];
-	data->bbox.min.y = bboxMin[1];
-	data->bbox.min.z = bboxMin[2];
-	data->bbox.max.x = bboxMax[0];
-	data->bbox.max.y = bboxMax[1];
-	data->bbox.max.z = bboxMax[2];
+	data->bbox.min.x = (float) bboxMin[0];
+	data->bbox.min.y = (float) bboxMin[1];
+	data->bbox.min.z = (float) bboxMin[2];
+	data->bbox.max.x = (float) bboxMax[0];
+	data->bbox.max.y = (float) bboxMax[1];
+	data->bbox.max.z = (float) bboxMax[2];
    
 	out_data->bbox = data->bbox;
 
@@ -861,10 +864,16 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	reportChannelRanges ( frameData, component, inData->diagnostics );
 
 	IFNOTSILENT {
-        if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			dumpStateServer( inSS, "AFTER ALL OPS" );
 		}
 	}
+
+	//
+	//
+	// ARNOLD SPECIFIC
+	//
+	//
 
 	// now allocate space for samplers
 	data->voxelComponent = component;
@@ -880,7 +889,7 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 			data->srcChannelSamplerIndexStart = startIndex;
 		}
 
-        if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf("%s - %d - %d\n", channel.name().c_str(), data->channelSamplerIndexes[ tmpString ], data->srcChannelSamplerIndexStart );
 		}
 
@@ -890,6 +899,11 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	data->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 	memset( data->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 
+	//
+	//
+	// FINISH
+	//
+	//
 	printEndOutput( "[BIFROST IMPLICITS] END OUTPUT", inData->diagnostics );
 
 	return true;
@@ -930,7 +944,7 @@ bool BifrostImplicitsSample(void* user_ptr,
 	Bifrost::API::VoxelSampler *threadSampler = userData->channelSamplers[ samplerIndexStart + sg->tid ];
 
 	if (threadSampler == 0) {
-        if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
 		}
 		Bifrost::API::VoxelChannel bifChannel = userData->voxelComponent.findChannel( channel.c_str() );
@@ -996,7 +1010,7 @@ bool BifrostImplicitsGradient(void* user_ptr,
 	Bifrost::API::VoxelSampler *threadSampler = userData->channelSamplers[ samplerIndexStart + sg->tid ];
 
 	if (threadSampler == 0) {
-        if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
 		}
 		Bifrost::API::VoxelChannel bifChannel = userData->voxelComponent.findChannel( channel.c_str() );
@@ -1088,7 +1102,9 @@ AI_EXPORT_LIB bool VolumePluginLoader(AtVolumePluginVtable* vtable)
 	vtable->CleanupVolume	= BifrostImplicitsCleanupVolume;
 	vtable->UpdateVolume	= BifrostImplicitsUpdate;
 	vtable->Sample			= BifrostImplicitsSample;
+#ifdef BIFROST2018
 	vtable->Gradient		= BifrostImplicitsGradient;
+#endif
 	vtable->RayExtents		= BifrostImplicitsRayExtents;
 	strcpy(vtable->version, AI_VERSION);
 	return true;

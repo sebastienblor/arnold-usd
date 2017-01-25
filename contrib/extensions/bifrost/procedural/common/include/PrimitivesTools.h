@@ -24,11 +24,11 @@
 
 #include <maya/MString.h>
 
-#include <bifrostrendercore/CoreTypes.h>
-#include <bifrostrendercore/CoreTools.h>
-#include <bifrostrendercore/CorePrimitivesTools.h>
+#include <bifrostrendercore/bifrostrender_types.h>
+#include <bifrostrendercore/bifrostrender_tools.h>
+#include <bifrostrendercore/bifrostrender_primitivestools.h>
 
-#include "AITypes.h"
+#include "Types.h"
 
 void exportPrimitivesAI	(	Bifrost::RenderCore::PrimitivesInputData *inData,
                             Bifrost::RenderCore::PrimitivesFrameData *frameData,

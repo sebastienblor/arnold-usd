@@ -18,8 +18,10 @@
 
 #include <ai.h>
 
-#include <bifrostrendercore/CoreTypes.h>
-#include <bifrostrendercore/CoreObjectUserData.h>
+#include <bifrostrendercore/bifrostrender_types.h>
+#include <bifrostrendercore/bifrostrender_objectuserdata.h>
+
+using namespace Bifrost::RenderCore;
 
 struct AIProcNodeData {
 	AtNode * proceduralNode;
@@ -32,13 +34,42 @@ struct AIProcNodeData {
 	AtMatrix obj2World;
 	AtMatrix world2Cam;
 	AtMatrix obj2Cam;
+	AtBBox bbox;
 
 	int nofNodesCreated;
 	void *frameData;
 
-    Bifrost::RenderCore::CoreObjectUserData *objectRef;
 	std::string objectName;
 	std::string file;
+};
+
+struct BifrostPolyMeshUserData {
+	CoreObjectUserData *objectRef;
+
+	Bifrost::API::VoxelSampler **channelSamplers;
+	std::map<AtString, int> channelSamplerIndexes;
+	int srcChannelSamplerIndexStart;
+
+	Bifrost::API::Component voxelComponent;
+
+	ImplicitsInputData *inputData;
+	FrameData *frameData;
+
+	std::string objectName;
+	std::string file;
+
+	AtNode * proceduralNode;
+	AtNode * camNode;
+	AtMatrix world2Obj;
+	AtMatrix obj2World;
+	AtMatrix world2Cam;
+	AtMatrix obj2Cam;
+	AtBBox bbox;
+
+	AtShaderGlobals *bifrostCtx;
+	std::map<AtByte, Bifrost::API::VoxelSampler *> samplerPool;
+	int nofNodesCreated;
+	std::vector<struct AtNode *> createdNodes;
 };
 
 #endif

@@ -12,20 +12,49 @@
 #include <bifrostapi/bifrost_visitor.h>
 #include <bifrostapi/bifrost_tiledataaccessor.h>
 
-#include "utils/time.h"
-#include "scene/MayaScene.h"
-#include "session/SessionOptions.h"
 #include "extension/Extension.h"
-#include "scene/MayaScene.h"
 
-#include <bifrostrendercore/CoreTools.h>
-#include <bifrostrendercore/CoreObjectUserData.h>
+#include <bifrostrendercore/bifrostrender_tools.h>
+#include <bifrostrendercore/bifrostrender_objectuserdata.h>
 #include "BifrostTranslator.h"
-#include <TranslatorUtils.h>
 
 using namespace Bifrost::RenderCore;
 
-AtNode* BifrostShapeTranslator::CreateArnoldNodes()
+// This is a replica of CDagTranslator::ExportMatrix to have spacescale injected into the output matrix attribute
+void BifrostTranslator::ExportMatrixWithSpaceScale(AtNode* node, float spaceScale)
+{
+	AtMatrix matrix;
+	GetMatrix(matrix);
+
+	// inject our scaling values here
+	AtVector s = {spaceScale, spaceScale, spaceScale};
+	AtMatrix scalingMatrix;
+	AiM4Scaling(scalingMatrix, &s);
+	// apply scaling to input matrix
+	AiM4Mult(matrix, scalingMatrix, matrix);
+
+	if ( !IsExportingMotion() ) {
+		if ( IsMotionBlurEnabled( MTOA_MBLUR_OBJECT ) && RequiresMotionData() ) {
+			AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+			AiArraySetMtx(matrices, GetMotionStep(), matrix);
+			AiNodeSetArray(node, "matrix", matrices);
+		} else {
+			AiNodeSetMatrix(node, "matrix", matrix);
+		}
+	} else if ( IsMotionBlurEnabled( MTOA_MBLUR_OBJECT ) && RequiresMotionData() ) {
+		AtArray* matrices = AiNodeGetArray(node, "matrix");
+		if (matrices) {
+			int step = GetMotionStep();
+			if ( step >= (int)(matrices->nkeys * matrices->nelements) ) {
+				AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
+			} else {
+				AiArraySetMtx(matrices, step, matrix);
+			}
+		}
+	}
+}
+
+AtNode* BifrostTranslator::CreateArnoldNodes()
 {
 	c_renderType = NONE;
 	MFnDagNode  bifrostDesc;
@@ -34,10 +63,13 @@ AtNode* BifrostShapeTranslator::CreateArnoldNodes()
 	bifrostDesc.setObject( bifrostPath.node() );
 
 	int renderType = (RenderType)bifrostDesc.findPlug("bifrostRenderType").asInt();
+
 	switch ( renderType ) {
 		case 0:
-			c_bifType = (BIFType)bifrostDesc.findPlug("aeroRenderData").asInt();
-			c_renderType = AERO;
+			{
+				c_bifType = (BIFType)bifrostDesc.findPlug("aeroRenderData").asInt();
+				c_renderType = AERO;
+			}
 			break;
 		case 1:
 		case 2:
@@ -52,8 +84,10 @@ AtNode* BifrostShapeTranslator::CreateArnoldNodes()
 			}
 			break;
 		case 3:
-			c_bifType = (BIFType)bifrostDesc.findPlug("pointRenderData").asInt();
-			c_renderType = POINT;
+			{
+				c_bifType = (BIFType)bifrostDesc.findPlug("pointRenderData").asInt();
+				c_renderType = POINT;
+			}
 			break;
 		default:
 			c_renderType = NONE;
@@ -105,21 +139,8 @@ AtNode* BifrostShapeTranslator::CreateArnoldNodes()
 		}
 
 		{
-			case LIQUID_POLYMESH:
-				MPlug containerPlug = bfContainer.findPlug("liquidCacheProperties");
-				MFnDependencyNode bfLiquidProps(containerPlug.source().node());
-
-      
-				MString cacheDir = bfLiquidProps.findPlug("liquidCachePath").asString();
-				MString cacheName = bfLiquidProps.findPlug("liquidCacheFileName").asString();
-
-				MString fullBifPath = cacheDir + cacheName + "/voxel_liquid/voxel_liquid";
-				c_file = fullBifPath.asChar();
-				break;
-		}
-
-		{
 			case LIQUID_IMPLICIT:
+			case LIQUID_POLYMESH:
 				MPlug containerPlug = bfContainer.findPlug("liquidCacheProperties");
 				MFnDependencyNode bfLiquidProps(containerPlug.source().node());
       
@@ -143,15 +164,15 @@ AtNode* BifrostShapeTranslator::CreateArnoldNodes()
 
 	switch (c_renderType) {
 		case AERO:
-			return AddArnoldNode("volume");
+			return AddArnoldNode( "volume" );
 		case LIQUID_POLYMESH:
-			return AddArnoldNode("procedural");
+			return AddArnoldNode( "procedural" );
 		case LIQUID_IMPLICIT:
-			return AddArnoldNode("implicit");
+			return AddArnoldNode( "implicit" );
 		case POINT:
-			return AddArnoldNode("procedural");
+			return AddArnoldNode( "procedural" );
 		default:
-			AiMsgError("[Bifrost AI Convertor]: type not implemented yet : %s", c_object.c_str());
+			AiMsgError( "[Bifrost AI Converter]: Type not implemented yet : %s", c_object.c_str() );
 			break;
 	}
 
@@ -159,38 +180,33 @@ AtNode* BifrostShapeTranslator::CreateArnoldNodes()
 	return NULL;
 }
 
-void BifrostShapeTranslator::Export( AtNode* instance )
-{
-	Update( instance );
-}
-
-void BifrostShapeTranslator::Update( AtNode* node )
+void BifrostTranslator::Export( AtNode* instance )
 {
 	switch (c_renderType) {
 		case AERO:
-			UpdateAero( node );
+			ExportAero( instance );
 			break;
 		case LIQUID_POLYMESH:
-			UpdateLiquidPolyMesh( node );
+			ExportLiquidPolyMesh( instance );
 			break;
 		case LIQUID_IMPLICIT:
-			UpdateLiquidImplicit( node );
+			ExportLiquidImplicit( instance );
 			break;
 		case POINT:
-			UpdatePoint( node );
+			ExportPoint( instance );
 			break;
 		default:
 			break;
 	}
 }
 
-void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
+void BifrostTranslator::ExportPoint(AtNode *shape)
 {
-	CoreObjectUserData objectRef(c_object, c_file);
+	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
 	bool hotData = objectRef.objectExists();
 
 	AiNodeDeclare( shape, "hotData", "constant BOOL" );
-	AiNodeDeclare(shape, "objectName", "constant STRING");
+	AiNodeDeclare(shape, "bifrostObjectName", "constant STRING");
 
 	if ( hotData ) {
 		AiNodeSetBool( shape, "hotData", 1 );
@@ -202,7 +218,7 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 		const bool cacheExist = objectRef.checkCacheFileExist(frame);
 
 		if ( !cacheExist ) {
-			AiMsgError("[BIFROST AI TRANSLATOR]: point data %s not found", c_object.c_str());
+			AiMsgError("[BIFROST AI TRANSLATOR]: Point data %s not found", c_object.c_str());
 			return;
 		}
 
@@ -210,15 +226,11 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	}
 
 	// we have some data
-	AiNodeSetStr( shape, "objectName", c_object.c_str() );
+	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
 
-	static const MTime sec(1.0, MTime::kSeconds);
-	float fps = (float) sec.as(MTime::uiUnit());
-
-    static std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string("/procedurals/BifrostPrimitives.dll");
+    std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string( "/procedurals/BifrostPrimitives.dll" );
 	AiNodeSetStr(shape, "dso", strDSO.c_str());
 	AiNodeSetBool( shape, "load_at_init", true );
-
 	AiNodeSetBool( shape, "opaque", false );
 	AiNodeSetBool( shape, "matte", false );
 
@@ -229,8 +241,7 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	double shutterStart, shutterEnd;
 	shutterStart = shutterEnd = 0.0;
 	if (  IsMotionBlurEnabled() ) {
-        CArnoldSession* session = CMayaScene::GetArnoldSession();
-		session->GetMotionRange( shutterStart, shutterEnd );
+		GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
 	}
 
 	AiNodeDeclare( shape, "shutterStart", "constant FLOAT" );
@@ -243,9 +254,8 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	MFnDagNode  bifrostDesc;
 	bifrostDesc.setObject( m_dagPath.node() );
 
-	AiNodeDeclare(shape, "fps", "constant FLOAT");
-	AiNodeSetFlt(shape, "fps", fps);
 
+	// global params
 	AiNodeDeclare( shape, "renderType", "constant INT" );
 	int intAttrVal = bifrostDesc.findPlug( "renderPrimitiveType" ).asInt();
 	AiNodeSetInt( shape, "renderType", intAttrVal );
@@ -254,17 +264,18 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	float attrVal = bifrostDesc.findPlug( "pointChannelScale" ).asFloat();
 	AiNodeSetFlt( shape, "channelScale", attrVal );
 
-	AiNodeDeclare( shape, "useChannelGradientAsNormal", "constant BOOL" );
-	bool boolAttrVal = bifrostDesc.findPlug( "useChannelGradientAsNormal" ).asBool();
-	AiNodeSetBool( shape, "useChannelGradientAsNormal", boolAttrVal );
-
 	AiNodeDeclare( shape, "exportNormalAsPrimvar", "constant BOOL" );
-	boolAttrVal = bifrostDesc.findPlug( "exportNormalAsPrimvar" ).asBool();
+	bool boolAttrVal = bifrostDesc.findPlug( "exportNormalAsPrimvar" ).asBool();
 	AiNodeSetBool( shape, "exportNormalAsPrimvar", boolAttrVal );
 
 	AiNodeDeclare( shape, "velocityScale", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "pointVelocityScale" ).asFloat();
-	AiNodeSetFlt( shape, "velocityScale", attrVal / fps );
+	AiNodeSetFlt( shape, "velocityScale", attrVal );
+
+	const MTime sec(1.0, MTime::kSeconds);
+	float fps = (float) sec.as(MTime::uiUnit());
+	AiNodeDeclare(shape, "fps", "constant FLOAT");
+	AiNodeSetFlt(shape, "fps", fps);
 
 	AiNodeDeclare( shape, "spaceScale", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "pointSpaceScale" ).asFloat();
@@ -278,6 +289,8 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	intAttrVal = bifrostDesc.findPlug( "chunkSize" ).asInt();
 	AiNodeSetInt( shape, "chunkSize", intAttrVal );
 
+
+	// clip params
 	AiNodeDeclare( shape, "clipOn", "constant BOOL" );
 	boolAttrVal = bifrostDesc.findPlug( "pointClipOn" ).asBool();
 	AiNodeSetBool( shape, "clipOn", boolAttrVal );
@@ -306,10 +319,8 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	attrVal = bifrostDesc.findPlug( "pointClipMaxZ" ).asFloat();
 	AiNodeSetFlt( shape, "clipMaxZ", attrVal );
 
-	AiNodeDeclare( shape, "pointRadius", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "pointRadius" ).asFloat();
-	AiNodeSetFlt( shape, "pointRadius", attrVal );
 
+	// radius params
 	AiNodeDeclare( shape, "pointRadius", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "pointRadius" ).asFloat();
 	AiNodeSetFlt( shape, "pointRadius", attrVal );
@@ -342,6 +353,8 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	attrVal = bifrostDesc.findPlug( "camRadiusFactorExponent" ).asFloat();
 	AiNodeSetFlt( shape, "camRadiusFactorExponent", attrVal );
 
+
+	// multi sample params
 	AiNodeDeclare( shape, "mpSamples", "constant INT" );
 	intAttrVal = bifrostDesc.findPlug( "mpSamples" ).asInt();
 	AiNodeSetInt( shape, "mpSamples", intAttrVal );
@@ -378,12 +391,8 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	attrVal = bifrostDesc.findPlug( "mpDisplacementNoiseFrequency" ).asFloat();
 	AiNodeSetFlt( shape, "mpDisplacementNoiseFrequency", attrVal );
 
-	AiNodeDeclare( shape, "smoothing", "constant INT" );
-	intAttrVal = bifrostDesc.findPlug( "meshingSmoothing" ).asInt();
-	AiNodeSetInt( shape, "smoothing", intAttrVal );
-
 	AiNodeDeclare( shape, "debug", "constant INT" );
-    intAttrVal = bifrostDesc.findPlug( "aiDebug" ).asInt();
+	intAttrVal = bifrostDesc.findPlug( "pointDebug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 	AiNodeDeclare( shape, "silent", "constant INT" );
@@ -413,11 +422,10 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	AiNodeSetStr( shape, "inputChannelName", strAttrVal.asChar() );
 
 	// export matrix
-    ExportMatrix( shape );
+	ExportMatrix( shape );
    
 	// export shaders
-	if (	(CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER ) ||
-			CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines() ) {
+	if ( RequiresShaderExport() ) {
 		ExportBifrostShader();
 	}
 
@@ -425,14 +433,18 @@ void BifrostShapeTranslator::UpdatePoint(AtNode *shape)
 	ExportLightLinking( shape );
 }
 
-void BifrostShapeTranslator::UpdateAero(AtNode *shape)
+void BifrostTranslator::ExportAero(AtNode *shape)
 {
-	CoreObjectUserData objectRef(c_object, c_file);
+	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
+
+	// do we have hot data
 	bool hotData = objectRef.objectExists();
 
+	// declare output variables
 	AiNodeDeclare( shape, "hotData", "constant BOOL" );
-	AiNodeDeclare(shape, "objectName", "constant STRING");
+	AiNodeDeclare(shape, "bifrostObjectName", "constant STRING");
 
+	// export hotdata status 
 	if ( hotData ) {
 		AiNodeSetBool( shape, "hotData", 1 );
 	} else {
@@ -451,12 +463,9 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	}
 
 	// we have some data
-	AiNodeSetStr( shape, "objectName", c_object.c_str() );
+	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
 
-	static const MTime sec(1.0, MTime::kSeconds);
-	float fps = (float) sec.as(MTime::uiUnit());
-
-    static std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string("/procedurals/BifrostVolume.dll");
+    std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string("/procedurals/BifrostVolume.dll");
 	AiNodeSetStr(shape, "dso", strDSO.c_str());
 	AiNodeSetBool( shape, "load_at_init", true );
 
@@ -470,8 +479,7 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	double shutterStart, shutterEnd;
 	shutterStart = shutterEnd = 0.0;
 	if (  IsMotionBlurEnabled() ) {
-        CArnoldSession* session = CMayaScene::GetArnoldSession();
-		session->GetMotionRange( shutterStart, shutterEnd );
+		GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
 	}
 
 	AiNodeDeclare( shape, "shutterStart", "constant FLOAT" );
@@ -482,27 +490,33 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 
 	AiNodeSetByte(shape, "visibility", AI_RAY_ALL);
 
-	ExportMatrix(shape);
-
 	// get params from the node
 	MFnDagNode  bifrostDesc;
 	bifrostDesc.setObject( m_dagPath.node() );
 
-	AiNodeDeclare(shape, "fps", "constant FLOAT");
-	AiNodeSetFlt(shape, "fps", fps);
+	// first export matrix
+	float spaceScale = bifrostDesc.findPlug( "aeroSpaceScale" ).asFloat();
+	ExportMatrixWithSpaceScale( shape, spaceScale );
 
+	// global params
 	AiNodeDeclare( shape, "channelScale", "constant FLOAT" );
 	float attrVal = bifrostDesc.findPlug( "aeroChannelScale" ).asFloat();
 	AiNodeSetFlt( shape, "channelScale", attrVal );
 
 	AiNodeDeclare( shape, "velocityScale", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "aeroVelocityScale" ).asFloat();
-	AiNodeSetFlt( shape, "velocityScale", attrVal / fps );
+	AiNodeSetFlt( shape, "velocityScale", attrVal );
 
+	const MTime sec(1.0, MTime::kSeconds);
+	float fps = (float) sec.as(MTime::uiUnit());
+	AiNodeDeclare(shape, "fps", "constant FLOAT");
+	AiNodeSetFlt(shape, "fps", fps);
+
+	// set space scale to 1 as it is incorporated into matrix attribute
 	AiNodeDeclare( shape, "spaceScale", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "aeroSpaceScale" ).asFloat();
-	AiNodeSetFlt( shape, "spaceScale", attrVal );
+	AiNodeSetFlt( shape, "spaceScale", 1 );
 
+	// smooth params
 	AiNodeDeclare( shape, "smoothOn", "constant BOOL" );
 	bool boolAttrVal = bifrostDesc.findPlug( "aeroSmoothOn" ).asBool();
 	AiNodeSetBool( shape, "smoothOn", boolAttrVal );
@@ -519,6 +533,10 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	intAttrVal = bifrostDesc.findPlug( "aeroSmoothIterations" ).asInt();
 	AiNodeSetInt( shape, "smoothIterations", intAttrVal );
 
+	AiNodeDeclare( shape, "smoothWeight", "constant FLOAT" );
+	attrVal = bifrostDesc.findPlug( "aeroSmoothWeight" ).asFloat();
+	AiNodeSetFlt( shape, "smoothWeight", attrVal );
+
 	AiNodeDeclare( shape, "smoothRemapMin", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "aeroSmoothRemapMin" ).asFloat();
 	AiNodeSetFlt( shape, "smoothRemapMin", attrVal );
@@ -531,6 +549,8 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	boolAttrVal = bifrostDesc.findPlug( "aeroSmoothRemapInvert" ).asBool();
 	AiNodeSetBool( shape, "smoothRemapInvert", boolAttrVal );
 
+
+	// clip params
 	AiNodeDeclare( shape, "clipOn", "constant BOOL" );
 	boolAttrVal = bifrostDesc.findPlug( "aeroClipOn" ).asBool();
 	AiNodeSetBool( shape, "clipOn", boolAttrVal );
@@ -559,17 +579,15 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	attrVal = bifrostDesc.findPlug( "aeroClipMaxZ" ).asFloat();
 	AiNodeSetFlt( shape, "clipMaxZ", attrVal );
 
+
+	// splat params
 	AiNodeDeclare( shape, "splatResolutionFactor", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "splatResolutionFactor" ).asFloat();
 	AiNodeSetFlt( shape, "splatResolutionFactor", attrVal );
 
 	AiNodeDeclare( shape, "skip", "constant INT" );
-	intAttrVal = bifrostDesc.findPlug( "skip" ).asInt();
+	intAttrVal = bifrostDesc.findPlug( "aeroSkip" ).asInt();
 	AiNodeSetInt( shape, "skip", intAttrVal );
-
-	AiNodeDeclare( shape, "densityMult", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "densityMult" ).asFloat();
-	AiNodeSetFlt( shape, "densityMult", attrVal );
 
 	AiNodeDeclare( shape, "splatSamples", "constant INT" );
 	intAttrVal = bifrostDesc.findPlug( "splatSamples" ).asInt();
@@ -607,8 +625,10 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	attrVal = bifrostDesc.findPlug( "splatNoiseFreq" ).asFloat();
 	AiNodeSetFlt( shape, "splatNoiseFreq", attrVal );
 
+
+	// diagnotics params
 	AiNodeDeclare( shape, "debug", "constant INT" );
-    intAttrVal = bifrostDesc.findPlug( "aiDebug" ).asInt();
+	intAttrVal = bifrostDesc.findPlug( "aeroDebug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 	AiNodeDeclare( shape, "silent", "constant INT" );
@@ -641,9 +661,10 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 	strAttrVal = bifrostDesc.findPlug( "aeroPrimVars" ).asString();
 	AiNodeSetStr( shape, "primVarNames", strAttrVal.asChar() );
 
-	if (	( CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-			CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines() ) {
+	// export shaders
+	if ( RequiresShaderExport() ) {
 		ExportBifrostShader();
+
 		// we need to hack this because a volume shader doesn't work with a 
 		// MayaShadingGroup node in the middle, so I'm bypassing it
 		AtNode *sgNode = (AtNode*)AiNodeGetPtr(shape, "shader");
@@ -653,196 +674,19 @@ void BifrostShapeTranslator::UpdateAero(AtNode *shape)
 		}
 	}
 
-	ExportLightLinking(shape);
-}
-
-void BifrostShapeTranslator::UpdateLiquidPolyMesh(AtNode *shape)
-{
-    AiMsgInfo("[BIFROST AI TRANSLATOR]: Translating %s as liquid", c_object.c_str());
-	CoreObjectUserData objectRef(c_object, c_file);
-	bool hotData = objectRef.objectExists();
-
-	AiNodeDeclare( shape, "hotData", "constant BOOL" );
-	AiNodeDeclare(shape, "objectName", "constant STRING");
-
-	if ( hotData ) {
-		AiNodeSetBool( shape, "hotData", 1 );
-	} else {
-		// The specified object doesn't exist in the current state server.
-		// Try to load the object from the cache file.
-
-		const float frame = (float)MAnimControl::currentTime().value();
-		const bool cacheExist = objectRef.checkCacheFileExist(frame);
-
-		if ( !cacheExist ) {
-			AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str());
-			return;
-		}
-
-		AiNodeSetBool( shape, "hotData", 0 );
-	}
-
-	// we have some data
-	AiNodeSetStr( shape, "objectName", c_object.c_str() );
-
-	static const MTime sec(1.0, MTime::kSeconds);
-	float fps = (float) sec.as(MTime::uiUnit());
-
-    static std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string("/procedurals/BifrostPolyMesh.dll");
-	AiNodeSetStr(shape, "dso", strDSO.c_str());
-	AiNodeSetBool( shape, "load_at_init", true );
-
-	AiNodeSetBool( shape, "opaque", false );
-	AiNodeSetBool( shape, "matte", false );
-
-	// setup motion blur stuff
-	AiNodeDeclare( shape, "motionBlur", "constant BOOL" );
-	AiNodeSetBool( shape, "motionBlur", IsMotionBlurEnabled() );
-
-	double shutterStart, shutterEnd;
-	shutterStart = shutterEnd = 0.0;
-	if (  IsMotionBlurEnabled() ) {
-        CArnoldSession* session = CMayaScene::GetArnoldSession();
-		session->GetMotionRange( shutterStart, shutterEnd );
-	}
-
-	AiNodeDeclare( shape, "shutterStart", "constant FLOAT" );
-	AiNodeSetFlt( shape, "shutterStart", (float) shutterStart );
-
-	AiNodeDeclare( shape, "shutterEnd", "constant FLOAT" );
-	AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
-
-	AiNodeSetByte(shape, "visibility", AI_RAY_ALL);
-
-	ExportMatrix(shape);
-
-	// get params from the node
-	MFnDagNode  bifrostDesc;
-	bifrostDesc.setObject( m_dagPath.node() );
-
-	AiNodeDeclare(shape, "fps", "constant FLOAT");
-	AiNodeSetFlt(shape, "fps", fps);
-
-	AiNodeDeclare( shape, "velocityScale", "constant FLOAT" );
-	float attrVal = bifrostDesc.findPlug( "liquidVelocityScale" ).asFloat();
-	AiNodeSetFlt( shape, "velocityScale", attrVal / fps );
-
-	AiNodeDeclare( shape, "spaceScale", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat();
-	AiNodeSetFlt( shape, "spaceScale", attrVal );
-
-	AiNodeDeclare( shape, "dropletRevealFactor", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "meshingDropletRevealFactor" ).asFloat();
-	AiNodeSetFlt( shape, "dropletRevealFactor", attrVal );
-
-	AiNodeDeclare( shape, "surfaceRadius", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "meshingSurfaceRadius" ).asFloat();
-	AiNodeSetFlt( shape, "surfaceRadius", attrVal );
-
-	AiNodeDeclare( shape, "dropletRadius", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "meshingDropletRadius" ).asFloat();
-	AiNodeSetFlt( shape, "dropletRadius", attrVal );
-
-	AiNodeDeclare( shape, "kernelFactor", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "meshingKernelFactor" ).asFloat();
-	AiNodeSetFlt( shape, "kernelFactor", attrVal );
-
-	AiNodeDeclare( shape, "resolutionFactor", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "meshingResolutionFactor" ).asFloat();
-	AiNodeSetFlt( shape, "resolutionFactor", attrVal );
-
-	AiNodeDeclare( shape, "minimumFeatureAngle", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "minimumFeatureAngle" ).asFloat();
-	AiNodeSetFlt( shape, "minimumFeatureAngle", attrVal );
-
-	AiNodeDeclare( shape, "smoothing", "constant INT" );
-	int intAttrVal = bifrostDesc.findPlug( "meshingSmoothing" ).asInt();
-	AiNodeSetInt( shape, "smoothing", intAttrVal );
-
-	AiNodeDeclare( shape, "debug", "constant INT" );
-    intAttrVal = bifrostDesc.findPlug( "aiDebug" ).asInt();
-	AiNodeSetInt( shape, "debug", intAttrVal );
-
-	AiNodeDeclare( shape, "silent", "constant INT" );
-	intAttrVal = bifrostDesc.findPlug( "silent" ).asInt();
-	AiNodeSetInt( shape, "silent", intAttrVal );
-
-	// Determine the final BIF file name
-	const float frame = (float)MAnimControl::currentTime().value();
-
-	std::string particleFilename;
-	std::string voxelFilename;
-	{
-		const int frameNumber  = (int)floorf(frame);
-
-		std::string path = c_file + "_particle.#.bif";
-		particleFilename = Bifrost::API::File::resolveFramePadding( path.c_str(), frameNumber ).c_str();
-
-		path = c_file + "_volume.#.bif";
-		voxelFilename = Bifrost::API::File::resolveFramePadding( path.c_str(), frameNumber ).c_str();
-	}
-
-	AiNodeDeclare(shape, "particleFilename", "constant STRING");
-	AiNodeSetStr( shape, "particleFilename", particleFilename.c_str() );
-
-	AiNodeDeclare(shape, "voxelFilename", "constant STRING");
-	AiNodeSetStr( shape, "voxelFilename", voxelFilename.c_str() );
-
-	AiNodeDeclare(shape, "primVarNames", "constant STRING");
-	MString strAttrVal = bifrostDesc.findPlug( "liquidPrimVars" ).asString();
-	AiNodeSetStr( shape, "primVarNames", strAttrVal.asChar() );
-
-	// export shaders
-	if (	(CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER ) ||
-			CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines() ) {
-		ExportBifrostShader();
-	}
-
 	// export lighting
 	ExportLightLinking( shape );
 }
 
-void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
+void BifrostTranslator::getLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *shape )
 {
-	CoreObjectUserData objectRef(c_object, c_file);
-	bool hotData = objectRef.objectExists();
-
-	AiNodeDeclare( shape, "hotData", "constant BOOL" );
-	AiNodeDeclare( shape, "objectName", "constant STRING" );
-
-	if ( hotData ) {
-		AiNodeSetBool( shape, "hotData", 1 );
-	} else {
-		// The specified object doesn't exist in the current state server.
-		// Try to load the object from the cache file.
-
-		const float frame = (float)MAnimControl::currentTime().value();
-		const bool cacheExist = objectRef.checkCacheFileExist( frame );
-
-		if ( !cacheExist ) {
-			AiMsgError("[BIFROST AI TRANSLATOR]: Aero data %s not found", c_object.c_str());
-			return;
-		}
-
-		AiNodeSetBool( shape, "hotData", 0 );
-	}
-
-	// we have some data
-	AiNodeSetStr( shape, "objectName", c_object.c_str() );
-
-	static const MTime sec(1.0, MTime::kSeconds);
-	float fps = (float) sec.as(MTime::uiUnit());
-
-    static std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string("/procedurals/BifrostImplicits.dll");
-	AiNodeSetStr(shape, "dso", strDSO.c_str());
-	AiNodeSetStr(shape, "solver", "levelset");
-	AiNodeSetFlt(shape, "threshold", 0.0f);
 	AiNodeSetBool( shape, "load_at_init", true );
 	AiNodeSetBool( shape, "opaque", false );
 	AiNodeSetBool( shape, "matte", false );
-	AiNodeSetByte(shape, "visibility", AI_RAY_ALL);
+	AiNodeSetByte( shape, "visibility", AI_RAY_ALL );
 
-	ExportMatrix(shape);
+	float spaceScale = bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat();
+	ExportMatrixWithSpaceScale( shape, spaceScale );
 
 	// setup motion blur stuff
 	AiNodeDeclare( shape, "motionBlur", "constant BOOL" );
@@ -851,8 +695,7 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	double shutterStart, shutterEnd;
 	shutterStart = shutterEnd = 0.0;
 	if (  IsMotionBlurEnabled() ) {
-        CArnoldSession* session = CMayaScene::GetArnoldSession();
-		session->GetMotionRange( shutterStart, shutterEnd );
+		GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
 	}
 
 	AiNodeDeclare( shape, "shutterStart", "constant FLOAT" );
@@ -861,43 +704,13 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeDeclare( shape, "shutterEnd", "constant FLOAT" );
 	AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
 
-	// get params from the node
-	MFnDagNode  bifrostDesc;
-	bifrostDesc.setObject( m_dagPath.node() );
-
-	// set default paras
-	MString strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
-	AiNodeSetStr(shape, "field_channel", strAttrVal.asChar() );
-
-	int intAttrVal = bifrostDesc.findPlug( "liquidRaySamples" ).asInt();
-	AiNodeSetUInt( shape, "samples", (unsigned int) intAttrVal );
-
-	// set user params
-	AiNodeDeclare(shape, "fps", "constant FLOAT");
-	AiNodeSetFlt(shape, "fps", fps);
-
-	AiNodeDeclare( shape, "velocityScale", "constant FLOAT" );
-	float attrVal = bifrostDesc.findPlug( "liquidVelocityScale" ).asFloat();
-	AiNodeSetFlt( shape, "velocityScale", attrVal / fps );
-
-	AiNodeDeclare( shape, "spaceScale", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat();
-	AiNodeSetFlt( shape, "spaceScale", attrVal );
-
-	AiNodeDeclare( shape, "narrowBandThicknessInVoxels", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "narrowBandThicknessInVoxels" ).asFloat();
-	AiNodeSetFlt( shape, "narrowBandThicknessInVoxels", attrVal );
-
-	AiNodeDeclare( shape, "liquidStepSize", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "liquidStepSize" ).asFloat();
-	AiNodeSetFlt( shape, "liquidStepSize", attrVal );
-
+	// culling params
 	AiNodeDeclare( shape, "cullSidesOn", "constant BOOL" );
 	bool boolAttrVal = bifrostDesc.findPlug( "cullSidesOn" ).asBool();
 	AiNodeSetBool( shape, "cullSidesOn", boolAttrVal );
 
 	AiNodeDeclare( shape, "cullSidesStart", "constant FLOAT" );
-	attrVal = bifrostDesc.findPlug( "cullSidesStart" ).asFloat();
+	float attrVal = bifrostDesc.findPlug( "cullSidesStart" ).asFloat();
 	AiNodeSetFlt( shape, "cullSidesStart", attrVal );
 
 	AiNodeDeclare( shape, "cullSidesEnd", "constant FLOAT" );
@@ -908,7 +721,22 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	attrVal = bifrostDesc.findPlug( "cullDepthAtStartInVoxels" ).asFloat();
 	AiNodeSetFlt( shape, "cullDepthAtStartInVoxels", attrVal );
 
+	// common attributes
+	AiNodeDeclare( shape, "velocityScale", "constant FLOAT" );
+	attrVal = bifrostDesc.findPlug( "liquidVelocityScale" ).asFloat();
+	AiNodeSetFlt( shape, "velocityScale", attrVal );
 
+	const MTime sec(1.0, MTime::kSeconds);
+	float fps = (float) sec.as(MTime::uiUnit());
+	AiNodeDeclare(shape, "fps", "constant FLOAT");
+	AiNodeSetFlt(shape, "fps", fps);
+
+	// set space scale to 1 as it is incorporated into matrix attribute
+	AiNodeDeclare( shape, "spaceScale", "constant FLOAT" );
+	AiNodeSetFlt( shape, "spaceScale", 1 );
+
+
+	// post process params
 	AiNodeDeclare( shape, "dilateAmount", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "dilateAmount" ).asFloat();
 	AiNodeSetFlt( shape, "dilateAmount", attrVal );
@@ -922,7 +750,7 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeSetBool( shape, "smoothOn", boolAttrVal );
 
 	AiNodeDeclare( shape, "smoothMode", "constant INT" );
-	intAttrVal = bifrostDesc.findPlug( "smoothMode" ).asInt();
+	int intAttrVal = bifrostDesc.findPlug( "smoothMode" ).asInt();
 	AiNodeSetInt( shape, "smoothMode", intAttrVal );
 
 	AiNodeDeclare( shape, "smoothAmount", "constant INT" );
@@ -932,6 +760,10 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeDeclare( shape, "smoothIterations", "constant INT" );
 	intAttrVal = bifrostDesc.findPlug( "smoothIterations" ).asInt();
 	AiNodeSetInt( shape, "smoothIterations", intAttrVal );
+
+	AiNodeDeclare( shape, "smoothWeight", "constant FLOAT" );
+	attrVal = bifrostDesc.findPlug( "smoothWeight" ).asFloat();
+	AiNodeSetFlt( shape, "smoothWeight", attrVal );
 
 	AiNodeDeclare( shape, "smoothRemapMin", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "smoothRemapMin" ).asFloat();
@@ -945,6 +777,8 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	boolAttrVal = bifrostDesc.findPlug( "smoothRemapInvert" ).asBool();
 	AiNodeSetBool( shape, "smoothRemapInvert", boolAttrVal );
 
+
+	// clip params
 	AiNodeDeclare( shape, "clipOn", "constant BOOL" );
 	boolAttrVal = bifrostDesc.findPlug( "liquidClipOn" ).asBool();
 	AiNodeSetBool( shape, "clipOn", boolAttrVal );
@@ -974,6 +808,7 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeSetFlt( shape, "clipMaxZ", attrVal );
 
 
+	// infcube blending params
 	AiNodeDeclare( shape, "infCubeBlendingOn", "constant BOOL" );
 	boolAttrVal = bifrostDesc.findPlug( "infCubeBlendingOn" ).asBool();
 	AiNodeSetBool( shape, "infCubeBlendingOn", boolAttrVal );
@@ -1035,6 +870,7 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeSetBool( shape, "blendingChannelRemapInvert", boolAttrVal );
 
 
+	// particle to voxel conversion params
 	AiNodeDeclare( shape, "implicitResolutionFactor", "constant FLOAT" );
 	attrVal = bifrostDesc.findPlug( "implicitResolutionFactor" ).asFloat();
 	AiNodeSetFlt( shape, "implicitResolutionFactor", attrVal );
@@ -1064,8 +900,9 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeSetBool( shape, "doErodeSheetsAndDroplets", boolAttrVal );
 
 
+	// diagnostics params
 	AiNodeDeclare( shape, "debug", "constant INT" );
-    intAttrVal = bifrostDesc.findPlug( "aiDebug" ).asInt();
+	intAttrVal = bifrostDesc.findPlug( "liquidDebug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 	AiNodeDeclare( shape, "silent", "constant INT" );
@@ -1087,7 +924,7 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeSetStr( shape, "bifFilename", particleFilename.c_str() );
 
 	AiNodeDeclare(shape, "distanceChannel", "constant STRING");
-	strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
+	MString strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
 	AiNodeSetStr( shape, "distanceChannel", strAttrVal.asChar() );
 
 	AiNodeDeclare(shape, "filterBlendingChannel", "constant STRING");
@@ -1101,9 +938,116 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	AiNodeDeclare(shape, "primVarNames", "constant STRING");
 	strAttrVal = bifrostDesc.findPlug( "liquidPrimVars" ).asString();
 	AiNodeSetStr( shape, "primVarNames", strAttrVal.asChar() );
+}
 
-	if (	( CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-			CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines() ) {
+void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
+{
+	MFnDagNode  bifrostDesc;
+	bifrostDesc.setObject( m_dagPath.node() );
+	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
+
+	bool hotData = objectRef.objectExists();
+	AiNodeDeclare( shape, "hotData", "constant BOOL" );
+
+	if ( hotData ) {
+		AiNodeSetBool( shape, "hotData", 1 );
+	} else {
+		// The specified object doesn't exist in the current state server.
+		// Try to load the object from the cache file.
+
+		const float frame = (float)MAnimControl::currentTime().value();
+		const bool cacheExist = objectRef.checkCacheFileExist( frame );
+
+		if ( !cacheExist ) {
+			AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str());
+			return;
+		}
+
+		AiNodeSetBool( shape, "hotData", 0 );
+	}
+
+	// we have some data
+	AiNodeDeclare( shape, "bifrostObjectName", "constant STRING" );
+	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
+
+    static std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string( "/procedurals/BifrostPolyMesh.dll" );
+	AiNodeSetStr( shape, "dso", strDSO.c_str() );
+
+	// set user params
+	AiNodeDeclare( shape, "mesherAlgo", "constant INT" );
+	int intAttrVal = bifrostDesc.findPlug( "mesherAlgo" ).asInt();
+	AiNodeSetInt( shape, "mesherAlgo", intAttrVal );
+
+	AiNodeDeclare( shape, "sampleRate", "constant INT" );
+	intAttrVal = bifrostDesc.findPlug( "sampleRate" ).asInt();
+	AiNodeSetInt( shape, "sampleRate", intAttrVal );
+
+	getLiquidAttributes( bifrostDesc, shape );
+
+	// export shaders
+	if ( RequiresShaderExport() ) {
+		ExportBifrostShader();
+	}
+
+	// export lighting
+	ExportLightLinking( shape );
+}
+
+void BifrostTranslator::ExportLiquidImplicit(AtNode *shape)
+{
+	MFnDagNode  bifrostDesc;
+	bifrostDesc.setObject( m_dagPath.node() );
+	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
+
+	bool hotData = objectRef.objectExists();
+	AiNodeDeclare( shape, "hotData", "constant BOOL" );
+
+	if ( hotData ) {
+		AiNodeSetBool( shape, "hotData", 1 );
+	} else {
+		// The specified object doesn't exist in the current state server.
+		// Try to load the object from the cache file.
+
+		const float frame = (float)MAnimControl::currentTime().value();
+		const bool cacheExist = objectRef.checkCacheFileExist( frame );
+
+		if ( !cacheExist ) {
+			AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str());
+			return;
+		}
+
+		AiNodeSetBool( shape, "hotData", 0 );
+	}
+
+	// we have some data
+	AiNodeDeclare( shape, "bifrostObjectName", "constant STRING" );
+	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
+
+    static std::string strDSO = std::string( getenv( "MTOA_PATH" ) ) + std::string("/procedurals/BifrostImplicits.dll");
+	AiNodeSetStr( shape, "dso", strDSO.c_str() );
+	AiNodeSetStr( shape, "solver", "levelset" );
+	AiNodeSetFlt( shape, "threshold", 0.0f );
+
+	// add implicit specific attributes
+	AiNodeDeclare( shape, "narrowBandThicknessInVoxels", "constant FLOAT" );
+	float attrVal = bifrostDesc.findPlug( "narrowBandThicknessInVoxels" ).asFloat();
+	AiNodeSetFlt( shape, "narrowBandThicknessInVoxels", attrVal );
+
+	AiNodeDeclare( shape, "liquidStepSize", "constant FLOAT" );
+	attrVal = bifrostDesc.findPlug( "liquidStepSize" ).asFloat();
+	AiNodeSetFlt( shape, "liquidStepSize", attrVal );
+
+	MString strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
+	AiNodeSetStr(shape, "field_channel", strAttrVal.asChar() );
+
+	int intAttrVal = bifrostDesc.findPlug( "sampleRate" ).asInt();
+	AiNodeSetUInt( shape, "samples", (unsigned int) intAttrVal );
+
+	// set user params
+	getLiquidAttributes( bifrostDesc, shape );
+
+	// export shaders
+	if ( RequiresShaderExport() ) {
 		ExportBifrostShader();
 		// we need to hack this because a volume shader doesn't work with a 
 		// MayaShadingGroup node in the middle, so I'm bypassing it
@@ -1117,34 +1061,38 @@ void BifrostShapeTranslator::UpdateLiquidImplicit(AtNode *shape)
 	ExportLightLinking(shape);
 }
 
-void BifrostShapeTranslator::ExportMotion(AtNode* shape)
+void BifrostTranslator::ExportMotion( AtNode* shape )
 {
 	// Check if motionblur is enabled and early out if it's not.
-	if (!IsMotionBlurEnabled()) return;
+	if ( !IsMotionBlurEnabled() ) {
+		return;
+	}
 
 	// Set transform matrix
-	ExportMatrix(shape);
+	ExportMatrix( shape );
 }
 
-void BifrostShapeTranslator::NodeInitializer( CAbTranslator context )
+void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
-    CExtensionAttrHelper helper(context.maya, "standard");
-    CAttrData data;
-    // debug
-    ADD_INT_MIN("aiDebug", "aidbg", 0, 0, 5);
+	// empty
 }
 
-void BifrostShapeTranslator::ExportBifrostShader()
+void BifrostTranslator::ExportBifrostShader()
 {
-    AtNode *node = GetArnoldNode();
+	AtNode *node = GetArnoldNode();
 
-	MPlug shadingGroupPlug = GetNodeShadingGroup( m_dagPath.node(), 0 );
-	if ( !shadingGroupPlug.isNull() ) {
-        AtNode *rootShader = ExportConnectedNode( shadingGroupPlug );
-
-		if ( rootShader != NULL ) {
-			// Push the shader in the vector to be assigned later to mtoa_shading_groups
-			AiNodeSetPtr(node, "shader", rootShader);
+	 MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
+	 if ( !shadingGroupPlug.isNull() ) {
+		AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
+		if (rootShader != NULL) {
+	       // Push the shader in the vector to be assigned later to mtoa_shading_groups
+		   AiNodeSetPtr(node, "shader", rootShader);
 		}
 	}
+}
+
+void BifrostTranslator::RequestUpdate()
+{
+	SetUpdateMode( AI_RECREATE_NODE );
+	CShapeTranslator::RequestUpdate();
 }

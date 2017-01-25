@@ -35,6 +35,12 @@ def setup(env, library):
     def addBifrostRenderCore(env):
         env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'plugins', 'bifrostrendercore', 'api')])
         env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin' if system.os() == 'darwin' else 'lib')])
+        print mayaRoot
+
+        # TMP to remove
+        #env.Append(CPPPATH = ["/home/beauchc/Perforce/beauchc_maya_2/src/Components/BifrostTmp/plugins/bifrostrendercore/api"])
+        #env.Append(LIBPATH = ["/home/beauchc/Perforce/beauchc_maya_2/src/Components/BifrostTmp/plugins/bifrostrendercore/build"])
+
         env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
 
     def addAi(env):

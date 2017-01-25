@@ -10,7 +10,7 @@
 // Code written by Cave (www.cavevfx.com) for Autodesk in 2016
 // Written by Erdem Taylan
 
-#include "AIPrimitivesTools.h"
+#include "PrimitivesTools.h"
 
 using namespace Bifrost::RenderCore;
 
@@ -74,7 +74,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 
 		AtArray *normalArray = NULL;
 		float *normalData = NULL;
-		if ( inData->useChannelGradientAsNormal && inData->renderType == PRIM_POINT ) {
+		if ( inData->exportNormalAsPrimvar && inData->renderType == PRIM_POINT ) {
 			normalArray = AiArrayAllocate( totalExported, frameData->motionBlur ? 2 : 1, AI_TYPE_VECTOR );
 			normalData = (float *)cNormal;
 		}
@@ -122,7 +122,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		}
 
 		// export gradient if needed
-		if ( inData->useChannelGradientAsNormal && inData->renderType == PRIM_POINT ) {
+		if ( inData->exportNormalAsPrimvar && inData->renderType == PRIM_POINT ) {
 			AiNodeDeclare( newNode, "densityNormal", "uniform VECTOR" );
 
 			for ( int i = 0; i < totalExported; i++ ) {

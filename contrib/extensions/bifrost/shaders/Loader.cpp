@@ -4,16 +4,10 @@
 
 extern AtNodeMethods* BifrostFoamMaterialMtd;
 extern AtNodeMethods* BifrostAeroMaterialMtd;
-extern AtNodeMethods* BifrostHydroMethod;
-extern AtNodeMethods* BifrostPointMethod;
-extern AtNodeMethods* BifrostAeroMethod;
 
 enum{
    SHADER_BIFROST_FOAM_MATERIAL = 0,
-   SHADER_BIFROST_AERO_MATERIAL,
-   SHADER_BIFROST_HYDRO,
-   SHADER_BIFROST_POINT,
-   SHADER_BIFROST_AERO
+   SHADER_BIFROST_AERO_MATERIAL
 };
 
 node_loader
@@ -29,18 +23,6 @@ node_loader
    case SHADER_BIFROST_AERO_MATERIAL:
       node->methods      = BifrostAeroMaterialMtd;
       node->name         = "bifrostAeroMaterial";
-      break;
-   case SHADER_BIFROST_HYDRO:
-      node->methods      = BifrostHydroMethod;
-      node->name         = "bifrostHydro";
-      break;
-   case SHADER_BIFROST_POINT:
-      node->methods      = BifrostPointMethod;
-      node->name         = "bifrostPoint";
-      break;
-   case SHADER_BIFROST_AERO:
-      node->methods      = BifrostAeroMethod;
-      node->name         = "bifrostAero";
       break;
 
    default:

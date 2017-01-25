@@ -43,16 +43,16 @@
 
 #include <ai.h>
 
-#include <bifrostrendercore/CoreDefs.h>
-#include <bifrostrendercore/CoreTypes.h>
-#include <bifrostrendercore/CoreMath.h>
-#include <bifrostrendercore/CoreTools.h>
-#include <bifrostrendercore/CorePrimVars.h>
-#include <bifrostrendercore/CoreVisitors.h>
-#include <AITools.h>
-#include <bifrostrendercore/CoreFilters.h>
+#include <bifrostrendercore/bifrostrender_defs.h>
+#include <bifrostrendercore/bifrostrender_types.h>
+#include <bifrostrendercore/bifrostrender_math.h>
+#include <bifrostrendercore/bifrostrender_tools.h>
+#include <bifrostrendercore/bifrostrender_primvars.h>
+#include <bifrostrendercore/bifrostrender_visitors.h>
+#include <Tools.h>
+#include <bifrostrendercore/bifrostrender_filters.h>
 
-#include <bifrostrendercore/CoreObjectUserData.h>
+#include <bifrostrendercore/bifrostrender_objectuserdata.h>
 
 using namespace Bifrost::RenderCore;
 
@@ -93,18 +93,19 @@ struct BifrostVolumeUserData {
 
 bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 {
-	bool error = false;
+	inData->error = false;
 
 	// get numeric data
+	inData->channelScale = AiNodeGetFlt(parentNode, "channelScale");
 	inData->velocityScale = AiNodeGetFlt(parentNode, "velocityScale");
 	inData->fps = AiNodeGetFlt(parentNode, "fps");
 	inData->spaceScale = AiNodeGetFlt(parentNode, "spaceScale");
-	inData->channelScale = AiNodeGetFlt(parentNode, "channelScale");
 
 	inData->smooth.on = AiNodeGetBool( parentNode, "smoothOn" );
 	inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( parentNode, "smoothMode" );
 	inData->smooth.amount = AiNodeGetInt( parentNode, "smoothAmount" );
 	inData->smooth.iterations = AiNodeGetInt( parentNode, "smoothIterations" );
+	inData->smooth.weight = AiNodeGetFlt( parentNode, "smoothWeight" );
 	inData->smooth.remapMin = AiNodeGetFlt(parentNode, "smoothRemapMin");
 	inData->smooth.remapMax = AiNodeGetFlt(parentNode, "smoothRemapMax");
 	inData->smooth.remapInvert = AiNodeGetBool(parentNode, "smoothRemapInvert");
@@ -116,13 +117,6 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 	inData->clip.maxY = AiNodeGetFlt(parentNode, "clipMaxY");
 	inData->clip.minZ = AiNodeGetFlt(parentNode, "clipMinZ");
 	inData->clip.maxZ = AiNodeGetFlt(parentNode, "clipMaxZ");
-	// if there is something fishy, turn off clipBox
-	if ( inData->clip.on ) {
-		if ( inData->clip.maxX <= inData->clip.minX || inData->clip.maxY <= inData->clip.minY || inData->clip.maxZ <= inData->clip.minZ ) {
-			printf("ClipBox coordinates are wrong: one or more of MaxXYZ is smaller than MinXYZ\n");
-			error = true;
-		}
-	}
 
 	inData->splatResolutionFactor = AiNodeGetFlt(parentNode, "splatResolutionFactor");
 	inData->skip = std::max(1, AiNodeGetInt( parentNode, "skip" ) );
@@ -133,12 +127,10 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 	inData->splatFalloffType = (FalloffType) AiNodeGetInt( parentNode, "splatFalloffType" );
 	inData->splatFalloffStart = AiNodeGetFlt(parentNode, "splatFalloffStart");
 	inData->splatFalloffEnd = AiNodeGetFlt(parentNode, "splatFalloffEnd");
-	inData->splatFalloffRange = inData->splatFalloffEnd - inData->splatFalloffStart;
 	inData->splatDisplacement = AiNodeGetFlt(parentNode, "splatDisplacement");
 	inData->splatNoiseFreq = AiNodeGetFlt(parentNode, "splatNoiseFreq");
 
-	inData->diagnostics.debug = AiNodeGetInt( parentNode, "debug" );
-	inData->diagnostics.silent = AiNodeGetInt( parentNode, "silent" );
+	inData->diagnostics.DEBUG = AiNodeGetInt( parentNode, "debug" );
 
 	inData->hotData = AiNodeGetBool( parentNode, "hotData" );
 
@@ -167,12 +159,20 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 	inData->primVarNames = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->primVarNames, primVarNames.c_str() );
 
+	const AtString bifrostObjectNameParam("bifrostObjectName");
+	const AtString bifrostObjectName = AiNodeGetStr(parentNode, bifrostObjectNameParam );
+	inputLen = bifrostObjectName.length();
+	inData->bifrostObjectName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
+	strcpy( inData->bifrostObjectName, bifrostObjectName.c_str() );
+
 	// arnold specific parameters
 	inData->motionBlur = AiNodeGetBool( parentNode, "motionBlur" );
 	inData->shutterStart = AiNodeGetFlt( parentNode, "shutterStart" );
 	inData->shutterEnd = AiNodeGetFlt( parentNode, "shutterEnd" );
 
-	return error;
+	inData->checkParameters();
+
+	return inData->error;
 }
 
 
@@ -206,11 +206,13 @@ bool BifrostVolumePluginCleanup(void* user_ptr)
 			free( inData->inputChannelName );
 			free( inData->smooth.channelName );
 			free( inData->primVarNames );
+			free( inData->bifrostObjectName );
+
+			if ( inData->inMemoryRef ) {
+				delete inData->inMemoryRef;
+			}
 		}
 
-		if ( volData->objectRef ) {
-			delete volData->objectRef;
-		}
 		delete volData;
 	}
 
@@ -222,22 +224,44 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 										const AtNode* node,
 										AtVolumeData* out_data )
 {
+	//
+	//
+	// DECLARATIONS
+	//
+	//
 	BifrostVolumeUserData *data = (BifrostVolumeUserData *) user_ptr;
 
-	std::string objectName = AiNodeLookUpUserParameter(node, "objectName") ? AiNodeGetStr(node, "objectName") : "";
-	std::string bifFilename = AiNodeLookUpUserParameter(node, "bifFilename") ? AiNodeGetStr(node, "bifFilename") : "";
-	if (true || objectName != data->objectName || bifFilename != data->file) // in case we change the frame ?
-	{
-		// need to update objet_ref
-		if (data->objectRef) delete data->objectRef;
+	//
+	//
+	// INIT
+	//
+	//
 
-		data->objectRef = new CoreObjectUserData(objectName, bifFilename);
-		data->objectName = objectName;
-		data->file = bifFilename;
-	}
+	// init VolumeInputData
+	struct VolumeInputData *inData = (struct VolumeInputData *) new ( struct VolumeInputData);
+	data->inputData = inData;
 
+    // log start
+	printEndOutput( "[BIFROST VOLUME] START OUTPUT", inData->diagnostics );
+
+	// get input data
+	bool error = getNodeParameters( inData, node );
+
+	// init in memory class
+	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
+
+	// init user data stuff
+	data->objectRef = inData->inMemoryRef;
+	data->objectName = inData->bifrostObjectName;
+	data->file = inData->bifFilename;
+
+	out_data->private_info = user_ptr;
+
+	// get shader params
 	AtNode *shader = (AtNode*)AiNodeGetPtr(node, "shader");
 
+
+	// FIX THIS
 	//if(shader) {
 	//	data->stepSize = AiNodeGetFlt(shader, "aiStepSize");
 	//	data->maxSteps = AiNodeGetInt(shader, "aiMaxSteps");
@@ -253,43 +277,6 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	//}
 
 	out_data->auto_step_size = data->stepSize;
-	out_data->private_info = user_ptr;
-	//AiAddMemUsage((AtInt64)grid->memoryUsage(), "BifrostAero volume plugin data");
-
-	//
-	//
-	// INIT
-	//
-	//
-
-	// init VolumeInputData
-	struct VolumeInputData *inData = (struct VolumeInputData *) new ( struct VolumeInputData);
-	data->inputData = inData;
-
-	// get input data
-	bool error = getNodeParameters( inData, node );
-
-    // log start
-	printEndOutput( "[BIFROST VOLUME] START OUTPUT", inData->diagnostics );
-
-	//// check param count
- //   if ( nstring != inData->nofImplicitStringParams ) {
- //  	   	IFNOTSILENT {
-	//		printf("Bad string arguments to BifrostVolumeAI, please check your ASS!\n");
-	//		printf("You have %d parameters instead of %d!\n\n", nstring, inData->nofImplicitStringParams );
-	//	}
-
- //       error = true;
- //   }
-
-	//if (nfloat != inData->nofImplicitFloatParams) {
-	//   	IFNOTSILENT {
-	//		printf("Bad arguments to BifrostVolumeAI, please check your ASS!\n");
-	//		printf("You have %d parameters instead of %d!\n\n", nfloat, inData->nofImplicitFloatParams);
-	//	}
-
-	//	error = true;
-	//}
 
 	//
 	//
@@ -298,15 +285,12 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	//
 	Bifrost::API::String writeToFolder;
 	if ( inData->hotData ) {
-		// declare State Server
-		Bifrost::API::StateServer hotServer( data->objectRef->stateServer() );
-
 		// write in memory data to a temp file
 		Bifrost::API::String writeToFile;
 		if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
-			writeToFile = writeHotDataToDisk( hotServer, inData->bifFilename, "AeroObject-volume", inData->diagnostics, writeToFolder );
+			writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "AeroObject-volume", writeToFolder );
 		} else {
-			writeToFile = writeHotDataToDisk( hotServer, inData->bifFilename, "AeroObject-particle", inData->diagnostics, writeToFolder );
+			writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "AeroObject-particle", writeToFolder );
 		}
 
 		// realloc for the new name
@@ -342,7 +326,6 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	// PRELOADING AND INFO GATHERING
 	//
 	//
-	//
 
 	// init FrameData struct that holds information specific to the frame we are rendering
 	FrameData *frameData = (FrameData *) new (FrameData);
@@ -350,6 +333,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	frameData->pluginType = PLUGIN_VOLUME;
 	frameData->hotData = inData->hotData;
 	frameData->tmpFolder = writeToFolder;
+
 	data->frameData = frameData;
 
 	// process which channels to load
@@ -445,7 +429,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 
 	// print load time
 	IFNOTSILENT {
-		if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf("\nLoad time:%f secs\n", duration);
 		}
 	}
@@ -470,7 +454,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 			}
 		}
 
-		if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			std::cout << "\tChannel count: " << channels.count() << std::endl;
 			for ( size_t i=0; i<channels.count(); i++ ) {
 				std::cout << "\t\tChannel: " << Bifrost::API::Base(channels[i]).name() << std::endl;
@@ -488,7 +472,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 
 	// dump data before channel processing
 	IFNOTSILENT {
-		if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			dumpStateServer( srcSS, "BEFORE PROCESSING" );
 		}
 	}
@@ -663,7 +647,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	//
 	//
 	//
-	if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 ) {
+	if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
 		IFNOTSILENT {
 			printf("\nPost Processing %s channel...\n", inData->inputChannelName);
 			printf("\tPost processing parameters:\n");
@@ -694,7 +678,11 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 		}
 
 		IFNOTSILENT {
-			printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d FilterChannel: %s\n", filterType.c_str(), inData->smooth.amount, inData->smooth.iterations, inData->smooth.channelName );
+			printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d Weight: %f FilterChannel: %s\n", filterType.c_str(),
+																												inData->smooth.amount,
+																												inData->smooth.iterations,
+																												inData->smooth.weight,
+																												inData->smooth.channelName );
 		}
 
 		IFNOTSILENT { printf("\tSmoothing...\n"); }
@@ -715,16 +703,15 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	// CALC BBOX
 	//
 	//
-	//
 	double bboxMin[3] = { 0.0, 0.0, 0.0 };
 	double bboxMax[3] = { 0.0, 0.0, 0.0 };
 	computeAeroBounds( frameData->srcChannel, bboxMin, bboxMax);
-	data->bbox.min.x = bboxMin[0];
-	data->bbox.min.y = bboxMin[1];
-	data->bbox.min.z = bboxMin[2];
-	data->bbox.max.x = bboxMax[0];
-	data->bbox.max.y = bboxMax[1];
-	data->bbox.max.z = bboxMax[2];
+	data->bbox.min.x = (float) bboxMin[0];
+	data->bbox.min.y = (float) bboxMin[1];
+	data->bbox.min.z = (float) bboxMin[2];
+	data->bbox.max.x = (float) bboxMax[0];
+	data->bbox.max.y = (float) bboxMax[1];
+	data->bbox.max.z = (float) bboxMax[2];
    
 	out_data->bbox = data->bbox;
 
@@ -747,7 +734,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	reportChannelRanges ( frameData, component, inData->diagnostics );
 
 	IFNOTSILENT {
-		if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			dumpStateServer( srcSS, "AFTER ALL OPS" );
 		}
 	}
@@ -768,7 +755,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 			data->srcChannelSamplerIndexStart = startIndex;
 		}
 
-		if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf("%s - %d - %d\n", channel.name().c_str(), data->channelSamplerIndexes[ tmpString ], data->srcChannelSamplerIndexStart );
 		}
 
@@ -793,13 +780,13 @@ bool BifrostVolumePluginCleanupVolume(void* user_ptr, AtVolumeData* data, const 
 	return true;
 }
 
-bool BifrostVolumePluginSample(void* user_ptr,
-                            const AtVolumeData* data,
-                            const AtString channel,
-                            const AtShaderGlobals* sg,
-                            int interp,
-                            AtParamValue *value,
-                            AtByte *type)
+bool BifrostVolumePluginSample(	void* user_ptr,
+								const AtVolumeData* data,
+								const AtString channel,
+								const AtShaderGlobals* sg,
+								int interp,
+								AtParamValue *value,
+								AtByte *type)
 {
 	if (!data->private_info) return false;
 
@@ -816,7 +803,7 @@ bool BifrostVolumePluginSample(void* user_ptr,
 	Bifrost::API::VoxelSampler *threadSampler = volData->channelSamplers[ samplerIndexStart + sg->tid ];
 
 	if (threadSampler == 0) {
-		if ( inData->diagnostics.debug > 0 ) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
 			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
 		}
 		Bifrost::API::VoxelChannel bifChannel = volData->voxelComponent.findChannel( channel.c_str() );
@@ -911,502 +898,3 @@ AI_EXPORT_LIB bool VolumePluginLoader(AtVolumePluginVtable* vtable)
 #ifdef __cplusplus
 }
 #endif
-
-
-// CLASS DEFINITION FOR BifrostVolumeVertexValue
-
-//class BifrostVolumeVertexValue: public ImplicitVertexValue
-//{
-//public:
-//
-//	BifrostVolumeVertexValue  (
-//							int c_primVarIndex,
-//							FrameData *frameData,
-//							VolumeInputData *inData
-//						);
-//
-//	~BifrostVolumeVertexValue();
-//
-//	void GetVertexValue(RtFloat* result, const RtPoint p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		GetVertexValueFiltered(result, p, zero, zero, zero);
-//	}
-//
-//	virtual void GetVertexValueFiltered(RtFloat *result, const RtPoint p,
-//										const RtPoint dPdu, const RtPoint dPdv,
-//										const RtPoint dPdw);
-//
-//	virtual void GetVertexValueMultiple(int neval, RtFloat *result, int resultstride, const RtPoint *p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		GetVertexValueMultipleFiltered(neval, result, resultstride, p, &zero, &zero, &zero);
-//	}
-//
-//	virtual void GetVertexValueMultipleFiltered(int neval, RtFloat *result,
-//												int resultstride, const RtPoint *p,
-//												const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw);
-//
-//	static BifrostVolumeVertexValue* Create(	int primVarIndex,
-//												FrameData *frameData,
-//												VolumeInputData *inData)
-//	{
-//		return new BifrostVolumeVertexValue( primVarIndex, frameData, inData);
-//	}
-//
-//	Bifrost::API::VoxelChannel c_chan;
-//	std::string c_threadName;
-//	int c_primVarIndex;
-//	FrameData *c_frameData;
-//	VolumeInputData *c_inData;
-//};
-//
-//// GetVertexValue is also using GetVertexValueFiltered
-//void BifrostVolumeVertexValue::GetVertexValueFiltered(	RtFloat *result,
-//														const RtPoint p,
-//														const RtPoint dPdu,
-//														const RtPoint dPdv,
-//														const RtPoint dPdw)
-//{
-//	if ( c_inData->diagnostics.debug >= 3 ) {
-//		printf("Entering getvertexvaluefiltered\n");
-//	}
-//
-//	Bifrost::API::VoxelSampler *sampler = risVertexGetSampler( c_chan, c_threadName );
-//
-//	*result = risVolumeGetSample ( p, sampler );
-//}
-//
-//// GetVertexValueMultiple is also using GetVertexValueMultipleFiltered
-//void BifrostVolumeVertexValue::GetVertexValueMultipleFiltered(	int neval, RtFloat *result, int resultstride,
-//															const RtPoint *p,
-//															const RtPoint *dPdu,
-//															const RtPoint *dPdv,
-//															const RtPoint *dPdw)
-//{
-//	if ( c_inData->diagnostics.debug >= 3 ) {
-//		printf("Entering getvertexvaluemultiplefiltered\n");
-//	}
-//
-//	Bifrost::API::VoxelSampler *sampler = risVertexGetSampler( c_chan, c_threadName );
-//
-//	for (int i = 0; i < neval; ++i, ++p) {
-//		*result = risVolumeGetSample ( *p, sampler );
-//		result += resultstride;
-//	}
-//}
-//
-//BifrostVolumeVertexValue::BifrostVolumeVertexValue(	int primVarIndex,
-//													FrameData *frameData,
-//													VolumeInputData *inData)
-//    :	c_primVarIndex  ( primVarIndex ),
-//		c_frameData		( frameData ),
-//		c_inData		( inData )
-//{
-//	if ( c_inData->diagnostics.debug >= 3 ) {
-//		printf("Entering BifrostVolumeVertexValue construct\n");
-//	}
-//
-//	// keep channel in a safe place
-//	c_chan = ( Bifrost::API::VoxelChannel ) c_frameData->primVars[c_primVarIndex].channel;
-//
-//	// store a value for thread sampler name
-//	c_threadName = c_frameData->idString + c_frameData->primVars[c_primVarIndex].name;
-//}
-//
-//BifrostVolumeVertexValue::~BifrostVolumeVertexValue()
-//{
-//	if ( c_inData->diagnostics.debug >= 3 ) {
-//		printf("Entering BifrostVolumeVertexValue deconstruct\n");
-//	}
-//}
-//
-//// CLASS DEFINITION FOR IMPLICIT FIELD
-//
-//class BifrostVolumeIF: public ImplicitField {
-//public:
-//	BifrostVolumeIF(	const char *filename,
-//				Bifrost::API::StateServer &inSS,
-//				struct FrameData *frameData,
-//				struct VolumeInputData *inData);
-//
-//	//BifrostVolumeIF() {};
-//
-//	virtual ~BifrostVolumeIF();
-//
-//	virtual RtFloat Eval(const RtPoint p) {
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		return EvalFiltered(p, zero, zero, zero);
-//	}
-//
-//	virtual RtFloat EvalFiltered(	const RtPoint p, const RtPoint dPdu,
-//									const RtPoint dPdv, const RtPoint dPdw);
-//
-//	virtual void EvalMultiple(int neval, float *result, int resultstride, const RtPoint *p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		EvalMultipleFiltered(neval, result, resultstride, p, &zero, &zero, &zero);
-//	}
-//
-//	virtual void EvalMultipleFiltered(	int neval, float *result, int resultstride, const RtPoint *p,
-//										const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw);
-//
-//	virtual void GradientEval(RtPoint grad, const RtPoint p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		GradientEvalFiltered(grad, p, zero, zero, zero);
-//	}
-//
-//	virtual void GradientEvalFiltered(	RtPoint result, const RtPoint p,
-//										const RtPoint dPdu, const RtPoint dPdv, const RtPoint dPdw);
-//
-//	virtual void GradientEvalMultiple(int neval, RtPoint *result, const RtPoint *p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		GradientEvalMultipleFiltered(neval, result, p, &zero, &zero, &zero);
-//	}
-//
-//	virtual void GradientEvalMultipleFiltered(	int neval, RtPoint *result, const RtPoint *p,
-//												const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw);
-//
-//	virtual ImplicitVertexValue *CreateVertexValue(const RtToken name, int nvalue);
-//
-//	virtual void Motion(RtPoint result, const RtPoint p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		MotionFiltered(result, p, zero, zero, zero);
-//	}
-//
-//	virtual void MotionFiltered(RtPoint result, const RtPoint p,
-//								const RtPoint dPdu, const RtPoint dPdv, const RtPoint dPdw);
-//
-//	virtual void MotionMultiple(int neval, RtPoint *result, const RtPoint *p)
-//	{
-//		RtPoint zero = {0.0f, 0.0f, 0.0f};
-//		MotionMultipleFiltered(neval, result, p, &zero, &zero, &zero);
-//	}
-//
-//	virtual void MotionMultipleFiltered(int neval, RtPoint *result, const RtPoint *p,
-//										const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw);
-//
-//    virtual void BoxMotion(RtBound result, const RtBound b);
-//
-//	virtual void Range(RtInterval result, const RtPoint corners[8], const RtVolumeHandle h);
-//
-//	virtual float MinimumVoxelSize(const RtPoint corners[8]);
-//
-//	virtual void dumpFrameData()
-//	{
-//		this->c_frameData->dump();
-//	}
-//
-//	virtual void dumpBifInfo()
-//	{
-//		this->c_frameData->bifInfo.dump();
-//	}
-//
-//	virtual void dumpVolumeInputData()
-//	{
-//		this->c_inData->printParameters( true );
-//	}
-//
-//	friend class BifrostVolumeVertexValue;
-//
-//private:
-//	// bif filename
-//    const char *c_filename;
-//
-//	Bifrost::API::StateServer c_SS;
-//
-//	// frame data struct
-//	FrameData *c_frameData;
-//
-//    // inputs
-//    VolumeInputData *c_inData;
-//
-//	// debug
-//	unsigned c_debug;
-//
-//	// for fast thread data lookup
-//	ThreadNames *c_threadNames;
-//};
-//
-//
-//// CLASS CONSTRUCTOR
-//
-//BifrostVolumeIF::BifrostVolumeIF(const char *filename,
-//                     Bifrost::API::StateServer &inSS,
-//					 struct FrameData *frameData,
-//					 struct VolumeInputData *inData)
-//    : c_filename(filename),
-//      c_SS(inSS),
-//	  c_frameData(frameData),
-//	  c_inData(inData)
-//{
-//	c_debug = c_inData->diagnostics.debug;
-//
-//	IFNOTSILENTCLASS {
-//		if ( c_debug >= 3 ) {
-//			printf("Entering class constructur!\n");
-//		}
-//	}
-//
-//	Bifrost::API::Layout layout = c_frameData->srcChannel.layout();
-//	c_frameData->tileWorldSize = layout.tileDimInfo( layout.maxDepth() ).depthWidth * c_frameData->voxelScale;
-//
-//	// create an id and associated string to differentiate between multiple instances of the plugin
-//	c_frameData->idString = risCreateIdString( (void *) this );
-//
-//	IFNOTSILENT {
-//		if ( c_debug > 0 ) {
-//			printf("\nPlugin ID: %s\n\n", c_frameData->idString.c_str() );
-//		}
-//	}
-//	
-//	// init thread storage names
-//	c_threadNames = new ThreadNames();
-//	c_threadNames->threadNameSrc  = c_frameData->idString + c_frameData->srcChannel.name().c_str();
-//	c_threadNames->threadNameVelU = c_frameData->idString + c_frameData->velocityChannelU.name().c_str();
-//	c_threadNames->threadNameVelV = c_frameData->idString + c_frameData->velocityChannelV.name().c_str();
-//	c_threadNames->threadNameVelW = c_frameData->idString + c_frameData->velocityChannelW.name().c_str();
-//
-//	c_threadNames->rangeMinBoundCacheName = c_frameData->idString + "RangeMinBoundCache";
-//	c_threadNames->rangeMaxBoundCacheName = c_frameData->idString + "RangeMaxBoundCache";
-//	c_threadNames->rangeMinResultCacheName = c_frameData->idString + "RangeMinResultCache";
-//	c_threadNames->rangeMaxResultCacheName = c_frameData->idString + "RangeMaxResultCache";
-//	c_threadNames->rangeCacheActiveName = c_frameData->idString + "RangeCacheActive";
-//
-//	c_threadNames->boxMinBoundCacheName = c_frameData->idString + "BoxMinBoundCache";
-//	c_threadNames->boxMaxBoundCacheName = c_frameData->idString + "BoxMaxBoundCache";
-//	c_threadNames->boxMinXCacheName = c_frameData->idString + "BoxMinXCache";
-//	c_threadNames->boxMaxXCacheName = c_frameData->idString + "BoxMaxXCache";
-//	c_threadNames->boxMinYCacheName = c_frameData->idString + "BoxMinYCache";
-//	c_threadNames->boxMaxYCacheName = c_frameData->idString + "BoxMaxYCache";
-//	c_threadNames->boxMinZCacheName = c_frameData->idString + "BoxMinZCache";
-//	c_threadNames->boxMaxZCacheName = c_frameData->idString + "BoxMaxZCache";
-//	c_threadNames->boxCacheActiveName = c_frameData->idString + "BoxCacheActive";
-//
-//	// compute bound for the sim
-//	computeVolumeBounds( bbox, c_frameData, c_inData->diagnostics );
-//
-//	IFNOTSILENT {
-//		if ( c_debug >= 3 ) {
-//			printf("Exiting class constructur!\n");
-//		}
-//	}
-//}
-//
-//// CLASS DESTRUCTOR
-//
-//BifrostVolumeIF::~BifrostVolumeIF()
-//{
-//	IFNOTSILENTCLASS {
-//		if ( c_inData->diagnostics.debug > 0) {
-//			printEndOutput( "[BIFROST VOLUME] START POST RENDER REPORT", c_inData->diagnostics );
-//
-//			printf("RangeTotalCount: %llu\n", c_frameData->bifInfo.rangeTotalCount);
-//			printf("\tRangeFrustumBailOut: %llu\n", c_frameData->bifInfo.rangeFrustumBailOut);
-//			printf("\tRange Lookup Level Counts:\n");
-//			for (int i = 0; i <= 7; i++) {
-//				printf("\t\t%d: %d fast: %d\n", i, c_frameData->bifInfo.levelLookupCount[i], c_frameData->bifInfo.fastLookups[i]);
-//			}
-//			printf("\tRangeCacheReuse: %llu\n", c_frameData->bifInfo.rangeCacheReuse);
-//			printf("\tRangeCount: %llu\n", c_frameData->bifInfo.rangeCount);
-//			printf("\tRangeTileCountBailOut: %llu\n", c_frameData->bifInfo.rangeTileCountBailOut);
-//			printf("\tRangeInfCubeBailOut: %llu\n", c_frameData->bifInfo.rangeInfCubeBailOut);
-//
-//			printf("\nBoxCacheReuse: %llu\n", c_frameData->bifInfo.boxCacheReuse);
-//			printf("BoxCount: %llu\n", c_frameData->bifInfo.boxCount);
-//
-//			printf("\nIntersectWithSimCount: %llu\n", c_frameData->bifInfo.intersectWithSimCount);
-//			printf("IntersectWithInfCubeCount: %llu\n", c_frameData->bifInfo.intersectWithInfCubeCount);
-//			printf("insideInfCubeCount: %llu\n", c_frameData->bifInfo.insideInfCubeCount);
-//
-//			printf("calcInfCubeFieldCallCount: %llu\n", c_frameData->bifInfo.calcInfCubeFieldCallCount);
-//			printf("calcInfCubeFieldOutsideCount: %llu\n", c_frameData->bifInfo.calcInfCubeFieldOutsideCount);
-//			printf("calcInfCubeFieldInsideCount: %llu\n", c_frameData->bifInfo.calcInfCubeFieldInsideCount);
-//			printf("calcInfCubeFieldIntersectCount: %llu\n", c_frameData->bifInfo.calcInfCubeFieldIntersectCount);
-//			printf("calcInfCubeGradientCallCount: %llu\n\n", c_frameData->bifInfo.calcInfCubeGradientCallCount);
-//
-//			printEndOutput( "[BIFROST VOLUME] END POST RENDER REPORT", c_inData->diagnostics );
-//		}
-//	}
-//
-//	// clean stuff up
-//	clearStateServer( c_SS );
-//}
-//
-//ImplicitVertexValue * BifrostVolumeIF::CreateVertexValue(const RtToken name, int nvalue)
-//{
-//	if ( c_debug >= 3 ) {
-//		printf("Entering createvertexvalue\n");
-//	}
-//
-//	int primVarIndex = risGetPrimVarIndex( name, c_inData->diagnostics.silent, c_frameData, "BifrostVolume" );
-//
-//	if ( primVarIndex == -1 ) {
-//		return NULL;
-//	} else {
-//		return BifrostVolumeVertexValue::Create	(
-//													primVarIndex,
-//													c_frameData,
-//													c_inData
-//												);
-//	}
-//}
-//
-//void BifrostVolumeIF::Range(RtInterval result, const RtPoint corners[8], RtVolumeHandle h)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering Range\n");
-//	}
-//
-//	risVolumeGetRange( result, corners, bbox, c_frameData, c_threadNames );
-//
-//	if (c_debug >= 3) {
-//		printf("Exiting Range\n");
-//	}
-//
-//	return;
-//}
-//
-//float BifrostVolumeIF::EvalFiltered(const RtPoint p, const RtPoint dPdu, const RtPoint dPdv, const RtPoint dPdw)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering EvalFiltered\n");
-//	}
-//
-//	Bifrost::API::VoxelSampler *sampler, *samplerU, *samplerV, *samplerW;
-//	sampler = samplerU = samplerV = samplerW = NULL;
-//
-//	risGetEvalSamplers( &sampler, &samplerU, &samplerV, &samplerW, c_frameData, c_threadNames );
-//
-//	return risGetEvalSample( p, sampler, samplerU, samplerV, samplerW, c_frameData );
-//}
-//
-//// EvalMultiple is calling EvalMultipleFiltered
-//void BifrostVolumeIF::EvalMultipleFiltered(	int neval, float *result, int resultstride, const RtPoint *p,
-//										const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering EvalMultipleFiltered\n");
-//	}
-//
-//	Bifrost::API::VoxelSampler *sampler, *samplerU, *samplerV, *samplerW;
-//	sampler = samplerU = samplerV = samplerW = NULL;
-//
-//	risGetEvalSamplers( &sampler, &samplerU, &samplerV, &samplerW, c_frameData, c_threadNames );
-//
-//	for (int i = 0; i < neval; ++i, ++p) {
-//		*result = risGetEvalSample( *p, sampler, samplerU, samplerV, samplerW, c_frameData );
-//
-//		result += resultstride;
-//	}
-//}
-//
-//
-//// GradientEval also calls GradientEvalFiltered
-//
-//void BifrostVolumeIF::GradientEvalFiltered(	RtPoint grad, const RtPoint p,
-//										const RtPoint dPdu, const RtPoint dPdv, const RtPoint dPdw)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering GradientEvalFiltered\n");
-//	}
-//
-//   	Bifrost::API::VoxelSampler *sampler, *samplerU, *samplerV, *samplerW;
-//	sampler = samplerU = samplerV = samplerW = NULL;
-//
-//	risGetEvalSamplers( &sampler, &samplerU, &samplerV, &samplerW, c_frameData, c_threadNames );
-//	amino::Math::vec3f normal = risGetGradientSample( p, sampler, samplerU, samplerV, samplerW, c_frameData );
-//
-//    grad[0] = normal[0];
-//    grad[1] = normal[1];
-//    grad[2] = normal[2];
-//}
-//
-//// GradientEvalMultiple calls GradienEvalMultipleFiltered
-//void BifrostVolumeIF::GradientEvalMultipleFiltered(	int neval, RtPoint *result, const RtPoint *p,
-//												const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering GradientEvalMultipleFiltered\n");
-//	}
-//
-//	Bifrost::API::VoxelSampler *sampler, *samplerU, *samplerV, *samplerW;
-//	sampler = samplerU = samplerV = samplerW = NULL;
-//
-//	risGetEvalSamplers( &sampler, &samplerU, &samplerV, &samplerW, c_frameData, c_threadNames );
-//
-//	for (int i = 0; i < neval; ++i, ++p, ++result) {
-//		amino::Math::vec3f normal = risGetGradientSample( *p, sampler, samplerU, samplerV, samplerW, c_frameData );
-//
-//		(*result)[0] = normal[0];
-//		(*result)[1] = normal[1];
-//		(*result)[2] = normal[2];
-//	}
-//}
-//
-//void BifrostVolumeIF::MotionFiltered(	RtPoint result, const RtPoint p,
-//								const RtPoint dPdu, const RtPoint dPdv, const RtPoint dPdw)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering MotionFiltered\n");
-//	}
-//
-//   	Bifrost::API::VoxelSampler *sampler, *samplerU, *samplerV, *samplerW;
-//	sampler = samplerU = samplerV = samplerW = NULL;
-//
-//	risGetEvalSamplers( &sampler, &samplerU, &samplerV, &samplerW, c_frameData, c_threadNames );
-//
-//	amino::Math::vec3f motionSample = risGetMotionSample( p, samplerU, samplerV, samplerW, c_frameData );
-//
-//	result[ 0 ] = motionSample[ 0 ];
-//	result[ 1 ] = motionSample[ 1 ];
-//	result[ 2 ] = motionSample[ 2 ];
-//}
-//
-//void BifrostVolumeIF::MotionMultipleFiltered(	int neval, RtPoint *result, const RtPoint *p,
-//										const RtPoint *dPdu, const RtPoint *dPdv, const RtPoint *dPdw)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering MotionMultipleFiltered\n");
-//	}
-//
-//   	Bifrost::API::VoxelSampler *sampler, *samplerU, *samplerV, *samplerW;
-//	sampler = samplerU = samplerV = samplerW = NULL;
-//
-//	risGetEvalSamplers( &sampler, &samplerU, &samplerV, &samplerW, c_frameData, c_threadNames );
-//
-//	for (int i = 0; i < neval; ++i, ++p, ++result) {
-//		amino::Math::vec3f motionSample = risGetMotionSample( *p, samplerU, samplerV, samplerW, c_frameData );
-//
-//		(*result)[ 0 ] = motionSample[ 0 ];
-//		(*result)[ 1 ] = motionSample[ 1 ];
-//		(*result)[ 2 ] = motionSample[ 2 ];
-//	}
-//}
-//
-//void BifrostVolumeIF::BoxMotion(RtBound result, const RtBound b)
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering BoxMotion\n");
-//	}
-//
-//	risVolumeGetBoxMotion( result, b, bbox, c_frameData, c_threadNames );
-//
-//	if (c_debug >= 3) {
-//		printf("Exiting BoxMotion\n");
-//	}
-//
-//	return;
-//}
-//
-//float BifrostVolumeIF::MinimumVoxelSize(const RtPoint corners[8])
-//{
-//	if (c_debug >= 3) {
-//		printf("Entering MinimumVoxelSize\n");
-//	}
-//
-//    return 0.5f * c_frameData->voxelScale;
-//}

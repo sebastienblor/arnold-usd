@@ -10,13 +10,13 @@
 // Code written by Cave (www.cavevfx.com) for Autodesk in 2016
 // Written by Erdem Taylan
 
-#include "AITools.h"
+#include "Tools.h"
 
 using namespace Bifrost::RenderCore;
 
 void getASSData ( void *frameData, void *inputData, PluginType pluginType )
 {
-	 AtNode* camNode = AiUniverseGetCamera();
+	AtNode* camNode = AiUniverseGetCamera();
 
 	if ( pluginType == PLUGIN_PRIMITIVES ) {
 		((PrimitivesFrameData *)frameData)->shutter[0] = ((PrimitivesInputData *)inputData)->shutterStart;
@@ -33,8 +33,6 @@ void getASSData ( void *frameData, void *inputData, PluginType pluginType )
 	}
 
 	// get screen window
-	//int resultCount;
-	//RixRenderState::Type resultType;
 	if ( pluginType != PLUGIN_PRIMITIVES && pluginType != PLUGIN_MESH ) {
 		// renderState->GetAttribute( "ShadingRate", &( ((FrameData *)frameData)->shadingRate), sizeof( float ), &resultType, &resultCount );
 
@@ -69,9 +67,12 @@ Bifrost::API::VoxelSampler * getAndSetThreadDataAI( std::string idString, Bifros
 
 CvFloat calcNoiseAI ( CvPoint3 noiseP )
 {
-	AtPoint evalPoint  = AiPoint( noiseP[ 0 ], noiseP[ 1 ], noiseP[ 2 ] );
+	AtPoint evalPoint  = AiPoint( noiseP[0], noiseP[1], noiseP[2] );
 
-	return SMOOTHSTEP<float>(0.2f, 0.8f, AiPerlin4( evalPoint, 0.0f ) );
+	// we expect noise between 0 and 1 but AiPerlin returns in -1, 1 so we remap it
+	//float noise = ( AiPerlin4( evalPoint, 0.0f ) + 1.0f ) / 2.0f ;
+
+	return AiPerlin4( evalPoint, 0.0f );
 }
 
 void transformPointsAI( CvPoint finalWp[2], float shutterStart, void *usrData )
@@ -103,7 +104,7 @@ void setExportTokenAI( std::vector<CvToken>& toks, ExportTokens token )
 {
 	switch ( token ) {
 		case TOK_POSITION:
-			toks.push_back(const_cast<char*>("varying float width"));
+			toks.push_back(const_cast<char*>("position uniform FLOAT"));
 			break;
 		case TOK_RADIUS:
 			toks.push_back(const_cast<char*>("radius uniform FLOAT"));
@@ -128,6 +129,9 @@ std::string getPrimVarTokenAI ( TokenClass tokenClass, Bifrost::API::DataType da
 
 	switch ( tokenClass ) {
 		case TOKCLASS_VARYING:
+			classString = "varying";
+			break;
+		case TOKCLASS_UNIFORM:
 			classString = "uniform";
 			break;
 		case TOKCLASS_CONSTANT:

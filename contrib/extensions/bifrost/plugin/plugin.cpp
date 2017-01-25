@@ -1,13 +1,8 @@
 #include "BifrostTranslator.h"
 #include "BifrostFoamMaterialTranslator.h"
 #include "BifrostAeroMaterialTranslator.h"
-#include "BifrostHydroTranslator.h"
-#include "BifrostPointTranslator.h"
-#include "BifrostAeroTranslator.h"
 
 #include "extension/Extension.h"
-#include <maya/MTypes.h> 
-#include <iostream>
 
 extern "C"
 {
@@ -25,36 +20,17 @@ extern "C"
         
         status = extension.RegisterTranslator ( "bifrostShape",
 												"",
-                                                BifrostShapeTranslator::creator,
-                                                BifrostShapeTranslator::NodeInitializer );
+                                                BifrostTranslator::creator,
+                                                BifrostTranslator::NodeInitializer );
 
-        status = extension.RegisterTranslator ( "bifrostFoamMaterial",
-                                                "",
-                                                CBfFoamMaterialTranslator::creator);
-
-        status = extension.RegisterTranslator ( "bifrostAeroMaterial",
-                                                "",
-                                                CBfAeroMaterialTranslator::creator,
-                                                CBfAeroMaterialTranslator::NodeInitializer );
-
-        status = extension.RegisterTranslator ( "bifrostHydro",
-                                                "",
-                                                BifrostHydroTranslator::creator,
-                                                BifrostHydroTranslator::NodeInitializer );
-
-        status = extension.RegisterTranslator ( "bifrostPoint",
-                                                "",
-                                                BifrostPointTranslator::creator,
-                                                BifrostPointTranslator::NodeInitializer );
-
-        status = extension.RegisterTranslator ( "bifrostAero",
-                                                "",
-                                                BifrostAeroTranslator::creator,
-                                                BifrostAeroTranslator::NodeInitializer );
+        status = extension.RegisterTranslator ( "bifrostFoamMaterial", "",
+                                                BifrostTranslator::creator,
+                                                BifrostTranslator::NodeInitializer );
     }
 
-    DLLEXPORT void deinitializeExtension ( CExtension& extension )
-    {
-    }
+	DLLEXPORT void deinitializeExtension ( CExtension& extension )
+	{
+	}
+
 #endif
 }

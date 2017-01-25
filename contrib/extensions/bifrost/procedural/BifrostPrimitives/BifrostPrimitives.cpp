@@ -10,9 +10,9 @@
 // Code written by Cave (www.cavevfx.com) for Autodesk in 2015
 // Written by Erdem Taylan
 
-#include <AITypes.h>
-#include <AITools.h>
-#include <AIPrimitivesTools.h>
+#include <Types.h>
+#include <Tools.h>
+#include <PrimitivesTools.h>
 
 using namespace Bifrost::RenderCore;
 
@@ -24,12 +24,15 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	//
 
-
 	//
 	//
 	// INIT
 	//
 	//
+
+	// init in memory class
+	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
+
 	printEndOutput( "[BIFROST PRIMITIVES] START OUTPUT", inData->diagnostics );
 
 	// check render type and exit if not known
@@ -50,16 +53,11 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	//
 	//
-	Bifrost::API::String pointFilename = inData->bifFilename;
-
 	Bifrost::API::String writeToFolder;
 	if ( inData->hotData ) {
-		// declare State Server
-		Bifrost::API::StateServer hotServer( nodeData->objectRef->stateServer() );
-
 		// write in memory volume data to a temp file
 		Bifrost::API::String writeToFile;
-		writeToFile = writeHotDataToDisk( hotServer, inData->bifFilename, "Foam-particle", inData->diagnostics, writeToFolder );
+		writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "Foam-particle", writeToFolder );
 
 		// realloc for the new name
 		size_t inputLen = writeToFile.length();
@@ -82,7 +80,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	}
 
 	// output parameters to console
- 	printParameters( inData );
+ 	inData->printParameters();
 
 	//
 	//
@@ -94,9 +92,9 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	// init FrameData struct that holds information specific to the frame we are rendering
 	PrimitivesFrameData *frameData = (PrimitivesFrameData *) new( PrimitivesFrameData );
 	frameData->init();
+	frameData->pluginType = PLUGIN_PRIMITIVES;
 	frameData->tmpFolder = writeToFolder;
 	nodeData->frameData = frameData;
-	frameData->pluginType = PLUGIN_PRIMITIVES;
 
 	// process which channels to load
 	initAndGetPrimitivesFrameData(	frameData, inData, getASSData );
@@ -182,7 +180,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		std::cerr << "\t\tChannel: " << Bifrost::API::Base(channels[i]).name() << std::endl;
 	}
 
-	if ( inData->diagnostics.debug > 1 ) {
+	if ( inData->diagnostics.DEBUG > 1 ) {
 		dumpStateServer( inSS, "AFTER LOADING" );
 	}
 
@@ -335,7 +333,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 			}
 		}
 	} else {
-		printf ( "No primvars found to export!\n" );
+		printf ( "\tNo primvars found to export!\n" );
 	}
 
 	//
@@ -396,13 +394,13 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	// CLEAR AND RETURN MEMORY
 	//
 	//
-	if ( inData->diagnostics.debug > 1 ) {
+	if ( inData->diagnostics.DEBUG > 1 ) {
 		dumpStateServer( inSS, "BEFORE CLEARING" );
 	}
 
 	clearStateServer( inSS );
 
-	if ( inData->diagnostics.debug > 1 ) {
+	if ( inData->diagnostics.DEBUG > 1 ) {
 		dumpStateServer( inSS, "AFTER CLEARING" );
 	}
 
@@ -416,25 +414,18 @@ static int ProcInit( AtNode *myNode, void **user_ptr )
 {
 	// create nodeData
 	AIProcNodeData *nodeData = new AIProcNodeData();
-	nodeData->objectRef = 0;
-
-	std::string objectName = AiNodeLookUpUserParameter(myNode, "objectName") ? AiNodeGetStr(myNode, "objectName") : "";
-	std::string particleFilename = AiNodeLookUpUserParameter(myNode, "particleFilename") ? AiNodeGetStr(myNode, "particleFilename") : "";
-	if (true || objectName != nodeData->objectName || particleFilename != nodeData->file) // in case we change the frame ?
-	{
-		// need to update objet_ref
-		if (nodeData->objectRef) {
-			delete nodeData->objectRef;
-		}
-
-		nodeData->objectRef = new CoreObjectUserData(objectName, particleFilename);
-		nodeData->objectName = objectName;
-		nodeData->file = particleFilename;
-	}
 
 	// create Input Data
 	PrimitivesInputData *inData = (PrimitivesInputData *) malloc( sizeof( PrimitivesInputData ) );
 	inData->diagnostics.silent = 0;
+	nodeData->inData = inData;
+
+	std::string objectName = AiNodeLookUpUserParameter(myNode, "bifrostObjectName") ? AiNodeGetStr(myNode, "bifrostObjectName") : "";
+	std::string particleFilename = AiNodeLookUpUserParameter(myNode, "bifFilename") ? AiNodeGetStr(myNode, "bifFilename") : "";
+
+	inData->inMemoryRef = new CoreObjectUserData(objectName.c_str(), particleFilename.c_str());
+	nodeData->objectName = objectName;
+	nodeData->file = particleFilename;
 
 	// store values
 	nodeData->proceduralNode = myNode;
@@ -445,7 +436,6 @@ static int ProcInit( AtNode *myNode, void **user_ptr )
 	AiWorldToCameraMatrix( nodeData->camNode, 0.0f, nodeData->world2Cam );
 	AiM4Mult( nodeData->obj2Cam, nodeData->obj2World, nodeData->world2Cam );
 
-	nodeData->inData = inData;
 	nodeData->bifrostCtx = AiShaderGlobals();
 	nodeData->samplerPool.clear();
 	nodeData->nofNodesCreated = 0;
@@ -458,7 +448,6 @@ static int ProcInit( AtNode *myNode, void **user_ptr )
 
 	inData->renderType = ( PrimitivesRenderType ) AiNodeGetInt(myNode, "renderType");
 	inData->channelScale = AiNodeGetFlt(myNode, "channelScale");
-	inData->useChannelGradientAsNormal = AiNodeGetBool(myNode, "useChannelGradientAsNormal");
 	inData->exportNormalAsPrimvar = AiNodeGetBool(myNode, "exportNormalAsPrimvar");
 
 	inData->velocityScale = AiNodeGetFlt(myNode, "velocityScale");
@@ -495,15 +484,15 @@ static int ProcInit( AtNode *myNode, void **user_ptr )
 	inData->mpDisplacementValue = AiNodeGetFlt(myNode, "mpDisplacementValue");
 	inData->mpDisplacementNoiseFrequency = AiNodeGetFlt(myNode, "mpDisplacementNoiseFrequency");
 
-	inData->diagnostics.debug = AiNodeGetInt(myNode, "debug");
+	inData->diagnostics.DEBUG = AiNodeGetInt(myNode, "debug");
 
 	inData->hotData = AiNodeGetBool(myNode, "hotData");
 
-	const AtString inputChannelNameParam("inputChannelName");
-	const AtString inputChannelName = AiNodeGetStr(myNode, inputChannelNameParam );
-	size_t inputLen = inputChannelName.length();
-	inData->inputChannelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
-	strcpy( inData->inputChannelName, inputChannelName.c_str() );
+	const AtString bifFilenameParam("bifFilename");
+	const AtString bifFilename = AiNodeGetStr(myNode, bifFilenameParam );
+	size_t inputLen = bifFilename.length();
+	inData->bifFilename = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
+	strcpy( inData->bifFilename, bifFilename.c_str() );
 
 	const AtString primVarNamesParam("primVarNames");
 	const AtString primVarNames = AiNodeGetStr(myNode, primVarNamesParam );
@@ -511,40 +500,25 @@ static int ProcInit( AtNode *myNode, void **user_ptr )
 	inData->primVarNames = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->primVarNames, primVarNames.c_str() );
 
-	const AtString bifFilenameParam("bifFilename");
-	const AtString bifFilename = AiNodeGetStr(myNode, bifFilenameParam );
-	inputLen = bifFilename.length();
-	inData->bifFilename = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
-	strcpy( inData->bifFilename, bifFilename.c_str() );
+	const AtString inputChannelNameParam("inputChannelName");
+	const AtString inputChannelName = AiNodeGetStr(myNode, inputChannelNameParam );
+	inputLen = inputChannelName.length();
+	inData->inputChannelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
+	strcpy( inData->inputChannelName, inputChannelName.c_str() );
+
+	const AtString bifrostObjectNameParam("bifrostObjectName");
+	const AtString bifrostObjectName = AiNodeGetStr(myNode, bifrostObjectNameParam );
+	inputLen = bifrostObjectName.length();
+	inData->bifrostObjectName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
+	strcpy( inData->bifrostObjectName, bifrostObjectName.c_str() );
 
 	// arnold specific parameters
 	inData->motionBlur = AiNodeGetBool( myNode, "motionBlur" );
 	inData->shutterStart = AiNodeGetFlt( myNode, "shutterStart" );
 	inData->shutterEnd = AiNodeGetFlt( myNode, "shutterEnd" );
 
-	// set error conditions
-	if (inData->camRadiusEndDistance <= inData->camRadiusStartDistance) {
-		printf("[BIFROST PRIMITIVES] CameraBasedRadius endDistance is smaller than startDistance!\n"); 
-		inData->error = true;
-	} else {
-		inData->camRadiusDistanceRange = inData->camRadiusEndDistance - inData->camRadiusStartDistance;
-		inData->camRadiusFactorRange = inData->camRadiusEndFactor - inData->camRadiusStartFactor;
-	}
-
-	inData->mpFalloffRange = inData->mpFalloffEnd - inData->mpFalloffStart;
-
-	// check skip bound
-	if ( inData->skip < 1 ) {
-		inData->skip = 1;
-	}
-
-	// if there is something fishy error out
-	if ( inData->clip.on ) {
-		if ( inData->clip.maxX <= inData->clip.minX || inData->clip.maxY <= inData->clip.minY || inData->clip.maxZ <= inData->clip.minZ ) {
-			printf("[BIFROST PRIMITIVES] ClipBox coordinates are wrong: one or more of MaxXYZ is smaller than MinXYZ\n");
-			inData->error = true;
-		}
-	}
+	//check params
+	inData->checkParameters();
 
 	if ( inData->error ) {
 		return false;
@@ -560,7 +534,7 @@ static int ProcNumNodes( void *user_ptr )
 	AIProcNodeData *nodeData = (AIProcNodeData *) user_ptr;
 	PrimitivesInputData *inData = (PrimitivesInputData *) nodeData->inData;
 
-	if ( inData->diagnostics.debug > 1 ) {
+	if ( inData->diagnostics.DEBUG > 1 ) {
 		printf( "%d nodes created\n", (int) nodeData->createdNodes.size() );
 	}
 	return (int) nodeData->createdNodes.size();
@@ -577,7 +551,7 @@ static AtNode *ProcGetNode(void *user_ptr, int i)
 	{
 		const char* nodeName = AiNodeGetName( nodeData->createdNodes[i] );
 
-		if ( inData->diagnostics.debug > 1 ) {
+		if ( inData->diagnostics.DEBUG > 1 ) {
 			printf("Creating node: %s\n", nodeName);
 		}
 
@@ -611,19 +585,17 @@ static int ProcCleanup( void *user_ptr )
 			free( inData->inputChannelName );
 			free( inData->primVarNames );
 			free( inData->bifFilename );
-			free( inData );
-		}
+			free( inData->bifrostObjectName );
 
-		if ( nodeData->objectRef ) {
-			delete nodeData->objectRef;
+			delete inData->inMemoryRef;
+
+			free( inData );
 		}
 	}
 
 	if ( nodeData->bifrostCtx ) {
 		AiShaderGlobalsDestroy( nodeData->bifrostCtx );
 	}
-
-
 
 	delete nodeData;
 

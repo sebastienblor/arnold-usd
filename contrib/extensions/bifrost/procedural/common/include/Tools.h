@@ -19,8 +19,8 @@
 
 #include <ai.h>
 
-#include <bifrostrendercore/CoreTypes.h>
-#include <AITypes.h>
+#include <bifrostrendercore/bifrostrender_types.h>
+#include <Types.h>
 
 void getASSData ( void *frameData, void *inData, Bifrost::RenderCore::PluginType pluginType );
 Bifrost::API::VoxelSampler * getAndSetThreadDataAI( std::string idString, Bifrost::API::VoxelChannel channel, void *usrData );
