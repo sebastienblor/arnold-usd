@@ -1,12 +1,3 @@
-//*****************************************************************************
-// Copyright 2015 Autodesk, Inc. All rights reserved.
-//
-// Use of this software is subject to the terms of the Autodesk
-// license agreement provided at the time of installation or download,
-// or which otherwise accompanies this software in either electronic
-// or hard copy form.
-//*****************************************************************************
-
 #include <string>
 #include <math.h>
 #include <vector>
@@ -735,7 +726,7 @@ bool BifrostVolumePluginCreateVolume(	void* user_ptr,
 	data->voxelComponent = component;
 	int samplerChannelCount = 0;
 
-	for ( int i = 0; i < channels.count(); i++ ) {
+    for ( unsigned int i = 0; i < channels.count(); i++ ) {
 		Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
 		AtString tmpString ( channel.name().c_str() );
 		int startIndex = samplerChannelCount * AI_MAX_THREADS;
@@ -763,8 +754,6 @@ bool BifrostVolumePluginCleanupVolume(void* user_ptr, AtVolumeData* data, const 
 	if (!user_ptr) {
 		return false;
 	}
-
-  // AiAddMemUsage(-((AtInt64)grid->memoryUsage()), "BifrostAero volume plugin data");
   
 	data->private_info = NULL;
 	return true;
@@ -810,25 +799,6 @@ bool BifrostVolumePluginSample(	void* user_ptr,
 	}
 
 	return true;
-
-	//if (!strcmp(channel, "velocity")) {
-	//	Bifrost::API::VoxelSampler *threadSampler = volData->primVarSamplers[sg->tid];
-	//	if (threadSampler == 0) {
-	//		threadSampler = volData->velocity_samplers[sg->tid] = new Bifrost::API::VoxelSampler(volData->velocity_channel.createSampler(
-	//		Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
-	//	}
-	//	*type = AI_TYPE_RGB;
-	//	amino::Math::vec3f col = threadSampler->sample<amino::Math::vec3f>(pos);
-
-	//	// velocity is expressed in seconds, need to convert to frames
-	//	value->RGB.r = col[0]; 
-	//	value->RGB.g = col[1]; 
-	//	value->RGB.b = col[2]; 
-
-	//	value->RGB *= volData->inv_fps;
- //    
-	//	return true;
-	//}
 }
 
 void BifrostVolumePluginRayExtents(void* user_ptr,

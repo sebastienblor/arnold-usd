@@ -1,17 +1,3 @@
-//*****************************************************************************
-// Copyright 2015 Autodesk, Inc. All rights reserved.
-//
-// Use of this software is subject to the terms of the Autodesk
-// license agreement provided at the time of installation or download,
-// or which otherwise accompanies this software in either electronic
-// or hard copy form.
-//*****************************************************************************
-
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define DUMP(v) std::cerr << __FILENAME__ << ":"  << __func__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
-#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
-#define SEP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << (v) << std::endl
-
 #include <vector>
 #include <stdint.h>
 
@@ -86,7 +72,6 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 				
 				// check number of polys received, if none exit
 				if ( checkPolyCount( vertexCount, polyCount ) ) {
-                    DL;
 					return false;
 				}
 
@@ -254,8 +239,6 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 	inData->mesherAlgo = ( MesherAlgorithm ) AiNodeGetInt(parentNode, "mesherAlgo");
 	inData->sampleRate = AiNodeGetInt(parentNode, "sampleRate");
 
-	//inData->narrowBandThicknessInVoxels = AiNodeGetFlt(parentNode, "narrowBandThicknessInVoxels");
-	//inData->stepSize = AiNodeGetFlt(parentNode, "liquidStepSize");
 	inData->cullSides.on = AiNodeGetBool( parentNode, "cullSidesOn" );
 	inData->cullSides.start = AiNodeGetFlt(parentNode, "cullSidesStart");
 	inData->cullSides.end = AiNodeGetFlt(parentNode, "cullSidesEnd");
@@ -404,7 +387,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 	data->nofNodesCreated = 0;
 
 	inData->error = false;
-    DUMP(inData->error);
 
 	// get input data
 	bool error = getNodeParameters( inData, node );
@@ -456,7 +438,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 		// if there is any error exit
 		if ( error ) {
 			printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
-            DL;
 			return false;
 		}
 	}
@@ -497,7 +478,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 
 	if ( frameData->error ) {
 		printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
-        DL;
         return false;
 	}
 
@@ -544,7 +524,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 
     if( loadSt == Bifrost::API::Status::Failure ) {
 		IFNOTSILENT { printf("Bif file can not be loaded, please check the file!\n"); }
-        DL;
         return false;
     }
 
@@ -673,7 +652,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 
 	if ( frameData->orgInputChannel.valid() == false ) {
 		IFNOTSILENT ( printf( "\n\nNo valid channel found with the name: %s\nCan not continue!\n", inData->inputChannelName ) );
-        DL;
         return false;
 	} else {
 		IFNOTSILENT ( printf( "\nRendering Channel is: %s...\n", frameData->orgInputChannel.fullPathName().c_str() ) );
@@ -893,11 +871,6 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 		frameData->infCubeBlendChannel = component.findChannel( Bifrost::API::String ( inData->infCube.channelName ) );
 
 		displaceChannel( inData->infCube, inSS, frameData, inData->diagnostics );
-		
-		//Bifrost::API::Layout dispLayout = frameData->displacementChannel.layout();
-		//for ( int i = 0; i <= dispLayout.maxDepth(); i++ ) {
-		//	std::cout << "\t\t\tTileCount " << i << ": " << dispLayout.tileCount(i) << std::endl;
-		//}
 
 		// if output type is ALL extend the sim
 		if ( inData->infCube.outputType == OUTPUT_ALL ) {
@@ -972,9 +945,8 @@ static bool ProcInitBounds( AtNode *node, AtBBox *bounds, void **user_ptr )
 	//
 	//
 
-	// now allocate space for samplers
-	// data->voxelComponent = component;
-	int samplerChannelCount = 0;
+    // now allocate space for samplers
+    int samplerChannelCount = 0;
 
     for ( unsigned int i = 0; i < channels.count(); i++ ) {
 		Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
@@ -1008,15 +980,10 @@ static int ProcInit( AtNode *node, void **user_ptr )
 
 	if ( inData->error ) {
         AiMsgWarning("Input data has errors");
-        DL;
 		return false;
 	} else {
 		// now do creation of nodes
 		bool success = ProcSubdivide( nodeData );
-
-        if(!success)
-            AiMsgWarning("Failed to subdivide Bifrost poly mesh.");
-        DUMP(success);
 
 		printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
 

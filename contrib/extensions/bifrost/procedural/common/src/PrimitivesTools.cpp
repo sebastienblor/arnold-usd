@@ -1,15 +1,3 @@
-//*****************************************************************************
-// Copyright 2015 Autodesk, Inc. All rights reserved.
-//
-// Use of this software is subject to the terms of the Autodesk
-// license agreement provided at the time of installation or download,
-// or which otherwise accompanies this software in either electronic
-// or hard copy form.
-//*****************************************************************************
-
-// Code written by Cave (www.cavevfx.com) for Autodesk in 2016
-// Written by Erdem Taylan
-
 #include "PrimitivesTools.h"
 
 using namespace Bifrost::RenderCore;
@@ -51,19 +39,14 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		nodeName += toString( (unsigned long) nodeData->nofNodesCreated ); 
 		AiNodeSetStr( newNode, "name", nodeName.c_str() );
 		AiNodeSetFlt( newNode, "min_pixel_width", 0.0f );
-		//AiNodeSetFlt( newNode, "step_size", 0.0f );
 		AiNodeSetBool( newNode, "opaque", false );
 
 		// create a one element array which will be pointed to our data structure
 		float *posData = (float *)cPos;
 		AtArray *pointArray = AiArrayAllocate( totalExported, frameData->motionBlur ? 2 : 1, AI_TYPE_POINT );
-		//pointArray->nelements = totalExported;
-		//pointArray->data = (void *) ptr[ 0 ];
 
 		float *widthData = (float *)cWidth;
 		AtArray *radiusArray = AiArrayAllocate( totalExported, frameData->motionBlur ? 2 : 1, AI_TYPE_FLOAT );
-		//radiusArray->nelements = totalExported;
-		//radiusArray->data = (void *) ptr[ 1 ];
 
 		AtArray *traArray = NULL;
 		float *traData = NULL;

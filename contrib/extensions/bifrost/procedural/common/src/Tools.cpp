@@ -1,15 +1,3 @@
-//*****************************************************************************
-// Copyright 2015 Autodesk, Inc. All rights reserved.
-//
-// Use of this software is subject to the terms of the Autodesk
-// license agreement provided at the time of installation or download,
-// or which otherwise accompanies this software in either electronic
-// or hard copy form.
-//*****************************************************************************
-
-// Code written by Cave (www.cavevfx.com) for Autodesk in 2016
-// Written by Erdem Taylan
-
 #include "Tools.h"
 
 using namespace Bifrost::RenderCore;
@@ -68,10 +56,6 @@ Bifrost::API::VoxelSampler * getAndSetThreadDataAI( std::string idString, Bifros
 CvFloat calcNoiseAI ( CvPoint3 noiseP )
 {
 	AtPoint evalPoint  = AiPoint( noiseP[0], noiseP[1], noiseP[2] );
-
-	// we expect noise between 0 and 1 but AiPerlin returns in -1, 1 so we remap it
-	//float noise = ( AiPerlin4( evalPoint, 0.0f ) + 1.0f ) / 2.0f ;
-
 	return AiPerlin4( evalPoint, 0.0f );
 }
 
@@ -92,12 +76,6 @@ void transformPointsAI( CvPoint finalWp[2], float shutterStart, void *usrData )
 	finalWp[ 1 ][ 0 ] = xformed.x;
 	finalWp[ 1 ][ 1 ] = xformed.y;
 	finalWp[ 1 ][ 2 ] = xformed.z;
-
-	//for ( int i = 0; i < 16; i ++ ) {
-	//	float out;
-	//	std::cout << *((float * )nodeData->world2Obj + i) << ",";
-	//}
-	//std::cout << std::endl;
 }
 
 void setExportTokenAI( std::vector<CvToken>& toks, ExportTokens token )

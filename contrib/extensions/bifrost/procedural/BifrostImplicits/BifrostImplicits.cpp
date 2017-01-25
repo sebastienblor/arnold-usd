@@ -1,12 +1,3 @@
-//*****************************************************************************
-// Copyright 2015 Autodesk, Inc. All rights reserved.
-//
-// Use of this software is subject to the terms of the Autodesk
-// license agreement provided at the time of installation or download,
-// or which otherwise accompanies this software in either electronic
-// or hard copy form.
-//*****************************************************************************
-
 #include <string>
 #include <math.h>
 #include <vector>
@@ -284,11 +275,6 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	data->file = inData->bifFilename;
 
 	out_data->private_info = user_ptr;
-
-	//data->maxSteps = 1000;
-	//data->shadowing = true;
-	//data->shadowingStepSize = 0.5f;
-	//data->shadowingMaxSteps = 100;
 
 	// set step size
 	out_data->auto_step_size = inData->stepSize;
@@ -706,9 +692,6 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 			case kLaplacianFlow:
 				filterType = "LaplacianFlow";
 				break;
-			//case kMentalRay:
-			//	filterType = "MentalRay";
-			//	break;
 			default:
 				break;
 		}
@@ -789,20 +772,6 @@ bool BifrostImplicitsCreate(	void* user_ptr,
 	if ( frameData->presenceNeeded ) {
 		copyDistanceChannel( frameData, inSS, component );
 	}
-
-	//
-	//
-	// CONVERT SURFACE TO NARROWBAND FOG IF WE ARE RENDERING A SURFACE
-	//
-	//
-
-	// This is not needed in Arnold - FOR NOW
-	//IFNOTSILENT {
-	//	printf("Converting sdf to FogVolume density field...\n");
-	//	printf("\tFogVolume narrow band thickness is: %.3f voxels...\n\n", inData->narrowBandThicknessInVoxels);
-	//}
-
-	//channelToNarrowBandFog ( frameData->srcChannel, inData->narrowBandThicknessInVoxels, frameData, true, inData->diagnostics );
 
 	// turn off infcubeblending as its effect is baked into the data
 	inData->infCube.on = false;
@@ -944,31 +913,7 @@ bool BifrostImplicitsSample(void* user_ptr,
 	} else {
 		value->FLT = threadSampler->sample<float>(pos);
 	}
-
-	//if ( value->FLT < 0.1f ) {
-	//	printf("%f\n", value->FLT);
-	//}
-
 	return true;
-
-	//if (!strcmp(channel, "velocity")) {
-	//	Bifrost::API::VoxelSampler *threadSampler = userData->primVarSamplers[sg->tid];
-	//	if (threadSampler == 0) {
-	//		threadSampler = userData->velocity_samplers[sg->tid] = new Bifrost::API::VoxelSampler(userData->velocity_channel.createSampler(
-	//		Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
-	//	}
-	//	*type = AI_TYPE_RGB;
-	//	amino::Math::vec3f col = threadSampler->sample<amino::Math::vec3f>(pos);
-
-	//	// velocity is expressed in seconds, need to convert to frames
-	//	value->RGB.r = col[0]; 
-	//	value->RGB.g = col[1]; 
-	//	value->RGB.b = col[2]; 
-
-	//	value->RGB *= userData->inv_fps;
- //    
-	//	return true;
-	//}
 }
 
 bool BifrostImplicitsGradient(void* user_ptr,
@@ -1004,7 +949,6 @@ bool BifrostImplicitsGradient(void* user_ptr,
 	amino::Math::vec3f normal;
 	if ( samplerIndexStart >= userData->srcChannelSamplerIndexStart && samplerIndexStart < userData->srcChannelSamplerIndexStart + AI_MAX_THREADS ) {
 		// this is sampling the input channel so we need to apply the scalar
-		//value->FLT = inData->channelScale * threadSampler->sample<float>(pos);
 		threadSampler->sampleGradient<float>(pos, normal);
 	} else {
 		threadSampler->sampleGradient<float>(pos, normal);
@@ -1015,25 +959,6 @@ bool BifrostImplicitsGradient(void* user_ptr,
 	(*gradient)[2] = normal[2];
 
 	return true;
-
-	//if (!strcmp(channel, "velocity")) {
-	//	Bifrost::API::VoxelSampler *threadSampler = userData->primVarSamplers[sg->tid];
-	//	if (threadSampler == 0) {
-	//		threadSampler = userData->velocity_samplers[sg->tid] = new Bifrost::API::VoxelSampler(userData->velocity_channel.createSampler(
-	//		Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
-	//	}
-	//	*type = AI_TYPE_RGB;
-	//	amino::Math::vec3f col = threadSampler->sample<amino::Math::vec3f>(pos);
-
-	//	// velocity is expressed in seconds, need to convert to frames
-	//	value->RGB.r = col[0]; 
-	//	value->RGB.g = col[1]; 
-	//	value->RGB.b = col[2]; 
-
-	//	value->RGB *= userData->inv_fps;
- //    
-	//	return true;
-	//}
 }
 
 void BifrostImplicitsRayExtents(void* user_ptr,
@@ -1046,19 +971,8 @@ void BifrostImplicitsRayExtents(void* user_ptr,
                                 float t0,
                                 float t1)
 {
-	//if (!data->private_info) return;
 	BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*)user_ptr;
 	if (userData == 0) return;
-
-	//float tmin, tmax;
-
-	//float step = userData->inputData->stepSize;
-	//tmin = t0;
-	//tmax = t1;
-	//int i = 0;
-	//for (float t = tmin; t < tmax && i < userData->maxSteps; t+= step, i++) {
-	//	AiVolumeAddIntersection(info, t, MIN(t+step, tmax));
-	//}
 	AiVolumeAddIntersection(info, t0, t1);
 }
 
