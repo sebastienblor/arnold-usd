@@ -148,10 +148,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
    
    ExportLightLinking(volume);
    
+   update = false;
 
    if (!update)
-   {
-     
+   {     
 
       MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
       if (loadAtInit.asBool())
@@ -285,4 +285,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 
    }
    return volume;
+}
+
+void CArnoldVolumeTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
 }

@@ -27,7 +27,8 @@ protected:
 
    AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
    AtNode* ExportVolume(AtNode* volume, bool update);
-
+   virtual void RequestUpdate();
+   
 protected:
    MFnDagNode m_DagNode;
 };
