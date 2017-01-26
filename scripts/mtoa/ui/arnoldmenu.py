@@ -77,7 +77,12 @@ def doCreateOldMeshLight():
         cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
         return
     cmds.setAttr('%s.aiTranslator' % shs[0], 'mesh_light', type='string')
- 
+
+def doCreatePhysicalSky(): 
+    skydome = mutils.createLocator('aiSkyDomeLight', asLight=True)
+    physicalSkyShader = cmds.createNode('aiPhysicalSky')
+    cmds.connectAttr(physicalSkyShader+".outColor", skydome[0] + ".color")
+
 def doCreateLightPortal():
 
     sls = cmds.ls(sl=False, et='aiSkyDomeLight')
@@ -364,76 +369,78 @@ def createArnoldMenu():
         else:
             pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )
 
-        pm.menuItem('ArnoldRender', label='Render', parent='ArnoldMenu',
+        pm.menuItem('ArnoldRender', label='Render', parent='ArnoldMenu', image='RenderShelf.png', 
                     c=lambda *args: arnoldMtoARenderView())
         
-        pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',
+        pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',  image='RenderViewShelf.png',
                     c=lambda *args: arnoldOpenMtoARenderView())
         pm.menuItem(parent='ArnoldMenu', divider=True)
 
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
+        pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create", image='StandinShelf.png',
                     c=lambda *args: createStandIn())
-        pm.menuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,
+        pm.menuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,  
                     c=lambda *args: doCreateStandInFile())
-        pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export',
+        pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', image='ExportStandinShelf.png',
                     c=lambda *args: doExportStandIn())
         pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     c=lambda *args: doExportOptionsStandIn())
 
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
-        pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
+        pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light", image='AreaLightShelf.png',
                     c=lambda *args: mutils.createLocator('aiAreaLight', asLight=True))
-        pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
+        pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light", image='SkydomeLightShelf.png',
                     c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
-        pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light',
+        pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light', image='MeshLightShelf.png',
                     c=lambda *args: mutils.createMeshLight())
-        pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light",
+        pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", image='PhotometricLightShelf.png',
                     c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
-        pm.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal",
+        pm.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal", image='LightPortalShelf.png',
                     c=lambda *args: doCreateLightPortal())
+        pm.menuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", image='PhysicalSkyShelf.png',
+                    c=lambda *args: doCreatePhysicalSky())
         pm.menuItem(parent='ArnoldLights', divider=True)
 
-        pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light",
+        pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light", image='directionallight.png',
                     c=lambda *args: cmds.CreateDirectionalLight())
-        pm.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light",
+        pm.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light", image='pointlight.png',
                     c=lambda *args: cmds.CreatePointLight())
-        pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light",
+        pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light", image='spotlight.png',
                     c=lambda *args: cmds.CreateSpotLight())
-        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
+        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light", image='arealight.png',
                     c=lambda *args: cmds.CreateAreaLight())
         
-        pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu',
+        pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
                     c=lambda *args: doCreateCurveCollector())
-        pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu',
+        pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu', image='VolumeShelf.png', 
                     c=lambda *args: createVolume())
                     
         pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",
+        pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures", image='FlushTextureShelf.png', 
                     c=lambda *args: cmds.arnoldFlushCache(textures=True))
-        pm.menuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures",
+        pm.menuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures",  image='FlushTextureShelf.png', 
                     c=lambda *args: cmds.arnoldFlushCache(selected_textures=True))
-        pm.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights",
+        pm.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights", image='FlushBackgroundShelf.png',
                     c=lambda *args: cmds.arnoldFlushCache(skydome=True))
-        pm.menuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights",
+        pm.menuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights", image='FlushQuadLightShelf.png',
                     c=lambda *args: cmds.arnoldFlushCache(quads=True))
-        pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All",
+        pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All", image='FlushAllCachesShelf.png',
                     c=lambda *args: cmds.arnoldFlushCache(flushall=True))
                     
         pm.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities',
+        pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities', image='BakeGeometryShelf.png', 
                     c=lambda *args: arnoldBakeGeo())
-        pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',
+        pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',  image='RenderToTextureShelf.png', 
                     c=lambda *args: arnoldRenderToTexture())
-        pm.menuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities',
+        pm.menuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', 
                     c=lambda *args: arnoldTxManager())                    
-        pm.menuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',
+        pm.menuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',  image='UpdateTxShelf.png', 
                     c=lambda *args: arnoldUpdateTx())                    
-        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities',
+        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     c=lambda *args: arnoldLightManager())
 
-        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
+        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
 
         pm.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
@@ -467,5 +474,5 @@ def createArnoldMenu():
         pm.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
                     
-        pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
+        pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())

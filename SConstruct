@@ -850,6 +850,7 @@ elif system.os() == 'darwin':
 # install icons
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
+env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.svg')))
 # install docs
 env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
@@ -1055,6 +1056,7 @@ PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('icons', '*.png'), 'icons'],
+[os.path.join('icons', '*.svg'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],

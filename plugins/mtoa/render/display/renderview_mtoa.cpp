@@ -205,6 +205,9 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 #endif
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
+   // need to add this margin for the status bar + toolbar height
+   height += 70;
+   
    // Check if attribute ARV_options exist
    // if it doesn't create it
    int exists = 0;
@@ -232,9 +235,9 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    } else
    {
       workspaceCmd += " -li 1"; // load immediately
-      workspaceCmd += " -ih "; // initial width
+      workspaceCmd += " -iw "; // initial width
       workspaceCmd += width;
-      workspaceCmd += " -iw "; // initiall height
+      workspaceCmd += " -ih "; // initiall height
       workspaceCmd += height;
 
       workspaceCmd += " -requiredPlugin \"mtoa\"";
@@ -410,6 +413,7 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    // Universe isn't active, oh my....
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   // the renderSession will be NULL if ARV was opened without rendering
    if (renderSession)
    {   
       renderSession->SetRendering(false);
@@ -454,6 +458,12 @@ void CRenderViewMtoA::UpdateSceneChanges()
    }
 
    UpdateRenderCallbacks();
+
+   // GetRenderSession() might have changed since we exported the scene
+   renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
+   
 }
 
 void CRenderViewMtoA::UpdateRenderCallbacks()
