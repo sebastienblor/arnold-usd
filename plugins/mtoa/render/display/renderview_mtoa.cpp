@@ -568,7 +568,31 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    renderViewMtoA->m_convertOptionsParam = true;
-   // next time I open the RenderView, convert the ARV_options param
+
+   QMainWindow *arv = renderViewMtoA->GetRenderView();  
+   if (arv == NULL)
+      return;
+
+   if (arv->isVisible())
+   {
+      // assign the ARV_options parameter as it is the first time since I opened this scene
+      int exists = 0;
+      MGlobal::executeCommand("objExists defaultArnoldRenderOptions", exists);
+
+      if (exists != 0)
+      {
+         MString optParam;
+         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+         renderViewMtoA->SetFromSerialized(optParam.asChar());
+      }
+
+      // ARV is already visible -> set the options right away
+      renderViewMtoA->UpdateColorManagement();
+
+      renderViewMtoA->m_convertOptionsParam = false;      
+   }
+
+   // otherwise, next time I open the RenderView, convert the ARV_options param
 }
 
 void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
