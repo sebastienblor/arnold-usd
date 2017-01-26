@@ -400,16 +400,16 @@ def createArnoldMenu():
                     c=lambda *args: doCreateLightPortal())
         pm.menuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", image='PhysicalSkyShelf.png',
                     c=lambda *args: doCreatePhysicalSky())
-        pm.menuItem(parent='ArnoldLights', divider=True)
+#        pm.menuItem(parent='ArnoldLights', divider=True)
 
-        pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light", image='directionallight.png',
-                    c=lambda *args: cmds.CreateDirectionalLight())
-        pm.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light", image='pointlight.png',
-                    c=lambda *args: cmds.CreatePointLight())
-        pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light", image='spotlight.png',
-                    c=lambda *args: cmds.CreateSpotLight())
-        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light", image='arealight.png',
-                    c=lambda *args: cmds.CreateAreaLight())
+#        pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light", image='directionallight.png',
+#                    c=lambda *args: cmds.CreateDirectionalLight())
+#        pm.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light", image='pointlight.png',
+#                    c=lambda *args: cmds.CreatePointLight())
+#        pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light", image='spotlight.png',
+#                    c=lambda *args: cmds.CreateSpotLight())
+#        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light", image='arealight.png',
+#                    c=lambda *args: cmds.CreateAreaLight())
         
         pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
                     c=lambda *args: doCreateCurveCollector())
