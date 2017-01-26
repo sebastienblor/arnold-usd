@@ -284,7 +284,7 @@ void CRenderOptions::UpdateImageDimensions()
 
    float aspect_ratio = pixelAspectRatio();
 
-   if (ABS(aspect_ratio - 1.f) < 0.001)
+   if (std::abs(aspect_ratio - 1.f) < 0.001)
       aspect_ratio = 1.f;
    else
       aspect_ratio = 1.f / AiMax(AI_EPSILON, aspect_ratio);
