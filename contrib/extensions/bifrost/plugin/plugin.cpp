@@ -17,15 +17,18 @@ extern "C"
         extension.Requires ( "bifrostvisplugin" );
 #endif
         extension.LoadArnoldPlugin("bifrost_shaders");
-        
-        status = extension.RegisterTranslator ( "bifrostShape",
-												"",
+
+        status = extension.RegisterTranslator ( "bifrostShape", "",
                                                 BifrostTranslator::creator,
                                                 BifrostTranslator::NodeInitializer );
 
+        status = extension.RegisterTranslator ( "bifrostAeroMaterial", "",
+                                                CBfAeroMaterialTranslator::creator,
+                                                CBfAeroMaterialTranslator::NodeInitializer );
+
         status = extension.RegisterTranslator ( "bifrostFoamMaterial", "",
-                                                BifrostTranslator::creator,
-                                                BifrostTranslator::NodeInitializer );
+                                                CBfFoamMaterialTranslator::creator,
+                                                CBfFoamMaterialTranslator::NodeInitializer );
     }
 
 	DLLEXPORT void deinitializeExtension ( CExtension& extension )
