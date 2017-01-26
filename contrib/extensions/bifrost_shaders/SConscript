@@ -1,0 +1,64 @@
+# vim: filetype=python
+
+import system, os
+from build_tools import find_files_recursive
+Import('ext_env')
+##############################################################
+## COMMON ENV
+common_env = ext_env.Clone()
+
+BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
+print BUILD_BASE_DIR
+
+mayaRoot = common_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+if system.os() !='windows':
+    common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
+
+ext_base_dir = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_shaders')
+
+def setup(env, library):
+    '''Adds the include paths, lib paths and libs to the given environment for the given library.'''
+    def addLib(env, lib):
+        env.Append(LIBS=Split(lib + ('.lib' if system.os() =='windows' else '')))
+
+    def addAi(env):
+        env.Append(LIBS=Split('ai' + '.lib' if system.os() =='windows' else ''))
+
+    def addMtoa(env):
+        env.Append(LIBS=Split('mtoa_api' + '.lib' if system.os() =='windows' else ''))
+
+    libToEnvSetup = {
+        "ai" : addAi,
+        "mtoa_api" : addMtoa
+    }[library](env)
+
+setup(common_env, "ai")
+setup(common_env, "mtoa_api")
+
+##############################################################
+####  BIFROST TRANSLATORS
+
+local_env = common_env.Clone()
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(ext_base_dir, 'plugin')
+local_env.Append(CPPPATH = os.path.join(src_base_dir, 'include'))
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+EXT = local_env.SharedLibrary('new_bifrost_shaders_translators', source_files, LIBPREFIX='')
+
+###########################################################3
+#### BIFROST SHADERS
+
+Import('ext_env')
+local_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(ext_base_dir, 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+
+EXT_SHADERS = local_env.SharedLibrary('new_bifrost_shaders', source_files, LIBPREFIX='')
+
+Return('EXT EXT_SHADERS')
