@@ -48,6 +48,8 @@ void CCurveCollectorTranslator::ComputeCurvesList(MDagPathArray &pathArray)
          if (path.apiType() == MFn::kTransform)
             continue;
 
+         if (MFnDagNode(path).isIntermediateObject())
+            continue;
          pathArray.append(path);
       }      
    }      
