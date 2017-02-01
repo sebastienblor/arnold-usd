@@ -47,6 +47,8 @@ void CRenderViewMtoA::Resize(int w, int h){}
 #if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
 static QWidget *s_workspaceControl = NULL;
+#else
+#include "QtGui/qmainwindow.h"
 #endif
 
 // Arnold RenderView is defined
@@ -92,6 +94,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
+
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -199,10 +202,14 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 }
 
 #if MAYA_API_VERSION >= 201700
-
 #define ARV_DOCKED 1
-
 #endif
+
+#ifndef ARV_DOCKED
+   static int s_arvWidth = -1;
+   static int s_arvHeight = -1;
+#endif
+
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
    // need to add this margin for the status bar + toolbar height
@@ -281,6 +288,16 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    
 #else
+   if (s_arvWidth > 0)
+   {
+      // restoring previous width/height
+      width = s_arvWidth;
+      height = s_arvHeight;
+
+      // reset the static values (we don't want to set it again)
+      s_arvWidth = -1;
+      s_arvHeight = -1;
+   }
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
 #endif
 
@@ -336,6 +353,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       // assign the ARV_options parameter as it is the first time since I opened this scene
       MString optParam;
       MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+
       SetFromSerialized(optParam.asChar());
    }
 
@@ -785,9 +803,20 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
 
-#if MAYA_API_VERSION >= 201700
+#ifdef ARV_DOCKED
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
    MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+#else
+
+   // closing ARV, we want to get the previous width / height
+   // since there are no workspaces here
+   QMainWindow *arv = GetRenderView();  
+   if (arv)
+   {
+      s_arvWidth = arv->width();
+      s_arvHeight = arv->height();
+   }
+
 #endif
 
    ReceiveSelectionChanges(false);
