@@ -11,6 +11,7 @@
 #include <maya/MFloatVectorArray.h>
 #include <maya/MDagMessage.h>
 #include <maya/MItDag.h>
+#include <maya/MMatrix.h>
 #include <vector>
 
 typedef std::vector<float> CurveWidths;
@@ -185,21 +186,27 @@ struct CCurvesData
 // FIXME we're not handling what happens when the child curves are transformed...
 // would need to apply the conversion matrix
 
-static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData, 
+static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData, 
       int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, unsigned int step)
 {
+   MObject curve(curvePath.node());
    MFnDependencyNode fnDepNodeCurve(curve);
    MStatus stat;
    MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", &stat);
    if (stat != MStatus::kSuccess)
       return MS::kSuccess;
    
+   MMatrix curveMtx = curvePath.inclusiveMatrix(&stat);
+   const static MMatrix identityMtx;
+   bool hasMatrix = (curveMtx != identityMtx); 
+
    MFnNurbsCurve nurbsCurve(curve);
 
    double start, end;
    unsigned int numcvs;
    double incPerSample;
 
+   
    nurbsCurve.getKnotDomain(start, end);
    numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
    incPerSample = 1.0 / sampleRate;
@@ -234,23 +241,30 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
          incPerSample = (end - start) / (double)numcvs;
          for(unsigned int i = 0; i < numcvs - 1; i++)
          {
-            referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+            referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kObject);
             curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
          }
-         referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
+         referenceCurve.getPointAtParam(end, point, MSpace::kObject);
          curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
       } 
    }
 
    for(unsigned int i = 0; i < (numcvs - 1); i++)
    {
-      nurbsCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+      nurbsCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kObject);
+
+      if (hasMatrix)
+         point *= curveMtx;
+      
       curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
       if (step > 0 && i == 0)
          curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
 
    }
-   nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
+   nurbsCurve.getPointAtParam(end, point, MSpace::kObject);
+   if (hasMatrix)
+      point *= curveMtx;
+
    curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
    if (step > 0)
       curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
@@ -435,12 +449,11 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
-      MObject objectCurveShape(m_curveDagPaths[i].node());
       //MFnDagNode fnDagNodeCurveShape(objectCurveShape);
-      //MFnDependencyNode fnDepNodeCurve(objectCurveShape);
+      //MFnDependencyNode(objectCurveShape).findPlug("");
 
       // Get curve lines
-      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, 
+      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, 
             (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 0);
       if (stat != MStatus::kSuccess) 
          continue;
@@ -550,18 +563,17 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    if (!deformedPoints)
       return;
 
+
    int step = GetMotionStep();
-   
+
    CCurvesData curvesData;
    MStatus stat;
 
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
-      MObject objectCurveShape(m_curveDagPaths[i].node());
-      
       // Get curve lines
-      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, NULL, NULL, false, step);
+      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, NULL, NULL, false, step);
       if (stat != MStatus::kSuccess) 
          continue;
    }
