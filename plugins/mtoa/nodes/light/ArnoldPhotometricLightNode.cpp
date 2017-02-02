@@ -114,13 +114,13 @@ MStatus CArnoldPhotometricLightNode::initialize()
    s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_affectDiffuse);
 
    s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_affectSpecular);
 
    /*s_filename = tAttr.create("aiFilename", "ai_filename", MFnData::kString);
@@ -136,7 +136,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_pointCamera);
 
    s_normalCamera = nAttr.createPoint("normalCamera", "n");
@@ -144,7 +144,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_normalCamera);
 
    // OUTPUT ATTRIBUTES

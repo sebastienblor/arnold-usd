@@ -73,7 +73,7 @@ MStatus CArnoldCurveCollector::initialize()
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setInternal(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_curveShader);
 
    s_exportRefPoints = nAttr.create("aiExportRefPoints", "aiExportRefPoints", MFnNumericData::kBoolean, 0);
