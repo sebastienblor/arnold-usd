@@ -187,7 +187,7 @@ struct CCurvesData
 // would need to apply the conversion matrix
 
 static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData, 
-      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, unsigned int step)
+      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, bool motion)
 {
    MObject curve(curvePath.node());
    MFnDependencyNode fnDepNodeCurve(curve);
@@ -222,7 +222,7 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
 
    plug = fnDepNodeCurve.findPlug("referenceObject", &stat);
    plug.connectedTo(conns, true, false);
-   bool hasReferenceObject = (exportReference && step == 0 && conns.length() > 0);
+   bool hasReferenceObject = (exportReference && motion == false && conns.length() > 0);
 
    MPoint point;
    if (hasReferenceObject)
@@ -257,7 +257,10 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
          point *= curveMtx;
       
       curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
-      if (step > 0 && i == 0)
+
+      // this extra point is only stored for motion since in ExportMotion the array is just copied. 
+      // Otherwise it's better to let Export() duplicate the necessary vertices, this way we keep more information
+      if (motion == true && i == 0)
          curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
 
    }
@@ -266,7 +269,10 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
       point *= curveMtx;
 
    curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
-   if (step > 0)
+
+   // this extra point is only stored for motion since in ExportMotion the array is just copied. 
+   // Otherwise it's better to let Export() duplicate the necessary vertices, this way we keep more information
+   if (motion)
       curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
 
    
@@ -363,8 +369,6 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    plug = FindMayaPlug("aiExportRefPoints");
    bool exportReferenceObject = (!plug.isNull()) ? plug.asBool() : false;
    
-   // Set curve matrix for step 0
-
    if (RequiresShaderExport())
    {
       AtNode* shader = NULL;
@@ -454,7 +458,8 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
 
       // Get curve lines
       stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, 
-            (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 0);
+            (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 
+            false);
       if (stat != MStatus::kSuccess) 
          continue;
    }
@@ -486,7 +491,9 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_POINT) : NULL;
 
    int pointIndex = 0;
-   int pointArrayIndex = 0;
+
+   // if the motion doesn't start on frame, there can be an offset here
+   int pointArrayIndex = (deformedPoints) ? GetMotionStep() * totalNumPointsInterp : 0;
    
    // loop over each curve
    for (size_t i = 0; i < curvesData.numPoints.size(); ++i)
@@ -563,9 +570,6 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    if (!deformedPoints)
       return;
 
-
-   int step = GetMotionStep();
-
    CCurvesData curvesData;
    MStatus stat;
 
@@ -573,7 +577,7 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
       // Get curve lines
-      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, NULL, NULL, false, step);
+      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, NULL, NULL, false, true);
       if (stat != MStatus::kSuccess) 
          continue;
    }
@@ -582,7 +586,8 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    AtArray *curvePoints = AiNodeGetArray(curve, "points");
    unsigned int totalNumPointsInterp = curvePoints->nelements;
 
-   int stepOffset = step * totalNumPointsInterp;
+   int stepOffset = GetMotionStep() * totalNumPointsInterp;
+   
 
    totalNumPointsInterp = MIN(totalNumPointsInterp, (unsigned int)curvesData.points.size());
 
