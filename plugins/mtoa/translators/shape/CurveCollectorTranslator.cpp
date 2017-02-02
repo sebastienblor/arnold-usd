@@ -448,7 +448,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
 
 
    if (!widthConnected && !hasWidthProfile)
-      AiNodeSetFlt(curve, "radius", globalWidth);
+      AiNodeSetFlt(curve, "radius", globalWidth / 2.f);
 
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
@@ -516,7 +516,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
             if (hasWidthProfile)
                pointWidth *= curvesData.widthProfilePerResolution[curvesData.numPoints[i]]->at(j);
              
-            AiArraySetFlt(curveWidths, pointIndex, pointWidth);
+            AiArraySetFlt(curveWidths, pointIndex, pointWidth/2.f);
          }
 
          AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
