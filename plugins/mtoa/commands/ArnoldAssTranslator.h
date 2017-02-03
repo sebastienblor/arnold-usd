@@ -44,6 +44,7 @@ public:
 
    static void*   importCreator();
    static void*   exportCreator();
+   bool haveNamespaceSupport() const {return true;}
 
 protected:
    bool m_isImporter;
