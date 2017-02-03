@@ -283,6 +283,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    AiNodeSetFlt(node, "radius", global_radius );  
    AiNodeSetArray(node, "velocity", velocities_array);  
 
+   ProcessRenderFlags(node);
 
    AiNodeSetStr(node, "mode", "sphere");
    AiNodeSetFlt(node, "min_pixel_width", 0.f);
@@ -433,6 +434,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
    AiNodeSetByte(shape, "visibility", 243);
 
    ExportMatrix(shape);   
+   ProcessRenderFlags(shape);
    
    if (RequiresShaderExport())
    {
@@ -482,7 +484,9 @@ void CBfDescriptionTranslator::ExportMotion(AtNode* shape)
 
 void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
 {
-   
+   CExtensionAttrHelper helper(context.maya, "procedural");
+   CShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeMayaVisibilityFlags(helper);
 }
 
 void CBfDescriptionTranslator::ExportBifrostShader()
