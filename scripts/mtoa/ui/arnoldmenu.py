@@ -335,7 +335,8 @@ def arnoldLightManager():
 
 def arnoldBakeGeo():
     objFilter = "Obj File (*.obj)"
-    ret = cmds.fileDialog2(cap='Bake Selection as OBJ', fm=0, ff=objFilter)
+    defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+    ret = cmds.fileDialog2(cap='Bake Selection as OBJ', fm=0, ff=objFilter, dir=defaultFolder)
     if ret is not None and len(ret):
         cmds.arnoldBakeGeo(f=ret[0])
 
