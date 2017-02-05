@@ -348,13 +348,17 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       if (m_convertOptionsParam) UpdateColorManagement();
    }
    // Moving the ARV_options load *after* calling UpdateColorManagement because of #2719
-   if (exists && m_convertOptionsParam)
+   if (m_convertOptionsParam)
    {
-      // assign the ARV_options parameter as it is the first time since I opened this scene
-      MString optParam;
-      MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+      if (exists)
+      {
+         // assign the ARV_options parameter as it is the first time since I opened this scene
+         MString optParam;
+         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
 
-      SetFromSerialized(optParam.asChar());
+         SetFromSerialized(optParam.asChar());
+      }
+      SetOption("Real Size", "1");
    }
 
    m_convertOptionsParam = false;
