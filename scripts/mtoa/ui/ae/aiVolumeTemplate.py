@@ -221,7 +221,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         filename = cmds.getAttr(attrName)
         
-        if os.path.isfile(filename):
+        if filename is not None and os.path.isfile(filename):
             gridsList = mtoa.volume_vdb.GetChannelNames(filename)
             for grid in gridsList:
                 cmds.textScrollList(gridListField, edit=True, append=grid)
