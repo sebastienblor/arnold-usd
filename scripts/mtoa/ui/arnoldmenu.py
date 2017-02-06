@@ -15,6 +15,8 @@ import os
 import shutil
 import sys
 
+defaultFolder = ""
+
 def doCreateStandInFile():
     node = createStandIn()
     LoadStandInButtonPush(node.name())
@@ -335,10 +337,15 @@ def arnoldLightManager():
 
 def arnoldBakeGeo():
     objFilter = "Obj File (*.obj)"
-    defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+    global defaultFolder
+    if defaultFolder == "":
+        defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+
     ret = cmds.fileDialog2(cap='Bake Selection as OBJ', fm=0, ff=objFilter, dir=defaultFolder)
     if ret is not None and len(ret):
-        cmds.arnoldBakeGeo(f=ret[0])
+        defaultFolder = ret[0]
+        cmds.arnoldBakeGeo(f=defaultFolder)
+        
 
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
