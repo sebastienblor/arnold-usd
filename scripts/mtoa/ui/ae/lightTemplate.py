@@ -184,7 +184,7 @@ class ColorTemperatureTemplate:
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
         self.addCustom('aiUseColorTemperature', self.createLightColorTemperatureUI, self.updateLightColorTemperatureUI)
-        
+        self.channelBox = False;
         self.addSeparator()
 
 class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):

@@ -245,50 +245,50 @@
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    False
 
@@ -309,52 +309,52 @@
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr normalize]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    False
 
@@ -376,66 +376,66 @@
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr lens_radius]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr aspect_ratio]
         min                 FLOAT   0.0
         max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr lens_radius]
         min                 FLOAT   0.0
         max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr normalize]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    False
 
@@ -462,44 +462,44 @@
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    True
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
         
 [node photometric_light]
     maya.name               STRING  "aiPhotometricLight"
@@ -523,48 +523,48 @@
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr radius]
         min                 FLOAT   0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -584,13 +584,13 @@
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr spread]
         min                 FLOAT   0
         max                 FLOAT   1
@@ -598,45 +598,45 @@
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    True
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr normalize]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
 
 [node cylinder_light]
     maya.name               STRING  "aiAreaLight"
@@ -660,44 +660,44 @@
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr normalize]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
 
 [node disk_light]
     maya.name               STRING  "aiAreaLight"
@@ -725,44 +725,44 @@
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr normalize]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr affect_volumetrics]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
 
 
 [node mesh_light]
@@ -775,37 +775,37 @@
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
 
 # light filters
 
@@ -1558,13 +1558,13 @@
         linkable            BOOL    False
     [attr sun_tint]
         linkable            BOOL    False
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr sky_tint]
         linkable            BOOL    False
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
     [attr ground_albedo]
         linkable            BOOL    False
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    False
         
 [node density]
     desc                    STRING  "Density"

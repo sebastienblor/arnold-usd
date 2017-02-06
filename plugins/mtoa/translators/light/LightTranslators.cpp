@@ -550,7 +550,7 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "sc";
    data.defaultValue.RGB = AI_RGB_WHITE;
    data.keyable = false;
-   data.channelBox = true;
+   data.channelBox = false;
    helper.MakeInputRGB(data);
 
    data.name = "intensity";
@@ -559,21 +559,21 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.softMax.FLT = 10.0f;
    data.defaultValue.FLT = 1.0f;
    data.keyable = false;
-   data.channelBox = true;
+   data.channelBox = false;
    helper.MakeInputFloat(data);
 
    data.name = "emitDiffuse";
    data.shortName = "emitDiffuse";
    data.defaultValue.BOOL = true;
    data.keyable = false;
-   data.channelBox = true;
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.name = "emitSpecular";
    data.shortName = "emitSpecular";
    data.defaultValue.BOOL = true;
    data.keyable = false;
-   data.channelBox = true;
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.name = "lightVisible";

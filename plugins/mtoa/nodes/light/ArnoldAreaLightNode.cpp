@@ -354,13 +354,13 @@ MStatus CArnoldAreaLightNode::initialize()
    s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_affectDiffuse);
 
    s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_affectSpecular);
 
    // MAYA SPECIFIC INPUTS
@@ -369,7 +369,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_pointCamera);
 
    s_normalCamera = nAttr.createPoint("normalCamera", "n");
@@ -377,7 +377,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_normalCamera);
 
    s_update = nAttr.create("update", "upt", MFnNumericData::kBoolean);

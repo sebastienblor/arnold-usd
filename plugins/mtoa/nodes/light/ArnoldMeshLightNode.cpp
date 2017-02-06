@@ -318,7 +318,7 @@ MStatus CArnoldMeshLightNode::initialize()
    s_showOriginalMesh = nAttr.create("showOriginalMesh", "showOriginalMesh", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_showOriginalMesh);
 
    MAKE_COLOR(s_color, "color", "sc", 1, 1, 1);
@@ -342,19 +342,19 @@ MStatus CArnoldMeshLightNode::initialize()
    s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_affectDiffuse);
 
    s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_affectSpecular);
 
    s_lightVisible = nAttr.create("lightVisible", "lightVisible", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_lightVisible);
 
    // OUTPUT ATTRIBUTES
@@ -370,7 +370,7 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_pointCamera);
 
    s_normalCamera = nAttr.createPoint("normalCamera", "n");
@@ -378,7 +378,7 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_normalCamera);
 
    // MAYA SPECIFIC OUTPUTS
