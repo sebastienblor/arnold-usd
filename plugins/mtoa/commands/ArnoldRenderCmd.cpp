@@ -433,12 +433,18 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
             else
             {
-               std::stringstream msg;
-               
-               msg << "[mtoa] Rendering Frame: " << framerender << " (" << frameIndex << "/" << frameCount
-                  << ")  Camera: " << cameraDagPath.partialPathName() << "  Layer: " << layerDisplayName.asChar();
+               MString msg = "[mtoa] Rendering Frame: ";
+               msg +=  (int)framerender;
+               msg +=  " (" ;
+               msg += (int)frameIndex;
+               msg += "/";
+               msg += (int)frameCount;
+               msg += ")  Camera: ";
+               msg +=  cameraDagPath.partialPathName() ;
+               msg += "  Layer: ";
+               msg += layerDisplayName;
 
-               MGlobal::displayInfo(msg.str().c_str());
+               MGlobal::displayInfo(msg);
                MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
                for (size_t i = 0; i < imageFilenames.length(); ++i)
                   MGlobal::displayInfo("\t" + imageFilenames[i]);
