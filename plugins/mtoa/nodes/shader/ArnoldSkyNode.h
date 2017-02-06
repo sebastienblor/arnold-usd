@@ -19,19 +19,13 @@ public:
    {
    }
 
-   virtual void postConstructor()
-   {
-      // Call parent postConstructor as it is not done automatically as the parent constructor
-      CSphereLocator::postConstructor();
-
-      setMPSafe(true);
-   }
-
    virtual bool excludeAsLocator() const;
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
 
    static void* creator();
    static MStatus initialize();
+
+   virtual void            postConstructor();
 
    static MTypeId id;
 

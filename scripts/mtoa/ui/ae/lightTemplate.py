@@ -124,7 +124,14 @@ class ColorTemperatureTemplate:
         try:
             temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
             colorTemp = cmds.arnoldTemperatureToColor(temperature)
-            cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+            displayColor = colorTemp
+            if pm.mel.exists("colorManagementConvert"):
+                displayColor = cmds.colorManagementConvert(toDisplaySpace=colorTemp)
+
+            displayColor[0] = min(max(displayColor[0], 0.0), 1.0)
+            displayColor[1] = min(max(displayColor[1], 0.0), 1.0)
+            displayColor[2] = min(max(displayColor[2], 0.0), 1.0)
+            cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
         except:
             pass
 
@@ -143,7 +150,15 @@ class ColorTemperatureTemplate:
                                 precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=self.updateColorTemperature)
         cmds.setParent('..')
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
-        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+        displayColor = colorTemp
+        if pm.mel.exists("colorManagementConvert"):
+            displayColor = cmds.colorManagementConvert(toDisplaySpace=displayColor)
+
+        displayColor[0] = min(max(displayColor[0], 0.0), 1.0)
+        displayColor[1] = min(max(displayColor[1], 0.0), 1.0)
+        displayColor[2] = min(max(displayColor[2], 0.0), 1.0)
+
+        cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
         cmds.setUITemplate(popTemplate=True)
 
     def updateLightColorTemperatureUI(self, attrName):
@@ -155,14 +170,21 @@ class ColorTemperatureTemplate:
                                 attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled,
                                 changeCommand=self.updateColorTemperature)
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
-        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+        displayColor = colorTemp
+        if pm.mel.exists("colorManagementConvert"):
+            displayColor = cmds.colorManagementConvert(toDisplaySpace=colorTemp)
+
+        displayColor[0] = min(max(displayColor[0], 0.0), 1.0)
+        displayColor[1] = min(max(displayColor[1], 0.0), 1.0)
+        displayColor[2] = min(max(displayColor[2], 0.0), 1.0)
+        cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
             
     def setupColorTemperature(self, lightType=""):
         self.sliderName = '%s_LightColorTemperature' % lightType
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
         self.addCustom('aiUseColorTemperature', self.createLightColorTemperatureUI, self.updateLightColorTemperatureUI)
-        
+        self.channelBox = False;
         self.addSeparator()
 
 class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):

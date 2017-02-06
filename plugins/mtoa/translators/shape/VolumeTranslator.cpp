@@ -148,11 +148,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
    
    ExportLightLinking(volume);
    
+   update = false;
 
    if (!update)
-   {
-     
-      AiNodeSetFlt(volume, "step_size", m_DagNode.findPlug("stepSize").asFloat());
+   {     
 
       MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
       if (loadAtInit.asBool())
@@ -188,6 +187,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
          {
             AiNodeSetStr(volume, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
          }
+         AiNodeSetFlt(volume, "step_size", m_DagNode.findPlug("stepSize").asFloat());
       }
       else
       {
@@ -214,8 +214,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
             newFilename = filename;
          }
          
+         newFilename = newFilename.expandEnvironmentVariablesAndTilde();
+
          AiNodeDeclare( volume, "filename", "constant STRING" );
-         AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
+         AiNodeSetStr( volume, "filename", newFilename.asChar() );
          
          MString grids = m_DagNode.findPlug("grids").asString();
          MStringArray gridList;
@@ -232,6 +234,19 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
             AiNodeSetArray( volume, "grids", ary);
          }
          
+         float stepSize = m_DagNode.findPlug("stepSize").asFloat();
+         if (m_DagNode.findPlug("autoStepSize").asBool())
+         {
+            MString cmd;
+            cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetMinVoxelSize('^1s', '^2s')", newFilename, grids);
+
+            MString result;
+            if (MGlobal::executePythonCommand(cmd, result) == MS::kSuccess)
+               stepSize = result.asFloat() * m_DagNode.findPlug("stepScale").asFloat();
+            
+         }
+         AiNodeSetFlt(volume, "step_size", stepSize);
+
          MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
          MStringArray vGridList;
          vGrids.split(' ',vGridList);
@@ -270,4 +285,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 
    }
    return volume;
+}
+
+void CArnoldVolumeTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
 }

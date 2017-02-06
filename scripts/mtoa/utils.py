@@ -486,28 +486,31 @@ def setEnvironmentVariable(name, value):
         os.environ[name] = value    
         
 def createLocator(locatorType, asLight=False):
+    if asLight:
+        lName = cmds.shadingNode(locatorType, name=('%sShape1' % locatorType), asLight=True)
+        shapeNames = cmds.listRelatives(lName, shapes=True)
+        return (shapeNames[0], lName)
+
     lNode = pm.createNode('transform', name='%s1' % locatorType)
     lName = lNode.name()
     lId = lName[len(locatorType):]
     shapeName = '%sShape%s' % (locatorType, lId)
-    if asLight:
-        cmds.shadingNode(locatorType, name=shapeName, parent=lName, asLight=True)
-    else:
-        pm.createNode(locatorType, name=shapeName, parent=lNode)       
+    pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
 # in theory we could merge this function with the one above easily,
 # but we need to make sure first it's not breaking other calls
 def createLocatorWithName(locatorType, nodeName, asLight=False):
-    
+    if asLight:
+        lName = cmds.shadingNode(locatorType, name=('%sShape' % nodeName), asLight=True)
+        shapeNames = cmds.listRelatives(lName, shapes=True)
+        return (shapeNames[0], lName)
+
     lNode = pm.createNode('transform', name='%s' % nodeName)
     lName = lNode.name()
     lId = lName[len(locatorType):]
     shapeName = '%sShape' % nodeName
-    if asLight:
-        cmds.shadingNode(locatorType, name=shapeName, parent=lName, asLight=True)
-    else:
-        pm.createNode(locatorType, name=shapeName, parent=lNode)       
+    pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
 

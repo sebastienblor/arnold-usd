@@ -80,3 +80,22 @@ void CArnoldSkyNode::draw(M3dView& view, const MDagPath& DGpath, M3dView::Displa
    CSphereLocator::draw(view, DGpath, style, status);
 }
 
+void CArnoldSkyNode::postConstructor()
+{
+
+#if MAYA_API_VERSION >= 201700
+   // Always make the node not receive or cast shadows
+   //
+   MFnDependencyNode node(thisMObject());
+   MPlug plug = node.findPlug("receiveShadows");
+   plug.setValue(false);
+   plug = node.findPlug("castsShadows");
+   plug.setValue(false);
+   
+#endif
+
+   // Call parent postConstructor as it is not done automatically as the parent constructor
+   CSphereLocator::postConstructor();
+
+   setMPSafe(true);
+}

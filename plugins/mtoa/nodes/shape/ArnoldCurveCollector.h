@@ -29,5 +29,6 @@ public:
    static MObject s_exportRefPoints;
    static MObject s_minPixelWidth;
    static MObject s_mode;
+   static MObject s_widthProfile;
 
 }; 

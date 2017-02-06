@@ -60,6 +60,8 @@ MObject CArnoldVolumeShape::s_loadAtInit;
 MObject CArnoldVolumeShape::s_stepSize;
 MObject CArnoldVolumeShape::s_boundingBoxMin;
 MObject CArnoldVolumeShape::s_boundingBoxMax;
+MObject CArnoldVolumeShape::s_autoStepSize;
+MObject CArnoldVolumeShape::s_stepScale;
 
 MObject CArnoldVolumeShape::s_filename;
 MObject CArnoldVolumeShape::s_grids;
@@ -162,6 +164,16 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_stepSize);
+
+   s_autoStepSize = nAttr.create("autoStepSize", "autoStepSize", MFnNumericData::kBoolean, 0);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_autoStepSize);
+
+   s_stepScale = nAttr.create("stepScale", "stepScale", MFnNumericData::kFloat, 1.f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_stepScale);
    
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, 0.0);
    nAttr.setHidden(false);
@@ -253,26 +265,28 @@ MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
 
 MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
 {
-	// If more attributes are added which require update, they
-	// shoukd be added here
-	if (plug == s_type ||
-		plug == s_dso ||
-		plug == s_data ||
-		plug == s_loadAtInit ||
-		plug == s_stepSize ||
-		plug == s_boundingBoxMin ||
-		plug == s_boundingBoxMax ||
+   // If more attributes are added which require update, they
+   // shoukd be added here
+   if (plug == s_type ||
+      plug == s_dso ||
+      plug == s_data ||
+      plug == s_loadAtInit ||
+      plug == s_stepSize ||
+      plug == s_stepScale ||
+      plug == s_autoStepSize ||
+      plug == s_boundingBoxMin ||
+      plug == s_boundingBoxMax ||
 
-		plug == s_filename ||
-		plug == s_grids ||
-		plug == s_frame ||
-		plug == s_padding ||
+      plug == s_filename ||
+      plug == s_grids ||
+      plug == s_frame ||
+      plug == s_padding ||
 
-		plug == s_velocity_grids ||
-		plug == s_velocity_scale ||
-		plug == s_velocity_fps ||
-		plug == s_velocity_shutter_start ||
-		plug == s_velocity_shutter_end || 
+      plug == s_velocity_grids ||
+      plug == s_velocity_scale ||
+      plug == s_velocity_fps ||
+      plug == s_velocity_shutter_start ||
+      plug == s_velocity_shutter_end || 
       plug == s_velocity_threshold  
       )
 	{
@@ -320,52 +334,48 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    if (m_type != tmpType || m_dso != tmpDso || m_data != tmpData || m_filename != tmpFilename ||
        m_grids != tmpGrids || m_frame != tmpFrame || m_padding != tmpPadding)
    {
-      if (AiUniverseIsActive())
-         return &m_bbox;
-      
-      bool AiUniverseCreated = false;
-      AiUniverseCreated = ArnoldUniverseBegin();
-      
-      AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
-      AiNodeSetBool(options, "skip_license_check", true);
-      
-      
-      AtNode* volume = AiNode("volume");;
-      AiNodeSetFlt(volume, "step_size", 0.0f);
-      AiNodeSetBool(volume, "load_at_init", true);
-      
-      AiNodeSetStr(volume, "name", "myvolume");
-
-      AtMatrix matrix;
-      AiM4Identity(matrix);
-      AiNodeSetMatrix(volume, "matrix", matrix);
-
-	  MString dso;
       if(m_type == VT_CUSTOM)
       {
-         dso = m_dso.expandEnvironmentVariablesAndTilde();
-	  }
-	  else // openvdb
-	  {
-         dso = MString(getenv("MTOA_PATH")) + MString("/procedurals/volume_openvdb.so");
-	  }
-	  unsigned int nchars = dso.numChars();
-	  if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
-	  {
-		  dso = dso.substringW(0, nchars-4)+LIBEXT;
-	  }
-	  else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
-	  {
-		  dso = dso.substringW(0, nchars-5)+LIBEXT;
-	  }
-	  else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
-	  {
-		  dso = dso.substringW(0, nchars-7)+LIBEXT;
-	  }
+         // For Custom Volumes we need to create an arnold scene to get its bounding box
 
-      if(m_type == VT_CUSTOM)
-      {
+         if (AiUniverseIsActive())
+            return &m_bbox;
+         
+         bool AiUniverseCreated = false;
+         AiUniverseCreated = ArnoldUniverseBegin();
+         
+         AtNode* options = AiUniverseGetOptions();
+         AiNodeSetBool(options, "preserve_scene_data", true);
+         AiNodeSetBool(options, "skip_license_check", true);
+         
+         
+         AtNode* volume = AiNode("volume");;
+         AiNodeSetFlt(volume, "step_size", 0.0f);
+         AiNodeSetBool(volume, "load_at_init", true);
+         
+         AiNodeSetStr(volume, "name", "myvolume");
+
+         AtMatrix matrix;
+         AiM4Identity(matrix);
+         AiNodeSetMatrix(volume, "matrix", matrix);
+
+   	  MString dso = m_dso.expandEnvironmentVariablesAndTilde();
+   	  
+   	  unsigned int nchars = dso.numChars();
+   	  if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
+   	  {
+   		  dso = dso.substringW(0, nchars-4)+LIBEXT;
+   	  }
+   	  else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
+   	  {
+   		  dso = dso.substringW(0, nchars-5)+LIBEXT;
+   	  }
+   	  else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
+   	  {
+   		  dso = dso.substringW(0, nchars-7)+LIBEXT;
+   	  }
+
+         
          AiNodeSetStr(volume, "dso", dso.asChar());
       
          int sizeData = strlen(m_data.asChar());
@@ -373,14 +383,50 @@ MBoundingBox* CArnoldVolumeShape::geometry()
          {
             AiNodeSetStr(volume, "data", m_data.expandEnvironmentVariablesAndTilde().asChar());
          }
-      }
-      else // openvdb
-      {
-		 AiNodeSetStr(volume, "dso", dso.expandEnvironmentVariablesAndTilde().asChar());
          
+         AtNode *camera = AiNode("persp_camera");
+         AiNodeSetStr(camera, "name", "mycamera");
+         
+         if (AiRender(AI_RENDER_MODE_FREE) != AI_SUCCESS)
+         {
+            if (AiUniverseCreated) ArnoldUniverseEnd();
+            m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
+            return &m_bbox;
+         }
+         
+         AtBBox bbox;
+         bbox = AiUniverseGetSceneBounds();
+         
+         if (AiUniverseCreated) ArnoldUniverseEnd();
+
+   	  if (AiBBoxIsEmpty(bbox))
+   	  {
+   		   m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
+            return &m_bbox;
+   	  }
+
+         float minCoords[4];
+         float maxCoords[4];
+         
+         minCoords[0] = bbox.min.x;
+         minCoords[1] = bbox.min.y;
+         minCoords[2] = bbox.min.z;
+         minCoords[3] = 0.0f;
+
+         maxCoords[0] = bbox.max.x;
+         maxCoords[1] = bbox.max.y;
+         maxCoords[2] = bbox.max.z;
+         maxCoords[3] = 0.0f;
+         
+         m_bbox = MBoundingBox (minCoords, maxCoords);
+      } else
+      {
+         // VDB, we can directly get the bounding box from the VDB API
+
+
          int start = 0;
          int end = 0;
-         MString newFilename = "";
+         MString expandedFilename = "";
          char frameExt[64];
 
          start = m_filename.index('#');
@@ -389,74 +435,31 @@ MBoundingBox* CArnoldVolumeShape::geometry()
          if(start >= 0)
          {
             sprintf(frameExt, "%0*d", end - start + 1, m_frame);
-            newFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
+            expandedFilename = m_filename.substring(0,start-1) + frameExt + m_filename.substring(end+1,m_filename.length());
          }
          else
          {
-            newFilename = m_filename;
+            expandedFilename = m_filename;
          }
+         expandedFilename = expandedFilename.expandEnvironmentVariablesAndTilde();
          
-         AiNodeDeclare( volume, "filename", "constant STRING" );
-         AiNodeSetStr( volume, "filename", newFilename.expandEnvironmentVariablesAndTilde().asChar() );
-         
-         MStringArray gridList;
-         m_grids.split(' ',gridList);
-         
-         if (gridList.length() > 0)
+         MString cmd;
+         cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetChannelBounds('^1s', '^2s')", expandedFilename, m_grids);
+
+         MStringArray result;
+         MGlobal::executePythonCommand(cmd, result);   
+
+         if (result.length() >= 6)   
          {
-            AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
-            AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
-            for(unsigned int i = 0; i < gridList.length(); i++)
-            {
-               AiArraySetStr(ary, i, gridList[i].asChar());
-            }
-            AiNodeSetArray( volume, "grids", ary);
+            MPoint minBox(result[0].asFloat(), result[1].asFloat(), result[2].asFloat(), 0.f);
+            MPoint maxBox(result[3].asFloat(), result[4].asFloat(), result[5].asFloat(), 0.f);
+
+            m_bbox = MBoundingBox(minBox, maxBox);
+         } else
+         {
+            m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
          }
       }
-
-      // create a lambert shader
-      //AtNode *shader = AiNode("density");
-      //AiNodeSetStr(shader, "name", "mydensity");
-
-      // assign the sphere's shader
-      //AiNodeSetPtr(volume, "shader", shader);
-      
-      // create a perspective camera
-      AtNode *camera = AiNode("persp_camera");
-      AiNodeSetStr(camera, "name", "mycamera");
-      
-      if (AiRender(AI_RENDER_MODE_FREE) != AI_SUCCESS)
-      {
-         if (AiUniverseCreated) ArnoldUniverseEnd();
-         m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
-         return &m_bbox;
-      }
-      
-      AtBBox bbox;
-      bbox = AiUniverseGetSceneBounds();
-      
-      if (AiUniverseCreated) ArnoldUniverseEnd();
-
-	  if (AiBBoxIsEmpty(bbox))
-	  {
-		 m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
-         return &m_bbox;
-	  }
-
-      float minCoords[4];
-      float maxCoords[4];
-      
-      minCoords[0] = bbox.min.x;
-      minCoords[1] = bbox.min.y;
-      minCoords[2] = bbox.min.z;
-      minCoords[3] = 0.0f;
-
-      maxCoords[0] = bbox.max.x;
-      maxCoords[1] = bbox.max.y;
-      maxCoords[2] = bbox.max.z;
-      maxCoords[3] = 0.0f;
-      
-      m_bbox = MBoundingBox (minCoords, maxCoords);
    }
    
    return &m_bbox;

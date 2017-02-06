@@ -82,6 +82,7 @@ public:
    static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
    static void SceneOpenCallback(void *);
+   static void ColorMgtRefreshed(void *);
    static void ColorMgtChangedCallback(void *);
    static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionCallback(MObject& node, MPlug& plug, void* clientData);
@@ -105,6 +106,7 @@ private:
    MCallbackId m_rvColorMgtCb;
    MCallbackId m_rvResCb;
    MCallbackId m_rvIdleCb;
+   MCallbackId m_colorMgtRefreshCb;
 
    bool m_convertOptionsParam;
 

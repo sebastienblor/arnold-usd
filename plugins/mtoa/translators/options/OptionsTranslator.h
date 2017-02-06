@@ -43,6 +43,10 @@ public:
    {
       return m_aovs;
    }
+   const MStringArray& GetActiveImageFilenames() const
+   {
+      return m_imageFilenames;
+   }
 
    static void AddProjectFoldersToSearchPaths(AtNode* options);
 protected:
@@ -77,4 +81,5 @@ protected:
    bool m_aovsEnabled;
    bool m_aovsInUse;
    unordered_map<std::string, AtNode*> m_multiDriverMap;
+   MStringArray m_imageFilenames;
 };

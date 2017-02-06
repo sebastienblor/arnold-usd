@@ -29,6 +29,7 @@ MObject CArnoldCurveCollector::s_curveShaderB;
 MObject CArnoldCurveCollector::s_exportRefPoints;
 MObject CArnoldCurveCollector::s_minPixelWidth;
 MObject CArnoldCurveCollector::s_mode;
+MObject CArnoldCurveCollector::s_widthProfile;
 
 
 void* CArnoldCurveCollector::creator()
@@ -72,7 +73,7 @@ MStatus CArnoldCurveCollector::initialize()
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setInternal(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_curveShader);
 
    s_exportRefPoints = nAttr.create("aiExportRefPoints", "aiExportRefPoints", MFnNumericData::kBoolean, 0);
@@ -90,10 +91,6 @@ MStatus CArnoldCurveCollector::initialize()
    eAttr.addField("thick", 1);
    eAttr.addField("oriented", 2);
    addAttribute(s_mode);
-
-   /*data.name = "widthProfile";
-   data.shortName = "wdthP";
-   helper.MakeInputCurveRamp(data);*/
 
    MObject selfShadows = nAttr.create("aiSelfShadows", "aiSelfShadows", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
@@ -130,14 +127,35 @@ MStatus CArnoldCurveCollector::initialize()
    data.shortName = "ai_export_hair_ids";
    s_attributes.MakeInputBoolean(data);
 
+
+   MRampAttribute rAttr;
+   s_widthProfile = rAttr.createCurveRamp("aiWidthProfile", "wdthP");
+   addAttribute(s_widthProfile);
+
    return MS::kSuccess;
 }
 
 void CArnoldCurveCollector::postConstructor()
-{
+{   
    // Call parent postConstructor as it is not done automatically as the parent constructor
    MPxLocatorNode::postConstructor();
    setMPSafe(true);
+
+   // Need to set the default Curve Profile ramp, otherwise it will 
+   // appear empty. Here we choose to add two points at 0 and 1 position,
+   // both with a value of 1
+   MStatus status;
+   MRampAttribute widthProfileAttr(thisMObject(), s_widthProfile, &status );
+   if (status == MS::kSuccess)
+   {
+      static const float sDefaultWidthRampPositions[] = {0.0f, 1.f};
+      static const float sDefaultWidthRampValues[] = {1.f, 1.f};
+      static const int sDefaultWidthRampInterps[] = {3,3};
+
+      widthProfileAttr.setRamp(MFloatArray(sDefaultWidthRampValues, 2), 
+            MFloatArray(sDefaultWidthRampPositions, 2), 
+            MIntArray(sDefaultWidthRampInterps, 2));
+   }
 }
 
 MStatus CArnoldCurveCollector::compute(const MPlug& plug, MDataBlock& block)

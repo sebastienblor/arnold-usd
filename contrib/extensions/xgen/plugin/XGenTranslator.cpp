@@ -155,9 +155,9 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       if(GetSessionOptions().IsBatch())
       {
          int exists = 0;
-            MGlobal::executeCommand("objExists defaultArnoldRenderOptions.mtoaOrigFileName", exists);
+            MGlobal::executeCommand("objExists arnoldBatchNode.mtoaOrigFileName", exists);
          if (exists == 1)
-            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.mtoaOrigFileName\"", mstrCurrentScene);
+            MGlobal::executeCommand("getAttr \"arnoldBatchNode.mtoaOrigFileName\"", mstrCurrentScene);
       }
 
       MFileObject fo;
@@ -627,23 +627,53 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
             pos += 2;
          }
          
-         // We only have to remove namespace character ':' if there is a patch cache file
-         if(info.hasAlembicFile)
+         // Namespace is a feature in Maya and .xgen file doesn't contain any
+         // namespace information. When translating xgen nodes, we need to
+         // extract the namespace from the node name and pass the namespace
+         // to xgen by using -nameSpace flag.
+         // i.e. Maya ns:name -> XGen -namespace ns: -palette name
          {
-            // Internally, XGen needs palette, description and patch without namespace
+            // Namespace of xgen nodes. XGen only allows to use one namespace
+            // for all nodes in the same collection.
+            std::string ns;
+
+            // Get the namespace from the palette node
             pos = info.strPalette.rfind(":");
-            if(pos != std::string::npos)
-               info.strPalette.erase(0,pos + 1);
-            
+            if (pos != std::string::npos)
+               ns = info.strPalette.substr(0, pos);
+
+            // Check the namespace of the patch node
             pos = stringPatch.rfind(":");
-            if(pos != std::string::npos)
-               stringPatch.erase(0,pos + 1);
+            if (pos != std::string::npos && ns != stringPatch.substr(0, pos))
+               AiMsgWarning("[xgen] Patch %s has a different namespace than collection %s",
+                    stringPatch.c_str(), info.strPalette.c_str());
                
+            // Check the namespace of the description node
             pos = info.strDescription.rfind(":");
-            if(pos != std::string::npos)
-               info.strDescription.erase(0,pos + 1);
+            if (pos != std::string::npos && ns != info.strDescription.substr(0, pos))
+               AiMsgWarning("[xgen] Description %s has a different namespace than collection %s",
+                    info.strDescription.c_str(), info.strPalette.c_str());
+
+            // Add -nameSpace flag using the namespace from the palette
+            if (!ns.empty())
+            {
+                strData += " -nameSpace " + ns;
+            }
          }
          
+         // Internally, XGen needs palette, description and patch without namespace
+         pos = info.strPalette.rfind(":");
+         if(pos != std::string::npos)
+            info.strPalette.erase(0,pos + 1);
+         
+         pos = stringPatch.rfind(":");
+         if(pos != std::string::npos)
+            stringPatch.erase(0,pos + 1);
+            
+         pos = info.strDescription.rfind(":");
+         if(pos != std::string::npos)
+            info.strDescription.erase(0,pos + 1);
+                 
          strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
          strData += " -palette " + info.strPalette;
          

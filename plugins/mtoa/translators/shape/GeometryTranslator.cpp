@@ -389,6 +389,7 @@ bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
    MFnMesh fnMesh(geometry);
 
    bool exportColors = false;
+   unsigned int numFaceVertices = fnMesh.numFaceVertices();
 
    if (fnMesh.numColorSets() > 0)
    {
@@ -425,39 +426,71 @@ bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
    {      
       MIntArray faces;
       unsigned int i = 0;
-      float scale = 1.0f;
       int dim = 4;
       MColor col;
 
-      for (unsigned int j=0; j<numColorSets; ++j)
+      for (unsigned int j=0; j < numColorSets; ++j)
       {
+         bool found_diff = false;
+
          std::vector<float> &colors = vcolors[names[j].asChar()];
          colors.resize(fnMesh.numVertices() * dim, 0.0f);
 
          MObject meshObject = fnMesh.object();
          MItMeshVertex itVertex(meshObject);
 
+         // Since #2725, we support indexed data per face-vertex. So we first try to export user data per-vertex,
+         // and if we find any difference we switch to indexed data.
          while (!itVertex.isDone())
          {
             faces.clear();
             itVertex.getConnectedFaces(faces);
 
             if (faces.length() > 0)
-            {
-               scale = 1.0f / float(faces.length());
+            {  
                i = itVertex.index() * dim;
 
                for (unsigned int k=0; k<faces.length(); ++k)
                {
                   itVertex.getColor(col, faces[k], &names[j]);
                   for (int l=0; l<dim; ++l)
-                     colors[i+l] += col[l];
-               }
-               for (int l=0; l<dim; ++l)
-                  colors[i+l] *= scale;
+                  {
+                     if (k == 0)
+                        colors[i+l] = col[l];
+                     else if (std::abs(colors[i+l] - col[l]) > AI_EPSILON)
+                     {
+                        // found a difference between 2 vertex faces. We need to output "indexed" data instead.
+                        found_diff = true;
+                        break;
+                     }
+                  }
+                  if (found_diff)
+                     break;
+               }    
             }
+            if (found_diff)
+               break;
 
             itVertex.next();
+         }
+
+         if (found_diff)
+         {
+            // We can't export "varying" per-vertex user data.
+            // So we're going to export the colors per face-vertex
+
+            MColorArray face_vtx_colors;
+
+            // FIXME : in the first "per-vertex" code we don't set default color to black.
+            // So we can get -1 values when no color was painted for a given vertex. Do we want to keep that feature ?
+            MColor unsetColor(0.f, 0.f, 0.f, 0.f);
+            MStatus status = fnMesh.getFaceVertexColors(face_vtx_colors, &names[j], &unsetColor);
+            if (status == MS::kSuccess)
+            {
+               colors.assign(numFaceVertices * dim, 0.f);
+               // FIXME the memcpy seems to work, make sure it is safe to assume this
+               memcpy(&colors[0], &face_vtx_colors[0], numFaceVertices * sizeof(MColor));
+            }
          }
       }
    }
@@ -777,7 +810,8 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
    //   
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
-   
+   unsigned int numFaceVertices = fnMesh.numFaceVertices();
+
    const float* vertices = 0;
    // Get all vertices
    bool exportVertices = GetVertices(geometry, vertices);
@@ -848,10 +882,19 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // Declare user parameters for color sets
       if (exportColors)
       {
+
          unordered_map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            if (it->second.size() == numVerts * 4)
+               AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            else
+            {
+               AiNodeDeclare(polymesh, it->first.c_str(), "indexed RGBA");
+               std::string userDataIdxName = it->first + "idxs";
+               AiNodeDeclare(polymesh, userDataIdxName.c_str(), "indexed UINT");
+            }
+
             ++it;
          }
       }
@@ -991,7 +1034,18 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          unordered_map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
+            if (it->second.size() == numVerts * 4)
+               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
+            else
+            {
+               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numFaceVertices, 1, AI_TYPE_RGBA, &(it->second[0])));
+               std::vector<unsigned int> userDataIdx(numFaceVertices);
+               for (size_t i = 0; i < numFaceVertices; ++i)
+                  userDataIdx[i] = i;
+
+               std::string userDataIdxName = it->first + "idxs";
+               AiNodeSetArray(polymesh, userDataIdxName.c_str(), AiArrayConvert(numFaceVertices, 1, AI_TYPE_UINT, &(userDataIdx[0])));
+            }
             ++it;
          }
       }

@@ -58,7 +58,8 @@ class MtoARenderToTexture(object):
         return True
 
     def browseObjFilename(self):
-        ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=3)
+        defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+        ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=3,dir=defaultFolder)
         if ret is not None and len(ret):
             cmds.textFieldButtonGrp('outputFolder', e=True, text=ret[0])
 

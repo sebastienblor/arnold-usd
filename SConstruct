@@ -839,6 +839,7 @@ elif system.os() == 'darwin':
 # install icons
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
+env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.svg')))
 # install docs
 env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
@@ -1044,6 +1045,7 @@ PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('icons', '*.png'), 'icons'],
+[os.path.join('icons', '*.svg'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
@@ -1214,6 +1216,7 @@ def create_installer(target, source, env):
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
+        mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.close()
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')

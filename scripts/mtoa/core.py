@@ -126,7 +126,7 @@ def createStandIn(path=None):
         pm.createNode("objectSet", name=":ArnoldStandInDefaultLightSet", shared=True)
         pm.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
 
-    standIn = pm.createNode('aiStandIn', n='ArnoldStandInShape')
+    standIn = pm.createNode('aiStandIn', n='aiStandInShape')
     # temp fix until we can correct in c++ plugin
     cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
     cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
@@ -136,7 +136,7 @@ def createStandIn(path=None):
     return standIn
     
 def createVolume():
-    pm.createNode('aiVolume', n='ArnoldVolumeShape')
+    pm.createNode('aiVolume', n='aiVolumeShape')
 
 def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     """
