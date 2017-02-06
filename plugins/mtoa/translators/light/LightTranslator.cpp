@@ -134,6 +134,7 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.name = "aiUseColorTemperature";
    data.shortName = "ai_use_color_temperature";
    data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
    
    data.defaultValue.FLT = 6500;
@@ -146,6 +147,7 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.hasMin = true;
    data.min.FLT = 0.f;
    data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputFloat(data);
 }
 
