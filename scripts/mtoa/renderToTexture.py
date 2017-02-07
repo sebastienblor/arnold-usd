@@ -10,6 +10,8 @@ import mtoa.callbacks as callbacks
 import maya.OpenMaya as om
 import mtoa.utils as mutils
 
+defaultFolder = ""
+
 class MtoARenderToTexture(object):
     window = None
     def __new__(cls, *args, **kwargs):
@@ -58,10 +60,15 @@ class MtoARenderToTexture(object):
         return True
 
     def browseObjFilename(self):
-        defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
+
+        global defaultFolder
+        if defaultFolder == "":
+            defaultFolder = cmds.workspace(q=True,rd=True, fn=True)
         ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=3,dir=defaultFolder)
         if ret is not None and len(ret):
-            cmds.textFieldButtonGrp('outputFolder', e=True, text=ret[0])
+            defaultFolder = ret[0]
+            cmds.textFieldButtonGrp('outputFolder', e=True, text=defaultFolder)
+
 
         return True
 
@@ -97,7 +104,8 @@ class MtoARenderToTexture(object):
         cmds.columnLayout(adjustableColumn=True)
         #cmds.setParent("..")
         cmds.rowLayout(numberOfColumns=1, columnAlign1='left')
-        cmds.textFieldButtonGrp('outputFolder', label='Output Folder', cw3=(90,320, 50), text="", buttonLabel='...', buttonCommand=lambda *args: self.browseObjFilename())
+        global defaultFolder
+        cmds.textFieldButtonGrp('outputFolder', label='Output Folder', cw3=(90,320, 50), text=defaultFolder, buttonLabel='...', buttonCommand=lambda *args: self.browseObjFilename())
 
         cmds.setParent("..")
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
