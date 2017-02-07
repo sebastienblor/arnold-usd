@@ -790,11 +790,14 @@ void COptionsTranslator::Export(AtNode *options)
          MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
          if (status)
          {
-            AiNodeDeclare(options, "render_layer", "constant STRING");
+            if (AiNodeLookUpUserParameter(options, "render_layer") == NULL)
+               AiNodeDeclare(options, "render_layer", "constant STRING");
+
             AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
          }
       }
-      AiNodeDeclare(options, "fps", "constant FLOAT");
+      if (AiNodeLookUpUserParameter(options, "fps") == NULL)
+         AiNodeDeclare(options, "fps", "constant FLOAT");
    }
 
    // now updating fps at every update, whoe knows
