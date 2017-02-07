@@ -627,6 +627,9 @@ void COptionsTranslator::Export(AtNode *options)
          {
             const int AA_samples = FindMayaPlug("AA_samples").asInt();
             AiNodeSetInt(options, "AA_samples", AA_samples == 0 ? 1 : AA_samples);
+         } else if (strcmp(paramName, "thread_priority") == 0)
+         {
+            AiNodeSetInt(options, "thread_priority", 2);
          }
          else
          {
