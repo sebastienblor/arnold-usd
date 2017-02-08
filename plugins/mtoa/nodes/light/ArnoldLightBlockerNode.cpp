@@ -83,7 +83,7 @@ MStatus CArnoldLightBlockerNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_shader);
    
    s_roundness = nAttr.create("roundness", "rnds", MFnNumericData::kFloat);
@@ -111,7 +111,7 @@ MStatus CArnoldLightBlockerNode::initialize()
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
    nAttr.setSoftMax(1.0f);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_ramp);
    
    s_rampAxis = eAttr.create("rampAxis", "ramp_axis");

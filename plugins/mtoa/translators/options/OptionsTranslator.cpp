@@ -183,8 +183,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
       pathType = defaultRenderGlobalsData.kFullPathTmp;
    }
 
-   // we're only doing stereo rendering for Batch sessions (ass export / batch render)
-   bool stereo = (options.IsBatch() && camera.node().hasFn(MFn::kStereoCameraMaster));
+   // we're only doing stereo rendering for Batch sessions (ass export / batch render) or sequence rendering
+   bool stereo = (options.IsBatch() || options.GetSessionMode() == MTOA_SESSION_SEQUENCE) && camera.node().hasFn(MFn::kStereoCameraMaster);
 
    int numEyes = 1;
    // loop through aovs
@@ -245,8 +245,10 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                continue;
             }
             const AtNodeEntry* driverEntry = AiNodeGetNodeEntry(output.driver);
-            // handle drivers with filename parameters
-            if (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL)
+
+            // is this driver an output file image (otherwise it could be a display driver)
+            bool outputImageDriver = (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL);
+            if (outputImageDriver)
             {
                
                AtString ext("");
@@ -369,8 +371,20 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             }
             else if (stereo)
             {
-               sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                       AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+               if (outputImageDriver)
+               {
+                  // output image : we need both eyes
+                  // Setting the <Eye> token for Stereo rendering
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+               }
+               else if (eye == 0)
+               {
+                  // display driver, we only output one eye (left)
+                  cameraToken = leftCameraName;
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+               } 
             } else
             {
                sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
@@ -613,6 +627,9 @@ void COptionsTranslator::Export(AtNode *options)
          {
             const int AA_samples = FindMayaPlug("AA_samples").asInt();
             AiNodeSetInt(options, "AA_samples", AA_samples == 0 ? 1 : AA_samples);
+         } else if (strcmp(paramName, "thread_priority") == 0)
+         {
+            AiNodeSetInt(options, "thread_priority", 2);
          }
          else
          {
@@ -776,11 +793,14 @@ void COptionsTranslator::Export(AtNode *options)
          MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
          if (status)
          {
-            AiNodeDeclare(options, "render_layer", "constant STRING");
+            if (AiNodeLookUpUserParameter(options, "render_layer") == NULL)
+               AiNodeDeclare(options, "render_layer", "constant STRING");
+
             AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
          }
       }
-      AiNodeDeclare(options, "fps", "constant FLOAT");
+      if (AiNodeLookUpUserParameter(options, "fps") == NULL)
+         AiNodeDeclare(options, "fps", "constant FLOAT");
    }
 
    // now updating fps at every update, whoe knows

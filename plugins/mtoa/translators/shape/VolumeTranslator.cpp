@@ -149,6 +149,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
    
    ExportLightLinking(volume);
    
+   update = false;
 
    if (!update)
    {
@@ -246,4 +247,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("boundsSlack").asFloat());
    }
    return volume;
+}
+
+void CArnoldVolumeTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
 }

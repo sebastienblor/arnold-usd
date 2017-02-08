@@ -11,6 +11,7 @@
 #include <maya/MFloatVectorArray.h>
 #include <maya/MDagMessage.h>
 #include <maya/MItDag.h>
+#include <maya/MMatrix.h>
 #include <vector>
 
 typedef std::vector<float> CurveWidths;
@@ -48,6 +49,8 @@ void CCurveCollectorTranslator::ComputeCurvesList(MDagPathArray &pathArray)
          if (path.apiType() == MFn::kTransform)
             continue;
 
+         if (MFnDagNode(path).isIntermediateObject())
+            continue;
          pathArray.append(path);
       }      
    }      
@@ -183,21 +186,27 @@ struct CCurvesData
 // FIXME we're not handling what happens when the child curves are transformed...
 // would need to apply the conversion matrix
 
-static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData, 
-      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, unsigned int step)
+static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData, 
+      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, bool motion)
 {
+   MObject curve(curvePath.node());
    MFnDependencyNode fnDepNodeCurve(curve);
    MStatus stat;
    MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", &stat);
    if (stat != MStatus::kSuccess)
       return MS::kSuccess;
    
+   MMatrix curveMtx = curvePath.inclusiveMatrix(&stat);
+   const static MMatrix identityMtx;
+   bool hasMatrix = (curveMtx != identityMtx); 
+
    MFnNurbsCurve nurbsCurve(curve);
 
    double start, end;
    unsigned int numcvs;
    double incPerSample;
 
+   
    nurbsCurve.getKnotDomain(start, end);
    numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
    incPerSample = 1.0 / sampleRate;
@@ -213,7 +222,7 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
 
    plug = fnDepNodeCurve.findPlug("referenceObject", &stat);
    plug.connectedTo(conns, true, false);
-   bool hasReferenceObject = (exportReference && step == 0 && conns.length() > 0);
+   bool hasReferenceObject = (exportReference && motion == false && conns.length() > 0);
 
    MPoint point;
    if (hasReferenceObject)
@@ -232,27 +241,39 @@ static MStatus GetCurveSegments(MObject& curve, CCurvesData &curvesData,
          incPerSample = (end - start) / (double)numcvs;
          for(unsigned int i = 0; i < numcvs - 1; i++)
          {
-            referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+            referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kObject);
             curvesData.referencePoints.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
          }
-         referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
+         referenceCurve.getPointAtParam(end, point, MSpace::kObject);
          curvesData.referencePoints.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
       } 
    }
 
    for(unsigned int i = 0; i < (numcvs - 1); i++)
    {
-      nurbsCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+      nurbsCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kObject);
+
+      if (hasMatrix)
+         point *= curveMtx;
+
       curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
-      if (step > 0 && i == 0)
+
+      // this extra point is only stored for motion since in ExportMotion the array is just copied. 
+      // Otherwise it's better to let Export() duplicate the necessary vertices, this way we keep more information
+      if (motion == true && i == 0)
          curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
 
    }
-   nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
-   curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
-   if (step > 0)
-      curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
+   nurbsCurve.getPointAtParam(end, point, MSpace::kObject);
+   if (hasMatrix)
+      point *= curveMtx;
 
+   curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
+
+   // this extra point is only stored for motion since in ExportMotion the array is just copied. 
+   // Otherwise it's better to let Export() duplicate the necessary vertices, this way we keep more information
+   if (motion)
+      curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
    
    if (widthPlug)
    {
@@ -347,8 +368,6 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    plug = FindMayaPlug("aiExportRefPoints");
    bool exportReferenceObject = (!plug.isNull()) ? plug.asBool() : false;
    
-   // Set curve matrix for step 0
-
    if (RequiresShaderExport())
    {
       AtNode* shader = NULL;
@@ -428,18 +447,18 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
 
 
    if (!widthConnected && !hasWidthProfile)
-      AiNodeSetFlt(curve, "radius", globalWidth);
+      AiNodeSetFlt(curve, "radius", globalWidth / 2.f);
 
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
-      MObject objectCurveShape(m_curveDagPaths[i].node());
       //MFnDagNode fnDagNodeCurveShape(objectCurveShape);
-      //MFnDependencyNode fnDepNodeCurve(objectCurveShape);
+      //MFnDependencyNode(objectCurveShape).findPlug("");
 
       // Get curve lines
-      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, 
-            (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 0);
+      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, 
+            (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 
+            false);
       if (stat != MStatus::kSuccess) 
          continue;
    }
@@ -471,7 +490,9 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_VECTOR) : NULL;
 
    int pointIndex = 0;
-   int pointArrayIndex = 0;
+
+   // if the motion doesn't start on frame, there can be an offset here
+   int pointArrayIndex = (deformedPoints) ? GetMotionStep() * totalNumPointsInterp : 0;
    
    // loop over each curve
    for (size_t i = 0; i < curvesData.numPoints.size(); ++i)
@@ -494,7 +515,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
             if (hasWidthProfile)
                pointWidth *= curvesData.widthProfilePerResolution[curvesData.numPoints[i]]->at(j);
              
-            AiArraySetFlt(curveWidths, pointIndex, pointWidth);
+            AiArraySetFlt(curveWidths, pointIndex, pointWidth/2.f);
          }
 
          AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
@@ -548,18 +569,14 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    if (!deformedPoints)
       return;
 
-   int step = GetMotionStep();
-   
    CCurvesData curvesData;
    MStatus stat;
 
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
-      MObject objectCurveShape(m_curveDagPaths[i].node());
-      
       // Get curve lines
-      stat = GetCurveSegments(objectCurveShape, curvesData, m_sampleRate, NULL, NULL, false, step);
+      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, NULL, NULL, false, true);
       if (stat != MStatus::kSuccess) 
          continue;
    }
@@ -568,7 +585,8 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    AtArray *curvePoints = AiNodeGetArray(curve, "points");
    unsigned int totalNumPointsInterp = AiArrayGetNumElements(curvePoints);
 
-   int stepOffset = step * totalNumPointsInterp;
+   int stepOffset = GetMotionStep() * totalNumPointsInterp;
+   
 
    totalNumPointsInterp = AiMin(totalNumPointsInterp, (unsigned int)curvesData.points.size());
 

@@ -34,7 +34,28 @@ void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 {
-   if (IsMasterInstance())
+   bool isInstanced = (!IsMasterInstance());
+
+   // #2771 for interactive sessions, we export standin instances as 
+   // several procedurals instead of ginstances. We could do this for all
+   // kind of exports, but for now we only change it in IPR.
+   // We can only do this for .ass files, which arnold core will
+   // handle through the procedural cache. We don't want to duplicate other kind
+   // of procedurals, since they'd really be duplicated.
+   if (isInstanced && GetSessionOptions().IsInteractiveRender())
+   {
+      // check here if the filename is .ass for interactive renders
+      m_DagNode.setObject(m_dagPath.node());
+      MString dso = m_DagNode.findPlug("dso").asString();
+      unsigned int nchars = dso.numChars();
+      if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".ass")
+         isInstanced = false;
+   }
+
+   // Note that the code below is possible because RequestUpdate sets the 
+   // update mode to AI_RECREATE_NODE, otherwise we could have invalid arnold nodes
+   // when the filename is changed during IPR
+   if (!isInstanced)
    {
       AtNode * tmpRes = AddArnoldNode("procedural");
       return  tmpRes;
