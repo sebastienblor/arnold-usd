@@ -1828,10 +1828,6 @@
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "box"
 
-[node catrom2d_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "catrom2d"
-
 [node catrom_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "catrom"
@@ -1839,22 +1835,6 @@
 [node closest_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "closest"
-
-[node cone_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "cone"
-
-[node cook_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "cook"
-
-[node cubic_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "cubic"
-
-[node disk_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "disk"
 
 [node farthest_filter]
     maya.attr_prefix        STRING  ""
@@ -1885,10 +1865,6 @@
     maya.translator         STRING  "variance"
     [attr width]
         default             FLOAT   2.0
-
-[node video_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "video"
 
 [node gaussian_filter]
     maya.attr_prefix        STRING  ""
