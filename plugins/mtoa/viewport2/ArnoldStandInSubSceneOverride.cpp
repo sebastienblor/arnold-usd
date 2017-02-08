@@ -972,31 +972,28 @@ bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
     // Get the instance Id.  If looking for a lead item we know its id.
     int instanceId = wantLeadItem ? fLeadIndex : intersection.instanceID()-1;
 
-    // For lead items and poly items we already have the right instance Id.
-    if (wantPolyItem || wantLeadItem)
-    {
-        InstanceInfoMap::const_iterator iter = fInstanceInfoCache.find(instanceId);
-        if (iter == fInstanceInfoCache.end())
-            return false;
-
-        dagPath.set(iter->second.fInstance);
-        if (dagPath.length() > 1)
-            dagPath.pop(); // from shape to xform.
-        return true;
-    }
-
     // If looking for selected or unselected items loop over the cache to count items we are interested in.
     // Stop when we find the index we are looking for and return the instance.
     unsigned int currentInstance = 0;
     bool wantSelectedItem = (name.indexW("selected") == 0); // starts with selected
     bool wantUnselectedItem = (name.indexW("unselected") == 0); // starts with unselected
-    for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
+
+    MStatus status;
+    MFnDagNode node(mLocatorNode, &status);
+    MDagPathArray instances;
+    node.getAllPaths(instances);
+
+    for (unsigned int instIdx=0; instIdx<instances.length(); instIdx++)
     {
+        if(!instances[instIdx].isValid() || !instances[instIdx].isVisible())
+            continue;
+
         // Get the instance from the cache by index.
 		InstanceInfo instanceInfo = fInstanceInfoCache.find((int)instIdx)->second;
 
-        if (((wantSelectedItem && instanceInfo.fSelected) ||
-            (wantUnselectedItem && !(instanceInfo.fSelected || instanceInfo.fLead))) &&
+        if ((wantPolyItem || wantLeadItem ||
+             (wantSelectedItem && instanceInfo.fSelected) ||
+             (wantUnselectedItem && !(instanceInfo.fSelected || instanceInfo.fLead))) &&
             currentInstance++ == (unsigned int)instanceId) // keep track of how many interesting items we visit
         {
             // we have found the right index so return it.
