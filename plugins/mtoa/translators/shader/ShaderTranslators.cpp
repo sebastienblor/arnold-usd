@@ -1491,6 +1491,37 @@ AtNode* CAiHairTranslator::CreateArnoldNodes()
    return AddArnoldNode("hair");
 }
 
+void CAiStandardHairTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiStandardHair");
+   
+   CAttrData data;
+
+   data.name = "aiEnableMatte";
+   data.shortName = "ai_enable_matte";
+   data.defaultValue.BOOL() = false;
+   helper.MakeInputBoolean(data);
+
+   data.name = "aiMatteColor";
+   data.shortName = "ai_matte_color";
+   data.defaultValue.RGB() = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
+   
+   data.name = "aiMatteColorA";
+   data.shortName = "ai_matte_color_a";
+   data.hasMin = true;
+   data.min.FLT() = 0.f;
+   data.hasMax = true;
+   data.max.FLT() = 1.0;
+   data.defaultValue.FLT() = 0.0f;
+   helper.MakeInputFloat(data);   
+}
+
+AtNode* CAiStandardHairTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("standard_hair");
+}
+
 AtNode* CAiImageTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("image");

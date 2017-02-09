@@ -1255,6 +1255,9 @@
     [attr indirect_specular]
         min             FLOAT   0.0
         softmax         FLOAT   1.0
+    [attr normal]
+        maya.hide       BOOL    True
+        softmax         FLOAT   1.0
 
     # AOVs
     [attr aov_emission]
