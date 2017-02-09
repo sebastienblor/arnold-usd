@@ -110,7 +110,7 @@ void CArnoldProceduralTranslator::Export(AtNode* node)
       }
          
       GetSessionOptions().FormatProceduralPath(resolvedName);
-      AiNodeSetStr(node, "dso", resolvedName.asChar());
+      AiNodeSetStr(node, "filename", resolvedName.asChar());
 
       MPlug deferStandinLoad = dagNode.findPlug("deferStandinLoad");
       if (!deferStandinLoad.asBool())

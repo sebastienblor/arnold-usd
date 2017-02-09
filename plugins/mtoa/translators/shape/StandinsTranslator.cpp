@@ -452,7 +452,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       }
       
       GetSessionOptions().FormatProceduralPath(resolvedName);
-      AiNodeSetStr(procedural, "dso", resolvedName.asChar());
+      AiNodeSetStr(procedural, "filename", resolvedName.asChar());
 
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");
       if (!deferStandinLoad.asBool())

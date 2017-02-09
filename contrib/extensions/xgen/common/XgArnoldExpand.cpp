@@ -281,7 +281,7 @@ int Procedural::Init(AtNode* node)
       m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
 
       string strParentName = AiNodeGetName( m_node );
-      string strParentDso = AiNodeGetStr( m_node, "dso" ).c_str();
+      string strParentDso = AiNodeGetStr( m_node, "filename" ).c_str();
 
       // Create a sphere shape node
       {
@@ -1823,7 +1823,7 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
 
    // Return a procedural node
    AtNode* abcProc = AiNode("procedural");
-   AiNodeSetStr( abcProc, "dso", dso.c_str() );
+   AiNodeSetStr( abcProc, "filename", dso.c_str() );
    //AiNodeSetStr( abcProc, "data", dso_data.c_str() );
    AiNodeSetVec( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
    AiNodeSetVec( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );

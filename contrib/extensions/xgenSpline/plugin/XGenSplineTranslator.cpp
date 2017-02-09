@@ -36,12 +36,11 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CXgSplineDescriptionTranslator::CreateArnoldNodes()
 {
-    return AddArnoldNode("procedural");
+    return AddArnoldNode("xgenProcedural");
 }
 
 void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
 {  
-    static const std::string sDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgenSpline_procedural.so");
     MStatus status;
 
     MFnDagNode fnDagNode(m_dagPath);
@@ -75,7 +74,6 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
         AiNodeSetBool(procedural, "load_at_init", true);
         AiNodeSetVec(procedural, "min", -1.0f, -1.0f, -1.0f);
         AiNodeSetVec(procedural, "max",  1.0f,  1.0f,  1.0f);
-        AiNodeSetStr(procedural, "dso", sDSO.c_str());
     }
 
     // Export the sample frames

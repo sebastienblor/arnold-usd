@@ -33,7 +33,7 @@ AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {   
    m_expandedProcedural = NULL;
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
-   return AddArnoldNode("procedural");
+   return AddArnoldNode("xgen_procedural");
 }
 
 void CXgDescriptionTranslator::Delete()
@@ -137,9 +137,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       return;
    }
 
-   // Build the path to the procedural dso
-   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgen_procedural.so");
-
+   
    // Get strings based on the current scene name.
    std::string strScenePath; // The path to the directory containing the scene.
    std::string strSceneFile; // The filename of the scene with the extension.
@@ -169,7 +167,6 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
    }
 
 #ifdef DEBUG_MTOA
-   printf("strDSO=%s\n",strDSO.c_str() );
    printf("strScenePath=%s\n",strScenePath.c_str() );
    printf("strSceneFile=%s\n",strSceneFile.c_str() );
    printf("strSceneName=%s\n",strSceneName.c_str() );
@@ -703,7 +700,6 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 #endif
          // Set other arguments
          AiNodeSetBool( shape, "load_at_init", true );
-         AiNodeSetStr( shape, "dso", strDSO.c_str() );
          AiNodeSetStr( shape, "data", strData.c_str() );
          AiNodeSetVec( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
          AiNodeSetVec( shape, "max", info.fBoundingBox[3], info.fBoundingBox[4], info.fBoundingBox[5] );
