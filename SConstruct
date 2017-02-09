@@ -130,7 +130,7 @@ vars.AddVariables(
                  os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_PROCEDURAL_PATH', 
                  'Path used for installation of arnold procedurals', 
-                 os.path.join('$TARGET_MODULE_PATH', 'procedurals'), PathVariable.PathIsDirCreate),
+                 os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_EXTENSION_PATH', 
                  'Path used for installation of mtoa translator extensions', 
                  os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
@@ -1020,7 +1020,7 @@ for ext in os.listdir(ext_base_dir):
             target_path = "shaders"
             if target_type == 'procedural':
                 env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
-                target_path = "procedurals"
+                target_path = "shaders"
             else:
                 env.Install(TARGET_SHADER_PATH, ext_arnold)
             package_files += [[ext_arnold, target_path]]
@@ -1089,12 +1089,12 @@ if env['ENABLE_VP2'] == 1:
         PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.hlsl'), 'vp2'])
     
 if env['ENABLE_XGEN'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
   
 if (env['ENABLE_XGEN'] == 1) and (int(maya_version) >= 201700):
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
@@ -1105,7 +1105,7 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
@@ -1121,12 +1121,12 @@ if env['ENABLE_RENDERSETUP'] == 1:
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'shaders'])
 elif system.os() == 'linux':
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'shaders'])
 elif system.os() == 'darwin':
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dylib'), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dylib'), 'shaders'])
 
 for p in MTOA_PROCS:
-    PACKAGE_FILES += [[p, 'procedurals']]
+    PACKAGE_FILES += [[p, 'shaders']]
 
 if not env['DISABLE_COMMON']:
     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])

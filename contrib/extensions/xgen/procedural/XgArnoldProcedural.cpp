@@ -19,8 +19,7 @@ node_parameters
 }
 procedural_init_bounds
 {
-   // FIXME Arnold5 should we return true or false
-   return false;
+   return true;
 }
 procedural_init
 {

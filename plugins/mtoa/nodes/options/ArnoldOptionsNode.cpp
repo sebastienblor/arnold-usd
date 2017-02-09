@@ -221,14 +221,12 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_bucket_scanning = eAttr.create("bucketScanning", "bktsc");
    eAttr.addField("top", 0);
-   eAttr.addField("bottom", 1);
-   eAttr.addField("left", 2);
-   eAttr.addField("right", 3);
-   eAttr.addField("random", 4);
-   eAttr.addField("woven", 5);
-   eAttr.addField("spiral", 6);
-   eAttr.addField("hilbert", 7);
-   eAttr.setDefault(6);   
+   eAttr.addField("left", 1);
+   eAttr.addField("random", 2);
+   eAttr.addField("spiral", 3);
+   eAttr.addField("hilbert", 4);
+   eAttr.addField("list", 5);
+   eAttr.setDefault(3);
    eAttr.setKeyable(false);
    addAttribute(s_bucket_scanning);
    

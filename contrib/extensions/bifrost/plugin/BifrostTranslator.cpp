@@ -92,7 +92,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    {
       default:
       case CBIFROST_AERO:
-         return AddArnoldNode("volume");
+         return AddArnoldNode("bifrostAero");
 
       case CBIFROST_LIQUID:
          AiMsgError("[bifrost]: liquid not implemented yet : %s", m_object.c_str());
@@ -392,8 +392,6 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
          return;
       }
    }
-   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/bifrost_procedural.so");
-   AiNodeSetStr(shape, "dso", strDSO.c_str());
    AiNodeSetBool( shape, "load_at_init", true );
 
    AiNodeDeclare(shape, "object_name", "constant STRING");

@@ -289,7 +289,7 @@ void CRenderOptions::UpdateImageDimensions()
    else
       aspect_ratio = 1.f / AiMax(AI_EPSILON, aspect_ratio);
 
-   AiNodeSetFlt(options, "aspect_ratio", aspect_ratio);
+   AiNodeSetFlt(options, "pixel_aspect_ratio", aspect_ratio);
 
 }
 
