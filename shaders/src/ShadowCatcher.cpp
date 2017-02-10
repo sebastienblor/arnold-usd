@@ -116,16 +116,16 @@ shader_evaluate
          AiLightsPrepare(sg);
          while (AiLightsGetSample(sg, light_sample))
          {
-            float light_diffuse = AiLightGetDiffuse(light_sample.Lp);
-            if (light_diffuse)
+            if (AiLightGetDiffuse(light_sample.Lp) > 0.0f)
             {
-               float d = AiV3Dot(sg->Nf, sg->light_filter->Ld) / light_sample.pdf;
+               float d = AiV3Dot(sg->Nf, light_sample.Ld) / light_sample.pdf;
                // backlighting
-               if (d < 0.0)
-                  d *= -Kb;
+               if (d < 0.0f)
+                   d *= -Kb;
 
-               Li += sg->light_filter->Li * d;
-               Liu += sg->light_filter->Liu * d;
+               Li += light_sample.Li * d;
+               Liu += light_sample.Liu * d;
+
             }
          }
 

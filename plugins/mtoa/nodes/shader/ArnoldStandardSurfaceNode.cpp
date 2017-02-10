@@ -71,7 +71,7 @@ MStatus CArnoldStandardSurfaceNode::compute(const MPlug& plug, MDataBlock& data)
  
       return MS::kSuccess;
    }
-   else if ((plug == s_OUT_transparency) || (plug.parent() == s_OUT_transparency))
+   /*else if ((plug == s_OUT_transparency) || (plug.parent() == s_OUT_transparency))
    {
       float& trFloat ( data.inputValue( s_Kt ).asFloat());
       MFloatVector& opacity  = data.inputValue( s_opacity ).asFloatVector();
@@ -85,7 +85,7 @@ MStatus CArnoldStandardSurfaceNode::compute(const MPlug& plug, MDataBlock& data)
       outTrans = tr;
       data.setClean( plug );
       return MS::kSuccess;
-   }
+   }*/
    else        
       return MS::kUnknownParameter;
 }
@@ -183,11 +183,11 @@ MStatus CArnoldStandardSurfaceNode::initialize()
             {
                s_emission_color = attr;
             }
-            else if (strcmp(paramName, "transparency") == 0)
+            /*else if (strcmp(paramName, "transparency") == 0)
             {
                s_Kt = attr;
                attributeAffects(attr, s_OUT_transparency);
-            }
+            }*/
             else if (strcmp(paramName, "opacity") == 0)
             {
                s_opacity = attr;
