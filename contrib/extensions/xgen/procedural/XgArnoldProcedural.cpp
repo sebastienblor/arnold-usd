@@ -16,6 +16,7 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
 
 node_parameters
 {
+	AiParameterStr("data", "");
 }
 procedural_init_bounds
 {

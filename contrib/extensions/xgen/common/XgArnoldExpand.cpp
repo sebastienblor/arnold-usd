@@ -255,9 +255,8 @@ int Procedural::Init(AtNode* node)
 #endif
 
    char buf[512];
-
-   string parameters( AiNodeGetStr( node, "data" ) );
-
+   AtString parameters = AiNodeGetStr( node, "data" );
+   
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
@@ -268,8 +267,9 @@ int Procedural::Init(AtNode* node)
       xgapi::initConfig(string(xgenConfigPath));
 #endif
       
+   static AtString cleanupStr("cleanup");
    // Cleanup Init
-   if( parameters == "cleanup" )
+   if( parameters == cleanupStr)
    {
       // Noop!
    }
@@ -281,8 +281,7 @@ int Procedural::Init(AtNode* node)
       m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
 
       string strParentName = AiNodeGetName( m_node );
-      string strParentDso = AiNodeGetStr( m_node, "filename" ).c_str();
-
+      
       // Create a sphere shape node
       {
          m_sphere = AiNode("sphere");
