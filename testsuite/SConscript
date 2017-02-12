@@ -707,7 +707,7 @@ if __name__ == 'SCons.Script':
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
                 GUI_LIST = find_test_group('gui')
                 for fullName in testlist:
-                    name = os.path.basename(name)
+                    name = os.path.basename(fullName)
                     if name in GUI_LIST:
                         print "Skipping GUI test \"%s\"" % name
                         continue
