@@ -53,19 +53,6 @@ class NParticleTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
 
 class MeshTemplate(templates.ShapeTranslatorTemplate):
-    def subdivDicingCameraNew(self, attrName):
-        pm.setUITemplate('attributeEditorTemplate', pst=True)
-        pm.attrNavigationControlGrp('aiSubdivDicingCameraCtrl',
-                                    at=attrName,
-                                    label="Subdivision Dicing Camera" )
-        pm.setUITemplate(ppt=True)
-    
-    def subdivDicingCameraReplace(self, attrName):
-        pm.attrNavigationControlGrp('aiSubdivDicingCameraCtrl', edit=True,
-                                    at=attrName )
-        # pm.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
-        #pm.editorTemplate(aeCallback(self.subdivDicingCameraNew), aeCallback(self.subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
-
     def setup(self):
         self.commonShapeAttributes()
         
@@ -90,7 +77,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiSubdivPixelError", label="Adaptative Error")
         self.addControl("aiSubdivAdaptiveSpace", label="Adaptative Space")
         # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
         self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()

@@ -1078,7 +1078,7 @@
     desc                    STRING  "Base all purpose Arnold shader."
     maya.name               STRING  "aiStandard"
     maya.id                 INT     0x00115D01
-    maya.classification     STRING  "shader/legacy"
+    maya.classification     STRING  "legacy"
     maya.output_name        STRING  "outColor"
     maya.output_shortname   STRING  "out"
     [attr IOR]
@@ -1287,7 +1287,7 @@
     desc                    STRING  "This shader can be used to display various info on a geometry."
     maya.name               STRING  "aiUtility"
     maya.id                 INT     0x00115D03
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "utility"
 
     [attr opacity]
         min                 FLOAT 0.0
@@ -1300,13 +1300,13 @@
     desc                    STRING  "Switch input depending on ray type."
     maya.name               STRING  "aiRaySwitch"
     maya.id                 INT     0x00115D04  
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "utility"
 
 [node ambient_occlusion]
     desc                    STRING  "This shader can be used to display ambient occlusion on a geometry."
     maya.name               STRING  "aiAmbientOcclusion"
     maya.id                 INT     0x00115D07  
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "utility"
     [attr falloff]
         min                 FLOAT   0.0
         softmax             FLOAT   100.0
@@ -1327,7 +1327,7 @@
     desc                    STRING  "This shader can be used to display the edge structure of a geometry."
     maya.name               STRING  "aiWireframe"
     maya.id                 INT     0x00115D08
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "utility"
     [attr line_width]
         desc                STRING  "Width of edges lines."
         min                 FLOAT   0.0
@@ -1377,7 +1377,7 @@
     desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump2d"
     maya.id                 INT     0x00115D0C
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "utility"
     [attr bump_height]
         desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
@@ -1401,7 +1401,7 @@
     desc                    STRING  "Motion vectors"
     maya.name               STRING  "aiMotionVector"
     maya.id                 INT     0x00115D0F
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "utility"
     [attr time0]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
@@ -1419,7 +1419,7 @@
     desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump3d"
     maya.id                 INT     0x00115D0E
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "utility"
     [attr bump_height]
         desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
@@ -1438,7 +1438,7 @@
     desc                    STRING  "Shader for Arnold hair tubes."
     maya.name               STRING  "aiHair"
     maya.id                 INT     0x00115D09  
-    maya.classification     STRING  "shader/legacy"
+    maya.classification     STRING  "legacy"
     [attr ambdiff]
         desc                STRING  "Ambient diffuse value."
         label               STRING  "Ambient Diffuse"
@@ -1584,7 +1584,7 @@
     desc                    STRING  "Basic Volume Shader"
     maya.name               STRING  "aiStandardVolume"
     maya.id                 INT     0x00115D53  
-    maya.classification     STRING  "shader/volume/atmosphere"
+    maya.classification     STRING  "shader/volume"
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   5.0
@@ -1608,7 +1608,7 @@
     desc                    STRING  "Mix between two Arnold Shaders"
     maya.name               STRING  "aiShaderMix"
     maya.id                 INT     0x00115D54  
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "utility"
     [attr mix]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
@@ -1617,6 +1617,12 @@
     desc                    STRING  "Ray Switch for Arnold Surface Shaders"
     maya.name               STRING  "aiShaderRaySwitch"
     maya.id                 INT     0x00115D55  
+    maya.classification     STRING  "utility"
+
+[node osl_shader]
+    desc                    STRING  "OSL-based shader"
+    maya.name               STRING  "aiOslShader"
+    maya.id                 INT     0x00115D56  
     maya.classification     STRING  "shader/surface"
 
 
@@ -1625,7 +1631,7 @@
     maya.name               STRING  "aiSky"
     maya.id                 INT     0x00115C84
     maya.type               STRING  "kLocatorNode"  
-    maya.classification     STRING  "texture/environment"   
+    maya.classification     STRING  "legacy"
     [attr intensity]
         desc                STRING  "Intensity of sky illumination."
         min                 FLOAT   0.0
@@ -1636,7 +1642,7 @@
     desc                    STRING  "Volume fog atmosphere shader."
     maya.name               STRING  "aiFog"
     maya.id                 INT     0x00115D0A  
-    maya.classification     STRING  "shader/volume/atmosphere"
+    maya.classification     STRING  "light/volume"
     [attr distance]
         desc                STRING  "Fog full opacity distance."
         min                 FLOAT   0.0
@@ -1654,11 +1660,11 @@
     [attr ground_normal]
         maya.channelbox     BOOL    True
 
-[node volume_scattering]
+[node atmosphere_volume]
     desc                    STRING  "Volume scattering atmosphere shader."
-    maya.name               STRING  "aiVolumeScattering"
+    maya.name               STRING  "aiAtmosphereVolume"
     maya.id                 INT     0x00115D0B  
-    maya.classification     STRING  "shader/volume/atmosphere"
+    maya.classification     STRING  "light/volume"
     [attr affect_camera]
         desc                STRING  "Scattering effect on camera rays."
         min                 FLOAT   0.0

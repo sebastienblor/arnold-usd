@@ -96,13 +96,13 @@
 
 [node volume_collector]
     maya.id    INT     0x00115D1F
-    maya.classification     STRING  "shader/volume"
+    maya.classification     STRING  "legacy"
     maya.swatch             BOOL    False
         
 [node volume_sample_float]
 
     maya.id    INT     0x00115E51
-    maya.classification     STRING  "shader/utility/volume"
+    maya.classification     STRING  "utility/volume"
     maya.swatch             BOOL    False
 
     [attr channel]
@@ -178,7 +178,7 @@
 
 [node volume_sample_rgb]
 maya.id                 INT     0x00115E52
-maya.classification     STRING  "shader/utility/volume"
+maya.classification     STRING  "utility/volume"
 maya.swatch             BOOL    False
 
 [attr channel]
@@ -239,11 +239,12 @@ softmin FLOAT 0
 softmax FLOAT 3
 desc STRING "Apply a gamma correction to the color."
 
+
 #######################################################
 [node curvature]
 maya.id                 INT     0x00118F91
 maya.name               STRING  "aiCurvature"
-maya.classification     STRING  "shader/surface"
+maya.classification     STRING  "texture"
 maya.swatch             BOOL    True
 
 [attr output]
@@ -297,7 +298,7 @@ desc STRING "Multiplies the curvature by this factor."
 [node thin_film]
 maya.id                 INT     0x00118F92
 maya.name               STRING  "aiThinFilm"
-maya.classification     STRING  "shader/surface"
+maya.classification     STRING  "texture"
 maya.swatch             BOOL    True
 
 [attr thickness_min]
@@ -347,7 +348,7 @@ c4d.step FLOAT 0.01
 [node complex_ior]
 maya.id                 INT     0x00118F93
 maya.name               STRING  "aiComplexIor"
-maya.classification     STRING  "shader/surface"
+maya.classification     STRING  "utility"
 maya.swatch             BOOL    True
 
 [attr material]

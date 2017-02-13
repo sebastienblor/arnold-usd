@@ -38,7 +38,7 @@ node_parameters
 {
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiShadowCatcher");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D19);
-   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterBool("catchShadows", true);
