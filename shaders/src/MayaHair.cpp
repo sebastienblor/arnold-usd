@@ -155,7 +155,7 @@ shader_evaluate
          float light_diffuse = AiLightGetDiffuse(light_sample.Lp);
          if (light_diffuse > 0)
          {
-            const float TdotL = AiV3Dot(T, sg->light_filter->Ld);
+            const float TdotL = AiV3Dot(T, light_sample.Ld);
             float d = 1.f - TdotL * TdotL;
             d = d > 0.f ? sqrtf(d) : 0.f;
             AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
@@ -199,7 +199,7 @@ shader_evaluate
          float light_specular = AiLightGetSpecular(light_sample.Lp);
          if (light_specular > 0)
          {
-            const AtVector H = AiV3Normalize(sg->light_filter->Ld + V);
+            const AtVector H = AiV3Normalize(light_sample.Ld + V);
             const float HdotT = AiV3Dot(H, T);
             float s = 1 - HdotT * HdotT;
             s = powf(s, specularPower);
