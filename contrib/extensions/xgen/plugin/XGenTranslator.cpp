@@ -33,7 +33,7 @@ AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {   
    m_expandedProcedural = NULL;
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
-   return AddArnoldNode("procedural");
+   return AddArnoldNode("xgen_procedural");
 }
 
 void CXgDescriptionTranslator::Delete()
@@ -137,9 +137,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       return;
    }
 
-   // Build the path to the procedural dso
-   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgen_procedural.so");
-
+   
    // Get strings based on the current scene name.
    std::string strScenePath; // The path to the directory containing the scene.
    std::string strSceneFile; // The filename of the scene with the extension.
@@ -169,7 +167,6 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
    }
 
 #ifdef DEBUG_MTOA
-   printf("strDSO=%s\n",strDSO.c_str() );
    printf("strScenePath=%s\n",strScenePath.c_str() );
    printf("strSceneFile=%s\n",strSceneFile.c_str() );
    printf("strSceneName=%s\n",strSceneName.c_str() );
@@ -627,23 +624,53 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
             pos += 2;
          }
          
-         // We only have to remove namespace character ':' if there is a patch cache file
-         if(info.hasAlembicFile)
+         // Namespace is a feature in Maya and .xgen file doesn't contain any
+         // namespace information. When translating xgen nodes, we need to
+         // extract the namespace from the node name and pass the namespace
+         // to xgen by using -nameSpace flag.
+         // i.e. Maya ns:name -> XGen -namespace ns: -palette name
          {
-            // Internally, XGen needs palette, description and patch without namespace
+            // Namespace of xgen nodes. XGen only allows to use one namespace
+            // for all nodes in the same collection.
+            std::string ns;
+
+            // Get the namespace from the palette node
             pos = info.strPalette.rfind(":");
-            if(pos != std::string::npos)
-               info.strPalette.erase(0,pos + 1);
-            
+            if (pos != std::string::npos)
+               ns = info.strPalette.substr(0, pos);
+
+            // Check the namespace of the patch node
             pos = stringPatch.rfind(":");
-            if(pos != std::string::npos)
-               stringPatch.erase(0,pos + 1);
+            if (pos != std::string::npos && ns != stringPatch.substr(0, pos))
+               AiMsgWarning("[xgen] Patch %s has a different namespace than collection %s",
+                    stringPatch.c_str(), info.strPalette.c_str());
                
+            // Check the namespace of the description node
             pos = info.strDescription.rfind(":");
-            if(pos != std::string::npos)
-               info.strDescription.erase(0,pos + 1);
+            if (pos != std::string::npos && ns != info.strDescription.substr(0, pos))
+               AiMsgWarning("[xgen] Description %s has a different namespace than collection %s",
+                    info.strDescription.c_str(), info.strPalette.c_str());
+
+            // Add -nameSpace flag using the namespace from the palette
+            if (!ns.empty())
+            {
+                strData += " -nameSpace " + ns;
+            }
          }
          
+         // Internally, XGen needs palette, description and patch without namespace
+         pos = info.strPalette.rfind(":");
+         if(pos != std::string::npos)
+            info.strPalette.erase(0,pos + 1);
+         
+         pos = stringPatch.rfind(":");
+         if(pos != std::string::npos)
+            stringPatch.erase(0,pos + 1);
+            
+         pos = info.strDescription.rfind(":");
+         if(pos != std::string::npos)
+            info.strDescription.erase(0,pos + 1);
+                 
          strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
          strData += " -palette " + info.strPalette;
          
@@ -673,7 +700,6 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 #endif
          // Set other arguments
          AiNodeSetBool( shape, "load_at_init", true );
-         AiNodeSetStr( shape, "dso", strDSO.c_str() );
          AiNodeSetStr( shape, "data", strData.c_str() );
          AiNodeSetVec( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
          AiNodeSetVec( shape, "max", info.fBoundingBox[3], info.fBoundingBox[4], info.fBoundingBox[5] );

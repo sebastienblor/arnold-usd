@@ -333,14 +333,14 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setSoftMax(10);
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
-   
+
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_pointCamera);
 
    s_normalCamera = nAttr.createPoint("normalCamera", "n");
@@ -348,7 +348,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_normalCamera);
 
    s_update = nAttr.create("update", "upt", MFnNumericData::kBoolean);

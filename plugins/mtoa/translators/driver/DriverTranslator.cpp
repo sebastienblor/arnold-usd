@@ -70,7 +70,7 @@ void CDriverTranslator::Export(AtNode *shader)
 #ifdef MTOA_ENABLE_GAMMA
          AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma").asFloat());
 #else
-         AiNodeSetFlt(shader, "gamma", 1.f); 
+//         AiNodeSetFlt(shader, "gamma", 1.f); 
 #endif
 
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)

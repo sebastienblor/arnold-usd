@@ -375,6 +375,12 @@ namespace // <anonymous>
                                     "",
                                     CAiHairTranslator::creator,
                                     CAiHairTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiStandardHair",
+                                    "",
+                                    CAiStandardHairTranslator::creator,
+                                    CAiStandardHairTranslator::NodeInitializer);
+
       builtin->RegisterTranslator("aiImage",
                                     "",
                                     CAiImageTranslator::creator,

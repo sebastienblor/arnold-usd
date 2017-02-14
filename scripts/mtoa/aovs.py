@@ -4,6 +4,7 @@ import mtoa.callbacks as callbacks
 from collections import namedtuple
 from itertools import groupby
 import arnold.ai_params
+import maya.api.OpenMaya as om
 
 BUILTIN_AOVS = (
                 ('P',                   'vector'),
@@ -102,6 +103,11 @@ def refreshAliases():
     aovList = getAOVs()
     removeAliases(aovList)
     addAliases(aovList)
+
+def isValidAOVNode(name):
+    sList = om.MSelectionList()
+    sList.add(name)
+    return not om.MFnDependencyNode(sList.getDependNode(0)).isFromReferencedFile
 
 class SceneAOV(object):
     def __init__(self, node, destAttr):
@@ -244,7 +250,7 @@ class AOVInterface(object):
         include: a list of AOV names to include
         exclude: a list of AOV names to exclude
         '''
-        result = [SceneAOV(fromAttr.node(), toAttr) for toAttr, fromAttr in self._aovAttr.inputs(plugs=True, connections=True)]
+        result = [SceneAOV(fromAttr.node(), toAttr) for toAttr, fromAttr in self._aovAttr.inputs(plugs=True, connections=True) if isValidAOVNode(fromAttr.node().name())]
         if sort:
             result = sorted(result)
         if enabled is not None:
@@ -263,10 +269,10 @@ class AOVInterface(object):
         @param names: if True, returns pairs of (aovName, aovNode). if False, returns a list of aovNodes
         '''
         if names:
-            result = [(x.attr('name').get(), x) for x in self._aovAttr.inputs()]
+            result = [(x.attr('name').get(), x) for x in self._aovAttr.inputs() if isValidAOVNode(x.name())]
             return sorted(result, key = lambda x: x[0])
         else:
-            result = self._aovAttr.inputs()
+            result = [x for x in self._aovAttr.inputs() if isValidAOVNode(x.name())]
             return sorted(result, key = lambda x: x.attr('name').get())
 
     def getAOVNode(self, aovName):

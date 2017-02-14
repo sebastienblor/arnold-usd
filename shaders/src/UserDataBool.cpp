@@ -17,7 +17,7 @@ node_parameters
 {
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataBool");
    AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATA_BOOL);
-   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterStr("boolAttrName", "");

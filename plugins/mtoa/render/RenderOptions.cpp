@@ -145,8 +145,8 @@ MStatus CRenderOptions::ProcessCommonRenderOptions()
          {
             MFnDependencyNode fnRes(resNode);
 
-            m_width  = fnRes.findPlug("width").asShort();
-            m_height = fnRes.findPlug("height").asShort();
+            m_width  = fnRes.findPlug("width").asInt();
+            m_height = fnRes.findPlug("height").asInt();
             m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
          }
       }
@@ -281,7 +281,16 @@ void CRenderOptions::UpdateImageDimensions()
 
    AiNodeSetInt(options, "xres", width());
    AiNodeSetInt(options, "yres", height());
-   AiNodeSetFlt(options, "pixel_aspect_ratio", 1.f/AiMax(AI_EPSILON, pixelAspectRatio()));
+
+   float aspect_ratio = pixelAspectRatio();
+
+   if (std::abs(aspect_ratio - 1.f) < 0.001)
+      aspect_ratio = 1.f;
+   else
+      aspect_ratio = 1.f / AiMax(AI_EPSILON, aspect_ratio);
+
+   AiNodeSetFlt(options, "pixel_aspect_ratio", aspect_ratio);
+
 }
 
 int CRenderOptions::GetLogConsoleVerbosity() const

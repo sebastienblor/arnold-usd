@@ -255,9 +255,8 @@ int Procedural::Init(AtNode* node)
 #endif
 
    char buf[512];
-
-   string parameters( AiNodeGetStr( node, "data" ) );
-
+   AtString parameters = AiNodeGetStr( node, "data" );
+   
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
@@ -268,8 +267,9 @@ int Procedural::Init(AtNode* node)
       xgapi::initConfig(string(xgenConfigPath));
 #endif
       
+   static AtString cleanupStr("cleanup");
    // Cleanup Init
-   if( parameters == "cleanup" )
+   if( parameters == cleanupStr)
    {
       // Noop!
    }
@@ -281,8 +281,7 @@ int Procedural::Init(AtNode* node)
       m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
 
       string strParentName = AiNodeGetName( m_node );
-      string strParentDso = AiNodeGetStr( m_node, "dso" ).c_str();
-
+      
       // Create a sphere shape node
       {
          m_sphere = AiNode("sphere");
@@ -1024,6 +1023,12 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
       AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
 
+      // Transmitting parent node parameters to child nodes (#2752)
+      AiNodeSetBool(nodeCurves, "opaque", AiNodeGetBool(m_node, "opaque"));
+      AiNodeSetByte(nodeCurves, "visibility", AiNodeGetByte(m_node, "visibility"));
+      AiNodeSetBool(nodeCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+      AiNodeSetBool(nodeCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+      AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
       // Add custom renderer parameters.
       pushCustomParams( nodeCurves, pc );
 
@@ -1213,6 +1218,12 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
         AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
 
+        // Transmitting parent node parameters to child nodes (#2752)
+        AiNodeSetBool(nodeInstance, "opaque", AiNodeGetBool(m_node, "opaque"));
+        AiNodeSetBool(nodeInstance, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+        AiNodeSetBool(nodeInstance, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+        AiNodeSetBool(nodeInstance, "matte", AiNodeGetBool(m_node, "matte"));
+
         // Add custom renderer parameters.
         pushCustomParams( nodeInstance, pc, j);
 
@@ -1273,6 +1284,13 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AiNodeSetArray( nodeCard, "knots_v", AiArrayCopy( knots ) );
       AiNodeSetArray( nodeCard, "cvs", cvs );
 
+      // Transmitting parent node parameters to child nodes (#2752)
+      AiNodeSetByte(nodeCard, "visibility", AiNodeGetByte(m_node, "visibility"));
+      AiNodeSetBool(nodeCard, "opaque", AiNodeGetBool(m_node, "opaque"));
+      AiNodeSetBool(nodeCard, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+      AiNodeSetBool(nodeCard, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+      AiNodeSetBool(nodeCard, "matte", AiNodeGetBool(m_node, "matte"));
+      
       // Add custom renderer parameters.
        pushCustomParams( nodeCard, pc );
 
@@ -1804,7 +1822,7 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
 
    // Return a procedural node
    AtNode* abcProc = AiNode("procedural");
-   AiNodeSetStr( abcProc, "dso", dso.c_str() );
+   AiNodeSetStr( abcProc, "filename", dso.c_str() );
    //AiNodeSetStr( abcProc, "data", dso_data.c_str() );
    AiNodeSetVec( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
    AiNodeSetVec( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );

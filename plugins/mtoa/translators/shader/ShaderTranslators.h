@@ -129,6 +129,14 @@ public:
    AtNode* CreateArnoldNodes();
 };
 
+class CAiStandardHairTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiStandardHairTranslator();}
+
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
+
 class CAiImageTranslator : public CShaderTranslator{
 public:
    static void* creator(){return new CAiImageTranslator();}

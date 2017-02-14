@@ -92,7 +92,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    {
       default:
       case CBIFROST_AERO:
-         return AddArnoldNode("volume");
+         return AddArnoldNode("bifrostAero");
 
       case CBIFROST_LIQUID:
          AiMsgError("[bifrost]: liquid not implemented yet : %s", m_object.c_str());
@@ -283,6 +283,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    AiNodeSetFlt(node, "radius", global_radius );  
    AiNodeSetArray(node, "velocity", velocities_array);  
 
+   ProcessRenderFlags(node);
 
    AiNodeSetStr(node, "mode", "sphere");
    AiNodeSetFlt(node, "min_pixel_width", 0.f);
@@ -391,8 +392,6 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
          return;
       }
    }
-   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/bifrost_procedural.so");
-   AiNodeSetStr(shape, "dso", strDSO.c_str());
    AiNodeSetBool( shape, "load_at_init", true );
 
    AiNodeDeclare(shape, "object_name", "constant STRING");
@@ -433,6 +432,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
    AiNodeSetByte(shape, "visibility", 243);
 
    ExportMatrix(shape);   
+   ProcessRenderFlags(shape);
    
    if (RequiresShaderExport())
    {
@@ -482,7 +482,9 @@ void CBfDescriptionTranslator::ExportMotion(AtNode* shape)
 
 void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
 {
-   
+   CExtensionAttrHelper helper(context.maya, "procedural");
+   CShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeMayaVisibilityFlags(helper);
 }
 
 void CBfDescriptionTranslator::ExportBifrostShader()

@@ -669,11 +669,12 @@ if __name__ == 'SCons.Script':
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
                 SRC = []
                 GUI_LIST = find_test_group('gui')
-                
-                for name in testlist:
+
+                for fullName in testlist:
+                    name = os.path.basename(fullName)
                     if name in GUI_LIST:
                         continue
-                    SRC += [os.path.join(os.path.basename(name), 'README')]
+                    SRC += [os.path.join(name, 'README')]
             else:
                 tags = r.split(',')
                 SRC = []
@@ -705,10 +706,11 @@ if __name__ == 'SCons.Script':
                 PATTERNS += [env['TEST_PATTERN']]
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
                 GUI_LIST = find_test_group('gui')
-                for name in testlist:
+                for fullName in testlist:
+                    name = os.path.basename(fullName)
                     if name in GUI_LIST:
+                        print "Skipping GUI test \"%s\"" % name
                         continue
-                    name = os.path.basename(name)
                     testRunner.add_test(name)
             else:
                 # Target "testsuite:tag[,tag...]", runs all tests related to the given tag(s)

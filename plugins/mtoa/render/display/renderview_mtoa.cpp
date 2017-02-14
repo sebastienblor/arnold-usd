@@ -47,6 +47,8 @@ void CRenderViewMtoA::Resize(int w, int h){}
 #if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
 static QWidget *s_workspaceControl = NULL;
+#else
+#include "QtGui/qmainwindow.h"
 #endif
 
 // Arnold RenderView is defined
@@ -92,6 +94,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
+
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -199,12 +202,19 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 }
 
 #if MAYA_API_VERSION >= 201700
-
 #define ARV_DOCKED 1
-
 #endif
+
+#ifndef ARV_DOCKED
+   static int s_arvWidth = -1;
+   static int s_arvHeight = -1;
+#endif
+
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
+   // need to add this margin for the status bar + toolbar height
+   height += 70;
+   
    // Check if attribute ARV_options exist
    // if it doesn't create it
    int exists = 0;
@@ -232,9 +242,9 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    } else
    {
       workspaceCmd += " -li 1"; // load immediately
-      workspaceCmd += " -ih "; // initial width
+      workspaceCmd += " -iw "; // initial width
       workspaceCmd += width;
-      workspaceCmd += " -iw "; // initiall height
+      workspaceCmd += " -ih "; // initiall height
       workspaceCmd += height;
 
       workspaceCmd += " -requiredPlugin \"mtoa\"";
@@ -278,6 +288,16 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    
 #else
+   if (s_arvWidth > 0)
+   {
+      // restoring previous width/height
+      width = s_arvWidth;
+      height = s_arvHeight;
+
+      // reset the static values (we don't want to set it again)
+      s_arvWidth = -1;
+      s_arvHeight = -1;
+   }
    OpenRenderView(width, height, MQtUtil::mainWindow()); // this creates ARV or restarts the render
 #endif
 
@@ -328,12 +348,17 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       if (m_convertOptionsParam) UpdateColorManagement();
    }
    // Moving the ARV_options load *after* calling UpdateColorManagement because of #2719
-   if (exists && m_convertOptionsParam)
+   if (m_convertOptionsParam)
    {
-      // assign the ARV_options parameter as it is the first time since I opened this scene
-      MString optParam;
-      MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-      SetFromSerialized(optParam.asChar());
+      if (exists)
+      {
+         // assign the ARV_options parameter as it is the first time since I opened this scene
+         MString optParam;
+         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+
+         SetFromSerialized(optParam.asChar());
+      }
+      SetOption("Real Size", "1");
    }
 
    m_convertOptionsParam = false;
@@ -410,6 +435,7 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    // Universe isn't active, oh my....
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   // the renderSession will be NULL if ARV was opened without rendering
    if (renderSession)
    {   
       renderSession->SetRendering(false);
@@ -454,6 +480,12 @@ void CRenderViewMtoA::UpdateSceneChanges()
    }
 
    UpdateRenderCallbacks();
+
+   // GetRenderSession() might have changed since we exported the scene
+   renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
+   
 }
 
 void CRenderViewMtoA::UpdateRenderCallbacks()
@@ -558,7 +590,31 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
    renderViewMtoA->m_convertOptionsParam = true;
-   // next time I open the RenderView, convert the ARV_options param
+
+   QMainWindow *arv = renderViewMtoA->GetRenderView();  
+   if (arv == NULL)
+      return;
+
+   if (arv->isVisible())
+   {
+      // assign the ARV_options parameter as it is the first time since I opened this scene
+      int exists = 0;
+      MGlobal::executeCommand("objExists defaultArnoldRenderOptions", exists);
+
+      if (exists != 0)
+      {
+         MString optParam;
+         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+         renderViewMtoA->SetFromSerialized(optParam.asChar());
+      }
+
+      // ARV is already visible -> set the options right away
+      renderViewMtoA->UpdateColorManagement();
+
+      renderViewMtoA->m_convertOptionsParam = false;      
+   }
+
+   // otherwise, next time I open the RenderView, convert the ARV_options param
 }
 
 void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
@@ -751,9 +807,20 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
 
-#if MAYA_API_VERSION >= 201700
+#ifdef ARV_DOCKED
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
    MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+#else
+
+   // closing ARV, we want to get the previous width / height
+   // since there are no workspaces here
+   QMainWindow *arv = GetRenderView();  
+   if (arv)
+   {
+      s_arvWidth = arv->width();
+      s_arvHeight = arv->height();
+   }
+
 #endif
 
    ReceiveSelectionChanges(false);

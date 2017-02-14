@@ -353,7 +353,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else
       {         
          procedural = AiNode("procedural");
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetStr(procedural, "filename", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (fGeometry.drawOverride == 3) 
             AiNodeSetBool(procedural, "load_at_init", false); 

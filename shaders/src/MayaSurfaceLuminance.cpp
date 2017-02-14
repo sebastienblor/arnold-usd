@@ -31,7 +31,7 @@ shader_evaluate
 
    while (AiLightsGetSample(sg, light_sample))
    {
-      const float NDL = AiV3Dot(sg->Nf, sg->light_filter->Ld);
+      const float NDL = AiV3Dot(sg->Nf, light_sample.Ld);
 
       if (NDL > 0.0f)
       {

@@ -771,17 +771,24 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // type texts in the scene before we convert to Arnold.
    // FIXME : do we want to restore them later on ? This could maybe affect render times since this would be done back and forth ?
    MStringArray typeNodes;
-   MGlobal::executeCommand("ls -typ type", typeNodes);
-   for (unsigned int t = 0; t < typeNodes.length(); ++t)
+
+   // #2798 looks like type nodes aren't native in maya, they don't always exist
+   int typeExists = 0;
+   MGlobal::executeCommand("pluginInfo -query -loaded Type", typeExists);
+   if (typeExists)
    {
-      MSelectionList typeList;
-      typeList.add(typeNodes[t]);
-      MObject typeObject;
-      typeList.getDependNode(0, typeObject);
-      if (typeObject.isNull())
-         continue;
-      EditTypeTextNode(typeObject, true);
-      s_typeNodes.push_back(new MObjectHandle(typeObject));
+      MGlobal::executeCommand("ls -typ type", typeNodes);
+      for (unsigned int t = 0; t < typeNodes.length(); ++t)
+      {
+         MSelectionList typeList;
+         typeList.add(typeNodes[t]);
+         MObject typeObject;
+         typeList.getDependNode(0, typeObject);
+         if (typeObject.isNull())
+            continue;
+         EditTypeTextNode(typeObject, true);
+         s_typeNodes.push_back(new MObjectHandle(typeObject));
+      }
    }
    if (!s_typeNodes.empty())
    {

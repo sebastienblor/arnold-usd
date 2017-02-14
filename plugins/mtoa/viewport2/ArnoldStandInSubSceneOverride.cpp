@@ -938,35 +938,24 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     MDagPathArray instances;
     node.getAllPaths(instances);
 
-    std::vector<int> invisibleInstanceIndexes;
-
-    // loop over the cache and fill the arrays.
-    for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
+    // loop over the instances and fill the arrays.
+    for (unsigned int instIdx=0; instIdx<instances.length(); instIdx++)
     {
-        MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[instIdx]);
-        if(displayStatus == MHWRender::kInvisible)
-        {
-            invisibleInstanceIndexes.push_back(instIdx);
+        if(!instances[instIdx].isValid() || !instances[instIdx].isVisible())
             continue;
-        }
 
-        numInstances++;
         InstanceInfo instanceInfo = fInstanceInfoCache[instIdx];
-        instanceMatrixArray[instIdx] = instanceInfo.fTransform;
+        instanceMatrixArray[numInstances] = instanceInfo.fTransform;
         if (instanceInfo.fLead)
-            leadIndex = (int)instIdx;
+            leadIndex = (int)numInstances;
         else if (instanceInfo.fSelected)
             selectedInstanceMatrixArray[numInstanceSelected++] = instanceInfo.fTransform;
         else
             unselectedInstanceMatrixArray[numInstanceUnselected++] = instanceInfo.fTransform;
+        numInstances++;
     }
 
-    //collapse to correct length
-    for(int i=invisibleInstanceIndexes.size()-1; i >= 0; i--)
-    {
-        instanceMatrixArray.remove(invisibleInstanceIndexes[i]);
-    }
-    fNumInstances = numInstances;
+    instanceMatrixArray.setLength(numInstances);
     selectedInstanceMatrixArray.setLength(numInstanceSelected);
     unselectedInstanceMatrixArray.setLength(numInstanceUnselected);
 }

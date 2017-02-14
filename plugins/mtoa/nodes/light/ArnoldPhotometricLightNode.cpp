@@ -109,7 +109,6 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
 
-   
    /*s_filename = tAttr.create("aiFilename", "ai_filename", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
@@ -123,7 +122,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_pointCamera);
 
    s_normalCamera = nAttr.createPoint("normalCamera", "n");
@@ -131,7 +130,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   nAttr.setChannelBox(true);
+   nAttr.setChannelBox(false);
    addAttribute(s_normalCamera);
 
    // OUTPUT ATTRIBUTES

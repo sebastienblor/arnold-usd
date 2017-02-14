@@ -16,11 +16,11 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
 
 node_parameters
 {
+	AiParameterStr("data", "");
 }
 procedural_init_bounds
 {
-   // FIXME Arnold5 should we return true or false
-   return false;
+   return true;
 }
 procedural_init
 {

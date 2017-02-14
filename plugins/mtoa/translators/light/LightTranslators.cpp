@@ -430,8 +430,6 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       AiNodeSetInt(meshNode, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
-
-      ProcessParameter(meshNode, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
    }
    return meshNode;
 }
@@ -518,7 +516,7 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "sc";
    data.defaultValue.RGB() = AI_RGB_WHITE;
    data.keyable = false;
-   data.channelBox = true;
+   data.channelBox = false;
    helper.MakeInputRGB(data);
 
    data.name = "intensity";
@@ -527,7 +525,7 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.softMax.FLT() = 10.0f;
    data.defaultValue.FLT() = 1.0f;
    data.keyable = false;
-   data.channelBox = true;
+   data.channelBox = false;
    helper.MakeInputFloat(data);
 
    data.name = "lightVisible";
