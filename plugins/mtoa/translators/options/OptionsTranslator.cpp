@@ -333,6 +333,11 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                   AiNodeSetStr(output.driver, "name", driverName.asChar());
                   m_multiDriverMap[filename.asChar()] = output.driver;
+
+                  std::string typeAOV = AiParamGetTypeName(aovData.type);
+                  if (typeAOV != "RGB" && typeAOV != "RGBA")
+                     AiNodeSetStr(output.driver, "color_space", ""); // this is supposed to be interpreted by arnold as Raw (passthrough)
+
                }
                else
                {  

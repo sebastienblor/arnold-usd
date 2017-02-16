@@ -75,34 +75,37 @@ void CDriverTranslator::Export(AtNode *shader)
 
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
          AiNodeSetBool(shader, "progressive", m_impl->m_session->IsProgressive());
-   }
+   } else
+   {
+      // not for display drivers, at least not for now
 
-   int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
-   
-   if (colorSpaceVal == 0)
-   {
-      AiNodeSetStr(shader, "color_space", "Raw");
-   } else if (colorSpaceVal == 1)
-   {
-      MString viewTransform;
-      MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
-      AiNodeSetStr(shader, "color_space", viewTransform.asChar());      
-   } else 
-   {
-      int cmEnabled = 0;
-      MGlobal::executeCommand("colorManagementPrefs -q -outputTransformEnabled", cmEnabled);
+      int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
+      
+      if (colorSpaceVal == 0)
+      {
+         AiNodeSetStr(shader, "color_space", "");
+      } else if (colorSpaceVal == 1)
+      {
+         MString viewTransform;
+         MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+         AiNodeSetStr(shader, "color_space", viewTransform.asChar());      
+      } else 
+      {
+         int cmEnabled = 0;
+         MGlobal::executeCommand("colorManagementPrefs -q -outputTransformEnabled", cmEnabled);
 
-      if (cmEnabled)
-      {
-         MString colorSpace;
-         MGlobal::executeCommand("colorManagementPrefs -q -outputTransformName", colorSpace);
-         AiNodeSetStr(shader, "color_space", colorSpace.asChar());  
-      } else
-      {
-         AiNodeSetStr(shader, "color_space", "Raw");
+         if (cmEnabled)
+         {
+            MString colorSpace;
+            MGlobal::executeCommand("colorManagementPrefs -q -outputTransformName", colorSpace);
+            AiNodeSetStr(shader, "color_space", colorSpace.asChar());  
+         } else
+         {
+            AiNodeSetStr(shader, "color_space", "");
+         }
       }
    }
- 
+    
 }
 
 void CDriverTranslator::NodeInitializer(CAbTranslator context)
