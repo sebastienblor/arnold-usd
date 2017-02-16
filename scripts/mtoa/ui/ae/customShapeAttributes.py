@@ -591,6 +591,34 @@ class SphericalCameraTemplate(CameraTemplate):
 templates.registerTranslatorUI(SphericalCameraTemplate, "camera", "spherical")
 templates.registerTranslatorUI(SphericalCameraTemplate, "stereoRigCamera", "spherical")
 
+class VrCameraTemplate(CameraTemplate):
+    def setup(self):
+        self.beginLayout("Main Attributes", collapse=False)
+        self.addControl("aiMode")
+        self.addControl("aiProjection")
+        self.addControl("aiEyeSeparation")
+        self.addControl("aiEyeToNeck")
+        self.endLayout()
+
+        self.beginLayout("Pole Merging", collapse=False)
+        self.addControl("aiTopMergeMode")
+        self.addControl("aiTopMergeAngle")
+        self.addSeparator()
+        self.addControl("aiBottomMergeMode")
+        self.addControl("aiBottomMergeAngle")
+        self.addSeparator()
+        self.addControl("aiMergeShader")
+        self.endLayout()
+
+        self.beginLayout("Common Attributes", collapse=False)
+        self.addCommonAttributes()
+        self.addShutterAttributes()
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+        self.endLayout()
+
+templates.registerTranslatorUI(VrCameraTemplate, "camera", "vr_camera")
+
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
     if not core.arnoldIsCurrentRenderer(): return
