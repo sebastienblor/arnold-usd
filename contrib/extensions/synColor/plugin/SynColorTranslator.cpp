@@ -42,22 +42,22 @@ void CSynColorTranslator::Export(AtNode* node)
    {
       default:
       case 0:
-         AiNodeSetBool(node, "output_enabled", false);
+         //AiNodeSetBool(node, "output_enabled", false);
          AiNodeSetBool(node, "output_color_conversion", false);    
       break;
       case 1:
-         AiNodeSetBool(node, "output_enabled", true);
+         //AiNodeSetBool(node, "output_enabled", true);
          AiNodeSetBool(node, "output_color_conversion", false);    
-         AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
+         //AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
       break;
       case 2:
-         AiNodeSetBool(node, "output_enabled",          defaultColorSettings.findPlug("outputTransformEnabled").asBool());
+         //AiNodeSetBool(node, "output_enabled",          defaultColorSettings.findPlug("outputTransformEnabled").asBool());
 #if MAYA_API_VERSION >= 201800    
          AiNodeSetBool(node, "output_color_conversion", defaultColorSettings.findPlug("outputTransformUseColorConversion").asBool());
 #else
          AiNodeSetBool(node, "output_color_conversion", false);
 #endif
-         AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("outputTransformName").asString().asChar());
+         //AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("outputTransformName").asString().asChar());
       break;
 
    }

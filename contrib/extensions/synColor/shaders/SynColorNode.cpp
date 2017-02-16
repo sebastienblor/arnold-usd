@@ -26,9 +26,7 @@ namespace DataStr
    const AtString ocioconfig_enabled("ocioconfig_enabled");
    const AtString ocioconfig_path("ocioconfig_path");
    const AtString rendering_color_space("rendering_color_space");
-   const AtString output_enabled("output_enabled");
    const AtString output_color_conversion("output_color_conversion");
-   const AtString output_color_space("output_color_space");
 };
 
 // The type used for the color transformation cache
@@ -97,10 +95,8 @@ public:
    bool     m_ocioconfig_enabled;     // Is the ocio mode enabled ?
    AtString m_ocioconfig_path;        // The ocio config file to use if ocio mode enabled
    AtString m_rendering_color_space;  // The rendering color space
-   bool     m_output_enabled;         // Is the output color transformation enabled ?
    bool     m_output_color_conversion;// Is it a color conversion only ?
-   AtString m_output_color_space;     // The output color space
-
+   
    // Keep a cache of all output transforms to only compute them once
    SYNCOLOR::TemplatePtr m_output_template;
    AtCritSec             m_output_guard;
@@ -374,13 +370,14 @@ namespace
    {
       SYNCOLOR::SynStatus status;
 
-      if(!colorData->m_output_enabled)
+      if(color_space.empty())
       {
          // The color transformation will be an identity to at least provide the pixel format conversion
          status = computeRawColorTransformation(colorData, src_pixel_format, dst_pixel_format, transform);        
       }
       else
       {
+         // FIXME is this the right place to test this flag ?
          if(colorData->m_output_color_conversion)
          {
             // The color transformation is the reverse of the input color transformation
@@ -434,7 +431,7 @@ namespace
                                  {
                                     colorData->m_output_transforms[key] = transform;
                                     AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'",
-                                       colorData->m_rendering_color_space.c_str(), colorData->m_output_color_space.c_str());
+                                       colorData->m_rendering_color_space.c_str(), color_space.c_str());
                                  }
                               }
                            }
@@ -463,9 +460,7 @@ node_parameters
    AiParameterBool(DataStr::ocioconfig_enabled,      false);
    AiParameterStr (DataStr::ocioconfig_path,         NULL);
    AiParameterStr (DataStr::rendering_color_space,   NULL);
-   AiParameterBool(DataStr::output_enabled,          false);
    AiParameterBool(DataStr::output_color_conversion, false);
-   AiParameterStr (DataStr::output_color_space,      NULL);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "defaultColorMgtGlobals");
 }
@@ -486,9 +481,7 @@ node_update
    colorData->m_ocioconfig_enabled      = AiNodeGetBool(node, DataStr::ocioconfig_enabled);
    colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
    colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
-   colorData->m_output_enabled          = AiNodeGetBool(node, DataStr::output_enabled);
    colorData->m_output_color_conversion = AiNodeGetBool(node, DataStr::output_color_conversion);
-   colorData->m_output_color_space      = AiNodeGetStr (node, DataStr::output_color_space);
 
    colorData->m_input_transforms.clear();
    colorData->m_output_transforms.clear();
@@ -537,7 +530,7 @@ color_manager_transform
       if(is_output)
       {
          status = computeOutputColorTransformation(
-            colorData, colorData->m_output_color_space, src_pixel_format, dst_pixel_format, transform);
+            colorData, color_space, src_pixel_format, dst_pixel_format, transform);
       }
       else
       {
