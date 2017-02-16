@@ -650,6 +650,10 @@ def createArnoldImageFormatControl():
                          default='exr',
                          optionMenuName='imageMenuMayaSW')
 
+
+    cmds.attrEnumOptionMenuGrp( l='Color Space',
+                            at='defaultArnoldDriver.colorManagement' )
+    
     # We need to create controls that we don't need to avoid
     # Maya errors because of the harcoded code. keep them hidden
     pm.columnLayout('cl_output_compression', vis=0, rowSpacing=0)
@@ -663,15 +667,47 @@ def createArnoldImageFormatControl():
         attributeChange=("defaultArnoldDriver.aiTranslator",
                          updateArnoldImageFormatControl))
 
+
+    pm.scriptJob(
+        parent=parent,
+        attributeChange=("defaultArnoldDriver.tiffFormat",
+                         updateArnoldColorSpace))
+
 #    changeArnoldImageFormat()
     return "imageMenuMayaSW"
 
 
+def updateArnoldColorSpace(*args):
+    curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
+    if curr == "jpeg" or curr == "png":
+        pm.setAttr('defaultArnoldDriver.colorManagement', 1)
+        return
+    
+    if curr == "exr":
+        pm.setAttr('defaultArnoldDriver.colorManagement', 2)
+        return
+
+    if curr == "deepexr":
+        pm.setAttr('defaultArnoldDriver.colorManagement', 0)
+        return
+
+    if curr == "tif":
+        tiffFormat = pm.getAttr('defaultArnoldDriver.tiffFormat')
+        if tiffFormat == 0:
+            pm.setAttr('defaultArnoldDriver.colorManagement', 1)
+        else:
+            pm.setAttr('defaultArnoldDriver.colorManagement', 2)
+
+
+
 def updateArnoldImageFormatControl(*args):
+
     core.createOptions()
     curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
+
+    updateArnoldColorSpace()
 
 def extendToShape(dag):
     'Return the camera shape from this dag object'

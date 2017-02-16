@@ -1774,6 +1774,8 @@
     maya.translator         STRING  "deepexr"
     [attr filename]
         maya.hide           BOOL    true
+    [attr color_space]
+        maya.hide           BOOL    true
     
 [node driver_exr]
     maya.translator         STRING  "exr"
@@ -1782,6 +1784,8 @@
     [attr compression]
         maya.name           STRING  "exrCompression"
         maya.shortname      STRING  "exr_compression"
+    [attr color_space]
+        maya.hide           BOOL    true
 
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
@@ -1794,6 +1798,8 @@
     [attr quality]
         min                 INT     0
         max                 INT     100
+    [attr color_space]
+        maya.hide           BOOL    true
 
 [node driver_png]
     maya.translator         STRING  "png"
@@ -1806,6 +1812,8 @@
     [attr format]
         maya.name           STRING  "pngFormat"
         maya.shortname      STRING  "png_format"
+    [attr color_space]
+        maya.hide           BOOL    true
 
 [node driver_tiff]
     maya.translator         STRING  "tif"
@@ -1821,6 +1829,8 @@
     [attr format]
         maya.name           STRING  "tiffFormat"
         maya.shortname      STRING  "tiff_format"
+    [attr color_space]
+        maya.hide           BOOL    true
 
 # filters
 
