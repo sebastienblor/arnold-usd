@@ -1,6 +1,6 @@
 //Maya ASCII 2017 scene
 //Name: test.ma
-//Last modified: Fri, Feb 17, 2017 02:33:49 PM
+//Last modified: Fri, Feb 17, 2017 04:50:54 PM
 //Codeset: 1252
 requires maya "2017";
 requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" "mtoa" "2.0.0.0";
@@ -106,6 +106,7 @@ createNode nParticle -n "nParticleShape1" -p "nParticle1";
 	setAttr ".acc0" -type "vectorArray" 0 ;
 	setAttr ".mas0" -type "doubleArray" 0 ;
 	setAttr ".id0" -type "doubleArray" 0 ;
+	setAttr ".nid" 218;
 	setAttr ".bt0" -type "doubleArray" 0 ;
 	setAttr ".ag0" -type "doubleArray" 0 ;
 	setAttr ".irbx" -type "string" "";
@@ -177,6 +178,7 @@ createNode materialInfo -n "materialInfo2";
 	rename -uid "019694D8-4205-93B3-9FBF-4DA5C6F5F647";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	rename -uid "A44FA197-40F4-3FCD-DF9E-AC9D18AA7348";
+	addAttr -ci true -sn "ARV_options" -ln "ARV_options" -dt "string";
 	setAttr ".aovm" 0;
 	setAttr ".AA_samples" 4;
 	setAttr ".GI_diffuse_samples" 1;
@@ -322,6 +324,10 @@ createNode nodeGraphEditorInfo -n "hyperShadePrimaryNodeEditorSavedTabsInfo";
 	setAttr ".tgi[0].tn" -type "string" "Untitled_1";
 	setAttr ".tgi[0].vl" -type "double2" -327.38093937200267 -349.99998609225008 ;
 	setAttr ".tgi[0].vh" -type "double2" 316.66665408346444 307.14284493809708 ;
+createNode aiAOVDriver -s -n "defaultArnoldDisplayDriver";
+	rename -uid "3DA66567-4C9A-AD6C-4FB9-2F9F867F6F40";
+	setAttr ".output_mode" 0;
+	setAttr ".ai_translator" -type "string" "maya";
 select -ne :time1;
 	setAttr -av -k on ".cch";
 	setAttr -cb on ".ihi" 0;
@@ -551,6 +557,8 @@ connectAttr "surfaceShader1.msg" "materialInfo2.m";
 connectAttr "surfaceShader1.msg" "materialInfo2.t" -na;
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
 connectAttr ":defaultArnoldDriver.msg" ":defaultArnoldRenderOptions.drvr";
+connectAttr ":defaultArnoldDisplayDriver.msg" ":defaultArnoldRenderOptions.drivers"
+		 -na;
 connectAttr ":time1.o" "nParticleShape1Cache1.tim";
 connectAttr "nParticleShape1Cache1.st" "cacheBlend1.cd[0].st";
 connectAttr "nParticleShape1Cache1.e" "cacheBlend1.cd[0].e";
