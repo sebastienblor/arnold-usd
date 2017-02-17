@@ -1260,10 +1260,10 @@
         max                 FLOAT   1.0
     [attr specular_roughness]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
     [attr specular_IOR]
         min                 FLOAT   0.0
-        softmax             FLOAT   5.0
+        softmax             FLOAT   3.0
     [attr specular_anisotropy]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
@@ -1273,23 +1273,23 @@
     [attr metalness]
         min             FLOAT   0.0
         max             FLOAT   1.0
-    [attr transparent]
+    [attr transmission]
         min             FLOAT   0.0
         max             FLOAT   1.0
-    [attr transparent_depth]
+    [attr transmission_depth]
         min             FLOAT   0.0
         softmax         FLOAT   100.0
         linkable        BOOL    False
         keyable         BOOL    False
-    [attr transparent_scatter_anisotropy]
+    [attr transmission_scatter_anisotropy]
         min             FLOAT   0.0
         max             FLOAT   1.0
-    [attr transparent_dispersion]
+    [attr transmission_dispersion]
         min             FLOAT   0.0
-        softmax         FLOAT   1.0
-    [attr transparent_extra_roughness]
+        softmax         FLOAT   100.0
+    [attr transmission_extra_roughness]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
     [attr subsurface]
         min             FLOAT   0.0
         max             FLOAT   1.0
@@ -1306,9 +1306,11 @@
         min             FLOAT   0.0
         softmax         FLOAT   5.0
     [attr coat_affect_color]
+        maya.hide       BOOL    True
         min             FLOAT   0.0
         max             FLOAT   1.0
     [attr coat_affect_roughness]
+        maya.hide       BOOL    True
         min             FLOAT   0.0
         max             FLOAT   1.0
     [attr emission]
@@ -1323,30 +1325,6 @@
     [attr normal]
         maya.hide       BOOL    True
         softmax         FLOAT   1.0
-
-    # AOVs
-    [attr aov_emission]
-    aov.type                INT     0x05
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_specular]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
-    [attr aov_indirect_specular]
-    aov.type                INT     0x05
-    [attr aov_reflection]
-    aov.type                INT     0x05
-    [attr aov_refraction]
-    aov.type                INT     0x05
-    [attr aov_refraction_opacity]
-    aov.type                INT     0x05
-    [attr aov_sss]
-    aov.type                INT     0x05
-    [attr aov_direct_sss]
-    aov.type                INT     0x05
-    [attr aov_indirect_sss]
-    aov.type                INT     0x05
 
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."

@@ -7,13 +7,54 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiStandardSurfaceTemplate(ShaderAETemplate):
     convertToMayaStyle = True
    
+    def changeParams(self, nodeName):
+        metal_0 = float(pm.getAttr(nodeName + '.metalness')) == 0.0
+        metal_1 = float(pm.getAttr(nodeName + '.metalness')) == 1.0
+        transmission_0 = float(pm.getAttr(nodeName + '.transmission')) == 0.0
+        transmission_1 = float(pm.getAttr(nodeName + '.transmission')) == 1.0
+        subsurface_0 = float(pm.getAttr(nodeName + '.subsurface')) == 0.0
+        subsurface_1 = float(pm.getAttr(nodeName + '.subsurface')) == 1.0
+        thin_walled = bool(pm.getAttr(nodeName + '.thin_walled'))
+
+        pm.editorTemplate(dimControl=(nodeName, 'specularIOR', metal_1))
+        pm.editorTemplate(dimControl=(nodeName, 'diffuseRoughness', metal_1 or transmission_1))
+
+        dim_base = metal_0 and transmission_1
+        pm.editorTemplate(dimControl=(nodeName, 'base', dim_base))
+        pm.editorTemplate(dimControl=(nodeName, 'baseColor', dim_base))
+
+        dim_transmission = metal_1 or transmission_0
+        dim_transmission_interior = dim_transmission or thin_walled
+        pm.editorTemplate(dimControl=(nodeName, 'transmission', metal_1))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionColor', dim_transmission))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionDepth', dim_transmission_interior))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionScatter', dim_transmission_interior))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionScatterAnisotropy', dim_transmission_interior))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionDispersion', dim_transmission_interior))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionExtraRoughness', dim_transmission_interior))
+
+        dim_subsurface = metal_1 or transmission_1 or subsurface_0
+        dim_subsurface_radius = dim_subsurface or thin_walled
+        pm.editorTemplate(dimControl=(nodeName, 'subsurface', metal_1 or transmission_1))
+        pm.editorTemplate(dimControl=(nodeName, 'subsurfaceColor', dim_subsurface))
+        pm.editorTemplate(dimControl=(nodeName, 'subsurfaceRadius', dim_subsurface_radius))
+        pm.editorTemplate(dimControl=(nodeName, 'subsurfaceScale', dim_subsurface_radius))
+
     def setup(self):
         self.addSwatch()
 
         self.beginScrollLayout()
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
-        
+
+        self.beginLayout("Material", collapse=False)
+        self.addControl("metalness", label="Metalness", annotation="Metalness Mix", changeCommand=self.changeParams)
+        self.addControl("transmission",  label="Transmission", annotation="Transmission Mix", changeCommand=self.changeParams)
+        self.addControl("subsurface",  label="Subsurface", annotation="Subsurface Scattering Mix", changeCommand=self.changeParams)
+        self.addSeparator()
+        self.addControl("thin_walled", label="Thin Walled", annotation="Thin Surface with no Interior", changeCommand=self.changeParams) 
+        self.addControl("opacity",  label="Opacity", annotation="Cutout Opacity")
+        self.endLayout()
 
         self.beginLayout("Base", collapse=False)
         self.addControl("base",  label="Weight", annotation="Base Weight")
@@ -30,9 +71,24 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl("specular_anisotropy", label="Anisotropy", annotation="Specular Anisotropy")
         self.addControl("specular_rotation", label="Rotation", annotation="Specular Anisotropy Rotation")
-        self.addSeparator()
-        self.addControl("metalness", label="Metalness", annotation="Specular Metalness")
         self.endLayout()
+
+        self.beginLayout("Transmission", collapse=True)
+        self.addControl("transmission_color", label="Color", annotation="Transmission Color")
+        self.addSeparator()
+        self.addControl("transmission_depth", label="Depth", annotation="Transmission Depth")
+        self.addControl("transmission_scatter", label="Scatter", annotation="Transmission Scatter")
+        self.addControl("transmission_scatter_anisotropy", label="Scatter Anisotropy", annotation="Transmission Scatter Anisotropy")
+        self.addSeparator()
+        self.addControl("transmission_dispersion", label="Dispersion Abbe", annotation="Transmission Dispersion Abbe Number")
+        self.addControl("transmission_extra_roughness", label="Extra Roughness", annotation="Transmission Extra Roughness")
+        self.endLayout()
+
+        self.beginLayout("Subsurface", collapse=True)
+        self.addControl("subsurface_color", label="Color", annotation="Subsurface Scattering Color")
+        self.addControl("subsurface_radius", label="Radius", annotation="Subsurface Scattering Radius");
+        self.addControl("subsurface_scale", label="Scale", annotation="Subsurface Scattering Scale");
+        self.endLayout() 
 
         self.beginLayout("Coat", collapse=True)
         self.addControl("coat",  label="Weight", annotation="Coat Weight")
@@ -42,35 +98,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("coat_IOR", label="IOR", annotation="Coat IOR")
         self.addSeparator()
         self.addControl("coat_normal", label="Normal", annotation="Coat Normal")
-        #self.addSeparator()
-        #self.addControl("coat_affect_color", label="Affect Color", annotation="Coat Affect Color")
-        #self.addControl("coat_affect_roughness", label="Affect Roughness", annotation="Coat Affect Roughness")
         self.endLayout()
-
-        self.beginLayout("Transparent", collapse=True)
-        self.addControl("opacity",  label="Opacity", annotation="Opacity")
-        self.addControl("transparent",  label="Weight", annotation="Transparent Weight")
-        self.addControl("transparent_color", label="Color", annotation="Transparent Color")
-        self.addSeparator()
-        self.addControl("transparent_depth", label="Depth", annotation="Transparent Depth")
-        self.addControl("transparent_scatter", label="Scatter", annotation="Transparent Scatter")
-        self.addControl("transparent_scatter_anisotropy", label="Scatter Anisotropy", annotation="Transparent Scatter Anisotropy")
-        self.addSeparator()
-        self.addControl("transparent_extra_roughness", label="Extra-Roughness", annotation="Transparent Extra-Roughness")
-        self.addSeparator()
-        self.addControl("transparent_dispersion", label="Dispersion", annotation="Transparent Dispersion")
-        self.endLayout()
-
-        self.beginLayout("Subsurface", collapse=True)
-        self.addControl("subsurface",  label="Weight", annotation="SSS Weight")
-        self.addControl("subsurface_color", label="Color", annotation="SSS Color")
-        self.addSeparator()
-        self.addControl("subsurface_radius", label="Radius", annotation="SSS Radius")
-        self.addControl("subsurface_scale", label="Scale", annotation="SSS Scale")
-        self.addSeparator()
-        # FIXME Arnold5 is this parameter related to Scatter ?
-        self.addControl("thin_walled", label="Thin Walled", annotation="Thin Walled") 
-        self.endLayout() 
 
         self.beginLayout("Emission", collapse=True)
         self.addControl("emission",  label="Weight", annotation="Emission Weight")
@@ -84,6 +112,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 #        self.addControl("normal", label="Normal", annotation="Normal Shader")
 #        self.addControl("tangent", label="Tangent", annotation="Tangent Shader")
 #        self.endLayout()
+# FIXME Arnold5 tangent is missing
 
         self.beginLayout("Matte", collapse=True)
         self.addControl("aiEnableMatte", label="Enable Matte")
@@ -101,6 +130,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.endLayout()
         
 
+# FIXME Arnold5 Found no attribute match for "aiStandardSurface1.color"
         self.beginLayout("Hardware Texturing", collapse=True)
         pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
         self.endLayout()
@@ -116,4 +146,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
        
         self.addExtraControls()
         self.endScrollLayout()
+
+        # update dimming
+        self.changeParams(self.nodeName)
 
