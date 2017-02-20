@@ -122,10 +122,10 @@ namespace { // anonymus namespace
    static inline void ComputeUDIMLookup(AtShaderGlobals *sg,
                                         float &udim_u, float &udim_v,
                                         int &col, int &row,
-                                        int udim_dim)
+                                        int udim_dim, const AtString &uvSetName)
    {
       AtVector2 uvs[3];
-      if (AiShaderGlobalsGetVertexUVs(sg, AtString(""), uvs))
+      if (AiShaderGlobalsGetVertexUVs(sg, uvSetName, uvs))
       {
          // if triangles never crossed a tile boundary we could use the UV centroid for
          // lookups. Since they might (rare) we make sure by construction that the lookup
@@ -833,7 +833,14 @@ shader_evaluate
                   AdjustUDIMLookup(sg, udim_u, udim_v, col, row, eps, dim);*/
                   int col, row;
                   float udim_u, udim_v;
-                  ComputeUDIMLookup(sg, udim_u, udim_v, col, row, dim);
+                  if (idata->useCustomUVSet)
+                     ComputeUDIMLookup(sg, udim_u, udim_v, col, row, dim, idata->uvSetName);
+                  else
+                  {
+                     static const AtString emptyStr("");
+                     ComputeUDIMLookup(sg, udim_u, udim_v, col, row, dim, emptyStr);
+                  }
+                  
 
                   int mariCode = 1001 + col + (row * dim);
 
