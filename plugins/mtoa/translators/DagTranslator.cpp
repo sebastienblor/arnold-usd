@@ -279,7 +279,8 @@ AtByte CDagTranslator::ComputeVisibility()
    {
       visibility &= ~AI_RAY_CAMERA;
    }
-
+/*
+  FIXME what do we do now ?
    plug = FindMayaPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
@@ -290,19 +291,32 @@ AtByte CDagTranslator::ComputeVisibility()
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
-   }
+   }*/
 
-   plug = FindMayaPlug("aiVisibleInDiffuse");
+   plug = FindMayaPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~(AI_RAY_ALL_DIFFUSE| AI_RAY_VOLUME);
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
    }
 
-   plug = FindMayaPlug("aiVisibleInGlossy");
+   plug = FindMayaPlug("aiVisibleInSpecularReflection");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_SPECULAR_REFLECT;
+      visibility &= ~(AI_RAY_SPECULAR_REFLECT);
    }
+
+   plug = FindMayaPlug("aiVisibleInDiffuseTransmission");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
+   }
+
+   plug = FindMayaPlug("aiVisibleInSpecularTransmission");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_SPECULAR_TRANSMIT);
+   }
+
 
    return visibility;
 }
@@ -358,15 +372,37 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
    CAttrData data;
 
    data.defaultValue.BOOL() = true;
-   data.name = "aiVisibleInDiffuse";
-   data.shortName = "ai_vid";
+   data.name = "aiVisibleInDiffuseReflection";
+   data.shortName = "ai_vidr";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL() = true;
-   data.name = "aiVisibleInGlossy";
-   data.shortName = "ai_vig";
+   data.name = "aiVisibleInSpecularReflection";
+   data.shortName = "ai_visr";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInDiffuseTransmission";
+   data.shortName = "ai_vidt";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInSpecularTransmission";
+   data.shortName = "ai_vist";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInVolume";
+   data.shortName = "ai_viv";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);

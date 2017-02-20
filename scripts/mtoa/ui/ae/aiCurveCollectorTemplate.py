@@ -27,17 +27,21 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl("aiUserOptions", label="User Options")
         self.addSeparator()
 
-        self.addControl("aiSelfShadows", label="Self Shadows")
+        # FIXME is there a way to use the code in templates.py in ShapeMixin ?
         self.addControl("aiOpaque", label="Opaque")
-        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
-        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
         self.addControl("aiMatte", label="Matte")
-        self.addControl("aiTraceSets", label="Trace Sets")
 
-        self.addSeparator()
-        self.addControl("primaryVisibility")
-        self.addControl("castsShadows")
-        
+        self.beginLayout("Visibility", collapse=False)
+        self.addControl("primaryVisibility", label="Camera")
+        self.addControl("castsShadows", label="Shadows")
+        self.addControl("aiVisibleInDiffuseReflection", label="Diffuse Reflection")
+        self.addControl("aiVisibleInSpecularReflection", label="Specular Reflection")
+        self.addControl("aiVisibleInDiffuseTransmission", label="Diffuse Transmission")
+        self.addControl("aiVisibleInSpecularTransmission", label="Specular Transmission")
+        self.addControl("aiVisibleInVolume", label="Volume")
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiTraceSets", label="Trace Sets")
+        self.endLayout()
 
         self.endLayout()
 

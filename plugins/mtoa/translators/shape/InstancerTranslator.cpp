@@ -68,29 +68,32 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    {
       visibility &= ~AI_RAY_CAMERA;
    }
-
-   plug = fnNode.findPlug("visibleInReflections");
+   plug = fnNode.findPlug("aiVisibleInDiffuseReflection");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
+   }
+   plug = fnNode.findPlug("aiVisibleInSpecularReflection");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
+   plug = fnNode.findPlug("aiVisibleInDiffuseTransmission");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
+   }
 
-   plug = fnNode.findPlug("visibleInRefractions");
+   plug = fnNode.findPlug("aiVisibleInSpecularTransmission");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
    }
 
-   plug = fnNode.findPlug("aiVisibleInDiffuse");
+   plug = fnNode.findPlug("aiVisibleInVolume");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~(AI_RAY_ALL_DIFFUSE|AI_RAY_VOLUME);
-   }
-
-   plug = fnNode.findPlug("aiVisibleInGlossy");
-   if (!plug.isNull() && !plug.asBool())
-   {
-      visibility &= ~AI_RAY_SPECULAR_REFLECT;
+      visibility &= ~AI_RAY_VOLUME;
    }
    
    return visibility;

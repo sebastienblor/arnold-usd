@@ -67,83 +67,12 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
-AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
-{
-   // Usually invisible nodes are not exported at all, just making sure here
-   if (!IsRenderable())
-      return AI_RAY_UNDEFINED;
-
-   AtByte visibility = AI_RAY_ALL;
-   MPlug plug;
-
-   plug = FindMayaPlug("overrideCastsShadows");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("castsShadows");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SHADOW;
-      }
-   }
-
-   plug = FindMayaPlug("overridePrimaryVisibility");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("primaryVisibility");
-      MString plugName = plug.name();
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_CAMERA;
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInReflections");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("visibleInReflections");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SPECULAR_REFLECT;
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInRefractions");
-   if (plug.isNull() || plug.asBool())
-      {
-      plug = FindMayaPlug("visibleInRefractions");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInDiffuse");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInDiffuse");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~(AI_RAY_ALL_DIFFUSE|AI_RAY_VOLUME);
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInGlossy");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInGlossy");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SPECULAR_REFLECT;
-      }
-   }
-   
-   return visibility;
-}
-
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetByte(node, "visibility", ComputeOverrideVisibility());
+   if (FindMayaPlug("aiOverrideVisibility").asBool())
+      AiNodeSetByte(node, "visibility", ComputeVisibility());
+   
 
    MPlug plug;
    

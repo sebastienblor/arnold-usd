@@ -123,7 +123,7 @@ class MeshLightTemplate(BaseAreaLightTemplate):
         self.addControl("aiSubdivPixelError", label="Adaptative Error")
         self.addControl("aiSubdivAdaptiveSpace", label="Adaptative Space")
         # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
+        #self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
         self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()

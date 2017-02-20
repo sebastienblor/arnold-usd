@@ -558,13 +558,23 @@ class ShapeMixin(object):
         self.addControl("visibleInReflections")
         self.addControl("visibleInRefractions")
 
+
     def commonShapeAttributes(self):
-        self.addControl("aiSelfShadows", label="Self Shadows")
         self.addControl("aiOpaque", label="Opaque")
-        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
-        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
         self.addControl("aiMatte", label="Matte")
+
+        self.beginLayout("Visibility", collapse=False)
+        self.addControl("primaryVisibility", label="Primary Visibility")
+        self.addControl("castsShadows", label="Casts Shadows")
+        self.addControl("aiVisibleInDiffuseReflection", label="Diffuse Reflection")
+        self.addControl("aiVisibleInSpecularReflection", label="Specular Reflection")
+        self.addControl("aiVisibleInDiffuseTransmission", label="Diffuse Transmission")
+        self.addControl("aiVisibleInSpecularTransmission", label="Specular Transmission")
+        self.addControl("aiVisibleInVolume", label="Volume")
+        self.addControl("aiSelfShadows", label="Self Shadows")
         self.addControl("aiTraceSets", label="Trace Sets")
+        self.endLayout()
+        
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass

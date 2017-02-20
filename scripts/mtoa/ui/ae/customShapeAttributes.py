@@ -56,7 +56,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
         
-        self.addSeparator()
+        self.beginLayout("Export", collapse=False)
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
         self.addControl("aiExportRefPoints", label="Export Reference Positions")
@@ -69,8 +69,12 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMotionVectorSource", label="Motion Vector Source")
         self.addControl("aiMotionVectorUnit", label="Motion Vector Unit")
         self.addControl("aiMotionVectorScale", label="Motion Vector Scale")
+
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+        self.endLayout()
         
-        self.beginLayout('Subdivision', collapse=False)
+        self.beginLayout('Subdivision', collapse=True)
         self.addControl("aiSubdivType", label="Type")
         self.addControl("aiSubdivIterations", label="Iterations")
         self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
@@ -81,16 +85,16 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()
         
-        self.beginLayout('Displacement Attributes', collapse=False)
+        self.beginLayout('Displacement Attributes', collapse=True)
         self.addControl("aiDispHeight", label="Height")
         self.addControl("aiDispPadding", label="Bounds Padding")
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
-        self.beginLayout('Volume Attributes', collapse=False)
+        self.beginLayout('Volume Attributes', collapse=True)
         self.addControl('aiStepSize', label='Step Size')
         self.endLayout()
-        self.addControl("aiUserOptions", label="User Options")
+        
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()
@@ -190,8 +194,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.addSeparator()
-        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
-        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.commonShapeAttributes()
         self.beginLayout("Custom Texture", collapse=False)
         self.addControl("aiOverrideTextures", label="Override Fluid Texture")        
         self.addControl("aiTextureAffectColor", label="Texture Color")

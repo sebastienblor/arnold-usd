@@ -233,14 +233,13 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl("castsShadows")
         self.addControl("receiveShadows")
         self.addControl("primaryVisibility")
-        self.addControl("visibleInReflections")
-        self.addControl("visibleInRefractions")
-
-        self.addSeparator()
-    
+        self.addControl("aiVisibleInDiffuseReflection", label="Visible In Diffuse Reflection")
+        self.addControl("aiVisibleInSpecularReflection", label="Visible In Specular Reflection")
+        self.addControl("aiVisibleInDiffuseTransmission", label="Visible In Diffuse Transmission")
+        self.addControl("aiVisibleInSpecularTransmission", label="Visible In Specular Transmission")
+        
         self.addControl("aiSelfShadows", label="Self Shadows")
-        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
-        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        
         self.addControl("aiMatte", label="Matte")
         self.addControl("aiTraceSets", label="Trace Sets")
         

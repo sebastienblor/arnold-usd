@@ -860,10 +860,6 @@ MStatus CArnoldStandInShape::initialize()
    // atributes that are used only by translation
    CAttrData data;
    
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideCastsShadows";
-   data.shortName = "overrideCastsShadows";
-   s_attributes.MakeInputBoolean(data);
    
    //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
@@ -874,26 +870,6 @@ MStatus CArnoldStandInShape::initialize()
    
    //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL() = false;
-   data.name = "overridePrimaryVisibility";
-   data.shortName = "overridePrimaryVisibility";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInReflections";
-   data.shortName = "overrideVisibleInReflections";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'visibleInReflections' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInRefractions";
-   data.shortName = "overrideVisibleInRefractions";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'visibleInRefractions' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
    data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
@@ -915,15 +891,8 @@ MStatus CArnoldStandInShape::initialize()
    //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
    
    data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInDiffuse";
-   data.shortName = "overrideVisibleInDiffuse";
-   s_attributes.MakeInputBoolean(data);
-
-   //The 'aiVisibleInDiffuse' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
-   
-   data.defaultValue.BOOL() = false;
-   data.name = "overrideVisibleInGlossy";
-   data.shortName = "overrideVisibleInGlossy";
+   data.name = "aiOverrideVisibility";
+   data.shortName = "aiOverrideVisibility";
    s_attributes.MakeInputBoolean(data);
 
    //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags

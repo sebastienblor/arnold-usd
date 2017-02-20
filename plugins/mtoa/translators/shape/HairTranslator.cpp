@@ -111,18 +111,23 @@ void CHairTranslator::Export( AtNode *curve )
    plug = fnDepNodeHair.findPlug("primaryVisibility");
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_CAMERA;
-   plug = fnDepNodeHair.findPlug("visibleInReflections");
+
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_SPECULAR_REFLECT;
-   plug = fnDepNodeHair.findPlug("visibleInRefractions");
-   if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
-   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuse");
-   if (!plug.isNull() && !plug.asBool())
-      visibility &= ~(AI_RAY_ALL_DIFFUSE|AI_RAY_VOLUME);
-   plug = fnDepNodeHair.findPlug("aiVisibleInGlossy");
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
+   plug = fnDepNodeHair.findPlug("aiVisibleInSpecularReflection");
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_SPECULAR_REFLECT;   
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuseTransmission");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_DIFFUSE_TRANSMIT;
+   plug = fnDepNodeHair.findPlug("aiVisibleInSpecularTransmission");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
+   plug = fnDepNodeHair.findPlug("aiVisibleInVolume");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_VOLUME;
+
    
    if (RequiresShaderExport())
    {
