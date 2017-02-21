@@ -10,8 +10,13 @@
 #include <synColor/template.h>
 #include <synColor/synColorFactory.h>
 
-#include <atomic>
+#ifdef _LINUX
+#include <tr1/unordered_map>
+typedef std::tr1::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtStringHash> ProcessorMap;
+#else
 #include <unordered_map>
+typedef std::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtStringHash> ProcessorMap;
+#endif
 #include <string>
 
 
@@ -30,7 +35,7 @@ namespace DataStr
 };
 
 // The type used for the color transformation cache
-typedef std::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtStringHash> ProcessorMap;
+
 
 // Helper class for critical section gaurd
 class ThreadGuard
@@ -64,7 +69,7 @@ public:
       : m_enabled(false)
       , m_ocioconfig_enabled(false)
    {
-      m_initialization_done.clear();
+      m_initialization_done = false;
 
       AiCritSecInit(&m_output_guard);
       AiCritSecInit(&m_input_guard);
@@ -87,7 +92,7 @@ public:
    }
 
    // Enforce to initialize the synColor library only once and only when needed
-   volatile std::atomic_flag m_initialization_done;
+   bool m_initialization_done;
    static bool m_initialization_status;
 
    AtString m_configuration_path;     // Where is the synColor configuration file ?
@@ -181,8 +186,9 @@ namespace
    // The method initializes the SynColor library only once.
    void initializeSynColor(ColorManagerData* colorData)
    {
-      if(!colorData->m_initialization_done.test_and_set())
+      if(!colorData->m_initialization_done)
       {
+         colorData->m_initialization_done = true;
          SYNCOLOR::SynStatus status = SYNCOLOR::setUp(SYNCOLOR::Maya, SYNCOLOR::LANG_EN);
          if(status)
          {
