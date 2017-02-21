@@ -1,7 +1,7 @@
 import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-class AEaiShaderMixTemplate(ShaderAETemplate):
+class AEaiMixShaderTemplate(ShaderAETemplate):
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()

@@ -1,7 +1,7 @@
 import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-class AEaiShadowCatcherTemplate(ShaderAETemplate):
+class AEaiShadowMatteTemplate(ShaderAETemplate):
     
     def setup(self):
         self.beginScrollLayout()

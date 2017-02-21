@@ -692,14 +692,8 @@ node_loader
       node->name        = "userDataBool";
       node->node_type   = AI_NODE_SHADER;
       break;
-      
-   case SHADER_SHADOWCATCHER:
-      node->methods     = ShadowCatcherMtd;
-      node->output_type = AI_TYPE_RGBA;
-      node->name        = "shadowCatcher";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-      
+     
+   
    case SHADER_HAIR:
       node->methods     = MayaHairMtd;
       node->output_type = AI_TYPE_RGBA;
@@ -833,20 +827,6 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case SHADER_SKIN:
-      node->methods     = SkinMtd;
-      node->output_type = AI_TYPE_CLOSURE;
-      node->name        = "skin";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-      
-   case SHADER_VOLUMECOLLECTOR:
-      node->methods     = VolumeCollectorMtd;
-      node->output_type = AI_TYPE_CLOSURE;
-      node->name        = "volume_collector";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
    case SHADER_MAYASURFACELUMINANCE:
       node->methods     = MayaSurfaceLuminanceMtd;
       node->output_type = AI_TYPE_FLOAT;
@@ -861,48 +841,13 @@ node_loader
       node->node_type   = AI_NODE_CAMERA;
       break;
 
-   case SHADER_VOLUME_SAMPLE_FLOAT:
-      node->methods     = VolumeSampleFloatMethods;
-      node->output_type = AI_TYPE_FLOAT;
-      node->name        = "volume_sample_float";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case SHADER_VOLUME_SAMPLE_RGB:
-      node->methods     = VolumeSampleRgbMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "volume_sample_rgb";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-   case SHADER_CURVATURE:
-      node->methods = CurvatureMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name =      "curvature";
-      node->node_type = AI_NODE_SHADER;
-      break;
    case SHADER_FLAT_CLOSURE:
       node->methods = MayaFlatClosureMtd;
       node->output_type = AI_TYPE_CLOSURE;
       node->name =      "MayaFlatClosure";
       node->node_type = AI_NODE_SHADER;
       break;
-   case SHADER_THIN_FILM:
-      node->methods = ThinFilmMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name =      "thin_film";
-      node->node_type = AI_NODE_SHADER;
-      break;
-   case SHADER_COMPLEX_IOR:
-      node->methods = ComplexIORMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name =      "complex_ior";
-      node->node_type = AI_NODE_SHADER;
-      break;
-   case DRIVER_MPLAY:
-      node->methods     = MPlayDriverMtd;
-      node->name        = "driver_mplay";
-      node->node_type   = AI_NODE_DRIVER;
-      break;
+   
    default:
       return false;
    }

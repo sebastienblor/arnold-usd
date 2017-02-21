@@ -10,7 +10,7 @@
 
 # standard                    0x00115D01
 # utility                     0x00115D03
-# color_ray_switch            0x00115D04
+# ray_switch_rgba             0x00115D04
 # ambient_occlusion           0x00115D07
 # wireframe                   0x00115D08
 # fog                         0x00115D0A
@@ -27,7 +27,7 @@
 # standard_hair               0x00115D52
 # standard_volume             0x00115D53
 # shader_mix                  0x00115D54
-# shader_ray_switch           0x00115D55
+# ray_switch_shader           0x00115D55
 
 # options
 
@@ -1339,7 +1339,7 @@
         min                 FLOAT 0.0
         softmax             FLOAT 200.0
 
-[node color_ray_switch]
+[node ray_switch_rgba]
     desc                    STRING  "Switch input depending on ray type."
     maya.name               STRING  "aiRaySwitch"
     maya.id                 INT     0x00115D04  
@@ -1647,7 +1647,7 @@
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
 
-[node shader_mix]
+[node mix_shader]
     desc                    STRING  "Mix between two Arnold Shaders"
     maya.name               STRING  "aiShaderMix"
     maya.id                 INT     0x00115D54  
@@ -1656,9 +1656,9 @@
         min                 FLOAT   0.0
         max                 FLOAT   1.0
 
-[node shader_ray_switch]
+[node ray_switch_shader]
     desc                    STRING  "Ray Switch for Arnold Surface Shaders"
-    maya.name               STRING  "aiShaderRaySwitch"
+    maya.name               STRING  "aiRaySwitchShader"
     maya.id                 INT     0x00115D55  
     maya.classification     STRING  "utility"
 
@@ -1933,4 +1933,566 @@
     maya.translator         STRING  "gaussian"
     [attr width]
         default             FLOAT   2.0
+
+
+# COMMON SHADERS
+
+[node abs]
+    maya.hide               BOOL    True
+
+[node add]
+    maya.hide               BOOL    True
+
+[node aov_write_float]
+    maya.hide               BOOL    True
+
+[node aov_write_int]
+    maya.hide               BOOL    True
+
+[node aov_write_rgb]
+    maya.hide               BOOL    True
+
+[node atan]
+    maya.hide               BOOL    True
+
+[node blackbody]
+    maya.hide               BOOL    True
+
+[node cache]
+    maya.hide               BOOL    True
+
+[node camera_projection]
+    maya.hide               BOOL    True
+
+
+[node checkerboard]
+    maya.hide               BOOL    True
+
+[node clamp]
+    maya.hide               BOOL    True
+
+[node color_convert]
+    maya.hide               BOOL    True
+
+[node color_correct]
+    maya.hide               BOOL    True
+
+[node compare]
+    maya.hide               BOOL    True
+
+# enable complex_ior
+[node complex_ior]
+maya.id                 INT     0x00118F93
+maya.name               STRING  "aiComplexIor"
+maya.classification     STRING  "utility"
+maya.swatch             BOOL    True
+
+[attr material]
+desc STRING "Presets of different materials. The custom mode allows you to define a material with Reflectivity and Edgetint, or n and k parameters."
+
+[attr mode]
+desc STRING "Select between the artist friendly (Reflectivity and Edgetint colors) and physical (n and k) controls."
+
+[attr reflectivity]
+desc STRING "The reflectance at normal incidence."
+
+[attr edgetint]
+desc STRING "Controls the color bias as the viewing direction becomes parallel to the surface."
+
+[attr eta]
+desc STRING "The refractive index value for the red/green/blue wavelengths (e.g. 650, 550 and 450 nm)."
+
+[node complement]
+    maya.hide               BOOL    True
+
+
+[node composite]
+    maya.hide               BOOL    True
+
+[node cross]
+    maya.hide               BOOL    True
+
+# enable curvature
+[node curvature]
+maya.id                 INT     0x00118F91
+maya.name               STRING  "aiCurvature"
+maya.classification     STRING  "texture"
+maya.swatch             BOOL    True
+
+[attr output]
+desc STRING "Whether to output the convex (positive) curvature or concave (negative) curvature only as grayscale,"
+ "or output both with the convex curvature in the red channel and concave curvature in the green channel."
+
+[attr samples]
+desc STRING "Controls the number of rays that will be fired to compute the curvature. Increasing the number of samples "
+ "will reduce noise and give a better quality result. The actual number of rays is the square of this value."
+softmin INT 1
+softmin INT 10
+linkable BOOL True
+
+[attr radius]
+desc STRING "The radius of the sphere around the shading point within which the curvature will be estimated. "
+  "Smaller values show finer details, while larger values give a smoother result."
+softmin FLOAT 0
+softmax FLOAT 5
+linkable BOOL True
+
+[attr spread]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 1
+min     FLOAT 0
+max     FLOAT 1
+desc STRING "Lower values of spread will shoot rays more vertically with respect to the surface, "
+"and the default value of 1 means that rays are shot in all directions."
+
+[attr threshold]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 1
+min FLOAT 0
+max FLOAT 1
+
+[attr bias]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 1
+desc STRING "The bias will affect the falloff of the curvature. With the default of 0.5, the curvature sample "
+"importance decreases linearly with the distance to the shading point."
+
+[attr multiply]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 10
+desc STRING "Multiplies the curvature by this factor."
+
+[node divide]
+    maya.hide               BOOL    True
+
+[node dot]
+    maya.hide               BOOL    True
+
+[node exp]
+    maya.hide               BOOL    True
+
+[node facing_ratio]
+    maya.hide               BOOL    True
+
+# enable flakes
+[node flakes]
+maya.name               STRING  "aiFlakes"
+maya.classification     STRING  "texture"
+maya.swatch             BOOL    True
+
+
+[node float_to_int]
+    maya.hide               BOOL    True
+[node float_to_matrix]
+    maya.hide               BOOL    True
+[node float_to_rgb]
+    maya.hide               BOOL    True
+[node float_to_rgba]
+    maya.hide               BOOL    True
+[node fraction]
+    maya.hide               BOOL    True
+
+[node is_finite]
+    maya.hide               BOOL    True
+
+[node length]
+    maya.hide               BOOL    True
+
+[node log]
+    maya.hide               BOOL    True
+
+[node matte]
+    maya.hide               BOOL    True
+
+[node max]
+    maya.hide               BOOL    True
+
+[node min]
+    maya.hide               BOOL    True
+
+[node mix_rgba]
+    maya.hide               BOOL    True
+
+[node modulo]
+    maya.hide               BOOL    True
+
+[node motion_vector]
+    maya.hide               BOOL    True
+
+[node multiply]
+    maya.hide               BOOL    True
+
+[node negate]
+    maya.hide               BOOL    True
+
+[node normalize]
+    maya.hide               BOOL    True
+
+[node passthrough]
+    maya.hide               BOOL    True
+
+[node pow]
+    maya.hide               BOOL    True
+
+[node ramp_float]
+    maya.hide               BOOL    True
+
+[node ramp_rgb]
+    maya.hide               BOOL    True
+
+[node random]
+    maya.hide               BOOL    True
+
+[node range]
+    maya.hide               BOOL    True
+
+[node reciprocal]
+    maya.hide               BOOL    True
+
+[node rgb_to_float]
+    maya.hide               BOOL    True
+
+[node rgb_to_rgba]
+    maya.hide               BOOL    True
+
+[node rgb_to_vector]
+    maya.hide               BOOL    True
+
+[node rgba_to_float]
+    maya.hide               BOOL    True
+
+# enable shadow matte
+[node shadow_matte]
+maya.id                 INT     0x00115D19
+maya.name               STRING  "aiShadowMatte"
+maya.classification     STRING  "utility"
+maya.swatch             BOOL    False
+
+    [attr backlighting]
+        min                 FLOAT   0.0    
+        max                 FLOAT   1.0
+        softmin                 FLOAT   0.0    
+        softmax                 FLOAT   1.0
+
+    [attr aov_shadow]
+        aov.type                INT     0x05
+    [attr aov_shadow_matte]
+        aov.type                INT     0x05
+    [attr aov_shadow_diff]
+        aov.type                INT     0x05
+    [attr aov_shadow_mask]
+        aov.type                INT     0x05
+    [attr aov_indirect_diffuse]
+        aov.type                INT     0x05
+    [attr aov_reflection]
+        aov.type                INT     0x05
+
+[node sign]
+    maya.hide               BOOL    True
+
+[node skin]
+    maya.hide               BOOL    True
+
+[node space_transform]
+    maya.hide               BOOL    True
+
+[node sqrt]
+    maya.hide               BOOL    True
+
+[node state_float]
+    maya.hide               BOOL    True
+
+[node state_int]
+    maya.hide               BOOL    True
+
+[node state_vector]
+    maya.hide               BOOL    True
+
+[node subtract]
+    maya.hide               BOOL    True
+
+[node switch]
+    maya.hide               BOOL    True
+
+#enable thin_film
+[node thin_film]
+maya.id                 INT     0x00118F92
+maya.name               STRING  "aiThinFilm"
+maya.classification     STRING  "texture"
+maya.swatch             BOOL    True
+
+[attr thickness_min]
+desc STRING "The minimum thickness of the thin film, in nanometers."
+houdini.label STRING "Min. Thickness (nm)"
+min FLOAT 0.0
+softmax FLOAT 1000.0
+c4d.step FLOAT 1.0
+
+[attr thickness_max]
+desc STRING "The maximum thickness of the thin film, in nanometers."
+houdini.label STRING "Max. Thickness (nm)"
+min FLOAT 0.0
+softmax FLOAT 1000.0
+c4d.step FLOAT 1.0
+
+[attr thickness]
+desc STRING "Defines the actual thickness of the film between the specified min and max thickness values. Normally this would be something like a noise map to give some variation to the interference effect."
+min FLOAT 0.0
+max FLOAT 1.0
+c4d.step FLOAT 0.01
+
+[attr ior_medium]
+desc STRING "The refractive index of the medium surrounding the material. Normally this is set to 1.0 for air."
+houdini.label STRING "Medium IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[attr ior_film]
+desc STRING "The refractive index of the medium that the thin film is made of."
+houdini.label STRING "Film IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[attr ior_internal]
+desc STRING "The refractive index of the medium below the thin film."
+houdini.label STRING "Internal IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+
+[node trigo]
+    maya.hide               BOOL    True
+
+[node two_sided]
+    maya.hide               BOOL    True
+
+[node user_data_float]
+    maya.hide               BOOL    True
+
+[node user_data_int]
+    maya.hide               BOOL    True
+
+[node user_data_rgb]
+    maya.hide               BOOL    True
+
+[node user_data_rgba]
+    maya.hide               BOOL    True
+
+[node user_data_string]
+    maya.hide               BOOL    True
+
+[node uv_transform]
+    maya.hide               BOOL    True
+
+[node vector_to_rgb]
+    maya.hide               BOOL    True
+
+[node volume_collector]
+    maya.hide               BOOL    True
+
+# enable volume_sample_float
+# enable volume_sample_rgb
+[node volume_sample_float]
+
+    maya.id    INT     0x00115E51
+    maya.classification     STRING  "utility/volume"
+    maya.swatch             BOOL    False
+
+    [attr channel]
+    desc STRING "The volume channel to sample."
+
+    [attr position_offset]
+    desc STRING "An offset added to the sampling position, in order to displace or "
+    "add noise to the volume. Remember to pad the volume bounds_slack accordingly."
+
+    [attr interpolation]
+    desc STRING "The voxel interpolation used when sampling the channel."
+
+    [attr input_min]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The minimum value of the input range."
+
+    [attr input_max]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The maximum value of the input range."
+
+    [attr contrast]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "Scale values around the contrast pivot."
+
+    [attr contrast_pivot]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 1
+    desc STRING "The origin of the contrast scaling."
+
+    [attr bias]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 1
+    desc STRING "Push or pull values by altering the slope at the beginning of the "
+    "range. Bias values below 0.5 decrease the slope and lower values overall. "
+    "Above 0.5, the slope is higher and value grow more quickly. A value of 0.5 has "
+    "no effect."
+
+    [attr gain]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 1
+    desc STRING "Increase or decrease the slope of the mid range values. Gain values "
+    "below 0.5 increase the contrast whereas values above 0.5 flatten the mid range "
+    "values. A value of 0.5 has no effect."
+
+    [attr output_min]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The minimum value of the output range, input_min will be mapped to this value."
+
+    [attr output_max]
+    linkable BOOL True
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The maximum value of the input range, input_max will be mapped to this value."
+
+    [attr clamp_min]
+    linkable BOOL True
+    desc STRING "Clamp the result to the min_output value."
+
+    [attr clamp_max]
+    linkable BOOL True
+    desc STRING "Clamp the result to the max_output value."
+
+[node volume_sample_rgb]
+maya.id                 INT     0x00115E52
+maya.classification     STRING  "utility/volume"
+maya.swatch             BOOL    False
+
+[attr channel]
+desc STRING "The volume channel to sample."
+
+[attr position_offset]
+desc STRING "An offset added to the sampling position, in order to displace or "
+"add noise to the volume. Remember to pad the volume bounds_slack accordingly."
+
+[attr interpolation]
+desc STRING "The voxel interpolation used when sampling the channel."
+
+[attr hue_shift]
+linkable BOOL True
+softmin FLOAT -1
+softmax FLOAT 1
+desc STRING "Rotate the color hue, a value of 1 means a full rotation."
+
+[attr saturation]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 2
+desc STRING "Scale the saturation by this factor."
+
+[attr add]
+linkable BOOL True
+softmin FLOAT -1
+softmax FLOAT 1
+desc STRING "Add this value to the color."
+
+[attr contrast]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 2
+desc STRING "Scale values around the contrast pivot."
+
+[attr contrast_pivot]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 1
+desc STRING "The origin of the contrast scaling."
+
+[attr exposure]
+linkable BOOL True
+softmin FLOAT -10
+softmax FLOAT 10
+desc STRING "Multiply the color using a photo f-stop scale, where an increment of 1 doubles the luminosity."
+
+[attr multiply]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 2
+desc STRING "Multiply the color by this factor."
+
+[attr gamma]
+linkable BOOL True
+softmin FLOAT 0
+softmax FLOAT 3
+desc STRING "Apply a gamma correction to the color."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

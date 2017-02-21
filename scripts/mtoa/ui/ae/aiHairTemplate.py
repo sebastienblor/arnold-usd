@@ -47,13 +47,8 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.addControl('opacity', label='Color')
         self.endLayout()
 
-        self.beginLayout('UVs', collapse=True)
-        self.addControl('uparam', label='U Param')
-        self.addControl('vparam', label='V Param')
-        self.endLayout()
-        
 
-        self.addAOVLayout()
+#        self.addAOVLayout()
         
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

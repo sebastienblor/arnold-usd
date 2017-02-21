@@ -11,11 +11,12 @@ class AEaiRaySwitchTemplate(ShaderAETemplate):
 
         self.addControl('camera', label='Camera')
         self.addControl('shadow', label='Shadow')
-        self.addControl('reflection', label='Reflection')
-        self.addControl('refraction', label='Refraction')
-        self.addControl('diffuse', label='Diffuse')
-        self.addControl('glossy', label='Glossy')
-
+        self.addControl('diffuse_reflection', label='Diffuse Reflection')
+        self.addControl('specular_reflection', label='Specular Reflection')
+        self.addControl('diffuse_transmission', label='Diffuse Transmission')
+        self.addControl('specular_transmission', label='Specular Transmission')
+        self.addControl('volume', label='Volume')
+                
         pm.mel.AEdependNodeTemplate(self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()
