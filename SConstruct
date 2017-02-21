@@ -963,7 +963,7 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
-            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
+            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor' and system.os() != 'darwin')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
