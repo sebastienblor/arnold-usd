@@ -100,7 +100,8 @@ extern AtNodeMethods* MPlayDriverMtd;
 extern AtNodeMethods* VolumeSampleRgbMethods;
 extern AtNodeMethods* VolumeSampleFloatMethods;
 extern AtNodeMethods* CurvatureMethods;
-
+extern AtNodeMethods* ThinFilmMethods;
+extern AtNodeMethods* ComplexIORMethods;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -186,7 +187,7 @@ enum{
    SHADER_MAYALEATHER,
    SHADER_MAYAGRANITE,
    SHADER_MAYAROCK,
-    SHADER_MAYASINGLESHADINGSWITCH,
+   SHADER_MAYASINGLESHADINGSWITCH,
    SHADER_MAYADOUBLESHADINGSWITCH,
    SHADER_MAYATRIPLESHADINGSWITCH,
    SHADER_MAYAQUADSHADINGSWITCH,
@@ -199,6 +200,8 @@ enum{
    SHADER_VOLUME_SAMPLE_FLOAT,
    SHADER_VOLUME_SAMPLE_RGB,
    SHADER_CURVATURE, 
+   SHADER_THIN_FILM,
+   SHADER_COMPLEX_IOR,
    DRIVER_MPLAY
 };
 
@@ -870,11 +873,22 @@ node_loader
       node->name        = "volume_sample_rgb";
       node->node_type   = AI_NODE_SHADER;
       break;
-
    case SHADER_CURVATURE:
       node->methods = CurvatureMethods;
       node->output_type = AI_TYPE_RGB;
       node->name =      "curvature";
+      node->node_type = AI_NODE_SHADER;
+      break;
+   case SHADER_THIN_FILM:
+      node->methods = ThinFilmMethods;
+      node->output_type = AI_TYPE_RGB;
+      node->name =      "thin_film";
+      node->node_type = AI_NODE_SHADER;
+      break;
+   case SHADER_COMPLEX_IOR:
+      node->methods = ComplexIORMethods;
+      node->output_type = AI_TYPE_RGB;
+      node->name =      "complex_ior";
       node->node_type = AI_NODE_SHADER;
       break;
    case DRIVER_MPLAY:
@@ -882,9 +896,6 @@ node_loader
       node->name        = "driver_mplay";
       node->node_type   = AI_NODE_DRIVER;
       break;
-
-
-
    default:
       return false;
    }

@@ -239,7 +239,7 @@ softmin FLOAT 0
 softmax FLOAT 3
 desc STRING "Apply a gamma correction to the color."
 
-
+#######################################################
 [node curvature]
 maya.id                 INT     0x00118F91
 maya.name               STRING  "aiCurvature"
@@ -292,3 +292,75 @@ linkable BOOL True
 softmin FLOAT 0
 softmax FLOAT 10
 desc STRING "Multiplies the curvature by this factor."
+
+##############################################
+[node thin_film]
+maya.id                 INT     0x00118F92
+maya.name               STRING  "aiThinFilm"
+maya.classification     STRING  "shader/surface"
+maya.swatch             BOOL    True
+
+[attr thickness_min]
+desc STRING "The minimum thickness of the thin film, in nanometers."
+houdini.label STRING "Min. Thickness (nm)"
+min FLOAT 0.0
+softmax FLOAT 1000.0
+c4d.step FLOAT 1.0
+
+[attr thickness_max]
+desc STRING "The maximum thickness of the thin film, in nanometers."
+houdini.label STRING "Max. Thickness (nm)"
+min FLOAT 0.0
+softmax FLOAT 1000.0
+c4d.step FLOAT 1.0
+
+[attr thickness]
+desc STRING "Defines the actual thickness of the film between the specified min and max thickness values. Normally this would be something like a noise map to give some variation to the interference effect."
+min FLOAT 0.0
+max FLOAT 1.0
+c4d.step FLOAT 0.01
+
+[attr ior_medium]
+desc STRING "The refractive index of the medium surrounding the material. Normally this is set to 1.0 for air."
+houdini.label STRING "Medium IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[attr ior_film]
+desc STRING "The refractive index of the medium that the thin film is made of."
+houdini.label STRING "Film IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[attr ior_internal]
+desc STRING "The refractive index of the medium below the thin film."
+houdini.label STRING "Internal IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+
+#############################################
+
+[node complex_ior]
+maya.id                 INT     0x00118F93
+maya.name               STRING  "aiComplexIor"
+maya.classification     STRING  "shader/surface"
+maya.swatch             BOOL    True
+
+[attr material]
+desc STRING "Presets of different materials. The custom mode allows you to define a material with Reflectivity and Edgetint, or n and k parameters."
+
+[attr mode]
+desc STRING "Select between the artist friendly (Reflectivity and Edgetint colors) and physical (n and k) controls."
+
+[attr reflectivity]
+desc STRING "The reflectance at normal incidence."
+
+[attr edgetint]
+desc STRING "Controls the color bias as the viewing direction becomes parallel to the surface."
+
+[attr eta]
+desc STRING "The refractive index value for the red/green/blue wavelengths (e.g. 650, 550 and 450 nm)."

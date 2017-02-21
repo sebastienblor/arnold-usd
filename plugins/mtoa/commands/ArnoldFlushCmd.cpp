@@ -18,6 +18,7 @@ MSyntax CArnoldFlushCmd::newSyntax()
    syntax.addFlag("q", "quads", MSyntax::kBoolean);
    syntax.addFlag("fa", "flushall", MSyntax::kBoolean);
 
+   syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
 static void FlushInvalidateConnectedTextures(AtNode *node)
@@ -52,10 +53,16 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
 
 MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
 {
+   // Initialize command syntax and get flags
+   MSyntax syntax = newSyntax();
+   // we must use an MArgParser because MArgList is not python compatible, and we
+   // use this result to set syntax.useSelectionAsDefault() prior to creating the MArgDatabase.
    MStatus status;
-   MArgDatabase args(syntax(), argList);
-  
-   
+   MArgParser args(syntax, argList, &status);
+   bool exportSelected = args.isFlagSet("selected_textures");
+   MArgDatabase argDB(syntax, argList, &status);
+
+
    if (args.isFlagSet("textures"))
       AiUniverseCacheFlush(AI_CACHE_TEXTURE);
    
@@ -83,19 +90,30 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
    if (args.isFlagSet("flushall"))
       AiUniverseCacheFlush(AI_CACHE_ALL);
    
-   if (args.isFlagSet("selected_textures"))
+   if (exportSelected)
    {
       MSelectionList activeList;
-      MGlobal::getActiveSelectionList(activeList);
+      MStringArray sListStrings;
+      argDB.getObjects(sListStrings);
+      const unsigned int sListStringsLength = sListStrings.length();
+      if (sListStringsLength > 0)
+      {
+         for (unsigned int i = 0; i < sListStringsLength; ++i)
+            activeList.add(sListStrings[i]);
+      }
+      else
+         MGlobal::getActiveSelectionList(activeList);
+   
       for (unsigned int i = 0; i < activeList.length(); ++i)
       {
          MObject depNode;
          activeList.getDependNode(i, depNode);
+
          if (depNode.hasFn(MFn::kTransform))
          {
             // from Transform to Shape
             MDagPath dagPath;
-            activeList.getDagPath(0, dagPath);
+            activeList.getDagPath(i, dagPath);
             depNode = dagPath.child(0);
          }
          MFnDependencyNode nodeFn( depNode );
