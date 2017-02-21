@@ -700,7 +700,7 @@ AtNode* CArnoldSession::ExportOptions()
       activeList.getDependNode(0,colorMgtObject);
       MFnDependencyNode fnSNode(colorMgtObject);
       MPlug mgtPlug = fnSNode.findPlug("message");
-      (COptionsTranslator*)ExportNode(mgtPlug, NULL, NULL, false);
+      ExportNode(mgtPlug, NULL, NULL, false);
    }
 #endif
 

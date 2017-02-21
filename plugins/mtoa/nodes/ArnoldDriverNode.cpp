@@ -52,6 +52,9 @@ MStatus CArnoldDriverNode::initialize()
    eAttr.setKeyable(false);
    addAttribute(s_outputMode);
 
+
+
+#ifdef ENABLE_COLOR_MANAGEMENT
    // this parameter is called "colorManagement" because colorSpace already exists in the driver node as a string,
    // so it would conflict with this enum
    s_colorManagement = eAttr.create("colorManagement", "color_management", 2);
@@ -60,7 +63,8 @@ MStatus CArnoldDriverNode::initialize()
    eAttr.addField("Use Output Transform", 2);
    eAttr.setKeyable(false);
    addAttribute(s_colorManagement);
-
+#endif
+   
    return MStatus::kSuccess;
 }
 

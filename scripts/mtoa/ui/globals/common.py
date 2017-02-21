@@ -651,7 +651,9 @@ def createArnoldImageFormatControl():
                          optionMenuName='imageMenuMayaSW')
 
 
-    cmds.attrEnumOptionMenuGrp( l='Color Space',
+    maya_version = versions.shortName()
+    if int(float(maya_version)) >= 2017:
+        cmds.attrEnumOptionMenuGrp( l='Color Space',
                             at='defaultArnoldDriver.colorManagement' )
     
     # We need to create controls that we don't need to avoid

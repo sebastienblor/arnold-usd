@@ -79,6 +79,8 @@ void CDriverTranslator::Export(AtNode *shader)
    {
       // not for display drivers, at least not for now
 
+
+#ifdef ENABLE_COLOR_MANAGEMENT
       int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
       
       if (colorSpaceVal == 0)
@@ -104,6 +106,8 @@ void CDriverTranslator::Export(AtNode *shader)
             AiNodeSetStr(shader, "color_space", "");
          }
       }
+
+#endif
    }
     
 }

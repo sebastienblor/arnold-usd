@@ -16,7 +16,7 @@
 
 #define MAX_NAME_SIZE 65535
 
-inline size_t MtoaTicks()
+inline unsigned long long MtoaTicks()
 {
 #ifdef _WIN32
    LARGE_INTEGER PerformanceCount;
@@ -30,7 +30,7 @@ inline size_t MtoaTicks()
    // UNIX platforms: Linux and OS X
    struct timeval tp;
    gettimeofday(&tp, NULL);
-   return ((size_t) tp.tv_sec * 1000000) + ((size_t) tp.tv_usec);
+   return ((unsigned long long) tp.tv_sec * 1000000) + ((unsigned long long) tp.tv_usec);
 #endif
 }
 

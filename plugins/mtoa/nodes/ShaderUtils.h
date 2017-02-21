@@ -96,8 +96,6 @@ const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
    nAttr.setDefault(float(defaultX), float(defaultY));\
    addAttribute(attrib);
 
-#define MAKE_VECTOR2(attrib, attrName, attrShortName, defaultX, defaultY) \
-   MAKE_VECTOR2(attrib, attrName, attrShortName, defaultX, defaultY)
 
 #define MAKE_VECTOR(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ) \
    attrib##X = nAttr.create(MString(attrName) + "X", MString(attrShortName) + "x", MFnNumericData::kFloat, defaultX);\
