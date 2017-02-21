@@ -114,17 +114,6 @@ def deferStandinLoadChange(nodeName):
         cmds.floatField('standInBBoxScale', edit=True, enable=True)
         cmds.text('standInBBoxScaleLabel', edit=True, enable=True)
 
-def overrideVisibilityChange(nodeName):
-    overrideVisibility = cmds.getAttr(nodeName+'.aiOverrideVisibility')
-    pm.editorTemplate(dimControl=(nodeName, "primaryVisibility",  not overrideVisibility))
-    pm.editorTemplate(dimControl=(nodeName, "castsShadows",  not overrideVisibility))
-    pm.editorTemplate(dimControl=(nodeName, "aiVisibleInDiffuseReflection", not overrideVisibility))
-    pm.editorTemplate(dimControl=(nodeName, "aiVisibleInSpecularReflection",  not overrideVisibility))
-    pm.editorTemplate(dimControl=(nodeName, "aiVisibleInDiffuseTransmission",  not overrideVisibility))
-    pm.editorTemplate(dimControl=(nodeName, "aiVisibleInSpecularTransmission", not overrideVisibility))
-    pm.editorTemplate(dimControl=(nodeName, "aiVisibleInVolume", not overrideVisibility))
-    
-    
 def ArnoldStandInTemplateBBoxScaleNew(nodeName) :
     cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'left', 0)], columnWidth=[(1,145),(2,70)] )
     cmds.text('standInBBoxScaleLabel', label='Bounding Box Scale ', enable=False)
@@ -401,7 +390,450 @@ def ArnoldStandInTemplateSelfShadowsRowReplace(nodeName):
     else:
         cmds.radioButton('standInSelfShadowsOff', edit=True, select=True)
         cmds.text('standInSelfShadowsLabel', edit=True, enable=True)
-   
+        
+# #################################
+# Double Casts Shadows
+# #################################
+
+def ArnoldStandInTemplateSetIgnoreCastsShadows(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideCastsShadows',False)
+    cmds.text('standInCastsShadowsLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnCastsShadows(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideCastsShadows',True)
+    cmds.setAttr(node+'.castsShadows',True)
+    cmds.text('standInCastsShadowsLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffCastsShadows(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideCastsShadows',True)
+    cmds.setAttr(node+'.castsShadows',False)
+    cmds.text('standInCastsShadowsLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateCastsShadowsRowNew(nodeName):
+    nodeName = nodeName.replace('.castsShadowsRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideCastsShadows')
+    castsShadows = value=cmds.getAttr(nodeName+'.castsShadows')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInCastsShadowsLabel', label='Casts Shadows')
+    cmds.text('standInCastsShadowsOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInCastsShadowsIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreCastsShadows)
+    rb2 = cmds.radioButton('standInCastsShadowsOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnCastsShadows, visible=False)
+    rb3 = cmds.radioButton('standInCastsShadowsOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffCastsShadows)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInCastsShadowsLabel', edit=True, enable=False)
+    elif(castsShadows):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplateCastsShadowsRowReplace(nodeName):
+    nodeName = nodeName.replace('.castsShadowsRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideCastsShadows')
+    opaque = value=cmds.getAttr(nodeName+'.castsShadows')
+    
+    if(not override):
+        cmds.radioButton('standInCastsShadowsIgnore', edit=True, select=True)
+        cmds.text('standInCastsShadowsLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInCastsShadowsOn', edit=True, select=True)
+        cmds.text('standInCastsShadowsLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInCastsShadowsOff', edit=True, select=True)
+        cmds.text('standInCastsShadowsLabel', edit=True, enable=True)
+        
+# #################################
+# Double Primary Visibility
+# #################################
+
+def ArnoldStandInTemplateSetIgnorePrimaryVisibility(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overridePrimaryVisibility',False)
+    cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnPrimaryVisibility(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overridePrimaryVisibility',True)
+    cmds.setAttr(node+'.primaryVisibility',True)
+    cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffPrimaryVisibility(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overridePrimaryVisibility',True)
+    cmds.setAttr(node+'.primaryVisibility',False)
+    cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplatePrimaryVisibilityRowNew(nodeName):
+    nodeName = nodeName.replace('.primaryVisibilityRow','')
+    override = value=cmds.getAttr(nodeName+'.overridePrimaryVisibility')
+    primaryVisibility = value=cmds.getAttr(nodeName+'.primaryVisibility')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInPrimaryVisibilityLabel', label='Primary Visibility')
+    cmds.text('standInPrimaryVisibilityOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInPrimaryVisibilityIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnorePrimaryVisibility)
+    rb2 = cmds.radioButton('standInPrimaryVisibilityOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnPrimaryVisibility, visible=False)
+    rb3 = cmds.radioButton('standInPrimaryVisibilityOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffPrimaryVisibility)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=False)
+    elif(primaryVisibility):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplatePrimaryVisibilityRowReplace(nodeName):
+    nodeName = nodeName.replace('.primaryVisibilityRow','')
+    override = value=cmds.getAttr(nodeName+'.overridePrimaryVisibility')
+    opaque = value=cmds.getAttr(nodeName+'.primaryVisibility')
+    
+    if(not override):
+        cmds.radioButton('standInPrimaryVisibilityIgnore', edit=True, select=True)
+        cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInPrimaryVisibilityOn', edit=True, select=True)
+        cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInPrimaryVisibilityOff', edit=True, select=True)
+        cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=True)
+        
+
+# #################################
+# Double Visible In Diffuse Reflection
+# #################################
+
+def ArnoldStandInTemplateSetIgnoreVisibleInDiffuseReflection(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInDiffuseReflection',False)
+    cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnVisibleInDiffuseReflection(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInDiffuseReflection',True)
+    cmds.setAttr(node+'.aiVisibleInDiffuseReflection',True)
+    cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffVisibleInDiffuseReflection(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInDiffuseReflection',True)
+    cmds.setAttr(node+'.aiVisibleInDiffuseReflection',False)
+    cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateVisibleInDiffuseReflectionRowNew(nodeName):
+    nodeName = nodeName.replace('.visibleInDiffuseReflectionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInDiffuseReflection')
+    visibleInDiffuseReflection = value=cmds.getAttr(nodeName+'.aiVisibleInDiffuseReflection')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInVisibleInDiffuseReflectionLabel', label='Diffuse Reflection Vis.')
+    cmds.text('standInVisibleInDiffuseReflectionOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInVisibleInDiffuseReflectionIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInDiffuseReflection)
+    rb2 = cmds.radioButton('standInVisibleInDiffuseReflectionOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInDiffuseReflection, visible=False)
+    rb3 = cmds.radioButton('standInVisibleInDiffuseReflectionOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInDiffuseReflection)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=False)
+    elif(visibleInDiffuseReflection):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplateVisibleInDiffuseReflectionRowReplace(nodeName):
+    nodeName = nodeName.replace('.visibleInDiffuseReflectionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInDiffuseReflection')
+    opaque = value=cmds.getAttr(nodeName+'.aiVisibleInDiffuseReflection')
+    
+    if(not override):
+        cmds.radioButton('standInVisibleInDiffuseReflectionIgnore', edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInVisibleInDiffuseReflectionOn', edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInVisibleInDiffuseReflectionOff', edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseReflectionLabel', edit=True, enable=True)
+        
+        
+# #################################
+# Double Visible In Specular Reflection
+# #################################
+
+def ArnoldStandInTemplateSetIgnoreVisibleInSpecularReflection(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInSpecularReflection',False)
+    cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnVisibleInSpecularReflection(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInSpecularReflection',True)
+    cmds.setAttr(node+'.aiVisibleInSpecularReflection',True)
+    cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffVisibleInSpecularReflection(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInSpecularReflection',True)
+    cmds.setAttr(node+'.aiVisibleInSpecularReflection',False)
+    cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateVisibleInSpecularReflectionRowNew(nodeName):
+    nodeName = nodeName.replace('.visibleInSpecularReflectionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInSpecularReflection')
+    visibleInSpecularReflection = value=cmds.getAttr(nodeName+'.aiVisibleInSpecularReflection')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInVisibleInSpecularReflectionLabel', label='Specular Reflection Vis.')
+    cmds.text('standInVisibleInSpecularReflectionOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInVisibleInSpecularReflectionIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInSpecularReflection)
+    rb2 = cmds.radioButton('standInVisibleInSpecularReflectionOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInSpecularReflection, visible=False)
+    rb3 = cmds.radioButton('standInVisibleInSpecularReflectionOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInSpecularReflection)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=False)
+    elif(visibleInSpecularReflection):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplateVisibleInSpecularReflectionRowReplace(nodeName):
+    nodeName = nodeName.replace('.visibleInSpecularReflectionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInSpecularReflection')
+    opaque = value=cmds.getAttr(nodeName+'.aiVisibleInSpecularReflection')
+    
+    if(not override):
+        cmds.radioButton('standInVisibleInSpecularReflectionIgnore', edit=True, select=True)
+        cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInVisibleInSpecularReflectionOn', edit=True, select=True)
+        cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInVisibleInSpecularReflectionOff', edit=True, select=True)
+        cmds.text('standInVisibleInSpecularReflectionLabel', edit=True, enable=True)
+        
+
+
+
+# #################################
+# Double Visible In Diffuse Transmission
+# #################################
+
+def ArnoldStandInTemplateSetIgnoreVisibleInDiffuseTransmission(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInDiffuseTransmission',False)
+    cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnVisibleInDiffuseTransmission(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInDiffuseTransmission',True)
+    cmds.setAttr(node+'.aiVisibleInDiffuseTransmission',True)
+    cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffVisibleInDiffuseTransmission(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInDiffuseTransmission',True)
+    cmds.setAttr(node+'.aiVisibleInDiffuseTransmission',False)
+    cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateVisibleInDiffuseTransmissionRowNew(nodeName):
+    nodeName = nodeName.replace('.visibleInDiffuseTransmissionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInDiffuseTransmission')
+    visibleInDiffuseTransmission = value=cmds.getAttr(nodeName+'.aiVisibleInDiffuseTransmission')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInVisibleInDiffuseTransmissionLabel', label='Diffuse Transmission Vis.')
+    cmds.text('standInVisibleInDiffuseTransmissionOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInVisibleInDiffuseTransmissionIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInDiffuseTransmission)
+    rb2 = cmds.radioButton('standInVisibleInDiffuseTransmissionOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInDiffuseTransmission, visible=False)
+    rb3 = cmds.radioButton('standInVisibleInDiffuseTransmissionOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInDiffuseTransmission)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=False)
+    elif(visibleInDiffuseTransmission):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplateVisibleInDiffuseTransmissionRowReplace(nodeName):
+    nodeName = nodeName.replace('.visibleInDiffuseTransmissionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInDiffuseTransmission')
+    opaque = value=cmds.getAttr(nodeName+'.aiVisibleInDiffuseTransmission')
+    
+    if(not override):
+        cmds.radioButton('standInVisibleInDiffuseTransmissionIgnore', edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInVisibleInDiffuseTransmissionOn', edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInVisibleInDiffuseTransmissionOff', edit=True, select=True)
+        cmds.text('standInVisibleInDiffuseTransmissionLabel', edit=True, enable=True)
+        
+        
+# #################################
+# Double Visible In Specular Transmission
+# #################################
+
+def ArnoldStandInTemplateSetIgnoreVisibleInSpecularTransmission(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInSpecularTransmission',False)
+    cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnVisibleInSpecularTransmission(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInSpecularTransmission',True)
+    cmds.setAttr(node+'.aiVisibleInSpecularTransmission',True)
+    cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffVisibleInSpecularTransmission(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInSpecularTransmission',True)
+    cmds.setAttr(node+'.aiVisibleInSpecularTransmission',False)
+    cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateVisibleInSpecularTransmissionRowNew(nodeName):
+    nodeName = nodeName.replace('.visibleInSpecularTransmissionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInSpecularTransmission')
+    visibleInSpecularTransmission = value=cmds.getAttr(nodeName+'.aiVisibleInSpecularTransmission')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInVisibleInSpecularTransmissionLabel', label='Specular Transmission Vis.')
+    cmds.text('standInVisibleInSpecularTransmissionOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInVisibleInSpecularTransmissionIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInSpecularTransmission)
+    rb2 = cmds.radioButton('standInVisibleInSpecularTransmissionOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInSpecularTransmission, visible=False)
+    rb3 = cmds.radioButton('standInVisibleInSpecularTransmissionOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInSpecularTransmission)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=False)
+    elif(visibleInSpecularTransmission):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplateVisibleInSpecularTransmissionRowReplace(nodeName):
+    nodeName = nodeName.replace('.visibleInSpecularTransmissionRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInSpecularTransmission')
+    opaque = value=cmds.getAttr(nodeName+'.aiVisibleInSpecularTransmission')
+    
+    if(not override):
+        cmds.radioButton('standInVisibleInSpecularTransmissionIgnore', edit=True, select=True)
+        cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInVisibleInSpecularTransmissionOn', edit=True, select=True)
+        cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInVisibleInSpecularTransmissionOff', edit=True, select=True)
+        cmds.text('standInVisibleInSpecularTransmissionLabel', edit=True, enable=True)
+        
+
+ 
+# #################################
+# Double Visible In Volume
+# #################################
+
+def ArnoldStandInTemplateSetIgnoreVisibleInVolume(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInVolume',False)
+    cmds.text('standInVisibleInVolumeLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnVisibleInVolume(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInVolume',True)
+    cmds.setAttr(node+'.aiVisibleInVolume',True)
+    cmds.text('standInVisibleInVolumeLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffVisibleInVolume(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideVisibleInVolume',True)
+    cmds.setAttr(node+'.aiVisibleInVolume',False)
+    cmds.text('standInVisibleInVolumeLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateVisibleInVolumeRowNew(nodeName):
+    nodeName = nodeName.replace('.visibleInVolumeRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInVolume')
+    visibleInVolume = value=cmds.getAttr(nodeName+'.aiVisibleInVolume')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInVisibleInVolumeLabel', label='Specular Transmission Vis.')
+    cmds.text('standInVisibleInVolumeOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInVisibleInVolumeIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInVolume)
+    rb2 = cmds.radioButton('standInVisibleInVolumeOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInVolume, visible=False)
+    rb3 = cmds.radioButton('standInVisibleInVolumeOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInVolume)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInVisibleInVolumeLabel', edit=True, enable=False)
+    elif(visibleInVolume):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+    
+def ArnoldStandInTemplateVisibleInVolumeRowReplace(nodeName):
+    nodeName = nodeName.replace('.visibleInVolumeRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideVisibleInVolume')
+    opaque = value=cmds.getAttr(nodeName+'.aiVisibleInVolume')
+    
+    if(not override):
+        cmds.radioButton('standInVisibleInVolumeIgnore', edit=True, select=True)
+        cmds.text('standInVisibleInVolumeLabel', edit=True, enable=False)
+    elif(opaque):
+        cmds.radioButton('standInVisibleInVolumeOn', edit=True, select=True)
+        cmds.text('standInVisibleInVolumeLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInVisibleInVolumeOff', edit=True, select=True)
+        cmds.text('standInVisibleInVolumeLabel', edit=True, enable=True)
+        
+
 # #################################
 # Matte Row
 # #################################
@@ -498,22 +930,20 @@ class AEaiStandInTemplate(ShaderAETemplate):
         
         self.addCustom('overrideTable', ArnoldStandInTemplateOverrideTableNew, ArnoldStandInTemplateOverrideTableReplace)
 
-        self.addCustom('receiveShadowsRow', ArnoldStandInTemplateReceiveShadowsRowNew, ArnoldStandInTemplateReceiveShadowsRowReplace)
         self.addCustom('doubleSidedRow', ArnoldStandInTemplateDoubleSidedRowNew, ArnoldStandInTemplateDoubleSidedRowReplace)
         self.addCustom('selfShadowsRow', ArnoldStandInTemplateSelfShadowsRowNew, ArnoldStandInTemplateSelfShadowsRowReplace)
         self.addCustom('opaqueRow', ArnoldStandInTemplateOpaqueRowNew, ArnoldStandInTemplateOpaqueRowReplace)
         self.addCustom('matteRow', ArnoldStandInTemplateMatteRowNew, ArnoldStandInTemplateMatteRowReplace)
+        self.addCustom('receiveShadowsRow', ArnoldStandInTemplateReceiveShadowsRowNew, ArnoldStandInTemplateReceiveShadowsRowReplace)
 
-        self.addSeparator()
-
-        self.addControl("aiOverrideVisibility", label="Override Visibility", changeCommand=overrideVisibilityChange)
-        self.addControl("primaryVisibility", label="Primary Visibility")
-        self.addControl("castsShadows", label="Casts Shadows")
-        self.addControl("aiVisibleInDiffuseReflection", label="Diffuse Reflection")
-        self.addControl("aiVisibleInSpecularReflection", label="Specular Reflection")
-        self.addControl("aiVisibleInDiffuseTransmission", label="Diffuse Transmission")
-        self.addControl("aiVisibleInSpecularTransmission", label="Specular Transmission")
-        self.addControl("aiVisibleInVolume", label="Volume Visibility")
+        self.addCustom('primaryVisibilityRow', ArnoldStandInTemplatePrimaryVisibilityRowNew, ArnoldStandInTemplatePrimaryVisibilityRowReplace)
+        self.addCustom('castsShadowsRow', ArnoldStandInTemplateCastsShadowsRowNew, ArnoldStandInTemplateCastsShadowsRowReplace)
+        self.addCustom('visibleInDiffuseReflectionRow', ArnoldStandInTemplateVisibleInDiffuseReflectionRowNew, ArnoldStandInTemplateVisibleInDiffuseReflectionRowReplace)
+        self.addCustom('visibleInSpecularReflectionRow', ArnoldStandInTemplateVisibleInSpecularReflectionRowNew, ArnoldStandInTemplateVisibleInSpecularReflectionRowReplace)
+        self.addCustom('visibleInDiffuseTransmissionRow', ArnoldStandInTemplateVisibleInDiffuseTransmissionRowNew, ArnoldStandInTemplateVisibleInDiffuseTransmissionRowReplace)
+        self.addCustom('visibleInSpecularTransmissionRow', ArnoldStandInTemplateVisibleInSpecularTransmissionRowNew, ArnoldStandInTemplateVisibleInSpecularTransmissionRowReplace)
+        self.addCustom('visibleInVolumeRow', ArnoldStandInTemplateVisibleInVolumeRowNew, ArnoldStandInTemplateVisibleInVolumeRowReplace)
+               
 
         self.endNoOptimize()
         self.endLayout()

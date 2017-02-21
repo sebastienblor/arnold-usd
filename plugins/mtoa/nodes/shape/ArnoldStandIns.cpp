@@ -860,6 +860,10 @@ MStatus CArnoldStandInShape::initialize()
    // atributes that are used only by translation
    CAttrData data;
    
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideCastsShadows";
+   data.shortName = "overrideCastsShadows";
+   s_attributes.MakeInputBoolean(data);
    
    //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
@@ -870,8 +874,14 @@ MStatus CArnoldStandInShape::initialize()
    
    //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   
    data.defaultValue.BOOL() = false;
+   data.name = "overridePrimaryVisibility";
+   data.shortName = "overridePrimaryVisibility";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+      data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
    data.shortName = "overrideDoubleSided";
    s_attributes.MakeInputBoolean(data);
@@ -891,11 +901,29 @@ MStatus CArnoldStandInShape::initialize()
    //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
    
    data.defaultValue.BOOL() = false;
-   data.name = "aiOverrideVisibility";
-   data.shortName = "aiOverrideVisibility";
+   data.name = "overrideVisibleInDiffuseReflection";
+   data.shortName = "overrideVisibleInDiffuseReflection";
    s_attributes.MakeInputBoolean(data);
 
-   //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInSpecularReflection";
+   data.shortName = "overrideVisibleInSpecularReflection";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInDiffuseTransmission";
+   data.shortName = "overrideVisibleInDiffuseTransmission";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInSpecularTransmission";
+   data.shortName = "overrideVisibleInSpecularTransmission";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInVolume";
+   data.shortName = "overrideVisibleInVolume";
+   s_attributes.MakeInputBoolean(data);
    
    data.defaultValue.BOOL() = false;
    data.name = "overrideMatte";

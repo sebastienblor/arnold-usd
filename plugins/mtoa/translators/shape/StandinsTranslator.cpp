@@ -67,12 +67,98 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
+/**
+*   Standins visibility override is a bit special  :
+*   The procedural visibility will determine which rays make it to the procedural node. Then, the child node 
+*   keeps its own visibility value (i.e. it doesn't inherit from the procedural parent as for other attributes).
+*   This means that the resulting visibility value for the nested objects is the "intersection" of their own value
+*   and the procedural's one. So the only thing we can do here is to remove bits of the visibility value.
+**/
+AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
+{
+   // Usually invisible nodes are not exported at all, just making sure here
+   if (!IsRenderable())
+      return AI_RAY_UNDEFINED;
+
+   AtByte visibility = AI_RAY_ALL;
+   MPlug plug;
+
+   plug = FindMayaPlug("overrideCastsShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("castsShadows");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_SHADOW;
+      }
+   }
+
+   plug = FindMayaPlug("overridePrimaryVisibility");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("primaryVisibility");
+      MString plugName = plug.name();
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_CAMERA;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInDiffuseReflection");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInDiffuseReflection");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInSpecularReflection");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInSpecularReflection");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_SPECULAR_REFLECT);
+      }
+   }
+
+   plug = FindMayaPlug("overrideVisibleInDiffuseTransmission");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInDiffuseTransmission");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInSpecularTransmission");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInSpecularTransmission");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_SPECULAR_TRANSMIT);
+      }
+   }
+   plug = FindMayaPlug("overrideVisibleInVolume");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInVolume");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_VOLUME);
+      }
+   }
+   return visibility;
+}
+
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
 {
-   if (FindMayaPlug("aiOverrideVisibility").asBool())
-      AiNodeSetByte(node, "visibility", ComputeVisibility());
-   
+   AiNodeSetByte(node, "visibility", ComputeOverrideVisibility());
 
    MPlug plug;
    
