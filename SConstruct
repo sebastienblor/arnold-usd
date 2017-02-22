@@ -271,6 +271,10 @@ else:
     maya_version = '201800'
 
 maya_version_base = maya_version[0:4]
+
+env['MAYA_VERSION'] = maya_version
+env['MAYA_VERSION_BASE'] = maya_version_base
+
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
