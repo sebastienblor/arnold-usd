@@ -5,6 +5,8 @@ from collections import namedtuple
 from itertools import groupby
 import arnold.ai_params
 import maya.api.OpenMaya as om
+import pymel.versions as versions
+import maya.mel as mel
 
 BUILTIN_AOVS = (
                 ('P',                   'vector'),
@@ -105,6 +107,16 @@ def refreshAliases():
     addAliases(aovList)
 
 def isValidAOVNode(name):
+    maya_version = versions.shortName()
+    if int(float(maya_version)) < 2017:
+        return True
+
+    hasRenderSetup = mel.eval('mayaHasRenderSetup()')
+
+    if hasRenderSetup == 0:
+        return True
+
+    # return true for older version
     sList = om.MSelectionList()
     sList.add(name)
     return not om.MFnDependencyNode(sList.getDependNode(0)).isFromReferencedFile

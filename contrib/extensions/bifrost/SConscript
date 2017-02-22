@@ -10,12 +10,17 @@ src_common_dir  = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 
 
 BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
 
+bifrostLib = 'bifrostapi'
+maya_version = common_env['MAYA_VERSION']
+if int(maya_version) >= 201800:
+   bifrostLib = bifrostLib + '_1_0'
+
 if system.os() =='windows':
    common_env.Append(CPPPATH = ['.'])   
-   common_env.Append(LIBS=Split('bifrostapi.lib'))
+   common_env.Append(LIBS=Split(bifrostLib + '.lib'))
 else:
    common_env.Append(CPPPATH = ['.'])
-   common_env.Append(LIBS=Split('bifrostapi'))
+   common_env.Append(LIBS=Split(bifrostLib))
    common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 mayaRoot = common_env['MAYA_ROOT']
@@ -50,6 +55,11 @@ source_files.append(common_object_helpers)
 
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
+bifrostLib = 'bifrostapi'
+maya_version = common_env['MAYA_VERSION']
+if int(maya_version) >= 201800:
+   bifrostLib = bifrostLib + '_1_0'
+
 mayaRoot = local_env['MAYA_ROOT']
 if system.os() == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
@@ -71,11 +81,11 @@ else:
 if system.os() =='windows':
    local_env.Append(CPPPATH = ['.'])   
    local_env.Append(LIBS=Split('ai.lib'))
-   local_env.Append(LIBS=Split('bifrostapi.lib'))
+   local_env.Append(LIBS=Split(bifrostLib + '.lib'))
 else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))   
-   local_env.Append(LIBS=Split('bifrostapi'))
+   local_env.Append(LIBS=Split(bifrostLib))
    local_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX='')

@@ -164,7 +164,7 @@ static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *sessi
          for (unsigned int master_index = 0; master_index < instNum; master_index++)
          {
             currDag = allInstances[master_index];
-            if (translator->IsRenderable())
+            if (currDag.isValid() && currDag.isVisible() && translator->IsRenderable())
             {
                // found it
                session->AddMasterInstanceHandle(handle, currDag);

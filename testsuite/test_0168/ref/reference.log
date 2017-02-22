@@ -1,0 +1,557 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0168\test_0168.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.18.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   489MB ERROR   | [mtoa] Error loading extension library: The specified procedure could not be found.
+.
+00:00:00   489MB WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00   489MB WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00   489MB WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00   489MB WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00   489MB WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00   489MB WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.16.2-windows\bin
+
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Warning: Skipping oddly named property: .xsiNodeType
+Warning: Skipping oddly named property: .color
+Warning: Skipping oddly named property: .face_index
+Warning: Skipping oddly named property: .radius
+Warning: Skipping oddly named property: .vertex_index
+Read 2 files in  0.88 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0168/test.ma
+00:00:00 WARNING |  bifrost_procedural.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/mtoa_ParticleInstancer_proc.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.0.0.0.wip
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/volume_openvdb.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgenSpline_procedural.dll: The specified procedure could not be found.
+
+00:00:00 WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/shaders/xgen_procedural.dll: The specified procedure could not be found.
+
+Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0168\test.ma completed.
