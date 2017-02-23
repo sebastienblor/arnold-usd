@@ -66,7 +66,12 @@ if system.os() == 'darwin':
     mayaRoot = mayaRoot.replace('//', '/')
 
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
-local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostapi', 'api')])
+
+if int(maya_version) >= 201800:
+    local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules')])
+else:
+    local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostapi', 'api')])
+    
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostcore', 'api')])
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostops', 'api')])
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrosttypes', 'api')])
