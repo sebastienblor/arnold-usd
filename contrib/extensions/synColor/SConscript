@@ -42,6 +42,8 @@ if system.os() =='windows':
    shader_env.Append(CPPDEFINES = Split('SYN_LINK_STATIC'))
 else:
    shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(LIBS=Split('synColor'))
+
    shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
    shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')])
    if system.os() =='darwin':

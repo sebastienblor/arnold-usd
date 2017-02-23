@@ -604,7 +604,7 @@ node_loader
       return false;
 
    node->methods      = synColor_color_manager_Methods;
-   node->name         = "syncolor_color_manager";
+   node->name         = "color_manager_syncolor";
    node->node_type    = AI_NODE_COLOR_MANAGER;
    strcpy(node->version, AI_VERSION);
    return true;

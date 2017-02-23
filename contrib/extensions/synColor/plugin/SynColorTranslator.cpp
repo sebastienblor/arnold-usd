@@ -76,6 +76,6 @@ void CSynColorTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CSynColorTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("syncolor_color_manager");
+   return AddArnoldNode("color_manager_syncolor");
 }
 
