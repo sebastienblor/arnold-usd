@@ -39,6 +39,11 @@ MObject CArnoldSkyDomeLightNode::s_OUT_transparency;
 MObject CArnoldSkyDomeLightNode::s_pointCamera;
 MObject CArnoldSkyDomeLightNode::s_normalCamera;
 // Maya specific Outputs
+
+MObject CArnoldSkyDomeLightNode::s_visibleCamera;
+MObject CArnoldSkyDomeLightNode::s_visibleTransmission;
+
+
 MObject CArnoldSkyDomeLightNode::aLightDirection;
 MObject CArnoldSkyDomeLightNode::aLightIntensity;
 MObject CArnoldSkyDomeLightNode::aLightAmbient;
@@ -68,6 +73,8 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    s_intensity = s_attributes.MakeInput("intensity");
 
+   s_visibleCamera = s_attributes.MakeInput("camera");
+   s_visibleTransmission = s_attributes.MakeInput("transmission");
    s_portalMode = s_attributes.MakeInput("portal_mode");
    // Removed so they are added as dynamic and have same ai prefix as other lights will
    // s_castShadows = s_attributes.MakeInput("cast_shadows");
@@ -193,6 +200,8 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
+   attributeAffects(s_visibleCamera, aLightData);
+   attributeAffects(s_visibleTransmission, aLightData);
    // attributeAffects(s_exposure, aLightData);
    attributeAffects(s_format, aLightData);
    // attributeAffects(s_castShadows, aLightData);

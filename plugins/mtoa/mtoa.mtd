@@ -451,6 +451,14 @@
         maya.channelbox     BOOL    False
     [attr color]
         linkable            BOOL    True
+    [attr camera]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    False
+    [attr transmission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    False
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0

@@ -40,7 +40,8 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         self.addControl('portal_mode', label='Portal Mode')
         self.addSeparator()
-        self.commonLightAttributes()
+
+        self.commonLightAttributes(addVisibility = True)
         self.endLayout()
         
         self.beginLayout('Hardware Texturing', collapse=True)

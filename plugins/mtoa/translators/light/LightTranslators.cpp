@@ -227,7 +227,10 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    AiNodeSetInt(light, "portal_mode", FindMayaPlug("portal_mode").asInt());
-   
+   AiNodeSetFlt(light, "camera", FindMayaPlug("camera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
+
+
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
    if (!shadowColorPlug.isNull())
    {

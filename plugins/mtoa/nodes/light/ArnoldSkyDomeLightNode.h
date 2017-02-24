@@ -30,7 +30,9 @@ public:
 //   static MObject s_samples;
 //   static MObject s_normalize;
    static MObject s_portalMode;
-
+   static MObject s_visibleCamera;
+   static MObject s_visibleTransmission;
+   
    // Output attributes
    static MObject s_OUT_colorR;
    static MObject s_OUT_colorG;
@@ -53,4 +55,5 @@ public:
    static MObject aPreShadowIntensity;
    static MObject aLightBlindData;
    static MObject aLightData;
+   
 };  // class CArnoldSkyDomeLightNode
