@@ -605,24 +605,6 @@ def createArnoldEnvironmentSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
-    pm.text('es_background_text', label="Background")
-    pm.connectControl('es_background_text', 'defaultArnoldRenderOptions.background')
-    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
-    backgroundSelectButton = pm.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
-    bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
-
-    pm.setParent('..')
-
-    conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
-    if conns:
-        pm.textField(backgroundTextField, edit=True, text=conns[0])
-        pm.symbolButton(backgroundSelectButton, edit=True, enable=True)
-
-    pm.separator(style="none")
-
     
     pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
     pm.text('es_atmosphere_text', label="Atmosphere")
@@ -639,6 +621,24 @@ def createArnoldEnvironmentSettings():
     if conns:
         pm.textField(atmosphereTextField, edit=True, text=conns[0])
         pm.symbolButton(atmosphereSelectButton, edit=True, enable=True)
+
+    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    pm.text('es_background_text', label="Background (Legacy)")
+    pm.connectControl('es_background_text', 'defaultArnoldRenderOptions.background')
+    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
+    backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
+    backgroundSelectButton = pm.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
+    bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
+    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
+
+    pm.setParent('..')
+
+    conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
+    if conns:
+        pm.textField(backgroundTextField, edit=True, text=conns[0])
+        pm.symbolButton(backgroundSelectButton, edit=True, enable=True)
+
+    pm.separator(style="none")
     
     pm.setParent('..')
 
