@@ -670,16 +670,21 @@ def createArnoldImageFormatControl():
                          updateArnoldImageFormatControl))
 
 
-    pm.scriptJob(
-        parent=parent,
-        attributeChange=("defaultArnoldDriver.tiffFormat",
-                         updateArnoldColorSpace))
+    if int(float(maya_version)) >= 2017:
+        pm.scriptJob(
+            parent=parent,
+            attributeChange=("defaultArnoldDriver.tiffFormat",
+                             updateArnoldColorSpace))
 
 #    changeArnoldImageFormat()
     return "imageMenuMayaSW"
 
 
 def updateArnoldColorSpace(*args):
+    maya_version = versions.shortName()
+    if int(float(maya_version)) < 2017:
+        return
+
     curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
     if curr == "jpeg" or curr == "png":
         pm.setAttr('defaultArnoldDriver.colorManagement', 1)
