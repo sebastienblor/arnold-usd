@@ -320,6 +320,17 @@ void CFileTranslator::Export(AtNode* shader)
       }
 
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
+
+      // only set the color_space if the texture isn't a TX
+      AiNodeSetStr(shader, "color_space", "");
+      if (resolvedFilename.length() > 4)
+      {
+         MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
+
+         if (extension != ".tx" && extension !=  ".TX")
+            AiNodeSetStr(shader, "color_space", colorSpace.asChar());
+      }
+
       if (requestUpdateTx) RequestTxUpdate();
    } 
 
@@ -1593,6 +1604,16 @@ void CAiImageTranslator::Export(AtNode* image)
       }
 
       AiNodeSetStr(image, "filename", filename.asChar());
+
+      // only set the color_space if the texture isn't a TX
+      AiNodeSetStr(image, "color_space", "");
+      if (filename.length() > 4)
+      {
+         MString extension = filename.substring(filename.length() - 3, filename.length() - 1);
+         // set the color space only if texture isn't a TX
+         if (extension != ".tx" && extension !=  ".TX")
+            AiNodeSetStr(image, "color_space", colorSpace.asChar());         
+      }
 
       // let Arnold Session know that image files have changed and it's necessary to update them
       if (requestUpdateTx) RequestTxUpdate();

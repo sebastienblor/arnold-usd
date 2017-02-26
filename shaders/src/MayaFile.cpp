@@ -56,6 +56,7 @@ enum MayaFileParams
    p_uvset_name,
    p_filter,
    p_use_default_color,
+   p_color_space,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -93,6 +94,7 @@ typedef struct AtImageData
    AtTextureHandle* texture_handle;
    bool useCustomUVSet;
    AtString uvSetName;
+   AtString color_space;
    int numThreads;
 
    static void* operator new(size_t s)
@@ -192,6 +194,7 @@ node_parameters
    AiParameterStr("uvSetName", "");
    AiParameterEnum("filter", 3, filterNames);
    AiParameterBool("useDefaultColor", true);
+   AiParameterStr("color_space", "");
    AddMayaColorBalanceParams(params, nentry);   
    
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
@@ -210,6 +213,7 @@ node_update
 
    AtImageData *idata = new AtImageData;;
    idata->uvSetName = AiNodeGetStr(node, "uvSetName");
+   idata->color_space = AiNodeGetStr(node, "color_space");
    idata->useCustomUVSet = idata->uvSetName.length() > 0;
    idata->origPath = NULL;
    idata->processPath = NULL;
@@ -462,7 +466,7 @@ node_update
          }
       }
       else
-         idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));      
+         idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"), idata->color_space);
    }
    AiNodeSetLocalData(node, idata);   
 }
@@ -928,7 +932,7 @@ shader_evaluate
          }
 
          if (success)
-            sg->out.RGBA() = AiTextureAccess(sg, AtString(idata->processPath[sg->tid]), AtString(), texparams, successP);
+            sg->out.RGBA() = AiTextureAccess(sg, AtString(idata->processPath[sg->tid]), idata->color_space, texparams, successP);
       }
       else if (idata->texture_handle != NULL)
       {
@@ -936,7 +940,7 @@ shader_evaluate
       }
       else
       {       
-         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), AtString(), texparams, successP);
+         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), idata->color_space, texparams, successP);
       }
       sg->u = oldU;
       sg->v = oldV;

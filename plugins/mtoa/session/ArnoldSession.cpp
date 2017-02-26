@@ -2396,6 +2396,8 @@ USE_TX:
             filename = txFilename;
             FormatTexturePath(filename);
             AiNodeSetStr(node, "filename", filename.asChar()); 
+            // since we replace the filename by TX we need to reset the color space
+            AiNodeSetStr(node, "color_space", AtString(""));
             
          
          }
