@@ -73,7 +73,10 @@
 #define ARNOLD_NODEID_SHADER_RAY_SWITCH         0x00115D55
 #define ARNOLD_NODEID_SHADER_OSL                0x00115D56
 
-
+// Common Shader
+#define ARNOLD_NODEID_SHADER_BLACKBODY          0x00115D57
+#define ARNOLD_NODEID_SHADER_FLAKES             0x00115D58
+#define ARNOLD_NODEID_SHADER_TWO_SIDED          0x00115D59
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
