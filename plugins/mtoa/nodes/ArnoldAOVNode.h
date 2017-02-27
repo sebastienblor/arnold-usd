@@ -33,4 +33,8 @@ public:
    static MObject s_outputs;
    static MObject s_driver;
    static MObject s_filter;
+
+   static MObject s_lightPathExpression;
+   static MObject s_lightGroups;   
+
 };  // class CArnoldAOVNode

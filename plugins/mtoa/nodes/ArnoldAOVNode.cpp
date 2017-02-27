@@ -26,6 +26,10 @@ MObject CArnoldAOVNode::s_outputs;
 MObject CArnoldAOVNode::s_driver;
 MObject CArnoldAOVNode::s_filter;
 
+MObject CArnoldAOVNode::s_lightPathExpression;
+MObject CArnoldAOVNode::s_lightGroups;
+
+
 
 void* CArnoldAOVNode::creator()
 {
@@ -99,6 +103,17 @@ MStatus CArnoldAOVNode::initialize()
    cmpAttr.setKeyable(false);
 
    addAttribute(s_outputs);
+
+   s_lightPathExpression = tAttr.create("lightPathExpression", "lpe", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create(""));
+   addAttribute(s_lightPathExpression);
+
+
+   s_lightGroups = nAttr.create("lightGroups", "lg", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_lightGroups);
+
 
    return MStatus::kSuccess;
 }

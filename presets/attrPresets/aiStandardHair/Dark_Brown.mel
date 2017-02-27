@@ -12,7 +12,7 @@ blendAttr "base" 1;
 blendAttr "baseColorR" 1; 
 blendAttr "baseColorG" 1; 
 blendAttr "baseColorB" 1; 
-blendAttr "melanin" 1; 
+blendAttr "melanin" 0.6999999881; 
 blendAttr "melaninRedness" 0.5; 
 blendAttr "melaninRandomize" 0; 
 blendAttr "roughness" 0.200000003; 
