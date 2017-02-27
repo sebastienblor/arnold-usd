@@ -133,6 +133,14 @@ void COptionsTranslator::ExportAOVs()
          // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
          // pass determines whether we use the name "RGBA" or "RGB".
          name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
+      } else
+      {
+         // fill light groups and light path expression for AOVs only (not for beauty)
+         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+         {
+            aovData.outputs[i].lpe = it->GetLightPathExpression();
+            aovData.outputs[i].lightGroups = it->HasLightGroups();
+         }
       }
       aovData.name = name;
       m_aovData.push_back(aovData);
@@ -170,6 +178,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    // camera name
    MFnDagNode camDagTransform(camera.transform());
    MString nameCamera = camDagTransform.name();
+
+   std::set<std::string> lightPathExpressions;
 
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
@@ -367,7 +377,20 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                AiNodeSetStr(output.driver, "filename", filename.asChar());
                // FIXME: isn't this already handled by getImageName?
                CreateFileDirectory(filename);
+
+               if (eye == 0 && output.lpe.length() > 0)
+               {
+                  MString lpe = aovData.name + " " + output.lpe.asChar();
+                  lightPathExpressions.insert(lpe.asChar());
+               }
             }
+
+            MString aovName = aovData.name;
+
+            // if light groups are enabled, add the suffix "_*" at the end of the aov name. This will write one image per light group
+            if (output.lightGroups && (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS))
+               aovName += "_*";
+
             // output statement
             char str[1024];
             if (output.raw)
@@ -380,22 +403,22 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                {
                   // output image : we need both eyes
                   // Setting the <Eye> token for Stereo rendering
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovName.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                }
                else if (eye == 0)
                {
                   // display driver, we only output one eye (left)
                   cameraToken = leftCameraName;
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovName.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                } 
             } else
             {
-               sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+               sprintf(str, "%s %s %s %s", aovName.asChar(), AiParamGetTypeName(aovData.type),
                        AiNodeGetName(output.filter), AiNodeGetName(output.driver));
             }
-            AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
+            AiMsgDebug("[mtoa] [aov %s] output line: %s", aovName.asChar(), str);
 
             outputs.append(MString(str));
 
@@ -404,6 +427,20 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    }
    m_multiDriverMap.clear();
 
+   if (!lightPathExpressions.empty())
+   {
+      AtArray *lpeArray = AiArrayAllocate(lightPathExpressions.size(), 1, AI_TYPE_STRING);
+      std::set<std::string>::iterator it = lightPathExpressions.begin();
+      std::set<std::string>::iterator itEnd = lightPathExpressions.end();
+
+      int lpeInd = 0;
+      for (; it != itEnd; ++it, lpeInd++)
+      {
+         AtString lpeElem((*it).c_str());
+         AiArraySetStr(lpeArray, lpeInd, lpeElem);
+      }
+      AiNodeSetArray(AiUniverseGetOptions(), "light_path_expressions", lpeArray);
+   }
 }
 
 void COptionsTranslator::CreateFileDirectory(const MString &filename) const

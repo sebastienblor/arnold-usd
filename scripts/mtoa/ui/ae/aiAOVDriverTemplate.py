@@ -26,6 +26,10 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         if int(float(maya_version)) >= 2017:
             self.addControl('colorManagement')
 
+        self.addControl('lightPathExpression')
+        self.addControl('lightGroups')
+
+
         #self.addControl('customAttributes')
         self.endLayout()
 

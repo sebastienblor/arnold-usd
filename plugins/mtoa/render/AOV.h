@@ -65,6 +65,9 @@ public:
    bool IsEnabled() const { return m_enabled; }
    bool FromMaya(MObject &o);
 
+   inline bool HasLightGroups() const { return m_lightGroups; }
+   inline const MString& GetLightPathExpression() const { return m_lightPathExpression; }
+
 protected:
 
    void ReturnType(MString &mtype) const;
@@ -84,4 +87,6 @@ protected:
    std::vector<AtNode*>  m_drivers;
    std::vector<AtNode*>  m_filters;
    MStringArray m_extensions;
+   MString m_lightPathExpression;
+   bool m_lightGroups;
 };
