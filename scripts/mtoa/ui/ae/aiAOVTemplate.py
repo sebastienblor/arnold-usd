@@ -42,8 +42,9 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.addControl('type', label='Data Type')
         self.addCustom('defaultValue', self.defaultValueNew, self.defaultValueReplace)
         self.addSeparator()
-        self.addControl('lightPathExpression', label='Light Path Expression')
         self.addControl('lightGroups', label='Light Groups')
+        self.addSeparator()
+        self.addControl('lightPathExpression', label='Light Path Expression')
         self.endLayout()
 
         self.addCustom('outputs', self.outputsNew, self.outputsReplace)
