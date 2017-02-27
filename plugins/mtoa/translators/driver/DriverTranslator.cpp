@@ -82,31 +82,40 @@ void CDriverTranslator::Export(AtNode *shader)
 
 #ifdef ENABLE_COLOR_MANAGEMENT
       int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
-      
-      if (colorSpaceVal == 0)
-      {
-         AiNodeSetStr(shader, "color_space", "");
-      } else if (colorSpaceVal == 1)
-      {
-         MString viewTransform;
-         MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
-         AiNodeSetStr(shader, "color_space", viewTransform.asChar());      
-      } else 
-      {
-         int cmEnabled = 0;
-         MGlobal::executeCommand("colorManagementPrefs -q -outputTransformEnabled", cmEnabled);
 
-         if (cmEnabled)
-         {
-            MString colorSpace;
-            MGlobal::executeCommand("colorManagementPrefs -q -outputTransformName", colorSpace);
-            AiNodeSetStr(shader, "color_space", colorSpace.asChar());  
-         } else
+      int cmEnabled = 0;
+      MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+
+      if(cmEnabled)
+      {
+         if (colorSpaceVal == 0)
          {
             AiNodeSetStr(shader, "color_space", "");
+         } else if (colorSpaceVal == 1)
+         {
+            MString viewTransform;
+            MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+            AiNodeSetStr(shader, "color_space", viewTransform.asChar());      
+         } else 
+         {
+            int cmOutputEnabled = 0;
+            MGlobal::executeCommand("colorManagementPrefs -q -outputTransformEnabled", cmOutputEnabled);
+
+            if (cmOutputEnabled)
+            {
+               MString colorSpace;
+               MGlobal::executeCommand("colorManagementPrefs -q -outputTransformName", colorSpace);
+               AiNodeSetStr(shader, "color_space", colorSpace.asChar());  
+            } else
+            {
+               AiNodeSetStr(shader, "color_space", "");
+            }
          }
       }
-
+      else
+      {
+         AiNodeSetStr(shader, "color_space", "");
+      }
 #endif
    }
     

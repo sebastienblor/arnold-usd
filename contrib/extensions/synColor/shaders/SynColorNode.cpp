@@ -18,6 +18,7 @@ typedef std::tr1::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtString
 typedef std::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtStringHash> ProcessorMap;
 #endif
 #include <string>
+#include <fstream>
 
 
 AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
@@ -26,9 +27,8 @@ AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
 // All the strings used by the ass file
 namespace DataStr
 { 
-   const AtString configuration_path("configuration_path");
-   const AtString enabled("enabled");
-   const AtString ocioconfig_enabled("ocioconfig_enabled");
+   const AtString native_catalog_path("native_catalog_path");
+   const AtString custom_catalog_path("custom_catalog_path");
    const AtString ocioconfig_path("ocioconfig_path");
    const AtString rendering_color_space("rendering_color_space");
    const AtString output_color_conversion("output_color_conversion");
@@ -66,8 +66,7 @@ class ColorManagerData
 {
 public:
    ColorManagerData()
-      : m_enabled(false)
-      , m_ocioconfig_enabled(false)
+      : m_output_color_conversion(false)
    {
       m_initialization_done = false;
 
@@ -95,9 +94,10 @@ public:
    bool m_initialization_done;
    static bool m_initialization_status;
 
-   AtString m_configuration_path;     // Where is the synColor configuration file ?
-   bool     m_enabled;                // Is the color mgt enabled ?
-   bool     m_ocioconfig_enabled;     // Is the ocio mode enabled ?
+   // The way to correctly initialize the synColor engine
+   AtString m_native_catalog_path;
+   AtString m_custom_catalog_path;
+
    AtString m_ocioconfig_path;        // The ocio config file to use if ocio mode enabled
    AtString m_rendering_color_space;  // The rendering color space
    bool     m_output_color_conversion;// Is it a color conversion only ?
@@ -195,17 +195,53 @@ namespace
             status = SYNCOLOR::setLoggerFunction(ColorManagerData::logger);
             if(status)
             {
-               status = SYNCOLOR::configureAsStandalone(colorData->m_configuration_path.c_str());
+               std::FILE* tmpf = std::tmpfile();
+               const std::string filename(std::to_string(_fileno(tmpf)).c_str());
+               std::ofstream ofs(filename, std::ofstream::out);
+
+               ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                     << "<SynColorConfig version=\"2.0\">\n"
+                     << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
+                     << "   <TransformsHome dir=\"" << (colorData->m_native_catalog_path ? colorData->m_native_catalog_path : "") << "\" />\n"
+                     << "   <SharedHome dir=\"" << (colorData->m_custom_catalog_path ? colorData->m_custom_catalog_path: "") << "\" />\n"
+                     << "   <ReferenceTable>\n"
+                     << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
+                     << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
+                     << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
+                     << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
+                     << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
+                     << "   </ReferenceTable>\n"
+                     << "</SynColorConfig>\n";
+
+               ofs.close();
+
+               status = SYNCOLOR::configureAsStandalone(filename.c_str());
+#if MAYA_API_VERSION >= 201800
+               if(!status)
+               {
+                  // Try to survive to unexpected issue by creating the preferences from scratch.
+                  // It should never happen within Maya; however it could happen if used 
+                  // with kick (a tool without its own synColor catalog installation).
+                  status 
+                     = SYNCOLOR::configurePaths(colorData->m_native_catalog_path, filename.c_str(), colorData->m_custom_catalog_path);
+               }
+#endif
                if(status)
                {
                   AiMsgInfo("[color_manager] Using syncolor_color_manager Version %s", SYNCOLOR::getVersionString());
+                  AiMsgInfo("                with the native catolog from %s", colorData->m_native_catalog_path);
+                  if(!colorData->m_ocioconfig_path.empty())
+                  {
+                     AiMsgInfo("                using the OCIO config file %s", colorData->m_ocioconfig_path);
+                  }
+                  AiMsgInfo("                and the optional custom catalog from %s", colorData->m_custom_catalog_path);
                }
             }
          }
 
-         if(status && colorData->m_enabled)
+         if(status)
          {
-            if(colorData->m_ocioconfig_enabled)
+            if(!colorData->m_ocioconfig_path.empty())
             {
                status = SYNCOLOR::loadOCIOTemplate(
                   SYNCOLOR::InputTemplate, colorData->m_ocioconfig_path, colorData->m_input_template);
@@ -376,69 +412,61 @@ namespace
    {
       SYNCOLOR::SynStatus status;
 
-      if(color_space.empty())
+      // FIXME is this the right place to test this flag ?
+      if(colorData->m_output_color_conversion)
       {
-         // The color transformation will be an identity to at least provide the pixel format conversion
-         status = computeRawColorTransformation(colorData, src_pixel_format, dst_pixel_format, transform);        
+         // The color transformation is the reverse of the input color transformation
+         status = computeInputColorTransformation(
+            colorData, color_space, src_pixel_format, dst_pixel_format, SYNCOLOR::TransformReverse, transform); 
       }
       else
       {
-         // FIXME is this the right place to test this flag ?
-         if(colorData->m_output_color_conversion)
+         // Having a human readable tag is always useful when debugging.
+         const AtString key( std::string(
+                                 std::string(colorData->m_rendering_color_space.c_str())
+                                 + std::string(" to ")
+                                 + std::string(color_space.c_str()) ).c_str() );
+
+         ProcessorMap::const_iterator it = colorData->m_output_transforms.find(key);
+         if(it != colorData->m_output_transforms.end())
          {
-            // The color transformation is the reverse of the input color transformation
-            status = computeInputColorTransformation(
-               colorData, color_space, src_pixel_format, dst_pixel_format, SYNCOLOR::TransformReverse, transform); 
+            transform = it->second;
          }
          else
          {
-            // Having a human readable tag is always useful when debugging.
-            const AtString key( std::string(
-                                    std::string(colorData->m_rendering_color_space.c_str())
-                                    + std::string(" to ")
-                                    + std::string(color_space.c_str()) ).c_str() );
+            ThreadGuard guard(colorData->m_output_guard);
 
-            ProcessorMap::const_iterator it = colorData->m_output_transforms.find(key);
+            it = colorData->m_output_transforms.find(key);
             if(it != colorData->m_output_transforms.end())
             {
                transform = it->second;
             }
             else
             {
-               ThreadGuard guard(colorData->m_output_guard);
-
-               it = colorData->m_output_transforms.find(key);
-               if(it != colorData->m_output_transforms.end())
+               SYNCOLOR::TemplateParameterPtr ws_param;
+               status = colorData->m_output_template->getParameter(SYNCOLOR::WorkingSpace, ws_param);
+               if(status)
                {
-                  transform = it->second;
-               }
-               else
-               {
-                  SYNCOLOR::TemplateParameterPtr ws_param;
-                  status = colorData->m_output_template->getParameter(SYNCOLOR::WorkingSpace, ws_param);
+                  status = ws_param->select(colorData->m_rendering_color_space);
                   if(status)
                   {
-                     status = ws_param->select(colorData->m_rendering_color_space);
+                     SYNCOLOR::TemplateParameterPtr vt_param;
+                     status = colorData->m_output_template->getParameter(SYNCOLOR::ViewTransform, vt_param);
                      if(status)
                      {
-                        SYNCOLOR::TemplateParameterPtr vt_param;
-                        status = colorData->m_output_template->getParameter(SYNCOLOR::ViewTransform, vt_param);
+                        status = vt_param->select(color_space.c_str());
                         if(status)
                         {
-                           status = vt_param->select(color_space.c_str());
+                           status = colorData->m_output_template->createTransform(transform, SYNCOLOR::TransformForward);
                            if(status)
                            {
-                              status = colorData->m_output_template->createTransform(transform, SYNCOLOR::TransformForward);
+                              status = SYNCOLOR::finalize(
+                                 transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
                               if(status)
                               {
-                                 status = SYNCOLOR::finalize(
-                                    transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
-                                 if(status)
-                                 {
-                                    colorData->m_output_transforms[key] = transform;
-                                    AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'",
-                                       colorData->m_rendering_color_space.c_str(), color_space.c_str());
-                                 }
+                                 colorData->m_output_transforms[key] = transform;
+                                 AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'",
+                                    colorData->m_rendering_color_space.c_str(), color_space.c_str());
                               }
                            }
                         }
@@ -447,11 +475,11 @@ namespace
                }
             }
          }
+      }
 
-         if(!status)
-         {
-            AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
-         }
+      if(!status)
+      {
+         AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
       }
 
       return status;
@@ -460,10 +488,8 @@ namespace
 
 node_parameters
 {
-   AiParameterStr (DataStr::configuration_path,      NULL);
-
-   AiParameterBool(DataStr::enabled,                 false);
-   AiParameterBool(DataStr::ocioconfig_enabled,      false);
+   AiParameterStr (DataStr::native_catalog_path,     NULL);
+   AiParameterStr (DataStr::custom_catalog_path,     NULL);
    AiParameterStr (DataStr::ocioconfig_path,         NULL);
    AiParameterStr (DataStr::rendering_color_space,   NULL);
    AiParameterBool(DataStr::output_color_conversion, false);
@@ -481,10 +507,9 @@ node_update
 {
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
 
-   colorData->m_configuration_path      = AiNodeGetStr (node, DataStr::configuration_path);
+   colorData->m_native_catalog_path     = AiNodeGetStr (node, DataStr::native_catalog_path);
+   colorData->m_custom_catalog_path     = AiNodeGetStr (node, DataStr::custom_catalog_path);
 
-   colorData->m_enabled                 = AiNodeGetBool(node, DataStr::enabled);
-   colorData->m_ocioconfig_enabled      = AiNodeGetBool(node, DataStr::ocioconfig_enabled);
    colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
    colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
    colorData->m_output_color_conversion = AiNodeGetBool(node, DataStr::output_color_conversion);
@@ -497,6 +522,8 @@ node_update
 
 color_manager_transform
 {
+   if(!ColorManagerData::m_initialization_status) return false;
+
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
 
    // Find all the information to finalize the color transformation
@@ -527,60 +554,46 @@ color_manager_transform
 
    SYNCOLOR::SynStatus status;
    SYNCOLOR::TransformPtr transform;
-
-   bool color_processing = colorData->m_enabled;
-   if(color_processing)
+   if(is_output)
    {
-      SYNCOLOR::SynStatus status;
-
-      if(is_output)
-      {
-         status = computeOutputColorTransformation(
-            colorData, color_space, src_pixel_format, dst_pixel_format, transform);
-      }
-      else
-      {
-         status = computeInputColorTransformation(
-            colorData, color_space, src_pixel_format, dst_pixel_format, SYNCOLOR::TransformForward, transform);
-      }
-
-      if(!status)
-      {
-         color_processing = false;
-      }
+      status = computeOutputColorTransformation(
+         colorData, color_space, src_pixel_format, dst_pixel_format, transform);
+   }
+   else
+   {
+      status = computeInputColorTransformation(
+         colorData, color_space, src_pixel_format, dst_pixel_format, SYNCOLOR::TransformForward, transform);
    }
 
    // No color processing or failed to create the color transformation
 
-   if(!color_processing)
+   if(!status)
    {
-      // In case of an error the fallback color transformation will be an identity 
-      // to at least provide the pixel format conversion
-      status = computeRawColorTransformation(colorData, src_pixel_format, dst_pixel_format, transform);
-      color_processing = (bool)status;
+      AiMsgError("[color_manager] %s color transformation computation failed: %s", 
+         is_output ? "Output" : "Input", status.getErrorMessage());
+
+      ColorManagerData::m_initialization_status = false;
+      return false;
    }
 
    // Apply the color transformation
 
-   if(color_processing)
+   const size_t src_y_increment = actual_src_layout.y_stride - actual_src_layout.x_stride * width;
+   const size_t dst_y_increment = actual_dst_layout.y_stride - actual_dst_layout.x_stride * width;
+   for (int y = actual_roi.miny; y <= actual_roi.maxy; y++)
    {
-      const size_t src_y_increment = actual_src_layout.y_stride - actual_src_layout.x_stride * width;
-      const size_t dst_y_increment = actual_dst_layout.y_stride - actual_dst_layout.x_stride * width;
-      for (int y = actual_roi.miny; y <= actual_roi.maxy; y++)
+      for (int x = actual_roi.minx; x <= actual_roi.maxx; x++)
       {
-         for (int x = actual_roi.minx; x <= actual_roi.maxx; x++)
-         {
-            transform->applyCPUSinglePixel(actual_src, actual_dst, x, y);
+         transform->applyCPUSinglePixel(actual_src, actual_dst, x, y);
 
-            actual_src += actual_src_layout.x_stride;
-            actual_dst += actual_dst_layout.x_stride;
-         }
-         actual_src += src_y_increment;
-         actual_dst += dst_y_increment;
+         actual_src += actual_src_layout.x_stride;
+         actual_dst += actual_dst_layout.x_stride;
       }
+      actual_src += src_y_increment;
+      actual_dst += dst_y_increment;
    }
 
-   return color_processing;
+   return status;
 }
 
 color_manager_get_defaults
@@ -591,6 +604,7 @@ color_manager_get_chromaticities
 {
    return false;
 }
+
 color_manager_get_custom_attributes
 {
    num = 0;

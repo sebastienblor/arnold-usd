@@ -5,21 +5,19 @@ from build_tools import find_files_recursive
 
 # import build env
 Import('ext_env')
-local_env = ext_env.Clone()
+plugin_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'synColor', 'plugin')
-
+src_base_dir  = os.path.join(plugin_env['ROOT_DIR'], 'contrib', 'extensions', 'synColor', 'plugin')
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
-EXT = local_env.SharedLibrary('synColor_plugins', source_files, LIBPREFIX='')
+plugin_env.Append(CPPPATH = ['.'])
+
+EXT = plugin_env.SharedLibrary('synColor_plugins', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
-   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')   
-   local_env.Append(CPPPATH = ['.'])
-else:
-   local_env.Append(CPPPATH = ['.'])
+   plugin_env['MSVSSCONSCRIPT'] = plugin_env.File('SConscript')
 
 
 # import build env
@@ -55,5 +53,6 @@ EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREF
 
 if system.os() == 'windows':
    shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
+
 
 Return('EXT EXT_SHADERS')

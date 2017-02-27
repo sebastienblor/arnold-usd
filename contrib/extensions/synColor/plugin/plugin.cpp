@@ -11,7 +11,8 @@ extern "C"
         extension.RegisterTranslator("colorManagementGlobals",
                                      "",
                                      CSynColorTranslator::creator,
-                                     CSynColorTranslator::NodeInitializer);}
+                                     CSynColorTranslator::NodeInitializer);
+    }
 
     DLLEXPORT void deinitializeExtension(CExtension& extension)
     {
