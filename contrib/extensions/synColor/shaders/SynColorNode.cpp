@@ -591,6 +591,20 @@ color_manager_get_chromaticities
 {
    return false;
 }
+color_manager_get_custom_attributes
+{
+   num = 0;
+}
+
+color_manager_get_num_color_spaces
+{
+   return 0;
+}
+
+color_manager_get_color_space_name_by_index
+{
+   return AtString("");
+}
 
 node_finish
 {
