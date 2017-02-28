@@ -101,6 +101,9 @@ void CSynColorTranslator::Export(AtNode* node)
       break;
 
    }
+
+   // For the display we need to set the current view transform to the syncolor node
+   AiNodeSetStr (node, "view_transform_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
 }
 
 void CSynColorTranslator::NodeInitializer(CAbTranslator context)

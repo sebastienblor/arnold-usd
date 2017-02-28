@@ -31,6 +31,7 @@ namespace DataStr
    const AtString custom_catalog_path("custom_catalog_path");
    const AtString ocioconfig_path("ocioconfig_path");
    const AtString rendering_color_space("rendering_color_space");
+   const AtString view_transform_space("view_transform_space");
    const AtString output_color_conversion("output_color_conversion");
 };
 
@@ -100,6 +101,7 @@ public:
 
    AtString m_ocioconfig_path;        // The ocio config file to use if ocio mode enabled
    AtString m_rendering_color_space;  // The rendering color space
+   AtString m_view_transform_space;   // The view transform space (for kick display)
    bool     m_output_color_conversion;// Is it a color conversion only ?
    
    // Keep a cache of all output transforms to only compute them once
@@ -492,6 +494,7 @@ node_parameters
    AiParameterStr (DataStr::custom_catalog_path,     NULL);
    AiParameterStr (DataStr::ocioconfig_path,         NULL);
    AiParameterStr (DataStr::rendering_color_space,   NULL);
+   AiParameterStr (DataStr::view_transform_space,   NULL);
    AiParameterBool(DataStr::output_color_conversion, false);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "defaultColorMgtGlobals");
@@ -512,6 +515,7 @@ node_update
 
    colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
    colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
+   colorData->m_view_transform_space   = AiNodeGetStr (node, DataStr::view_transform_space);
    colorData->m_output_color_conversion = AiNodeGetBool(node, DataStr::output_color_conversion);
 
    colorData->m_input_transforms.clear();
@@ -521,10 +525,18 @@ node_update
 }
 
 color_manager_transform
-{
+{  
+
    if(!ColorManagerData::m_initialization_status) return false;
 
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
+
+   // During kick rendering, this function is currently being called with "auto".
+   // Let's use the view transform in that case.
+   // FIXME : remove this if arnold core changes this behaviour
+   static AtString autoStr("auto");
+   if (color_space == autoStr)
+      color_space = colorData->m_view_transform_space;
 
    // Find all the information to finalize the color transformation
 
@@ -598,6 +610,8 @@ color_manager_transform
 
 color_manager_get_defaults
 {
+   sRGB = AiNodeGetStr(node, DataStr::view_transform_space);
+   linear = AiNodeGetStr (node, DataStr::rendering_color_space);
 }
 
 color_manager_get_chromaticities
