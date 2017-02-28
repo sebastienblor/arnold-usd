@@ -35,6 +35,8 @@ except:
     arnoldRenderSettingsCallbacks = None
 
 try:
+    import maya.app.renderSetup.common.utils as commonUtils
+    import maya.app.renderSetup.model.plug as plug
     import maya.app.renderSetup.model.renderSetup as renderSetup
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
     import maya.app.renderSetup.model.typeIDs as typeIDs
@@ -47,6 +49,58 @@ try:
     import mtoa.ui.aoveditor as aoveditor
     import json
     import maya.api.OpenMaya as OpenMaya
+
+    class ArnoldNodeExporter(rendererCallbacks.BasicNodeExporter):
+        def encode(self):
+            attrs = {}
+            for name in self.getNodes():
+                node = commonUtils.nameToNode(name)
+                nodeFn = None
+                try:
+                    nodeFn = OpenMaya.MFnDependencyNode(node)
+                except:
+                    # No guarantee that the default node exist
+                    OpenMaya.MGlobal.displayWarning(kDefaultNodeMissing % name)
+                else:
+                    for attrIdx in xrange(nodeFn.attributeCount()):
+                        plg = plug.Plug(node, nodeFn.attribute(attrIdx))
+                        if name.startswith("aiAOV_") and plg.type == plug.Plug.kMessage and plg.name.endswith(".defaultValue"):
+                            connectedPlgs = plg.plug.connectedTo(True, False)
+                            if len(connectedPlgs) > 0:
+                                attrs[plg.name] = plg.plug.connectedTo(True, False)[0].name()
+                            else:
+                                attrs[plg.name] = None
+                        elif plg.type is not plug.Plug.kInvalid and plg.name not in self._plugsToIgnore:
+                            attrs[plg.name] = plg.value
+            return attrs
+
+        def decode(self, encodedData):
+            nodes = {} # Avoid creating several time the same node
+            for (key, value) in encodedData.items():
+                (nodeName, attrName) = plug.Plug.getNames(key)
+                node = None
+                if nodeName in nodes:
+                    node = nodes[nodeName]
+                else:
+                    try:
+                        node = commonUtils.nameToNode(nodeName)
+                        OpenMaya.MFnDependencyNode(node)
+                    except:
+                        node = None
+                    nodes[nodeName] = node
+
+                if node is None:
+                    # No guarantee that the default node exist
+                    OpenMaya.MGlobal.displayWarning(kDefaultNodeMissing % nodeName)
+                else:
+                    plg = plug.findPlug(nodeName, attrName)
+                    if plg is None:
+                        OpenMaya.MGlobal.displayWarning(kDefaultNodeAttrMissing % (nodeName, attrName))
+                    else:
+                        if nodeName.startswith("aiAOV_") and plg.type == plug.Plug.kMessage and plg.name.endswith(".defaultValue"):
+                            renderSetupUtils.connect(plug.Plug(value).plug, plg.plug)
+                        else:
+                            plg.value = value
 
     class ArnoldAOVChildSelector(selector.Selector):
         kTypeId = typeIDs.arnoldAOVChildSelector
@@ -157,6 +211,7 @@ try:
         def encode(self):
             aovsJSON = {}
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
+            arnoldNodeExporter = ArnoldNodeExporter()
 
             outputs = []
             aovs = []
@@ -200,8 +255,8 @@ try:
                     outputs.append({ aovNodeName : currentOutputs })
 
                     # Set the AOV information for the current AOV node name.
-                    basicNodeExporter.setNodes([aovNodeName])
-                    aovs.append( { aovNodeName : basicNodeExporter.encode() })
+                    arnoldNodeExporter.setNodes([aovNodeName])
+                    aovs.append( { aovNodeName : arnoldNodeExporter.encode() })
 
             # Set the AOV, filters, drivers, and outputs values
             aovsJSON["aovs"] = aovs
@@ -219,6 +274,7 @@ try:
                 AOVInterface().removeAOVs(AOVInterface().getAOVs())
 
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
+            arnoldNodeExporter = ArnoldNodeExporter()
 
             outputs = aovsJSON["outputs"]
             filterNewNameMap = {} # Used when we're doing a merge
@@ -264,7 +320,7 @@ try:
             aovs = aovsJSON["aovs"]
             for aov in aovs:
                 for aovName, aovJSON in aov.iteritems():
-                    basicNodeExporter.decode(aovJSON)
+                    arnoldNodeExporter.decode(aovJSON)
 
             # Iterate over our filters/drivers and decode them
             for outputType, outputNewNameMap in ["filters", filterNewNameMap], ["drivers", driverNewNameMap]:
