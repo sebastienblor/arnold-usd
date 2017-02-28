@@ -870,7 +870,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       {
          if (!plug.isArray())
          {
-            MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
+            MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not : " + plug.name());
             return NULL;
          }
          m_tr.ProcessArrayParameter(arnoldNode, arnoldParamName, plug);

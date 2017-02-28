@@ -1664,7 +1664,7 @@
 
 [node mix_shader]
     desc                    STRING  "Mix between two Arnold Shaders"
-    maya.name               STRING  "aiShaderMix"
+    maya.name               STRING  "aiMixShader"
     maya.id                 INT     0x00115D54  
     maya.classification     STRING  "shader/surface"
     [attr mix]
@@ -2301,6 +2301,10 @@ c4d.step FLOAT 0.01
     maya.name               STRING  "aiTwoSided"
     maya.classification     STRING  "shader/surface"
     maya.swatch             BOOL    True
+    [attr front]
+    linkable BOOL True
+    [attr back]
+    linkable BOOL True
 
 [node user_data_float]
     maya.hide               BOOL    True
