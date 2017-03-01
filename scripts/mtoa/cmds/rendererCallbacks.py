@@ -51,6 +51,10 @@ try:
     import maya.api.OpenMaya as OpenMaya
 
     class ArnoldNodeExporter(rendererCallbacks.BasicNodeExporter):
+
+        def _isAOVDefaultValue(self, name, plg):
+            return name.startswith("aiAOV_") and plg.type == plug.Plug.kMessage and plg.name.endswith(".defaultValue")
+
         def encode(self):
             attrs = {}
             for name in self.getNodes():
@@ -64,7 +68,7 @@ try:
                 else:
                     for attrIdx in xrange(nodeFn.attributeCount()):
                         plg = plug.Plug(node, nodeFn.attribute(attrIdx))
-                        if name.startswith("aiAOV_") and plg.type == plug.Plug.kMessage and plg.name.endswith(".defaultValue"):
+                        if self._isAOVDefaultValue(name, plg):
                             connectedPlgs = plg.plug.connectedTo(True, False)
                             if len(connectedPlgs) > 0:
                                 attrs[plg.name] = plg.plug.connectedTo(True, False)[0].name()
@@ -97,7 +101,7 @@ try:
                     if plg is None:
                         OpenMaya.MGlobal.displayWarning(kDefaultNodeAttrMissing % (nodeName, attrName))
                     else:
-                        if nodeName.startswith("aiAOV_") and plg.type == plug.Plug.kMessage and plg.name.endswith(".defaultValue"):
+                        if self._isAOVDefaultValue(nodeName, plg):
                             renderSetupUtils.connect(plug.Plug(value).plug, plg.plug)
                         else:
                             plg.value = value
