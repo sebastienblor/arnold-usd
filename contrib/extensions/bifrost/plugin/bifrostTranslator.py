@@ -1,7 +1,13 @@
 import mtoa.ui.ae.templates as templates
-from mtoa.ui.ae.templates import AttributeTemplate
+from mtoa.ui.ae.templates import AttributeTemplate, ShapeTranslatorTemplate
 
-class BifrostTemplate(AttributeTemplate):
+class BifrostTemplate(ShapeTranslatorTemplate):
+    def setup(self):
+        self.suppress("aiDebug");
+        self.suppress("aiUserOptions");
+templates.registerAETemplate(BifrostTemplate, 'bifrostShape')
+
+class BifrostAeroMaterialTemplate(AttributeTemplate):
     def setup(self):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiMaxSteps", label="Max Steps")
@@ -9,5 +15,5 @@ class BifrostTemplate(AttributeTemplate):
         self.addControl("aiShadowingStepSize", label="Shadowing Step Size")
         self.addControl("aiShadowingMaxSteps", label="Shadowing Max Steps")
 
-        
-templates.registerAETemplate(BifrostTemplate, 'bifrostAeroMaterial')
+templates.registerAETemplate(BifrostAeroMaterialTemplate, 'bifrostAeroMaterial')
+

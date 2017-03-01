@@ -6,27 +6,23 @@ extern AtNodeMethods* BifrostFoamMaterialMtd;
 extern AtNodeMethods* BifrostAeroMaterialMtd;
 
 enum{
-   SHADER_BIFROST_FOAM = 0,
-   SHADER_BIFROST_AERO
+   SHADER_BIFROST_FOAM_MATERIAL = 0,
+   SHADER_BIFROST_AERO_MATERIAL
 };
 
 node_loader
 {
+   node->output_type  = AI_TYPE_RGB;
+   node->node_type    = AI_NODE_SHADER;
    switch (i)
    {
-   case SHADER_BIFROST_FOAM:
+   case SHADER_BIFROST_FOAM_MATERIAL:
       node->methods      = BifrostFoamMaterialMtd;
-      node->output_type  = AI_TYPE_RGB;
       node->name         = "bifrostFoamMaterial";
-      node->node_type    = AI_NODE_SHADER;
       break;
-
-   case SHADER_BIFROST_AERO:
-      node->methods     = BifrostAeroMaterialMtd;
-      node->output_type  = AI_TYPE_RGB;
+   case SHADER_BIFROST_AERO_MATERIAL:
+      node->methods      = BifrostAeroMaterialMtd;
       node->name         = "bifrostAeroMaterial";
-      node->node_type    = AI_NODE_SHADER;
-
       break;
 
    default:
