@@ -1674,6 +1674,107 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputBoolean(data);
 }
 
+
+
+AtNode* CAiRaySwitchTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlugArray conns;
+   static MStringArray attributeNames;
+
+   if (attributeNames.length() == 0)
+   {
+      attributeNames.append("camera");
+      attributeNames.append("shadows");
+      attributeNames.append("diffuse_reflection");
+      attributeNames.append("specular_reflection");
+      attributeNames.append("diffuse_transmission");
+      attributeNames.append("specular_transmission");
+      attributeNames.append("volume");
+   }
+
+   bool hasClosures = false;
+   for (unsigned int i = 0; i < attributeNames.length(); ++i)
+   {
+
+      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      if (inputPlug.isNull())
+         continue;
+
+      // check if this attribute is connected
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+
+      // export the connected node
+      AtNode *camNode = ExportConnectedNode(conns[0]);
+      if (camNode == NULL)
+         continue;
+
+      // check if the output type of the arnold node is closure or not
+      if (AiNodeEntryGetOutputType(AiNodeGetNodeEntry(camNode)) == AI_TYPE_CLOSURE)
+      {
+         hasClosures = true;
+         break;
+      }
+   }
+
+   if (hasClosures)
+      return AddArnoldNode("ray_switch_shader");
+
+   
+   return AddArnoldNode("ray_switch_rgba");
+}
+
+void CAiRaySwitchTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "camera", AI_TYPE_CLOSURE, "camera");
+   ProcessParameter(shader, "shadow", AI_TYPE_CLOSURE, "shadow");
+   ProcessParameter(shader, "diffuse_reflection", AI_TYPE_CLOSURE, "diffuseReflection");
+   ProcessParameter(shader, "diffuse_transmission", AI_TYPE_CLOSURE, "diffuseTransmission");
+   ProcessParameter(shader, "specular_reflection", AI_TYPE_CLOSURE, "specularReflection");
+   ProcessParameter(shader, "specular_transmission", AI_TYPE_CLOSURE,"specularTransmission");
+   ProcessParameter(shader, "volume", AI_TYPE_CLOSURE,  "volume");
+}
+
+void CAiRaySwitchTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "ray_switch_shader");
+   CAttrData data;
+
+   data.defaultValue.RGBA() = AI_RGBA_ZERO;
+   data.keyable = true;
+   data.linkable = true;
+   data.name = "camera";
+   data.shortName = "camera";
+   helper.MakeInputRGBA(data);
+
+   data.name = "shadow";
+   data.shortName = "shadow";
+   helper.MakeInputRGBA(data);
+
+   data.name = "diffuseReflection";
+   data.shortName = "diffuse_reflection";
+   helper.MakeInputRGBA(data);
+
+   data.name = "diffuseTransmission";
+   data.shortName = "diffuse_transmission";
+   helper.MakeInputRGBA(data);
+
+   data.name = "specularReflection";
+   data.shortName = "specular_reflection";
+   helper.MakeInputRGBA(data);
+
+   data.name = "specularTransmission";
+   data.shortName = "specular_transmission";
+   helper.MakeInputRGBA(data);
+
+   data.name = "volume";
+   data.shortName = "volume";
+   helper.MakeInputRGBA(data);
+}
+
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
 {
 
@@ -1745,3 +1846,4 @@ void* CreateQuadShadingSwitchTranslator()
 {
    return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }
+

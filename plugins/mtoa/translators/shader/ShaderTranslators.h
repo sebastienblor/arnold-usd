@@ -147,3 +147,15 @@ public:
 private:
    MString m_colorSpace;
 };
+
+class CAiRaySwitchTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiRaySwitchTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+private:
+   MString m_colorSpace;
+};
+

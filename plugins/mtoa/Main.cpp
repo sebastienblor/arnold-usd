@@ -385,6 +385,12 @@ namespace // <anonymous>
                                     "",
                                     CAiImageTranslator::creator,
                                     CAiImageTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiRaySwitch",
+                                    "",
+                                    CAiRaySwitchTranslator::creator,
+                                    CAiRaySwitchTranslator::NodeInitializer);
+
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",

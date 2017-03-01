@@ -1,14 +1,5 @@
 #include <ai.h>
 
-#ifdef _MSC_VER
-#define _USE_MATH_DEFINES
-#endif
-#include <cmath>
-
-#include "MayaUtils.h"
-
-AI_SHADER_NODE_EXPORT_METHODS(MayaFlatClosureMtd);
-
 namespace
 {
 
@@ -19,13 +10,15 @@ enum MayaFlatClosureShaderParams
 
 };
 
+AI_SHADER_NODE_EXPORT_METHODS(MayaFlatClosureMtd);
+
 node_parameters
 {
    AiParameterRGB("color", 1.0f, 1.0f, 1.0f);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "MayaFlatShader");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "MayaFlatClosure");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52535983);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52535983);
 }
 
 node_initialize
