@@ -36,6 +36,8 @@
 # two_sided                   0x00115D59
 
 
+
+
 # options
 
 [node options]
@@ -1345,7 +1347,7 @@
     desc                    STRING  "This shader can be used to display various info on a geometry."
     maya.name               STRING  "aiUtility"
     maya.id                 INT     0x00115D03
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "utility/shader"
 
     [attr opacity]
         min                 FLOAT 0.0
@@ -1361,7 +1363,7 @@
     desc                    STRING  "This shader can be used to display ambient occlusion on a geometry."
     maya.name               STRING  "aiAmbientOcclusion"
     maya.id                 INT     0x00115D07  
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "utility/shader"
     [attr falloff]
         min                 FLOAT   0.0
         softmax             FLOAT   100.0
@@ -1382,7 +1384,7 @@
     desc                    STRING  "This shader can be used to display the edge structure of a geometry."
     maya.name               STRING  "aiWireframe"
     maya.id                 INT     0x00115D08
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "utility/shader"
     [attr line_width]
         desc                STRING  "Width of edges lines."
         min                 FLOAT   0.0
@@ -1432,7 +1434,7 @@
     desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump2d"
     maya.id                 INT     0x00115D0C
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "utility/shader"
     [attr bump_height]
         desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
@@ -1456,7 +1458,7 @@
     desc                    STRING  "Motion vectors"
     maya.name               STRING  "aiMotionVector"
     maya.id                 INT     0x00115D0F
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "utility/shader"
     [attr time0]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
@@ -1474,7 +1476,7 @@
     desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump3d"
     maya.id                 INT     0x00115D0E
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "utility/shader"
     [attr bump_height]
         desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
@@ -1951,10 +1953,18 @@
 # COMMON SHADERS
 
 [node abs]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D5A
+    maya.name               STRING  "aiMathAbs"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node add]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D5B
+    maya.name               STRING  "aiMathAdd"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
+
 
 [node aov_write_float]
     maya.hide               BOOL    True
@@ -1966,43 +1976,61 @@
     maya.hide               BOOL    True
 
 [node atan]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D5C
+    maya.name               STRING  "aiMathAtan"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
-#enable blackbody
+
 [node blackbody]
-maya.id                 INT     0x00115D57
-maya.name               STRING  "aiBlackbody"
-maya.classification     STRING  "utility"
-maya.swatch             BOOL    True
-
+    maya.id                 INT     0x00115D57
+    maya.name               STRING  "aiBlackbody"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
 
 [node cache]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D5D
+    maya.name               STRING  "aiCache"
+    maya.classification     STRING  "utility/volume"
+    maya.swatch             BOOL    True
+
 
 [node camera_projection]
     maya.hide               BOOL    True
-
 
 [node checkerboard]
     maya.hide               BOOL    True
 
 [node clamp]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D5E
+    maya.name               STRING  "aiClamp"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
 
 [node color_convert]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D5F
+    maya.name               STRING  "aiColorConvert"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
 
 [node color_correct]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D60
+    maya.name               STRING  "aiColorCorrect"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
 
 [node compare]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D7E
+    maya.name               STRING  "aiMathCompare"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 # enable complex_ior
 [node complex_ior]
 maya.id                 INT     0x00118F93
 maya.name               STRING  "aiComplexIor"
-maya.classification     STRING  "utility"
+maya.classification     STRING  "utility/shader"
 maya.swatch             BOOL    True
 
 [attr material]
@@ -2021,14 +2049,26 @@ desc STRING "Controls the color bias as the viewing direction becomes parallel t
 desc STRING "The refractive index value for the red/green/blue wavelengths (e.g. 650, 550 and 450 nm)."
 
 [node complement]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D7F
+    maya.name               STRING  "aiMathComplement"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+    
 
 
 [node composite]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D61
+    maya.name               STRING  "aiComposite"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 [node cross]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D64
+    maya.name               STRING  "aiMathCross"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 # enable curvature
 [node curvature]
@@ -2085,77 +2125,134 @@ softmax FLOAT 10
 desc STRING "Multiplies the curvature by this factor."
 
 [node divide]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D62
+    maya.name               STRING  "aiMathDivide"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node dot]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D63
+    maya.name               STRING  "aiMathDot"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node exp]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D65
+    maya.name               STRING  "aiMathExp"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node facing_ratio]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D66
+    maya.name               STRING  "aiFacingRatio"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 # enable flakes
 [node flakes]
-maya.id                 INT     0x00115D58
-maya.name               STRING  "aiFlakes"
-maya.classification     STRING  "texture"
-maya.swatch             BOOL    True
+    maya.id                 INT     0x00115D58
+    maya.name               STRING  "aiFlakes"
+    maya.classification     STRING  "texture"
+    maya.swatch             BOOL    True
 
 
 [node float_to_int]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D67
+    maya.name               STRING  "aiFloatToInt"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 [node float_to_matrix]
     maya.hide               BOOL    True
 [node float_to_rgb]
     maya.hide               BOOL    True
 [node float_to_rgba]
     maya.hide               BOOL    True
+
 [node fraction]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D68
+    maya.name               STRING  "aiMathFraction"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node is_finite]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D69
+    maya.name               STRING  "aiMathIsFinite"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node length]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D6A
+    maya.name               STRING  "aiMathLength"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node log]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D6B
+    maya.name               STRING  "aiMathLog"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node matte]
     maya.hide               BOOL    True
 
 [node max]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D6C
+    maya.name               STRING  "aiMathMax"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node min]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D6D
+    maya.name               STRING  "aiMathMin"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node mix_rgba]
     maya.hide               BOOL    True
 
 [node modulo]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D6E
+    maya.name               STRING  "aiMathModulo"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node motion_vector]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D6F
+    maya.name               STRING  "aiMotionVector"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
 
 [node multiply]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D70
+    maya.name               STRING  "aiMathMultiply"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node negate]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D71
+    maya.name               STRING  "aiMathNegate"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node normalize]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D72
+    maya.name               STRING  "aiMathNormalize"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
 [node passthrough]
     maya.hide               BOOL    True
 
 [node pow]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D73
+    maya.name               STRING  "aiMathPow"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node ramp_float]
     maya.hide               BOOL    True
@@ -2164,16 +2261,32 @@ maya.swatch             BOOL    True
     maya.hide               BOOL    True
 
 [node random]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D74
+    maya.name               STRING  "aiMathRandom"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node range]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D75
+    maya.name               STRING  "aiRange"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 [node reciprocal]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D82
+    maya.name               STRING  "aiMathReciprocal"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node rgb_to_float]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D76
+    maya.name               STRING  "aiColorToFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 [node rgb_to_rgba]
     maya.hide               BOOL    True
@@ -2188,7 +2301,7 @@ maya.swatch             BOOL    True
 [node shadow_matte]
 maya.id                 INT     0x00115D19
 maya.name               STRING  "aiShadowMatte"
-maya.classification     STRING  "utility"
+maya.classification     STRING  "utility/shader"
 maya.swatch             BOOL    False
 
     [attr backlighting]
@@ -2211,16 +2324,28 @@ maya.swatch             BOOL    False
         aov.type                INT     0x05
 
 [node sign]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D77
+    maya.name               STRING  "aiMathSign"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node skin]
     maya.hide               BOOL    True
 
 [node space_transform]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D78
+    maya.name               STRING  "aiSpaceTransform"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 [node sqrt]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D79
+    maya.name               STRING  "aiMathSqrt"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 [node state_float]
     maya.hide               BOOL    True
@@ -2232,10 +2357,19 @@ maya.swatch             BOOL    False
     maya.hide               BOOL    True
 
 [node subtract]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D7A
+    maya.name               STRING  "aiMathSubstract"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
 
-[node switch]
-    maya.hide               BOOL    True
+[node switch_rgba]
+    maya.hide               BOOL   True
+
+[node switch_shader]
+    maya.id                 INT     0x00115D7B
+    maya.name               STRING  "aiSwitch"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    True
 
 #enable thin_film
 [node thin_film]
@@ -2290,7 +2424,11 @@ c4d.step FLOAT 0.01
 
 
 [node trigo]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D7C
+    maya.name               STRING  "aiMathTrigo"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    True
+
 
 #enable two_sided
 [node two_sided]
@@ -2318,8 +2456,13 @@ c4d.step FLOAT 0.01
 [node user_data_string]
     maya.hide               BOOL    True
 
+
 [node uv_transform]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D7D
+    maya.name               STRING  "aiUvTransform"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 [node vector_to_rgb]
     maya.hide               BOOL    True
@@ -2472,6 +2615,16 @@ desc STRING "Apply a gamma correction to the color."
 
 
 
+
+[node normal_map]
+    maya.name               STRING  "aiNormalMap"
+    maya.id                 INT     0x00115D80
+    maya.classification     STRING  "utility/shader"
+
+[node vector_map]
+    maya.name               STRING  "aiVectorMap"
+    maya.id                 INT     0x00115D81
+    maya.classification     STRING  "utility/shader"
 
 
 
