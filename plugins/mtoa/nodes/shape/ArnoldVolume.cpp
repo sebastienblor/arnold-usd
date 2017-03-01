@@ -344,21 +344,23 @@ MBoundingBox* CArnoldVolumeShape::geometry()
          expandedFilename = m_filename;
       }
       expandedFilename = expandedFilename.expandEnvironmentVariablesAndTilde();
+
+      AtArray *gridsArray = NULL;
+
+      if(m_grids.length() > 0)
+      {
+         MStringArray gridsList;
+         m_grids.split(' ', gridsList);
       
-      MString cmd;
-      cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetChannelBounds('^1s', '^2s')", expandedFilename, m_grids);
-
-      MStringArray result;
-      MGlobal::executePythonCommand(cmd, result);   
-
-      if (result.length() >= 6)   
-      {
-         MPoint minBox(result[0].asFloat(), result[1].asFloat(), result[2].asFloat(), 0.f);
-         MPoint maxBox(result[3].asFloat(), result[4].asFloat(), result[5].asFloat(), 0.f);
-      } else
-      {
-         m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
+         gridsArray = AiArrayAllocate(gridsList.length(), 1, AI_TYPE_STRING);
+         for (unsigned int i = 0; i < gridsList.length(); ++i)
+         {
+            AiArraySetStr(gridsArray, i, AtString(gridsList[i].asChar()));
+         }
       }
+
+      AtBBox volume_box = AiVolumeFileGetBBox(AtString(expandedFilename.asChar()), gridsArray);
+      m_bbox = MBoundingBox(MPoint(volume_box.min.x, volume_box.min.y, volume_box.min.z), MPoint(volume_box.max.x, volume_box.max.y, volume_box.max.z));
    }
    return &m_bbox;
 }

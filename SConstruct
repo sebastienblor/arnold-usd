@@ -843,13 +843,7 @@ apiheaders = [
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])
-              
-if system.os() == "windows":
-    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.dll')))
-elif system.os() == 'linux':
-    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.so')))
-elif system.os() == 'darwin':
-    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.dylib')))
+             
               
 # install icons
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
@@ -1127,12 +1121,6 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor_shaders%s' % get_library_extension()), 'shaders'])
 
-if system.os() == "windows":
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'shaders'])
-elif system.os() == 'linux':
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'shaders'])
-elif system.os() == 'darwin':
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dylib'), 'shaders'])
 
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'shaders']]

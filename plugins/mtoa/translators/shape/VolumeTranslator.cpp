@@ -198,16 +198,10 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       }
       float stepSize = m_DagNode.findPlug("stepSize").asFloat();
       if (m_DagNode.findPlug("autoStepSize").asBool())
-      {
-         MString cmd;
-         cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetMinVoxelSize('^1s', '^2s')", newFilename, grids);
-
-         MString result;
-         if (MGlobal::executePythonCommand(cmd, result) == MS::kSuccess)
-            stepSize = result.asFloat() * m_DagNode.findPlug("stepScale").asFloat();
-         
-      }
+         stepSize = 0.f;
+      
       AiNodeSetFlt(volume, "step_size", stepSize);
+      AiNodeSetFlt(volume, "step_scale", m_DagNode.findPlug("stepScale").asFloat());
       
       MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
       MStringArray vGridList;

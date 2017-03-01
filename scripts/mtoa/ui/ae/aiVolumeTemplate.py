@@ -1,11 +1,11 @@
 import re
 import maya.cmds as cmds
+import arnold as ai
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 import pymel.core as pm
 import os
-import mtoa.volume_vdb
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 def ArnoldVolumeAutoStepChange(nodeName):
@@ -27,9 +27,12 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         if not os.path.isfile(mPath):
             return
-        gridsList = mtoa.volume_vdb.GetChannelNames(mPath)
-        for grid in gridsList:
-            cmds.textScrollList(self.gridsListPath, edit=True, append=grid)
+
+        gridsList = ai.AiVolumeFileGetChannels(mPath);
+
+        numGrids = ai.AiArrayGetNumElements(gridsList)
+        for i in range(0, numGrids):
+            cmds.textScrollList(self.gridsListPath, edit=True, append=ai.AiArrayGetStr(gridsList, i))
 
         if len(gridsList) > 0:
             cmds.textScrollList(self.gridsListPath, edit=True, selectIndexedItem=1)
@@ -166,9 +169,11 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         filename = cmds.getAttr(attrName)
         
         if filename is not None and os.path.isfile(filename):
-            gridsList = mtoa.volume_vdb.GetChannelNames(filename)
-            for grid in gridsList:
-                cmds.textScrollList(gridListField, edit=True, append=grid)
+            gridsList = ai.AiVolumeFileGetChannels(filename);
+
+            numGrids = ai.AiArrayGetNumElements(gridsList)
+            for i in range(0, numGrids):
+                cmds.textScrollList(gridListField, edit=True, append=ai.AiArrayGetStr(gridsList, i))
 
             # if parameter 'grids' wasn't previously set, choose the first in the file list
             # FIXME do we really want to do that, or do we want to have a hardcoded default ?
