@@ -31,13 +31,23 @@ include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_ba
 
 shader_env.Append(CPPPATH = ['.'])
 if system.os() =='windows':
-   shader_env.Append(LIBS=Split('ai.lib'))
-   shader_env.Append(LIBS=Split('staticSynColor.lib expat_vc11.lib Half.lib IccProfLib_vc11.lib Iex-2_2.lib IexMath-2_2.lib'))
-   shader_env.Append(LIBS=Split('Ilmthread-2_2.lib Imath-2_2.lib libyaml-cppmd.lib OpenColorIO.lib tinyxml.lib tinyxpath_vc11.lib'))
-   shader_env.Append(LIBS=Split('libboost_filesystem.lib libboost_system.lib'))
-   shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColorStatic', 'include')])
-   shader_env.Append(LIBPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColorStatic', 'lib')])
-   shader_env.Append(CPPDEFINES = Split('SYN_LINK_STATIC'))
+
+   maya_version = common_env['MAYA_VERSION']
+   if int(maya_version) >= 201800:
+      shader_env.Append(LIBS=Split('ai.lib'))
+      shader_env.Append(LIBS=Split('synColor.lib'))
+      shader_env.Append(LIBS=Split('libboost_filesystem.lib libboost_system.lib'))
+      shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include_windows')])
+      shader_env.Append(LIBPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'windows')])
+   
+   else:
+      shader_env.Append(LIBS=Split('ai.lib'))
+      shader_env.Append(LIBS=Split('staticSynColor.lib expat_vc11.lib Half.lib IccProfLib_vc11.lib Iex-2_2.lib IexMath-2_2.lib'))
+      shader_env.Append(LIBS=Split('Ilmthread-2_2.lib Imath-2_2.lib libyaml-cppmd.lib OpenColorIO.lib tinyxml.lib tinyxpath_vc11.lib'))
+      shader_env.Append(LIBS=Split('libboost_filesystem.lib libboost_system.lib'))
+      shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColorStatic', 'include')])
+      shader_env.Append(LIBPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColorStatic', 'lib')])
+      shader_env.Append(CPPDEFINES = Split('SYN_LINK_STATIC'))
 else:
    shader_env.Append(LIBS=Split('ai'))
    shader_env.Append(LIBS=Split('synColor'))
