@@ -190,6 +190,10 @@ namespace
    {
       if(!colorData->m_initialization_done)
       {
+         std::string filename;
+         const char* envVariableValue = getenv("SYNCOLOR");
+         const bool useEnvVariable = envVariableValue!=0x0;
+
          colorData->m_initialization_done = true;
          SYNCOLOR::SynStatus status = SYNCOLOR::setUp(SYNCOLOR::Maya, SYNCOLOR::LANG_EN);
          if(status)
@@ -197,32 +201,44 @@ namespace
             status = SYNCOLOR::setLoggerFunction(ColorManagerData::logger);
             if(status)
             {
-#ifdef _WIN32
-               std::FILE* tmpf = std::tmpfile();
-               const std::string filename(std::to_string(_fileno(tmpf)).c_str());
-#else
-               // FIXME : temporary change to be replaced, we don't use c++11 on linux
-               const std::string filename = "/tmp/syncolor";
-#endif
-               std::ofstream ofs(filename, std::ofstream::out);
+               if(useEnvVariable)
+               {
+                  filename = envVariableValue;
+               }
+               else
+               {
+                  char tmpFilename[L_tmpnam];
+                  tmpnam(tmpFilename);
 
-               ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                     << "<SynColorConfig version=\"2.0\">\n"
-                     << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
-                     << "   <TransformsHome dir=\"" << (colorData->m_native_catalog_path ? colorData->m_native_catalog_path : "") << "\" />\n"
-                     << "   <SharedHome dir=\"" << (colorData->m_custom_catalog_path ? colorData->m_custom_catalog_path: "") << "\" />\n"
-                     << "   <ReferenceTable>\n"
-                     << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   </ReferenceTable>\n"
-                     << "</SynColorConfig>\n";
+                  std::ofstream ofs(tmpFilename, std::ofstream::out);
 
-               ofs.close();
+                  ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        << "<SynColorConfig version=\"2.0\">\n"
+                        << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
+                        << "   <TransformsHome dir=\"" << (colorData->m_native_catalog_path ? colorData->m_native_catalog_path : "") << "\" />\n"
+                        << "   <SharedHome dir=\"" << (colorData->m_custom_catalog_path ? colorData->m_custom_catalog_path: "") << "\" />\n"
+                        << "   <ReferenceTable>\n"
+                        << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
+                        << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
+                        << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
+                        << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
+                        << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
+                        << "   </ReferenceTable>\n"
+                        << "</SynColorConfig>\n";
+
+                  ofs.close();
+
+                  filename = tmpFilename;
+               }
 
                status = SYNCOLOR::configureAsStandalone(filename.c_str());
+               if(status.getErrorCode()==SYNCOLOR::ERROR_XML_CATALOG_MANAGER_SHARED_CATALOG_MISSING)
+               {
+                  // Most of the time a scene will not contain any custom transforms
+                  // so the error is not a show-stopper.
+                  status = SYNCOLOR::SynStatus();
+               }
+
 #if MAYA_API_VERSION >= 201800
                if(!status)
                {
@@ -233,15 +249,31 @@ namespace
                      = SYNCOLOR::configurePaths(colorData->m_native_catalog_path, filename.c_str(), colorData->m_custom_catalog_path);
                }
 #endif
+               if(!useEnvVariable)
+               {
+                  remove(filename.c_str());
+               }
+
                if(status)
                {
                   AiMsgInfo("[color_manager] Using syncolor_color_manager Version %s", SYNCOLOR::getVersionString());
-                  AiMsgInfo("                with the native catolog from %s", colorData->m_native_catalog_path);
+                  if(useEnvVariable)
+                  {
+                     AiMsgInfo("                from the preference file %s", envVariableValue);
+                  }
+                  else
+                  {
+                     AiMsgInfo("                with the native catolog from %s", colorData->m_native_catalog_path);
+                  }
+
                   if(!colorData->m_ocioconfig_path.empty())
                   {
                      AiMsgInfo("                using the OCIO config file %s", colorData->m_ocioconfig_path);
                   }
-                  AiMsgInfo("                and the optional custom catalog from %s", colorData->m_custom_catalog_path);
+
+                  const char* pSharedDirectory = 0x0;
+                  SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
+                  AiMsgInfo("                and the optional custom catalog from %s", pSharedDirectory);
                }
             }
          }
@@ -272,7 +304,15 @@ namespace
 
          if(!status)
          {
-            AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
+            if(useEnvVariable)
+            {
+               AiMsgError("[color_manager] Initialization failed: %s from the preference file %s", 
+                  status.getErrorMessage(), envVariableValue);
+            }
+            else
+            {
+               AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
+            }
          }
       }
    }
