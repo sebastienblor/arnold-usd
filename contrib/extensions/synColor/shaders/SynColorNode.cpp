@@ -197,12 +197,12 @@ namespace
             status = SYNCOLOR::setLoggerFunction(ColorManagerData::logger);
             if(status)
             {
-#ifdef _LINUX
-               // FIXME : temporary change to be replaced, we don't use c++11 on linux
-               const std::string filename = "/tmp/syncolor";
-#else
+#ifdef _WIN32
                std::FILE* tmpf = std::tmpfile();
                const std::string filename(std::to_string(_fileno(tmpf)).c_str());
+#else
+               // FIXME : temporary change to be replaced, we don't use c++11 on linux
+               const std::string filename = "/tmp/syncolor";
 #endif
                std::ofstream ofs(filename, std::ofstream::out);
 
