@@ -159,7 +159,7 @@
     <sep desc="Search Path"/>
     <attrString n="ai:sppg" s="defaultArnoldRenderOptions.plugins_path" t="string" h="Plugins search path."/>
     <attrString n="ai:sppr" s="defaultArnoldRenderOptions.procedural_searchpath" t="string" h="Procedurals search path."/>
-    <attrString n="ai:spsh" s="defaultArnoldRenderOptions.shader_searchpath" t="string" h="Shaders search path."/>
+    <attrString n="ai:spsh" s="defaultArnoldRenderOptions.plugin_searchpath" t="string" h="Plugin search path."/>
     <attrString n="ai:sptx" s="defaultArnoldRenderOptions.texture_searchpath" t="string" h="Textures search path."/>    
     <sep/>
     <!-- ______________________________________________________________ -->

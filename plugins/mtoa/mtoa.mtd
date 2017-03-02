@@ -36,6 +36,7 @@
 # two_sided                   0x00115D59
 
 
+# For the Maya IDs, please refer to nodes/ArnoldNodeIDs.h where each of them is listed
 
 
 # options
@@ -1676,11 +1677,12 @@
     maya.id                 INT     0x00115D55  
     maya.classification     STRING  "shader/surface"
 
-[node osl_shader]
+[node osl]
     desc                    STRING  "OSL-based shader"
     maya.name               STRING  "aiOslShader"
     maya.id                 INT     0x00115D56  
     maya.classification     STRING  "shader/surface"
+    maya.hide               BOOL    True
 
 
 
@@ -2288,8 +2290,12 @@ desc STRING "Multiplies the curvature by this factor."
     maya.swatch             BOOL    True
 
 
-[node rgb_to_rgba]
-    maya.hide               BOOL    True
+[node shuffle]
+    maya.id                 INT     0x00115D83
+    maya.name               STRING  "aiShuffle"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    True
+
 
 [node rgb_to_vector]
     maya.hide               BOOL    True

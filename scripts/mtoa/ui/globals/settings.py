@@ -941,9 +941,9 @@ def createArnoldPathSettings():
                         label="Procedural Search Path",
                         attribute='defaultArnoldRenderOptions.procedural_searchpath')
 
-    pm.attrControlGrp('os_shader_searchpath',
-                        label="Shader Search Path",
-                        attribute='defaultArnoldRenderOptions.shader_searchpath')
+    pm.attrControlGrp('os_plugin_searchpath',
+                        label="Plugin Search Path",
+                        attribute='defaultArnoldRenderOptions.plugin_searchpath')
 
     pm.attrControlGrp('os_texture_searchpath',
                         label="Texture Search Path",

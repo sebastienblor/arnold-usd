@@ -84,7 +84,7 @@ MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
 MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
-MObject CArnoldOptionsNode::s_shader_searchpath;
+MObject CArnoldOptionsNode::s_plugin_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
 MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
@@ -508,10 +508,10 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setDefault(sData.create(""));
    addAttribute(s_procedural_searchpath);
 
-   s_shader_searchpath = tAttr.create("shader_searchpath", "sspath", MFnData::kString);
+   s_plugin_searchpath = tAttr.create("plugin_searchpath", "sspath", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
-   addAttribute(s_shader_searchpath);
+   addAttribute(s_plugin_searchpath);
 
    s_texture_searchpath = tAttr.create("texture_searchpath", "tspath", MFnData::kString);
    tAttr.setKeyable(false);

@@ -75,8 +75,8 @@ MObject CArnoldVolumeShape::s_padding;
 MObject CArnoldVolumeShape::s_velocity_grids;
 MObject CArnoldVolumeShape::s_velocity_scale;
 MObject CArnoldVolumeShape::s_velocity_fps;
-MObject CArnoldVolumeShape::s_velocity_shutter_start;
-MObject CArnoldVolumeShape::s_velocity_shutter_end;
+MObject CArnoldVolumeShape::s_motion_start;
+MObject CArnoldVolumeShape::s_motion_end;
 MObject CArnoldVolumeShape::s_velocity_threshold;
 
 
@@ -234,15 +234,15 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_velocity_fps);
    
-   s_velocity_shutter_start = nAttr.create("velocityShutterStart", "vShutterStart", MFnNumericData::kFloat, -0.25f);
+   s_motion_start = nAttr.create("motionStart", "MotionStart", MFnNumericData::kFloat, -0.25f);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
-   addAttribute(s_velocity_shutter_start);
+   addAttribute(s_motion_start);
    
-   s_velocity_shutter_end = nAttr.create("velocityShutterEnd", "vShutterEnd", MFnNumericData::kFloat, 0.25f);
+   s_motion_end = nAttr.create("motionEnd", "motionEnd", MFnNumericData::kFloat, 0.25f);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
-   addAttribute(s_velocity_shutter_end);
+   addAttribute(s_motion_end);
 
    s_velocity_threshold = nAttr.create("velocityThreshold", "vThreshold", MFnNumericData::kFloat, 0.001f);
    nAttr.setStorable(true);
@@ -289,8 +289,8 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
       plug == s_velocity_grids ||
       plug == s_velocity_scale ||
       plug == s_velocity_fps ||
-      plug == s_velocity_shutter_start ||
-      plug == s_velocity_shutter_end || 
+      plug == s_motion_start ||
+      plug == s_motion_end || 
       plug == s_velocity_threshold  
       )
 	{

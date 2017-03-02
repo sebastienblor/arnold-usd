@@ -94,8 +94,8 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("autoTx", label="Auto-generate TX Textures")
         self.addSeparator()
         
-        self.addControl("ignoreMissingTiles", label="Ignore Missing Tiles")
-        self.addControl("missingTileColor", label="Missing Tile Color")
+        self.addControl("ignoreMissingTextures", label="Ignore Missing Textures")
+        self.addControl("missingTextureColor", label="Missing Texture Color")
         self.endLayout()
         
         self.beginLayout("UV Coordinates", collapse=True)

@@ -225,7 +225,7 @@ public:
    inline const MObject& GetArnoldRenderOptions() const { return m_options; }
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
 
-   MString GetShaderSearchPath() const { return m_shader_searchpath; }
+   MString GetPluginSearchPath() const { return m_plugin_searchpath; }
    int GetLogConsoleVerbosity() const;
    int GetLogFileVerbosity() const;
 
@@ -252,7 +252,7 @@ private:
    MString m_imageFileExtension;
    MString m_imageFilename;
    MString m_panel;
-   MString m_shader_searchpath;
+   MString m_plugin_searchpath;
 
    float m_pixelAspectRatio;
    float m_startFrame;

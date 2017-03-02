@@ -73,8 +73,8 @@ private:
    static MObject s_velocity_grids;
    static MObject s_velocity_scale;
    static MObject s_velocity_fps;
-   static MObject s_velocity_shutter_start;
-   static MObject s_velocity_shutter_end;
+   static MObject s_motion_start;
+   static MObject s_motion_end;
    static MObject s_velocity_threshold;
    
 

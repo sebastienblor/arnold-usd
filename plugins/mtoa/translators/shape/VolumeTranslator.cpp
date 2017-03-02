@@ -224,11 +224,11 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeDeclare( volume, "velocity_fps", "constant FLOAT" );
       AiNodeSetFlt(volume, "velocity_fps", m_DagNode.findPlug("velocityFps").asFloat());
       
-      AiNodeDeclare( volume, "velocity_shutter_start", "constant FLOAT" );
-      AiNodeSetFlt(volume, "velocity_shutter_start", m_DagNode.findPlug("velocityShutterStart").asFloat());
+      AiNodeDeclare( volume, "motion_start", "constant FLOAT" );
+      AiNodeSetFlt(volume, "motion_start", m_DagNode.findPlug("motionStart").asFloat());
       
-      AiNodeDeclare( volume, "velocity_shutter_end", "constant FLOAT" );
-      AiNodeSetFlt(volume, "velocity_shutter_end", m_DagNode.findPlug("velocityShutterEnd").asFloat());
+      AiNodeDeclare( volume, "motion_end", "constant FLOAT" );
+      AiNodeSetFlt(volume, "motion_end", m_DagNode.findPlug("motionEnd").asFloat());
       
       AiNodeDeclare(volume, "bounds_slack", "constant FLOAT" );
       AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("padding").asFloat());

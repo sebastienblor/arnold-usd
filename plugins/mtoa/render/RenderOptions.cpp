@@ -37,7 +37,7 @@ extern AtNodeMethods* mtoa_driver_mtd;
 
 CRenderOptions::CRenderOptions() 
 : m_log_filename(""),
-  m_shader_searchpath(""),
+  m_plugin_searchpath(""),
   m_pixelAspectRatio(1.0f),
   m_minx(0), m_miny(0), m_maxx(0), m_maxy(0),
   m_width(0), m_height(0),
@@ -199,7 +199,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity").asInt());
 
-      m_shader_searchpath = fnArnoldRenderOptions.findPlug("shader_searchpath").asString();
+      m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath").asString();
 
       status = MStatus::kSuccess;
    }

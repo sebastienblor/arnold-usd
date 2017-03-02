@@ -104,7 +104,7 @@ public:
    
    static MObject s_texture_searchpath;
    static MObject s_procedural_searchpath;
-   static MObject s_shader_searchpath;
+   static MObject s_plugin_searchpath;
    
    static MObject s_user_options;
    
