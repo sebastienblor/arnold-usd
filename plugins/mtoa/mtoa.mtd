@@ -1363,7 +1363,7 @@
     desc                    STRING  "This shader can be used to display ambient occlusion on a geometry."
     maya.name               STRING  "aiAmbientOcclusion"
     maya.id                 INT     0x00115D07  
-    maya.classification     STRING  "utility/shader"
+    maya.classification     STRING  "shader/surface"
     [attr falloff]
         min                 FLOAT   0.0
         softmax             FLOAT   100.0
@@ -1384,7 +1384,7 @@
     desc                    STRING  "This shader can be used to display the edge structure of a geometry."
     maya.name               STRING  "aiWireframe"
     maya.id                 INT     0x00115D08
-    maya.classification     STRING  "utility/shader"
+    maya.classification     STRING  "shader/surface"
     [attr line_width]
         desc                STRING  "Width of edges lines."
         min                 FLOAT   0.0
@@ -2301,7 +2301,7 @@ desc STRING "Multiplies the curvature by this factor."
 [node shadow_matte]
 maya.id                 INT     0x00115D19
 maya.name               STRING  "aiShadowMatte"
-maya.classification     STRING  "utility/shader"
+maya.classification     STRING  "shader/surface"
 maya.swatch             BOOL    False
 
     [attr backlighting]
@@ -2371,6 +2371,10 @@ maya.swatch             BOOL    False
     maya.classification     STRING  "shader/surface"
     maya.swatch             BOOL    True
 
+    [attr index]
+    min INT 0
+    min INT 19
+    
 #enable thin_film
 [node thin_film]
 maya.id                 INT     0x00118F92

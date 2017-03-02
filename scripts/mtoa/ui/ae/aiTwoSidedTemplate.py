@@ -2,30 +2,24 @@ import pymel.core as pm
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def frontAttrReplace(plugName):
+def TwoSidedAttrReplace(plugName):
     nodeAndAttrs = plugName.split(".")
     node = nodeAndAttrs[0]
-    cmds.attrNavigationControlGrp("aiTwoSidedFrontCtrl", edit=True, attribute=("%s.front" % node))
+    ctrlName = "aiTwoSided"
+    ctrlName += nodeAndAttrs[1]
 
-def frontAttrNew(plugName):
+    cmds.attrNavigationControlGrp(ctrlName, edit=True, attribute=(plugName),  cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
+
+def TwoSidedAttrNew(plugName):
     pm.setUITemplate('attributeEditorTemplate', pst=True)
-    cmds.attrNavigationControlGrp("aiTwoSidedFrontCtrl", label="Front Shader", cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
-    pm.setUITemplate(ppt=True)
 
-    frontAttrReplace(plugName)
-
-
-def backAttrReplace(plugName):
     nodeAndAttrs = plugName.split(".")
-    node = nodeAndAttrs[0]
-    cmds.attrNavigationControlGrp("aiTwoSidedBackCtrl", edit=True, attribute=("%s.back" % node))
+    ctrlName = "aiTwoSided"
+    ctrlName += nodeAndAttrs[1]
 
-def backAttrNew(plugName):
-    pm.setUITemplate('attributeEditorTemplate', pst=True)
-
-    cmds.attrNavigationControlGrp("aiTwoSidedBackCtrl", label="Back Shader", cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
+    cmds.attrNavigationControlGrp(ctrlName, label=nodeAndAttrs[1], cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
     pm.setUITemplate(ppt=True)
-    backAttrReplace(plugName)
+    TwoSidedAttrReplace(plugName)
 
 
 class AEaiTwoSidedTemplate(ShaderAETemplate):
@@ -33,9 +27,11 @@ class AEaiTwoSidedTemplate(ShaderAETemplate):
         self.addSwatch()
         self.beginScrollLayout()
 
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+
         self.beginLayout("Two-Sided", collapse=False)
-        self.addCustom("front", frontAttrNew, frontAttrReplace)
-        self.addCustom("back", backAttrNew, backAttrReplace)
+        self.addCustom("front", TwoSidedAttrNew, TwoSidedAttrReplace)
+        self.addCustom("back", TwoSidedAttrNew, TwoSidedAttrReplace)
         self.endLayout()
         
         pm.mel.AEdependNodeTemplate(self.nodeName)

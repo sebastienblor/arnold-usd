@@ -391,6 +391,16 @@ namespace // <anonymous>
                                     CAiRaySwitchTranslator::creator,
                                     CAiRaySwitchTranslator::NodeInitializer);
 
+      builtin->RegisterTranslator("aiMixShader",
+                                    "",
+                                    CAiMixShaderTranslator::creator,
+                                    CAiMixShaderTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiSwitchShader",
+                                    "",
+                                    CAiSwitchShaderTranslator::creator,
+                                    CAiSwitchShaderTranslator::NodeInitializer);
+
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",

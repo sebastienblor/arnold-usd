@@ -11,8 +11,6 @@ class AEaiStandardVolumeTemplate(ShaderAETemplate):
         self.addSwatch()
 
         self.beginScrollLayout()
-
-        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
         self.beginLayout("Volume", collapse=False)
         self.addControl("density",  label="Density", annotation="Volume Density")

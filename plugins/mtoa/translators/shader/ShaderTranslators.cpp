@@ -1775,6 +1775,177 @@ void CAiRaySwitchTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputRGBA(data);
 }
 
+// MIX SHADER : presented as the "closure" version.
+// But if someone uses it in the middle of the shading tree to mix between different shaders, 
+// we switch to the "rgba" version
+AtNode* CAiMixShaderTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlugArray conns;
+   static MStringArray attributeNames;
+
+   if (attributeNames.length() == 0)
+   {
+      attributeNames.append("shader1");
+      attributeNames.append("shader2");
+   }
+
+   bool hasRGB = false;
+   for (unsigned int i = 0; i < attributeNames.length(); ++i)
+   {
+      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      if (inputPlug.isNull())
+         continue;
+
+      // check if this attribute is connected
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+
+      // export the connected node
+      AtNode *camNode = ExportConnectedNode(conns[0]);
+      if (camNode == NULL)
+         continue;
+
+      // check if the output type of the arnold node is closure or not
+      if (AiNodeEntryGetOutputType(AiNodeGetNodeEntry(camNode)) != AI_TYPE_CLOSURE)
+      {
+         hasRGB = true;
+         break;
+      }
+   }
+
+   if (hasRGB)
+      return AddArnoldNode("mix_rgba");
+   
+   return AddArnoldNode("mix_shader");
+}
+
+void CAiMixShaderTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "shader1", AI_TYPE_CLOSURE, "shader1");
+   ProcessParameter(shader, "shader2", AI_TYPE_CLOSURE, "shader2");
+   ProcessParameter(shader, "mix", AI_TYPE_RGB, "mix");
+   ProcessParameter(shader, "mode", AI_TYPE_INT, "mode");
+}
+
+void CAiMixShaderTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "mix_shader");
+   CAttrData data;
+
+   data.defaultValue.RGBA() = AI_RGBA_ZERO;
+   data.keyable = true;
+   data.linkable = true;
+   data.name = "shader1";
+   data.shortName = "shader1";
+   helper.MakeInputRGBA(data);
+
+   data.name = "shader2";
+   data.shortName = "shader2";
+   helper.MakeInputRGBA(data);
+
+   data.defaultValue.RGB() = AtRGB(0.5 ,0.5, 0.5);
+   data.name = "mix";
+   data.shortName = "mix";
+   helper.MakeInputRGBA(data);
+
+   data.defaultValue.INT() = 0;
+   data.name = "mode";
+   data.shortName = "mode";
+   data.enums.append("blend");
+   data.enums.append("add");
+   helper.MakeInputEnum(data);  
+}
+
+
+// SWITCH SHADER
+
+AtNode* CAiSwitchShaderTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlugArray conns;
+   static MStringArray attributeNames;
+
+   if (attributeNames.length() == 0)
+   {
+      for (unsigned int i = 0; i < 20; ++i)
+      {
+         MString attrName = "input";
+         attrName += (int)i;
+         attributeNames.append(attrName);
+      }
+   }
+
+   bool hasRGB = false;
+   for (unsigned int i = 0; i < attributeNames.length(); ++i)
+   {
+      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      if (inputPlug.isNull())
+         continue;
+
+      // check if this attribute is connected
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+
+      // export the connected node
+      AtNode *camNode = ExportConnectedNode(conns[0]);
+      if (camNode == NULL)
+         continue;
+
+      // check if the output type of the arnold node is closure or not
+      if (AiNodeEntryGetOutputType(AiNodeGetNodeEntry(camNode)) != AI_TYPE_CLOSURE)
+      {
+         hasRGB = true;
+         break;
+      }
+   }
+
+   if (hasRGB)
+      return AddArnoldNode("switch_rgba");
+   
+   return AddArnoldNode("switch_shader");
+}
+
+void CAiSwitchShaderTranslator::Export(AtNode* shader)
+{
+   for (unsigned int i = 0; i < 20; ++i)
+   {
+      MString attrName = "input";
+      attrName += (int)i;
+      ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
+   }
+}
+
+void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "switch_shader");
+   CAttrData data;
+
+   data.defaultValue.INT() = 0;
+   data.keyable = true;
+   data.linkable = true;
+   data.name = "index";
+   data.shortName = "index";
+   helper.MakeInputInt(data);
+
+   data.defaultValue.RGBA() = AI_RGBA_ZERO;
+   data.keyable = true;
+   data.linkable = true;
+
+   for (unsigned int i = 0; i < 20; ++i)
+   {
+      MString attrName = "input";
+      attrName += (int)i;
+      data.name = attrName;
+      data.shortName = attrName;
+      helper.MakeInputRGBA(data);
+   }
+}
+
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
 {
 

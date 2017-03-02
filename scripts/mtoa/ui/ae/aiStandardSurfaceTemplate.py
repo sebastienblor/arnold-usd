@@ -130,15 +130,10 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.endLayout()
         
 
-# FIXME Arnold5 Found no attribute match for "aiStandardSurface1.color"
         self.beginLayout("Hardware Texturing", collapse=True)
-        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
+        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("base_color emission_color ")')
         self.endLayout()
-
-        #FIXME Arnold5 which are the aovs ?
-        self.addAOVLayout(aovReorder = ['direct_diffuse', 'indirect_diffuse', 'direct_specular', 'indirect_specular',
-                                        'reflection', 'refraction', 'refraction_opacity', 'emission', 'sss', 'direct_sss', 'indirect_sss'])
-
+        
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
 

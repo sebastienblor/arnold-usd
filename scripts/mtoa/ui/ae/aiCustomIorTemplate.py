@@ -41,8 +41,6 @@ class AEaiCustomIorTemplate(ShaderAETemplate):
         self.addSwatch()
        
         self.beginScrollLayout()
-        
-        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.addControl('material', label='Material')
         self.addControl('mode', changeCommand=self.updateParamsVisibility, label='Mode')

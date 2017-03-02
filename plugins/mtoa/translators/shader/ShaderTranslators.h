@@ -155,7 +155,24 @@ public:
    virtual void Export(AtNode* shader);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
-private:
-   MString m_colorSpace;
+
 };
 
+class CAiSwitchShaderTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiSwitchShaderTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+
+};
+
+class CAiMixShaderTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiMixShaderTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
