@@ -1347,7 +1347,7 @@
     desc                    STRING  "This shader can be used to display various info on a geometry."
     maya.name               STRING  "aiUtility"
     maya.id                 INT     0x00115D03
-    maya.classification     STRING  "utility/shader"
+    maya.classification     STRING  "shader/surface"
 
     [attr opacity]
         min                 FLOAT 0.0

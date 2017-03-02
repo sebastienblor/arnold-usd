@@ -130,6 +130,5 @@ public:
 
    static MObject s_offset_origin;
    static MObject s_origin;
-   static MObject s_legacyLightTemperature;
    
 };  // class CArnoldOptionsNode

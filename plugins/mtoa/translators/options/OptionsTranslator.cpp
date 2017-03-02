@@ -919,24 +919,7 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    } else if (plugName.length() > 4 && plugName.substringW(0, 3) == "log_")
    {
       m_impl->m_session->RequestUpdateOptions();
-   } else if (plugName == "legacyLightTemperature")
-   {
-      // dirty all lights in the scene
-      MDagPath lightPath;
-      MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
-
-      for (; (!dagIterLights.isDone()); dagIterLights.next())
-      {
-         if (dagIterLights.getPath(lightPath))
-         {
-            CNodeTranslator *lightTr = GetTranslator(lightPath);
-            if (lightTr)
-               lightTr->RequestUpdate();
-            
-         }
-      }
-   
-   }
+   } 
 
    CNodeTranslator::NodeChanged(node, plug);
 }

@@ -102,7 +102,6 @@ MObject CArnoldOptionsNode::s_render_unit;
 MObject CArnoldOptionsNode::s_scene_scale;
 MObject CArnoldOptionsNode::s_offset_origin;
 MObject CArnoldOptionsNode::s_origin;
-MObject CArnoldOptionsNode::s_legacyLightTemperature;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -627,11 +626,5 @@ MStatus CArnoldOptionsNode::initialize()
    s_origin = mAttr.create("origin", "orig");
    mAttr.setKeyable(false);
    addAttribute(s_origin);
-
-   s_legacyLightTemperature = nAttr.create("legacyLightTemperature", "legacyLightTemperature", MFnNumericData::kBoolean);
-   nAttr.setDefault(false);
-   nAttr.setKeyable(false);
-   addAttribute(s_legacyLightTemperature);
-
    return MS::kSuccess;
 }
