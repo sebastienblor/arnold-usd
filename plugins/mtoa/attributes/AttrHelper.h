@@ -76,7 +76,10 @@ struct CAttrData
                   hasSoftMax(false),
                   keyable(true),
                   linkable(true),
-                  channelBox(false)   {}
+                  channelBox(false)
+   {
+      memset(&defaultValue, 0, sizeof(AtParamValue));
+   }
 };
 
 struct CCompoundAttrData
