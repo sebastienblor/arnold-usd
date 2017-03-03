@@ -230,9 +230,13 @@ namespace
 
                   filename = tmpFilename;
                }
-
+#ifdef _WIN32               
+               unsigned int SynColorSharedMissing = SYNCOLOR::ERROR_XML_CATALOG_MANAGER_SHARED_CATALOG_MISSING;
+#else
+               unsigned int SynColorSharedMissing = SYNCOLOR::ERROR_XML_CATALOG_MANAGER_SHARED_CATALOG_ERROR;
+#endif
                status = SYNCOLOR::configureAsStandalone(filename.c_str());
-               if(status.getErrorCode()==SYNCOLOR::ERROR_XML_CATALOG_MANAGER_SHARED_CATALOG_MISSING)
+               if(status.getErrorCode()==SynColorSharedMissing)
                {
                   // Most of the time a scene will not contain any custom transforms
                   // so the error is not a show-stopper.
