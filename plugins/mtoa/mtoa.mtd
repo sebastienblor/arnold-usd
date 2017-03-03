@@ -1300,7 +1300,7 @@
         linkable        BOOL    False
         keyable         BOOL    False
     [attr transmission_scatter_anisotropy]
-        min             FLOAT   0.0
+        min             FLOAT   -1.0
         max             FLOAT   1.0
     [attr transmission_dispersion]
         min             FLOAT   0.0
