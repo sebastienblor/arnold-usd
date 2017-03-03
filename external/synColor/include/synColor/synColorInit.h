@@ -60,6 +60,16 @@ namespace SYNCOLOR
   //! \return a string containing the SynColor version.
   //
   SYN_EXPORT const char* getVersionString();
+ 
+  //! \brief Refresh the synColor instance
+  //
+  //! The refresh implies to flush any caches used by SynColor
+  //
+  //! \return returns a SYNCOLOR::SynStatus. Check the error code to
+  //!         determine if an error occurred. See SYNCOLOR::SynStatus in
+  //!         SynColor/synStatus.h.
+  //
+  SYN_EXPORT SynStatus refresh();
 };
 
 SYN_VISIBILITY_POP

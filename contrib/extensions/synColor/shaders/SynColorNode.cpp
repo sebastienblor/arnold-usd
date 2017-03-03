@@ -230,29 +230,18 @@ namespace
 
                   filename = tmpFilename;
                }
-#ifdef _WIN32               
-               unsigned int SynColorSharedMissing = SYNCOLOR::ERROR_XML_CATALOG_MANAGER_SHARED_CATALOG_MISSING;
-#else
-               unsigned int SynColorSharedMissing = SYNCOLOR::ERROR_XML_CATALOG_MANAGER_SHARED_CATALOG_ERROR;
-#endif
                status = SYNCOLOR::configureAsStandalone(filename.c_str());
-               if(status.getErrorCode()==SynColorSharedMissing)
-               {
-                  // Most of the time a scene will not contain any custom transforms
-                  // so the error is not a show-stopper.
-                  status = SYNCOLOR::SynStatus();
-               }
-
-#if MAYA_API_VERSION >= 201800
                if(!status)
                {
+                  AiMsgWarning("[color_manager] Error: %s", status.getErrorMessage());
+
                   // Try to survive to unexpected issue by creating the preferences from scratch.
                   // It should never happen within Maya; however it could happen if used 
                   // with kick (a tool without its own synColor catalog installation).
                   status 
                      = SYNCOLOR::configurePaths(colorData->m_native_catalog_path, filename.c_str(), colorData->m_custom_catalog_path);
                }
-#endif
+
                if(!useEnvVariable)
                {
                   remove(filename.c_str());
