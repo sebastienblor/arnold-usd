@@ -44,7 +44,7 @@ if system.os() =='windows':
       library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'windows')
 
    shader_env.Append(LIBPATH = [library_path])
-   shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/synColor*.dll"))
+   #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/synColor*.dll"))
 
 else:
    shader_env.Append(LIBS=Split('ai'))
@@ -55,11 +55,11 @@ else:
    if system.os() =='darwin':
       library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'darwin')
       shader_env.Append(LIBPATH = [library_path])
-      shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor*.dylib"))
+      #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor*.dylib"))
    else:
       library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'linux')
       shader_env.Append(LIBPATH = [library_path])
-      shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor.so.*"))
+      #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor.so.*"))
 
 EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREFIX='')
 

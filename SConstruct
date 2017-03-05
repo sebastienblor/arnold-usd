@@ -1078,7 +1078,14 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
     PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
-    
+
+    # for Maya 2018, on windows we also need to copy the syncolor dll
+    if (int(maya_version) >= 201800):
+        if system.os() == 'windows':    
+            syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
+            PACKAGE_FILES.append(glob.glob(syncolor_library_path + "/synColor*.dll"))
+        
+            
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
