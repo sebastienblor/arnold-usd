@@ -2428,7 +2428,7 @@ void CArnoldSession::ExportTxFiles()
    
    bool progressStarted = false;
    bool invalidProgressWin = false;
-   unsigned int num_jobs_left = 1;
+   unsigned int num_jobs_left = listTextures.size();
    while ( num_jobs_left > 0)
    {
       num_jobs_left = AiMakeTxWaitJob(status, source_filenames, num_submitted_textures);

@@ -58,6 +58,16 @@ class MakeTxThread (threading.Thread):
         utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True);
         maya_version = versions.shortName()
     
+
+        render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
+
+        cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
+
+        textureList = []
+
+        ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'lineEdit']);
+        arg_options = utils.executeInMainThreadWithResult(cmds.textField, ctrlPath, query=True, text=True)
+
         for textureLine in self.txManager.selectedItems:
             texture = textureLine[0]
             print texture
@@ -107,21 +117,71 @@ class MakeTxThread (threading.Thread):
                 if result == 'Cancel':
                     break
 
+
             # Process all the files that were found previously for this texture (eventually multiple tokens)
             for inputFile in textureLine[4]:
-                # here inputFile is already expanded, and only corresponds to existing files
 
-                if not self.txManager.process:
-                    # stopCreation has been called
-                    break;
+                txArguments = arg_options
 
-                status = self.runMakeTx(inputFile, colorSpace)
-                self.filesCreated += status[0]
-                self.createdErrors += status[2]
+                if cmEnable == True and colorSpace != render_colorspace:
+                    txArguments += ' --colorconvert "'
+                    txArguments += colorSpace
+                    txArguments += '" "'
+                    txArguments += render_colorspace
+                    txArguments += '"'
+
+                # need to invalidate the TX texture from the cache
+                outputTx = os.path.splitext(inputFile)[0] + '.tx'
+                AiTextureInvalidate(outputTx)
+
+                textureList.append([inputFile, txArguments])
+
+
+        self.txManager.filesToCreate = len(textureList)
+
+        # Now I have a list of textures to be converted
+        # let's give  this list to arnold
+        for textureToConvert in textureList:
+            AiMakeTx(textureToConvert[0], textureToConvert[1])
+
+        status = POINTER(AtMakeTxStatus)()
+        source_files = POINTER(AtPythonString)()
+        num_submitted = c_uint()
+        num_jobs_left = 1   # default to arbitrary value > 0
+
+        self.createdErrors = 0
+        self.filesCreated = 0
+
+        while (num_jobs_left > 0):
+            if not self.txManager.process:
+                 # stopCreation has been called
+                break
+
+            num_jobs_left = AiMakeTxWaitJob(byref(status), byref(source_files), byref(num_submitted))
+
+        if (num_submitted.value > len(textureList)):
+            AiMsgFatal("There are more submitted textures than there are textures! "
+                      "Queue should have been cleared!")
+
+        for i in range(0, num_submitted.value):
+            
+            if (status[i] == AiTxUpdated):
+                self.filesCreated += 1
+                AiMsgInfo("%d: %s was updated", i, source_files[i])
+            elif (status[i] == AiTxError):
+                self.createdErrors += 1
+                AiMsgInfo("%d: %s could not be updated", i, source_files[i])
+            
+
+            # need to invalidate the TX texture from the cache
+            outputTx = os.path.splitext(source_files[i])[0] + '.tx'
+            if outputTx[0] == '"':
+                outputTx = outputTx[1:]
+
+            AiTextureInvalidate(outputTx)
                     
-                utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
-
-        
+        utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
+                
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
         utils.executeDeferred(cmds.button, ctrlPath, edit=True, enable=False);
         self.txManager.process = True
@@ -572,7 +632,7 @@ class MtoATxManager(object):
         for textureLine in self.selectedItems:
             texture = textureLine[0]
             if not texture:
-                continue;
+                continue
 
             # loop over the previously listed files
             for inputFile in textureLine[4]:
