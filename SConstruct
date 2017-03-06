@@ -1083,7 +1083,7 @@ else:
     if (int(maya_version) >= 201800):
         if system.os() == 'windows':    
             syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
-            PACKAGE_FILES.append(glob.glob(syncolor_library_path + "/synColor*.dll"))
+            PACKAGE_FILES.append([os.path.join(syncolor_library_path, 'synColor*.dll')])
         
             
 if (int(maya_version) >= 201700):
