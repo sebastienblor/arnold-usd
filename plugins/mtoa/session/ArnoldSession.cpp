@@ -2285,6 +2285,8 @@ void CArnoldSession::ExportTxFiles()
    std::vector<AtNode *> listNodes;
    MStringArray  listFullPaths;
 
+   MString txFilename;
+
 
    listNodes.reserve(textureNodes.size());
    listTextures.reserve(textureNodes.size());
@@ -2400,6 +2402,10 @@ void CArnoldSession::ExportTxFiles()
       for (unsigned int t = 0; t < expandedFilenames.length(); ++t)
       {
          listTextures.push_back(expandedFilenames[t].asChar());
+         txFilename = expandedFilenames[t].substring(0, expandedFilenames[t].rindexW(".")) + MString("tx");
+         // need to invalidate the TX file from the cache otherwise the conversion to TX will faill on windows
+         AiTextureInvalidate(AtString(txFilename.asChar()));
+
          listArguments.push_back(txArguments);
       }
    }
@@ -2422,41 +2428,48 @@ void CArnoldSession::ExportTxFiles()
    
    bool progressStarted = false;
    bool invalidProgressWin = false;
-
-   while (unsigned int num_jobs_left = AiMakeTxWaitJob(status, source_filenames, num_submitted_textures))
+   unsigned int num_jobs_left = 1;
+   while ( num_jobs_left > 0)
    {
+      num_jobs_left = AiMakeTxWaitJob(status, source_filenames, num_submitted_textures);
+
       if (num_jobs_left >= num_submitted_textures)
          continue; // can this even happen ?
-
-
-      if (!progressBar) // FIXME should we display some logs ?
-         continue;
-
+      
+      
       int index = num_submitted_textures - num_jobs_left - 1;
-
-      if (progressStarted == false && status[index] == AiTxUpdated)
+      
+      if (status[index] == AiTxError)
+         AiMsgError("[maketx] Couldn't convert the texture to TX %s", source_filenames[index]);
+      else if (status[index] == AiTxUpdated)
       {
-         // need to start progress bar
-         MProgressWindow::reserve();
-         MProgressWindow::setProgressRange(0, 100);
-         MProgressWindow::setTitle("Converting Images to TX");
-         MProgressWindow::setInterruptable(true);
+         AiMsgInfo("[maketx] Successfully converted texture to TX %s", source_filenames[index]);
 
-         progressStarted = true;
 
-         // if the progress bar was already cancelled before it started
-         // (it seems that it happens sometimes...), the we simply
-         // don't test for cancel anymore
-         if (MProgressWindow::isCancelled()) invalidProgressWin = true;
-         else
+         if ((progressBar) && (!progressStarted))
          {
-            MProgressWindow::startProgress();
-            // strange, but I need to change the value once so that it is displayed
-            MProgressWindow::setProgress(1);
-            MProgressWindow::setProgress(0);
+            // need to start progress bar
+            MProgressWindow::reserve();
+            MProgressWindow::setProgressRange(0, 100);
+            MProgressWindow::setTitle("Converting Images to TX");
+            MProgressWindow::setInterruptable(true);
+
+            progressStarted = true;
+
+            // if the progress bar was already cancelled before it started
+            // (it seems that it happens sometimes...), the we simply
+            // don't test for cancel anymore
+            if (MProgressWindow::isCancelled()) invalidProgressWin = true;
+            else
+            {
+               MProgressWindow::startProgress();
+               // strange, but I need to change the value once so that it is displayed
+               MProgressWindow::setProgress(1);
+               MProgressWindow::setProgress(0);
+            }
          }
       }
-      if ((!invalidProgressWin) && MProgressWindow::isCancelled()) 
+      if ((progressBar) && (!invalidProgressWin) && MProgressWindow::isCancelled()) 
       {
          // FIXME is there a way to interrupt the conversion ?
 
@@ -2472,7 +2485,7 @@ void CArnoldSession::ExportTxFiles()
          break;
       }
 
-      if (progressStarted)
+      if (progressBar && progressStarted)
       {
 
          // shouldn't happen, until last texture
@@ -2504,6 +2517,16 @@ void CArnoldSession::ExportTxFiles()
    if (progressBar && progressStarted)
       MProgressWindow::endProgress();
     
+   // invalidate these textures so that they're not in the cache anymore
+   for (unsigned int i = 0; i < listTextures.size(); ++i)
+   { 
+      txFilename = MString(listTextures[i].c_str()); 
+      txFilename = txFilename.substring(0, txFilename.rindexW(".")) + MString("tx");
+
+      // need to invalidate the TX files now that conversion was done (otherwise arnold keeps a handle to the file)
+      AiTextureInvalidate(AtString(txFilename.asChar()));     
+
+   }
 //============= Part 3 : Use existing TX. Loop over the list of nodes and eventually replace the extension
 //  by .tx. 
 
