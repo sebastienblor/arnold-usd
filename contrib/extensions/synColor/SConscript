@@ -39,7 +39,7 @@ if system.os() =='windows':
    if int(maya_version) >= 201800:
       shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'include')])
       library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
-      shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/synColor*.dll"))
+      #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/synColor*.dll"))
    else:
       shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')])
       library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'windows')

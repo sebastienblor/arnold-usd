@@ -746,6 +746,10 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         if 'maketx' in dylibElem:
             dylibs.remove(dylibElem)
         
+    if int(maya_version) >= 201800:
+        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
+        if os.path.exists(syncolor_library_path):
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/synColor*.dll"))
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
@@ -1083,7 +1087,7 @@ else:
     if (int(maya_version) >= 201800):
         if system.os() == 'windows':    
             syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
-            PACKAGE_FILES.append([os.path.join(syncolor_library_path, 'synColor*.dll')])
+            PACKAGE_FILES.append([glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll')), 'bin'])
         
             
 if (int(maya_version) >= 201700):
