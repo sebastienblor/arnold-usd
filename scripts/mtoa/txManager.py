@@ -58,6 +58,11 @@ class MakeTxThread (threading.Thread):
         utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True);
         maya_version = versions.shortName()
     
+        # first we need to make sure the options & color manager node were converted to arnold
+        arnoldUniverseActive = AiUniverseIsActive()
+
+        if not arnoldUniverseActive:
+            cmds.arnoldScene(mode='create')
 
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
 
@@ -186,6 +191,10 @@ class MakeTxThread (threading.Thread):
         utils.executeDeferred(cmds.button, ctrlPath, edit=True, enable=False);
         self.txManager.process = True
         utils.executeDeferred(self.txManager.updateList)
+
+        # an arnold scene was created above, let's delete it now
+        if not arnoldUniverseActive:
+            cmds.arnoldScene(mode="destroy")
 
 
 def GetTxList(txItems, filesCount):
@@ -659,6 +668,12 @@ def UpdateAllTx(force):
     filesCount.append(0)
     filesCount.append(0)
 
+    # first we need to make sure the options & color manager node were converted to arnold
+    arnoldUniverseActive = AiUniverseIsActive()
+
+    if not arnoldUniverseActive:
+        cmds.arnoldScene(mode='create')
+
     GetTxList(txItems, filesCount)
     totalFiles = filesCount[0]
     missingFiles = filesCount[1]
@@ -671,7 +686,11 @@ def UpdateAllTx(force):
         arg_options = "-u " + arg_options
 
     maya_version = versions.shortName()
-    
+   
+    render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
+    cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
+    textureList = []
+
     for textureLine in txItems:
         texture = textureLine[0]
         print '-filename ' + texture
@@ -707,13 +726,61 @@ def UpdateAllTx(force):
             if len(textureLine[4]) > 1:
                 print '  -'+inputFile
 
-            status = utils.executeInMainThreadWithResult( makeTx.makeTx, inputFile, colorspace=colorSpace, arguments=arg_options)
-            if status[1] > 0:
-                print 'TX file up-to-date'
-            
+            txArguments = arg_options
 
-            filesCreated += status[0]
-            createdErrors += status[2]
+            if cmEnable == True and colorSpace != render_colorspace:
+                txArguments += ' --colorconvert "'
+                txArguments += colorSpace
+                txArguments += '" "'
+                txArguments += render_colorspace
+                txArguments += '"'
+
+            # need to invalidate the TX texture from the cache
+            outputTx = os.path.splitext(inputFile)[0] + '.tx'
+            AiTextureInvalidate(outputTx)
+
+            textureList.append([inputFile, txArguments])
+
+
+    for textureToConvert in textureList:
+        AiMakeTx(textureToConvert[0], textureToConvert[1])
+
+    status = POINTER(AtMakeTxStatus)()
+    source_files = POINTER(AtPythonString)()
+    num_submitted = c_uint()
+    num_jobs_left = 1   # default to arbitrary value > 0
+
+    createdErrors = 0
+    filesCreated = 0
+
+    while (num_jobs_left > 0):
+        num_jobs_left = AiMakeTxWaitJob(byref(status), byref(source_files), byref(num_submitted))
+
+    if (num_submitted.value > len(textureList)):
+        AiMsgFatal("There are more submitted textures than there are textures! "
+                  "Queue should have been cleared!")
+
+    for i in range(0, num_submitted.value):
+       
+        if (status[i] == AiTxUpdated):
+            filesCreated += 1
+            AiMsgInfo("%d: %s was updated", i, source_files[i])
+        elif (status[i] == AiTxError):
+            createdErrors += 1
+            AiMsgError("%d: %s could not be updated", i, source_files[i])
+
+        # need to invalidate the TX texture from the cache
+        outputTx = os.path.splitext(source_files[i])[0] + '.tx'
+        if outputTx[0] == '"':
+            outputTx = outputTx[1:]
+
+        AiTextureInvalidate(outputTx)
+
+    # an arnold scene was created above, let's delete it now
+    if not arnoldUniverseActive:
+        cmds.arnoldScene(mode='destroy')
+
+         
             
 
 
