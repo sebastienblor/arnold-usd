@@ -393,7 +393,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("max_subdivisions");
 
    // textures
-#if MAYA_API_VERSION < 201700
+#if MAYA_API_VERSION < 201600
    s_attributes.MakeInput("texture_automip");
 #endif
    s_attributes.MakeInput("texture_autotile");
@@ -410,7 +410,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_autotile);
    
    int defaultAutoTx = 0;
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201600
    defaultAutoTx = 1;
 #endif
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, defaultAutoTx); 
