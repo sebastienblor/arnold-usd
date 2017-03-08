@@ -288,7 +288,7 @@ if int(maya_version_base) >= 2014:
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
 
-if int(maya_version) >= 201700:
+if int(maya_version) >= 201600:
     env["ENABLE_COLOR_MANAGEMENT"] = 1
     env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
     env["MTOA_AFM"] = 1

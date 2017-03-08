@@ -42,7 +42,8 @@ void CArnoldShaderNode::postConstructor()
 
    // should we do another Node for aiImage instead ?
 
-#ifdef ENABLE_COLOR_MANAGEMENT
+// the function connectDependencyNodeToColorManagement doesn't seem to exist before 2017
+#if MAYA_API_VERSION >= 201700
    if (typeName() == "aiImage")
    {
       MObject obj = thisMObject();
