@@ -238,7 +238,7 @@ shader_evaluate
       emission *= scaled_density;
 
       // create closure
-      sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorb, scatter, emission, the scattering coefficient is also supposed);
+      sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorb, scatter, emission);
    }
 }
 
