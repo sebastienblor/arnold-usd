@@ -1,34 +1,59 @@
 Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0040\test_0040.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
-Initialized VP2.0 renderer {
-  Version : 2016.3.18.11. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:10.18.13.5413.
-  API : OpenGL V.4.5.
-  Max texture size : 16384 * 16384.
-  Max tex coords : 32
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-  Shader compiler profile : (Best card profile)
-  Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
-}
-OpenCL evaluator is attempting to initialize OpenCL.
-Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
- Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+00:00:00   227MB         | log started Fri Feb 17 12:59:52 2017
+00:00:00   227MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   227MB         | running on REM8WCK8D2, pid=9040
+00:00:00   227MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   227MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   227MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   227MB         |  
+00:00:00   227MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   233MB WARNING | [mtoa] [bifrostTranslator] [node bifrostFoamMaterial] Assigning temporary node id 1138176 to associated Maya type name bifrostFoamMaterial.
+00:00:00   233MB WARNING | [mtoa] [bifrostTranslator] [node bifrostAeroMaterial] Assigning temporary node id 1138177 to associated Maya type name bifrostAeroMaterial.
+00:00:00   234MB WARNING | [mtoa] [synColor_plugins] [node syncolor_color_manager] There was not enough metadata information to automatically register a translator for that node, ignored.
+00:00:00   239MB WARNING | [mtoa] Extension bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll) requires Maya plugin bifrostvisplugin, registering will be deferred until plugin is loaded.
+00:00:00   239MB WARNING | [mtoa] Extension hairPhysicalShaderTranslator(C:/solidangle/mtoadeploy/2017/extensions/hairPhysicalShaderTranslator.dll) requires Maya plugin hairPhysicalShader, registering will be deferred until plugin is loaded.
+00:00:00   239MB WARNING | [mtoa] Extension xgenSplineTranslator(C:/solidangle/mtoadeploy/2017/extensions/xgenSplineTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+00:00:00   239MB WARNING | [mtoa] Extension xgenTranslator(C:/solidangle/mtoadeploy/2017/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: GPUBuiltInDeformer, deformerEvaluator, mtoa, renderSetup
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
+00:00:00   354MB         | log started Fri Feb 17 12:59:53 2017
+00:00:00   354MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   354MB         | running on REM8WCK8D2, pid=9040
+00:00:00   354MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   354MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   354MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   354MB         |  
+00:00:00   354MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   354MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   354MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+00:00:00   358MB         | log started Fri Feb 17 12:59:53 2017
+00:00:00   358MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   358MB         | running on REM8WCK8D2, pid=9040
+00:00:00   358MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   358MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   358MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   358MB         |  
+00:00:00   358MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   358MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   358MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 298: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 298: setAttr: No object matches name: .dgamma
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 299: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
@@ -39,9 +64,26 @@ Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/test.ma line 301: setAttr: No object matches name: .tgamma
 Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  1.2 seconds.
+File read in  2 seconds.
 Error: line 1: Error reading file.
+Error: line 1: RuntimeError: file C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\core\__init__.py line 160: (kInvalidParameter): No element at given index
+Warning: line 1: Python callback failed
 Error: line 1: Error reading file.
+00:00:00   361MB         | log started Fri Feb 17 12:59:54 2017
+00:00:00   361MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   361MB         | running on REM8WCK8D2, pid=9040
+00:00:00   361MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   361MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   361MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   361MB         |  
+00:00:00   361MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   361MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   361MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
 [maketx] Skipping native TX texture: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/uv.tx
 [maketx] Skipping native TX texture: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0040/uv.tx
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0040\test.ma completed.

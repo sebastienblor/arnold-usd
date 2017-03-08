@@ -2,8 +2,8 @@
 
 #include <cstdio>
 
-extern AtNodeMethods* BifrostFoamMaterialMtd;
-extern AtNodeMethods* BifrostAeroMaterialMtd;
+extern const AtNodeMethods* BifrostFoamMaterialMtd;
+extern const AtNodeMethods* BifrostAeroMaterialMtd;
 
 enum{
    SHADER_BIFROST_FOAM = 0,

@@ -34,8 +34,6 @@ MObject CArnoldMeshLightNode::s_colorG;
 MObject CArnoldMeshLightNode::s_colorB;
 MObject CArnoldMeshLightNode::s_color;
 MObject CArnoldMeshLightNode::s_intensity;
-MObject CArnoldMeshLightNode::s_affectDiffuse;
-MObject CArnoldMeshLightNode::s_affectSpecular;
 MObject CArnoldMeshLightNode::s_lightVisible;
 // Arnold outputs
 MObject CArnoldMeshLightNode::s_OUT_colorR;
@@ -135,21 +133,6 @@ void CArnoldMeshLightNode::AttrChangedCallback(MNodeMessage::AttributeMessage ms
       {
          node->m_aiCastVolumetricShadows = plug.asBool();
          updateShadowAttr = true;
-      }
-      else if (fnAttr.name() == "aiDecayType")
-      {
-         int decayType = plug.asInt();
-         int decayRate = 2;
-         if (decayType == 0)
-         {
-            decayRate = 0;
-         }
-         else
-         {
-            decayRate = 2;
-         }
-         MPlug plug2(node->thisMObject(), aDecayRate);
-         plug2.setValue( decayRate );
       }
       else if (fnAttr.name() == "aiShadowColor" ||
                fnAttr.name() == "aiShadowColorR" ||
@@ -339,18 +322,6 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
 
-   s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setChannelBox(false);
-   addAttribute(s_affectDiffuse);
-
-   s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setChannelBox(false);
-   addAttribute(s_affectSpecular);
-
    s_lightVisible = nAttr.create("lightVisible", "lightVisible", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -466,9 +437,7 @@ MStatus CArnoldMeshLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
-   attributeAffects(s_affectDiffuse, aLightData);
-   attributeAffects(s_affectSpecular, aLightData);
-
+   
 #if MAYA_API_VERSION >= 201700
    // Area light attributes for display control
    aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);

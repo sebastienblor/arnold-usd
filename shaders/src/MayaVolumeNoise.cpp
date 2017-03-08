@@ -79,35 +79,34 @@ static const char* FalloffTypeNames[] =
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
-   AiParameterFLT("threshold", 0.0f);
-   AiParameterFLT("amplitude", 1.0f);
-   AiParameterFLT("ratio", 0.707f);
-   AiParameterFLT("frequencyRatio", 2.0f);
-   AiParameterINT("depthMax", 3);
-   AiParameterBOOL("inflection", false);
-   AiParameterFLT("time", 0.0f);
-   AiParameterFLT("frequency", 8.0f);
-   AiParameterVEC("scale", 1.0f, 1.0f, 1.0f);
-   AiParameterPNT("origin", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("implode", 0.0f);
-   AiParameterPNT("implodeCenter", 0.0f, 0.0f, 0.0f);
-   AiParameterENUM("noiseType", 1, NoiseTypeNames);
-   AiParameterFLT("density", 1.0f); // for: billow
-   AiParameterFLT("spottyness", 0.1f); // for: billow
-   AiParameterFLT("sizeRand", 0.0f); // for: billow
-   AiParameterFLT("randomness", 1.0f); // for: billow
-   AiParameterENUM("falloff", 2, FalloffTypeNames); // for: billow
-   AiParameterINT("numWaves", 5); // for: VolumeWave
-   AiParameterMTX("placementMatrix", id);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterFlt("threshold", 0.0f);
+   AiParameterFlt("amplitude", 1.0f);
+   AiParameterFlt("ratio", 0.707f);
+   AiParameterFlt("frequencyRatio", 2.0f);
+   AiParameterInt("depthMax", 3);
+   AiParameterBool("inflection", false);
+   AiParameterFlt("time", 0.0f);
+   AiParameterFlt("frequency", 8.0f);
+   AiParameterVec("scale", 1.0f, 1.0f, 1.0f);
+   AiParameterVec("origin", 0.0f, 0.0f, 0.0f);
+   AiParameterFlt("implode", 0.0f);
+   AiParameterVec("implodeCenter", 0.0f, 0.0f, 0.0f);
+   AiParameterEnum("noiseType", 1, NoiseTypeNames);
+   AiParameterFlt("density", 1.0f); // for: billow
+   AiParameterFlt("spottyness", 0.1f); // for: billow
+   AiParameterFlt("sizeRand", 0.0f); // for: billow
+   AiParameterFlt("randomness", 1.0f); // for: billow
+   AiParameterEnum("falloff", 2, FalloffTypeNames); // for: billow
+   AiParameterInt("numWaves", 5); // for: VolumeWave
+   AiParameterMtx("placementMatrix", id);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AddMayaColorBalanceParams(params, nentry);
    
-   AiMetaDataSetStr(mds, NULL, "maya.name", "volumeNoise");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52545633);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "volumeNoise");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52545633);
 }
 
 node_initialize
@@ -132,10 +131,10 @@ shader_evaluate
    bool inflection = AiShaderEvalParamBool(p_inflection);
    float time = AiShaderEvalParamFlt(p_time);
    float frequency = AiShaderEvalParamFlt(p_frequency);
-   AtPoint origin = AiShaderEvalParamPnt(p_origin);
+   AtVector origin = AiShaderEvalParamVec(p_origin);
    AtVector scale = AiShaderEvalParamVec(p_scale);
    float implode = AiShaderEvalParamFlt(p_implode);
-   AtPoint implodeCenter = AiShaderEvalParamPnt(p_implodeCenter);
+   AtVector implodeCenter = AiShaderEvalParamVec(p_implodeCenter);
    int noiseType = AiShaderEvalParamInt(p_noiseType);
    float density = AiShaderEvalParamFlt(p_density);
    float spottyness = AiShaderEvalParamFlt(p_spottyness);
@@ -147,12 +146,10 @@ shader_evaluate
    bool wrap = AiShaderEvalParamBool(p_wrap);
    bool local = AiShaderEvalParamBool(p_local);
 
-   AtPoint P;
-
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -235,16 +232,16 @@ shader_evaluate
 
                   AtVector v, d;
 
-                  AiV3Create(v, tmp, 0, 0);
+                  v = AtVector(tmp, 0, 0);
                   d.x = AiPerlin3(v);
                   
-                  AiV3Create(v, 0, tmp, 0);
+                  v = AtVector(0, tmp, 0);
                   d.y = AiPerlin3(v);
                   
-                  AiV3Create(v, 0, 0, tmp);
+                  v = AtVector(0, 0, tmp);
                   d.z = AiPerlin3(v);
 
-                  AiV3Normalize(d, d);
+                  d = AiV3Normalize(d);
 
                   waveVal += (float) cos(twopi * AiV3Dot(P, d) + time);
                }
@@ -295,14 +292,14 @@ shader_evaluate
          break;
       }
 
-      noiseVal = CLAMP(noiseVal+threshold, 0.0f, 1.0f);
+      noiseVal = AiClamp(noiseVal+threshold, 0.0f, 1.0f);
 
-      AiRGBACreate(sg->out.RGBA, noiseVal, noiseVal, noiseVal, 1.0f);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(noiseVal, noiseVal, noiseVal, 1.0f);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

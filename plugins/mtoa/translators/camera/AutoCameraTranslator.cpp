@@ -46,7 +46,7 @@ void CAutoCameraTranslator::Export(AtNode* camera)
       else if (AiParamGetType(pentry) == AI_TYPE_ARRAY)
       {
          const AtParamValue* pvalue = AiParamGetDefault(pentry);
-         if (pvalue->ARRAY->type == AI_TYPE_FLOAT)
+         if (AiArrayGetType(pvalue->ARRAY()) == AI_TYPE_FLOAT)
          {
             m_exportFOV = true;
             m_fovAnimated = true;

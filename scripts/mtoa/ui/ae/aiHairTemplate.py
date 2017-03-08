@@ -20,7 +20,6 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.addSeparator()        
         self.addControl('ambdiff', label='Ambient Diffuse')
         self.addControl('kd_ind', label='Indirect Diffuse')
-        self.addControl('diffuse_cache', label='Diffuse Cache')
         self.endLayout()
         
         self.beginLayout('Specular', collapse=False)
@@ -48,13 +47,8 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.addControl('opacity', label='Color')
         self.endLayout()
 
-        self.beginLayout('UVs', collapse=True)
-        self.addControl('uparam', label='U Param')
-        self.addControl('vparam', label='V Param')
-        self.endLayout()
-        
 
-        self.addAOVLayout()
+#        self.addAOVLayout()
         
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

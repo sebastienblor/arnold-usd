@@ -3,33 +3,38 @@
 #include <cmath>
 #include "MayaUtils.h"
 
+namespace MSTR
+{
+   static const AtString geo_opacity("geo_opacity");
+   static const AtString curve_id("curve_id");
+}
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaHairMtd);
 
 node_parameters
 {
    AiParameterRGB("hairColor", .4f, .4f, .4f); // check the default values!
-   AiParameterFLT("opacity", 1.f);
-   AiParameterFLT("translucence", .5f);
+   AiParameterFlt("opacity", 1.f);
+   AiParameterFlt("translucence", .5f);
    AiParameterRGB("specularColor", .35f, .35f, .299995f);
-   AiParameterFLT("specularPower", 3.f);
-   AiParameterBOOL("castShadows", true);
+   AiParameterFlt("specularPower", 3.f);
+   AiParameterBool("castShadows", true);
    
-   AiParameterFLT("diffuseRand", .2f);
-   AiParameterFLT("specularRand", .4f);
-   AiParameterFLT("hueRand", .0f);
-   AiParameterFLT("satRand", .0f);
-   AiParameterFLT("valRand", .0f);
-   AiParameterFLT("indirectDiffuse", 1.0f);
+   AiParameterFlt("diffuseRand", .2f);
+   AiParameterFlt("specularRand", .4f);
+   AiParameterFlt("hueRand", .0f);
+   AiParameterFlt("satRand", .0f);
+   AiParameterFlt("valRand", .0f);
+   AiParameterFlt("indirectDiffuse", 1.0f);
 
    AtArray* dummy = AiArray(2, 1, AI_TYPE_RGB, AI_RGB_WHITE, AI_RGB_WHITE);
    AiParameterArray("hairColorScale", dummy);
    
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaHair");
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1A);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMayaHair");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1A);
 }
 
 enum MayaHairParams{
@@ -67,35 +72,37 @@ shader_evaluate
 {
    AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
    float geo_opacity;
-   if (AiUDataGetFlt("geo_opacity", &geo_opacity))
+   if (AiUDataGetFlt(MSTR::geo_opacity, geo_opacity))
       opacity *= geo_opacity;
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      sg->out_opacity = opacity;
+      // FIXME Arnold5 closure please
+      //sg->out_opacity = opacity;
       return;
    }   
    
-   if (AiShaderGlobalsApplyOpacity(sg, opacity))
-      return;
+   // FIXME Arnold5
+   //if (AiShaderGlobalsApplyOpacity(sg, opacity))
+      //return;
    
    AtRGB hairColor = AiShaderEvalParamRGB(p_hair_color);
    
    AtArray* hairColorScale = AiShaderEvalParamArray(p_hair_color_scale);
-   if (hairColorScale->nelements > 1)
+   if (AiArrayGetNumElements(hairColorScale) > 1)
    {
-      const float id = (float)hairColorScale->nelements * sg->v;
+      const float id = (float)AiArrayGetNumElements(hairColorScale) * sg->v;
       const float idbf = floorf(id);
       const int idb = (int)idbf;
       if (idb < 0)
          hairColor *= AiArrayGetRGB(hairColorScale, 0);
-      else if (idb >= (int)(hairColorScale->nelements - 1))
-         hairColor *= AiArrayGetRGB(hairColorScale, hairColorScale->nelements - 1);
+      else if (idb >= (int)(AiArrayGetNumElements(hairColorScale) - 1))
+         hairColor *= AiArrayGetRGB(hairColorScale, AiArrayGetNumElements(hairColorScale) - 1);
       else
       {
          const AtRGB b0 = AiArrayGetRGB(hairColorScale, idb);
          const AtRGB b1 = AiArrayGetRGB(hairColorScale, idb + 1);
-         hairColor *= LERP(AI_RGB_WHITE * (id - idbf), b0, b1);
+         hairColor *= AiLerp(AI_RGB_WHITE * (id - idbf), b0, b1);
       }         
    }
    
@@ -109,7 +116,7 @@ shader_evaluate
    
    unsigned int seed = 0;
    if (enableHSVRand)
-      AiUDataGetUInt("curve_id", &seed); // the translator exports curve_ids   
+      AiUDataGetUInt(MSTR::curve_id, seed); // the translator exports curve_ids   
    // when needed, so no need for an extra check   
    
    const float diffuseRand = AiShaderEvalParamFlt(p_diffuse_rand);
@@ -124,15 +131,15 @@ shader_evaluate
       randHSV.y = rand01(&tseed);
       randHSV.z = rand01(&tseed);      
       AtVector origHSV = RGBtoHSV(hairColor);
-      origHSV.x = LERP(hueRand * diffuseRand, origHSV.x, randHSV.x);
-      origHSV.y = LERP(satRand * diffuseRand, origHSV.y, randHSV.y);
-      origHSV.z = LERP(valRand * diffuseRand, origHSV.z, randHSV.z);
+      origHSV.x = AiLerp(hueRand * diffuseRand, origHSV.x, randHSV.x);
+      origHSV.y = AiLerp(satRand * diffuseRand, origHSV.y, randHSV.y);
+      origHSV.z = AiLerp(valRand * diffuseRand, origHSV.z, randHSV.z);
       hairColor = HSVtoRGB(origHSV);
    }
    
    sg->fhemi = false;
    
-   AtRGB diffuse = {0.f, 0.f, 0.f};
+   AtRGB diffuse(0.f, 0.f, 0.f);
    
    const AtVector T = AiV3Normalize(sg->dPdv);
    const AtVector V = -sg->Rd;
@@ -141,25 +148,28 @@ shader_evaluate
    {
       const float indirectDiffuse = AiShaderEvalParamFlt(p_indirect_diffuse);
       
+      AtLightSample light_sample;
       AiLightsPrepare(sg);
-      while (AiLightsGetSample(sg))
+      while (AiLightsGetSample(sg, light_sample))
       {
-         if (AiLightGetAffectDiffuse(sg->Lp))
+         float light_diffuse = AiLightGetDiffuse(light_sample.Lp);
+         if (light_diffuse > 0)
          {
-            const float TdotL = AiV3Dot(T, sg->Ld);
+            const float TdotL = AiV3Dot(T, light_sample.Ld);
             float d = 1.f - TdotL * TdotL;
             d = d > 0.f ? sqrtf(d) : 0.f;
-            diffuse += sg->Li * sg->we * d;
+            AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
+            diffuse += Li_over_pdf * d;
          }
       }
-      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(&V, sg) * indirectDiffuse;
+      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(V, sg, AI_RGB_WHITE) * indirectDiffuse;
 
       diffuse *= hairColor;
    }
    
    AtRGB specularColor = AiShaderEvalParamRGB(p_specular_color);
    
-   AtRGB specular = {0.f, 0.f, 0.f};
+   AtRGB specular(0.f, 0.f, 0.f);
    
    const float specularRand = AiShaderEvalParamFlt(p_specular_rand);
    if ((specularRand > AI_EPSILON) && enableHSVRand)
@@ -173,32 +183,37 @@ shader_evaluate
       randHSV.y = rand01(&tseed);
       randHSV.z = rand01(&tseed);
       AtVector origHSV = RGBtoHSV(specularColor);
-      origHSV.x = LERP(hueRand * specularRand, origHSV.x, randHSV.x);
-      origHSV.y = LERP(satRand * specularRand, origHSV.y, randHSV.y);
-      origHSV.z = LERP(valRand * specularRand, origHSV.z, randHSV.z);
+      origHSV.x = AiLerp(hueRand * specularRand, origHSV.x, randHSV.x);
+      origHSV.y = AiLerp(satRand * specularRand, origHSV.y, randHSV.y);
+      origHSV.z = AiLerp(valRand * specularRand, origHSV.z, randHSV.z);
       specularColor = HSVtoRGB(origHSV);
    }   
    
-   if (!AiColorIsSmall(specularColor) && !(sg->Rt & AI_RAY_DIFFUSE)) // specular contribution
+   if (!AiColorIsSmall(specularColor) && !(sg->Rt & AI_RAY_DIFFUSE_REFLECT)) // specular contribution
    {
       const float specularPower = AiShaderEvalParamFlt(p_specular_power);
+      AtLightSample light_sample;
       AiLightsPrepare(sg);      
-      while (AiLightsGetSample(sg))
+      while (AiLightsGetSample(sg, light_sample))
       {
-         if (AiLightGetAffectSpecular(sg->Lp))
+         float light_specular = AiLightGetSpecular(light_sample.Lp);
+         if (light_specular > 0)
          {
-            const AtVector H = AiV3Normalize(sg->Ld + V);
+            const AtVector H = AiV3Normalize(light_sample.Ld + V);
             const float HdotT = AiV3Dot(H, T);
             float s = 1 - HdotT * HdotT;
             s = powf(s, specularPower);
             if (s > 0)
-               specular += sg->Li * s * sg->we;
-         }            
+            {
+               AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
+               specular += Li_over_pdf * s;
+            }
+         }
       }
       specular *= specularColor;
    }
    
-   sg->out.RGB = diffuse + specular;
-   sg->out.RGBA.a = 1.0f;
-   sg->out_opacity = opacity;
+   sg->out.RGB() = diffuse + specular;
+   sg->out.RGBA().a = 1.0f;
+   //sg->out_opacity = opacity;
 }

@@ -353,14 +353,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else
       {         
          procedural = AiNode("procedural");
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetStr(procedural, "filename", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (fGeometry.drawOverride == 3) 
             AiNodeSetBool(procedural, "load_at_init", false); 
 
-         AtMatrix mtx;
-         AiM4Identity(mtx);
-         AiNodeSetMatrix(procedural, "matrix", mtx);
+         AiNodeSetMatrix(procedural, "matrix", AiM4Identity());
          
          if (fGeometry.drawOverride != 3)
          {
@@ -396,6 +394,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          // first load all the shapes
          // then resolve all the instances
 
+         static const AtString polymesh_str("polymesh");
+         static const AtString points_str("points");
+         static const AtString procedural_str("procedural");
+         static const AtString box_str("box");
+         static const AtString ginstance_str("ginstance");
+
          AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
 
          while (!AiNodeIteratorFinished(iter))
@@ -406,13 +410,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (node)
             {  
                CArnoldStandInGeometry* g = 0;
-               if (AiNodeIs(node, "polymesh"))
+               if (AiNodeIs(node, polymesh_str))
                   g = new CArnoldPolymeshGeometry(node);
-               else if (AiNodeIs(node, "points"))
+               else if (AiNodeIs(node, points_str))
                   g = new CArnoldPointsGeometry(node);
-               else if(AiNodeIs(node, "procedural"))
+               else if(AiNodeIs(node, procedural_str))
                   g = new CArnoldProceduralGeometry(node);
-               else if(AiNodeIs(node, "box"))
+               else if(AiNodeIs(node, box_str))
                   g = new CArnoldBoxGeometry(node);
                else
                   continue;
@@ -440,25 +444,23 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             {
                if (AiNodeGetByte(node, "visibility") == 0)
                   continue;
-               AtMatrix total_matrix;
-               AiM4Identity(total_matrix);
+               AtMatrix total_matrix = AiM4Identity();
                bool inherit_xform = true;
                bool isInstance = false;
-               while(AiNodeIs(node, "ginstance"))
+               while(AiNodeIs(node, ginstance_str))
                {                  
                   isInstance = true;
-                  AtMatrix current_matrix;
-                  AiNodeGetMatrix(node, "matrix", current_matrix);
+                  AtMatrix current_matrix = AiNodeGetMatrix(node, "matrix");
                   if (inherit_xform)
                   {
-                     AiM4Mult(total_matrix, total_matrix, current_matrix);
+                     total_matrix = AiM4Mult(total_matrix, current_matrix);
                   }
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
                if (!isInstance)
                   continue;
-               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points") || AiNodeIs(node, "procedural"))
+               if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
                   CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
                   if (iter != geom->m_geometryList.end())
@@ -858,75 +860,72 @@ MStatus CArnoldStandInShape::initialize()
    // atributes that are used only by translation
    CAttrData data;
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideCastsShadows";
    data.shortName = "overrideCastsShadows";
    s_attributes.MakeInputBoolean(data);
    
    //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideReceiveShadows";
    data.shortName = "overrideReceiveShadows";
    s_attributes.MakeInputBoolean(data);
    
    //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overridePrimaryVisibility";
    data.shortName = "overridePrimaryVisibility";
    s_attributes.MakeInputBoolean(data);
    
    //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInReflections";
-   data.shortName = "overrideVisibleInReflections";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'visibleInReflections' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInRefractions";
-   data.shortName = "overrideVisibleInRefractions";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'visibleInRefractions' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL = false;
+      data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
    data.shortName = "overrideDoubleSided";
    s_attributes.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideSelfShadows";
    data.shortName = "overrideSelfShadows";
    s_attributes.MakeInputBoolean(data);
    
    //The 'self_shadows' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideOpaque";
    data.shortName = "overrideOpaque";
    s_attributes.MakeInputBoolean(data);
 
    //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
    
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInDiffuse";
-   data.shortName = "overrideVisibleInDiffuse";
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInDiffuseReflection";
+   data.shortName = "overrideVisibleInDiffuseReflection";
    s_attributes.MakeInputBoolean(data);
 
-   //The 'aiVisibleInDiffuse' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
-   
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInGlossy";
-   data.shortName = "overrideVisibleInGlossy";
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInSpecularReflection";
+   data.shortName = "overrideVisibleInSpecularReflection";
    s_attributes.MakeInputBoolean(data);
 
-   //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInDiffuseTransmission";
+   data.shortName = "overrideVisibleInDiffuseTransmission";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInSpecularTransmission";
+   data.shortName = "overrideVisibleInSpecularTransmission";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInVolume";
+   data.shortName = "overrideVisibleInVolume";
+   s_attributes.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideMatte";
    data.shortName = "overrideMatte";
    s_attributes.MakeInputBoolean(data);

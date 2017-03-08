@@ -37,28 +37,27 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color2", 0.549f, 0.784f, 0.392f);
    AiParameterRGB("color3", 0.627f, 0.824f, 0.823f);
    AiParameterRGB("fillerColor", 0.588f, 0.294f, 0.196f);
-   AiParameterFLT("cellSize", 0.15f);
-   AiParameterFLT("density", 1.0f);
-   AiParameterFLT("mixRatio", 0.5f);
-   AiParameterFLT("spottyness", 0.3f);
-   AiParameterFLT("randomness", 1.0f);
-   AiParameterFLT("threshold", 0.5f);
-   AiParameterBOOL("creases", true);
+   AiParameterFlt("cellSize", 0.15f);
+   AiParameterFlt("density", 1.0f);
+   AiParameterFlt("mixRatio", 0.5f);
+   AiParameterFlt("spottyness", 0.3f);
+   AiParameterFlt("randomness", 1.0f);
+   AiParameterFlt("threshold", 0.5f);
+   AiParameterBool("creases", true);
 
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "granite");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "granite");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize
@@ -80,12 +79,12 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
    
-   AtPoint P;
+   AtVector P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
    
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -108,7 +107,7 @@ shader_evaluate
       if (mixRatio > 0.99f)
           mixRatio = 0.99f;
           
-      AtPoint levelCount;
+      AtVector levelCount;
 
       mixRatio = mixRatio / (1.0f - mixRatio);
       levelCount.x = powf(0.333f, mixRatio);
@@ -196,13 +195,13 @@ shader_evaluate
           }
       }
 
-      AiRGBtoRGBA(outColor, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(outColor);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
       
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

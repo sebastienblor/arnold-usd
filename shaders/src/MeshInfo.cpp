@@ -1,5 +1,11 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString tangent("tangent");
+   static const AtString bitangent("bitangent");
+}
+
 namespace
 {
 
@@ -30,10 +36,10 @@ AI_SHADER_NODE_EXPORT_METHODS(MeshInfoMtd);
 
 node_parameters
 {
-   AiParameterENUM("what", 0, WhatNames);
-   AiParameterSTR("colorSetName", "");
+   AiParameterEnum("what", 0, WhatNames);
+   AiParameterStr("colorSetName", "");
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -51,52 +57,52 @@ node_finish
 shader_evaluate
 {
    int what = AiShaderEvalParamInt(p_what);
-   const char *name = 0;
 
+   AtString name;
    AtVector v;
    AtRGBA c;
 
    switch (what)
    {
    case TANGENT:
-      if (AiUDataGetVec("tangent", &v))
+      if (AiUDataGetVec(MSTR::tangent, v))
       {
-         sg->out.RGB.r = v.x;
-         sg->out.RGB.g = v.y;
-         sg->out.RGB.b = v.z;
+         sg->out.RGB().r = v.x;
+         sg->out.RGB().g = v.y;
+         sg->out.RGB().b = v.z;
       }
       else
       {
-         sg->out.RGB = AI_RGB_BLACK;
+         sg->out.RGB() = AI_RGB_BLACK;
       }
       break;
    case BITANGENT:
-      if (AiUDataGetVec("bitangent", &v))
+      if (AiUDataGetVec(MSTR::bitangent, v))
       {
-         sg->out.RGB.r = v.x;
-         sg->out.RGB.g = v.y;
-         sg->out.RGB.b = v.z;
+         sg->out.RGB().r = v.x;
+         sg->out.RGB().g = v.y;
+         sg->out.RGB().b = v.z;
       }
       else
       {
-         sg->out.RGB = AI_RGB_BLACK;
+         sg->out.RGB() = AI_RGB_BLACK;
       }
       break;
    case COLOR:
-      name = AiShaderEvalParamStr(p_colorSetName);
-      if (AiUDataGetRGBA(name, &c))
+      name = AtString(AiShaderEvalParamStr(p_colorSetName));
+      if (AiUDataGetRGBA(name, c))
       {
-         sg->out.RGB.r = c.r;
-         sg->out.RGB.g = c.g;
-         sg->out.RGB.b = c.b;
+         sg->out.RGB().r = c.r;
+         sg->out.RGB().g = c.g;
+         sg->out.RGB().b = c.b;
       }
       else
       {
-         sg->out.RGB = AI_RGB_BLACK;
+         sg->out.RGB() = AI_RGB_BLACK;
       }
       break;
    default:
-      sg->out.RGB = AI_RGB_BLACK;
+      sg->out.RGB() = AI_RGB_BLACK;
       break;
    }
 }

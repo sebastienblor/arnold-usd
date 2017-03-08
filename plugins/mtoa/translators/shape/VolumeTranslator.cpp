@@ -21,16 +21,17 @@ enum VolumeType{
 
 void CArnoldVolumeTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "volume");
+   CExtensionAttrHelper helper(context.maya, "volume_openvdb");
    CShapeTranslator::MakeCommonAttributes(helper);
    CShapeTranslator::MakeMayaVisibilityFlags(helper);
 }
 
 AtNode* CArnoldVolumeTranslator::CreateArnoldNodes()
-{
+{   
    if (IsMasterInstance())
    {
-      AtNode * tmpRes = AddArnoldNode("volume");
+      // if type is vdb, create volume_openvdb
+      AtNode * tmpRes = AddArnoldNode("volume_openvdb");
       return  tmpRes;
    }
    else
@@ -123,12 +124,12 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
 
 void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
 {
-   AiNodeSetPnt(volume, "min",
+   AiNodeSetVec(volume, "min",
                         m_DagNode.findPlug("min").child(0).asFloat(),
                         m_DagNode.findPlug("min").child(1).asFloat(),
                         m_DagNode.findPlug("min").child(2).asFloat());
                         
-   AiNodeSetPnt(volume, "max",
+   AiNodeSetVec(volume, "max",
                         m_DagNode.findPlug("max").child(0).asFloat(),
                         m_DagNode.findPlug("max").child(1).asFloat(),
                         m_DagNode.findPlug("max").child(2).asFloat());
@@ -151,138 +152,93 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
    update = false;
 
    if (!update)
-   {     
-
+   {
       MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
       if (loadAtInit.asBool())
          AiNodeSetBool(volume, "load_at_init", true);
       
       ExportBoundingBox(volume);
 
-      int type = m_DagNode.findPlug("type").asInt();
+      MString filename = m_DagNode.findPlug("filename").asString();
+      int start = 0;
+      int end = 0;
+      MString newFilename = "";
+      char frameExt[64];
+
+      start = filename.index('#');
+      end = filename.rindex('#');
       
-      if(type == VT_CUSTOM)
+      if(start >= 0)
       {
-         MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
-      
-         unsigned int nchars = dso.numChars();
-         if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
-         {
-            dso = dso.substringW(0, nchars-4)+LIBEXT;
-         }
-         else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
-         {
-            dso = dso.substringW(0, nchars-5)+LIBEXT;
-         }
-         else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
-         {
-            dso = dso.substringW(0, nchars-7)+LIBEXT;
-         }
-         
-         AiNodeSetStr(volume, "dso", dso.asChar());
-      
-         MPlug data = m_DagNode.findPlug("data");
-         int sizeData = strlen(data.asString().asChar());
-         if (sizeData != 0)
-         {
-            AiNodeSetStr(volume, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
-         }
-         AiNodeSetFlt(volume, "step_size", m_DagNode.findPlug("stepSize").asFloat());
+         sprintf(frameExt, "%0*d", end - start + 1, m_DagNode.findPlug("frame").asInt());
+         newFilename = filename.substring(0,start-1) + frameExt + filename.substring(end+1,filename.length());
       }
       else
       {
-         MString openVDB = MString(getenv("MTOA_PATH")) + MString("/procedurals/volume_openvdb.so");
-         
-         AiNodeSetStr(volume, "dso", openVDB.expandEnvironmentVariablesAndTilde().asChar());
-         
-         MString filename = m_DagNode.findPlug("filename").asString();
-         int start = 0;
-         int end = 0;
-         MString newFilename = "";
-         char frameExt[64];
-
-         start = filename.index('#');
-         end = filename.rindex('#');
-         
-         if(start >= 0)
-         {
-            sprintf(frameExt, "%0*d", end - start + 1, m_DagNode.findPlug("frame").asInt());
-            newFilename = filename.substring(0,start-1) + frameExt + filename.substring(end+1,filename.length());
-         }
-         else
-         {
-            newFilename = filename;
-         }
-         
-         newFilename = newFilename.expandEnvironmentVariablesAndTilde();
-
-         AiNodeDeclare( volume, "filename", "constant STRING" );
-         AiNodeSetStr( volume, "filename", newFilename.asChar() );
-         
-         MString grids = m_DagNode.findPlug("grids").asString();
-         MStringArray gridList;
-         grids.split(' ',gridList);
-         
-         if (gridList.length() > 0)
-         {
-            AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
-            AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
-            for(unsigned int i = 0; i < gridList.length(); i++)
-            {
-               AiArraySetStr(ary, i, gridList[i].asChar());
-            }
-            AiNodeSetArray( volume, "grids", ary);
-         }
-         
-         float stepSize = m_DagNode.findPlug("stepSize").asFloat();
-         if (m_DagNode.findPlug("autoStepSize").asBool())
-         {
-            MString cmd;
-            cmd.format("import mtoa.volume_vdb; mtoa.volume_vdb.GetMinVoxelSize('^1s', '^2s')", newFilename, grids);
-
-            MString result;
-            if (MGlobal::executePythonCommand(cmd, result) == MS::kSuccess)
-               stepSize = result.asFloat() * m_DagNode.findPlug("stepScale").asFloat();
-            
-         }
-         AiNodeSetFlt(volume, "step_size", stepSize);
-
-         MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
-         MStringArray vGridList;
-         vGrids.split(' ',vGridList);
-         
-         if (vGridList.length() > 0)
-         {
-            AiNodeDeclare( volume, "velocity_grids", "constant ARRAY STRING" );
-            AtArray *ary = AiArrayAllocate(vGridList.length(), 1, AI_TYPE_STRING);
-            for(unsigned int i = 0; i < vGridList.length(); i++)
-            {
-               AiArraySetStr(ary, i, vGridList[i].asChar());
-            }
-            AiNodeSetArray( volume, "velocity_grids", ary);
-         }
-         
-         
-         AiNodeDeclare( volume, "velocity_scale", "constant FLOAT" );
-         AiNodeSetFlt(volume, "velocity_scale", m_DagNode.findPlug("velocityScale").asFloat());
-         
-         AiNodeDeclare( volume, "velocity_fps", "constant FLOAT" );
-         AiNodeSetFlt(volume, "velocity_fps", m_DagNode.findPlug("velocityFps").asFloat());
-         
-         AiNodeDeclare( volume, "velocity_shutter_start", "constant FLOAT" );
-         AiNodeSetFlt(volume, "velocity_shutter_start", m_DagNode.findPlug("velocityShutterStart").asFloat());
-         
-         AiNodeDeclare( volume, "velocity_shutter_end", "constant FLOAT" );
-         AiNodeSetFlt(volume, "velocity_shutter_end", m_DagNode.findPlug("velocityShutterEnd").asFloat());
-         
-         AiNodeDeclare(volume, "bounds_slack", "constant FLOAT" );
-         AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("padding").asFloat());
-
-         AiNodeDeclare( volume, "velocity_outlier_threshold", "constant FLOAT" );
-         AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold").asFloat());         
-         
+         newFilename = filename;
       }
+      newFilename = newFilename.expandEnvironmentVariablesAndTilde();
+      
+      AiNodeDeclare( volume, "filename", "constant STRING" );
+      AiNodeSetStr( volume, "filename", newFilename.asChar() );
+      
+      MString grids = m_DagNode.findPlug("grids").asString();
+      MStringArray gridList;
+      grids.split(' ',gridList);
+      
+      if (gridList.length() > 0)
+      {
+         AiNodeDeclare( volume, "grids", "constant ARRAY STRING" );
+         AtArray *ary = AiArrayAllocate(gridList.length(), 1, AI_TYPE_STRING);
+         for(unsigned int i = 0; i < gridList.length(); i++)
+         {
+            AiArraySetStr(ary, i, gridList[i].asChar());
+         }
+         AiNodeSetArray( volume, "grids", ary);
+      }
+      float stepSize = m_DagNode.findPlug("stepSize").asFloat();
+      if (m_DagNode.findPlug("autoStepSize").asBool())
+         stepSize = 0.f;
+      
+      AiNodeSetFlt(volume, "step_size", stepSize);
+      AiNodeSetFlt(volume, "step_scale", m_DagNode.findPlug("stepScale").asFloat());
+      
+      MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
+      MStringArray vGridList;
+      vGrids.split(' ',vGridList);
+      
+      if (vGridList.length() > 0)
+      {
+         AiNodeDeclare( volume, "velocity_grids", "constant ARRAY STRING" );
+         AtArray *ary = AiArrayAllocate(vGridList.length(), 1, AI_TYPE_STRING);
+         for(unsigned int i = 0; i < vGridList.length(); i++)
+         {
+            AiArraySetStr(ary, i, vGridList[i].asChar());
+         }
+         AiNodeSetArray( volume, "velocity_grids", ary);
+      }      
+      
+      AiNodeDeclare( volume, "velocity_scale", "constant FLOAT" );
+      AiNodeSetFlt(volume, "velocity_scale", m_DagNode.findPlug("velocityScale").asFloat());
+      
+      AiNodeDeclare( volume, "velocity_fps", "constant FLOAT" );
+      AiNodeSetFlt(volume, "velocity_fps", m_DagNode.findPlug("velocityFps").asFloat());
+      
+      AiNodeDeclare( volume, "motion_start", "constant FLOAT" );
+      AiNodeSetFlt(volume, "motion_start", m_DagNode.findPlug("motionStart").asFloat());
+      
+      AiNodeDeclare( volume, "motion_end", "constant FLOAT" );
+      AiNodeSetFlt(volume, "motion_end", m_DagNode.findPlug("motionEnd").asFloat());
+      
+      AiNodeDeclare(volume, "bounds_slack", "constant FLOAT" );
+      AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("padding").asFloat());
 
+      AiNodeDeclare( volume, "velocity_outlier_threshold", "constant FLOAT" );
+      AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold").asFloat());         
+         
+      AiNodeSetBool(volume, "disable_ray_extents", m_DagNode.findPlug("disableRayExtents").asBool());
+      AiNodeSetBool(volume, "compress", m_DagNode.findPlug("compress").asBool());
+      AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("boundsSlack").asFloat());
    }
    return volume;
 }

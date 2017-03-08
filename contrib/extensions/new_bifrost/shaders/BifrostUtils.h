@@ -84,7 +84,7 @@ inline T BfGradientGetValueFromSG(AtShaderGlobals* sg, int outputType = AI_TYPE_
 template <>
 inline float BfGradientGetValueFromSG(AtShaderGlobals* sg, int outputType)
 {
-   return sg->out.FLT;
+   return sg->out.FLT();
 }
 
 template <>
@@ -94,14 +94,14 @@ inline AtRGB BfGradientGetValueFromSG(AtShaderGlobals* sg, int outputType)
    switch (outputType)
    {
    case AI_TYPE_FLOAT:
-      ret = sg->out.FLT;
+      ret = sg->out.FLT();
       break;
-   case AI_TYPE_POINT2:
-      ret.r = sg->out.PNT2.x;
-      ret.g = sg->out.PNT2.y;
+   case AI_TYPE_VECTOR2:
+      ret.r = sg->out.VEC2().x;
+      ret.g = sg->out.VEC2().y;
       break;
    default:
-      ret = sg->out.RGB;
+      ret = sg->out.RGB();
    }   
    return ret;
 }
@@ -130,7 +130,7 @@ static bool CompareElements(const GradientDescriptionElement<T>& a,
 }
 
 template<typename T>
-inline T BfGradientGetElements(AtShaderGlobals* sg, AtUInt32 elem, GradientDescriptionElement<T> *elements)
+inline T BfGradientGetElements(AtShaderGlobals* sg, unsigned elem, GradientDescriptionElement<T> *elements)
 {
 
    if (elements[elem].node != 0)
@@ -144,15 +144,15 @@ inline T BfGradientGetElements(AtShaderGlobals* sg, AtUInt32 elem, GradientDescr
 
 
 template <typename T>
-T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>* elements, AtUInt32 nelements, T*data, int resolution, AtNode *points_op)
+T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>* elements, unsigned nelements, T*data, int resolution, AtNode *points_op)
 {
    T ret = GetDefaultValue<T>();
    if (data != 0 && sg != 0 && sg->Op != 0 && sg->Op == points_op) // only use baked data is it's the correct geometry
    {
       const float p = v * resolution;
       const int pi = (int)p;
-      const int b = CLAMP(pi, 0, resolution - 1);
-      const int e = MIN(b + 1, resolution - 1);
+      const int b = AiClamp(pi, 0, resolution - 1);
+      const int e = AiMin(b + 1, resolution - 1);
       const float pf = p - (float)pi;
 
       //T dd = data[b] * (1.f - pf) + data[e] * pf;
@@ -166,8 +166,8 @@ T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>
       return BfGradientGetElements<T>(sg, 0, elements);
 
    // look for the proper segment
-   AtUInt32 index = nelements;
-   for (AtUInt32 i = 0; i < nelements; ++i)
+   unsigned index = nelements;
+   for (unsigned i = 0; i < nelements; ++i)
    {
       if (v < elements[i].position)
       {
@@ -186,7 +186,7 @@ T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>
       return BfGradientGetElements<T>(sg, nelements - 1, elements);
    
    // interpolate between two values
-   const AtUInt32 prevIndex = index - 1;
+   const unsigned prevIndex = index - 1;
    const int interp = elements[prevIndex].interp;
    
    switch(interp)
@@ -256,21 +256,21 @@ T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>
             }
 
             const static float tanSize = .2f;
-            const float tx = MAX(tanSize * dp, AI_EPSILON);
+            const float tx = AiMax(tanSize * dp, AI_EPSILON);
 
-            float sx = MAX(p2 - p0, AI_EPSILON);
+            float sx = AiMax(p2 - p0, AI_EPSILON);
             T sy = v2 - v0;
 
             sy *= tanSize * dp / sx;
             const T m1 = sy / tx;
-            sx = MAX(p3 - p1, AI_EPSILON);
+            sx = AiMax(p3 - p1, AI_EPSILON);
             sy = v3 - v1;
 
             sy *= tanSize * dp / sx;
             const T m2 = sy / tx;
 
             float tFromP1 = (v - p1);
-            float length = MIN(1.f / (dp * dp), AI_BIG);
+            float length = AiMin(1.f / (dp * dp), AI_BIG);
             const T d1 = dp * m1;
             const T d2 = dp * m2;
 
@@ -293,8 +293,8 @@ public:
    GradientDescriptionElement<T>* elements;   
    GradientDescriptionElement<float>* extraScalarElements;
 
-   AtUInt32 nelements;
-   AtUInt32 nExtraScalarElements;
+   unsigned nelements;
+   unsigned nExtraScalarElements;
    float inputMin;
    float inputMax;
 
@@ -342,13 +342,13 @@ public:
          {
             default:
             case AI_TYPE_FLOAT:
-               AiVolumeSampleFltFunc (dataName.c_str(), sg, 0, &v);
+               AiVolumeSampleFltFunc (AtString(dataName.c_str()), sg, 0, &v);
             break;
             
             {
             case AI_TYPE_VECTOR:
-               AtColor col;
-               AiVolumeSampleRGBFunc (dataName.c_str(), sg, 0, &col);
+               AtRGB col;
+               AiVolumeSampleRGBFunc (AtString(dataName.c_str()), sg, 0, &col);
                AtVector vec;
                vec.x = col.r; vec.y = col.g; vec.z = col.b;
                v = AiV3Length(vec); 
@@ -362,19 +362,19 @@ public:
          {
             default:
             case AI_TYPE_FLOAT:
-               if (!AiUDataGetFlt(dataName.c_str(), &v))return ret;
+               if (!AiUDataGetFlt(AtString(dataName.c_str()), v))return ret;
             break;
             {
-            case AI_TYPE_POINT2:
-               AtPoint2 pnt2;
-               if (!AiUDataGetPnt2(dataName.c_str(), &pnt2)) return ret;
+            case AI_TYPE_VECTOR2:
+               AtVector2 pnt2;
+               if (!AiUDataGetVec2(AtString(dataName.c_str()), pnt2)) return ret;
                v = AiV2Length(pnt2);  // or another formula ?
             break;
             }
             {
             case AI_TYPE_VECTOR:
                AtVector vec;
-               if (!AiUDataGetVec(dataName.c_str(), &vec)) return ret;
+               if (!AiUDataGetVec(AtString(dataName.c_str()), vec)) return ret;
                v = AiV3Length(vec); 
                break;
             }
@@ -402,7 +402,7 @@ public:
       Release();
 
       inputMin = _inputMin;
-      inputMax = MAX(_inputMax, inputMin + AI_EPSILON);
+      inputMax = AiMax(_inputMax, inputMin + AI_EPSILON);
       invInputDelta = 1.f / (inputMax - inputMin);
 
       points_op = (sg) ? sg->Op : 0;
@@ -414,7 +414,7 @@ public:
          return false;
       }
       
-      nelements = MIN(MIN(positionsArray->nelements, valuesArray->nelements), interpsArray->nelements) ;
+      nelements = AiMin(AiMin(AiArrayGetNumElements(positionsArray), AiArrayGetNumElements(valuesArray)), AiArrayGetNumElements(interpsArray)) ;
       
       if (nelements == 0)
          elements = 0;
@@ -423,7 +423,7 @@ public:
          bool isConnected = false;
          elements = (GradientDescriptionElement<T>*)AiMalloc(sizeof(GradientDescriptionElement<T>) * nelements);
 
-         for (AtUInt32 i = 0; i < nelements; ++i)
+         for (unsigned i = 0; i < nelements; ++i)
          {
             
             elements[i].position = AiArrayGetFlt(positionsArray, i);
@@ -462,10 +462,10 @@ public:
 
       if (positionsArray == 0 || valuesArray == 0 || interpsArray == 0) return;
 
-      nExtraScalarElements = MIN(MIN(positionsArray->nelements, valuesArray->nelements), interpsArray->nelements) ;
+      nExtraScalarElements = AiMin(AiMin(AiArrayGetNumElements(positionsArray), AiArrayGetNumElements(valuesArray)), AiArrayGetNumElements(interpsArray)) ;
       
       extraScalarElements = (GradientDescriptionElement<float>*)AiMalloc(sizeof(GradientDescriptionElement<float>) * nExtraScalarElements);
-      for (AtUInt32 i = 0; i < nExtraScalarElements; ++i)
+      for (unsigned i = 0; i < nExtraScalarElements; ++i)
       {
          extraScalarElements[i].position = AiArrayGetFlt(positionsArray, i);
          extraScalarElements[i].interp = AiArrayGetInt(interpsArray, i);

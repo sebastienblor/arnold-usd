@@ -92,7 +92,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    {
       default:
       case CBIFROST_AERO:
-         return AddArnoldNode("volume");
+         return AddArnoldNode("bifrostAero");
 
       case CBIFROST_LIQUID:
          AiMsgError("[bifrost]: liquid not implemented yet : %s", m_object.c_str());
@@ -111,7 +111,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
 
 void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 {
-   std::vector<AtPoint> points;
+   std::vector<AtVector> points;
    std::vector<AtVector> velocities;
    //std::vector<float> radius;
 
@@ -196,7 +196,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
             user_data_declaration = "uniform FLOAT";
          break;
          case Bifrost::API::FloatV2Type:
-            user_data_declaration = "uniform POINT2";
+            user_data_declaration = "uniform VECTOR2";
          break;
          case Bifrost::API::FloatV3Type:
             user_data_declaration = "uniform VECTOR";
@@ -236,7 +236,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
             const amino::Math::vec3f position = similarity.apply(voxelScale * positionTile[i]);
             const amino::Math::vec3f velocity = (i < velocityTile.count()) ? velocityTile[i] : amino::Math::vec3f(0.f, 0.f, 0.f);
 
-            AtPoint part_pos;
+            AtVector part_pos;
             part_pos.x = position[0];
             part_pos.y = position[1];
             part_pos.z = position[2];
@@ -255,7 +255,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
       }
    }
  
-   AtArray *points_array = AiArrayAllocate(points.size(), (motion)? 2 : 1, AI_TYPE_POINT);
+   AtArray *points_array = AiArrayAllocate(points.size(), (motion)? 2 : 1, AI_TYPE_VECTOR);
    AtArray *velocities_array = AiArrayAllocate(points.size(), 1, AI_TYPE_VECTOR);
    
    double motion_start = 0.;
@@ -266,11 +266,11 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    {
       if (motion)
       {
-         AiArraySetPnt(points_array, i, points[i] + velocities[i] * (float)motion_start);
-         AiArraySetPnt(points_array, i + points.size(), points[i] + velocities[i] * (float)motion_end);
+         AiArraySetVec(points_array, i, points[i] + velocities[i] * (float)motion_start);
+         AiArraySetVec(points_array, i + points.size(), points[i] + velocities[i] * (float)motion_end);
       } else
       {
-         AiArraySetPnt(points_array, i, points[i]);
+         AiArraySetVec(points_array, i, points[i]);
       }
       AiArraySetVec(velocities_array, i, velocities[i] * motion_length);
    }
@@ -296,7 +296,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    for (size_t ch = 0; ch < extraChannels.count(); ch++)
    {
       AtByte user_data_type = (chType[ch] == Bifrost::API::FloatType) ? AI_TYPE_FLOAT : 
-            ((chType[ch] == Bifrost::API::FloatV2Type) ? AI_TYPE_POINT2 : AI_TYPE_VECTOR );
+            ((chType[ch] == Bifrost::API::FloatV2Type) ? AI_TYPE_VECTOR2 : AI_TYPE_VECTOR );
       channels_array[ch] = AiArrayAllocate(points.size(), 1, user_data_type);
    }
 
@@ -337,10 +337,10 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
                   {
                   case Bifrost::API::FloatV2Type:
                      const amino::Math::vec2f *val = reinterpret_cast<const amino::Math::vec2f*>(chBase[ch]) + i;
-                     AtPoint2 pnt2;
+                     AtVector2 pnt2;
                      pnt2.x = (*val)[0];
                      pnt2.y = (*val)[1];
-                     AiArraySetPnt2(channels_array[ch], pindex, pnt2);
+                     AiArraySetVec2(channels_array[ch], pindex, pnt2);
                      break;
                   }
                   {
@@ -392,8 +392,6 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
          return;
       }
    }
-   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/bifrost_procedural.so");
-   AiNodeSetStr(shape, "dso", strDSO.c_str());
    AiNodeSetBool( shape, "load_at_init", true );
 
    AiNodeDeclare(shape, "object_name", "constant STRING");
@@ -428,8 +426,8 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
       return;
    }
  
-   AiNodeSetPnt(shape, "min", (float)bboxMin[0], (float)bboxMin[1], (float)bboxMin[2] );
-   AiNodeSetPnt(shape, "max", (float)bboxMax[0], (float)bboxMax[1], (float)bboxMax[2] );
+   AiNodeSetVec(shape, "min", (float)bboxMin[0], (float)bboxMin[1], (float)bboxMin[2] );
+   AiNodeSetVec(shape, "max", (float)bboxMax[0], (float)bboxMax[1], (float)bboxMax[2] );
 
    AiNodeSetByte(shape, "visibility", 243);
 

@@ -37,7 +37,7 @@ extern AtNodeMethods* mtoa_driver_mtd;
 
 CRenderOptions::CRenderOptions() 
 : m_log_filename(""),
-  m_shader_searchpath(""),
+  m_plugin_searchpath(""),
   m_pixelAspectRatio(1.0f),
   m_minx(0), m_miny(0), m_maxx(0), m_maxy(0),
   m_width(0), m_height(0),
@@ -199,7 +199,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity").asInt());
 
-      m_shader_searchpath = fnArnoldRenderOptions.findPlug("shader_searchpath").asString();
+      m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath").asString();
 
       status = MStatus::kSuccess;
    }
@@ -281,12 +281,16 @@ void CRenderOptions::UpdateImageDimensions()
 
    AiNodeSetInt(options, "xres", width());
    AiNodeSetInt(options, "yres", height());
+
    float aspect_ratio = pixelAspectRatio();
 
-   if (ABS(aspect_ratio - 1.f) < 0.001)
+   if (std::abs(aspect_ratio - 1.f) < 0.001)
       aspect_ratio = 1.f;
+   else
+      aspect_ratio = 1.f / AiMax(AI_EPSILON, aspect_ratio);
 
-   AiNodeSetFlt(options, "aspect_ratio", aspect_ratio);
+   AiNodeSetFlt(options, "pixel_aspect_ratio", aspect_ratio);
+
 }
 
 int CRenderOptions::GetLogConsoleVerbosity() const

@@ -326,8 +326,8 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
    minPoint += MVector(factorX, factorY);
    maxPoint += MVector(factorX, factorY);
 
-   AiNodeSetPnt2(camera, "screen_window_min", static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
-   AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
+   AiNodeSetVec2(camera, "screen_window_min", static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
+   AiNodeSetVec2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
 }
 
 void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
@@ -353,7 +353,7 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("filtermap");
 
    CAttrData data;
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiEnableDOF";
    data.shortName = "ai_edof";
    helper.MakeInputBoolean(data);

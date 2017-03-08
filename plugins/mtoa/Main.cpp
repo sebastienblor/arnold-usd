@@ -33,6 +33,7 @@
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldUpdateTxCmd.h"
+#include "commands/ArnoldSceneCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldBakeGeoCmd.h"
@@ -139,7 +140,8 @@ namespace // <anonymous>
       {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
       {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax},
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
-      {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax}
+      {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
+      {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
@@ -375,10 +377,32 @@ namespace // <anonymous>
                                     "",
                                     CAiHairTranslator::creator,
                                     CAiHairTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiStandardHair",
+                                    "",
+                                    CAiStandardHairTranslator::creator,
+                                    CAiStandardHairTranslator::NodeInitializer);
+
       builtin->RegisterTranslator("aiImage",
                                     "",
                                     CAiImageTranslator::creator,
                                     CAiImageTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiRaySwitch",
+                                    "",
+                                    CAiRaySwitchTranslator::creator,
+                                    CAiRaySwitchTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiMixShader",
+                                    "",
+                                    CAiMixShaderTranslator::creator,
+                                    CAiMixShaderTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiSwitchShader",
+                                    "",
+                                    CAiSwitchShaderTranslator::creator,
+                                    CAiSwitchShaderTranslator::NodeInitializer);
+
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",

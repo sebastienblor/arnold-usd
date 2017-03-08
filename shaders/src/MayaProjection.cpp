@@ -140,9 +140,9 @@ inline bool IsInsideCylinder(AtVector V)
    return ((V.x*V.x + V.z*V.z) <= 1 && fabs(V.y) <= 1);
 }
 
-AtPoint2 PlanarMapping(AtVector V)
+AtVector2 PlanarMapping(AtVector V)
 {
-   AtPoint2 st;
+   AtVector2 st;
 
    st.x = Adjust(V.x);
    st.y = Adjust(V.y);
@@ -150,12 +150,11 @@ AtPoint2 PlanarMapping(AtVector V)
    return st;
 }
 
-AtPoint2 SphericalMapping(AtVector V, float uAngle, float vAngle)
+AtVector2 SphericalMapping(AtVector V, float uAngle, float vAngle)
 {
-   AtPoint2 st;
+   AtVector2 st;
 
-   AtVector Vn;
-   AiV3Normalize(Vn, V);
+   AtVector Vn = AiV3Normalize(V);
 
    st.x = Adjust(atan2(Vn.x, Vn.z) / uAngle);
    st.y = Adjust(atan2(Vn.y, sqrt(Vn.x*Vn.x + Vn.z*Vn.z)) / vAngle);
@@ -163,12 +162,11 @@ AtPoint2 SphericalMapping(AtVector V, float uAngle, float vAngle)
    return st;
 }
 
-AtPoint2 CylindricalMapping(AtVector V, float uAngle)
+AtVector2 CylindricalMapping(AtVector V, float uAngle)
 {
-   AtPoint2 st;
+   AtVector2 st;
 
-   AtVector Vn;
-   AiV3Normalize(Vn, V);
+   AtVector Vn = AiV3Normalize(V);
 
    st.x = Adjust(atan2(Vn.x, Vn.z) * 2.0f / uAngle);
    st.y = Adjust(V.y);
@@ -176,9 +174,9 @@ AtPoint2 CylindricalMapping(AtVector V, float uAngle)
    return st;
 }
 
-AtPoint2 CubicMapping(AtVector V)
+AtVector2 CubicMapping(AtVector V)
 {
-   AtPoint2 st;
+   AtVector2 st;
 
    float xAbs = fabs(V.x);
    float yAbs = fabs(V.y);
@@ -218,16 +216,14 @@ AtPoint2 CubicMapping(AtVector V)
    return st;
 }
 
-AtPoint2 BallMapping(AtVector V)
+AtVector2 BallMapping(AtVector V)
 {
-   AtPoint2 st;
-   AtVector Vn;
-
-   AiV3Normalize(Vn, V);
+   AtVector2 st;
+   AtVector Vn = AiV3Normalize(V);
 
    Vn.z += 1.0f;
 
-   AiV3Normalize(Vn, Vn);
+   Vn = AiV3Normalize(Vn);
 
    st.x = Adjust(Vn.x);
    st.y = Adjust(Vn.y);
@@ -235,9 +231,9 @@ AtPoint2 BallMapping(AtVector V)
    return st;
 }
 
-AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
+AtVector2 TriPlanarMapping(AtVector V, AtVector N)
 {
-   AtPoint2 st;
+   AtVector2 st;
 
    float ax = N.x > 0.0f ? N.x : -N.x;
    float ay = N.y > 0.0f ? N.y : -N.y;
@@ -270,7 +266,7 @@ AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
 
 AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatrix *placement, AtMatrix *camera)
 {
-   AtPoint p;
+   AtVector p;
 
    switch (which)
    {
@@ -280,11 +276,11 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
       {
          if (camera != 0)
          {
-            AiM4PointByMatrixMult(&p, *camera, &p);
+            p = AiM4PointByMatrixMult(*camera, p);
          }
          else
          {
-            AiM4PointByMatrixMult(&p, sg->Minv, &p);
+            p = AiM4PointByMatrixMult(sg->Minv, p);
          }
       }
       break;
@@ -294,11 +290,11 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
       {
          if (camera != 0)
          {
-            AiM4PointByMatrixMult(&p, *camera, &p);
+            p = AiM4PointByMatrixMult(*camera, p);
          }
          else
          {
-            AiM4PointByMatrixMult(&p, sg->Minv, &p);
+            p = AiM4PointByMatrixMult(sg->Minv, p);
          }
       }
       break;
@@ -308,7 +304,7 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
       {
          if (camera != 0)
          {
-            AiM4PointByMatrixMult(&p, *camera, &(sg->P));
+            p = AiM4PointByMatrixMult(*camera, sg->P);
          }
          else
          {
@@ -323,7 +319,7 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
 
    if (placement)
    {
-      AiM4PointByMatrixMult(&p, *placement, &p);
+      p = AiM4PointByMatrixMult(*placement, p);
    }
 
    return AtVector(p);
@@ -333,37 +329,37 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
 
 node_parameters
 {
-   AiParameterENUM("projType", 0, gs_ProjectionTypeNames);
+   AiParameterEnum("projType", 0, gs_ProjectionTypeNames);
    AiParameterRGBA("image", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("uAngle", 180.0f);
-   AiParameterFLT("vAngle", 90.0f);
+   AiParameterFlt("uAngle", 180.0f);
+   AiParameterFlt("vAngle", 90.0f);
    AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f);
    AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaGain", 1.0f);
-   AiParameterFLT("alphaOffset", 0.0f);
-   AiParameterBOOL("invert", false);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", AI_M4_IDENTITY);
-   AiParameterENUM("fitType", 1, gs_FitTypeNames);
-   AiParameterENUM("fitFill", 0, gs_FillTypeNames);
-   AiParameterNODE("linkedCamera", NULL);
+   AiParameterFlt("alphaGain", 1.0f);
+   AiParameterFlt("alphaOffset", 0.0f);
+   AiParameterBool("invert", false);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", AI_M4_IDENTITY);
+   AiParameterEnum("fitType", 1, gs_FitTypeNames);
+   AiParameterEnum("fitFill", 0, gs_FillTypeNames);
+   AiParameterNode("linkedCamera", NULL);
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
    // hide from auto-translation
-   AiParameterFLT("cameraNearPlane", 1.0f);
-   AiMetaDataSetBool(mds, "cameraNearPlane", "maya.hide", true);
-   AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
-   AiMetaDataSetBool(mds, "cameraHorizontalFOV", "maya.hide", true);
-   AiParameterFLT("cameraAspectRatio", 1.0f);
-   AiMetaDataSetBool(mds, "cameraAspectRatio", "maya.hide", true);
+   AiParameterFlt("cameraNearPlane", 1.0f);
+   AiMetaDataSetBool(nentry, "cameraNearPlane", "maya.hide", true);
+   AiParameterFlt("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
+   AiMetaDataSetBool(nentry, "cameraHorizontalFOV", "maya.hide", true);
+   AiParameterFlt("cameraAspectRatio", 1.0f);
+   AiMetaDataSetBool(nentry, "cameraAspectRatio", "maya.hide", true);
 
-   AiParameterBOOL("useReferenceObject", true);
+   AiParameterBool("useReferenceObject", true);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 typedef struct 
@@ -398,7 +394,7 @@ node_update
       if(fov != NULL)
       {
          data->camera_fov = AiArrayCopy(fov);
-         for (int i = 0; i < data->camera_fov->nkeys; ++i)
+         for (int i = 0; i < AiArrayGetNumKeys(data->camera_fov); ++i)
             AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
       }
    }
@@ -429,7 +425,7 @@ node_update
    int xres = AiNodeGetInt(univ, "xres");
    int yres = AiNodeGetInt(univ, "yres");
    data->render_aspect = (float(xres) / float(yres));
-   data->output_aspect = AiNodeGetFlt(univ, "aspect_ratio");
+   data->output_aspect = 1.f/ AiMax(AI_EPSILON, AiNodeGetFlt(univ, "pixel_aspect_ratio"));
 }
 
 node_finish
@@ -461,16 +457,15 @@ shader_evaluate
 
    AtRGBA outColor;
 
-   AtPoint2 st(AI_P2_ZERO), stx(AI_P2_ZERO), sty(AI_P2_ZERO);
+   AtVector2 st(AI_P2_ZERO), stx(AI_P2_ZERO), sty(AI_P2_ZERO);
    bool mapped = false;
-   AtVector P;
 
    const bool useReferenceObject = AiShaderEvalParamBool(p_use_reference_object);
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = useReferenceObject ? SetRefererencePoints(sg, tmpPts) : false;
 
-   P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
+   AtVector P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
 
    switch (pt)
    {
@@ -542,9 +537,9 @@ shader_evaluate
             AiWorldToCameraMatrix(data->camera, sg->time, camm);  
             pcamm = &camm;
             P = ComputePoint(sg, TP_SAMPLE, true, mappingCoordinate, pcamm);
-            AiM4VectorByMatrixMult(&N, camm, &N);
+            N = AiM4VectorByMatrixMult(camm, N);
          }
-         AiM4VectorByMatrixMult(&N, *mappingCoordinate, &N);
+         N = AiM4VectorByMatrixMult(*mappingCoordinate, N);
          st = TriPlanarMapping(P, N);
          // Is there a way to get N for P+dPdx and P+dPdy?
          // Lets hope curvature is not too high
@@ -708,10 +703,10 @@ shader_evaluate
    }
    else
    {
-      AiRGBtoRGBA(AiShaderEvalParamRGB(p_default_color), outColor);
+      outColor = AtRGBA(AiShaderEvalParamRGB(p_default_color));
    }
 
    if (usePref) RestorePoints(sg, tmpPts);
-   sg->out.RGBA = outColor;
+   sg->out.RGBA() = outColor;
 
 }

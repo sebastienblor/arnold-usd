@@ -95,7 +95,6 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    ProcessParameter(shader, "gloss", AI_TYPE_FLOAT, "gloss");
    ProcessParameter(shader, "spec_color", AI_TYPE_RGB, "specularTint");
    ProcessParameter(shader, "ambdiff", AI_TYPE_FLOAT, "amb/diff");
-   ProcessParameter(shader, "diffuse_cache", AI_TYPE_BOOLEAN, "aiDiffuseCache");
    ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, "aiIndirect");
    ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, "aiDirectDiffuse");
    ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, "aiAovDirectDiffuse");
@@ -393,7 +392,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
          // a deeper rewriting of this code
          for (int j = 0; j < m_hairInfo.hairEndIndices[strand] - m_hairInfo.hairStartIndices[strand] + 2; ++j)
          {
-            AiArraySetPnt(curvePoints,
+            AiArraySetVec(curvePoints,
                     (curveLineInterpStartsIdx + j  + (step * numPointsPerStep)),
                     previousPoint);
 
@@ -412,7 +411,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       }
       
 
-      AtPoint arnoldCurvePoint;
+      AtVector arnoldCurvePoint;
       AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
      
 
@@ -506,7 +505,6 @@ void CShaveTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputNode(data);
 
    CExtensionAttrHelper helper2(context.maya, "ShaveHair");
-   helper2.MakeInput("diffuse_cache");
 
    helper2.MakeInput("direct_diffuse");
 

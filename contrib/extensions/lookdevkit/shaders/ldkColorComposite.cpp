@@ -21,14 +21,14 @@ enum ldkColorCompositeParams
 node_parameters
 {
    AiParameterRGB("colorA", 1.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaA", 1.0f);
+   AiParameterFlt("alphaA", 1.0f);
    AiParameterRGB("colorB", 0.0f, 1.0f, 0.0f);
-   AiParameterFLT("alphaB", 1.0f);
-   AiParameterENUM("operation", COP_ADD, CompositeOperationNames);
-   AiParameterFLT("factor", 1.0f);
+   AiParameterFlt("alphaB", 1.0f);
+   AiParameterEnum("operation", COP_ADD, CompositeOperationNames);
+   AiParameterFlt("factor", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorComposite");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81630);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorComposite");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81630);
 }
 
 node_initialize
@@ -51,8 +51,8 @@ shader_evaluate
 
    if (factor <= 0.0f)
    {
-      sg->out.RGBA.rgb() = colorA;
-      sg->out.RGBA.a = alphaA;
+      sg->out.RGB() = colorA; 
+      sg->out.RGBA().a = alphaA;
    }
    else
    {
@@ -62,61 +62,62 @@ shader_evaluate
       switch (op)
       {
       case COP_ADD:
-         sg->out.RGBA.r = CompositeAdd(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeAdd(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeAdd(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeAdd(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeAdd(colorA.r, colorB.r, factor),
+               CompositeAdd(colorA.g, colorB.g, factor),
+               CompositeAdd(colorA.b, colorB.b, factor),
+               CompositeAdd(alphaA, alphaB, factor));
          break;
       case COP_SUBTRACT:
-         sg->out.RGBA.r = CompositeSubtract(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeSubtract(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeSubtract(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeSubtract(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeSubtract(colorA.r, colorB.r, factor),
+            CompositeSubtract(colorA.g, colorB.g, factor),
+            CompositeSubtract(colorA.b, colorB.b, factor),
+            CompositeSubtract(alphaA, alphaB, factor));
          break;
       case COP_MIX:
-         sg->out.RGBA.r = CompositeMix(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeMix(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeMix(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeMix(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeMix(colorA.r, colorB.r, factor), 
+            CompositeMix(colorA.g, colorB.g, factor),
+            CompositeMix(colorA.b, colorB.b, factor),
+            CompositeMix(alphaA, alphaB, factor));
          break;
       case COP_MULTIPLY:
-         sg->out.RGBA.r = CompositeMultiply(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeMultiply(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeMultiply(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeMultiply(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeMultiply(colorA.r, colorB.r, factor),
+            CompositeMultiply(colorA.g, colorB.g, factor),
+            CompositeMultiply(colorA.b, colorB.b, factor),
+            CompositeMultiply(alphaA, alphaB, factor));
          break;
       case COP_SCREEN:
-         sg->out.RGBA.r = CompositeScreen(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeScreen(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeScreen(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeScreen(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeScreen(colorA.r, colorB.r, factor),
+            CompositeScreen(colorA.g, colorB.g, factor),
+            CompositeScreen(colorA.b, colorB.b, factor),
+            CompositeScreen(alphaA, alphaB, factor));
          break;
       case COP_OVERLAY:
-         sg->out.RGBA.r = CompositeOverlay(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeOverlay(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeOverlay(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeOverlay(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeOverlay(colorA.r, colorB.r, factor),  
+            CompositeOverlay(colorA.g, colorB.g, factor),
+            CompositeOverlay(colorA.b, colorB.b, factor),
+            CompositeOverlay(alphaA, alphaB, factor));
          break;
       case COP_DIFFERENCE:
-         sg->out.RGBA.r = CompositeDifference(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeDifference(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeDifference(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeDifference(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeDifference(colorA.r, colorB.r, factor),
+            CompositeDifference(colorA.g, colorB.g, factor),
+            CompositeDifference(colorA.b, colorB.b, factor),
+            CompositeDifference(alphaA, alphaB, factor));
          break;
       case COP_DODGE:
-         sg->out.RGBA.r = CompositeDodge(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeDodge(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeDodge(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeDodge(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeDodge(colorA.r, colorB.r, factor),
+            CompositeDodge(colorA.g, colorB.g, factor),
+            CompositeDodge(colorA.b, colorB.b, factor),
+            CompositeDodge(alphaA, alphaB, factor));
          break;
       case COP_BURN:
-         sg->out.RGBA.r = CompositeBurn(colorA.r, colorB.r, factor);
-         sg->out.RGBA.g = CompositeBurn(colorA.g, colorB.g, factor);
-         sg->out.RGBA.b = CompositeBurn(colorA.b, colorB.b, factor);
-         sg->out.RGBA.a = CompositeBurn(alphaA, alphaB, factor);
+         sg->out.RGBA() = AtRGBA(CompositeBurn(colorA.r, colorB.r, factor),
+            CompositeBurn(colorA.g, colorB.g, factor),
+            CompositeBurn(colorA.b, colorB.b, factor),
+            CompositeBurn(alphaA, alphaB, factor));
          break;
       default:
-         AiRGBAReset(sg->out.RGBA);
+      // FIXME Arnold5 we used to call AiRGBAReset 
+         sg->out.RGBA() = AI_RGBA_ZERO;
          break;
       }
    }

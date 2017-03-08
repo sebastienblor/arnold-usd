@@ -48,8 +48,8 @@ const char* vector_space_enum[] =
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "displacementShader");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52445348);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "displacementShader");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52445348);
 
    AiParameterFlt("displacement", 0.0f);
    AiParameterVec("vectorDisplacement", 0.0f, 0.0f, 0.0f);
@@ -66,7 +66,7 @@ shader_evaluate
    float scale = AiShaderEvalParamFlt(p_scale);
    float zeroValue = AiShaderEvalParamFlt(p_zeroValue);
    
-   sg->out.FLT = (disp - zeroValue) * scale;
+   sg->out.FLT() = (disp - zeroValue) * scale;
 }
 
 node_initialize

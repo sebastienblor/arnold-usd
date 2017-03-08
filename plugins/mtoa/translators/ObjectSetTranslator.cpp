@@ -12,7 +12,7 @@ void CObjectSetTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, NULL, "ai_", false);
 
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiOverride";
    data.shortName = "ai_override";
    data.type = AI_TYPE_BOOLEAN;

@@ -31,26 +31,25 @@ namespace
 }
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("snowColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("rockColor", 0.262f, 0.012f, 0.0f);
-   AiParameterFLT("amplitude", 1.0f);
-   AiParameterFLT("snowRoughness", 0.707f);
-   AiParameterFLT("rockRoughness", 0.5f);
-   AiParameterFLT("boundary", 1.0f);
-   AiParameterFLT("snowAltitude", 0.5f);
-   AiParameterFLT("snowDropoff", 2.0f);
-   AiParameterFLT("snowSlope", 0.8f);
-   AiParameterFLT("depthMax", 20.0f);
+   AiParameterFlt("amplitude", 1.0f);
+   AiParameterFlt("snowRoughness", 0.707f);
+   AiParameterFlt("rockRoughness", 0.5f);
+   AiParameterFlt("boundary", 1.0f);
+   AiParameterFlt("snowAltitude", 0.5f);
+   AiParameterFlt("snowDropoff", 2.0f);
+   AiParameterFlt("snowSlope", 0.8f);
+   AiParameterFlt("depthMax", 20.0f);
 
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
 
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "mountain");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "mountain");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize
@@ -63,10 +62,10 @@ node_update
     // should use globals as following Maya's behavior
     if (!AiNodeGetLink(node, "uvCoord"))
     {
-        AtPoint2 uv = AI_P2_ZERO;
+        AtVector2 uv = AI_P2_ZERO;
         if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
         if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-        AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+        AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
     }
 }
 
@@ -76,15 +75,15 @@ node_finish
 
 shader_evaluate
 {
-    AtPoint2 P;
-    P = AiShaderEvalParamPnt2(p_uvCoord);
+    AtVector2 P;
+    P = AiShaderEvalParamVec2(p_uvCoord);
     // Will be set to GLOBALS by update if unconnected
     if (P.x == UV_GLOBALS) P.x = sg->u;
     if (P.y == UV_GLOBALS) P.y = sg->v;
 
     if (!IsValidUV(P))
     {
-       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
        return;
     }
 
@@ -163,7 +162,7 @@ shader_evaluate
             outColor = snowColor;
         }
 
-      AiRGBtoRGBA(outColor, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(outColor);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
    }
 }

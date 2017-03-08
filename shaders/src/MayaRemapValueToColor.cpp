@@ -23,19 +23,19 @@ enum MayaRemapValueToColorParams
 
 node_parameters
 {
-   AiParameterFLT("input", 0.0f);
-   AiParameterFLT("inputMin", 0.0f);
-   AiParameterFLT("inputMax", 1.0f);
-   AiParameterARRAY("positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterFlt("input", 0.0f);
+   AiParameterFlt("inputMin", 0.0f);
+   AiParameterFlt("inputMax", 1.0f);
+   AiParameterArray("positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AtArray *vdef = AiArrayAllocate(2, 1, AI_TYPE_RGB);
    AiArraySetRGB(vdef, 0, AI_RGB_BLACK);
    AiArraySetRGB(vdef, 1, AI_RGB_WHITE);
-   AiParameterARRAY("values", vdef);
-   AiParameterARRAY("interpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));;
-   AiParameterFLT("outputMin", 0.0f);
-   AiParameterFLT("outputMax", 1.0f);
+   AiParameterArray("values", vdef);
+   AiParameterArray("interpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));;
+   AiParameterFlt("outputMin", 0.0f);
+   AiParameterFlt("outputMax", 1.0f);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -64,14 +64,14 @@ shader_evaluate
    AtArray *val = AiShaderEvalParamArray(p_key_val);
    AtArray *interp = AiShaderEvalParamArray(p_key_interp);
 
-   unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, pos->nelements * sizeof(unsigned int));
+   unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(pos) * sizeof(unsigned int));
    SortFloatIndexArray(pos, shuffle);
    
    input = MapValue(input, imin, imax);
 
    InterpolateShuffle(pos, val, interp, input, output, shuffle);
 
-   sg->out.RGB.r = UnmapValue(output.r, omin, omax);
-   sg->out.RGB.g = UnmapValue(output.g, omin, omax);
-   sg->out.RGB.b = UnmapValue(output.b, omin, omax);
+   sg->out.RGB().r = UnmapValue(output.r, omin, omax);
+   sg->out.RGB().g = UnmapValue(output.g, omin, omax);
+   sg->out.RGB().b = UnmapValue(output.b, omin, omax);
 }

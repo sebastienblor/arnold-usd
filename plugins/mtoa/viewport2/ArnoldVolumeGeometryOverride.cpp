@@ -96,13 +96,13 @@ void CArnoldVolumeGeometryOverride::updateRenderItems(const MDagPath &path, MHWR
 		return;
 
 	// Check for scale and offset
-	AtVector mn = {
+	AtVector mn (
 		-1.0f, -1.0f, -1.0f
-    };
+    );
 
-    AtVector mx = {
+    AtVector mx (
         1.0f, 1.0f, 1.0f
-    };
+    );
 	MStatus status;
 	MFnDependencyNode depNode(path.node(), &status);
     if(MStatus::kSuccess == status)

@@ -12,9 +12,6 @@ class AEaiCurvatureTemplate(ShaderAETemplate):
        
         self.beginScrollLayout()
         
-        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
-
-
         self.beginLayout('Curvature', collapse=False)
         self.addControl('output', label='Output')
 

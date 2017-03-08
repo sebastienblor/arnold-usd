@@ -5277,7 +5277,7 @@ float MayaNoiseUtils::noise2(float x, float y)
 }
 
 // static
-float MayaNoiseUtils::recurrenceGetValue3d(float size, float shaker, AtPoint* coord)
+float MayaNoiseUtils::recurrenceGetValue3d(float size, float shaker, AtVector* coord)
 {
     float result = 0.0, delta;
     float nx, ny, nz, xf, yf, zf, xzf;
@@ -5334,13 +5334,13 @@ float MayaNoiseUtils::recurrenceGetValue3d(float size, float shaker, AtPoint* co
 }
 
 // static
-AtPoint MayaNoiseUtils::recurrenceGetVector3d(float size, float shaker, AtPoint* coord)
+AtVector MayaNoiseUtils::recurrenceGetVector3d(float size, float shaker, AtVector* coord)
 {
     float delta;
     float nx, ny, nz, tx, ty, tz, tx_, ty_, tz_;
     float h0, h1, h2, h3, h4, h5, h6, h7;
     float coef0, coef1, coef2, weight;
-    AtPoint result = AI_P3_ZERO;
+    AtVector result = AI_P3_ZERO;
     int gainin = 1;
     int xi, yi, zi;
     int nb, nb1;
@@ -5441,14 +5441,14 @@ void MayaNoiseUtils::cell_initialize()
 
 // static
 float MayaNoiseUtils::cellGetValue3d(
-    float	cellSize,
-    float	density,
-    float	spottyness,
-    float	randomness,
-    float	edgeWidth,
-    bool	creases,
-    AtPoint	*coord,
-    AtPoint	*levelCount)
+    float	 cellSize,
+    float	 density,
+    float	 spottyness,
+    float	 randomness,
+    float	 edgeWidth,
+    bool	 creases,
+    AtVector *coord,
+    AtVector *levelCount)
 {
     short cntX, cntY, cntZ;
     float *distTable = cellNoiseTable;

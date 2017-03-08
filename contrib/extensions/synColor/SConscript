@@ -1,0 +1,71 @@
+# vim: filetype=python
+
+import system, os
+from build_tools import find_files_recursive
+import glob
+
+# import build env
+Import('ext_env')
+plugin_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(plugin_env['ROOT_DIR'], 'contrib', 'extensions', 'synColor', 'plugin')
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+plugin_env.Append(CPPPATH = ['.'])
+
+EXT = plugin_env.SharedLibrary('synColor_plugins', source_files, LIBPREFIX='')
+
+if system.os() == 'windows':
+   plugin_env['MSVSSCONSCRIPT'] = plugin_env.File('SConscript')
+
+
+# import build env
+Import('env')
+shader_env = env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'synColor', 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+shader_env.Append(CPPPATH = ['.'])
+if system.os() =='windows':
+   shader_env.Append(LIBS=Split('ai.lib'))
+   shader_env.Append(LIBS=Split('synColor.lib'))
+
+   maya_version = shader_env['MAYA_VERSION']
+   if int(maya_version) >= 201800:
+      shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'include')])
+      library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
+      #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/synColor*.dll"))
+   else:
+      shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')])
+      library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'windows')
+
+   shader_env.Append(LIBPATH = [library_path])
+   #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/synColor*.dll"))
+
+else:
+   shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(LIBS=Split('synColor'))
+
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden  -std=c++0x')) # hide symbols by default
+   shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')])
+   if system.os() =='darwin':
+      library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'darwin')
+      shader_env.Append(LIBPATH = [library_path])
+      #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor*.dylib"))
+   else:
+      library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', 'linux')
+      shader_env.Append(LIBPATH = [library_path])
+      #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor.so.*"))
+
+EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREFIX='')
+
+if system.os() == 'windows':
+   shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
+
+
+Return('EXT EXT_SHADERS')

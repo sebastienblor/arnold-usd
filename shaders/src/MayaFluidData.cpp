@@ -60,7 +60,7 @@ void InitializeFluidShaderParameters(AtList* params, bool is3d)
    }
    else
    {
-      AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_POINT2));
+      AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR2));
    }
    
    AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
@@ -100,7 +100,7 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaFluidDataMtd);
 node_parameters
 {
    InitializeFluidShaderParameters(params);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

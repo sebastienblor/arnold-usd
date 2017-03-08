@@ -2,106 +2,107 @@
 
 #include <cstdio>
 
-extern AtNodeMethods* MayaMultiplyDivideMtd;
-extern AtNodeMethods* MayaClampMtd;
-extern AtNodeMethods* MayaGammaCorrectMtd;
-extern AtNodeMethods* MayaConditionMtd;
-extern AtNodeMethods* MayaReverseMtd;
-extern AtNodeMethods* MayaBlendColorsMtd;
-extern AtNodeMethods* MayaPlusMinusAverage1DMtd;
-extern AtNodeMethods* MayaPlusMinusAverage2DMtd;
-extern AtNodeMethods* MayaPlusMinusAverage3DMtd;
-extern AtNodeMethods* MayaRemapValueToValueMtd;
-extern AtNodeMethods* MayaRemapValueToColorMtd;
-extern AtNodeMethods* MayaRemapColorMtd;
-extern AtNodeMethods* MayaFileMtd;
-extern AtNodeMethods* MayaPlace2DTextureMtd;
-extern AtNodeMethods* MayaRampMtd;
-extern AtNodeMethods* MayaProjectionMtd;
-extern AtNodeMethods* MayaLuminanceMtd;
-extern AtNodeMethods* MayaSetRangeMtd;
-extern AtNodeMethods* MeshInfoMtd;
-extern AtNodeMethods* MayaCheckerMtd;
-extern AtNodeMethods* MayaBulgeMtd;
-extern AtNodeMethods* MayaClothMtd;
-extern AtNodeMethods* MayaGridMtd;
-extern AtNodeMethods* MayaFractalMtd;
-extern AtNodeMethods* MayaNoiseMtd;
-extern AtNodeMethods* MayaPlace3DTextureMtd;
-extern AtNodeMethods* MayaEnvSphereMtd;
-extern AtNodeMethods* MayaRgbToHsvMtd;
-extern AtNodeMethods* MayaHsvToRgbMtd;
-extern AtNodeMethods* MayaLuminanceMtd;
-extern AtNodeMethods* MayaCloudMtd;
-extern AtNodeMethods* MayaCloudAlphaMtd;
-extern AtNodeMethods* MayaSnowMtd;
-extern AtNodeMethods* MayaContrastMtd;
-extern AtNodeMethods* MayaLayeredTextureMtd;
-extern AtNodeMethods* MayaLayeredShaderMtd;
-extern AtNodeMethods* MayaSolidFractalMtd;
-extern AtNodeMethods* MayaVolumeNoiseMtd;
-extern AtNodeMethods* MayaBrownianMtd;
-extern AtNodeMethods* MayaStuccoMtd;
-extern AtNodeMethods* MayaRemapHsvMtd;
-extern AtNodeMethods* MayaImagePlaneMtd;
-extern AtNodeMethods* MayaSurfaceShaderMtd;
-extern AtNodeMethods* ColorToFloatMtd;
-extern AtNodeMethods* VectorToFloatMtd;
-extern AtNodeMethods* PointToFloatMtd;
-extern AtNodeMethods* Point2ToFloatMtd;
-extern AtNodeMethods* WriteColorMtd;
-extern AtNodeMethods* WriteFloatMtd;
-extern AtNodeMethods* WriteColorInlineMtd;
-extern AtNodeMethods* WriteFloatInlineMtd;
-extern AtNodeMethods* WriteVectorInlineMtd;
-extern AtNodeMethods* WritePointInlineMtd;
-extern AtNodeMethods* WritePoint2InlineMtd;
-extern AtNodeMethods* AnimMatrixMtd;
-extern AtNodeMethods* AnimFloatMtd;
-extern AtNodeMethods* AnimPointMtd;
-extern AtNodeMethods* AnimVectorMtd;
-extern AtNodeMethods* AnimColorMtd;
-extern AtNodeMethods* UserDataFloatMtd;
-extern AtNodeMethods* UserDataVectorMtd;
-extern AtNodeMethods* UserDataColorMtd;
-extern AtNodeMethods* UserDataStringMtd;
-extern AtNodeMethods* UserDataBoolMtd;
-extern AtNodeMethods* MayaShadingEngineMtd;
-extern AtNodeMethods* MayaSamplerInfo1DMtd;
-extern AtNodeMethods* MayaSamplerInfo2DMtd;
-extern AtNodeMethods* MayaSamplerInfo3DMtd;
-extern AtNodeMethods* MayaVectorDisplacementMtd;
-extern AtNodeMethods* MayaNormalDisplacementMtd;
-extern AtNodeMethods* ShadowCatcherMtd;
-extern AtNodeMethods* MayaHairMtd;
-extern AtNodeMethods* MeshLightMaterialMtd;
-extern AtNodeMethods* UserDataPnt2Mtd;
-extern AtNodeMethods* UserDataIntMtd;
-extern AtNodeMethods* MayaBump2DMtd;
-extern AtNodeMethods* MayaFluidMtd;
-extern AtNodeMethods* MayaMarbleMtd;
-extern AtNodeMethods* MayaMountainMtd;
-extern AtNodeMethods* MayaWaterMtd;
-extern AtNodeMethods* MayaCraterMtd;
-extern AtNodeMethods* MayaLeatherMtd;
-extern AtNodeMethods* MayaGraniteMtd;
-extern AtNodeMethods* MayaRockMtd;
-extern AtNodeMethods* MayaSingleShadingSwitchMtd;
-extern AtNodeMethods* MayaDoubleShadingSwitchMtd;
-extern AtNodeMethods* MayaTripleShadingSwitchMtd;
-extern AtNodeMethods* MayaQuadShadingSwitchMtd;
-extern AtNodeMethods* MayaFluidDataMtd;
-extern AtNodeMethods* MayaFluidTexture2DMtd;
-extern AtNodeMethods* SkinMtd;
-extern AtNodeMethods* MayaSurfaceLuminanceMtd;
-extern AtNodeMethods* VolumeCollectorMtd;
-extern AtNodeMethods* CameraUvMapperMtd;
-extern AtNodeMethods* MPlayDriverMtd;
-extern AtNodeMethods* VolumeSampleRgbMethods;
-extern AtNodeMethods* VolumeSampleFloatMethods;
-extern AtNodeMethods* CurvatureMethods;
-extern AtNodeMethods* ThinFilmMethods;
-extern AtNodeMethods* ComplexIORMethods;
+extern const AtNodeMethods* MayaMultiplyDivideMtd;
+extern const AtNodeMethods* MayaClampMtd;
+extern const AtNodeMethods* MayaGammaCorrectMtd;
+extern const AtNodeMethods* MayaConditionMtd;
+extern const AtNodeMethods* MayaReverseMtd;
+extern const AtNodeMethods* MayaBlendColorsMtd;
+extern const AtNodeMethods* MayaPlusMinusAverage1DMtd;
+extern const AtNodeMethods* MayaPlusMinusAverage2DMtd;
+extern const AtNodeMethods* MayaPlusMinusAverage3DMtd;
+extern const AtNodeMethods* MayaRemapValueToValueMtd;
+extern const AtNodeMethods* MayaRemapValueToColorMtd;
+extern const AtNodeMethods* MayaRemapColorMtd;
+extern const AtNodeMethods* MayaFileMtd;
+extern const AtNodeMethods* MayaPlace2DTextureMtd;
+extern const AtNodeMethods* MayaRampMtd;
+extern const AtNodeMethods* MayaProjectionMtd;
+extern const AtNodeMethods* MayaLuminanceMtd;
+extern const AtNodeMethods* MayaSetRangeMtd;
+extern const AtNodeMethods* MeshInfoMtd;
+extern const AtNodeMethods* MayaCheckerMtd;
+extern const AtNodeMethods* MayaBulgeMtd;
+extern const AtNodeMethods* MayaClothMtd;
+extern const AtNodeMethods* MayaGridMtd;
+extern const AtNodeMethods* MayaFractalMtd;
+extern const AtNodeMethods* MayaNoiseMtd;
+extern const AtNodeMethods* MayaPlace3DTextureMtd;
+extern const AtNodeMethods* MayaEnvSphereMtd;
+extern const AtNodeMethods* MayaRgbToHsvMtd;
+extern const AtNodeMethods* MayaHsvToRgbMtd;
+extern const AtNodeMethods* MayaLuminanceMtd;
+extern const AtNodeMethods* MayaCloudMtd;
+extern const AtNodeMethods* MayaCloudAlphaMtd;
+extern const AtNodeMethods* MayaSnowMtd;
+extern const AtNodeMethods* MayaContrastMtd;
+extern const AtNodeMethods* MayaLayeredTextureMtd;
+extern const AtNodeMethods* MayaLayeredShaderMtd;
+extern const AtNodeMethods* MayaSolidFractalMtd;
+extern const AtNodeMethods* MayaVolumeNoiseMtd;
+extern const AtNodeMethods* MayaBrownianMtd;
+extern const AtNodeMethods* MayaStuccoMtd;
+extern const AtNodeMethods* MayaRemapHsvMtd;
+extern const AtNodeMethods* MayaImagePlaneMtd;
+extern const AtNodeMethods* MayaSurfaceShaderMtd;
+extern const AtNodeMethods* ColorToFloatMtd;
+extern const AtNodeMethods* VectorToFloatMtd;
+extern const AtNodeMethods* PointToFloatMtd;
+extern const AtNodeMethods* Point2ToFloatMtd;
+extern const AtNodeMethods* WriteColorMtd;
+extern const AtNodeMethods* WriteFloatMtd;
+extern const AtNodeMethods* WriteColorInlineMtd;
+extern const AtNodeMethods* WriteFloatInlineMtd;
+extern const AtNodeMethods* WriteVectorInlineMtd;
+extern const AtNodeMethods* WritePointInlineMtd;
+extern const AtNodeMethods* WritePoint2InlineMtd;
+extern const AtNodeMethods* AnimFloatMtd;
+extern const AtNodeMethods* AnimPointMtd;
+extern const AtNodeMethods* AnimVectorMtd;
+extern const AtNodeMethods* AnimColorMtd;
+extern const AtNodeMethods* AnimMatrixMtd;
+extern const AtNodeMethods* UserDataFloatMtd;
+extern const AtNodeMethods* UserDataVectorMtd;
+extern const AtNodeMethods* UserDataColorMtd;
+extern const AtNodeMethods* UserDataStringMtd;
+extern const AtNodeMethods* UserDataBoolMtd;
+extern const AtNodeMethods* MayaShadingEngineMtd;
+extern const AtNodeMethods* MayaSamplerInfo1DMtd;
+extern const AtNodeMethods* MayaSamplerInfo2DMtd;
+extern const AtNodeMethods* MayaSamplerInfo3DMtd;
+extern const AtNodeMethods* MayaVectorDisplacementMtd;
+extern const AtNodeMethods* MayaNormalDisplacementMtd;
+extern const AtNodeMethods* ShadowCatcherMtd;
+extern const AtNodeMethods* MayaHairMtd;
+extern const AtNodeMethods* MeshLightMaterialMtd;
+extern const AtNodeMethods* UserDataPnt2Mtd;
+extern const AtNodeMethods* UserDataIntMtd;
+extern const AtNodeMethods* MayaBump2DMtd;
+extern const AtNodeMethods* MayaFluidMtd;
+extern const AtNodeMethods* MayaMarbleMtd;
+extern const AtNodeMethods* MayaMountainMtd;
+extern const AtNodeMethods* MayaWaterMtd;
+extern const AtNodeMethods* MayaCraterMtd;
+extern const AtNodeMethods* MayaLeatherMtd;
+extern const AtNodeMethods* MayaGraniteMtd;
+extern const AtNodeMethods* MayaRockMtd;
+extern const AtNodeMethods* MayaSingleShadingSwitchMtd;
+extern const AtNodeMethods* MayaDoubleShadingSwitchMtd;
+extern const AtNodeMethods* MayaTripleShadingSwitchMtd;
+extern const AtNodeMethods* MayaQuadShadingSwitchMtd;
+extern const AtNodeMethods* MayaFluidDataMtd;
+extern const AtNodeMethods* MayaFluidTexture2DMtd;
+extern const AtNodeMethods* SkinMtd;
+extern const AtNodeMethods* MayaSurfaceLuminanceMtd;
+extern const AtNodeMethods* VolumeCollectorMtd;
+extern const AtNodeMethods* CameraUvMapperMtd;
+extern const AtNodeMethods* MPlayDriverMtd;
+extern const AtNodeMethods* VolumeSampleRgbMethods;
+extern const AtNodeMethods* VolumeSampleFloatMethods;
+extern const AtNodeMethods* CurvatureMethods;
+extern const AtNodeMethods* MayaFlatClosureMtd;
+extern const AtNodeMethods* ThinFilmMethods;
+extern const AtNodeMethods* ComplexIORMethods;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -156,11 +157,11 @@ enum{
    SHADER_WRITEFLOAT,
    SHADER_WRITEFLOATINLINE,
    SHADER_ENVSPHERE,
-   SHADER_ANIMMATRIX,
    SHADER_ANIMFLOAT,
    SHADER_ANIMPOINT,
    SHADER_ANIMVECTOR,
    SHADER_ANIMCOLOR,
+   SHADER_ANIMMATRIX,
    SHADER_USERDATAFLOAT,
    SHADER_USERDATAVECTOR,
    SHADER_USERDATACOLOR,
@@ -173,7 +174,6 @@ enum{
    SHADER_NORMALDISPLACEMENT,
    SHADER_VECTORDISPLACEMENT,
    SHADER_USERDATABOOL,
-   SHADER_SHADOWCATCHER,
    SHADER_HAIR,
    SHADER_LIGHTMATERIAL,
    SHADER_USERDATAPNT2,
@@ -193,16 +193,10 @@ enum{
    SHADER_MAYAQUADSHADINGSWITCH,
    SHADER_MAYAFLUIDDATA,
    SHADER_MAYAFLUIDTEXTURE2D,
-   SHADER_SKIN,
-   SHADER_VOLUMECOLLECTOR,
    SHADER_MAYASURFACELUMINANCE,
    SHADER_CAMERAUVMAPPER,
-   SHADER_VOLUME_SAMPLE_FLOAT,
-   SHADER_VOLUME_SAMPLE_RGB,
-   SHADER_CURVATURE, 
-   SHADER_THIN_FILM,
-   SHADER_COMPLEX_IOR,
-   DRIVER_MPLAY
+   SHADER_FLAT_CLOSURE
+   
 };
 
 node_loader
@@ -260,7 +254,7 @@ node_loader
 
    case SHADER_SAMPLERINFO2D:
       node->methods     = MayaSamplerInfo2DMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaSamplerInfo2D";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -274,7 +268,7 @@ node_loader
 
    case SHADER_PLUSMINUSAVERAGE2D:
       node->methods     = MayaPlusMinusAverage2DMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaPlusMinusAverage2D";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -316,7 +310,7 @@ node_loader
 
    case SHADER_PLACE2DTEXTURE:
       node->methods     = MayaPlace2DTextureMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaPlace2DTexture";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -449,7 +443,7 @@ node_loader
 
    case SHADER_LAYEREDSHADER:
       node->methods     = MayaLayeredShaderMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaLayeredShader";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -505,7 +499,7 @@ node_loader
 
    case SHADER_SURFACESHADER:
       node->methods     = MayaSurfaceShaderMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaSurfaceShader";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -573,13 +567,6 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;      
 
-   case SHADER_ANIMMATRIX:
-      node->methods     = AnimMatrixMtd;
-      node->output_type = AI_TYPE_MATRIX;
-      node->name        = "anim_matrix";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
    case SHADER_ANIMFLOAT:
       node->methods     = AnimFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
@@ -589,7 +576,7 @@ node_loader
 
    case SHADER_ANIMPOINT:
       node->methods     = AnimPointMtd;
-      node->output_type = AI_TYPE_POINT;
+      node->output_type = AI_TYPE_VECTOR;
       node->name        = "anim_point";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -608,6 +595,12 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case SHADER_ANIMMATRIX:
+      node->methods     = AnimMatrixMtd;
+      node->output_type = AI_TYPE_MATRIX;
+      node->name        = "anim_matrix";
+      node->node_type   = AI_NODE_SHADER;
+   break;
    case SHADER_USERDATAFLOAT:
       node->methods     = UserDataFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
@@ -638,7 +631,7 @@ node_loader
 
    case SHADER_SHADINGENGINE:
       node->methods     = MayaShadingEngineMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "MayaShadingEngine";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -659,14 +652,14 @@ node_loader
 
    case SHADER_WRITEPOINTINLINE:
       node->methods     = WritePointInlineMtd;
-      node->output_type = AI_TYPE_POINT;
+      node->output_type = AI_TYPE_VECTOR;
       node->name        = "aovWritePoint";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITEPOINT2INLINE:
       node->methods     = WritePoint2InlineMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "aovWritePoint2";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -691,14 +684,8 @@ node_loader
       node->name        = "userDataBool";
       node->node_type   = AI_NODE_SHADER;
       break;
-      
-   case SHADER_SHADOWCATCHER:
-      node->methods     = ShadowCatcherMtd;
-      node->output_type = AI_TYPE_RGBA;
-      node->name        = "shadowCatcher";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-      
+     
+   
    case SHADER_HAIR:
       node->methods     = MayaHairMtd;
       node->output_type = AI_TYPE_RGBA;
@@ -715,7 +702,7 @@ node_loader
 
    case SHADER_USERDATAPNT2:
       node->methods     = UserDataPnt2Mtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "userDataPnt2";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -729,14 +716,14 @@ node_loader
       
    case SHADER_BUMP2D:
       node->methods     = MayaBump2DMtd;
-      node->output_type = AI_TYPE_RGBA;
+      node->output_type = AI_TYPE_VECTOR;
       node->name        = "mayaBump2D";
       node->node_type   = AI_NODE_SHADER;
       break;
       
    case SHADER_MAYAFLUID:
       node->methods     = MayaFluidMtd;
-      node->output_type = AI_TYPE_RGB;
+      node->output_type = AI_TYPE_CLOSURE;
       node->name        = "mayaFluid";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -799,7 +786,7 @@ node_loader
 
    case SHADER_MAYADOUBLESHADINGSWITCH:
       node->methods     = MayaDoubleShadingSwitchMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaDoubleShadingSwitch";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -832,20 +819,6 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case SHADER_SKIN:
-      node->methods     = SkinMtd;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "skin";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-      
-   case SHADER_VOLUMECOLLECTOR:
-      node->methods     = VolumeCollectorMtd;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "volume_collector";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
    case SHADER_MAYASURFACELUMINANCE:
       node->methods     = MayaSurfaceLuminanceMtd;
       node->output_type = AI_TYPE_FLOAT;
@@ -860,42 +833,13 @@ node_loader
       node->node_type   = AI_NODE_CAMERA;
       break;
 
-   case SHADER_VOLUME_SAMPLE_FLOAT:
-      node->methods     = VolumeSampleFloatMethods;
-      node->output_type = AI_TYPE_FLOAT;
-      node->name        = "volume_sample_float";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case SHADER_VOLUME_SAMPLE_RGB:
-      node->methods     = VolumeSampleRgbMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "volume_sample_rgb";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-   case SHADER_CURVATURE:
-      node->methods = CurvatureMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name =      "curvature";
+   case SHADER_FLAT_CLOSURE:
+       node->methods = MayaFlatClosureMtd;
+      node->output_type = AI_TYPE_CLOSURE;
+      node->name =      "MayaFlatClosure";
       node->node_type = AI_NODE_SHADER;
       break;
-   case SHADER_THIN_FILM:
-      node->methods = ThinFilmMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name =      "thin_film";
-      node->node_type = AI_NODE_SHADER;
-      break;
-   case SHADER_COMPLEX_IOR:
-      node->methods = ComplexIORMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name =      "complex_ior";
-      node->node_type = AI_NODE_SHADER;
-      break;
-   case DRIVER_MPLAY:
-      node->methods     = MPlayDriverMtd;
-      node->name        = "driver_mplay";
-      node->node_type   = AI_NODE_DRIVER;
-      break;
+   
    default:
       return false;
    }

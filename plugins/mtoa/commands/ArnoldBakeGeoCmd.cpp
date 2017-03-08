@@ -131,14 +131,15 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
    unordered_map<std::string, matrixAsFloats>  mtxMap;
-   
+   static const AtString polymesh_str("polymesh");
+
+
    while (!AiNodeIteratorFinished(nodeIter))
    {
       AtNode *node = AiNodeIteratorGetNext(nodeIter);
-      if (AiNodeIs(node, "polymesh") )
+      if (AiNodeIs(node, polymesh_str) )
       {
-         AtMatrix localToWorld;
-         AiNodeGetMatrix(node, "matrix", localToWorld);
+         AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
          matrixAsFloats mtxFlt;
          int ind = 0;
          for (int j = 0; j < 4; j++)
@@ -156,9 +157,9 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
    AtShaderGlobals* sg = AiShaderGlobals();
    
-   std::vector<AtPoint> vertices;
+   std::vector<AtVector> vertices;
    std::vector<AtVector> normals;
-   std::vector<AtPoint2> uvs;
+   std::vector<AtVector2> uvs;
    std::vector<unsigned int> vertexIds;
 
    unordered_map<size_t, unsigned int>  vertexMap;
@@ -169,15 +170,15 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    while (!AiNodeIteratorFinished(nodeIter))
    {
       AtNode *node = AiNodeIteratorGetNext(nodeIter);
-      if (AiNodeIs(node, "polymesh") )
+      if (AiNodeIs(node, polymesh_str) )
       {
          os <<"o "<<AiNodeGetName(node)<<"\n";
         
          sg->Op = node;
          sg->fi = 0;
-         AtPoint localPos[3], worldPos[3];
+         AtVector localPos[3], worldPos[3];
          AtVector localNormal[3], worldNormal[3];
-         AtPoint2 uv[3];
+         AtVector2 uv[3];
          AtMatrix localToWorld;
          
          matrixAsFloats& mtxFlt = mtxMap[AiNodeGetName(node)];
@@ -219,7 +220,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
             for (int j = 0; j < 3; ++j)
             {
                // compute a hash key for this vertex position
-               size_t positionHash = HashFunctionDJB2((const unsigned char *)&localPos[j], sizeof(AtPoint));
+               size_t positionHash = HashFunctionDJB2((const unsigned char *)&localPos[j], sizeof(AtVector));
 
                vertexMapIter = vertexMap.find(positionHash);
                if (vertexMapIter != vertexMap.end())
@@ -235,22 +236,22 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
                vertexMap[positionHash] = meshVtxId;
                vertexIds.push_back(meshVtxId);
 
-               if (validUvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) validUvs = false;
+               if (validUvs && !AiShaderGlobalsGetVertexUVs(sg, AtString(""), uv)) validUvs = false;
                if (validNormals && !AiShaderGlobalsGetVertexNormals(sg, 0, localNormal)) validNormals = false;
 
 
                // convert local vertices to world              
-               AiM4PointByMatrixMult(&worldPos[j], localToWorld, &localPos[j]); 
-               AiM4VectorByMatrixMult(&worldNormal[j], localToWorld, &localNormal[j]); 
-               vertices.push_back(AiPoint((float)worldPos[j].x, (float)worldPos[j].y, (float)worldPos[j].z));
+               worldPos[j] = AiM4PointByMatrixMult(localToWorld, localPos[j]); 
+               worldNormal[j] = AiM4VectorByMatrixMult(localToWorld, localNormal[j]); 
+               vertices.push_back(AtVector((float)worldPos[j].x, (float)worldPos[j].y, (float)worldPos[j].z));
 
                if (validNormals)
                {
-                  normals.push_back(AiVector((float)worldNormal[j].x, (float)worldNormal[j].y, (float)worldNormal[j].z));
+                  normals.push_back(AtVector((float)worldNormal[j].x, (float)worldNormal[j].y, (float)worldNormal[j].z));
                }
                if (validUvs)
                {
-                  uvs.push_back(AiPoint2((float)uv[j].x, (float)uv[j].y));
+                  uvs.push_back(AtVector2((float)uv[j].x, (float)uv[j].y));
                }
             }
             sg->fi = ++triangleIndex;

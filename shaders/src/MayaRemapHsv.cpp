@@ -30,21 +30,21 @@ enum MayaRemapHsvParams
 node_parameters
 {
    AiParameterRGB("input", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("inputMin", 0.0f);
-   AiParameterFLT("inputMax", 1.0f);
-   AiParameterARRAY("hPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("hValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("hInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterARRAY("sPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("sValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("sInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterARRAY("vPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("vValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("vInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterFLT("outputMin", 0.0f);
-   AiParameterFLT("outputMax", 1.0f);
+   AiParameterFlt("inputMin", 0.0f);
+   AiParameterFlt("inputMax", 1.0f);
+   AiParameterArray("hPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("hValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("hInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterArray("sPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("sValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("sInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterArray("vPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("vValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("vInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterFlt("outputMin", 0.0f);
+   AiParameterFlt("outputMax", 1.0f);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -80,15 +80,15 @@ shader_evaluate
    
    
    AtArray* hPos = AiShaderEvalParamArray(p_key_hue_pos);
-   unsigned int* hShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, hPos->nelements * sizeof(unsigned int));
+   unsigned int* hShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(hPos) * sizeof(unsigned int));
    SortFloatIndexArray(hPos, hShuffle);
    
    AtArray* sPos = AiShaderEvalParamArray(p_key_saturation_pos);
-   unsigned int* sShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, sPos->nelements * sizeof(unsigned int));
+   unsigned int* sShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(sPos) * sizeof(unsigned int));
    SortFloatIndexArray(sPos, sShuffle);
    
    AtArray* vPos = AiShaderEvalParamArray(p_key_value_pos);
-   unsigned int* vShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, vPos->nelements * sizeof(unsigned int));
+   unsigned int* vShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(vPos) * sizeof(unsigned int));
    SortFloatIndexArray(vPos, vShuffle);
 
    InterpolateShuffle(hPos,
@@ -119,6 +119,6 @@ shader_evaluate
    // Set hue value back in [0, 360] range
    outputHsv.x = outputHsv.x * 360.0f;
 
-   sg->out.RGB = HSVtoRGB(outputHsv);
+   sg->out.RGB() = HSVtoRGB(outputHsv);
 }
 

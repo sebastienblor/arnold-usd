@@ -130,7 +130,7 @@ vars.AddVariables(
                  os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_PROCEDURAL_PATH', 
                  'Path used for installation of arnold procedurals', 
-                 os.path.join('$TARGET_MODULE_PATH', 'procedurals'), PathVariable.PathIsDirCreate),
+                 os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_EXTENSION_PATH', 
                  'Path used for installation of mtoa translator extensions', 
                  os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
@@ -271,6 +271,10 @@ else:
     maya_version = '201800'
 
 maya_version_base = maya_version[0:4]
+
+env['MAYA_VERSION'] = maya_version
+env['MAYA_VERSION_BASE'] = maya_version_base
+
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
@@ -284,7 +288,7 @@ if int(maya_version_base) >= 2014:
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
 
-if int(maya_version) >= 201700:
+if int(maya_version) >= 201600:
     env["ENABLE_COLOR_MANAGEMENT"] = 1
     env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
     env["MTOA_AFM"] = 1
@@ -372,11 +376,21 @@ if env['COMPILER'] == 'gcc':
         #env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
         #env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
 
+        # FIXME : To be removed and used through scons variables
+        #env['CC']  = '/solidangle/toolchain/3.0/bin/clang'
+        #env['CXX'] = '/solidangle/toolchain/3.0/bin/clang++'
+
     else:
         compiler_version = env['COMPILER_VERSION']
         if compiler_version != '':
             env['CC']  = 'gcc' + compiler_version
             env['CXX'] = 'g++' + compiler_version
+        #else:
+            # FIXME to be removed and used through scons variables
+        #    env['CC']  = '/opt/local/bin/clang'# + compiler_version
+        #    env['CXX'] = '/opt/local/bin/clang++'# + compiler_version
+
+	#env.Append(CCFLAGS = Split('-msse4.2')) # matches Arnold and ensures same math symbols
 
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
@@ -412,6 +426,7 @@ if env['COMPILER'] == 'gcc':
     if env['MODE'] == 'opt' or env['MODE'] == 'profile':
         env.Append(CCFLAGS = Split(env['GCC_OPT_FLAGS']))
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
+
         if system.os() == 'darwin': 
             env.Append(CCFLAGS = Split('-gstabs')) 
             env.Append(LINKFLAGS = Split('-gstabs')) 
@@ -443,7 +458,7 @@ elif env['COMPILER'] == 'msvc':
         MSVC_FLAGS += " /WX"  # treats warnings as errors
 
     if export_symbols:
-        MSVC_FLAGS += " /Zi"  # generates complete debug information
+        MSVC_FLAGS += " /Z7"  # generates complete debug information
 
     LINK_FLAGS  = " /MANIFEST"
 
@@ -731,6 +746,10 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         if 'maketx' in dylibElem:
             dylibs.remove(dylibElem)
         
+    if int(maya_version) >= 201800:
+        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
+        if os.path.exists(syncolor_library_path):
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/synColor*.dll"))
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
@@ -828,13 +847,7 @@ apiheaders = [
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])
-              
-if system.os() == "windows":
-    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.dll')))
-elif system.os() == 'linux':
-    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.so')))
-elif system.os() == 'darwin':
-    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.dylib')))
+             
               
 # install icons
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
@@ -951,7 +964,8 @@ for ext in os.listdir(ext_base_dir):
             ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
             (env['ENABLE_BIFROST'] == 1 and ext == 'new_bifrost') or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
-            (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup')):
+            (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
+            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1009,7 +1023,7 @@ for ext in os.listdir(ext_base_dir):
             target_path = "shaders"
             if target_type == 'procedural':
                 env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
-                target_path = "procedurals"
+                target_path = "shaders"
             else:
                 env.Install(TARGET_SHADER_PATH, ext_arnold)
             package_files += [[ext_arnold, target_path]]
@@ -1068,7 +1082,14 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
     PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
-    
+
+    # for Maya 2018, on windows we also need to copy the syncolor dll
+    if (int(maya_version) >= 201800):
+        if system.os() == 'windows':    
+            syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
+            PACKAGE_FILES.append([glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll')), 'bin'])
+        
+            
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
@@ -1078,12 +1099,12 @@ if env['ENABLE_VP2'] == 1:
         PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.hlsl'), 'vp2'])
     
 if env['ENABLE_XGEN'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
   
 if (env['ENABLE_XGEN'] == 1) and (int(maya_version) >= 201700):
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
@@ -1094,7 +1115,7 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
@@ -1107,15 +1128,13 @@ if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
-if system.os() == "windows":
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
-elif system.os() == 'linux':
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'procedurals'])
-elif system.os() == 'darwin':
-    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dylib'), 'procedurals'])
+if env['ENABLE_COLOR_MANAGEMENT'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor_shaders%s' % get_library_extension()), 'shaders'])
+
 
 for p in MTOA_PROCS:
-    PACKAGE_FILES += [[p, 'procedurals']]
+    PACKAGE_FILES += [[p, 'shaders']]
 
 if not env['DISABLE_COMMON']:
     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])

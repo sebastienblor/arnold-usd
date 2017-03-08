@@ -3,6 +3,11 @@
 
 namespace simplex
 {
+   float SGN(float a)
+   {
+      return a < 0.f ? -1.f : 1.f;
+   }
+   
    struct float2
    {
       float2() {};
@@ -29,7 +34,7 @@ namespace simplex
 
    inline float2 min(const float2& a, const float2& b)
    {
-      return float2(MIN(a.x, b.x), MIN(a.y, b.y));
+      return float2(AiMin(a.x, b.x), AiMin(a.y, b.y));
    }
 
 
@@ -53,7 +58,7 @@ namespace simplex
 
    inline float3 max(const float3& a, const float b)
    {
-      return float3(MAX(a.x, b), MAX(a.y, b), MAX(a.z, b));
+      return float3(AiMax(a.x, b), AiMax(a.y, b), AiMax(a.z, b));
    }
 
    inline float3 inversesqrt(const float3& in)
@@ -188,7 +193,7 @@ namespace simplex
       hash_y.w += SIMPLEX_POINTS.z;
       float4 distsq = hash_x*hash_x + hash_y*hash_y;
       float2 tmp = min( float2(distsq.x, distsq.y), float2(distsq.z, distsq.w) );
-      return MIN( tmp.x, tmp.y );
+      return AiMin( tmp.x, tmp.y );
    }
 
    float FractalNoise(

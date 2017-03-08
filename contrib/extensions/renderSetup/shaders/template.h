@@ -17,7 +17,7 @@ node_finish{}\
 \
 shader_evaluate\
 {\
-    sg->out.OUT = AiShaderEvalParamBool(p_enabled)?\
+    sg->out.OUT() = AiShaderEvalParamBool(p_enabled)?\
                 EvalParam(p_value) :\
                 EvalParam(p_original);\
 }
@@ -39,7 +39,7 @@ node_finish{}\
 \
 shader_evaluate\
 {\
-    sg->out.OUT = AiShaderEvalParamBool(p_enabled)?\
+    sg->out.OUT() = AiShaderEvalParamBool(p_enabled)?\
                 EvalParam(p_original) * EvalParam(p_multiply) + EvalParam(p_offset) :\
                 EvalParam(p_original);\
 }

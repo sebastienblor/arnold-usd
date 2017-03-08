@@ -34,25 +34,24 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("cellColor", 0.373f, 0.157f, 0.059f);
    AiParameterRGB("creaseColor", 0.235f, 0.118f, 0.0f);
-   AiParameterFLT("cellSize", 0.5f);
-   AiParameterFLT("density", 1.0f);
-   AiParameterFLT("spottyness", 0.1f);
-   AiParameterFLT("randomness", 0.5f);
-   AiParameterFLT("threshold", 0.83f);
-   AiParameterBOOL("creases", true);
+   AiParameterFlt("cellSize", 0.5f);
+   AiParameterFlt("density", 1.0f);
+   AiParameterFlt("spottyness", 0.1f);
+   AiParameterFlt("randomness", 0.5f);
+   AiParameterFlt("threshold", 0.83f);
+   AiParameterBool("creases", true);
 
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "leather");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "leather");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize
@@ -74,12 +73,12 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
    
-   AtPoint P;
+   AtVector P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
    
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -133,13 +132,13 @@ shader_evaluate
           outColor.b += (1.0f - leather) * creaseColor.b;
       }
 
-      AiRGBtoRGBA(outColor, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(outColor);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
       
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

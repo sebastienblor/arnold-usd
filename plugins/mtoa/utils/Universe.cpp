@@ -11,8 +11,8 @@
 
 #include <maya/MGlobal.h>
 
-extern AtNodeMethods* mtoa_driver_mtd;
-extern AtNodeMethods* progress_driver_mtd;
+extern const AtNodeMethods* mtoa_driver_mtd;
+extern const AtNodeMethods* progress_driver_mtd;
 
 MString g_metafile = "";
 
@@ -61,7 +61,7 @@ void LoadPlugins()
    for (unsigned int i=0; i<plugins.length(); ++i)
    {
       const MString pluginFile = plugins[i];
-      AiLoadPlugin(pluginFile.asChar());
+      AiLoadPlugins(pluginFile.asChar());
    }
 }
 

@@ -30,10 +30,6 @@ class Bump2dTemplate(templates.AttributeTemplate):
         self.addControl('aiSwapTangents', label='Swap Tangents')
         self.addControl('aiUseDerivatives', label='Use Derivatives')
 
-        maya_version = versions.shortName()
-        if int(float(maya_version)) < 2017:
-            self.addControl('aiGammaCorrect', label='Gamma Correct')
-
 templates.registerAETemplate(Bump2dTemplate, 'bump2d')
 
 class ProjectionTemplate(templates.AttributeTemplate):

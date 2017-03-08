@@ -30,21 +30,21 @@ enum MayaRemapColorParams
 node_parameters
 {
    AiParameterRGB("input", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("inputMin", 0.0f);
-   AiParameterFLT("inputMax", 1.0f);
-   AiParameterARRAY("rPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("rValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("rInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterARRAY("gPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("gValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("gInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterARRAY("bPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("bValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("bInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterFLT("outputMin", 0.0f);
-   AiParameterFLT("outputMax", 1.0f);
+   AiParameterFlt("inputMin", 0.0f);
+   AiParameterFlt("inputMax", 1.0f);
+   AiParameterArray("rPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("rValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("rInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterArray("gPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("gValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("gInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterArray("bPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("bValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("bInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterFlt("outputMin", 0.0f);
+   AiParameterFlt("outputMax", 1.0f);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -75,15 +75,15 @@ shader_evaluate
    input.b = MapValue(input.b, imin, imax);
    
    AtArray* rPos = AiShaderEvalParamArray(p_key_red_pos);
-   unsigned int* rShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, rPos->nelements * sizeof(unsigned int));
+   unsigned int* rShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(rPos) * sizeof(unsigned int));
    SortFloatIndexArray(rPos, rShuffle);
    
    AtArray* gPos = AiShaderEvalParamArray(p_key_green_pos);
-   unsigned int* gShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, gPos->nelements * sizeof(unsigned int));
+   unsigned int* gShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(gPos) * sizeof(unsigned int));
    SortFloatIndexArray(gPos, gShuffle);
    
    AtArray* bPos = AiShaderEvalParamArray(p_key_blue_pos);
-   unsigned int* bShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, bPos->nelements * sizeof(unsigned int));
+   unsigned int* bShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(bPos) * sizeof(unsigned int));
    SortFloatIndexArray(bPos, bShuffle);
 
    InterpolateShuffle(rPos,
@@ -107,7 +107,7 @@ shader_evaluate
                      output.b,
                      bShuffle);
 
-   sg->out.RGB.r = UnmapValue(output.r, omin, omax);
-   sg->out.RGB.g = UnmapValue(output.g, omin, omax);
-   sg->out.RGB.b = UnmapValue(output.b, omin, omax);
+   sg->out.RGB().r = UnmapValue(output.r, omin, omax);
+   sg->out.RGB().g = UnmapValue(output.g, omin, omax);
+   sg->out.RGB().b = UnmapValue(output.b, omin, omax);
 }

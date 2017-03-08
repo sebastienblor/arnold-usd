@@ -16,13 +16,13 @@ enum UserDataFloatParams
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataFloat");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATAFLOAT);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataFloat");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATAFLOAT);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
-   AiParameterSTR("floatAttrName", "");
-   AiParameterFLT("defaultValue", 0.f);
+   AiParameterStr("floatAttrName", "");
+   AiParameterFlt("defaultValue", 0.f);
 }
 
 node_initialize
@@ -39,9 +39,7 @@ node_finish
 
 shader_evaluate
 {
-
-   const char* name = 0;
-   name = AiShaderEvalParamStr(p_floatAttrName);
+   AtString name = AtString(AiShaderEvalParamStr(p_floatAttrName));
    AtParamValue val;
    bool valid = false;
    
@@ -54,10 +52,10 @@ shader_evaluate
    // 1) we try to get the value of the CORRECT type
    // 2) if it doesn't succeed, then get the type and the value
 
-   if (AiUDataGetFlt(name, &val.FLT))
+   if (AiUDataGetFlt(name, val.FLT()))
    {
       valid = true;
-      sg->out.FLT = val.FLT;
+      sg->out.FLT() = val.FLT();
    } else
    {   
       const AtUserParamEntry* pentry = AiUserGetParameterFunc(name, sg);
@@ -66,73 +64,66 @@ shader_evaluate
       switch (valueType)
       {
          case AI_TYPE_FLOAT:
-         if (AiUDataGetFlt(name, &val.FLT))
+         if (AiUDataGetFlt(name, val.FLT()))
          {
             valid = true;
-            sg->out.FLT = val.FLT;
+            sg->out.FLT() = val.FLT();
          }
          break;
          case AI_TYPE_RGB:
-         if (AiUDataGetRGB(name, &val.RGB))
+         if (AiUDataGetRGB(name, val.RGB()))
          {
             valid = true;
-            sg->out.FLT = (val.RGB.r + val.RGB.g + val.RGB.b) / 3.f;
+            sg->out.FLT() = (val.RGB().r + val.RGB().g + val.RGB().b) / 3.f;
          }
          break;
          case AI_TYPE_RGBA:
-         if (AiUDataGetRGBA(name, &val.RGBA))
+         if (AiUDataGetRGBA(name, val.RGBA()))
          {
             valid = true;
-            sg->out.FLT = (val.RGBA.r + val.RGBA.g + val.RGBA.b) / 3.f;
+            sg->out.FLT() = (val.RGBA().r + val.RGBA().g + val.RGBA().b) / 3.f;
          }
          break;
          case AI_TYPE_BYTE:
-         if (AiUDataGetByte(name, &val.BYTE))
+         if (AiUDataGetByte(name, val.BYTE()))
          {
             valid = true;
-            sg->out.FLT = (float)val.BYTE;			
+            sg->out.FLT() = (float)val.BYTE();			
          }
          break;
          case AI_TYPE_INT:
-         if (AiUDataGetInt(name, &val.INT))
+         if (AiUDataGetInt(name, val.INT()))
          {
             valid = true;
-            sg->out.FLT = (float)val.INT;			
+            sg->out.FLT() = (float)val.INT();			
          }		 
          break;
          case AI_TYPE_UINT:
-         if (AiUDataGetUInt(name, &val.UINT))
+         if (AiUDataGetUInt(name, val.UINT()))
          {
             valid = true;
-            sg->out.FLT = (float)val.UINT;			
+            sg->out.FLT() = (float)val.UINT();			
          }
          break;
          case AI_TYPE_BOOLEAN:
-         if (AiUDataGetBool(name, &val.BOOL))
+         if (AiUDataGetBool(name, val.BOOL()))
          {
             valid = true;
-            sg->out.FLT = (val.BOOL ? 1.f : 0.f);			
+            sg->out.FLT() = (val.BOOL() ? 1.f : 0.f);			
          }
          break;
-         case AI_TYPE_POINT:
-         if (AiUDataGetPnt(name, &val.PNT))
+         case AI_TYPE_VECTOR2:
+         if (AiUDataGetVec2(name, val.VEC2()))
          {
             valid = true;
-            sg->out.FLT = (val.PNT.x + val.PNT.y + val.PNT.z) / 3.f;
-         }
-         break;
-         case AI_TYPE_POINT2:
-         if (AiUDataGetPnt2(name, &val.PNT2))
-         {
-            valid = true;
-            sg->out.FLT = (val.PNT2.x + val.PNT2.y) / 2.f;
+            sg->out.FLT() = (val.VEC2().x + val.VEC2().y) / 2.f;
          }
          break;
          case AI_TYPE_VECTOR:
-         if (AiUDataGetVec(name, &val.VEC))
+         if (AiUDataGetVec(name, val.VEC()))
          {
             valid = true;
-            sg->out.FLT = (val.VEC.x + val.VEC.y + val.VEC.z) / 3.f;
+            sg->out.FLT() = (val.VEC().x + val.VEC().y + val.VEC().z) / 3.f;
          }
          break;
 
@@ -142,6 +133,6 @@ shader_evaluate
    }
    if (!valid)
    {
-      sg->out.FLT = AiShaderEvalParamFlt(p_defaultValue);
+      sg->out.FLT() = AiShaderEvalParamFlt(p_defaultValue);
    }
 }

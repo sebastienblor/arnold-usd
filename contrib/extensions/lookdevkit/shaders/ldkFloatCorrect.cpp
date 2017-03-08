@@ -30,8 +30,8 @@ node_parameters
    AiParameterFlt("clampMin", 0.0f);
    AiParameterFlt("clampMax", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatCorrect");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81650);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatCorrect");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81650);
 }
 
 node_initialize
@@ -69,5 +69,5 @@ shader_evaluate
       result = Clamp(result, clampMin, clampMax);
    }
 
-   sg->out.FLT = result;
+   sg->out.FLT() = result;
 }

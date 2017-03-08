@@ -22,21 +22,20 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("snowColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("surfaceColor", 0.5f, 0.0f, 0.0f);
-   AiParameterFLT("threshold", 0.5f);
-   AiParameterFLT("depthDecay", 5.0f);
-   AiParameterFLT("thickness", 1.0f);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterFlt("threshold", 0.5f);
+   AiParameterFlt("depthDecay", 5.0f);
+   AiParameterFlt("thickness", 1.0f);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "snow");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x5254534e);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "snow");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x5254534e);
 }
 
 node_initialize
@@ -57,12 +56,10 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
 
-   AtPoint P;
-
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -73,21 +70,21 @@ shader_evaluate
       float threshold = AiShaderEvalParamFlt(p_threshold);
       float depthDecay = AiShaderEvalParamFlt(p_depthDecay);
       float thickness = AiShaderEvalParamFlt(p_thickness);
-      AtVector U, N;
+      AtVector N;
 
-      AiV3Create(U, 0.0f, 1.0f, 0.0f);
+      AtVector U = AtVector(0.0f, 1.0f, 0.0f);
 
       if (local)
       {
-         AiM4VectorByMatrixMult(&N, sg->Minv, &(sg->N));
+         N = AiM4VectorByMatrixMult(sg->Minv, sg->N);
       }
       else
       {
          N = sg->N;
       }
 
-      AiM4VectorByMatrixMult(&N, *placementMatrix, &N);
-      AiV3Normalize(N, N);
+      N = AiM4VectorByMatrixMult(*placementMatrix, N);
+      N = AiV3Normalize(N);
 
       float NdU = AiV3Dot(N, U);
 
@@ -100,12 +97,12 @@ shader_evaluate
 
       AtRGB c = Mix(surfaceColor, snowColor, amount);
 
-      AiRGBtoRGBA(c, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(c);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

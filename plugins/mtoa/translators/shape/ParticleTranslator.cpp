@@ -40,12 +40,12 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportParticleIDs";
    data.shortName = "ai_export_particle_ids";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "aiExportAttributes";
    data.shortName = "ai_export_attributes";
    helper.MakeInputString(data);
@@ -54,60 +54,60 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    enumNames.append("points");
    enumNames.append("spheres");
    enumNames.append("quads");
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "aiRenderPointsAs";
    data.shortName = "ai_render_points_as";
    data.enums= enumNames;
    helper.MakeInputEnum(data);
 
-   data.defaultValue.FLT = 0;
+   data.defaultValue.FLT() = 0;
    data.name = "aiMinParticleRadius";
    data.shortName = "ai_min_particle_radius";
    helper.MakeInputFloat(data);
 
-   data.defaultValue.FLT = 1.0;
+   data.defaultValue.FLT() = 1.0;
    data.name = "aiRadiusMultiplier";
    data.shortName = "ai_radius_multiplier";
    helper.MakeInputFloat(data);
 
-   data.defaultValue.FLT = 1000000;
+   data.defaultValue.FLT() = 1000000;
    data.name = "aiMaxParticleRadius";
    data.shortName = "ai_max_particle_radius";
    helper.MakeInputFloat(data);
 
-   data.defaultValue.FLT = 0;
+   data.defaultValue.FLT() = 0;
    data.name = "aiMinPixelWidth";
    data.shortName = "ai_min_pixel_width";
    helper.MakeInputFloat(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiDeleteDeadParticles";
    data.shortName = "ai_delete_dead_particles";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiInterpolateBlur";
    data.shortName = "ai_interpolate_blur";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 2.f;
+   data.softMax.FLT() = 2.f;
    helper.MakeInputFloat(data);
 
-   data.defaultValue.FLT = 1.f;
+   data.defaultValue.FLT() = 1.f;
    data.name = "aiEvaluateEvery";
    data.shortName = "ai_evaluate_every";
    data.hasMin = true;
    data.hasSoftMin = true;
-   data.min.FLT = 0.0001f;
-   data.softMin.FLT = 0.1f;
+   data.min.FLT() = 0.0001f;
+   data.softMin.FLT() = 0.1f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 2.f;
+   data.softMax.FLT() = 2.f;
    helper.MakeInputFloat(data);
 }
 
@@ -1171,7 +1171,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName().asChar(), m_particleCount);
 
    /// Finally set the  position and  radius/aspect values with their cache values minus Transform position
-   AtPoint a_v;
+   AtVector a_v;
    MVector m_v;
    float a_r;
    float a_a;
@@ -1189,7 +1189,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    const unsigned int numMotionSteps = (m_motionDeform && RequiresMotionData()) ? GetNumMotionSteps() : 1;
 
    // declare the arrays  now that we have gathered all the particle info from each step
-   a_positionArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_POINT);
+   a_positionArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_VECTOR);
    bool multipleRadiuses = /*(!(m_minPixelWidth > AI_EPSILON)) &&*/ (m_out_radiusArrays.size() > 1);
    if (multipleRadiuses)
       a_radiusArray = AiArrayAllocate(m_particleCount * m_multiCount, numMotionSteps, AI_TYPE_FLOAT);
@@ -1233,7 +1233,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
                m_v = (*m_out_positionArrays[s])[pindex];
 
-               AtPoint noisePoint;
+               AtVector noisePoint;
                noisePoint.x = float(i+j+0.1454329);
                noisePoint.y = float(i+j+0.3234548);
                noisePoint.z = float(i+j+0.0921081);
@@ -1246,12 +1246,12 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                // the system is cached or not. As a result, we need to apply the inclusive matrix if the
                // particle system has been cached.
                if (m_inheritCacheTxfm)
-                  AiM4PointByMatrixMult (&a_v, inclMatrix, &a_v);
+                  a_v = AiM4PointByMatrixMult (inclMatrix, a_v);
 
                // Calculated offset index
                int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
 
-               AiArraySetPnt(a_positionArray, index, a_v);
+               AiArraySetVec(a_positionArray, index, a_v);
 
                if (m_isSprite)
                {
@@ -1259,14 +1259,14 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                   AiArraySetFlt (a_aspectArray, index, a_a);
                   if (writeRadius)
                   {
-                     a_r = CLAMP((((float)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
+                     a_r = AiClamp((((float)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
                      a_r *= radiusMult;
                      AiArraySetFlt(a_radiusArray, index, a_r);
                   }
                }
                else if (writeRadius)
                {
-                  a_r = CLAMP(((float)(*m_out_radiusArrays[s])[pindex]), minRadius, maxRadius);
+                  a_r = AiClamp(((float)(*m_out_radiusArrays[s])[pindex]), minRadius, maxRadius);
                   a_r *= radiusMult;
                   AiArraySetFlt(a_radiusArray, index, a_r);
                }                  
@@ -1365,7 +1365,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
-         for (int i = 0; i < (int)a_attributes->nelements; ++i)
+         for (int i = 0; i < (int)AiArrayGetNumElements(a_attributes); ++i)
             AiArraySetFlt(a_attributes, i, 0.0f);
          int inputCount = (int)doubleIt->second->length();
          int i = 0;
@@ -1393,7 +1393,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_VECTOR);
-         for (int i = 0; i < (int)a_attributes->nelements; ++i)
+         for (int i = 0; i < (int)AiArrayGetNumElements(a_attributes); ++i)
             AiArraySetVec(a_attributes, i, AI_V3_ZERO);
          const int inputCount = (int)vecIt->second->length();
          int i = 0;
@@ -1403,7 +1403,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
             if ((pindex >= 0) && (pindex < inputCount))
             {
                const MVector vectorValue = vecIt->second->operator[](pindex);
-               AtVector a_attr = {(float)vectorValue.x, (float)vectorValue.y, (float)vectorValue.z};
+               AtVector a_attr ((float)vectorValue.x, (float)vectorValue.y, (float)vectorValue.z);
                for (int j = 0; j< m_multiCount; j++)
                {
                   // Calculated offset index
@@ -1423,7 +1423,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for(intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_INT);
-         for (int i = 0; i < (int)a_attributes->nelements; ++i)
+         for (int i = 0; i < (int)AiArrayGetNumElements(a_attributes); ++i)
             AiArraySetInt(a_attributes, i, 0);
          const int inputCount = (int)intIt->second->length();
          int i = 0;

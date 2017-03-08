@@ -5,9 +5,11 @@ from collections import namedtuple
 from itertools import groupby
 import arnold.ai_params
 import maya.api.OpenMaya as om
+import pymel.versions as versions
+import maya.mel as mel
 
 BUILTIN_AOVS = (
-                ('P',                   'point'),
+                ('P',                   'vector'),
                 ('Z',                   'float'),
                 ('N',                   'vector'),
                 ('opacity',             'rgb'),
@@ -15,20 +17,36 @@ BUILTIN_AOVS = (
                 ('Pref',                'rgb'),
                 ('raycount',            'float'),
                 ('cputime',             'float'),
-                ('beauty',              'rgba'),
                 ('ID',                  'int'),
-                ('mesh_light_beauty',   'rgb'),
+                ('RGBA',                'rgba'),
+                ('direct',              'rgb'),
+                ('indirect',            'rgb'),
+                ('emission',            'rgb'),
+                ('background',          'rgb'),
+                ('diffuse',             'rgb'),
+                ('specular',            'rgb'),
+                ('transmission',        'rgb'),
+                ('sss',                 'rgb'),
                 ('volume',              'rgb'),
-                ('volume_opacity',      'rgb'),
+                ('albedo',              'rgb'),
+                ('diffuse_direct',      'rgb'),
+                ('diffuse_indirect',    'rgb'),
+                ('diffuse_albedo',      'rgb'),
+                ('specular_direct',     'rgb'),
+                ('specular_indirect',   'rgb'),
+                ('specular_albedo',     'rgb'),
+                ('transmission_direct', 'rgb'),
+                ('transmission_indirect','rgb'),
+                ('transmission_albedo', 'rgb'),
+                ('sss_direct',          'rgb'),
+                ('sss_indirect',        'rgb'),
+                ('sss_albedo',          'rgb'),
                 ('volume_direct',       'rgb'),
                 ('volume_indirect',     'rgb'),
-                ('diffuse_albedo',      'rgb'),
-                ('shadow_matte',        'rgb')
+                ('volume_albedo',       'rgb'),
+                ('volume_opacity',      'rgb'),
+                ('shadow_matte',        'rgba')
 
-
-#                ('A',       'float'),
-#                ('OBJECT',  'node'),
-#                ('SHADER',  'node'),
                 )
 
 TYPES = (
@@ -38,8 +56,7 @@ TYPES = (
     ("rgb",    arnold.ai_params.AI_TYPE_RGB),
     ("rgba",   arnold.ai_params.AI_TYPE_RGBA),
     ("vector", arnold.ai_params.AI_TYPE_VECTOR),
-    ("point",  arnold.ai_params.AI_TYPE_POINT),
-    ("point2", arnold.ai_params.AI_TYPE_POINT2),
+    ("vector2", arnold.ai_params.AI_TYPE_VECTOR2),
     ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
 defaultFiltersByName = {'Z' : 'closest', 'motion_vector' : 'closest', 'P' : 'closest', 'N' : 'closest', 'Pref' : 'closest', 'ID' : 'closest'}
@@ -106,6 +123,16 @@ def refreshAliases():
     addAliases(aovList)
 
 def isValidAOVNode(name):
+    maya_version = versions.shortName()
+    if int(float(maya_version)) < 2017:
+        return True
+
+    hasRenderSetup = mel.eval('mayaHasRenderSetup()')
+
+    if hasRenderSetup == 0:
+        return True
+
+    # return true for older version
     sList = om.MSelectionList()
     sList.add(name)
     return not om.MFnDependencyNode(sList.getDependNode(0)).isFromReferencedFile

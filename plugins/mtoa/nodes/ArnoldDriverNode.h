@@ -24,5 +24,6 @@ public:
    static MObject s_driver;
    static MObject s_prefix;
    static MObject s_outputMode;
+   static MObject s_colorManagement;
 
 };  // class CArnoldDriverNode

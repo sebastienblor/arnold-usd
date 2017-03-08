@@ -26,6 +26,10 @@ MObject CArnoldAOVNode::s_outputs;
 MObject CArnoldAOVNode::s_driver;
 MObject CArnoldAOVNode::s_filter;
 
+MObject CArnoldAOVNode::s_lightPathExpression;
+MObject CArnoldAOVNode::s_lightGroups;
+
+
 
 void* CArnoldAOVNode::creator()
 {
@@ -58,8 +62,7 @@ MStatus CArnoldAOVNode::initialize()
    eAttr.addField("rgb",     AI_TYPE_RGB);
    eAttr.addField("rgba",    AI_TYPE_RGBA);
    eAttr.addField("vector",  AI_TYPE_VECTOR);
-   eAttr.addField("point",   AI_TYPE_POINT);
-   eAttr.addField("point2",  AI_TYPE_POINT2);
+   eAttr.addField("vector2",  AI_TYPE_VECTOR2);
    eAttr.addField("pointer", AI_TYPE_POINTER);
    eAttr.setKeyable(false);
    addAttribute(s_type);
@@ -100,6 +103,17 @@ MStatus CArnoldAOVNode::initialize()
    cmpAttr.setKeyable(false);
 
    addAttribute(s_outputs);
+
+   s_lightPathExpression = tAttr.create("lightPathExpression", "lpe", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create(""));
+   addAttribute(s_lightPathExpression);
+
+
+   s_lightGroups = nAttr.create("lightGroups", "lg", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_lightGroups);
+
 
    return MStatus::kSuccess;
 }

@@ -12,8 +12,6 @@ class AEaiThinFilmTemplate(ShaderAETemplate):
        
         self.beginScrollLayout()
         
-        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
-
         self.beginLayout('Thickness', collapse=False)
         self.addControl('thickness_min', label='Min Thickness (nm)')
         self.addControl('thickness_max', label='Max Thickness (nm)')

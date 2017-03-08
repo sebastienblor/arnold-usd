@@ -191,99 +191,43 @@ void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
    // Bump, as well as matte parameters will affect the shading engine in back reference
-   if (plugName == "normalCamera" || plugName == "aiEnableMatte" || plugName == "aiMatteColor")
+   if (/*plugName == "normalCamera" || */plugName == "aiEnableMatte" || plugName == "aiMatteColor")
    {
+      // FIXME can we remove all this ??
       // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
       for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
       {
          (*it)->RequestUpdate();
       }
- 
-
-      if (m_impl->m_sourceTranslator)
-      {
-         // simply delete the sourceTranslator, it will be re-generated at next export
-         // this way if it's disconnected we delete it from the scene
-         // This might be a bit heavy but it will only happen when user tweaks the bump node
-
-         // FIXME is this necessary now that we request update on back references ?
-         m_impl->m_sourceTranslator->SetUpdateMode(AI_DELETE_NODE);
-         m_impl->m_sourceTranslator->RequestUpdate();
-      } 
-
+      
    }
 
 }
 
-   // Maya:
-   //  ----------       -----------
-   //  | Bump2d | --->  | Shader1 |
-   //  ---------- \     -----------
-   //              \    -----------
-   //               \-> | Shader2 |
-   //                   -----------
-   //             __
-   //             ||
-   //            _||_
-   //            \  /
-   //             \/
-   //
-   // Arnold:
-   //  -----------     ---------
-   //  | Shader1 | --> | Bump1 |
-   //  -----------     ---------
-   //  -----------     ---------
-   //  | Shader2 | --> | Bump2 |
-   //  -----------     ---------
-   //
 
 void CShaderTranslator::ExportBump(AtNode* shader)
 {
+   static AtString normalParameter("normal");
+
    MStatus status;
-   MPlugArray connections;
    MPlug plug = FindMayaPlug("normalCamera", &status);
-   if (status && !plug.isNull())
+   if (status != MS::kSuccess || plug.isNull())
+      return; // no "normalCamera" attribute in this shader
+
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(shader), normalParameter) == NULL)
+      return; // this arnold shader doesn't have a "normal" attribute so we're skipping this
+
+   if (AiNodeIsLinked(shader, "normal"))
+      AiNodeUnlink(shader, "normal");
+
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
    {
-      plug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         int instanceNumber = 0;
+      AtNode *bump = ExportConnectedNode(connections[0]);
+      if (bump)
+         AiNodeLink(bump, "normal", shader);
 
-         unordered_map<CShaderTranslator *, int>::iterator iter = s_bump_instances.find(this);
-         if (iter != s_bump_instances.end())
-         {
-            // this entry already exists in my map            
-            instanceNumber = iter->second;
-         }
-         else
-         {
-            // first time I find this Shader Translator instance
-            instanceNumber = (int)s_bump_instance_count++;
-            s_bump_instances[this] = instanceNumber;
-         }
-
-         CNodeTranslator *bumpTranslator = m_impl->m_session->ExportNode(connections[0], m_impl->m_shaders, &m_impl->m_upstreamAOVs, false, instanceNumber);
-         
-         if (bumpTranslator != NULL)
-         {
-            m_impl->SetSourceTranslator(bumpTranslator);
-
-#ifdef NODE_TRANSLATOR_REFERENCES 
-            m_impl->AddBackReference(bumpTranslator, true); // "true" in order to add the reverse connection too 
-#endif
-            AtNode* bump = bumpTranslator->GetArnoldNode();
-      
-            while (true)
-            {
-               AtNode* connectedBump = AiNodeGetLink(bump, "shader");
-               if (connectedBump != 0 && AiNodeIs(connectedBump, "mayaBump2D"))
-                  bump = connectedBump;
-               else
-                  break;
-            }
-            AiNodeLink(shader, "shader", bump);            
-         }
-      }
    }
 }
 

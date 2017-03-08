@@ -1,5 +1,7 @@
 #include <ai.h>
 
+#include <limits.h>
+
 #include "MayaUtils.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaCloudMtd);
@@ -31,33 +33,32 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color2", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("contrast", 0.5f);
-   AiParameterFLT("amplitude", 1.0f);
-   AiParameterPNT2("depth", 0.0f, 8.0f);
-   AiParameterVEC("ripples", 1.0f, 1.0f, 1.0f);
-   AiParameterBOOL("softEdges", true);
-   AiParameterFLT("edgeThresh", 0.9f);
-   AiParameterFLT("centerThresh", 0.0f);
-   AiParameterFLT("transpRange", 0.5f);
-   AiParameterFLT("ratio", 0.707f);
-   AiParameterMTX("placementMatrix", id);
+   AiParameterFlt("contrast", 0.5f);
+   AiParameterFlt("amplitude", 1.0f);
+   AiParameterVec2("depth", 0.0f, 8.0f);
+   AiParameterVec("ripples", 1.0f, 1.0f, 1.0f);
+   AiParameterBool("softEdges", true);
+   AiParameterFlt("edgeThresh", 0.9f);
+   AiParameterFlt("centerThresh", 0.0f);
+   AiParameterFlt("transpRange", 0.5f);
+   AiParameterFlt("ratio", 0.707f);
+   AiParameterMtx("placementMatrix", id);
    AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f);
    AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterBOOL("invert", false);
-   AiParameterBOOL("local", false);
-   AiParameterBOOL("wrap", true);
+   AiParameterBool("invert", false);
+   AiParameterBool("local", false);
+   AiParameterBool("wrap", true);
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "cloud");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544344);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "cloud");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544344);
 }
 
 node_initialize
@@ -78,7 +79,7 @@ shader_evaluate
    AtRGB color2 = AiShaderEvalParamRGB(p_color2);
    float contrast = AiShaderEvalParamFlt(p_contrast);
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
-   AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
+   AtVector2 depth = AiShaderEvalParamVec2(p_depth);
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
    bool softEdges = AiShaderEvalParamBool(p_softEdges);
    float edgeThresh = AiShaderEvalParamFlt(p_edgeThresh);
@@ -94,18 +95,17 @@ shader_evaluate
    AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);
 
    AtRGB result;
-   AtPoint P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
                 (-1.0f <= P.z && P.z <= 1.0f)))
    {
-      float iterations = MAX(depth.x, depth.y);
+      float iterations = AiMax(depth.x, depth.y);
       float loop = 0.0f;
       float curAmp = amplitude;
       float curFreq = 1.0f;
@@ -133,17 +133,17 @@ shader_evaluate
          loop += 1.0f;
       }
 
-      noise = CLAMP((0.5f * noise) + 0.5f, 0.0f, 1.0f);
+      noise = AiClamp((0.5f * noise) + 0.5f, 0.0f, 1.0f);
 
       noise = 0.5f * noise + 0.5f;
 
-      noise = CLAMP((2.5f - centerThresh) / 2.5f, 0.0f, 1.0f) * pow(noise, 1.0f + edgeThresh);
+      noise = AiClamp((2.5f - centerThresh) / 2.5f, 0.0f, 1.0f) * pow(noise, 1.0f + edgeThresh);
 
       noise = SmoothStep(0.5f * (1.0f - transpRange), 0.5f * (1.0f + transpRange), noise);
 
       // Now apply color (use softEdges and contrast)
 
-      AtColor c0 = Mix(color2, color1, contrast);
+      AtRGB c0 = Mix(color2, color1, contrast);
       c0 = Mix(c0, color2, noise);
 
       if (softEdges)
@@ -166,6 +166,6 @@ shader_evaluate
    }
 
    if (usePref) RestorePoints(sg, tmpPts);
-   sg->out.RGB = result;
+   sg->out.RGB() = result;
 
 }

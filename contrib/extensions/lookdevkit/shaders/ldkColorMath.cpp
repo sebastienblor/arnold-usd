@@ -40,13 +40,13 @@ const char* enum_operation[] =
 node_parameters
 {
    AiParameterRGB("colorA", 1.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaA", 1.0f);
+   AiParameterFlt("alphaA", 1.0f);
    AiParameterRGB("colorB", 0.0f, 1.0f, 0.0f);
-   AiParameterFLT("alphaB", 1.0f);
-   AiParameterENUM("operation", OP_ADD, enum_operation);
+   AiParameterFlt("alphaB", 1.0f);
+   AiParameterEnum("operation", OP_ADD, enum_operation);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorMath");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81642);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorMath");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81642);
 }
 
 node_initialize
@@ -71,49 +71,50 @@ shader_evaluate
    switch (op)
    {
    case OP_ADD:
-      sg->out.RGBA.rgb() = colorA + colorB;
-      sg->out.RGBA.a = alphaA + alphaB;
+      sg->out.RGB() = colorA + colorB;
+      sg->out.RGBA().a = alphaA + alphaB;
       break;
    case OP_SUBTRACT:
-      sg->out.RGBA.rgb() = colorA - colorB;
-      sg->out.RGBA.a = alphaA - alphaB;
+      sg->out.RGB() = colorA - colorB;
+      sg->out.RGBA().a = alphaA - alphaB;
       break;
    case OP_MULTIPLY:
-      sg->out.RGBA.rgb() = colorA * colorB;
-      sg->out.RGBA.a = alphaA * alphaB;
+      sg->out.RGB() = colorA * colorB;
+      sg->out.RGBA().a = alphaA * alphaB;
       break;
    case OP_DIVIDE:
-      sg->out.RGBA.r = colorB.r != 0.0f ? colorA.r / colorB.r : 0.0f;
-      sg->out.RGBA.g = colorB.g != 0.0f ? colorA.g / colorB.g : 0.0f;
-      sg->out.RGBA.b = colorB.b != 0.0f ? colorA.b / colorB.b : 0.0f;
-      sg->out.RGBA.a = alphaB != 0.0f ? alphaA / alphaB : 0.0f;
+      sg->out.RGBA().r = colorB.r != 0.0f ? colorA.r / colorB.r : 0.0f;
+      sg->out.RGBA().g = colorB.g != 0.0f ? colorA.g / colorB.g : 0.0f;
+      sg->out.RGBA().b = colorB.b != 0.0f ? colorA.b / colorB.b : 0.0f;
+      sg->out.RGBA().a = alphaB != 0.0f ? alphaA / alphaB : 0.0f;
       break;
    case OP_MIN:
       if ((colorA.r + colorA.g + colorA.b) < (colorB.r + colorB.g + colorB.b))
       {
-         sg->out.RGBA.rgb() = colorA;
-         sg->out.RGBA.a = alphaA;
+         sg->out.RGB() = colorA;
+         sg->out.RGBA().a = alphaA;
       }
       else
       {
-         sg->out.RGBA.rgb() = colorB;
-         sg->out.RGBA.a = alphaB;
+         sg->out.RGB() = colorB;
+         sg->out.RGBA().a = alphaB;
       }
       break;
    case OP_MAX:
       if ((colorA.r + colorA.g + colorA.b) > (colorB.r + colorB.g + colorB.b))
       {
-         sg->out.RGBA.rgb() = colorA;
-         sg->out.RGBA.a = alphaA;
+         sg->out.RGB() = colorA;
+         sg->out.RGBA().a = alphaA;
       }
       else
       {
-         sg->out.RGBA.rgb() = colorB;
-         sg->out.RGBA.a = alphaB;
+         sg->out.RGB() = colorB;
+         sg->out.RGBA().a = alphaB;
       }
       break;
    default:
-      AiRGBAReset(sg->out.RGBA);
+   // FIXME Arnold5 we sed to call AiRGBAReset
+      sg->out.RGBA() = AI_RGBA_ZERO;
       break;
    }
 }

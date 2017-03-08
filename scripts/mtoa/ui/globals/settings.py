@@ -42,23 +42,23 @@ def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
 def updateComputeSamples(*args):
     AASamples = pm.getAttr('defaultArnoldRenderOptions.AASamples')
     GISamples = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
-    glossySamples = pm.getAttr('defaultArnoldRenderOptions.GIGlossySamples')
-    refractionSamples = pm.getAttr('defaultArnoldRenderOptions.GIRefractionSamples')
+    specularSamples = pm.getAttr('defaultArnoldRenderOptions.GISpecularSamples')
+    transmissionSamples = pm.getAttr('defaultArnoldRenderOptions.GITransmissionSamples')
     
     diffuseDepth = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
-    glossyDepth = pm.getAttr('defaultArnoldRenderOptions.GIGlossyDepth')
-    refractionDepth = pm.getAttr('defaultArnoldRenderOptions.GIRefractionDepth')
+    specularDepth = pm.getAttr('defaultArnoldRenderOptions.GISpecularDepth')
+    transmissionDepth = pm.getAttr('defaultArnoldRenderOptions.GITransmissionDepth')
     
     if AASamples <= 0:
         AASamples = 1
     AASamplesComputed = AASamples * AASamples
 
     GISamplesComputed, GISamplesComputedDepth = calculateRayCounts(AASamplesComputed, GISamples, diffuseDepth)
-    glossySamplesComputed, glossySamplesComputedDepth = calculateRayCounts(AASamplesComputed, glossySamples, glossyDepth)
-    refractionSamplesComputed, refractionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, refractionSamples, refractionDepth)
+    specularSamplesComputed, specularSamplesComputedDepth = calculateRayCounts(AASamplesComputed, specularSamples, specularDepth)
+    transmissionSamplesComputed, transmissionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, transmissionSamples, transmissionDepth)
     
-    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
-    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
+    totalSamples = AASamplesComputed + GISamplesComputed + specularSamplesComputed + transmissionSamplesComputed
+    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + specularSamplesComputedDepth + transmissionSamplesComputedDepth
 
     pm.text("textAASamples",
             edit=True, 
@@ -68,13 +68,13 @@ def updateComputeSamples(*args):
             edit=True, 
             label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
-    pm.text("textGlossySamples",
+    pm.text("textSpecularSamples",
             edit=True, 
-            label='Glossy Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+            label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
         
-    pm.text("textRefractionSamples",
+    pm.text("textTransmissionSamples",
             edit=True, 
-            label='Refraction Samples : %i (max : %i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
+            label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
         
     pm.text("textTotalSamples",
             edit=True, 
@@ -396,12 +396,12 @@ def createArnoldSamplingSettings():
                align='left',
                )
     
-    pm.text( "textGlossySamples", 
+    pm.text( "textSpecularSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
 
-    pm.text( "textRefractionSamples", 
+    pm.text( "textTransmissionSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
@@ -436,25 +436,25 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     
-    pm.intSliderGrp('ss_glossy_samples',
-                        label="Glossy",
+    pm.intSliderGrp('ss_specular_samples',
+                        label="Specular",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=1)
-    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=2)
-    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
+    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=1)
+    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=2)
+    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=3)    
     
-    pm.intSliderGrp('ss_refraction_samples',
-                        label='Refraction',
+    pm.intSliderGrp('ss_transmission_samples',
+                        label='Transmission',
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=1)
-    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
-    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=3)    
+    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=1)
+    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=2)
+    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=3)    
 
     pm.attrControlGrp('ss_sss_samples',
                         label='SSS',
@@ -520,20 +520,6 @@ def createArnoldGammaSettings():
                         label="Display Driver gamma",
                         attribute='defaultArnoldRenderOptions.display_gamma')
 
-    pm.separator()
-
-    pm.attrControlGrp('ss_light_gamma',
-                        label="Lights",
-                        attribute='defaultArnoldRenderOptions.light_gamma')
-
-    pm.attrControlGrp('ss_shader_gamma',
-                   label="Shaders",
-                   attribute='defaultArnoldRenderOptions.shader_gamma')
-
-    pm.attrControlGrp('ss_texture_gamma',
-                        label="Textures",
-                        attribute='defaultArnoldRenderOptions.texture_gamma')
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -567,40 +553,36 @@ def createArnoldRayDepthSettings():
                         attribute='defaultArnoldRenderOptions.GIDiffuseDepth')
     '''
     
-    pm.intSliderGrp('rs_glossy_depth',
-                        label="Glossy",
+    pm.intSliderGrp('rs_specular_depth',
+                        label="Specular",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=1)
-    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=2)
-    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=3)
+    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=1)
+    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=2)
+    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=3)
     
     '''
-    pm.attrControlGrp('rs_glossy_depth',
-                        label="Glossy depth",
-                        attribute='defaultArnoldRenderOptions.GIGlossyDepth')
+    pm.attrControlGrp('rs_specular_depth',
+                        label="Specular depth",
+                        attribute='defaultArnoldRenderOptions.GISpecularDepth')
     '''
 
-    pm.attrControlGrp('rs_reflection_depth',
-                        label="Reflection",
-                        attribute='defaultArnoldRenderOptions.GIReflectionDepth')
-
-    pm.intSliderGrp('rs_refraction_depth',
-                        label="Refraction ",
+    pm.intSliderGrp('rs_transmission_depth',
+                        label="Transmission ",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=1)
-    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=2)
-    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=3)
+    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=1)
+    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=2)
+    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=3)
 
     '''
-    pm.attrControlGrp('rs_refraction_depth',
+    pm.attrControlGrp('rs_transmission_depth',
                         label="Refraction depth",
-                        attribute='defaultArnoldRenderOptions.GIRefractionDepth')
+                        attribute='defaultArnoldRenderOptions.GITransmissionDepth')
     '''
     
     pm.attrControlGrp('rs_volume_depth',
@@ -613,9 +595,6 @@ def createArnoldRayDepthSettings():
                         label="Transparency Depth",
                         attribute='defaultArnoldRenderOptions.autoTransparencyDepth')
 
-    pm.attrControlGrp('rs_auto_transparency_threshold',
-                        label="Transparency Threshold",
-                        attribute='defaultArnoldRenderOptions.autoTransparencyThreshold')
 
     pm.setParent('..')
 
@@ -625,24 +604,6 @@ def createArnoldEnvironmentSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
-
-    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
-    pm.text('es_background_text', label="Background")
-    pm.connectControl('es_background_text', 'defaultArnoldRenderOptions.background')
-    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
-    backgroundSelectButton = pm.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
-    bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
-
-    pm.setParent('..')
-
-    conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
-    if conns:
-        pm.textField(backgroundTextField, edit=True, text=conns[0])
-        pm.symbolButton(backgroundSelectButton, edit=True, enable=True)
-
-    pm.separator(style="none")
 
     
     pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
@@ -660,6 +621,24 @@ def createArnoldEnvironmentSettings():
     if conns:
         pm.textField(atmosphereTextField, edit=True, text=conns[0])
         pm.symbolButton(atmosphereSelectButton, edit=True, enable=True)
+
+    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    pm.text('es_background_text', label="Background (Legacy)")
+    pm.connectControl('es_background_text', 'defaultArnoldRenderOptions.background')
+    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
+    backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
+    backgroundSelectButton = pm.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
+    bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
+    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
+
+    pm.setParent('..')
+
+    conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
+    if conns:
+        pm.textField(backgroundTextField, edit=True, text=conns[0])
+        pm.symbolButton(backgroundSelectButton, edit=True, enable=True)
+
+    pm.separator(style="none")
     
     pm.setParent('..')
 
@@ -794,12 +773,6 @@ def createArnoldLightSettings():
                         attribute='defaultArnoldRenderOptions.shadowLinking')
 
 
-    pm.separator()
-    pm.attrControlGrp('legacyLightTemperature',
-                    label="Legacy Temperature",
-                    attribute='defaultArnoldRenderOptions.legacyLightTemperature')
-
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -836,9 +809,9 @@ def createArnoldTextureSettings():
     updateAutoTxSettings()
     cmds.separator()
     
-    # don't create texture_automip for 2017 as autoTx is ON by default
+    # don't create texture_automip for 2016 as autoTx is ON by default
     maya_version = versions.shortName()
-    if int(float(maya_version)) < 2017:
+    if int(float(maya_version)) < 2016:
         pm.attrControlGrp('texture_automip',
                             label="Auto-mipmap",
                             attribute='defaultArnoldRenderOptions.textureAutomip')
@@ -892,9 +865,9 @@ def createArnoldTextureSettings():
                         label="Diffuse Blur", 
                         attribute='defaultArnoldRenderOptions.textureDiffuseBlur') 
 
-    cmds.attrControlGrp('texture_glossy_blur', 
-                        label="Glossy Blur", 
-                        attribute='defaultArnoldRenderOptions.textureGlossyBlur') 
+    cmds.attrControlGrp('texture_specular_blur', 
+                        label="Specular Blur", 
+                        attribute='defaultArnoldRenderOptions.textureSpecularBlur') 
 
     pm.setParent('..')
 
@@ -968,9 +941,9 @@ def createArnoldPathSettings():
                         label="Procedural Search Path",
                         attribute='defaultArnoldRenderOptions.procedural_searchpath')
 
-    pm.attrControlGrp('os_shader_searchpath',
-                        label="Shader Search Path",
-                        attribute='defaultArnoldRenderOptions.shader_searchpath')
+    pm.attrControlGrp('os_plugin_searchpath',
+                        label="Plugin Search Path",
+                        attribute='defaultArnoldRenderOptions.plugin_searchpath')
 
     pm.attrControlGrp('os_texture_searchpath',
                         label="Texture Search Path",
@@ -1308,7 +1281,7 @@ def createArnoldRendererGlobalsTab():
     #
     
     maya_version = versions.shortName()
-    if int(float(maya_version)) < 2017:
+    if int(float(maya_version)) < 2016:
         pm.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
         createArnoldGammaSettings()
         pm.setParent('..')

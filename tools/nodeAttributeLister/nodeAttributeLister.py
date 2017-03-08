@@ -11,10 +11,10 @@ def GetParamValueAsString(pentry, val, type):
         return "true" if (val.contents.BOOL != 0) else "false"   
     elif type == AI_TYPE_FLOAT:
         return "%g" % val.contents.FLT
-    elif type == AI_TYPE_VECTOR or type == AI_TYPE_POINT:
-        return "%g, %g, %g" % (val.contents.PNT.x, val.contents.PNT.y, val.contents.PNT.z)
-    elif type == AI_TYPE_POINT2:
-        return "%g, %g" % (val.contents.PNT.x, val.contents.PNT.y)
+    elif type == AI_TYPE_VECTOR:
+        return "%g, %g, %g" % (val.contents.VEC.x, val.contents.VEC.y, val.contents.VEC.z)
+    elif type == AI_TYPE_VECTOR2:
+        return "%g, %g" % (val.contents.VEC2.x, val.contents.VEC2.y)
     elif type == AI_TYPE_RGB:
         return "%g, %g, %g" % (val.contents.RGB.r, val.contents.RGB.g, val.contents.RGB.b)
     elif type == AI_TYPE_RGBA:
@@ -42,9 +42,6 @@ def GetParamValueAsString(pentry, val, type):
             elif array.type == AI_TYPE_VECTOR:
                 vec = AiArrayGetVec(array, 0)
                 return "%g, %g, %g" % (vec.x, vec.y, vec.z)
-            elif array.type == AI_TYPE_POINT:
-                pnt = AiArrayGetPnt(array, 0)
-                return "%g, %g, %g" % (pnt.x, pnt.y, pnt.z)
             elif array.type == AI_TYPE_RGB:
                 rgb = AiArrayGetRGB(array, 0)
                 return "%g, %g, %g" % (rgb.r, rgb.g, rgb.b)

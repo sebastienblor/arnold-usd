@@ -10,24 +10,24 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper = CExtensionAttrHelper("fluidShape");
    
    CAttrData data;
-   data.defaultValue.FLT = 0.1f;
+   data.defaultValue.FLT() = 0.1f;
    data.hasMin = true;
    data.hasSoftMax = true;
-   data.min.FLT = 0.f;
-   data.softMax.FLT = 2.f;
+   data.min.FLT() = 0.f;
+   data.softMax.FLT() = 2.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    helper.MakeInputFloat(data);
    
    data.hasSoftMax = false;
    
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.hasMax = true;
    data.name = "aiPhaseFunc";
    data.shortName = "aiPhaseFunc";
    
-   data.min.FLT = -1.f;
-   data.max.FLT = 1.f;
+   data.min.FLT() = -1.f;
+   data.max.FLT() = 1.f;
    helper.MakeInputFloat(data);
    
    data.hasMin = false;
@@ -35,7 +35,7 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    
    data.name = "aiOverrideTextures";
    data.shortName = "ai_override_textures";
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    helper.MakeInputBoolean(data);
    
    data.name = "aiTextureAffectColor";
@@ -52,16 +52,16 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
 
    data.name = "aiEnableDeformationBlur";
    data.shortName = "ai_enable_deformation_blur";
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    helper.MakeInputBoolean(data);
    
    data.name = "aiMotionVectorScale";
    data.shortName = "ai_motion_vector_scale";
-   data.defaultValue.FLT = 1.f;
+   data.defaultValue.FLT() = 1.f;
    data.hasMin = true;
    data.hasSoftMax = true;
-   data.min.FLT = 0.f;
-   data.softMax.FLT = 1.f;
+   data.min.FLT() = 0.f;
+   data.softMax.FLT() = 1.f;
    helper.MakeInputFloat(data);
 
    data.name = "aiVolumeTexture";
@@ -72,7 +72,7 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    strArr.append("Fixed");
    strArr.append("Grid");
    data.enums = strArr;
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "aiTextureCoordinateMethod";
    data.shortName = "ai_texture_coordinate_method";
    helper.MakeInputEnum(data);
@@ -82,7 +82,7 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    strArr.append("Linear");
    strArr.append("Cubic");
    data.enums = strArr;
-   data.defaultValue.INT = 1;
+   data.defaultValue.INT() = 1;
    data.name = "aiFilterType";
    data.shortName = "ai_filter_type";
    helper.MakeInputEnum(data);
@@ -150,7 +150,8 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
    // check for the existing links, and unlink them
    // this is required to be able to change the connections in ipr
    AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
-   for (AtUInt32 i = 0; i < valuesOld->nelements; i++)
+   unsigned oldNelements = AiArrayGetNumElements(valuesOld);
+   for (unsigned i = 0; i < oldNelements; i++)
    {
       MString attributeName = values_name + MString("[");
       attributeName += i;
@@ -177,9 +178,9 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
       }
       else
       {
-         AtRGB color = {colorPlug.child(0).asFloat(),
+         AtRGB color (colorPlug.child(0).asFloat(),
                         colorPlug.child(1).asFloat(),
-                        colorPlug.child(2).asFloat()};
+                        colorPlug.child(2).asFloat());
          AiArraySetRGB(values, i, color);
       }
       AiArraySetInt(interps, i, plugElement.child(2).asInt());
@@ -382,11 +383,11 @@ void CFluidTranslator::Export(AtNode* fluid)
    float dynOffY = plug.child(1).asFloat();
    float dynOffZ = plug.child(2).asFloat();
    
-   const AtVector mn = {-0.5f * (float)xDim + dynOffX, -0.5f * (float)yDim + dynOffY, -0.5f * (float)zDim + dynOffZ};
-   const AtVector mx = {0.5f * (float)xDim + dynOffX, 0.5f * (float)yDim + dynOffY, 0.5f * (float)zDim + dynOffZ};
+   const AtVector mn (-0.5f * (float)xDim + dynOffX, -0.5f * (float)yDim + dynOffY, -0.5f * (float)zDim + dynOffZ);
+   const AtVector mx (0.5f * (float)xDim + dynOffX, 0.5f * (float)yDim + dynOffY, 0.5f * (float)zDim + dynOffZ);
 
-   AiNodeSetPnt(fluid, "min", mn.x, mn.y, mn.z);
-   AiNodeSetPnt(fluid, "max", mx.x, mx.y, mx.z);
+   AiNodeSetVec(fluid, "min", mn.x, mn.y, mn.z);
+   AiNodeSetVec(fluid, "max", mx.x, mx.y, mx.z);
 
    AiNodeSetInt(fluid_data, "xres", xRes);
    AiNodeSetInt(fluid_data, "yres", yRes);
@@ -506,7 +507,7 @@ void CFluidTranslator::Export(AtNode* fluid)
                for (unsigned int x = 0; x < xRes; ++x, ++i)
                {
                   // computing average velocity for output voxel "i" (x, y, z)
-                  AtVector cVector = {0.f, 0.f, 0.f};
+                  AtVector cVector (0.f, 0.f, 0.f);
                    //compute this voxel's coordinates for each of the X, Y, Z arrays
                   int lowCoords[3];
                   lowCoords[0] = x + y * xGridSize[0] + z * XYRes[0]; 
@@ -537,7 +538,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
       for (unsigned int i = 0; i < numVoxels; ++i)
       {
-         AtVector cCoord = {u[i], v[i], w[i]};
+         AtVector cCoord (u[i], v[i], w[i]);
          AiArraySetVec(array, i, cCoord);
       }
       AiNodeSetArray(fluid_data, "coordinates", array);
@@ -556,7 +557,7 @@ void CFluidTranslator::Export(AtNode* fluid)
          AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_RGB);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
-            AtColor cColor = {r[i], g[i], b[i]};
+            AtRGB cColor (r[i], g[i], b[i]);
             cColor.r = cColor.r < AI_EPSILON ? 0.f : cColor.r;
             cColor.g = cColor.g < AI_EPSILON ? 0.f : cColor.g;
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;

@@ -15,9 +15,6 @@
 		<attribute name='kdInd' type='maya.float'>
 			<label>Indirect Diffuse</label>
 		</attribute>
-		<attribute name='diffuseCache' type='maya.bool'>
-			<label>Diffuse Cache</label>
-		</attribute>
 
 		<attribute name='gloss' type='maya.float'>
 			<label>Glossiness</label>
@@ -68,7 +65,6 @@
 			<property name='tipcolor'/>
 			<property name='ambdiff'/>
 			<property name='kdInd'/>
-			<property name='diffuseCache'/>
 		</group>
 		<group name='specular_properties'>
 			<label>Specular</label>

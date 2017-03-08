@@ -82,8 +82,6 @@ void CLightTranslator::Export(AtNode* light)
    
    AiNodeSetStr(light,  "aov",  FindMayaPlug("aiAov").asString().asChar());
    
-   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
-   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
    AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
    AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
 
@@ -130,24 +128,25 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("aov");
    
    CAttrData data;
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiUseColorTemperature";
    data.shortName = "ai_use_color_temperature";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.FLT = 6500;
+   data.defaultValue.FLT() = 6500;
    data.name = "aiColorTemperature";
    data.shortName = "ai_color_temperature";
    data.hasSoftMin = true;
    data.hasSoftMax = true;
-   data.softMin.FLT = 1000.f;
-   data.softMax.FLT = 15000.f;
+   data.softMin.FLT() = 1000.f;
+   data.softMax.FLT() = 15000.f;
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.channelBox = false;
    data.keyable = false;
+
    helper.MakeInputFloat(data);
 }
 
@@ -169,57 +168,6 @@ AtRGB XYZtoRGB(float x, float y, float z)
    AtRGB rgb;
    for (int i = 0; i < 3; i++)
       rgb[i] = x * m[i][0] + y * m[i][1] + z * m[i][2];
-   return rgb;
-
-}
-
-
-AtRGB OldXYZtoRGB(double x, double y, double z)
-{
-   // using the standard CIE color space
-   static const double xr = 0.7355;
-   static const double xg = 0.2658;
-   static const double xb = 0.1669;
-   static const double yr = 0.2645;
-   static const double yg = 0.7243;
-   static const double yb = 0.0085;
-   static const double zr = 1. - (xr + yr);
-   static const double zg = 1. - (xg + yg);
-   static const double zb = 1. - (xb + yb);
-   static const double xw = 0.33333333;
-   static const double yw = 0.33333333;
-   static const double zw = 1. - (xw + yw);
-   
-   /* xyz -> rgb matrix, before scaling to white. */   
-   double rx = (yg * zb) - (yb * zg);
-   double ry = (xb * zg) - (xg * zb);
-   double rz = (xg * yb) - (xb * yg);
-   double gx = (yb * zr) - (yr * zb);
-   double gy = (xr * zb) - (xb * zr);
-   double gz = (xb * yr) - (xr * yb);
-   double bx = (yr * zg) - (yg * zr);
-   double by = (xg * zr) - (xr * zg);
-   double bz = (xr * yg) - (xg * yr);
-
-   /* White scaling factors.
-      Dividing by yw scales the white luminance to unity, as conventional. */
-
-   double rw = ((rx * xw) + (ry * yw) + (rz * zw)) / yw;
-   double gw = ((gx * xw) + (gy * yw) + (gz * zw)) / yw;
-   double bw = ((bx * xw) + (by * yw) + (bz * zw)) / yw;
-
-   /* xyz -> rgb matrix, correctly scaled to white. */
-
-   rx = rx / rw;  ry = ry / rw;  rz = rz / rw;
-   gx = gx / gw;  gy = gy / gw;  gz = gz / gw;
-   bx = bx / bw;  by = by / bw;  bz = bz / bw;
-
-   /* rgb of the desired point */
-   AtRGB rgb;
-
-   rgb.r = static_cast<float>((rx * x) + (ry * y) + (rz * z));
-   rgb.g = static_cast<float>((gx * x) + (gy * y) + (gz * z));
-   rgb.b = static_cast<float>((bx * x) + (by * y) + (bz * z));
    return rgb;
 
 }
@@ -276,19 +224,7 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
    Y /= XYZ;
    Z /= XYZ;
 
-   // should we use legacy temperature ?
-   bool legacy = false;
-   MSelectionList list;
-   list.add("defaultArnoldRenderOptions");
-   if (list.length() > 0)
-   {
-      MObject optionsNode;
-      list.getDependNode(0, optionsNode);
-      MFnDependencyNode fnArnoldRenderOptions(optionsNode);
-      legacy = fnArnoldRenderOptions.findPlug("legacyLightTemperature").asBool();
-   }
-
-   AtRGB rgb = legacy ? OldXYZtoRGB(X, Y, Z) : XYZtoRGB((float)X, (float)Y, (float)Z);
+   AtRGB rgb = XYZtoRGB((float)X, (float)Y, (float)Z);
    float w;
    w = (0.f < rgb.r) ? 0.f : rgb.r;
    w = (w < rgb.g) ? w : rgb.g;
@@ -301,7 +237,7 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
       rgb.b -= w;
    }
    
-   float greatest = MAX(rgb.r, MAX(rgb.g, rgb.b));
+   float greatest = AiMax(rgb.r, AiMax(rgb.g, rgb.b));
     
    if (greatest > 0)
    {

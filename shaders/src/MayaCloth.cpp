@@ -30,18 +30,18 @@ node_parameters
    AiParameterRGB("gapColor", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("uColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("vColor", 0.5f, 0.5f, 0.5f);
-   AiParameterFLT("uWidth", 0.75f);
-   AiParameterFLT("vWidth", 0.75f);
-   AiParameterFLT("uWave", 0.0f);
-   AiParameterFLT("vWave", 0.0f);
-   AiParameterFLT("randomness", 0.0f);
-   AiParameterFLT("widthSpread", 0.0f);
-   AiParameterFLT("brightSpread", 0.0f);
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterFlt("uWidth", 0.75f);
+   AiParameterFlt("vWidth", 0.75f);
+   AiParameterFlt("uWave", 0.0f);
+   AiParameterFlt("vWave", 0.0f);
+   AiParameterFlt("randomness", 0.0f);
+   AiParameterFlt("widthSpread", 0.0f);
+   AiParameterFlt("brightSpread", 0.0f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
+   AddMayaColorBalanceParams(params, nentry);
    
-   AiMetaDataSetStr(mds, NULL, "maya.name", "cloth");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x5254434C);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "cloth");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x5254434C);
 }
 
 node_initialize
@@ -54,10 +54,10 @@ node_update
    // should use globals as following Maya's behavior
    if (!AiNodeGetLink(node, "uvCoord"))
    {
-      AtPoint2 uv = AI_P2_ZERO;
+      AtVector2 uv = AI_P2_ZERO;
       if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
       if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-      AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+      AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
    }
 }
 
@@ -67,15 +67,15 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 uv;
-   uv = AiShaderEvalParamPnt2(p_uvCoord);
+   AtVector2 uv;
+   uv = AiShaderEvalParamVec2(p_uvCoord);
    // Will be set to GLOBALS by update if unconnected
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
    if (!IsValidUV(uv))
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       return;
    }
 
@@ -94,7 +94,7 @@ shader_evaluate
 
    if (randomness > 0.0f)
    {
-      AtPoint2 point;
+      AtVector2 point;
 
       point.x = uv.x / 23.0f;
       point.y = uv.y / 23.0f;
@@ -119,7 +119,7 @@ shader_evaluate
 
    if (widthSpread > 0.0f)
    {
-      AtPoint p;
+      AtVector p;
 
       p.x = uv.x;
       p.y = uv.y * 0.5f;
@@ -162,13 +162,13 @@ shader_evaluate
    {
       float cs = ss - 0.5f * uWidth;
       float ct = 2.0f * tt / vWidth - 1.0f;
-      cloth = 0.75f * (SQR(cs) + SQR(ct));
+      cloth = 0.75f * (AiSqr(cs) + AiSqr(ct));
    }
    else if (ss < uWidth)
    {
       float cs = 2.0f * ss / uWidth - 1.0f;
       float ct = tt - 0.5f * vWidth - 1.0f;
-      cloth = 0.75f * (SQR(cs) + SQR(ct));
+      cloth = 0.75f * (AiSqr(cs) + AiSqr(ct));
       threadColor = 1.0f - threadColor;
    }
    else
@@ -182,7 +182,7 @@ shader_evaluate
 
       if (brightSpread > 0.0f)
       {
-         AtPoint2 p;
+         AtVector2 p;
          p.x = (threadColor ? uv.x : uv.y) * 2.0f;
          p.y = p.x;
          float spread = AiPerlin2(p);
@@ -190,14 +190,14 @@ shader_evaluate
       }
    }
 
-   cloth = CLAMP(cloth, 0.0f, 1.0f);
+   cloth = AiClamp(cloth, 0.0f, 1.0f);
 
    AtRGB a = (1.0f - cloth) * AiShaderEvalParamRGB(p_gapColor) +
              cloth * (threadColor ? AiShaderEvalParamRGB(p_uColor) : AiShaderEvalParamRGB(p_vColor));
 
-   AiRGBtoRGBA(a, sg->out.RGBA);
+   sg->out.RGBA() = AtRGBA(a);
    // From maya node documentation cloth ignores alphaIsLuminance
    // TODO: js - fix this for the new function.
    // alphaIsLuminance = false;
-   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 }

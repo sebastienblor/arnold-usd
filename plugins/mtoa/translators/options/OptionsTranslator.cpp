@@ -133,6 +133,14 @@ void COptionsTranslator::ExportAOVs()
          // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
          // pass determines whether we use the name "RGBA" or "RGB".
          name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
+      } else
+      {
+         // fill light groups and light path expression for AOVs only (not for beauty)
+         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+         {
+            aovData.outputs[i].lpe = it->GetLightPathExpression();
+            aovData.outputs[i].lightGroups = it->HasLightGroups();
+         }
       }
       aovData.name = name;
       m_aovData.push_back(aovData);
@@ -170,6 +178,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    // camera name
    MFnDagNode camDagTransform(camera.transform());
    MString nameCamera = camDagTransform.name();
+
+   std::set<std::string> lightPathExpressions;
 
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
@@ -251,10 +261,10 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             if (outputImageDriver)
             {
                
-               const char* ext = "";
+               AtString ext("");
                AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
-               if(strcmp (ext,"deepexr") == 0)
-                  ext = "exr";
+               if (ext == AtString("deepexr"))
+                  ext = AtString("exr");
                
                MString tokens = aovData.tokens;
                MString path = output.prefix;
@@ -285,7 +295,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                fileFrameNumber,
                                                sceneFileName,
                                                nameCamera,
-                                               ext,
+                                               ext.c_str(),
                                                renderLayer,
                                                tokens,
                                                true,
@@ -333,6 +343,11 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                   AiNodeSetStr(output.driver, "name", driverName.asChar());
                   m_multiDriverMap[filename.asChar()] = output.driver;
+
+                  std::string typeAOV = AiParamGetTypeName(aovData.type);
+                  if (typeAOV != "RGB" && typeAOV != "RGBA")
+                     AiNodeSetStr(output.driver, "color_space", ""); // this is supposed to be interpreted by arnold as Raw (passthrough)
+
                }
                else
                {  
@@ -362,7 +377,20 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                AiNodeSetStr(output.driver, "filename", filename.asChar());
                // FIXME: isn't this already handled by getImageName?
                CreateFileDirectory(filename);
+
+               if (eye == 0 && output.lpe.length() > 0)
+               {
+                  MString lpe = aovData.name + " " + output.lpe.asChar();
+                  lightPathExpressions.insert(lpe.asChar());
+               }
             }
+
+            MString aovName = aovData.name;
+
+            // if light groups are enabled, add the suffix "_*" at the end of the aov name. This will write one image per light group
+            if (output.lightGroups && (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS))
+               aovName += "_*";
+
             // output statement
             char str[1024];
             if (output.raw)
@@ -375,22 +403,22 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                {
                   // output image : we need both eyes
                   // Setting the <Eye> token for Stereo rendering
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovName.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                }
                else if (eye == 0)
                {
                   // display driver, we only output one eye (left)
                   cameraToken = leftCameraName;
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovName.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                } 
             } else
             {
-               sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+               sprintf(str, "%s %s %s %s", aovName.asChar(), AiParamGetTypeName(aovData.type),
                        AiNodeGetName(output.filter), AiNodeGetName(output.driver));
             }
-            AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
+            AiMsgDebug("[mtoa] [aov %s] output line: %s", aovName.asChar(), str);
 
             outputs.append(MString(str));
 
@@ -399,6 +427,20 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    }
    m_multiDriverMap.clear();
 
+   if (!lightPathExpressions.empty())
+   {
+      AtArray *lpeArray = AiArrayAllocate(lightPathExpressions.size(), 1, AI_TYPE_STRING);
+      std::set<std::string>::iterator it = lightPathExpressions.begin();
+      std::set<std::string>::iterator itEnd = lightPathExpressions.end();
+
+      int lpeInd = 0;
+      for (; it != itEnd; ++it, lpeInd++)
+      {
+         AtString lpeElem((*it).c_str());
+         AiArraySetStr(lpeArray, lpeInd, lpeElem);
+      }
+      AiNodeSetArray(AiUniverseGetOptions(), "light_path_expressions", lpeArray);
+   }
 }
 
 void COptionsTranslator::CreateFileDirectory(const MString &filename) const
@@ -571,7 +613,7 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetBool(options, "texture_per_file_stats", true);
 
 // for maya 2017 and above, autoTX replaced automip, so we're forcing it to be false
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201600
    AiNodeSetBool(options, "texture_automip", false);
 #endif
 
@@ -637,11 +679,11 @@ void COptionsTranslator::Export(AtNode *options)
             // FIXME: we can't use the default method since the options names don't
             // follow the standard "toMayaStyle" behavior when no metadata is present
             // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
-            const char* attrName;
+            AtString attrName;
             MPlug plug;
             if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
             {
-               plug = FindMayaPlug(attrName);
+               plug = FindMayaPlug(attrName.c_str());
             }
             else
             {
@@ -685,7 +727,7 @@ void COptionsTranslator::Export(AtNode *options)
          case MTOA_MBLUR_TYPE_CUSTOM:
             float motionStart = FindMayaPlug("motion_start").asFloat();
             float motionEnd = FindMayaPlug("motion_end").asFloat();
-            referenceTime = CLAMP((-motionStart) / MAX((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
+            referenceTime = AiClamp((-motionStart) / AiMax((motionEnd - motionStart), AI_EPSILON), 0.f, 1.f);
          break;
          }
       }
@@ -877,24 +919,7 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    } else if (plugName.length() > 4 && plugName.substringW(0, 3) == "log_")
    {
       m_impl->m_session->RequestUpdateOptions();
-   } else if (plugName == "legacyLightTemperature")
-   {
-      // dirty all lights in the scene
-      MDagPath lightPath;
-      MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
-
-      for (; (!dagIterLights.isDone()); dagIterLights.next())
-      {
-         if (dagIterLights.getPath(lightPath))
-         {
-            CNodeTranslator *lightTr = GetTranslator(lightPath);
-            if (lightTr)
-               lightTr->RequestUpdate();
-            
-         }
-      }
-   
-   }
+   } 
 
    CNodeTranslator::NodeChanged(node, plug);
 }

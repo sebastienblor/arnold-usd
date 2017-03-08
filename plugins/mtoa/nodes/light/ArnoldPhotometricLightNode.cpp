@@ -32,8 +32,6 @@ MObject CArnoldPhotometricLightNode::s_colorG;
 MObject CArnoldPhotometricLightNode::s_colorB;
 MObject CArnoldPhotometricLightNode::s_color;
 MObject CArnoldPhotometricLightNode::s_intensity;
-MObject CArnoldPhotometricLightNode::s_affectDiffuse;
-MObject CArnoldPhotometricLightNode::s_affectSpecular;
 MObject CArnoldPhotometricLightNode::s_filename;
 // Arnold outputs
 MObject CArnoldPhotometricLightNode::s_OUT_colorR;
@@ -110,18 +108,6 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setSoftMax(10);
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
-
-   s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setChannelBox(false);
-   addAttribute(s_affectDiffuse);
-
-   s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setChannelBox(false);
-   addAttribute(s_affectSpecular);
 
    /*s_filename = tAttr.create("aiFilename", "ai_filename", MFnData::kString);
    tAttr.setKeyable(false);
@@ -241,9 +227,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
-   attributeAffects(s_affectDiffuse, aLightData);
-   attributeAffects(s_affectSpecular, aLightData);
-
+   
 #if MAYA_API_VERSION >= 201700
    // Spot light attributes for display control
    aConeAngle = nAttr.create("coneAngle", "ca", MFnNumericData::kDouble);

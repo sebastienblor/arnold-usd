@@ -17,12 +17,12 @@ inline static float Mod(float n, float d)
 
 node_parameters
 {
-    AiParameterPNT2("coverage", 1.0f, 1.0f);
-    AiParameterPNT2("translateFrame", 0.0f, 0.0f);
-    AiParameterPNT2("repeatUV", 1.0f, 1.0f);
-    AiParameterPNT2("offsetUV", 0.0f, 0.0f);
+    AiParameterVec2("coverage", 1.0f, 1.0f);
+    AiParameterVec2("translateFrame", 0.0f, 0.0f);
+    AiParameterVec2("repeatUV", 1.0f, 1.0f);
+    AiParameterVec2("offsetUV", 0.0f, 0.0f);
 
-    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -39,10 +39,10 @@ node_finish
 
 shader_evaluate
 {
-    const AtPoint2 coverage  = AiShaderEvalParamPnt2(p_coverage);
-    const AtPoint2 translate = AiShaderEvalParamPnt2(p_translate_frame);
-    const AtPoint2 repeat    = AiShaderEvalParamPnt2(p_repeat);
-    const AtPoint2 offset    = AiShaderEvalParamPnt2(p_offset);
+    const AtVector2 coverage  = AiShaderEvalParamVec2(p_coverage);
+    const AtVector2 translate = AiShaderEvalParamVec2(p_translate_frame);
+    const AtVector2 repeat    = AiShaderEvalParamVec2(p_repeat);
+    const AtVector2 offset    = AiShaderEvalParamVec2(p_offset);
     const bool     wrapU     = false;
     const bool     wrapV     = false;
 
@@ -52,7 +52,7 @@ shader_evaluate
     // Even in ribbon mode, it seems that sg->bu is 0 in the middle and 1 
     // on the edge. We would like 0 on the left and 1 on the right.
     // So we don't use sg->bu for the U mapping.. just ue sg->bv for length.
-    const AtPoint2 inUV = {0.0f, sg->bv};
+    const AtVector2 inUV (0.0f, sg->bv);
 
     float outU = inUV.x;
     float outV = inUV.y;
@@ -96,6 +96,6 @@ shader_evaluate
         outV += offset.y;
     }
 
-    sg->out.PNT2.x = outU;
-    sg->out.PNT2.y = outV;
+    sg->out.VEC2().x = outU;
+    sg->out.VEC2().y = outV;
 }

@@ -39,6 +39,11 @@ MString toMayaStyle(MString s);
 
 MString toMayaStyle(MString s);
 
+// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
+typedef uint8_t  AtByte;
+typedef unsigned AtUInt32;
+typedef size_t AtUInt64;
+
 /// Structure for holding attribute properties
 struct CAttrData
 {
@@ -71,7 +76,10 @@ struct CAttrData
                   hasSoftMax(false),
                   keyable(true),
                   linkable(true),
-                  channelBox(false)   {}
+                  channelBox(false)
+   {
+      memset(&defaultValue, 0, sizeof(AtParamValue));
+   }
 };
 
 struct CCompoundAttrData
@@ -171,10 +179,8 @@ public:
    virtual void MakeInputRGBA(CAttrData& data);
    virtual void MakeInputVector(MObject& attrib, const char* paramName);
    virtual void MakeInputVector(CAttrData& data);
-   virtual void MakeInputPoint(MObject& attrib, const char* paramName);
-   virtual void MakeInputPoint(CAttrData& data);
-   virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName);
-   virtual void MakeInputPoint2(CAttrData& data);
+   virtual void MakeInputVector2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName);
+   virtual void MakeInputVector2(CAttrData& data);
    virtual void MakeInputString(MObject& attrib, const char* paramName);
    virtual void MakeInputString(CAttrData& data);
    virtual void MakeInputMatrix(MObject& attrib, const char* paramName);
@@ -200,8 +206,7 @@ public:
    void MakeOutputRGB(MObject& attrib, CAttrData& data);
    void MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
    void MakeOutputVector(MObject& attrib, CAttrData& data);
-   void MakeOutputPoint(MObject& attrib, CAttrData& data);
-   void MakeOutputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
+   void MakeOutputVector2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
    void MakeOutputString(MObject& attrib, CAttrData& data);
    void MakeOutputMatrix(MObject& attrib, CAttrData& data);
    void MakeOutputEnum(MObject& attrib, CAttrData& data);
@@ -232,8 +237,7 @@ protected:
    virtual void MakeInputRGB(MObject& attrib, CAttrData& data);
    virtual void MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
    virtual void MakeInputVector(MObject& attrib,CAttrData& data);
-   virtual void MakeInputPoint(MObject& attrib, CAttrData& data);
-   virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
+   virtual void MakeInputVector2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
    virtual void MakeInputString(MObject& attrib, CAttrData& data);
    virtual void MakeInputMatrix(MObject& attrib, CAttrData& data);
    virtual void MakeInputEnum(MObject& attrib, CAttrData& data);

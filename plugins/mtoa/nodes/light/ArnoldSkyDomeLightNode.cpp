@@ -25,8 +25,6 @@ MObject CArnoldSkyDomeLightNode::s_intensity;
 // MObject CArnoldSkyDomeLightNode::s_castShadows;
 // MObject CArnoldSkyDomeLightNode::s_samples;
 // MObject CArnoldSkyDomeLightNode::s_normalize;
-MObject CArnoldSkyDomeLightNode::s_affectDiffuse;
-MObject CArnoldSkyDomeLightNode::s_affectSpecular;
 MObject CArnoldSkyDomeLightNode::s_portalMode;
 // Arnold outputs
 MObject CArnoldSkyDomeLightNode::s_OUT_colorR;
@@ -41,6 +39,11 @@ MObject CArnoldSkyDomeLightNode::s_OUT_transparency;
 MObject CArnoldSkyDomeLightNode::s_pointCamera;
 MObject CArnoldSkyDomeLightNode::s_normalCamera;
 // Maya specific Outputs
+
+MObject CArnoldSkyDomeLightNode::s_visibleCamera;
+MObject CArnoldSkyDomeLightNode::s_visibleTransmission;
+
+
 MObject CArnoldSkyDomeLightNode::aLightDirection;
 MObject CArnoldSkyDomeLightNode::aLightIntensity;
 MObject CArnoldSkyDomeLightNode::aLightAmbient;
@@ -70,10 +73,8 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    s_intensity = s_attributes.MakeInput("intensity");
 
-   // Metadata must be present to get it as Maya attributes emitDiffuse and emitSpecular
-   s_affectDiffuse = s_attributes.MakeInput("affect_diffuse");
-   s_affectSpecular = s_attributes.MakeInput("affect_specular");
-
+   s_visibleCamera = s_attributes.MakeInput("camera");
+   s_visibleTransmission = s_attributes.MakeInput("transmission");
    s_portalMode = s_attributes.MakeInput("portal_mode");
    // Removed so they are added as dynamic and have same ai prefix as other lights will
    // s_castShadows = s_attributes.MakeInput("cast_shadows");
@@ -199,13 +200,13 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
+   attributeAffects(s_visibleCamera, aLightData);
+   attributeAffects(s_visibleTransmission, aLightData);
    // attributeAffects(s_exposure, aLightData);
    attributeAffects(s_format, aLightData);
    // attributeAffects(s_castShadows, aLightData);
    // attributeAffects(s_samples, aLightData);
    // attributeAffects(s_normalize, aLightData);
-   attributeAffects(s_affectDiffuse, aLightData);
-   attributeAffects(s_affectSpecular, aLightData);
    attributeAffects(s_portalMode, aLightData);
 
    return MS::kSuccess;
@@ -250,9 +251,7 @@ MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
    MFloatVector& normalCamera = block.inputValue(s_normalCamera).asFloatVector();
    MFloatVector lightDirection = normalCamera;
    bool affectAmbient = false;
-   bool affectDiffuse = true; // block.inputValue(s_affectDiffuse).asBool();
-   bool affectSpecular = false; // block.inputValue(s_affectSpecular).asBool();
-
+   
    // TODO: exposure
    resultColor = lightColor * lightIntensity;
 
@@ -267,11 +266,7 @@ MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
 
    bool& outAmbient = outLightDataHandle.child(aLightAmbient).asBool();
    outAmbient = affectAmbient;
-   bool& outDiffuse = outLightDataHandle.child(aLightDiffuse).asBool();
-   outDiffuse = affectDiffuse;
-   bool& outSpecular = outLightDataHandle.child(aLightSpecular).asBool();
-   outSpecular = affectSpecular;
-
+   
    float& outSFraction = outLightDataHandle.child(aLightShadowFraction).asFloat();
    outSFraction = 1.0f;
 

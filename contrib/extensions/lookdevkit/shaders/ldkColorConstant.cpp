@@ -16,10 +16,10 @@ enum ldkFloatMathParams
 node_parameters
 {
    AiParameterRGB("inColor", 0.3f, 0.3f, 0.3f);
-   AiParameterFLT("inAlpha", 1.0f);
+   AiParameterFlt("inAlpha", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorConstant");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81622);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorConstant");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81622);
 }
 
 node_initialize
@@ -38,6 +38,6 @@ shader_evaluate
 {
    const AtRGB inColor = AiShaderEvalParamRGB(p_inColor);
    const float inAlpha = AiShaderEvalParamFlt(p_inAlpha);
-   sg->out.RGBA.rgb() = inColor;
-   sg->out.RGBA.a = inAlpha;
+   sg->out.RGB() = inColor;
+   sg->out.RGBA().a = inAlpha;
 }

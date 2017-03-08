@@ -3,8 +3,6 @@
 #include "platform/Platform.h"
 #include "AOV.h"
 
-#include <ai_types.h>
-
 #include <maya/MString.h>
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MFnDagNode.h>
@@ -16,6 +14,10 @@
 #include <string>
 
 class CMayaScene;
+
+// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
+typedef unsigned AtUInt32;
+typedef size_t AtUInt64;
 
 enum RenderType
 {
@@ -223,7 +225,7 @@ public:
    inline const MObject& GetArnoldRenderOptions() const { return m_options; }
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
 
-   MString GetShaderSearchPath() const { return m_shader_searchpath; }
+   MString GetPluginSearchPath() const { return m_plugin_searchpath; }
    int GetLogConsoleVerbosity() const;
    int GetLogFileVerbosity() const;
 
@@ -250,7 +252,7 @@ private:
    MString m_imageFileExtension;
    MString m_imageFilename;
    MString m_panel;
-   MString m_shader_searchpath;
+   MString m_plugin_searchpath;
 
    float m_pixelAspectRatio;
    float m_startFrame;
@@ -267,7 +269,7 @@ private:
    unsigned int m_log_verbosity;
    unsigned int m_AA_samples;
    unsigned int m_GI_diffuse_samples;
-   unsigned int m_GI_glossy_samples;
+   unsigned int m_GI_specular_samples;
    unsigned int m_outputAssMask;
    unsigned int m_progressive_initial_level;
    unsigned int m_threads;

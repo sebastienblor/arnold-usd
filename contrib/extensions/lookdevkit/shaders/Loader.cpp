@@ -1,23 +1,23 @@
 #include <ai.h>
 #include <cstdio>
 
-extern AtNodeMethods* ldkFloatConstantMtd;
-extern AtNodeMethods* ldkFloatCompositeMtd;
-extern AtNodeMethods* ldkFloatConditionMtd;
-extern AtNodeMethods* ldkFloatCorrectMtd;
-extern AtNodeMethods* ldkFloatLogicMtd;
-extern AtNodeMethods* ldkFloatMathMtd;
-extern AtNodeMethods* ldkFloatMaskMtd;
-extern AtNodeMethods* ldkColorCompositeMtd;
-extern AtNodeMethods* ldkColorConditionMtd;
-extern AtNodeMethods* ldkColorConstantMtd;
-extern AtNodeMethods* ldkColorCorrectMtd;
-extern AtNodeMethods* ldkColorLogicMtd;
-extern AtNodeMethods* ldkColorMaskMtd;
-extern AtNodeMethods* ldkColorMathMtd;
-extern AtNodeMethods* ldkChannelsMtd;
-extern AtNodeMethods* ldkPremultiplyMtd;
-extern AtNodeMethods* ldkSimplexNoiseMtd;
+extern const AtNodeMethods* ldkFloatConstantMtd;
+extern const AtNodeMethods* ldkFloatCompositeMtd;
+extern const AtNodeMethods* ldkFloatConditionMtd;
+extern const AtNodeMethods* ldkFloatCorrectMtd;
+extern const AtNodeMethods* ldkFloatLogicMtd;
+extern const AtNodeMethods* ldkFloatMathMtd;
+extern const AtNodeMethods* ldkFloatMaskMtd;
+extern const AtNodeMethods* ldkColorCompositeMtd;
+extern const AtNodeMethods* ldkColorConditionMtd;
+extern const AtNodeMethods* ldkColorConstantMtd;
+extern const AtNodeMethods* ldkColorCorrectMtd;
+extern const AtNodeMethods* ldkColorLogicMtd;
+extern const AtNodeMethods* ldkColorMaskMtd;
+extern const AtNodeMethods* ldkColorMathMtd;
+extern const AtNodeMethods* ldkChannelsMtd;
+extern const AtNodeMethods* ldkPremultiplyMtd;
+extern const AtNodeMethods* ldkSimplexNoiseMtd;
 
 enum{
    LDK_FLOAT_CONSTANT = 0,

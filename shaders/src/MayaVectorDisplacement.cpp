@@ -1,5 +1,11 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString tangent("tangent");
+   static const AtString bitangent("bitangent");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaVectorDisplacementMtd);
 
 namespace
@@ -47,8 +53,8 @@ const char* vector_space_enum[] =
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "displacementShader");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52445348);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "displacementShader");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52445348);
 
    AiParameterFlt("displacement", 0.0f);
    AiParameterVec("vectorDisplacement", 0.0f, 0.0f, 0.0f);
@@ -80,7 +86,7 @@ shader_evaluate
    switch (vectorSpace)
    {
    case VS_WORLD:
-      AiM4VectorByMatrixMult(&transformedVectorDisplacement, sg->Minv, &vectorDisp);
+      transformedVectorDisplacement = AiM4VectorByMatrixMult(sg->Minv, vectorDisp);
       break;
    case VS_OBJECT:
       transformedVectorDisplacement = vectorDisp;
@@ -90,14 +96,14 @@ shader_evaluate
       
       N = AiV3Normalize(sg->N);
 
-      if (!AiV3IsZero(tangent))
+      if (!AiV3IsSmall(tangent))
       {
          T = AiV3Normalize(tangent);
          B = AiV3Cross(N,T);
       }
-      else if (!AiUDataGetVec("tangent", &T) || !AiUDataGetVec("bitangent", &B))
+      else if (!AiUDataGetVec(MSTR::tangent, T) || !AiUDataGetVec(MSTR::bitangent, B))
       {
-         if (!AiV3IsZero(sg->dPdu) && !AiV3IsZero(sg->dPdv))
+         if (!AiV3IsSmall(sg->dPdu) && !AiV3IsSmall(sg->dPdv))
          {
             // tangents available, use them
             T = AiV3Normalize(sg->dPdu - AiV3Dot(sg->dPdu, N) * N);
@@ -106,7 +112,7 @@ shader_evaluate
          else
          {
             // no tangents given, compute a pair
-            AiBuildLocalFramePolar(&T, &B, &sg->N);
+            AiV3BuildLocalFramePolar(T, B, sg->N);
          }
       }
       transformedVectorDisplacement = vectorDisp.x * T + vectorDisp.z * B + vectorDisp.y * N;
@@ -115,7 +121,7 @@ shader_evaluate
    
    totalDisp += transformedVectorDisplacement;
    
-   sg->out.VEC = totalDisp * scale;
+   sg->out.VEC() = totalDisp * scale;
 }
 
 node_initialize

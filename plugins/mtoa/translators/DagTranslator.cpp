@@ -237,7 +237,7 @@ void CDagTranslator::ExportMatrix(AtNode* node)
       if (matrices)
       {
          int step = GetMotionStep();
-         if (step >= (int)(matrices->nkeys * matrices->nelements))
+         if (step >= (int)(AiArrayGetNumKeys(matrices) * AiArrayGetNumElements(matrices)))
          {
             AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
 
@@ -279,30 +279,44 @@ AtByte CDagTranslator::ComputeVisibility()
    {
       visibility &= ~AI_RAY_CAMERA;
    }
-
+/*
+  FIXME what do we do now ?
    plug = FindMayaPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFLECTED;
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
 
    plug = FindMayaPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFRACTED;
-   }
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
+   }*/
 
-   plug = FindMayaPlug("aiVisibleInDiffuse");
+   plug = FindMayaPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_DIFFUSE;
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
    }
 
-   plug = FindMayaPlug("aiVisibleInGlossy");
+   plug = FindMayaPlug("aiVisibleInSpecularReflection");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_GLOSSY;
+      visibility &= ~(AI_RAY_SPECULAR_REFLECT);
    }
+
+   plug = FindMayaPlug("aiVisibleInDiffuseTransmission");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
+   }
+
+   plug = FindMayaPlug("aiVisibleInSpecularTransmission");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_SPECULAR_TRANSMIT);
+   }
+
 
    return visibility;
 }
@@ -319,27 +333,27 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
 {
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "primaryVisibility";
    data.shortName = "vis";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "receiveShadows";
    data.shortName = "rsh";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "castsShadows";
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "visibleInReflections";
    data.shortName = "vir";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "visibleInRefractions";
    data.shortName = "vif";
    helper.MakeInputBoolean(data);
@@ -357,16 +371,38 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 {
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
-   data.name = "aiVisibleInDiffuse";
-   data.shortName = "ai_vid";
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInDiffuseReflection";
+   data.shortName = "ai_vidr";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
-   data.name = "aiVisibleInGlossy";
-   data.shortName = "ai_vig";
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInSpecularReflection";
+   data.shortName = "ai_visr";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInDiffuseTransmission";
+   data.shortName = "ai_vidt";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInSpecularTransmission";
+   data.shortName = "ai_vist";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiVisibleInVolume";
+   data.shortName = "ai_viv";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
@@ -381,7 +417,8 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
 {
    // testing if anode is ginstance instead of calling IsMasterInstance
    // for efficiency reasons.
-   if (AiNodeIs(anode, "ginstance"))
+   static const AtString ginstance_str("ginstance");
+   if (AiNodeIs(anode, ginstance_str))
    {
       CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
 
