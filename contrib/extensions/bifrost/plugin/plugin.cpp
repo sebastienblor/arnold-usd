@@ -3,12 +3,10 @@
 #include "BifrostAeroMaterialTranslator.h"
 
 #include "extension/Extension.h"
-#include <maya/MTypes.h> 
 
 extern "C"
 {
 #ifdef ENABLE_BIFROST
-	
 	DLLEXPORT void initializeExtension ( CExtension& extension )
     {
         MStatus status;
@@ -19,28 +17,24 @@ extern "C"
         extension.Requires ( "bifrostvisplugin" );
 #endif
         extension.LoadArnoldPlugin("bifrost_shaders");
-        
-        status = extension.RegisterTranslator ( "bifrostShape",
-                                                "",
-                                                CBfDescriptionTranslator::creator,
-                                                CBfDescriptionTranslator::NodeInitializer );
+        extension.LoadArnoldPlugin("bifrost_procedurals");
 
+        status = extension.RegisterTranslator ( "bifrostShape", "",
+                                                BifrostTranslator::creator,
+                                                BifrostTranslator::NodeInitializer );
 
-        status = extension.RegisterTranslator ( "bifrostFoamMaterial",
-                                                "",
-                                                CBfFoamMaterialTranslator::creator);
-
-        status = extension.RegisterTranslator ( "bifrostAeroMaterial",
-                                                "",
+        status = extension.RegisterTranslator ( "bifrostAeroMaterial", "",
                                                 CBfAeroMaterialTranslator::creator,
                                                 CBfAeroMaterialTranslator::NodeInitializer );
 
-       
-
+        status = extension.RegisterTranslator ( "bifrostFoamMaterial", "",
+                                                CBfFoamMaterialTranslator::creator,
+                                                CBfFoamMaterialTranslator::NodeInitializer );
     }
 
-    DLLEXPORT void deinitializeExtension ( CExtension& extension )
-    {
-    }
+	DLLEXPORT void deinitializeExtension ( CExtension& extension )
+	{
+	}
+
 #endif
 }
