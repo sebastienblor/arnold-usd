@@ -37,7 +37,7 @@ def setup(env, library):
         env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostcore', 'api')])
         env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
 
-        if system.os() == 'darwin' and int(maya_version) < 2018:
+        if system.os() == 'darwin' and int(maya_version) < 201800:
             env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
         else:
             env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
