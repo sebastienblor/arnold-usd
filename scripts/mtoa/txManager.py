@@ -10,6 +10,7 @@ import makeTx
 import platform
 from arnold import *
 import pymel.versions as versions
+import pymel.core as pm
 
 def isImage(file):
     ext = os.path.splitext(file)[1]
@@ -84,8 +85,8 @@ class MakeTxThread (threading.Thread):
             colorSpace = 'auto'
             conflictSpace = False
 
-            # color spaces are ignored for maya versions < 2017
-            if int(float(maya_version)) >= 2017:
+            # color spaces didn't exist in versions < 2016
+            if int(float(maya_version)) >= 2016:
                 for node in nodes:
                     nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                     if colorSpace != 'auto' and colorSpace != nodeColorSpace:
@@ -384,7 +385,7 @@ class MtoATxManager(object):
 
             textureSuffix = ''
             maya_version = versions.shortName()
-            if int(float(maya_version)) >= 2017:
+            if int(float(maya_version)) >= 2016:
                 textureSuffix =' ('+txItem[2]+')'
 
 
@@ -687,8 +688,14 @@ def UpdateAllTx(force):
 
     maya_version = versions.shortName()
    
-    render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
-    cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
+    if pm.mel.exists("colorManagementPrefs"):
+    # only do this if command colorManagementPrefs exists
+        render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
+        cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
+    else:
+        render_colorspace = 'linear'
+        cmEnable = False
+
     textureList = []
 
     for textureLine in txItems:
@@ -701,8 +708,8 @@ def UpdateAllTx(force):
         colorSpace = 'auto'
         conflictSpace = False
 
-        # just check  the color space conflicts for maya 2017 and above
-        if int(float(maya_version)) >= 2017:
+        # colorSpace didn't exist in maya 2015
+        if int(float(maya_version)) >= 2016:
             for node in nodes:
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                 if colorSpace != 'auto' and colorSpace != nodeColorSpace:

@@ -57,6 +57,12 @@ void CSynColorTranslator::Export(AtNode* node)
       }
       ifs.close();
 
+      if (nativeCatalogDir.length() == 0)
+      {
+         MGlobal::executeCommand("getenv MAYA_LOCATION", nativeCatalogDir);
+         nativeCatalogDir += "/synColor";
+      }
+
       AiNodeSetStr(node, "native_catalog_path", nativeCatalogDir.asChar());
 
       // Find the shared catalog location

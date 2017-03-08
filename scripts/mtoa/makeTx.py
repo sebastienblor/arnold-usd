@@ -8,6 +8,7 @@ import shlex
 from arnold import *
 import os.path
 import pymel.versions as versions
+import pymel.core as pm
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
 # so we'll temporarily provide bindings until this is resolved, see core #5293
@@ -126,7 +127,9 @@ def makeTx(filename, colorspace='auto', arguments=''):
         cmd = shlex.split(cmd_str, posix=False)
 
     maya_version = versions.shortName()
-    if int(float(maya_version)) >= 2017:
+    #if int(float(maya_version)) >= 2017:
+    if pm.mel.exists("colorManagementPrefs"):
+
         if cmds.colorManagementPrefs(q=True, cmEnabled=True):
             if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
                 if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):

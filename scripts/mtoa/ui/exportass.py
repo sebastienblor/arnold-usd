@@ -48,7 +48,7 @@ def getMaskValues():
         mask += 128
 
     maya_version = versions.shortName()
-    if int(float(maya_version)) >= 2017:
+    if int(float(maya_version)) >= 2016:
         # color manager
         mask += 2048
 

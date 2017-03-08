@@ -652,7 +652,7 @@ def createArnoldImageFormatControl():
 
 
     maya_version = versions.shortName()
-    if int(float(maya_version)) >= 2017:
+    if int(float(maya_version)) >= 2016:
         cmds.attrEnumOptionMenuGrp( l='Color Space',
                             at='defaultArnoldDriver.colorManagement' )
     
@@ -670,7 +670,7 @@ def createArnoldImageFormatControl():
                          updateArnoldImageFormatControl))
 
 
-    if int(float(maya_version)) >= 2017:
+    if int(float(maya_version)) >= 2016:
         pm.scriptJob(
             parent=parent,
             attributeChange=("defaultArnoldDriver.tiffFormat",
@@ -682,7 +682,7 @@ def createArnoldImageFormatControl():
 
 def updateArnoldColorSpace(*args):
     maya_version = versions.shortName()
-    if int(float(maya_version)) < 2017:
+    if int(float(maya_version)) < 2016:
         return
 
     curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
