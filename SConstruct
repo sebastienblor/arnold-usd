@@ -962,7 +962,7 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or
             (env['ENABLE_XGEN'] == 1 and (int(maya_version) >= 201700) and ext == 'xgenSpline') or
             ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
-            (env['ENABLE_BIFROST'] == 1 and ext == 'new_bifrost') or
+            (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
             (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
