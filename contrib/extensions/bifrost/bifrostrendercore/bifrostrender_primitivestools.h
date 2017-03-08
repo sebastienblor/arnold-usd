@@ -21,6 +21,7 @@
 #include <bifrostapi/bifrost_types.h>
 #include <bifrostapi/bifrost_status.h>
 #include <bifrostapi/bifrost_visitor.h>
+
 #include <bifrostapi/bifrost_pointchannel.h>
 #include <bifrostapi/bifrost_voxelchannel.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
@@ -38,7 +39,10 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef _DARWIN
 #include <malloc.h>
+#endif
 #include <ctime>
 
 #include "bifrostrender_decl.h"
