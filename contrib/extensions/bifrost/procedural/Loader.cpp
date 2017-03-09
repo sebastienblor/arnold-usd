@@ -29,6 +29,7 @@ node_loader
         node->name         = "bifrostPrimitives";
         break;
     case BIFROST_VOLUME:
+        node->node_type    = AI_NODE_SHAPE_VOLUME;
         node->methods      = BifrostVolumeMtd;
         node->name         = "bifrostVolume";
         break;
