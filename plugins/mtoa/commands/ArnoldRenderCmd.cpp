@@ -1,6 +1,7 @@
 #include "ArnoldRenderCmd.h"
 #include "scene/MayaScene.h"
 #include "render/OutputDriver.h"
+#include "utils/FileUtils.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
@@ -420,6 +421,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             
             if (batch)
             {
+               // Skipt file render if it already exists
+               if(renderGlobals.skipExistingFrames)
+               {
+                  MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+                  if(imageFilenames.length() > 0 && fileExists(imageFilenames[0].asChar()))
+                  {
+                        MGlobal::displayInfo("[mtoa] Skipping existing image: " + imageFilenames[0]);
+                        continue;
+                  }
+               }
+
                int batchStatus = renderSession->DoBatchRender();
                if (batchStatus != AI_SUCCESS)
                {
@@ -446,6 +458,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
                MGlobal::displayInfo(msg);
                MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+               
+               // Skipt file render if it already exists
+               if(renderGlobals.skipExistingFrames)
+               {
+                  if(imageFilenames.length() > 0 && fileExists(imageFilenames[0].asChar()))
+                  {
+                        MGlobal::displayInfo("[mtoa] Skipping existing image: " + imageFilenames[0]);
+                        continue;
+                  }
+               }
+
                for (size_t i = 0; i < imageFilenames.length(); ++i)
                   MGlobal::displayInfo("\t" + imageFilenames[i]);
 

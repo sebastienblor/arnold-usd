@@ -1061,6 +1061,9 @@ def updateArnoldFrameNumberControls(*args):
     pm.attrControlGrp('byFrameStepCtrl',
                         edit=True,
                         enable=useAnim)
+    pm.attrControlGrp('skipExistingFramesCtrl',
+                        edit=True,
+                        enable=useAnim)
     pm.attrControlGrp('extensionPaddingCtrl',
                         edit=True,
                         enable=(useAnim and not multiframe))
@@ -1234,6 +1237,11 @@ def createArnoldCommonFrameRange():
     pm.attrControlGrp('byFrameStepCtrl',
                         attribute='defaultRenderGlobals.byFrameStep',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kByFrame"),
+                        hideMapButton=True)
+
+    pm.attrControlGrp('skipExistingFramesCtrl',
+                        attribute='defaultRenderGlobals.skipExistingFrames',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSkipExistingFrames"),
                         hideMapButton=True)
 
     pm.separator()
