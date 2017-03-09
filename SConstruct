@@ -369,6 +369,8 @@ if system.os() == 'windows':
 
 export_symbols = env['MODE'] in ['debug', 'profile']
 
+# FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
+env['WARN_LEVEL'] = 'warn_only'
 if env['COMPILER'] == 'gcc':
     if system.os() == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
         env['CC'] = env['SHCC']
