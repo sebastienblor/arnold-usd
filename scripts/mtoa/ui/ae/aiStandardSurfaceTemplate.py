@@ -46,20 +46,14 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.beginScrollLayout()
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
-
-        self.beginLayout("Material", collapse=False)
-        self.addControl("metalness", label="Metalness", annotation="Metalness Mix", changeCommand=self.changeParams)
-        self.addControl("transmission",  label="Transmission", annotation="Transmission Mix", changeCommand=self.changeParams)
-        self.addControl("subsurface",  label="Subsurface", annotation="Subsurface Scattering Mix", changeCommand=self.changeParams)
-        self.addSeparator()
-        self.addControl("thin_walled", label="Thin Walled", annotation="Thin Surface with no Interior", changeCommand=self.changeParams) 
-        self.addControl("opacity",  label="Opacity", annotation="Cutout Opacity")
-        self.endLayout()
-
+        
         self.beginLayout("Base", collapse=False)
-        self.addControl("base",  label="Weight", annotation="Base Weight")
-        self.addControl("base_color", label="Color", annotation="Base Color")
+        self.addControl("base",  label="Weight", annotation="Label Weight")
+        self.addControl("base_color", label="Color", annotation="Label Color")
+        self.addSeparator()
         self.addControl("diffuse_roughness", label="Diffuse Roughness", annotation="Diffuse Oren-Nayar Roughness")
+        self.addSeparator()
+        self.addControl("metalness", label="Metalness", annotation="Metalness Mix", changeCommand=self.changeParams)
         self.endLayout()
 
         self.beginLayout("Specular", collapse=False)
@@ -74,6 +68,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Transmission", collapse=True)
+        self.addControl("transmission",  label="Weight", annotation="Transmission Mix", changeCommand=self.changeParams)
         self.addControl("transmission_color", label="Color", annotation="Transmission Color")
         self.addSeparator()
         self.addControl("transmission_depth", label="Depth", annotation="Transmission Depth")
@@ -85,6 +80,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)
+        self.addControl("subsurface",  label="Weight", annotation="Subsurface Scattering Mix", changeCommand=self.changeParams)
         self.addControl("subsurface_color", label="Color", annotation="Subsurface Scattering Color")
         self.addControl("subsurface_radius", label="Radius", annotation="Subsurface Scattering Radius");
         self.addControl("subsurface_scale", label="Scale", annotation="Subsurface Scattering Scale");
@@ -105,14 +101,12 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("emission_color", label="Color", annotation="Emission Color")
         self.endLayout() 
 
-
-        self.addBumpLayout()
-# FIXME Arnold5 find how we should expose bump/normals
-#        self.beginLayout("Normal", collapse=True)
-#        self.addControl("normal", label="Normal", annotation="Normal Shader")
-#        self.addControl("tangent", label="Tangent", annotation="Tangent Shader")
-#        self.endLayout()
-# FIXME Arnold5 tangent is missing
+        self.beginLayout("Geometry", collapse=True)
+        self.addControl("thin_walled", label="Thin Walled", annotation="Thin Surface with no Interior", changeCommand=self.changeParams) 
+        self.addControl("opacity",  label="Opacity", annotation="Cutout Opacity")
+        self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
+        self.addControl("tangent", label="Anisotropy Tangent", annotation="Tangent Shader")
+        self.endLayout()
 
         self.beginLayout("Matte", collapse=True)
         self.addControl("aiEnableMatte", label="Enable Matte")
