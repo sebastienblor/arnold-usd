@@ -185,11 +185,6 @@ shader_evaluate
 
    float scaled_density = 1.f;
 
-    AtRGB absorption_result = AI_RGB_BLACK;
-    AtRGB scattering_result = AI_RGB_BLACK;
-    AtRGB emission_result   = AI_RGB_BLACK;
-    float anisotropy_result = 0.0f;
-
    if( data->has_density_ramp)
    {
       if (data->densityGradient == 0)
@@ -221,9 +216,7 @@ shader_evaluate
 
       if (sg->Rt & AI_RAY_SHADOW) 
       {
-         absorption_result = absorb;
-         // FIXME Arnold5 Should I creata a closure here ?
-         sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorption_result, scattering_result, emission_result, anisotropy_result);
+         sg->out.CLOSURE() = AiClosureVolumeAbsorption(sg, absorb + scatter);
          return;
       }
 
@@ -244,16 +237,8 @@ shader_evaluate
       emission *= AiShaderEvalParamFlt(p_emission_intensity);
       emission *= scaled_density;
 
-      emission_result = emission;
-      absorption_result = absorb; // FIXME Arnold5  -> should we do "- scattering_result" ?
-      scattering_result = scatter;
-      anisotropy_result = directionality;
-
-   } 
-   // create closure
-    sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorption_result, scattering_result, emission_result, anisotropy_result);
-
+      // create closure
+      sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorb, scatter, emission);
+   }
 }
-
-
 

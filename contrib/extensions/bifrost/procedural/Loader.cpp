@@ -16,15 +16,16 @@ enum{
 node_loader
 {
     node->output_type  = AI_TYPE_NONE;
-    node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
     switch (i)
     {
 
     case BIFROST_POLYMESH:
+        node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
         node->methods      = BifrostPolymeshMtd;
         node->name         = "bifrostPolymesh";
         break;
     case BIFROST_PRIMITIVES:
+        node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
         node->methods      = BifrostPrimitivesMtd;
         node->name         = "bifrostPrimitives";
         break;
@@ -34,6 +35,7 @@ node_loader
         node->name         = "bifrostVolume";
         break;
     case BIFROST_IMPLICITS:
+        node->node_type    = AI_NODE_SHAPE_VOLUME;
         node->methods      = BifrostImplicitsMtd;
         node->name         = "bifrostImplicits";
         break;

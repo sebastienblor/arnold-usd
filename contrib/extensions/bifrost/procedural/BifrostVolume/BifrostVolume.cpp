@@ -46,10 +46,8 @@
 #include <bifrostrendercore/bifrostrender_objectuserdata.h>
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-//#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
-#define DL 
-//#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
-#define DUMP(v)
+#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostVolumeMtd)
 

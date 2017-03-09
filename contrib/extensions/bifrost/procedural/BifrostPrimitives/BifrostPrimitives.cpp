@@ -646,13 +646,13 @@ procedural_cleanup
 
 			free( inData );
 		}
-	}
 
-	if ( nodeData->bifrostCtx ) {
-		AiShaderGlobalsDestroy( nodeData->bifrostCtx );
-	}
+        if ( nodeData->bifrostCtx ) {
+            AiShaderGlobalsDestroy( nodeData->bifrostCtx );
+        }
 
-	delete nodeData;
+        delete nodeData;
+	}
 
 	return 1;
 }
