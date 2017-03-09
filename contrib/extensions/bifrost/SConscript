@@ -8,7 +8,6 @@ Import('ext_env')
 common_env = ext_env.Clone()
 
 BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
-print BUILD_BASE_DIR
 ROOT_DIR = common_env['ROOT_DIR']
 
 mayaRoot = common_env['MAYA_ROOT']
@@ -73,6 +72,7 @@ def setup(env, library):
 setup(common_env, "ai")
 setup(common_env, "mtoa_api")
 
+
 ##############################################################
 ####  BIFROST RENDER CORE LIBRARY
 # TEMPORARY
@@ -121,19 +121,11 @@ EXT_SHADERS = local_env.SharedLibrary('bifrost_shaders', source_files, LIBPREFIX
 local_env = common_env.Clone()
 setup(local_env, "bifrostapi")
 setup(local_env, "bifrostrendercore")
-local_env.Append(CPPPATH = os.path.join(ext_base_dir, 'procedural', 'common', 'include'))
+src_base_dir  = os.path.join(ext_base_dir, 'procedural')
+source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+local_env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost', 'procedural', 'common', 'include')])
+EXT_PROCS = local_env.SharedLibrary('bifrost_procedurals', source_files, LIBPREFIX='')
 
-proc_base_dir  = os.path.join(ext_base_dir, 'procedural')
-common_dir = os.path.join(proc_base_dir, 'common')
-common_source_files = [os.path.join('procedural', 'common', x) for x in find_files_recursive(common_dir, ['.c', '.cpp'])]
-def buildProcedural(name):
-    src_base_dir = os.path.join(proc_base_dir, name)
-    # Automatically add all source and include files found in the source path
-    source_files  = common_source_files + \
-        [os.path.join('procedural', name, x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
-    return local_env.SharedLibrary(name, source_files, LIBPREFIX='')[0]
-
-EXT_PROCS = [ buildProcedural(name) for name in ('BifrostPrimitives', 'BifrostVolume', 'BifrostPolyMesh', 'BifrostImplicits') ]
 Depends(EXT_PROCS, BIFROST_RENDERCORE)
 
 Return('EXT EXT_SHADERS EXT_PROCS')

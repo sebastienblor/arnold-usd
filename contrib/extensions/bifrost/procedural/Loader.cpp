@@ -1,10 +1,10 @@
 #include <ai.h>
 #include <cstdio>
 
-extern AtNodeMethods* BifrostPolymeshMtd;
-extern AtNodeMethods* BifrostPrimitivesMtd;
-extern AtNodeMethods* BifrostVolumeMtd;
-extern AtNodeMethods* BifrostImplicitsMtd;
+extern const AtNodeMethods* BifrostPolymeshMtd;
+extern const AtNodeMethods* BifrostPrimitivesMtd;
+extern const AtNodeMethods* BifrostVolumeMtd;
+extern const AtNodeMethods* BifrostImplicitsMtd;
 
 enum{
     BIFROST_POLYMESH = 0,
