@@ -11,7 +11,7 @@
 // Written by Erdem Taylan
 
 #include <bifrostrendercore/bifrostrender_meshing.h>
-#include <bifrostrendercore/bifrostrender_meshingtables.h>
+// #include <bifrostrendercore/bifrostrender_meshingtables.h>
 
 namespace Bifrost{
 namespace RenderCore{

@@ -81,11 +81,12 @@ if system.os() !='windows':
     local_env.Append(CCFLAGS = Split('-fPIC'))
 setup(local_env, "bifrostapi")
 # Automatically add all source and include files found in the source path
+local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
 src_base_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
 local_env.Append(CPPPATH = os.path.join(src_base_dir, 'api'))
 source_files  = [os.path.join(src_base_dir, x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 BRC_INSTALL_DIR = os.path.join(ROOT_DIR, BUILD_BASE_DIR, 'bifrost', 'bifrostrendercore')
-BIFROST_RENDERCORE = local_env.StaticLibrary(target='bifrostrendercore', source=source_files, LIBPREFIX='lib')
+BIFROST_RENDERCORE = local_env.SharedLibrary(target='bifrostrendercore', source=source_files, LIBPREFIX='')
 
 ##############################################################
 ####  BIFROST TRANSLATORS
@@ -97,7 +98,9 @@ setup(local_env, "bifrostrendercore")
 src_base_dir  = os.path.join(ext_base_dir, 'plugin')
 local_env.Append(CPPPATH = os.path.join(src_base_dir, 'include'))
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
-EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX='')
+
+EXT = local_env.StaticLibrary('bifrostTranslator', source_files, LIBPREFIX= ('lib' if system.os() =='windows' else ''))
+
 Depends(EXT, BIFROST_RENDERCORE)
 
 ###########################################################3
@@ -109,27 +112,28 @@ local_env = ext_env.Clone()
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(ext_base_dir, 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
-
 EXT_SHADERS = local_env.SharedLibrary('bifrost_shaders', source_files, LIBPREFIX='')
+
 
 ##########################################################
 ## BIFROST PROCEDURALS
 
-Import('ext_env')
 local_env = common_env.Clone()
 setup(local_env, "bifrostapi")
 setup(local_env, "bifrostrendercore")
 local_env.Append(CPPPATH = os.path.join(ext_base_dir, 'procedural', 'common', 'include'))
 
-# Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(ext_base_dir, 'procedural')
-source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
-polymesh = filter(lambda name: 'PolyMesh' in name, source_files)
-#source_files = filter(lambda name: 'PolyMesh' not in name, source_files)
-print "POLYMESH : ", polymesh
-print "SOURCES : ", source_files
+proc_base_dir  = os.path.join(ext_base_dir, 'procedural')
+common_dir = os.path.join(proc_base_dir, 'common')
+common_source_files = [os.path.join('procedural', 'common', x) for x in find_files_recursive(common_dir, ['.c', '.cpp'])]
+def buildProcedural(name):
+    src_base_dir = os.path.join(proc_base_dir, name)
+    # Automatically add all source and include files found in the source path
+    source_files  = common_source_files + \
+        [os.path.join('procedural', name, x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+    return local_env.SharedLibrary(name, source_files, LIBPREFIX='')[0]
 
-EXT_PROCS = local_env.SharedLibrary('bifrost_procedurals', source_files, LIBPREFIX='')
+EXT_PROCS = [ buildProcedural(name) for name in ('BifrostPrimitives', 'BifrostVolume', 'BifrostPolyMesh', 'BifrostImplicits') ]
 Depends(EXT_PROCS, BIFROST_RENDERCORE)
 
 Return('EXT EXT_SHADERS EXT_PROCS')

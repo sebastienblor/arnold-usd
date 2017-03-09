@@ -15,7 +15,7 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 
-#include "bifrostrender_meshing.h"
+#include <bifrostrendercore/bifrostrender_meshing.h>
 
 namespace Bifrost{
 namespace RenderCore{

@@ -21,9 +21,11 @@
 		#define BIFROSTRENDER_WINDOWS
 	#endif
 
-	#if defined(BIFROSTRENDER_STANDALONE)
+#if defined(BIFROSTRENDER_STANDALONE)
+
 		#define BIFROSTRENDERAPI_DECL
 	#elif defined(BIFROSTRENDER_WINDOWS)
+
 		#ifdef BIFROSTRENDERAPI
 			#ifdef __GNUC__
 				#define BIFROSTRENDERAPI_DECL __attribute__((dllexport))
