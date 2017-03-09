@@ -1034,6 +1034,7 @@ for ext in os.listdir(ext_base_dir):
                 procedural = EXT[2]
                 ext_files.append(procedural)
                 env.Install(TARGET_PROCEDURAL_PATH, procedural)
+                package_files += [[str(EXT[2][0]), 'shaders']]    
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
@@ -1117,7 +1118,7 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedurals%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
