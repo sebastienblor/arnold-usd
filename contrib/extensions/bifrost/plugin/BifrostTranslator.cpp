@@ -31,7 +31,7 @@ void BifrostTranslator::ExportMatrixWithSpaceScale(AtNode* node, float spaceScal
 	GetMatrix(matrix);
 
 	// inject our scaling values here
-	AtVector s (spaceScale, spaceScale, spaceScale);
+    AtVector s(spaceScale, spaceScale, spaceScale);
     AtMatrix scalingMatrix = AiM4Scaling(s);
 	// apply scaling to input matrix
     matrix = AiM4Mult(scalingMatrix, matrix);

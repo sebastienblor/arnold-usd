@@ -45,6 +45,10 @@
 
 #include <bifrostrendercore/bifrostrender_objectuserdata.h>
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
+
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostVolumeMtd)
 
 using namespace Bifrost::RenderCore;
@@ -166,6 +170,7 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 
 	inData->checkParameters();
 
+    DUMP(inData->error);
 	return inData->error;
 }
 
@@ -173,7 +178,54 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 
 node_parameters
 {
+    // get numeric data
+    AiParameterFlt("channelScale", 0);
+    AiParameterFlt("velocityScale", 0);
+    AiParameterFlt("fps", 0);
+    AiParameterFlt("spaceScale", 0);
 
+    AiParameterBool( "smoothOn" , 0);
+    AiParameterInt( "smoothMode" , 0);
+    AiParameterInt( "smoothAmount" , 0);
+    AiParameterInt( "smoothIterations" , 0);
+    AiParameterFlt( "smoothWeight" , 0);
+    AiParameterFlt("smoothRemapMin", 0);
+    AiParameterFlt("smoothRemapMax", 0);
+    AiParameterBool("smoothRemapInvert", 0);
+
+    AiParameterBool( "clipOn" , 0);
+    AiParameterFlt("clipMinX", 0);
+    AiParameterFlt("clipMaxX", 0);
+    AiParameterFlt("clipMinY", 0);
+    AiParameterFlt("clipMaxY", 0);
+    AiParameterFlt("clipMinZ", 0);
+    AiParameterFlt("clipMaxZ", 0);
+
+    AiParameterFlt("splatResolutionFactor", 0);
+    AiParameterInt( "skip" , 0);
+    AiParameterInt( "splatSamples" , 0);
+    AiParameterFlt("splatMinRadius", 0);
+    AiParameterFlt("splatMaxRadius", 0);
+    AiParameterFlt("splatSurfaceAttract", 0);
+    AiParameterInt( "splatFalloffType" , 0);
+    AiParameterFlt("splatFalloffStart", 0);
+    AiParameterFlt("splatFalloffEnd", 0);
+    AiParameterFlt("splatDisplacement", 0);
+    AiParameterFlt("splatNoiseFreq", 0);
+
+    AiParameterInt( "debug" , 0);
+    AiParameterBool( "hotData" , 0);
+
+    AiParameterStr("bifFilename" , "");
+    AiParameterStr("inputChannelName" , "");
+    AiParameterStr("smoothChannelName" , "");
+    AiParameterStr("primVarNames" , "");
+    AiParameterStr("bifrostObjectName" , "");
+
+    // arnold specific parameters
+    AiParameterBool( "motionBlur" , 0);
+    AiParameterFlt( "shutterStart" , 0);
+    AiParameterFlt( "shutterEnd" , 0);
 }
 
 volume_create
@@ -281,6 +333,7 @@ volume_create
 
     pdata->frameData = frameData;
 
+    inData->diagnostics.DEBUG = 1;
 	// process which channels to load
 	initAndGetFrameData(	frameData,
 							(void *) inData,
@@ -651,7 +704,7 @@ volume_create
     pdata->bbox.max.x = (float) bboxMax[0];
     pdata->bbox.max.y = (float) bboxMax[1];
     pdata->bbox.max.z = (float) bboxMax[2];
-   
+
     data->bbox = pdata->bbox;
 
 	//
@@ -704,11 +757,22 @@ volume_create
     pdata->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
     memset( pdata->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 
+    DUMP(data->auto_step_size);
+    DUMP(data->bbox.min.x);
+    DUMP(data->bbox.min.y);
+    DUMP(data->bbox.min.z);
+    DUMP(data->bbox.max.x);
+    DUMP(data->bbox.max.y);
+    DUMP(data->bbox.max.z);
+    DUMP(data->private_info);
+
+    DL;
 	return true;
 }
 
 volume_cleanup
 {
+    DL;
     BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
     if(!volData){
         return  false;
@@ -737,17 +801,21 @@ volume_cleanup
 
     delete volData;
 	data->private_info = NULL;
+    DL;
 	return true;
 }
 
 volume_gradient
 {
+    DL;
     *gradient = AI_V3_ZERO;
+    DL;
     return false;
 }
 
 volume_sample
 {
+    DL;
 	if (!data->private_info) return false;
 
 	BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
@@ -779,11 +847,13 @@ volume_sample
         value->FLT() = threadSampler->sample<float>(pos);
 	}
 
+    DL;
 	return true;
 }
 
 volume_ray_extents
 {
+    DL;
 	//if (!data->private_info) return;
     BifrostVolumeUserData *volData = (BifrostVolumeUserData*)data->private_info;
 	if (volData == 0) return;
@@ -797,10 +867,12 @@ volume_ray_extents
 	int i = 0;
 	for (float t = tmin; t < tmax && i < volData->maxSteps; t+= step, i++) {
         AiVolumeAddIntersection(info, t, (t+step < tmax)? t+step : tmax);
-	}
+    }
+    DL;
 }
 
 volume_update
 {
+    DL;
 	return true;
 }

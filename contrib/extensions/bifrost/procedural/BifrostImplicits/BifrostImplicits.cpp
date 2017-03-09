@@ -46,6 +46,10 @@
 
 #include <bifrostrendercore/bifrostrender_objectuserdata.h>
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
+
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostImplicitsMtd)
 
 using namespace Bifrost::RenderCore;
@@ -316,12 +320,16 @@ volume_create
 	Bifrost::API::String writeToFolder;
     if ( inData->hotData ) {
         // write in memory pdata to a temp file
-		Bifrost::API::String writeToFile;
+        Bifrost::API::String writeToFile;
+        DUMP(inData->bifFilename);
         if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
+            DL;
             writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-volume", writeToFolder );
-		} else {
+        } else {
+            DL;
             writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-particle", writeToFolder );
-		}
+        }
+        DL;
 
 		// realloc for the new name
 		size_t inputLen = writeToFile.length();

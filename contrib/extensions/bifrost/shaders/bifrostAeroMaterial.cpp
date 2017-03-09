@@ -209,8 +209,6 @@ shader_evaluate
 
    if (density > threshold)
    {
-
-      
       //get Scatter
       AtRGB scatter = AiShaderEvalParamRGB(p_scattering_color) *  AiShaderEvalParamFlt(p_scattering_intensity);
       // offset and density cutoff
