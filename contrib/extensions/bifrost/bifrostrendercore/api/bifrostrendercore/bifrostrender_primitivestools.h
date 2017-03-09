@@ -38,7 +38,11 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef _DARWIN
 #include <malloc.h>
+#endif
+
 #include <ctime>
 
 #include "bifrostrender_decl.h"
