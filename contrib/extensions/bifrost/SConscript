@@ -99,7 +99,7 @@ src_base_dir  = os.path.join(ext_base_dir, 'plugin')
 local_env.Append(CPPPATH = os.path.join(src_base_dir, 'include'))
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 
-EXT = local_env.StaticLibrary('bifrostTranslator', source_files, LIBPREFIX= ('lib' if system.os() =='windows' else ''))
+EXT = local_env.StaticLibrary('bifrostTranslator', source_files, LIBPREFIX= '')
 
 Depends(EXT, BIFROST_RENDERCORE)
 
