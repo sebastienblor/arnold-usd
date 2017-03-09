@@ -86,7 +86,7 @@ src_base_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
 local_env.Append(CPPPATH = os.path.join(src_base_dir, 'api'))
 source_files  = [os.path.join(src_base_dir, x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 BRC_INSTALL_DIR = os.path.join(ROOT_DIR, BUILD_BASE_DIR, 'bifrost', 'bifrostrendercore')
-BIFROST_RENDERCORE = local_env.SharedLibrary(target='bifrostrendercore', source=source_files, LIBPREFIX='')
+BIFROST_RENDERCORE = local_env.SharedLibrary(target='bifrostrendercore', source=source_files, LIBPREFIX=('' if system.os() =='windows' else 'lib'))
 
 ##############################################################
 ####  BIFROST TRANSLATORS
