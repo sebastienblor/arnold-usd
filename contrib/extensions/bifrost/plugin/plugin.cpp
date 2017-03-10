@@ -14,14 +14,18 @@ extern "C"
 {
     namespace{
         // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
-        unsigned int addedCbId = 0, connectionCbId = 0;
+        MCallbackId addedCbId = 0, connectionCbId = 0;
 
-        void removeCallback(unsigned int& id){
+        void removeCallback(MCallbackId& id)
+        {
             if(id != 0) MMessage::removeCallback(id);
             id = 0;
         }
-        void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*){
-            if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers"){
+        void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
+        {
+            if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
+                MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
+            {
                 // connection to shading engine made => replace shader
                 int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
                 bool isVolume = renderType==0 || renderType==3; // Aero or Foam
@@ -32,7 +36,8 @@ extern "C"
 
                 MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
                 command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
-                if(isVolume){
+                if(isVolume)
+                {
                     MString shaderPlugName = shadingGroup.findPlug("surfaceShader").source().name();
                     command += "disconnectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".surfaceShader\"; connectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".volumeShader\";";
                 }
@@ -41,9 +46,11 @@ extern "C"
                 removeCallback(connectionCbId);
             }
         }
-        void bifrostShapeAdded(MObject& obj, void*){
+        void bifrostShapeAdded(MObject& obj, void*)
+        {
             removeCallback(connectionCbId);
-            if(!MFileIO::isReadingFile() && !MGlobal::isUndoing()){ // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
+            if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
+            { // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
                 // must wait until shaging engine is connected to shape, otherwise shader assignment will be overridden by the old bifrost material
                 // => registering temporary attribute change callback and removing it after material assignment
                 connectionCbId = MNodeMessage::addAttributeChangedCallback(obj, bifrostShapeAttributeChanged);
