@@ -34,17 +34,26 @@ extern "C"
                 MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
 
                 MFnDependencyNode shadingGroup(otherPlug.node());
-                MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
 
-                MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
-                command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
-                if(isVolume)
+                MPlug surfaceShaderPlug = shadingGroup.findPlug("surfaceShader");
+
+                MPlugArray plugArray;              
+                surfaceShaderPlug.connectedTo(plugArray,  true, false);
+                
+                if (plugArray.length() > 0)
                 {
-                    MString shaderPlugName = shadingGroup.findPlug("surfaceShader").source().name();
-                    command += "disconnectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".surfaceShader\"; connectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".volumeShader\";";
+                    MString oldShader = MFnDependencyNode(plugArray[0].node()).name();// oddly, even aero has a surfaceShader
+
+                    MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+                    command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
+                    if(isVolume)
+                    {
+                        MString shaderPlugName = plugArray[0].name();
+                        command += "disconnectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".surfaceShader\"; connectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".volumeShader\";";
+                    }
+                    command += "select $sel;undoInfo -closeChunk;";
+                    MGlobal::executeCommandOnIdle(command);
                 }
-                command += "select $sel;undoInfo -closeChunk;";
-                MGlobal::executeCommandOnIdle(command);
                 removeCallback(connectionCbId);
             }
         }
