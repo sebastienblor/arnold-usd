@@ -6,7 +6,7 @@ Import('ext_env')
 ##############################################################
 common_env = ext_env.Clone()
 
-src_common_dir  = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost', 'common')
+src_common_dir  = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2016', 'common')
 
 BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
 
@@ -51,7 +51,7 @@ common_object_helpers = common_env.SharedObject(target = os.path.join(BUILD_BASE
 local_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost', 'plugin')
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2016', 'plugin')
 
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 source_files.append(common_object_user_data)
@@ -107,7 +107,7 @@ Import('env')
 shader_env = env.Clone()
 
 # Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost', 'shaders')
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2016', 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
@@ -129,8 +129,8 @@ EXT_SHADERS = shader_env.SharedLibrary('bifrost_shaders', source_files, LIBPREFI
 Import('env')
 proc_env = env.Clone()
 
-src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost','procedural')
-src_common_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost', 'common')
+src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2016','procedural')
+src_common_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2016', 'common')
 
 include_files = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]

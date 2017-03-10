@@ -288,6 +288,11 @@ if int(maya_version) >= 201600:
 if int(maya_version) >= 201650:
     env['ENABLE_RENDERSETUP'] = 1
 
+if int(maya_version_base) >= 2014:
+    env['ENABLE_VP2'] = 1
+    if (system.os() == "windows") and (int(maya_version_base) == 2014):
+        env['REQUIRE_DXSDK'] = 1
+
 if int(maya_version) >= 201700:
     bifrost_ext = 'bifrost'
 
