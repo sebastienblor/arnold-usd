@@ -279,19 +279,18 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+    bifrost_ext = 'bifrost_2016'
     env['ENABLE_LOOKDEVKIT'] = 1
-if int(maya_version) >= 201650:
-    env['ENABLE_RENDERSETUP'] = 1
-
-if int(maya_version_base) >= 2014:
-    env['ENABLE_VP2'] = 1
-    if (system.os() == "windows") and (int(maya_version_base) == 2014):
-        env['REQUIRE_DXSDK'] = 1
-
-if int(maya_version) >= 201600:
     env["ENABLE_COLOR_MANAGEMENT"] = 1
     env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
     env["MTOA_AFM"] = 1
+
+if int(maya_version) >= 201650:
+    env['ENABLE_RENDERSETUP'] = 1
+
+if int(maya_version) >= 201700:
+    bifrost_ext = 'bifrost'
+
 
 build_id = ""
 
@@ -964,7 +963,7 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or
             (env['ENABLE_XGEN'] == 1 and (int(maya_version) >= 201700) and ext == 'xgenSpline') or
             ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
-            (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
+            (env['ENABLE_BIFROST'] == 1 and ext == bifrost_ext) or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
             (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
