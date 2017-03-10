@@ -35,7 +35,7 @@ node_loader
         node->name         = "bifrostVolume";
         break;
     case BIFROST_IMPLICITS:
-        node->node_type    = AI_NODE_SHAPE_VOLUME;
+        node->node_type    = AI_NODE_SHAPE_IMPLICIT;
         node->methods      = BifrostImplicitsMtd;
         node->name         = "bifrostImplicits";
         break;

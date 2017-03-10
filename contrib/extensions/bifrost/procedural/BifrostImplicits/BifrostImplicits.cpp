@@ -302,7 +302,7 @@ volume_create
 	bool error = getNodeParameters( inData, node );
 
 	// init in memory class
-    new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
+    inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
 
     // init user pdata stuff
     pdata->objectRef = inData->inMemoryRef;
@@ -327,10 +327,10 @@ volume_create
             writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-particle", writeToFolder );
         }
 
-		// realloc for the new name
-		size_t inputLen = writeToFile.length();
+        // realloc for the new name
+        size_t inputLen = writeToFile.length();
         free ( inData->bifFilename );
-        (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
+        inData->bifFilename = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
         strcpy( inData->bifFilename, writeToFile.c_str() );
 	}
 
@@ -977,7 +977,7 @@ volume_gradient
 			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
 		}
 		Bifrost::API::VoxelChannel bifChannel = userData->voxelComponent.findChannel( channel.c_str() );
-
+        // should use appropriate interpolation type?
 		threadSampler = new Bifrost::API::VoxelSampler( bifChannel.createSampler( Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace ) );
 		userData->channelSamplers[ samplerIndexStart + sg->tid ] = threadSampler;
 	}

@@ -9,7 +9,6 @@
 #include <maya/MNodeMessage.h>
 #include <maya/MFileIO.h>
 #include <maya/MGlobal.h>
-#include <maya/MDGModifier.h>
 
 extern "C"
 {
@@ -48,8 +47,7 @@ extern "C"
                     command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
                     if(isVolume)
                     {
-                        MString shaderPlugName = plugArray[0].name();
-                        command += "disconnectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".surfaceShader\"; connectAttr \""+shaderPlugName+"\" \""+shadingGroup.name()+".volumeShader\";";
+                        command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
                     }
                     command += "select $sel;undoInfo -closeChunk;";
                     MGlobal::executeCommandOnIdle(command);
