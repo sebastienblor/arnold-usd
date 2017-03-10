@@ -18,17 +18,20 @@
 		<attribute name='primaryVisibility' type='maya.bool'>
 			<label>Primary Visibility</label>
 		</attribute>
-		<attribute name='aiVisibleInDiffuse' type='maya.bool'>
-			<label>Visible in Diffuse</label>
+		<attribute name='aiVisibleInDiffuseReflection' type='maya.bool'>
+			<label>Visible in Diffuse Reflection</label>
 		</attribute>
-		<attribute name='aiVisibleInGlossy' type='maya.bool'>
-			<label>Visible in Glossy</label>
+		<attribute name='aiVisibleInSpecularReflection' type='maya.bool'>
+			<label>Visible in Specular Reflection</label>
 		</attribute>
-		<attribute name='visibleInReflections' type='maya.bool'>
-			<label>Visible in Reflections</label>
+		<attribute name='aiVisibleInDiffuseTransmission' type='maya.bool'>
+			<label>Visible in Diffuse Transmission</label>
 		</attribute>
-		<attribute name='visibleInRefractions' type='maya.bool'>
-			<label>Visible in Refractions</label>
+		<attribute name='aiVisibleInSpecularTransmission' type='maya.bool'>
+			<label>Visible in Specular Transmission</label>
+		</attribute>
+		<attribute name='aiVisibleInVolume' type='maya.bool'>
+			<label>Visible in Diffuse Reflection</label>
 		</attribute>
 		<attribute name='sampling' type='maya.int'>
 			<label>Texture Resolution</label>
@@ -55,10 +58,11 @@
 			<label>Render Stats</label>
 			<property name='castsShadows'/>
 			<property name='primaryVisibility'/>
-			<property name='aiVisibleInDiffuse'/>
-			<property name='aiVisibleInGlossy'/>
-			<property name='visibleInReflections'/>
-			<property name='visibleInRefractions'/>
+			<property name='aiVisibleInDiffuseReflection'/>
+			<property name='aiVisibleInSpecularReflection'/>
+			<property name='aiVisibleInDiffuseTransmission'/>
+			<property name='aiVisibleInSpecularTransmission'/>
+			<property name='aiVisibleInVolume'/>
 		</group>
 		<group name='hw_tex_attributes'>
 			<label>Hardware Texturing</label>

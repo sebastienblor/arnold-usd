@@ -9,7 +9,7 @@ namespace{
     MString searchPath = "";
     bool searchPathInitialized = false;
 
-    void CheckShaderSearchPath(MHWRender::MFragmentManager* fragmentMgr)
+    void CheckPluginSearchPath(MHWRender::MFragmentManager* fragmentMgr)
     {
         if (!searchPathInitialized)
         {
@@ -38,7 +38,7 @@ bool LoadFragmentGraph(const MString& fragmentGraph, const MStringArray& require
         MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager();
         if (fragmentMgr)
         {
-            CheckShaderSearchPath(fragmentMgr);
+            CheckPluginSearchPath(fragmentMgr);
             
             bool loadedSuccessfully = true;
             for (unsigned int i = 0; (i < requirements.length()) && loadedSuccessfully; ++i)
@@ -63,7 +63,7 @@ bool LoadShadeFragment(const MString& shadeFragment)
         MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager();
         if (fragmentMgr)
         {
-            CheckShaderSearchPath(fragmentMgr);
+            CheckPluginSearchPath(fragmentMgr);
             bool loadedSuccessfully = true;
             if (!fragmentMgr->hasFragment(shadeFragment))
                 loadedSuccessfully &= (shadeFragment == fragmentMgr->addShadeFragmentFromFile(shadeFragment + MString(".xml"), false));

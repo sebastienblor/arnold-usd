@@ -96,8 +96,6 @@ const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
    nAttr.setDefault(float(defaultX), float(defaultY));\
    addAttribute(attrib);
 
-#define MAKE_POINT2(attrib, attrName, attrShortName, defaultX, defaultY) \
-   MAKE_VECTOR2(attrib, attrName, attrShortName, defaultX, defaultY)
 
 #define MAKE_VECTOR(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ) \
    attrib##X = nAttr.create(MString(attrName) + "X", MString(attrShortName) + "x", MFnNumericData::kFloat, defaultX);\
@@ -108,9 +106,6 @@ const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
    addAttribute(attrib##X);\
    addAttribute(attrib##Y);\
    addAttribute(attrib##Z);
-
-#define MAKE_POINT(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ) \
-   MAKE_VECTOR(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ)
 
 #define MAKE_ENUM(attrib, attrName, attrShortName, default_value, arnold_node, arnold_param) \
    attrib = eAttr.create(attrName, attrShortName, default_value); \
@@ -209,14 +204,9 @@ const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
    MAKE_VECTOR(attrib, attrName, attrShortName, default_value->VEC.x, default_value->VEC.y, default_value->VEC.z);\
    MAKE_INPUT(nAttr, attrib);
 
-#define MAKE_POINT_INPUT(attrib, paramEntry, attrName, attrShortName) \
+#define MAKE_VECTOR2_INPUT(attrib, paramEntry, attrName, attrShortName) \
    const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
-   MAKE_VECTOR(attrib, attrName, attrShortName, default_value->PNT.x, default_value->PNT.y, default_value->PNT.z);\
-   MAKE_INPUT(nAttr, attrib);
-
-#define MAKE_POINT2_INPUT(attrib, paramEntry, attrName, attrShortName) \
-   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
-   MAKE_POINT2(attrib, attrName, attrShortName, default_value->PNT2.x, default_value->PNT2.y);\
+   MAKE_VECTOR2(attrib, attrName, attrShortName, default_value->VEC2.x, default_value->VEC2.y);\
    MAKE_INPUT(nAttr, attrib);
 
 #define MAKE_STRING_INPUT(attrib, paramEntry, attrName, attrShortName) \

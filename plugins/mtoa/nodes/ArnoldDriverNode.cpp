@@ -16,6 +16,7 @@ MObject CArnoldDriverNode::s_mergeAOVs;
 MObject CArnoldDriverNode::s_driver;
 MObject CArnoldDriverNode::s_prefix;
 MObject CArnoldDriverNode::s_outputMode;
+MObject CArnoldDriverNode::s_colorManagement;
 
 void* CArnoldDriverNode::creator()
 {
@@ -48,8 +49,22 @@ MStatus CArnoldDriverNode::initialize()
    eAttr.addField("GUI Only", 0);
    eAttr.addField("Batch Only", 1);
    eAttr.addField("GUI and Batch", 2);
-   tAttr.setKeyable(false);
+   eAttr.setKeyable(false);
    addAttribute(s_outputMode);
 
+
+
+#ifdef ENABLE_COLOR_MANAGEMENT
+   // this parameter is called "colorManagement" because colorSpace already exists in the driver node as a string,
+   // so it would conflict with this enum
+   s_colorManagement = eAttr.create("colorManagement", "color_management", 2);
+   eAttr.addField("Raw", 0);
+   eAttr.addField("Use View Transform", 1);
+   eAttr.addField("Use Output Transform", 2);
+   eAttr.setKeyable(false);
+   addAttribute(s_colorManagement);
+#endif
+   
    return MStatus::kSuccess;
 }
+

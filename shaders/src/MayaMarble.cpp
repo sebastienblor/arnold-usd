@@ -32,28 +32,27 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("fillerColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("veinColor", 0.298f, 0.0f, 0.0f);
-   AiParameterFLT("veinWidth", 0.1f);
-   AiParameterFLT("diffusion", 0.5f);
-   AiParameterFLT("contrast", 0.5f);
+   AiParameterFlt("veinWidth", 0.1f);
+   AiParameterFlt("diffusion", 0.5f);
+   AiParameterFlt("contrast", 0.5f);
    
-   AiParameterFLT("amplitude", 1.5f);
-   AiParameterFLT("ratio", 0.707f);
-   AiParameterVEC("ripples", 1.0f, 1.0f, 1.0f);
-   AiParameterPNT2("depth", 0.0f, 20.0f);
+   AiParameterFlt("amplitude", 1.5f);
+   AiParameterFlt("ratio", 0.707f);
+   AiParameterVec("ripples", 1.0f, 1.0f, 1.0f);
+   AiParameterVec2("depth", 0.0f, 20.0f);
    
    
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "marble");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "marble");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize
@@ -74,12 +73,10 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
    
-   AtPoint P, Q;
-
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
    
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -97,7 +94,7 @@ shader_evaluate
       {
          float ratio = AiShaderEvalParamFlt(p_ratio);
          AtVector ripples = AiShaderEvalParamVec(p_ripples);
-         AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
+         AtVector2 depth = AiShaderEvalParamVec2(p_depth);
          
          
          float loop = 0.0f;
@@ -105,7 +102,7 @@ shader_evaluate
          float curAmp = 1.0f;
          float curFreq = 1.0f;
          
-         Q = P * 0.5f * ripples;
+         AtVector Q = P * 0.5f * ripples;
          
          
          float maxQ = (fabsf(Q.x) > fabsf(Q.y)) ? fabsf(Q.x) : fabsf(Q.y);
@@ -114,8 +111,8 @@ shader_evaluate
          int n;
          frexp (maxQ , &n);
          
-         float iterations = MAX(depth.x, depth.y);
-         iterations = MIN(iterations, (float)sizeof(float)*8-n);
+         float iterations = AiMax(depth.x, depth.y);
+         iterations = AiMin(iterations, (float)sizeof(float)*8-n);
          
          float pixelSize = float(AI_EPSILON);
          float nyquist = 2.0f * pixelSize;
@@ -157,13 +154,13 @@ shader_evaluate
       
       AtRGB c = Mix(fillerColor, veinColor, amount);
 
-      AiRGBtoRGBA(c, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(c);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
       
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

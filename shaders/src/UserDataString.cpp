@@ -16,13 +16,13 @@ enum UserDataStringParams
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataString");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATASTRING);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataString");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATASTRING);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
-   AiParameterSTR("stringAttrName", "");
-   AiParameterSTR("defaultValue", "")
+   AiParameterStr("stringAttrName", "");
+   AiParameterStr("defaultValue", "")
 }
 
 node_initialize
@@ -39,14 +39,12 @@ node_finish
 
 shader_evaluate
 {
+   AtString name = AtString(AiShaderEvalParamStr(p_stringAttrName));
+   AtString value;
 
-   const char *name = 0;
-   const char *value = 0;
-
-   name = AiShaderEvalParamStr(p_stringAttrName);
-   if (AiUDataGetStr(name, &value))
-      sg->out.STR = value;
+   if (AiUDataGetStr(name, value))
+      sg->out.STR() = value;
    else
-      sg->out.STR = AiShaderEvalParamStr(p_defaultValue);
+      sg->out.STR() = AtString(AiShaderEvalParamStr(p_defaultValue));
 
 }

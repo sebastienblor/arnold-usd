@@ -57,8 +57,8 @@ enum BifrostFoamParams
 node_parameters
 {
    AiParameterRGB(       "diffuseColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "diffuseColorRemapInputMin", 0.0f);
-   AiParameterFLT(       "diffuseColorRemapInputMax", 20.0f);
+   AiParameterFlt(       "diffuseColorRemapInputMin", 0.0f);
+   AiParameterFlt(       "diffuseColorRemapInputMax", 20.0f);
    AiParameterStr(       "diffuseColorRemapChannel", "none");
    AiParameterArray(     "diffuseColorRemap_Position", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "diffuseColorRemap_Color", AiArrayAllocate(0, 1, AI_TYPE_RGB));
@@ -68,39 +68,39 @@ node_parameters
    AiParameterArray(     "diffuseColorValueRemap_Interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
 
 
-   AiParameterBOOL(      "scatterUseDiffuseColor", true);
+   AiParameterBool(      "scatterUseDiffuseColor", true);
    AiParameterRGB(       "scatterColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "scatterWeight", 1.0f);
-   AiParameterFLT(       "scatterWeightRemapInputMin", 0.0f);
-   AiParameterFLT(       "scatterWeightRemapInputMax", 20.0f);
-   AiParameterSTR(       "scatterWeightRemapChannel", "none");
+   AiParameterFlt(       "scatterWeight", 1.0f);
+   AiParameterFlt(       "scatterWeightRemapInputMin", 0.0f);
+   AiParameterFlt(       "scatterWeightRemapInputMax", 20.0f);
+   AiParameterStr(       "scatterWeightRemapChannel", "none");
    AiParameterArray(     "scatterWeightRemap_Position", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "scatterWeightRemap_FloatValue", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "scatterWeightRemap_Interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
    
 
-   AiParameterBOOL(      "reflectionUseDiffuseColor", true);
+   AiParameterBool(      "reflectionUseDiffuseColor", true);
    AiParameterRGB(       "reflectionColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "reflectionWeight", 1.0f);
-   AiParameterFLT(       "reflectionWeightRemapInputMin", 0.0f);
-   AiParameterFLT(       "reflectionWeightRemapInputMax", 20.0f);
-   AiParameterSTR(       "reflectionWeightRemapChannel", "none");
+   AiParameterFlt(       "reflectionWeight", 1.0f);
+   AiParameterFlt(       "reflectionWeightRemapInputMin", 0.0f);
+   AiParameterFlt(       "reflectionWeightRemapInputMax", 20.0f);
+   AiParameterStr(       "reflectionWeightRemapChannel", "none");
    AiParameterArray(     "reflectionWeightRemap_Position", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "reflectionWeightRemap_FloatValue", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "reflectionWeightRemap_Interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
    
 
    AiParameterRGB(       "transparencyColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "transparencyWeight", 1.0f);
-   AiParameterFLT(       "transparencyWeightRemapInputMin", 0.0f);
-   AiParameterFLT(       "transparencyWeightRemapInputMax", 20.0f);
-   AiParameterSTR(       "transparencyWeightRemapChannel", "none");
+   AiParameterFlt(       "transparencyWeight", 1.0f);
+   AiParameterFlt(       "transparencyWeightRemapInputMin", 0.0f);
+   AiParameterFlt(       "transparencyWeightRemapInputMax", 20.0f);
+   AiParameterStr(       "transparencyWeightRemapChannel", "none");
    AiParameterArray(     "transparencyWeightRemap_Position", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "transparencyWeightRemap_FloatValue", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray(     "transparencyWeightRemap_Interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
 
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "bifrostFoamMaterial");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "bifrostFoamMaterial");
 }
 
 
@@ -136,9 +136,9 @@ static void initializeDiffuseGradient(AtNode *node, ShaderData *data, AtShaderGl
       GradientDescription<AtRGB> *grad = new GradientDescription<AtRGB>();
       
        // get the user data type // SPECIFIC TO POINTS using user data
-      std::string userData = AiNodeGetStr(node, "diffuseColorRemapChannel");
+      std::string userData = AiNodeGetStr(node, "diffuseColorRemapChannel").c_str();
       int type = AI_TYPE_FLOAT;
-      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(AtString(userData.c_str()), sg);
       if (pentry) type = AiUserParamGetType(pentry);
 
       grad->ReadValues(sg->Op, sg, userData.c_str(), 
@@ -181,9 +181,9 @@ static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShade
    if (data->reflectionGradient == 0)
    {
       GradientDescription<float> * grad = new GradientDescription<float>();
-      std::string userData = AiNodeGetStr(node, "reflectionWeightRemapChannel");
+      std::string userData = AiNodeGetStr(node, "reflectionWeightRemapChannel").c_str();
       int type = AI_TYPE_FLOAT;
-      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(AtString(userData.c_str()), sg);
       if (pentry) type = AiUserParamGetType(pentry);
 
       grad->ReadValues(sg->Op, sg, userData.c_str(), 
@@ -194,7 +194,7 @@ static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShade
    }
    AiCritSecLeave(&data->lock);
 }
-
+/*
 static void initializeTransparencyGradient(AtNode *node, ShaderData *data, AtShaderGlobals *sg)
 {
    AiCritSecEnter(&data->lock);
@@ -203,7 +203,7 @@ static void initializeTransparencyGradient(AtNode *node, ShaderData *data, AtSha
       GradientDescription<float> * grad = new GradientDescription<float>();
       std::string userData = AiNodeGetStr(node, "transparencyWeightRemapChannel");
       int type = AI_TYPE_FLOAT;
-      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(AtString(userData.c_str()), sg);
       if (pentry) type = AiUserParamGetType(pentry);
 
       grad->ReadValues(sg->Op, sg, userData.c_str(), 
@@ -214,7 +214,7 @@ static void initializeTransparencyGradient(AtNode *node, ShaderData *data, AtSha
    }
    AiCritSecLeave(&data->lock);
 }
-
+*/
 
 node_initialize
 {
@@ -255,13 +255,13 @@ node_update
    }
 
 
-   std::string diffuseColorRemapChannel = AiNodeGetStr(node, "diffuseColorRemapChannel");
+   std::string diffuseColorRemapChannel = AiNodeGetStr(node, "diffuseColorRemapChannel").c_str();
 
    if (diffuseColorRemapChannel == "" || diffuseColorRemapChannel == "none")
    {
       data->has_diffuse_ramp = false;
       
-      AtColor col = AiNodeGetRGB(node, "diffuseColor");
+      AtRGB col = AiNodeGetRGB(node, "diffuseColor");
       data->has_diffuse = ((col.r > AI_EPSILON ||
                            col.g > AI_EPSILON ||
                            col.b > AI_EPSILON));
@@ -277,7 +277,7 @@ node_update
    
    data->has_scatter = true;
 
-   std::string scatterWeightRemapChannel = AiNodeGetStr(node, "scatterWeightRemapChannel");
+   std::string scatterWeightRemapChannel = AiNodeGetStr(node, "scatterWeightRemapChannel").c_str();
    if (scatterWeightRemapChannel == "" || scatterWeightRemapChannel == "none")
    {  
       data->has_scatter_ramp = false;
@@ -290,14 +290,14 @@ node_update
       if (!data->has_diffuse) data->has_scatter = false;
    } else
    {
-      AtColor col =  AiNodeGetRGB(node, "scatterColor");
+      AtRGB col =  AiNodeGetRGB(node, "scatterColor");
       if((col.r < AI_EPSILON &&
           col.g < AI_EPSILON &&
           col.b < AI_EPSILON))    data->has_scatter = false;
    }
 
    data->has_reflection = true;
-   std::string reflectionWeightRemapChannel = AiNodeGetStr(node, "reflectionWeightRemapChannel");
+   std::string reflectionWeightRemapChannel = AiNodeGetStr(node, "reflectionWeightRemapChannel").c_str();
    if (reflectionWeightRemapChannel == "" || reflectionWeightRemapChannel == "none")
    {  
       data->has_reflection_ramp = false;
@@ -311,14 +311,14 @@ node_update
       if (!data->has_diffuse) data->has_reflection = false;
    } else
    {
-      AtColor col =  AiNodeGetRGB(node, "reflectionColor");
+      AtRGB col =  AiNodeGetRGB(node, "reflectionColor");
       if((col.r < AI_EPSILON &&
           col.g < AI_EPSILON &&
           col.b < AI_EPSILON))    data->has_reflection = false;
    }
 
    data->opaque = false;
-   std::string transparencyWeightRemapChannel = AiNodeGetStr(node, "transparencyWeightRemapChannel");   
+   std::string transparencyWeightRemapChannel = AiNodeGetStr(node, "transparencyWeightRemapChannel").c_str();   
    if (transparencyWeightRemapChannel == "" || transparencyWeightRemapChannel == "none") 
    {
       data->has_transparency_ramp = false;
@@ -326,7 +326,7 @@ node_update
    }
    else data->has_transparency_ramp = true;
       
-   AtColor col =  AiNodeGetRGB(node, "transparencyColor");
+   AtRGB col =  AiNodeGetRGB(node, "transparencyColor");
    if((col.r < AI_EPSILON &&
       col.g < AI_EPSILON &&
       col.b < AI_EPSILON))    data->opaque = true;
@@ -366,7 +366,7 @@ shader_evaluate
 {
 
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
-   sg->out.RGB = AI_RGB_BLACK;
+   sg->out.RGB() = AI_RGB_BLACK;
 
    float w_transp = 0.f;
    float w_refl = 0.f;
@@ -386,16 +386,16 @@ shader_evaluate
          
       } else w_refl = AiShaderEvalParamFlt(p_reflection_weight);
 
-      w_refl *= AiFresnelWeight(sg->N, sg->Rd, 0.2f);
+      w_refl *= AiSchlickFresnel(sg->N, sg->Rd, 0.2f);
       
       if (w_refl < AI_EPSILON) has_reflection = false;
    }
    
-
+   /* FIXME Arnold5
    if (data->opaque) sg->out_opacity = AI_RGB_WHITE;
    else
    {
-      AtColor transparency_color =  AiShaderEvalParamRGB(p_transparency_color);
+      AtRGB transparency_color =  AiShaderEvalParamRGB(p_transparency_color);
       w_transp = 1.f;
       if(data->has_transparency_ramp)
       {
@@ -411,24 +411,24 @@ shader_evaluate
       
       transparency_color *= w_transp;
 
-      sg->out_opacity.r = CLAMP( 1.f - transparency_color.r, 0.f, 1.f);
-      sg->out_opacity.g = CLAMP( 1.f - transparency_color.g, 0.f, 1.f);
-      sg->out_opacity.b = CLAMP( 1.f - transparency_color.b, 0.f, 1.f);
+      sg->out_opacity.r = AiClamp( 1.f - transparency_color.r, 0.f, 1.f);
+      sg->out_opacity.g = AiClamp( 1.f - transparency_color.g, 0.f, 1.f);
+      sg->out_opacity.b = AiClamp( 1.f - transparency_color.b, 0.f, 1.f);
       AiShaderGlobalsApplyOpacity(sg, sg->out_opacity);
-   }
+   }*/
 
    // shadow ray -> nothing else to compute
    if (sg->Rt & AI_RAY_SHADOW) return;
 
-
+/*  FIXME Arnold5
    // full transparent -> useless to continue
    if ((sg->out_opacity.r < AI_EPSILON &&
       sg->out_opacity.g < AI_EPSILON &&
       sg->out_opacity.b < AI_EPSILON)) return;
-
+*/
 
    bool has_diffuse = data->has_diffuse;
-   AtColor diffuse_color = AI_RGB_BLACK;
+   AtRGB diffuse_color = AI_RGB_BLACK;
    if( has_diffuse )
    {
       if( data->has_diffuse_ramp)
@@ -451,7 +451,7 @@ shader_evaluate
    }
 
    // now handle reflection_color
-   AtColor reflection_color =  AI_RGB_BLACK;
+   AtRGB reflection_color =  AI_RGB_BLACK;
    if (has_reflection)
    {
       reflection_color = AiShaderEvalParamBool(p_reflection_use_diffuse_color) ? 
@@ -480,45 +480,50 @@ shader_evaluate
    if (!has_reflection && !has_diffuse) return;
 
 
-   void *r_brdf_data = (has_reflection) ? AiStretchedPhongMISCreateData(sg, 0.0001f) : NULL;
-   void *d_brdf_data = (has_diffuse) ? AiOrenNayarMISCreateData(sg, 0.f) : NULL;
+   // FIXME Arnold5
+   void *r_brdf_data = NULL;//(has_reflection) ? AiStretchedPhongMISCreateData(sg, 0.0001f) : NULL;
+   void *d_brdf_data = NULL;//(has_diffuse) ? AiOrenNayarMISCreateData(sg, 0.f) : NULL;
 
-   AtColor d_direct_result = AI_RGB_BLACK;
-   AtColor r_direct_result = AI_RGB_BLACK;
+   AtRGB d_direct_result = AI_RGB_BLACK;
+   AtRGB r_direct_result = AI_RGB_BLACK;
 
-   AtColor d_indirect_result = AI_RGB_BLACK;
-   AtColor r_indirect_result = AI_RGB_BLACK;
+   AtRGB d_indirect_result = AI_RGB_BLACK;
+   AtRGB r_indirect_result = AI_RGB_BLACK;
    
 
+/*
+    FIXME Arnold5
 
    AiLightsPrepare(sg);
    while(AiLightsGetSample(sg))
    {
+      
       if (has_diffuse)
          d_direct_result += AiEvaluateLightSample(sg, d_brdf_data, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF) * AiLightGetDiffuse(sg->Lp);
 
       if (has_reflection)
          r_direct_result += AiEvaluateLightSample(sg, r_brdf_data,AiStretchedPhongMISSample , AiStretchedPhongMISBRDF, AiStretchedPhongMISPDF) * AiLightGetSpecular(sg->Lp);
+  
    }
-
+*/
    
    if (has_reflection)
    {
-      AtRay    ray;
       AtScrSample sample;
-      AtVector reflect_dir;
-      AiReflect (&sg->Rd, &sg->N, &reflect_dir);
-      
-      AiMakeRay(&ray, AI_RAY_REFLECTED, &sg->P, &reflect_dir, AI_BIG, sg);
-      AiTrace(&ray, &sample);      
+      AtVector reflect_dir = AiReflect (sg->Rd, sg->N);
+      AtRay    ray = AiMakeRay(AI_RAY_SPECULAR_REFLECT, sg->P, &reflect_dir, AI_BIG, sg);
+
+      // FIXME Arnold5 I've added white for the weight, is that right ?
+      AiTrace(ray, AI_RGB_WHITE, sample);      
       r_indirect_result = sample.color;
    }
 
-   if (has_diffuse) d_indirect_result = AiOrenNayarIntegrate(&sg->Nf, sg, 0.f);
+   // FIXME Arnold5
+   //if (has_diffuse) d_indirect_result = AiOrenNayarIntegrate(&sg->Nf, sg, 0.f);
    
 
-   sg->out.RGB = diffuse_color * (d_indirect_result + d_direct_result);
-   sg->out.RGB += reflection_color * (r_indirect_result + r_direct_result);
+   sg->out.RGB() = diffuse_color * (d_indirect_result + d_direct_result);
+   sg->out.RGB() += reflection_color * (r_indirect_result + r_direct_result);
 
 
 }

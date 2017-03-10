@@ -3,7 +3,6 @@
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
 
-#include <ai_types.h>
 #include <maya/MSelectionMask.h>
 
 class CArnoldSkyDomeLightNode
@@ -30,10 +29,10 @@ public:
 //   static MObject s_castShadows;
 //   static MObject s_samples;
 //   static MObject s_normalize;
-   static MObject s_affectDiffuse;
-   static MObject s_affectSpecular;
    static MObject s_portalMode;
-
+   static MObject s_visibleCamera;
+   static MObject s_visibleTransmission;
+   
    // Output attributes
    static MObject s_OUT_colorR;
    static MObject s_OUT_colorG;
@@ -56,4 +55,5 @@ public:
    static MObject aPreShadowIntensity;
    static MObject aLightBlindData;
    static MObject aLightData;
+   
 };  // class CArnoldSkyDomeLightNode

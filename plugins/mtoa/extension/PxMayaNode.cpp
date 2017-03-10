@@ -8,6 +8,7 @@
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
+#include "nodes/shader/ArnoldStandardSurfaceNode.h"
 #include "nodes/ArnoldNodeIDs.h"
 
 #include <ai_metadata.h>
@@ -50,7 +51,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    if (name.numChars() == 0)
    {
       // get maya type name from metadata
-      const char* mayaNodeNameMtd;
+      AtString mayaNodeNameMtd;
       if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &mayaNodeNameMtd))
       {
          SetName(MString(mayaNodeNameMtd));
@@ -100,7 +101,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    // If we didn't specify a maya node type to use as a base for this plugin node
    if (MPxNode::kLast == type)
    {
-      const char* nodeTypeMtd;
+      AtString nodeTypeMtd;
       if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.type", &nodeTypeMtd))
       {
          if (strcmp(nodeTypeMtd, "kLocatorNode") == 0)
@@ -114,7 +115,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          else
          {
             AiMsgWarning("[mtoa] [%s] [node %s] Unknown Maya type %s in maya.type metadata.",
-                  ext, node, nodeTypeMtd);
+                  ext, node, nodeTypeMtd.c_str());
          }
       }
    }
@@ -148,7 +149,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
                }
                // it's an aov parameter
                AtParamValue defaultValue = MAiParamGetDefault(arnoldNodeEntry, paramEntry);
-               RegisterAOV(defaultValue.STR, aovType, attrData.shortName);
+               RegisterAOV(defaultValue.STR().c_str(), aovType, attrData.shortName);
             }
          }
       }
@@ -162,7 +163,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    // might be useful to extensions anyway.
    MString drawdbClassification = "";
    
-   const char* drawdbClassificationMtd;
+   AtString drawdbClassificationMtd;
    if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.drawdb", &drawdbClassificationMtd))
    {
       drawdbClassification = MString(":drawdb/") + MString(drawdbClassificationMtd);
@@ -185,6 +186,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             abstract   = &CArnoldStandardNode::s_abstract;
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/arnold/standard";
+         }
+         else if (id == ARNOLD_NODEID_STANDARD_SURFACE) //aiStandardSurface node
+         {
+            creator    = CArnoldStandardSurfaceNode::creator;
+            initialize = CArnoldStandardSurfaceNode::initialize;
+            abstract   = &CArnoldStandardSurfaceNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/standard_surface";
          }
          else if (id == ARNOLD_NODEID_SKIN_SSS)
          {
@@ -216,15 +225,15 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    if (classification.numChars() == 0)
    {
       // classification metadata
-      const char* classificationMtd;
+      AtString classificationMtd;
       if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classificationMtd))
       {
-         classificationMtd = CLASSIFY_SHADER.asChar();
+         classificationMtd = AtString(CLASSIFY_SHADER.asChar());
       }
       
       if(strcmp("light/filter", classificationMtd) == 0)
       {
-         const char* lights;
+         AtString lights;
          if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.lights", &lights))
          {
             MString cmd = "from mtoa.lightFilters import addLightFilterClassification;addLightFilterClassification('" + MString(lights) + "','"+ MString(name) +"')";

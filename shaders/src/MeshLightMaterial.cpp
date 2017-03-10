@@ -1,5 +1,10 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString mesh_light_beauty("mesh_light_beauty");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(MeshLightMaterialMtd);
 
 enum MeshLightMaterialParams{
@@ -13,11 +18,11 @@ node_parameters
    AiParameterRGB("color", 0.f, 0.f, 0.f);
    AiParameterRGB("color_multiplier", 0.0f, 0.0f, 0.0f);
    
-   AiMetaDataSetBool(mds, "color", "always_linear", true); // no gamma correction
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiMeshLightMaterial");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1B);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetBool(nentry, "color", "always_linear", true); // no gamma correction
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMeshLightMaterial");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1B);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
 }
 
 node_initialize
@@ -37,21 +42,21 @@ node_finish
 
 shader_evaluate
 {
-   if (sg->Rt & (AI_RAY_DIFFUSE | AI_RAY_GLOSSY | AI_RAY_SHADOW))
+   if (sg->Rt & (AI_RAY_DIFFUSE_REFLECT | AI_RAY_SPECULAR_REFLECT | AI_RAY_SHADOW))
    {
-      sg->out.RGBA = AI_RGBA_BLACK;   
+      sg->out.RGBA() = AI_RGBA_ZERO;   
       return;
    }
    
    if (AiV3Dot(sg->Ng, sg->Ngf) < 0)
    {
-      sg->out.RGBA = AI_RGBA_BLACK;   
+      sg->out.RGBA() = AI_RGBA_ZERO;
       return;
    }
 
-   sg->out.RGB = AiShaderEvalParamRGB(p_color) * AiShaderEvalParamRGB(p_color_multiplier);
-   sg->out.RGBA.a = 1.f;
+   sg->out.RGB() = AiShaderEvalParamRGB(p_color) * AiShaderEvalParamRGB(p_color_multiplier);
+   sg->out.RGBA().a = 1.f;
 
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetRGB(sg, "mesh_light_beauty", sg->out.RGB); // we should check if this aov exists, could be done in node_update
+      AiAOVSetRGB(sg, MSTR::mesh_light_beauty, sg->out.RGB()); // we should check if this aov exists, could be done in node_update
 }

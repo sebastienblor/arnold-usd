@@ -44,7 +44,7 @@ node_parameters
 
    AiParameterRGB("colGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("colOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterPnt("colGamma", 1.0f, 1.0f, 1.0f);
+   AiParameterVec("colGamma", 1.0f, 1.0f, 1.0f);
 
    AiParameterBool("colClamp", false);
    AiParameterRGB("colClampMin", 0.0f, 0.0f, 0.0f);
@@ -58,8 +58,8 @@ node_parameters
    AiParameterFlt("alphaClampMin", 0.0f);
    AiParameterFlt("alphaClampMax", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorCorrect");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81652);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorCorrect");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81652);
 }
 
 node_initialize
@@ -144,6 +144,6 @@ shader_evaluate
       resultColor *= (1.0f / resultAlpha);
    }
 
-   sg->out.RGB = resultColor;
-   sg->out.RGBA.a = resultAlpha;
+   sg->out.RGB() = resultColor;
+   sg->out.RGBA().a = resultAlpha;
 }

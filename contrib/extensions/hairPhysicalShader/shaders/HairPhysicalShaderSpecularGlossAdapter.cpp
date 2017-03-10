@@ -10,9 +10,9 @@ enum HairPhysicalShaderSpecularGlossAdapterParams
 
 node_parameters
 {
-    AiParameterFLT("longitudinalWidth", 3.5f);
+    AiParameterFlt("longitudinalWidth", 3.5f);
 
-    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -35,5 +35,5 @@ shader_evaluate
     // It's difficult to map Guassian to Cosine power.. The relationship between gloss and width
     // is roughly: gloss = k / width^2.
     const float longitudinalWidth = AiShaderEvalParamFlt(p_longitudinalWidth);
-    sg->out.FLT = std::min(3000.0f / (longitudinalWidth * longitudinalWidth), 5000.0f);
+    sg->out.FLT() = std::min(3000.0f / (longitudinalWidth * longitudinalWidth), 5000.0f);
 }

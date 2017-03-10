@@ -5,12 +5,16 @@
 
 struct CAOVOutput
 {
+   CAOVOutput() : driver(NULL), filter(NULL), mergeAOVs(false), 
+      singleLayer(false), raw(false),  lightGroups(false) {}
    AtNode* driver;
    AtNode* filter;
    bool mergeAOVs; // whether or not to split AOVs
    bool singleLayer;
    bool raw;
    MString prefix;
+   MString lpe;
+   bool lightGroups;
 };
 
 struct CAOVOutputArray

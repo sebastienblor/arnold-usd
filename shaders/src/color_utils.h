@@ -10,26 +10,25 @@
 #define COLOR_SPACE_HSL 3
 #define COLOR_SPACE_HSV 4
 
-inline AtColor XYZToxyY(const AtColor& xyz)
+inline AtRGB XYZToxyY(const AtRGB& xyz)
 {
-    AtColor result;
+    AtRGB result;
     float sum = xyz.r + xyz.g + xyz.b;
     if (sum > 0.00001f)
-        AiColorCreate(result, xyz.r / sum, xyz.g / sum, xyz.g);
+        result = AtRGB(xyz.r / sum, xyz.g / sum, xyz.g);
     else
         result = AI_RGB_BLACK;
     return result;
 }
 
-inline AtColor xyYToXYZ(const AtColor& xyY)
+inline AtRGB xyYToXYZ(const AtRGB& xyY)
 {
-    AtColor result;
-    AiColorCreate(result,
+    AtRGB result(
                   xyY.b * xyY.r / xyY.g,
                   xyY.b,
                   xyY.b * (1.0f - xyY.r - xyY.g) / xyY.g);
     return result;
 }
 
-AtColor convertToRGB(const AtColor& color, int from_space);
-AtColor convertFromRGB(const AtColor& color, int to_space);
+AtRGB convertToRGB(const AtRGB& color, int from_space);
+AtRGB convertFromRGB(const AtRGB& color, int to_space);

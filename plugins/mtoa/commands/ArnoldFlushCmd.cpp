@@ -8,6 +8,13 @@
 
 #include "scene/MayaScene.h"
 
+
+static const AtString MayaFile_str("MayaFile");
+static const AtString image_str("image");
+static const AtString skydome_light_str("skydome_light");
+static const AtString MayaImagePlane_str("MayaImagePlane");
+
+
 MSyntax CArnoldFlushCmd::newSyntax()
 {
    MSyntax syntax;
@@ -25,10 +32,10 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
 {
    if(node == NULL) return;
 
-   if(AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image"))
+   if(AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str))
    {
       // this is an image node
-      MString filename = AiNodeGetStr(node, "filename");
+      MString filename = AiNodeGetStr(node, "filename").c_str();
       MStringArray expandedFilenames = expandFilename(filename);
       for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
       {
@@ -75,7 +82,7 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
       while (!AiNodeIteratorFinished(nodeIter))
       {
          AtNode *node = AiNodeIteratorGetNext(nodeIter);
-         if (!AiNodeIs(node, "skydome_light") ) continue;
+         if (!AiNodeIs(node, skydome_light_str)) continue;
 
          if (!AiNodeIsLinked(node, "color")) continue;
          AtNode *link = AiNodeGetLink(node, "color");
@@ -121,11 +128,12 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
          // note that this considers the node has the same name in maya and arnold
          // based on the same code as ARV "shade with selected"
          AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+
          if (selected)
          {
-            if (AiNodeIs(selected, "MayaFile") || AiNodeIs(selected, "image") ||  AiNodeIs(selected, "MayaImagePlane"))
+            if (AiNodeIs(selected, MayaFile_str) || AiNodeIs(selected, image_str) ||  AiNodeIs(selected, MayaImagePlane_str))
             {
-               MString filename = AiNodeGetStr(selected, "filename");
+               MString filename = AiNodeGetStr(selected, "filename").c_str();
                MStringArray expandedFilenames = expandFilename(filename);
                for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
                {

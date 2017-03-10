@@ -121,13 +121,13 @@ struct SArnoldVolumeUserData : public MUserData{
         m_wireframeColor[2] = color.b;
         m_wireframeColor[3] = color.a;
 
-        AtVector mn = {
+        AtVector mn (
             -1.0f, -1.0f, -1.0f
-        };
+        );
 
-        AtVector mx = {
+        AtVector mx (
             1.0f, 1.0f, 1.0f
-        };
+        );
         
         MStatus status;
         MFnDependencyNode dnode(objPath.node(), &status);

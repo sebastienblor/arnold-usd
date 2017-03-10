@@ -48,7 +48,6 @@ public :
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
-      m_sourceTranslator(NULL),
       m_inUpdateQueue(false),
       m_animArrays(false),
       m_isExported(false),
@@ -116,8 +115,6 @@ public :
    AtNode* ExportConnectedNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = NULL);
    bool HasAnimatedArrays() const;
 
-   void SetSourceTranslator(CNodeTranslator *tr);
-
    inline bool DependsOnOutputPlug() {return m_tr.DependsOnOutputPlug();}
    /// Get the name of the Arnold node
    const char* GetArnoldNodeName();
@@ -147,11 +144,6 @@ public :
    AOVSet m_localAOVs;
    AOVSet m_upstreamAOVs;
    AtNodeSet* m_shaders;
-
-   // this is used when the DG order is different between Maya and Arnold.
-   // For now this only happens with bump mapping. In that case, from the outside the sourceTranslator
-   // will have to be referenced instead of this one.
-   CNodeTranslator *m_sourceTranslator;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
@@ -197,14 +189,12 @@ public :
       std::swap(*it, m_references.back());
       m_references.pop_back();
 
-      if (m_sourceTranslator == tr) m_sourceTranslator = NULL;
       // should we call tr->RemoveBackReference here ?
    }
    void RemoveBackReference(CNodeTranslator *tr)
    {
       m_backReferences.erase(tr);
       // for now we shouldn't need this test, as the reference is the other way around
-      if (tr == m_sourceTranslator) m_sourceTranslator = NULL;
    }
    void RemoveAllReferences()
    {

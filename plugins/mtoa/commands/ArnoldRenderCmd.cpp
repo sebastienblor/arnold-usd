@@ -1,6 +1,7 @@
 #include "ArnoldRenderCmd.h"
 #include "scene/MayaScene.h"
 #include "render/OutputDriver.h"
+#include "utils/FileUtils.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
@@ -24,7 +25,7 @@
 #include <sstream>
 #include <set>
 
-extern AtNodeMethods* batch_progress_driver_mtd;
+extern const AtNodeMethods* batch_progress_driver_mtd;
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -402,9 +403,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             {
                AtNode* options = AiUniverseGetOptions();
                AtArray* oldOutputs = AiNodeGetArray(options, "outputs");
-               const AtUInt32 oldCount = oldOutputs->nelements;
+               const unsigned oldCount = AiArrayGetNumElements(oldOutputs);
                AtArray* newOutputs = AiArrayAllocate(oldCount + 1, 1, AI_TYPE_STRING);
-               for (AtUInt32 i = 0; i < oldCount; ++i)
+               for (unsigned i = 0; i < oldCount; ++i)
                   AiArraySetStr(newOutputs, i, AiArrayGetStr(oldOutputs, i));
 
                AtNode* filterNode = AiNode("box_filter");
@@ -420,6 +421,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             
             if (batch)
             {
+               // Skipt file render if it already exists
+               if(renderGlobals.skipExistingFrames)
+               {
+                  MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+                  if(imageFilenames.length() > 0 && fileExists(imageFilenames[0].asChar()))
+                  {
+                        MGlobal::displayInfo("[mtoa] Skipping existing image: " + imageFilenames[0]);
+                        continue;
+                  }
+               }
+
                int batchStatus = renderSession->DoBatchRender();
                if (batchStatus != AI_SUCCESS)
                {
@@ -446,6 +458,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
                MGlobal::displayInfo(msg);
                MStringArray imageFilenames = arnoldSession->GetActiveImageFilenames();
+               
+               // Skipt file render if it already exists
+               if(renderGlobals.skipExistingFrames)
+               {
+                  if(imageFilenames.length() > 0 && fileExists(imageFilenames[0].asChar()))
+                  {
+                        MGlobal::displayInfo("[mtoa] Skipping existing image: " + imageFilenames[0]);
+                        continue;
+                  }
+               }
+
                for (size_t i = 0; i < imageFilenames.length(); ++i)
                   MGlobal::displayInfo("\t" + imageFilenames[i]);
 

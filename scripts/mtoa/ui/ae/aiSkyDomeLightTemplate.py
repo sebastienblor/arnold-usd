@@ -29,8 +29,6 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         self.setupColorTemperature("ArnoldSkyDome")
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
-        self.addControl('emitDiffuse', label='Emit Diffuse')
-        self.addControl('emitSpecular', label='Emit Specular')
         self.addSeparator()
         self.addControl('format', label='Format')
         self.addControl('aiExposure', label='Exposure')
@@ -42,7 +40,8 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         self.addControl('portal_mode', label='Portal Mode')
         self.addSeparator()
-        self.commonLightAttributes()
+
+        self.commonLightAttributes(addVisibility = True)
         self.endLayout()
         
         self.beginLayout('Hardware Texturing', collapse=True)

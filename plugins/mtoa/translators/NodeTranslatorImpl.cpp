@@ -125,8 +125,6 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       std::vector<CNodeTranslator *> previousRefs = m_references;
       m_references.clear();
 #endif
-      m_sourceTranslator = NULL; // this will be set during Export
-
 
       m_tr.Export(node);
       ExportUserAttribute(node);
@@ -137,7 +135,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       {
          // main goal is to make it fast on the most common cases,
          // which is when the list of references doesn't change during updates
-         unsigned int minSize = MIN(previousRefs.size(), m_references.size());
+         unsigned int minSize = AiMin(previousRefs.size(), m_references.size());
          for (unsigned int i = 0; i < minSize; ++i)
          {
             // as it happens quite often, we first check if the reference is in the same index as before
@@ -188,10 +186,13 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    if (m_atRoot == NULL)
       m_atRoot = m_atNode;
    
+   static const AtString procedural_str("procedural");
+   
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
             m_tr.GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
-   else if (AiNodeIs(m_atNode, "procedural"))
+
+   else if (AiNodeIs(m_atNode, procedural_str))
    {
       // FIXME : make sure we get rid of this once a DG is implemented in arnold
       
@@ -286,9 +287,17 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
                                                       const char* arnoldParamName,
                                                       int arnoldParamType)
 {
+
+   // FIXME Arnold5 what should we do with closures ?
+
    const MStringArray componentNames = GetComponentNames(arnoldParamType);
    unsigned int compConnected = 0;
    unsigned int numComponents = componentNames.length();
+
+   // closures will return 0 components
+   if (numComponents == 0)
+      return false;
+
    MPlugArray conn;
    for (unsigned int i=0; i < numComponents; i++)
    {
@@ -651,7 +660,7 @@ void CNodeTranslatorImpl::WriteAOVUserAttributes(AtNode* atNode)
 /// false (not all components linked) then AiNodeSet* is called for all components.
 AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                                   int arnoldParamType, const MPlug& plug)
-{
+{   
    MStatus status;
 
    if (plug.isArray())
@@ -692,6 +701,29 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          }
       }
       break;
+   {
+      // FIXME Arnold5 what should we do with closures here ?
+   case AI_TYPE_CLOSURE:
+      // so I have a constant closure parameter. if in maya it is a color, I want to plug 
+      // a closure node that returns a basic emission color
+      unsigned int numChildren = plug.numChildren();
+      if (numChildren== 3 || numChildren == 4)
+      {
+         std::string closureName = arnoldParamName;
+         closureName += "_clos";
+         AtNode *child = m_tr.GetArnoldNode(closureName.c_str());
+         if (child == NULL)
+            child = m_tr.AddArnoldNode("MayaFlatClosure", closureName.c_str());
+
+         AiNodeSetRGB(child, "color", plug.child(0).asFloat(),
+                         plug.child(1).asFloat(),
+                         plug.child(2).asFloat());
+         AiNodeLink(child, arnoldParamName, arnoldNode);
+
+      }
+
+      break;
+   }
    case AI_TYPE_RGBA:
       {
          unsigned int numChildren = plug.numChildren();
@@ -747,7 +779,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
             if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
             {
-               if (mentry->value.INT == 1) // scale distance
+               if (mentry->value.INT() == 1) // scale distance
                   m_session->ScaleDistance(val);
             }
             continue;
@@ -757,13 +789,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          AiNodeSetFlt(arnoldNode, arnoldParamName, val);
       }
       break;
-   case AI_TYPE_POINT2:
+   case AI_TYPE_VECTOR2:
       {
          float x, y;
          MObject numObj = plug.asMObject();
          MFnNumericData numData(numObj);
          numData.getData2Float(x, y);
-         AiNodeSetPnt2(arnoldNode, arnoldParamName, x, y);
+         AiNodeSetVec2(arnoldNode, arnoldParamName, x, y);
       }
       break;
    case AI_TYPE_MATRIX:
@@ -831,14 +863,6 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
                       plug.child(2).asFloat());
       }
       break;
-   case AI_TYPE_POINT:
-      {
-         AiNodeSetPnt(arnoldNode, arnoldParamName,
-                      plug.child(0).asFloat(),
-                      plug.child(1).asFloat(),
-                      plug.child(2).asFloat());
-      }
-      break;
    case AI_TYPE_NODE:
       // handled above by ProcessParameterInputs
       break;
@@ -846,7 +870,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       {
          if (!plug.isArray())
          {
-            MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
+            MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not : " + plug.name());
             return NULL;
          }
          m_tr.ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
@@ -877,9 +901,8 @@ void CNodeTranslatorImpl::ProcessArrayParameterElement(AtNode* arnoldNode, AtArr
          {
          case AI_TYPE_RGB:
          case AI_TYPE_RGBA:
-         case AI_TYPE_POINT2:
+         case AI_TYPE_VECTOR2:
          case AI_TYPE_VECTOR:
-         case AI_TYPE_POINT:
             {
                if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
                {
@@ -915,6 +938,7 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          AiArraySetRGB(array, i, color);
       }
       break;
+   // FIXME Arnold5 anything to be done with closures here ?
    case AI_TYPE_RGBA:
       {
          AtRGBA color;
@@ -940,15 +964,15 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          AiArraySetFlt(array, i, elem.asFloat());
       }
       break;
-   case AI_TYPE_POINT2:
+   case AI_TYPE_VECTOR2:
       {
          float x, y;
          MObject numObj = elem.asMObject();
          MFnNumericData numData(numObj);
          numData.getData2Float(x, y);
-         AtPoint2 vec2;
-         AiV2Create(vec2, x, y);
-         AiArraySetPnt2(array, i, vec2);
+         AtVector2 vec2;
+         vec2 = AtVector2(x, y);
+         AiArraySetVec2(array, i, vec2);
       }
       break;
    case AI_TYPE_MATRIX:
@@ -988,16 +1012,8 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
       break;
    case AI_TYPE_VECTOR:
       {
-         AtVector vec3;
-         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
+         AtVector vec3 = AtVector(elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
          AiArraySetVec(array, i, vec3);
-      }
-      break;
-   case AI_TYPE_POINT:
-      {
-         AtVector vec3;
-         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
-         AiArraySetPnt(array, i, vec3);
       }
       break;
    case AI_TYPE_NODE:
@@ -1028,12 +1044,6 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
    {
       if (outTranslator != NULL)
          *outTranslator = translator;
-
-      // this is used when the DG order is different between Maya and Arnold.
-      // For now this only happens with bump mapping. In that case, from the outside the sourceTranslator
-      // will have to be referenced instead of this one.
-      if (translator->m_impl->m_sourceTranslator) 
-         translator = translator->m_impl->m_sourceTranslator;
 
 #ifdef NODE_TRANSLATOR_REFERENCES 
       AddReference(translator);
@@ -1084,116 +1094,110 @@ void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // it would be nice if this could be done in arnold core
 static inline bool IsArrayAnimated(const AtArray* array)
 {
-   switch (array->type)
+   unsigned numElements = AiArrayGetNumElements(array);
+   uint8_t numKeys = AiArrayGetNumKeys(array);
+
+   switch (AiArrayGetType(array))
    {
       case AI_TYPE_BOOLEAN:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             bool valInit = AiArrayGetBool(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetBool(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetBool(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_BYTE:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtByte valInit = AiArrayGetByte(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetByte(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetByte(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_INT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             int valInit = AiArrayGetInt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetInt(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetInt(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_UINT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtUInt32 valInit = AiArrayGetUInt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetUInt(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetUInt(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_FLOAT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             float valInit = AiArrayGetFlt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetFlt(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetFlt(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_RGB:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtRGB valInit = AiArrayGetRGB(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetRGB(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetRGB(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_RGBA:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtRGBA valInit = AiArrayGetRGBA(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetRGBA(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetRGBA(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_VECTOR:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtVector valInit = AiArrayGetVec(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetVec(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetVec(array, i + (k * numElements))) return true;
             }
          }
       return false;
-      case AI_TYPE_POINT:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+      case AI_TYPE_VECTOR2:
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
-            AtPoint valInit = AiArrayGetPnt(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            AtVector2 valInit = AiArrayGetVec2(array, i);
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if (valInit != AiArrayGetPnt(array, i + (k * array->nelements))) return true;
-            }
-         }
-      return false;
-      case AI_TYPE_POINT2:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
-         {
-            AtPoint2 valInit = AiArrayGetPnt2(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
-            {
-               if (valInit != AiArrayGetPnt2(array, i + (k * array->nelements))) return true;
+               if (valInit != AiArrayGetVec2(array, i + (k * numElements))) return true;
             }
          }
       return false;
       case AI_TYPE_MATRIX:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             AtMatrix mtxInit, mtx;
-            AiArrayGetMtx(array, i, mtxInit);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            mtxInit = AiArrayGetMtx(array, i);
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               AiArrayGetMtx(array, i + (k * array->nelements), mtx);
+               mtx = AiArrayGetMtx(array, i + (k * numElements));
                for (int x = 0; x < 4; ++x)
                {
                   for (int y = 0; y < 4; ++y)
@@ -1205,22 +1209,22 @@ static inline bool IsArrayAnimated(const AtArray* array)
          }
       return false;
       case AI_TYPE_STRING:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             const char *valInit = AiArrayGetStr(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if(strcmp(valInit, AiArrayGetStr(array, i + (k * array->nelements))) != 0) return true; 
+               if(strcmp(valInit, AiArrayGetStr(array, i + (k * numElements))) != 0) return true; 
             }
          }
       return false;
       case AI_TYPE_POINTER:
-         for (AtUInt32 i = 0; i < array->nelements; ++i)
+         for (AtUInt32 i = 0; i < numElements; ++i)
          {
             void *valInit = AiArrayGetPtr(array, i);
-            for (AtByte k = 1; k < array->nkeys; ++k)
+            for (AtByte k = 1; k < numKeys; ++k)
             {
-               if(valInit != AiArrayGetPtr(array, i + (k * array->nelements))) return true; 
+               if(valInit != AiArrayGetPtr(array, i + (k * numElements))) return true; 
             }
          }
       return false;
@@ -1243,7 +1247,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
    // if motion length is null, return true otherwise next change won't be updated properly
    double motion_start, motion_end;
    m_session->GetMotionRange(motion_start, motion_end);
-   if (ABS(motion_end - motion_start) < AI_EPSILON)
+   if (std::abs(motion_end - motion_start) < AI_EPSILON)
       return true;
 
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(m_atNode));
@@ -1255,7 +1259,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
          continue;
       }
       AtArray *array = AiNodeGetArray(m_atNode, AiParamGetName(paramEntry));
-      if (array != NULL && array->nkeys > (AtByte)1)
+      if (array != NULL && AiArrayGetNumKeys(array) > (AtByte)1)
       {
          // we need to compare the array's keys to check if it's really animated or not
          if (IsArrayAnimated(array))
@@ -1286,7 +1290,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
                continue;
             }
             AtArray *array = AiNodeGetArray(node, AiParamGetName(paramEntry));
-            if (array != NULL && array->nkeys > (AtByte)1)
+            if (array != NULL && AiArrayGetNumKeys(array) > (AtByte)1)
             {
                // we need to compare the array's keys to check if it's really animated or not
                if (IsArrayAnimated(array))
@@ -1302,20 +1306,6 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
 
    // no animated array has been found,
    return false;
-}
-
-void CNodeTranslatorImpl::SetSourceTranslator(CNodeTranslator *tr)
-{
-   if (tr == NULL)
-   {
-      m_sourceTranslator = NULL;
-      return;
-   }
-   while (tr->m_impl->m_sourceTranslator)
-   {
-      tr = tr->m_impl->m_sourceTranslator;
-   }
-   m_sourceTranslator = tr;
 }
 
 const char* CNodeTranslatorImpl::GetArnoldNodeName()

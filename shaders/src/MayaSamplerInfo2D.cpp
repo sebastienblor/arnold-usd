@@ -28,9 +28,9 @@ const char* mode_enum[] =
 
 node_parameters
 {
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
-   AiParameterENUM("mode", 0, mode_enum);
+   AiParameterEnum("mode", 0, mode_enum);
 }
 
 node_initialize
@@ -50,12 +50,12 @@ shader_evaluate
    switch (AiShaderEvalParamEnum(p_mode))
    {
    case UV_COORD:
-      sg->out.PNT2.x = sg->u;
-      sg->out.PNT2.y = sg->v;
+      sg->out.VEC2().x = sg->u;
+      sg->out.VEC2().y = sg->v;
       break;
    case PIXEL_CENTER:
-      sg->out.PNT2.x = (float)sg->x;
-      sg->out.PNT2.y = (float)sg->y;
+      sg->out.VEC2().x = (float)sg->x;
+      sg->out.VEC2().y = (float)sg->y;
       break;
    }
 }

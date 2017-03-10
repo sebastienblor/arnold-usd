@@ -29,14 +29,14 @@ void CLightPortalTranslator::Export(AtNode* portal)
    AiNodeSetDisabled(portal, false);
    
    ExportMatrix(portal);
-   AtPoint vertices[4];
+   AtVector vertices[4];
 
-   AiV3Create(vertices[3], 1, 1, 0);
-   AiV3Create(vertices[0], 1, -1, 0);
-   AiV3Create(vertices[1], -1, -1, 0);
-   AiV3Create(vertices[2], -1, 1, 0);
+   vertices[3] = AtVector(1, 1, 0);
+   vertices[0] = AtVector(1, -1, 0);
+   vertices[1] = AtVector(-1, -1, 0);
+   vertices[2] = AtVector(-1, 1, 0);
 
-   AiNodeSetArray(portal, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices));
+   AiNodeSetArray(portal, "vertices", AiArrayConvert(4, 1, AI_TYPE_VECTOR, vertices));
    AiNodeSetBool(portal, "portal", true);
 
 }

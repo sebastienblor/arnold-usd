@@ -326,24 +326,24 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         vertices[id++] = 0.0f;
         vertices[id++] = -1.0f;
         vertices[id++] = 0.0f;
-        AtVector dir = {0.0f, -1.0f, 0.0f}; // if I convert vertices
+        AtVector dir (0.0f, -1.0f, 0.0f); // if I convert vertices
         // into AtVector*, it will generate a gcc warning
         // dereferencing type-punned pointer will break strict-aliasing rules
-        AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
+        AiMappingMirroredBall(dir, *(vertices + id), *(vertices + id + 1));
         id += 2;
-        AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
+        AiMappingAngularMap(dir, *(vertices + id), *(vertices + id + 1));
         id += 2;
-        AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
+        AiMappingLatLong(dir, *(vertices + id), *(vertices + id + 1));
         id += 2;
         dir.y = 1.0f;
         vertices[id++] = 0.0f;
         vertices[id++] = 1.0f;
         vertices[id++] = 0.0f;
-        AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
+        AiMappingMirroredBall(dir, *(vertices + id), *(vertices + id + 1));
         id += 2;
-        AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
+        AiMappingAngularMap(dir, *(vertices + id), *(vertices + id + 1));
         id += 2;
-        AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
+        AiMappingLatLong(dir, *(vertices + id), *(vertices + id + 1));
         id += 2;
         for (int yy = 0; yy < resolution; ++yy)
         {
@@ -356,11 +356,11 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
                 dir.x = vertices[id++] = cosf(dx) * pr;
                 dir.y = vertices[id++] = y;
                 dir.z = vertices[id++] = sinf(dx) * pr;
-                AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
+                AiMappingMirroredBall(dir, *(vertices + id), *(vertices + id + 1));
                 id += 2;
-                AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
+                AiMappingAngularMap(dir, *(vertices + id), *(vertices + id + 1));
                 id += 2;
-                AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
+                AiMappingLatLong(dir, *(vertices + id), *(vertices + id + 1));
                 id += 2;
             }
         }

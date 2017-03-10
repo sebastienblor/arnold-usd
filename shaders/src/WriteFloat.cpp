@@ -20,21 +20,21 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteFloatMtd);
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteFloat");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_WRITEFLOAT);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteFloat");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_WRITEFLOAT);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/aov");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("input", 0.0f);
-   AiParameterSTR("aov_name", "");
+   AiParameterFlt("input", 0.0f);
+   AiParameterStr("aov_name", "");
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_beauty);
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamFlt(p_input));
+      AiAOVSetFlt(sg, AtString(AiShaderEvalParamStr(p_name)), AiShaderEvalParamFlt(p_input));
 }
 
 node_initialize

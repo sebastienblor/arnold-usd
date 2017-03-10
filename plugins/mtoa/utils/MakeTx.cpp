@@ -31,7 +31,7 @@ MString txTexure(MString filename)
 
 void updateAllTx(bool force)
 {
-   MString cmd = "import mtoa.txManager; mtoa.txManager.UpdateAllTx(";
+   MString cmd = "import mtoa.txManager; import mtoa.core as core; core.createOptions(); mtoa.txManager.UpdateAllTx(";
    if (force)
       cmd += "1";
    else

@@ -17,15 +17,14 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaEnvSphereMtd);
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("image", 0, 0, 0);
    //AiParameterVec2("shearUV", 0, 0);
-   AiParameterBOOL("flip", false);
-   AiParameterMTX("placementMatrix", id);
+   AiParameterBool("flip", false);
+   AiParameterMtx("placementMatrix", id);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "envSphere");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "envSphere");
 }
 
 node_initialize
@@ -42,18 +41,12 @@ node_finish
 
 shader_evaluate
 {
-   AtVector rdir;
-   AiReflectSafe(&sg->Rd, &sg->Nf, &sg->Ng, &rdir);
+   AtVector rdir = AiReflectSafe(sg->Rd, sg->Nf, sg->Ng);
 
    AtMatrix *matrix = AiShaderEvalParamMtx(p_matrix);
-   AiM4VectorByMatrixMult(&rdir, *matrix, &rdir);
-
-   AtMatrix rot;
-   AiM4RotationX(rot, 90.0);
-   AiM4VectorByMatrixMult(&rdir, rot, &rdir);
-
-   AiM4RotationZ(rot, 90.0);
-   AiM4VectorByMatrixMult(&rdir, rot, &rdir);
+   rdir = AiM4VectorByMatrixMult(*matrix, rdir);
+   rdir = AiM4VectorByMatrixMult(AiM4RotationX(90.0), rdir);
+   rdir = AiM4VectorByMatrixMult(AiM4RotationZ(90.0), rdir);
 
    // copy original globals
    float inU = sg->u;
@@ -85,7 +78,7 @@ shader_evaluate
    *pV = 1 - (acosf(rdir.z/R) / (float)AI_PI);
 
    // call input
-   sg->out.RGB = AiShaderEvalParamRGB(p_image);
+   sg->out.RGB() = AiShaderEvalParamRGB(p_image);
 
    // restore globals
    sg->u = inU;

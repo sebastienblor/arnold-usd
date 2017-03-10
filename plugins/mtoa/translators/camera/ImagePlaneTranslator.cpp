@@ -8,6 +8,7 @@
 #include <ai_cameras.h>
 #include <ai_constants.h>
 #include <ai_msg.h>
+#include <ai_ray.h>
 
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
@@ -290,13 +291,13 @@ void CImagePlaneTranslator::ExportImagePlane()
          AiNodeSetArray(imagePlane, "nidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 2, 3));
          AiNodeSetArray(imagePlane, "uvidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
 
-         AtPoint p1, p2, p3, p4, n1;
-         AtPoint2 uv1, uv2, uv3, uv4;
-         AiV3Create(p1, -0.5, -0.5, 0.0);
-         AiV3Create(p2, 0.5, -0.5, 0.0);
-         AiV3Create(p3, -0.5, 0.5, 0.0);
-         AiV3Create(p4, 0.5, 0.5, 0.0);
-         AiV3Create(n1, 0.0, 0.0, 1.0);
+         AtVector p1, p2, p3, p4, n1;
+         AtVector2 uv1, uv2, uv3, uv4;
+         p1 = AtVector(-0.5, -0.5, 0.0);
+         p2 = AtVector(0.5, -0.5, 0.0);
+         p3 = AtVector(-0.5, 0.5, 0.0);
+         p4 = AtVector(0.5, 0.5, 0.0);
+         n1 = AtVector(0.0, 0.0, 1.0);
 
          /*
          if (type == 0)
@@ -323,19 +324,19 @@ void CImagePlaneTranslator::ExportImagePlane()
                vMax = 1.0f;
          }
          */
-         AiV2Create(uv1, (float)uMin, (float)vMin);
-         AiV2Create(uv2, (float)uMax, (float)vMin);
-         AiV2Create(uv3, (float)uMin, (float)vMax);
-         AiV2Create(uv4, (float)uMax, (float)vMax);
+         uv1 = AtVector2((float)uMin, (float)vMin);
+         uv2 = AtVector2((float)uMax, (float)vMin);
+         uv3 = AtVector2((float)uMin, (float)vMax);
+         uv4 = AtVector2((float)uMax, (float)vMax);
 
-         AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_POINT, p1, p2, p3, p4));
+         AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_VECTOR, p1, p2, p3, p4));
          AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
-         AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_POINT2, uv1, uv2, uv3, uv4));
-         AtByte visibilityFlag = AI_RAY_CAMERA | AI_RAY_DIFFUSE;
+         AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_VECTOR2, uv1, uv2, uv3, uv4));
+         AtByte visibilityFlag = AI_RAY_CAMERA | AI_RAY_ALL_DIFFUSE | AI_RAY_VOLUME;
          if (fnRes.findPlug("visibleInReflections").asBool())
-            visibilityFlag |= AI_RAY_REFLECTED;
+            visibilityFlag |= AI_RAY_SPECULAR_REFLECT;
          if (fnRes.findPlug("visibleInRefractions").asBool())
-            visibilityFlag |= AI_RAY_REFRACTED;
+            visibilityFlag |= AI_RAY_SPECULAR_TRANSMIT;
 
          if (!visible) visibilityFlag = AI_RAY_UNDEFINED;
          
@@ -360,7 +361,7 @@ void CImagePlaneTranslator::ExportImagePlane()
             */
             
             // check if filename has changed. If it has we tell ArnoldSession to update tx
-            MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename");
+            MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename").c_str();
 
             bool requestUpdateTx = true;
             int prevFilenameLength = prevFilename.length();
@@ -398,7 +399,7 @@ void CImagePlaneTranslator::ExportImagePlane()
             }
 
             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
-            AiNodeSetPnt2(imagePlaneShader, "coverage", 1.f, 1.f);
+            AiNodeSetVec2(imagePlaneShader, "coverage", 1.f, 1.f);
             //AiNodeSetPnt2(imagePlaneShader, "translate", coverageOriginX, coverageOriginY);
 
             colorPlug  = fnRes.findPlug("colorGain");
@@ -473,16 +474,16 @@ void CImagePlaneTranslator::ExportImagePlane()
       {
          MFnCamera fnCamera(pathCamera);
    
-         AiV3Create(offsetVector, static_cast<float>(offsetX), static_cast<float>(offsetY), static_cast<float>(offsetZ));
-         AiV3Create(scaleVector, static_cast<float>(ipWidth), static_cast<float>(ipHeight), 1.0f);
+         offsetVector = AtVector(static_cast<float>(offsetX), static_cast<float>(offsetY), static_cast<float>(offsetZ));
+         scaleVector = AtVector(static_cast<float>(ipWidth), static_cast<float>(ipHeight), 1.0f);
 
-         AiM4Translation(offsetMatrix, &offsetVector);
-         AiM4Scaling(scaleMatrix, &scaleVector);
+         offsetMatrix = AiM4Translation(offsetVector);
+         scaleMatrix = AiM4Scaling(scaleVector);
 
          if (lockedToCamera)
          {
             double ipRotate = fnRes.findPlug("rotate", &status).asDouble() * AI_RTOD * -1.0f;
-            AiM4RotationZ(rotationMatrix, float(ipRotate));
+            rotationMatrix = AiM4RotationZ(float(ipRotate));
          }
          else
          {
@@ -491,10 +492,10 @@ void CImagePlaneTranslator::ExportImagePlane()
          }
 
          // multiply in order
-         AiM4Identity(imagePlaneMatrix);
-         AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, scaleMatrix);
-         AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, rotationMatrix);
-         AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, offsetMatrix);
+         imagePlaneMatrix = AiM4Identity();
+         imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, scaleMatrix);
+         imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, rotationMatrix);
+         imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, offsetMatrix);
          //if the imageplane is locked we use the camera's matrix
          if (lockedToCamera)
          {
@@ -503,7 +504,7 @@ void CImagePlaneTranslator::ExportImagePlane()
             AtMatrix translateMatrix;
 
             GetCameraMatrix(pathCamera, m_impl->m_session, translateMatrix);
-            AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, translateMatrix);
+            imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, translateMatrix);
          }
 
          // image plane should move with the camera to render it with no motion blur
@@ -534,7 +535,7 @@ void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "MayaImagePlane");
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);

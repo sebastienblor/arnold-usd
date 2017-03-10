@@ -3,7 +3,6 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 
-#include <ai_types.h>
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnLightDataAttribute.h>
@@ -76,9 +75,9 @@ MStatus CArnoldStandardNode::compute(const MPlug& plug, MDataBlock& data)
    {
       float& trFloat ( data.inputValue( s_Kt ).asFloat());
       MFloatVector& opacity  = data.inputValue( s_opacity ).asFloatVector();
-      float opFloat0 = CLAMP(trFloat*opacity[0]/2.0f + (1 - opacity[0]), 0.0f, 1.0f);
-      float opFloat1 = CLAMP(trFloat*opacity[1]/2.0f + (1 - opacity[1]), 0.0f, 1.0f);
-      float opFloat2 = CLAMP(trFloat*opacity[2]/2.0f + (1 - opacity[2]), 0.0f, 1.0f);
+      float opFloat0 = AiClamp(trFloat*opacity[0]/2.0f + (1 - opacity[0]), 0.0f, 1.0f);
+      float opFloat1 = AiClamp(trFloat*opacity[1]/2.0f + (1 - opacity[1]), 0.0f, 1.0f);
+      float opFloat2 = AiClamp(trFloat*opacity[2]/2.0f + (1 - opacity[2]), 0.0f, 1.0f);
       MFloatVector tr(opFloat0, opFloat1, opFloat2);
       // set ouput color attribute
       MDataHandle outTransHandle = data.outputValue( s_OUT_transparency );

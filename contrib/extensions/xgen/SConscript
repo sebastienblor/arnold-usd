@@ -178,7 +178,7 @@ else:
         proc_env.Append(LINKFLAGS = Split('-lc++'))
 
 EXT_PROCS = proc_env.SharedLibrary('xgen_procedural', source_files, LIBPREFIX='')
-EXT_PROCS.target_type = 'procedural'
+#EXT_PROCS.target_type = 'procedural'
 
 #Return('EXT EXT_SHADERS EXT_PROCS')
 Return('EXT EXT_PROCS')

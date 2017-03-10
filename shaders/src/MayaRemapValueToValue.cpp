@@ -23,16 +23,16 @@ enum MayaRemapValueToValueParams
 
 node_parameters
 {
-   AiParameterFLT("input", 0.0f);
-   AiParameterFLT("inputMin", 0.0f);
-   AiParameterFLT("inputMax", 1.0f);
-   AiParameterARRAY("positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("values", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("interpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
-   AiParameterFLT("outputMin", 0.0f);
-   AiParameterFLT("outputMax", 1.0f);
+   AiParameterFlt("input", 0.0f);
+   AiParameterFlt("inputMin", 0.0f);
+   AiParameterFlt("inputMax", 1.0f);
+   AiParameterArray("positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("values", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterArray("interpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
+   AiParameterFlt("outputMin", 0.0f);
+   AiParameterFlt("outputMax", 1.0f);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -58,7 +58,7 @@ shader_evaluate
    AtArray *val = AiShaderEvalParamArray(p_key_val);
    AtArray *interp = AiShaderEvalParamArray(p_key_interp);
    
-   unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, pos->nelements * sizeof(unsigned int));
+   unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(pos) * sizeof(unsigned int));
    SortFloatIndexArray(pos, shuffle);
 
    float output = 0.0f;
@@ -67,5 +67,5 @@ shader_evaluate
 
    InterpolateShuffle(pos, val, interp, input, output, shuffle);
 
-   sg->out.FLT = UnmapValue(output, omin, omax);
+   sg->out.FLT() = UnmapValue(output, omin, omax);
 }

@@ -14,7 +14,7 @@ const MStringArray RGB_COMPONENTS(rgbComp, 3);
 const char* rgbaComp[4] = {"r", "g", "b", "a"};
 const MStringArray RGBA_COMPONENTS(rgbaComp, 4);
 const char* point2Comp[2] = {"x", "y"};
-const MStringArray POINT2_COMPONENTS(point2Comp, 2);
+const MStringArray VECTOR2_COMPONENTS(point2Comp, 2);
 const char* vectorComp[3] = {"x", "y", "z"};
 const MStringArray VECTOR_COMPONENTS(vectorComp, 3);
 }

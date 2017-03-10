@@ -34,47 +34,47 @@ enum BifrostAeroParams
 
 node_parameters
 {
-   AiParameterFLT("densityScale", 1.0f);
-   AiParameterFLT("densityThreshold", 0.10f);
+   AiParameterFlt("densityScale", 1.0f);
+   AiParameterFlt("densityThreshold", 0.10f);
    AiParameterRGB("emissionColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("emissionIntensity", 1.0f);
-   AiParameterFLT("emissionOffset", 0.0f);
+   AiParameterFlt("emissionIntensity", 1.0f);
+   AiParameterFlt("emissionOffset", 0.0f);
 
    AiParameterRGB("absorptionColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("absorptionIntensity", 1.0f);
-   AiParameterFLT("absorptionOffset", 0.0f);
+   AiParameterFlt("absorptionIntensity", 1.0f);
+   AiParameterFlt("absorptionOffset", 0.0f);
 
-   AiParameterFLT("shadowOpacityScale", 1.0f);
-   AiParameterFLT("coloredOpacity", 0.0f);
+   AiParameterFlt("shadowOpacityScale", 1.0f);
+   AiParameterFlt("coloredOpacity", 0.0f);
 
    AiParameterRGB("scatteringColor", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("scatteringIntensity", 1.0f);
-   AiParameterFLT("scatteringOffset", 0.0f);
+   AiParameterFlt("scatteringIntensity", 1.0f);
+   AiParameterFlt("scatteringOffset", 0.0f);
 
-   AiParameterFLT("scatteringDensityCutoff", 1.0f);
-   AiParameterFLT("scatteringDirectionality", 0.0f);
-   AiParameterFLT("aiStepSize", 0.1f);
+   AiParameterFlt("scatteringDensityCutoff", 1.0f);
+   AiParameterFlt("scatteringDirectionality", 0.0f);
+   AiParameterFlt("aiStepSize", 0.1f);
    AiParameterInt("aiMaxSteps", 1000);
    AiParameterBool("aiShadowing", true);
 
-   AiParameterFLT("aiShadowingStepSize", 0.1f);
+   AiParameterFlt("aiShadowingStepSize", 0.1f);
    AiParameterInt("aiShadowingMaxSteps", 1000);
 
    AiParameterStr("densityRemapChannel", "none");
-   AiParameterFLT("densityRemapInputMin", 0.f);
-   AiParameterFLT("densityRemapInputMax", 1000.f);
+   AiParameterFlt("densityRemapInputMin", 0.f);
+   AiParameterFlt("densityRemapInputMax", 1000.f);
    AiParameterArray("densityRemap_position", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("densityRemap_floatValue", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("densityRemap_interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
 
    AiParameterStr("emissionColorRemapChannel", "none");
-   AiParameterFLT("emissionColorRemapInputMin", 0.f);
-   AiParameterFLT("emissionColorRemapInputMax", 1000.f);
+   AiParameterFlt("emissionColorRemapInputMin", 0.f);
+   AiParameterFlt("emissionColorRemapInputMax", 1000.f);
    AiParameterArray("emissionColorRemap_position", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("emissionColorRemap_color", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    AiParameterArray("emissionColorRemap_interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "bifrostAeroMaterial");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "bifrostAeroMaterial");
 }
 
 typedef struct
@@ -96,7 +96,7 @@ static void initializeEmissionGradient(AtNode *node, ShaderData *data, AtShaderG
       grad->voxels = true;
 
       int type = AI_TYPE_FLOAT;
-      std::string channel = AiNodeGetStr(node, "emissionColorRemapChannel");
+      std::string channel = AiNodeGetStr(node, "emissionColorRemapChannel").c_str();
       if (channel == "velocity") type = AI_TYPE_VECTOR;
 
       grad->ReadValues(sg->Op, sg, channel.c_str(), 
@@ -117,7 +117,7 @@ static void initializeDensityGradient(AtNode *node, ShaderData *data, AtShaderGl
       grad->voxels = true;
 
       int type = AI_TYPE_FLOAT;
-      std::string channel = AiNodeGetStr(node, "densityRemapChannel");
+      std::string channel = AiNodeGetStr(node, "densityRemapChannel").c_str();
       if (channel == "velocity") type = AI_TYPE_VECTOR;
 
       grad->ReadValues(sg->Op, sg, channel.c_str(), 
@@ -153,10 +153,10 @@ node_update
       data->emissionGradient = 0;
    }
 
-   std::string emissionColorRemapChannel = AiNodeGetStr(node, "emissionColorRemapChannel");
+   std::string emissionColorRemapChannel = AiNodeGetStr(node, "emissionColorRemapChannel").c_str();
    data->has_emission_ramp = (emissionColorRemapChannel != "" && emissionColorRemapChannel != "none");
 
-   std::string densityRemapChannel = AiNodeGetStr(node, "densityRemapChannel");
+   std::string densityRemapChannel = AiNodeGetStr(node, "densityRemapChannel").c_str();
    data->has_density_ramp = (densityRemapChannel != "" && densityRemapChannel != "none");
 }
 
@@ -194,7 +194,7 @@ shader_evaluate
       density = data->densityGradient->RemapResult(sg);
    } else
    {
-      AiVolumeSampleFlt("smoke", 0, &density);
+      AiVolumeSampleFlt(AtString("smoke"), 0, &density);
       scaled_density =  density * AiShaderEvalParamFlt(p_density_scale);
    }
 
@@ -205,26 +205,23 @@ shader_evaluate
    if (density > threshold)
    {
       //get Scatter
-      AtColor scatter = AiShaderEvalParamRGB(p_scattering_color) *  AiShaderEvalParamFlt(p_scattering_intensity);
+      AtRGB scatter = AiShaderEvalParamRGB(p_scattering_color) *  AiShaderEvalParamFlt(p_scattering_intensity);
       // offset and density cutoff
       float directionality = AiShaderEvalParamFlt(p_scattering_directionality);
       // get Absorb
-      AtColor absorb = AiShaderEvalParamRGB(p_absorption_color) *  AiShaderEvalParamFlt(p_absorption_intensity);
+      AtRGB absorb = AiShaderEvalParamRGB(p_absorption_color) *  AiShaderEvalParamFlt(p_absorption_intensity);
 
       scatter *= scaled_density;
       absorb *= scaled_density;
 
       if (sg->Rt & AI_RAY_SHADOW) 
       {
-
-         AiShaderGlobalsSetVolumeEmission(sg, AI_RGB_BLACK);
-         AiShaderGlobalsSetVolumeAbsorption(sg, absorb);
-         AiShaderGlobalsSetVolumeScattering(sg, AI_RGB_BLACK);
+         sg->out.CLOSURE() = AiClosureVolumeAbsorption(sg, absorb + scatter);
          return;
       }
 
       // Emission
-      AtColor emission = AI_RGB_BLACK;
+      AtRGB emission = AI_RGB_BLACK;
       if( data->has_emission_ramp)
       {
          if (data->emissionGradient == 0)
@@ -240,17 +237,8 @@ shader_evaluate
       emission *= AiShaderEvalParamFlt(p_emission_intensity);
       emission *= scaled_density;
 
-      AiShaderGlobalsSetVolumeEmission(sg, emission);
-      AiShaderGlobalsSetVolumeAbsorption(sg, absorb);
-      AiShaderGlobalsSetVolumeScattering(sg, scatter, directionality);
-
-   } else
-   {
-      AiShaderGlobalsSetVolumeEmission(sg, AI_RGB_BLACK);
-      AiShaderGlobalsSetVolumeAbsorption(sg, AI_RGB_BLACK);
-      AiShaderGlobalsSetVolumeScattering(sg, AI_RGB_BLACK);
+      // create closure
+      sg->out.CLOSURE() = AiClosureVolumeHenyeyGreenstein(sg, absorb, scatter, emission);
    }
 }
-
-
 

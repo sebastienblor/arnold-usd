@@ -53,23 +53,10 @@ class NParticleTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
 
 class MeshTemplate(templates.ShapeTranslatorTemplate):
-    def subdivDicingCameraNew(self, attrName):
-        pm.setUITemplate('attributeEditorTemplate', pst=True)
-        pm.attrNavigationControlGrp('aiSubdivDicingCameraCtrl',
-                                    at=attrName,
-                                    label="Subdivision Dicing Camera" )
-        pm.setUITemplate(ppt=True)
-    
-    def subdivDicingCameraReplace(self, attrName):
-        pm.attrNavigationControlGrp('aiSubdivDicingCameraCtrl', edit=True,
-                                    at=attrName )
-        # pm.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
-        #pm.editorTemplate(aeCallback(self.subdivDicingCameraNew), aeCallback(self.subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
-
     def setup(self):
         self.commonShapeAttributes()
         
-        self.addSeparator()
+        self.beginLayout("Export", collapse=False)
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
         self.addControl("aiExportRefPoints", label="Export Reference Positions")
@@ -82,29 +69,32 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMotionVectorSource", label="Motion Vector Source")
         self.addControl("aiMotionVectorUnit", label="Motion Vector Unit")
         self.addControl("aiMotionVectorScale", label="Motion Vector Scale")
+
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+        self.endLayout()
         
-        self.beginLayout('Subdivision', collapse=False)
+        self.beginLayout('Subdivision', collapse=True)
         self.addControl("aiSubdivType", label="Type")
         self.addControl("aiSubdivIterations", label="Iterations")
         self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
         self.addControl("aiSubdivPixelError", label="Adaptative Error")
         self.addControl("aiSubdivAdaptiveSpace", label="Adaptative Space")
         # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
         self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()
         
-        self.beginLayout('Displacement Attributes', collapse=False)
+        self.beginLayout('Displacement Attributes', collapse=True)
         self.addControl("aiDispHeight", label="Height")
         self.addControl("aiDispPadding", label="Bounds Padding")
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
-        self.beginLayout('Volume Attributes', collapse=False)
+        self.beginLayout('Volume Attributes', collapse=True)
         self.addControl('aiStepSize', label='Step Size')
         self.endLayout()
-        self.addControl("aiUserOptions", label="User Options")
+        
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()
@@ -204,8 +194,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.addSeparator()
-        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
-        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.commonShapeAttributes()
         self.beginLayout("Custom Texture", collapse=False)
         self.addControl("aiOverrideTextures", label="Override Fluid Texture")        
         self.addControl("aiTextureAffectColor", label="Texture Color")
@@ -286,7 +275,6 @@ templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 class PointLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Point")
-        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -309,7 +297,6 @@ templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 class SpotLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Spot")
-        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -337,7 +324,6 @@ templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 class AreaLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Area")
-        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -360,26 +346,6 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.commonLightAttributes()
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
-
-# Actually currently connecting the other way round, filter's decayRate
-# to light's decay type which might be the best idea
-"""
-def lightDecayChanged(decayPlug, *args):
-    "called to sync first found lightDecay filter when decayRate changes"
-    # fnCam = om.MFnCamera(transPlug.node())
-    # currTrans = transPlug.asString()
-    #orthoPlug = fnCam.findPlug('orthographic')
-    # isOrtho = orthoPlug.asBool()
-    print "lightDecayChanged", decayPlug.name(), decayPlug.asInt()
-    print "filters", lightTemplate.LightTemplate.getConnectedLightFilters()
-    # aiLightDecay
-
-print "Adding attribute changed callback for lights"
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'pointLight', 'decayRate')
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'spotLight', 'decayRate')
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'areaLight', 'decayRate')
-callbacks.addAttributeChangedCallback(lightDecayChanged, 'aiAreaLight', 'decayRate')
-"""
 
 templates.registerAETemplate(templates.TranslatorControl, "camera", label="Camera Type")
 
@@ -628,6 +594,34 @@ class SphericalCameraTemplate(CameraTemplate):
 templates.registerTranslatorUI(SphericalCameraTemplate, "camera", "spherical")
 templates.registerTranslatorUI(SphericalCameraTemplate, "stereoRigCamera", "spherical")
 
+class VrCameraTemplate(CameraTemplate):
+    def setup(self):
+        self.beginLayout("Main Attributes", collapse=False)
+        self.addControl("aiMode")
+        self.addControl("aiProjection")
+        self.addControl("aiEyeSeparation")
+        self.addControl("aiEyeToNeck")
+        self.endLayout()
+
+        self.beginLayout("Pole Merging", collapse=False)
+        self.addControl("aiTopMergeMode")
+        self.addControl("aiTopMergeAngle")
+        self.addSeparator()
+        self.addControl("aiBottomMergeMode")
+        self.addControl("aiBottomMergeAngle")
+        self.addSeparator()
+        self.addControl("aiMergeShader")
+        self.endLayout()
+
+        self.beginLayout("Common Attributes", collapse=False)
+        self.addCommonAttributes()
+        self.addShutterAttributes()
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+        self.endLayout()
+
+templates.registerTranslatorUI(VrCameraTemplate, "camera", "vr_camera")
+
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
     if not core.arnoldIsCurrentRenderer(): return
@@ -802,14 +796,14 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
         cmds.menuItem( label='INT', data=0)
         cmds.menuItem( label='FLOAT', data=1)
-        cmds.menuItem( label='POINT2', data=2)
+        cmds.menuItem( label='VECTOR2', data=2)
         cmds.menuItem( label='MATRIX', data=3)
         cmds.menuItem( label='STRING', data=4)
         if result[0] == 'INT':
             cmds.optionMenu(menu, edit=True, select=1)
         elif result[0] == 'FLOAT':
             cmds.optionMenu(menu, edit=True, select=2)
-        elif result[0] == 'POINT2':
+        elif result[0] == 'VECTOR2':
             cmds.optionMenu(menu, edit=True, select=3)
         elif result[0] == 'MATRIX':
             cmds.optionMenu(menu, edit=True, select=4)
@@ -1119,14 +1113,14 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
         cmds.menuItem( label='INT', data=0)
         cmds.menuItem( label='FLOAT', data=1)
-        cmds.menuItem( label='POINT2', data=2)
+        cmds.menuItem( label='VECTOR2', data=2)
         cmds.menuItem( label='MATRIX', data=3)
         cmds.menuItem( label='STRING', data=4)
         if result[0] == 'INT':
             cmds.optionMenu(menu, edit=True, select=1)
         elif result[0] == 'FLOAT':
             cmds.optionMenu(menu, edit=True, select=2)
-        elif result[0] == 'POINT2':
+        elif result[0] == 'VECTOR2':
             cmds.optionMenu(menu, edit=True, select=3)
         elif result[0] == 'MATRIX':
             cmds.optionMenu(menu, edit=True, select=4)

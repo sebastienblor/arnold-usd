@@ -180,6 +180,6 @@ else:
    proc_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 EXT_PROCS = proc_env.SharedLibrary('bifrost_procedural', source_files, LIBPREFIX='')
-EXT_PROCS.target_type = 'procedural'
+#EXT_PROCS.target_type = 'procedural'
 
 Return('EXT EXT_SHADERS EXT_PROCS')

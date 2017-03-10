@@ -39,14 +39,14 @@ const char* enum_operation[] =
 
 node_parameters
 {
-   AiParameterENUM("operation", 0, enum_operation);
-   AiParameterFLT("firstTerm", 0);
-   AiParameterFLT("secondTerm", 0);
+   AiParameterEnum("operation", 0, enum_operation);
+   AiParameterFlt("firstTerm", 0);
+   AiParameterFlt("secondTerm", 0);
    AiParameterRGB("colorIfTrue", 0, 0, 0);
    AiParameterRGB("colorIfFalse", 1, 1, 1);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "condition");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52434e44);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "condition");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434e44);
 }
 
 node_initialize
@@ -63,31 +63,31 @@ node_finish
 
 shader_evaluate
 {
-   int op               = AiShaderEvalParamInt(p_operation);
-   float firstTerm      = AiShaderEvalParamFlt(p_firstTerm);
-   float secondTerm     = AiShaderEvalParamFlt(p_secondTerm);
-   AtColor colorIfTrue  = AiShaderEvalParamRGB(p_colorIfTrue);
-   AtColor colorIfFalse = AiShaderEvalParamRGB(p_colorIfFalse);
+   int op             = AiShaderEvalParamInt(p_operation);
+   float firstTerm    = AiShaderEvalParamFlt(p_firstTerm);
+   float secondTerm   = AiShaderEvalParamFlt(p_secondTerm);
+   AtRGB colorIfTrue  = AiShaderEvalParamRGB(p_colorIfTrue);
+   AtRGB colorIfFalse = AiShaderEvalParamRGB(p_colorIfFalse);
 
    switch (op)
    {
    case OP_EQUAL:
-      sg->out.RGB = (firstTerm == secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm == secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_NOT_EQUAL:
-      sg->out.RGB = (firstTerm != secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm != secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_GREATER_THAN:
-      sg->out.RGB = (firstTerm > secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm > secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_GREATER_OR_EQUAL:
-      sg->out.RGB = (firstTerm >= secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm >= secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_LESS_THAN:
-      sg->out.RGB = (firstTerm < secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm < secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_LESS_OR_EQUAL:
-      sg->out.RGB = (firstTerm <= secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm <= secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    }
 }

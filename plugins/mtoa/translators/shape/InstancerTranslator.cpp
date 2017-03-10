@@ -8,7 +8,7 @@
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)
 {
-   AiM4Copy(outMatrix, matrix);
+   outMatrix = matrix;
 
    outMatrix[3][0] = matrix[3][0] + (float)velocityVector.x;
    outMatrix[3][1] = matrix[3][1] + (float)velocityVector.y;
@@ -68,29 +68,32 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    {
       visibility &= ~AI_RAY_CAMERA;
    }
-
-   plug = fnNode.findPlug("visibleInReflections");
+   plug = fnNode.findPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFLECTED;
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
+   }
+   plug = fnNode.findPlug("aiVisibleInSpecularReflection");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;
+   }
+   plug = fnNode.findPlug("aiVisibleInDiffuseTransmission");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
    }
 
-   plug = fnNode.findPlug("visibleInRefractions");
+   plug = fnNode.findPlug("aiVisibleInSpecularTransmission");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_REFRACTED;
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
    }
 
-   plug = fnNode.findPlug("aiVisibleInDiffuse");
+   plug = fnNode.findPlug("aiVisibleInVolume");
    if (!plug.isNull() && !plug.asBool())
    {
-      visibility &= ~AI_RAY_DIFFUSE;
-   }
-
-   plug = fnNode.findPlug("aiVisibleInGlossy");
-   if (!plug.isNull() && !plug.asBool())
-   {
-      visibility &= ~AI_RAY_GLOSSY;
+      visibility &= ~AI_RAY_VOLUME;
    }
    
    return visibility;
@@ -589,7 +592,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
             if (it->second < (int)m_vec_matrixArrays.size())
             {
-               AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep, substepMatrix);
+               substepMatrix = AiArrayGetMtx(m_vec_matrixArrays[it->second], previousStep);
                addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
             }

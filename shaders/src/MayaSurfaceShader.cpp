@@ -27,8 +27,8 @@ node_parameters
    AiParameterRGB("outTransparency", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("outMatteOpacity", 1.0f, 1.0f, 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "surfaceShader");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52535348);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "surfaceShader");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52535348);
 }
 
 node_initialize
@@ -45,10 +45,18 @@ node_finish
 
 shader_evaluate
 {
-   AiColorSub(sg->out_opacity, AI_RGB_WHITE, AiShaderEvalParamRGB(p_outTransparency));
    AtRGB color = AiShaderEvalParamRGB(p_outColor);
-   sg->out.RGBA.r = color.r;
-   sg->out.RGBA.g = color.g;
-   sg->out.RGBA.b = color.b;
-   sg->out.RGBA.a = Luminance(AiShaderEvalParamRGB(p_outMatteOpacity));
+   AtRGB outMatteOpacity = AiShaderEvalParamRGB(p_outMatteOpacity);
+   AtRGB outTransparency = AiShaderEvalParamRGB(p_outTransparency);
+
+
+   AtClosureList closures;
+   closures.add(AiClosureEmission(sg, color));
+   if (AiMax(outTransparency.r, outTransparency.b, outTransparency.b) > AI_EPSILON)
+   {
+      closures *= AI_RGB_WHITE - outTransparency;
+      closures.add(AiClosureTransparent(sg, outTransparency));
+   }
+   closures.add(AiClosureMatte(sg, AI_RGB_WHITE - outMatteOpacity));
+   sg->out.CLOSURE() = closures;
 }

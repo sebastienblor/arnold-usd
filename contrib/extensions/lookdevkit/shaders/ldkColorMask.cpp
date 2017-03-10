@@ -27,8 +27,8 @@ node_parameters
    AiParameterFlt("maskAlpha", 1.0f);
    AiParameterBool("maskAlphaIsLuminance", false);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorMask");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81626);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorMask");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81626);
 }
 
 node_initialize
@@ -52,15 +52,15 @@ shader_evaluate
    const float maskAlpha = AiShaderEvalParamBool(p_maskAlphaIsLuminance) ? 
       (1.0f - (maskColor[0] * 0.3f + maskColor[1] * 0.59f + maskColor[2] * 0.11f)) : AiShaderEvalParamFlt(p_maskAlpha);
 
-   sg->out.RGB = inColor;
-   sg->out.RGBA.a = inAlpha;
+   sg->out.RGB() = inColor;
+   sg->out.RGBA().a = inAlpha;
 
    if (maskAlpha > 0.0f)
    {
       if (!AiShaderEvalParamBool(p_preserveColor))
       {
-         sg->out.RGB = inColor * (1.0f - maskAlpha);
+         sg->out.RGB() = inColor * (1.0f - maskAlpha);
       }
-      sg->out.RGBA.a -= maskAlpha;
+      sg->out.RGBA().a -= maskAlpha;
    }
 }

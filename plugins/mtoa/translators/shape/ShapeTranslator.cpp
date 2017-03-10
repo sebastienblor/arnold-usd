@@ -76,7 +76,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
    MFnDependencyNode dnode(m_dagPath.node(), &status);
    if (status)
-      AiNodeSetInt(node, "id", getHash(node));
+      AiNodeSetUInt(node, "id",  getHash(node));
 }
 
 

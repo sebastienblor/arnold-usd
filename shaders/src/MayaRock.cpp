@@ -53,22 +53,21 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("color1", 0.235f, 0.0f, 0.0f);
    AiParameterRGB("color2", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("grainSize", 0.01f);
-   AiParameterFLT("diffusion", 1.0f);
-   AiParameterFLT("mixRatio", 0.5f);
+   AiParameterFlt("grainSize", 0.01f);
+   AiParameterFlt("diffusion", 1.0f);
+   AiParameterFlt("mixRatio", 0.5f);
 
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "rock");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "rock");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize
@@ -89,12 +88,12 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
    
-   AtPoint P;
+   AtVector P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
    
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -186,13 +185,13 @@ shader_evaluate
       outColor.g = rock * (color1.g - color2.g) + color2.g;
       outColor.b = rock * (color1.b - color2.b) + color2.b;
 
-      AiRGBtoRGBA(outColor, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(outColor);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
       
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

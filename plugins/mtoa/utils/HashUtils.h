@@ -2,7 +2,7 @@
 
 #include <ai.h>
 
-inline int getHash(AtNode* node)
+inline size_t getHash(AtNode* node)
 {
-   return (int)AiNodeGetStr(node, AtString("name")).hash();
+   return AiNodeGetStr(node, AtString("name")).hash();
 }

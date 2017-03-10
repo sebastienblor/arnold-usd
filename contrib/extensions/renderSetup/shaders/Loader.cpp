@@ -1,14 +1,14 @@
 #include <ai.h>
 #include <cstdio>
 
-extern AtNodeMethods* applyAbsFloatOverrideMtd;
-extern AtNodeMethods* applyAbs2FloatsOverrideMtd;
-extern AtNodeMethods* applyAbs3FloatsOverrideMtd;
-extern AtNodeMethods* applyAbsIntOverrideMtd;
-extern AtNodeMethods* applyRelFloatOverrideMtd;
-extern AtNodeMethods* applyRel2FloatsOverrideMtd;
-extern AtNodeMethods* applyRel3FloatsOverrideMtd;
-extern AtNodeMethods* applyRelIntOverrideMtd;
+extern const AtNodeMethods* applyAbsFloatOverrideMtd;
+extern const AtNodeMethods* applyAbs2FloatsOverrideMtd;
+extern const AtNodeMethods* applyAbs3FloatsOverrideMtd;
+extern const AtNodeMethods* applyAbsIntOverrideMtd;
+extern const AtNodeMethods* applyRelFloatOverrideMtd;
+extern const AtNodeMethods* applyRel2FloatsOverrideMtd;
+extern const AtNodeMethods* applyRel3FloatsOverrideMtd;
+extern const AtNodeMethods* applyRelIntOverrideMtd;
 
 enum{
     RENDER_SETUP_APPLY_ABS_FLOAT_OVERRIDE = 0,
@@ -33,7 +33,7 @@ node_loader
         break;
     case RENDER_SETUP_APPLY_ABS_2FLOATS_OVERRIDE:
         node->methods     = applyAbs2FloatsOverrideMtd;
-        node->output_type = AI_TYPE_POINT2;
+        node->output_type = AI_TYPE_VECTOR2;
         node->name        = "applyAbs2FloatsOverride";
         node->node_type   = AI_NODE_SHADER;
         break;
@@ -52,7 +52,7 @@ node_loader
         break;
     case RENDER_SETUP_APPLY_REL_2FLOATS_OVERRIDE:
         node->methods     = applyRel2FloatsOverrideMtd;
-        node->output_type = AI_TYPE_POINT2;
+        node->output_type = AI_TYPE_VECTOR2;
         node->name        = "applyRel2FloatsOverride";
         node->node_type   = AI_NODE_SHADER;
         break;

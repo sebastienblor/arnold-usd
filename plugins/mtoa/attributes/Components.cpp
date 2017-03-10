@@ -11,10 +11,10 @@ const MStringArray& GetComponentNames(int arnoldParamType)
    case AI_TYPE_RGBA:
       return RGBA_COMPONENTS;
    case AI_TYPE_VECTOR:
-   case AI_TYPE_POINT:
       return VECTOR_COMPONENTS;
-   case AI_TYPE_POINT2:
-      return POINT2_COMPONENTS;
+   case AI_TYPE_VECTOR2:
+      return VECTOR2_COMPONENTS;
+   // FIXME Arnold5 make sure we don't want any components with closures
    default:
       return INVALID_COMPONENTS;
    }

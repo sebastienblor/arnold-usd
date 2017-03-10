@@ -6,8 +6,8 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaSurfaceLuminanceMtd);
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "surfaceLuminance");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 1381190741);   
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "surfaceLuminance");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 1381190741);   
 }
 
 node_initialize
@@ -24,24 +24,25 @@ node_finish
 
 shader_evaluate
 {
-   AtColor diffuse = AI_RGB_BLACK;
+   AtRGB diffuse = AI_RGB_BLACK;
 
+   AtLightSample light_sample;
    AiLightsPrepare(sg);
 
-   while (AiLightsGetSample(sg))
+   while (AiLightsGetSample(sg, light_sample))
    {
-      const float NDL = AiV3Dot(sg->Nf, sg->Ld);
+      const float NDL = AiV3Dot(sg->Nf, light_sample.Ld);
 
       if (NDL > 0.0f)
       {
-         if (AiLightGetAffectDiffuse(sg->Lp))
+         float d = AiLightGetDiffuse(light_sample.Lp);
+         if (d > AI_EPSILON)
          {
-         	const float d = AiLightGetDiffuse(sg->Lp);
-         	if (d > AI_EPSILON)
-            	diffuse += sg->Li * NDL * sg->we * d;
+            AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
+        	   diffuse += Li_over_pdf * NDL * d;
          }
       }
    }
 
-   sg->out.FLT = Luminance(diffuse);
+   sg->out.FLT() = Luminance(diffuse);
 }

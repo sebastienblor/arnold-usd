@@ -7,7 +7,6 @@ class hairPhysicalShaderTemplate(templates.AttributeTemplate):
     def setup(self):
         # Indirect Diffuse and Diffuse Cache
         self.addControl("ai_kd_ind", label="Indirect Diffuse")
-        self.addControl("ai_diffuse_cache")
         self.addSeparator()
 
         # UVs

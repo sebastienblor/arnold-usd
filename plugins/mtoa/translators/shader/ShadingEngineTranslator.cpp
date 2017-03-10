@@ -49,7 +49,8 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiSurfaceShader";
    data.shortName = "ai_surface_shader";
    data.isArray = false;   
-   
+   data.defaultValue.RGB() = AI_RGB_BLACK;
+
    helper.MakeInputRGB(data);
    
    data.name = "aiVolumeShader";

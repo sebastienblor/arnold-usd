@@ -11,13 +11,12 @@
 
 #include <sys/timeb.h>
 #include <stdio.h>
-#include <ai_types.h>
 #include <ai_nodes.h>
 #include <ai_node_entry.h>
 
 #define MAX_NAME_SIZE 65535
 
-inline AtUInt64 MtoaTicks()
+inline unsigned long long MtoaTicks()
 {
 #ifdef _WIN32
    LARGE_INTEGER PerformanceCount;
@@ -31,23 +30,23 @@ inline AtUInt64 MtoaTicks()
    // UNIX platforms: Linux and OS X
    struct timeval tp;
    gettimeofday(&tp, NULL);
-   return ((AtUInt64) tp.tv_sec * 1000000) + ((AtUInt64) tp.tv_usec);
+   return ((unsigned long long) tp.tv_sec * 1000000) + ((unsigned long long) tp.tv_usec);
 #endif
 }
 
 
-inline AtUInt32 MtoaTime()
+inline unsigned MtoaTime()
 {
 #ifdef _WIN32
    struct _timeb timebuffer;
 
    _ftime(&timebuffer);
-   return (AtUInt32) (timebuffer.time * 1000) + timebuffer.millitm;
+   return (unsigned) (timebuffer.time * 1000) + timebuffer.millitm;
 #else
    // UNIX platforms: Linux and OS X
    struct timeval tp;
    gettimeofday(&tp, NULL);
-   return (AtUInt32) ((AtUInt64) (tp.tv_sec * 1000) + (AtUInt64) (tp.tv_usec / 1000));
+   return (unsigned) ((size_t) (tp.tv_sec * 1000) + (size_t) (tp.tv_usec / 1000));
 #endif
 }
 

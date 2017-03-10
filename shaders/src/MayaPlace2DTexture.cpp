@@ -47,7 +47,7 @@ inline void rotate2d(float rot, float &u, float &v)
 };
 
 struct MayaPlace2DTextureData{
-   std::string uvSetName;
+   AtString uvSetName;
    bool useCustomUVSet;
 
    MayaPlace2DTextureData() : useCustomUVSet(false)
@@ -67,21 +67,21 @@ struct MayaPlace2DTextureData{
 
 node_parameters
 {
-   AiParameterPNT2("coverage", 1.0f, 1.0f);
-   AiParameterPNT2("translateFrame", 0.0f, 0.0f);
-   AiParameterFLT("rotateFrame", 0.0f);
-   AiParameterBOOL("mirrorU", false);
-   AiParameterBOOL("mirrorV", false);
-   AiParameterBOOL("wrapU", true);
-   AiParameterBOOL("wrapV", true);
-   AiParameterBOOL("stagger", false);
-   AiParameterPNT2("repeatUV", 1.0f, 1.0f);
-   AiParameterPNT2("offsetUV", 0.0f, 0.0f);
-   AiParameterFLT("rotateUV", 0.0f);
-   AiParameterPNT2("noiseUV", 0.0f, 0.0f);
-   AiParameterSTR("uvSetName", "");
+   AiParameterVec2("coverage", 1.0f, 1.0f);
+   AiParameterVec2("translateFrame", 0.0f, 0.0f);
+   AiParameterFlt("rotateFrame", 0.0f);
+   AiParameterBool("mirrorU", false);
+   AiParameterBool("mirrorV", false);
+   AiParameterBool("wrapU", true);
+   AiParameterBool("wrapV", true);
+   AiParameterBool("stagger", false);
+   AiParameterVec2("repeatUV", 1.0f, 1.0f);
+   AiParameterVec2("offsetUV", 0.0f, 0.0f);
+   AiParameterFlt("rotateUV", 0.0f);
+   AiParameterVec2("noiseUV", 0.0f, 0.0f);
+   AiParameterStr("uvSetName", "");
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -103,26 +103,26 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
-   AtPoint2 translate = AiShaderEvalParamPnt2(p_translate_frame);
+   AtVector2 coverage = AiShaderEvalParamVec2(p_coverage);
+   AtVector2 translate = AiShaderEvalParamVec2(p_translate_frame);
    float frotate = AiShaderEvalParamFlt(p_rotate_frame);
    bool mirrorU = (AiShaderEvalParamBool(p_mirror_u) == true);
    bool mirrorV = (AiShaderEvalParamBool(p_mirror_v) == true);
    bool wrapU = (AiShaderEvalParamBool(p_wrap_u) == true);
    bool wrapV = (AiShaderEvalParamBool(p_wrap_v) == true);
    bool stagger = (AiShaderEvalParamBool(p_stagger) == true);
-   AtPoint2 repeat = AiShaderEvalParamPnt2(p_repeat);
-   AtPoint2 offset = AiShaderEvalParamPnt2(p_offset);
+   AtVector2 repeat = AiShaderEvalParamVec2(p_repeat);
+   AtVector2 offset = AiShaderEvalParamVec2(p_offset);
    float rotate = AiShaderEvalParamFlt(p_rotate);
-   AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
+   AtVector2 noise = AiShaderEvalParamVec2(p_noise);
 
    MayaPlace2DTextureData* data = (MayaPlace2DTextureData*)AiNodeGetLocalData(node);
    float inU, inV;
 
    if (data->useCustomUVSet)
    {
-      AtPoint2 altuv;
-      if (AiUDataGetPnt2(data->uvSetName.c_str(), &altuv))
+      AtVector2 altuv;
+      if (AiUDataGetVec2(data->uvSetName, altuv))
       {         
          inU = altuv.x;
          inV = altuv.y;
@@ -144,7 +144,7 @@ shader_evaluate
 
    if (noise.x > 0.0f)
    {
-      AtPoint uv;
+      AtVector uv;
       uv.x = inU * 16;
       uv.y = inV * 16;
       uv.z = 0.0f;
@@ -153,7 +153,7 @@ shader_evaluate
 
    if (noise.y > 0.0f)
    {
-      AtPoint uv;
+      AtVector uv;
       uv.x = (1 - inU) * 16;
       uv.y = (1 - inV) * 16;
       uv.z = 0.0f;
@@ -226,6 +226,6 @@ shader_evaluate
       rotate2d(rotate, outU, outV);
    }
 
-   sg->out.PNT2.x = outU;
-   sg->out.PNT2.y = outV;
+   sg->out.VEC2().x = outU;
+   sg->out.VEC2().y = outV;
 }

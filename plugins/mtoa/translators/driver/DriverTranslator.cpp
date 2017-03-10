@@ -70,12 +70,55 @@ void CDriverTranslator::Export(AtNode *shader)
 #ifdef MTOA_ENABLE_GAMMA
          AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma").asFloat());
 #else
-         AiNodeSetFlt(shader, "gamma", 1.f); 
+//         AiNodeSetFlt(shader, "gamma", 1.f); 
 #endif
 
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
          AiNodeSetBool(shader, "progressive", m_impl->m_session->IsProgressive());
+   } else
+   {
+      // not for display drivers, at least not for now
+
+
+#ifdef ENABLE_COLOR_MANAGEMENT
+      int colorSpaceVal = FindMayaPlug("colorManagement").asInt();
+
+      int cmEnabled = 0;
+      MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+
+      if(cmEnabled)
+      {
+         if (colorSpaceVal == 0)
+         {
+            AiNodeSetStr(shader, "color_space", "");
+         } else if (colorSpaceVal == 1)
+         {
+            MString viewTransform;
+            MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+            AiNodeSetStr(shader, "color_space", viewTransform.asChar());      
+         } else 
+         {
+            int cmOutputEnabled = 0;
+            MGlobal::executeCommand("colorManagementPrefs -q -outputTransformEnabled", cmOutputEnabled);
+
+            if (cmOutputEnabled)
+            {
+               MString colorSpace;
+               MGlobal::executeCommand("colorManagementPrefs -q -outputTransformName", colorSpace);
+               AiNodeSetStr(shader, "color_space", colorSpace.asChar());  
+            } else
+            {
+               AiNodeSetStr(shader, "color_space", "");
+            }
+         }
+      }
+      else
+      {
+         AiNodeSetStr(shader, "color_space", "");
+      }
+#endif
    }
+    
 }
 
 void CDriverTranslator::NodeInitializer(CAbTranslator context)

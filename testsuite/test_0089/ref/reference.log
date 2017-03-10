@@ -22,15 +22,325 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+00:00:00   483MB         | log started Fri Feb 17 17:23:01 2017
+00:00:00   483MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   483MB         | running on REM8WCK8D2, pid=11052
+00:00:00   483MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   483MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   483MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   483MB         |  
+00:00:00   483MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   487MB WARNING | [mtoa] [synColor_plugins] [node syncolor_color_manager] There was not enough metadata information to automatically register a translator for that node, ignored.
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
+00:00:00   493MB ERROR   | [mtoa.attr] Arnold parameter "hair.uparam" does not exist.
+00:00:00   493MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
+00:00:00   493MB ERROR   | [mtoa.attr] Arnold parameter "hair.vparam" does not exist.
+00:00:00   493MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
+00:00:00   493MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_diffuse" does not exist.
+00:00:00   493MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_specular" does not exist.
+00:00:00   493MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_transmission" does not exist.
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0089/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-Viewport 2.0 floating point render target is turned off.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  1.2 seconds.
+00:00:00   497MB         | log started Fri Feb 17 17:23:01 2017
+00:00:00   497MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   497MB         | running on REM8WCK8D2, pid=11052
+00:00:00   497MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   497MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   497MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   497MB         |  
+00:00:00   497MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   497MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   497MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   497MB         | log started Fri Feb 17 17:23:01 2017
+00:00:00   497MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   497MB         | running on REM8WCK8D2, pid=11052
+00:00:00   497MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   497MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   497MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   497MB         |  
+00:00:00   497MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   497MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   497MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   500MB         | log started Fri Feb 17 17:23:01 2017
+00:00:00   500MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   500MB         | running on REM8WCK8D2, pid=11052
+00:00:00   500MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   500MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   500MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   500MB         |  
+00:00:00   500MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   500MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   500MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   500MB         | log started Fri Feb 17 17:23:01 2017
+00:00:00   500MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   500MB         | running on REM8WCK8D2, pid=11052
+00:00:00   500MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   500MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   500MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   500MB         |  
+00:00:00   500MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   500MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   500MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   512MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   512MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   512MB         | running on REM8WCK8D2, pid=11052
+00:00:00   512MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   512MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   512MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   512MB         |  
+00:00:00   512MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   512MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   512MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   512MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   512MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   512MB         | running on REM8WCK8D2, pid=11052
+00:00:00   512MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   512MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   512MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   512MB         |  
+00:00:00   512MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   512MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   512MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   512MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   512MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   512MB         | running on REM8WCK8D2, pid=11052
+00:00:00   512MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   512MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   512MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   512MB         |  
+00:00:00   512MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   512MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   512MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   512MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   512MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   512MB         | running on REM8WCK8D2, pid=11052
+00:00:00   512MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   512MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   512MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   512MB         |  
+00:00:00   512MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   512MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   512MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   513MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   513MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   513MB         | running on REM8WCK8D2, pid=11052
+00:00:00   513MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   513MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   513MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   513MB         |  
+00:00:00   513MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   513MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   513MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   513MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   513MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   513MB         | running on REM8WCK8D2, pid=11052
+00:00:00   513MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   513MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   513MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   513MB         |  
+00:00:00   513MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   513MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   513MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   515MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   515MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   515MB         | running on REM8WCK8D2, pid=11052
+00:00:00   515MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   515MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   515MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   515MB         |  
+00:00:00   515MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   515MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   515MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   519MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   519MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   519MB         | running on REM8WCK8D2, pid=11052
+00:00:00   519MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   519MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   519MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   519MB         |  
+00:00:00   519MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   519MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   519MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   520MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   520MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   520MB         | running on REM8WCK8D2, pid=11052
+00:00:00   520MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   520MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   520MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   520MB         |  
+00:00:00   520MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   520MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   520MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   554MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   554MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   554MB         | running on REM8WCK8D2, pid=11052
+00:00:00   554MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   554MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   554MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   554MB         |  
+00:00:00   554MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   554MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   554MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   554MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   554MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   554MB         | running on REM8WCK8D2, pid=11052
+00:00:00   554MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   554MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   554MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   554MB         |  
+00:00:00   554MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   554MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   554MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   555MB         | log started Fri Feb 17 17:23:02 2017
+00:00:00   555MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   555MB         | running on REM8WCK8D2, pid=11052
+00:00:00   555MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   555MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   555MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   555MB         |  
+00:00:00   555MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   555MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   555MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   567MB         | log started Fri Feb 17 17:23:06 2017
+00:00:00   567MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   567MB         | running on REM8WCK8D2, pid=11052
+00:00:00   567MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   567MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   567MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   567MB         |  
+00:00:00   567MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   567MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   567MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   567MB         | log started Fri Feb 17 17:23:06 2017
+00:00:00   567MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   567MB         | running on REM8WCK8D2, pid=11052
+00:00:00   567MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   567MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   567MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   567MB         |  
+00:00:00   567MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   567MB         | loaded 134 plugins from 12 lib(s) in 0:00.00
+00:00:00   567MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   581MB         | log started Fri Feb 17 17:23:06 2017
+00:00:00   581MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   581MB         | running on REM8WCK8D2, pid=11052
+00:00:00   581MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   581MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   581MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   581MB         |  
+00:00:00   581MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   581MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   581MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+File read in  0.28 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0089/test.ma
+00:00:00   584MB         | log started Fri Feb 17 17:23:06 2017
+00:00:00   584MB         | Arnold 5.0.0.0.wip [0a1a28e6] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.0.2 2017/02/08 05:59:53
+00:00:00   584MB         | running on REM8WCK8D2, pid=11052
+00:00:00   584MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   584MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   584MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   584MB         |  
+00:00:00   584MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   584MB         | loaded 134 plugins from 12 lib(s) in 0:00.01
+00:00:00   584MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0089\test.ma completed.

@@ -23,7 +23,6 @@ class ShaveHairTemplate(AttributeTemplate, ShapeMixin, ShaderMixin):
 
         self.addSeparator()
 
-        self.addControl("aiDiffuseCache")
         self.addControl("aiIndirect")
         self.addControl("aiDirectDiffuse")
         

@@ -19,42 +19,42 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "primaryVisibility";
    data.shortName = "vis";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "castsShadows";
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiExportHairIDs";
    data.shortName = "ai_export_hair_ids";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportHairUVs";
    data.shortName = "ai_export_hair_uvs";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportHairColors";
    data.shortName = "ai_export_hair_colors";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiOverrideHair";
    data.shortName = "ai_override_hair";
    helper.MakeInputBoolean(data);
 
    data.name = "aiHairShader";
    data.shortName = "ai_hair_shader";
-   data.defaultValue.RGB = AI_RGB_BLACK;
+   data.defaultValue.RGB() = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
 
-   data.defaultValue.FLT = 1.0f;
+   data.defaultValue.FLT() = 1.0f;
    data.name = "aiIndirectDiffuse";
    data.shortName = "aiIndirectDiffuse";
    helper.MakeInputFloat(data);
@@ -111,18 +111,23 @@ void CHairTranslator::Export( AtNode *curve )
    plug = fnDepNodeHair.findPlug("primaryVisibility");
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_CAMERA;
-   plug = fnDepNodeHair.findPlug("visibleInReflections");
+
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_REFLECTED;
-   plug = fnDepNodeHair.findPlug("visibleInRefractions");
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
+   plug = fnDepNodeHair.findPlug("aiVisibleInSpecularReflection");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_REFRACTED;
-   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuse");
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;   
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuseTransmission");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_DIFFUSE;
-   plug = fnDepNodeHair.findPlug("aiVisibleInGlossy");
+      visibility &= ~AI_RAY_DIFFUSE_TRANSMIT;
+   plug = fnDepNodeHair.findPlug("aiVisibleInSpecularTransmission");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_GLOSSY;   
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
+   plug = fnDepNodeHair.findPlug("aiVisibleInVolume");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_VOLUME;
+
    
    if (RequiresShaderExport())
    {
@@ -212,7 +217,7 @@ void CHairTranslator::Export( AtNode *curve )
             {
                MColor color(1.0, 1.0, 1.0, 1.0);
                rampAttr.getColorAtPosition((float)i * sampleFrequencyDiv, color);
-               AtRGB aColor = {(float)color.r , (float)color.g, (float)color.b};
+               AtRGB aColor ((float)color.r , (float)color.g, (float)color.b);
                AiArraySetRGB(rampArr, i, aColor);
             }
             AiNodeSetArray(shader, "hairColorScale", rampArr);
@@ -308,7 +313,7 @@ void CHairTranslator::Export( AtNode *curve )
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur
    // Is not enabled
-   AtArray* curvePoints = AiArrayAllocate(m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);   
+   AtArray* curvePoints = AiArrayAllocate(m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_VECTOR);   
    AtArray* curveNumPoints = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints, 1, AI_TYPE_FLOAT);
    
@@ -346,7 +351,7 @@ void CHairTranslator::Export( AtNode *curve )
          if (exportCurveColors)
          {
             MVector color = colors[j];
-            AtRGB aColor = {(float)color.x, (float)color.y, (float)color.z};
+            AtRGB aColor ((float)color.x, (float)color.y, (float)color.z);
             AiArraySetRGB(curveColors, id, aColor);
          }
          AiArraySetFlt(curveWidths, id, (float)widths[j] / 2.0f);
