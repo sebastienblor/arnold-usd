@@ -171,7 +171,6 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 
 	inData->checkParameters();
 
-    DUMP(inData->error);
 	return inData->error;
 }
 
@@ -758,22 +757,11 @@ volume_create
     pdata->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
     memset( pdata->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 
-    DUMP(data->auto_step_size);
-    DUMP(data->bbox.min.x);
-    DUMP(data->bbox.min.y);
-    DUMP(data->bbox.min.z);
-    DUMP(data->bbox.max.x);
-    DUMP(data->bbox.max.y);
-    DUMP(data->bbox.max.z);
-    DUMP(data->private_info);
-
-    DL;
 	return true;
 }
 
 volume_cleanup
 {
-    DL;
     BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
     if(!volData){
         return  false;
@@ -802,21 +790,17 @@ volume_cleanup
 
     delete volData;
 	data->private_info = NULL;
-    DL;
 	return true;
 }
 
 volume_gradient
 {
-    DL;
     *gradient = AI_V3_ZERO;
-    DL;
     return false;
 }
 
 volume_sample
 {
-    DL;
 	if (!data->private_info) return false;
 
 	BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
@@ -848,13 +832,11 @@ volume_sample
         value->FLT() = threadSampler->sample<float>(pos);
 	}
 
-    DL;
 	return true;
 }
 
 volume_ray_extents
 {
-    DL;
 	//if (!data->private_info) return;
     BifrostVolumeUserData *volData = (BifrostVolumeUserData*)data->private_info;
 	if (volData == 0) return;
@@ -869,11 +851,9 @@ volume_ray_extents
 	for (float t = tmin; t < tmax && i < volData->maxSteps; t+= step, i++) {
         AiVolumeAddIntersection(info, t, (t+step < tmax)? t+step : tmax);
     }
-    DL;
 }
 
 volume_update
 {
-    DL;
-	return true;
+    return true;
 }

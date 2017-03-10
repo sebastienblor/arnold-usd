@@ -466,7 +466,6 @@ procedural_init_bounds
 // we read the UI parameters into their global vars
 procedural_init
 {
-    DL;
 	// create nodeData
 	AIProcNodeData *nodeData = new AIProcNodeData();
 
@@ -474,14 +473,14 @@ procedural_init
 	PrimitivesInputData *inData = (PrimitivesInputData *) malloc( sizeof( PrimitivesInputData ) );
 	inData->diagnostics.silent = 0;
 	nodeData->inData = inData;
-DL;
+
     std::string objectName = AiNodeLookUpUserParameter(node, "bifrostObjectName") ? AiNodeGetStr(node, "bifrostObjectName") : "";
     std::string particleFilename = AiNodeLookUpUserParameter(node, "bifFilename") ? AiNodeGetStr(node, "bifFilename") : "";
-DL;
+
 	inData->inMemoryRef = new CoreObjectUserData(objectName.c_str(), particleFilename.c_str());
 	nodeData->objectName = objectName;
 	nodeData->file = particleFilename;
-DL;
+
 	// store values
     nodeData->proceduralNode = node;
     nodeData->world2Obj = AiNodeGetMatrix ( node, "matrix" );
@@ -494,23 +493,23 @@ DL;
 	nodeData->bifrostCtx = AiShaderGlobals();
 	nodeData->samplerPool.clear();
 	nodeData->nofNodesCreated = 0;
-DL;
+
 	// make a copy of the nodeData
 	*user_ptr = (void *) nodeData;
 
 	printf( "\n" );
 	inData->error = false;
-DL;
+
     inData->renderType = ( PrimitivesRenderType ) AiNodeGetInt(node, "renderType");
     inData->channelScale = AiNodeGetFlt(node, "channelScale");
     inData->exportNormalAsPrimvar = AiNodeGetBool(node, "exportNormalAsPrimvar");
-DL;
+
     inData->velocityScale = AiNodeGetFlt(node, "velocityScale");
     inData->fps = AiNodeGetFlt(node, "fps");
     inData->spaceScale = AiNodeGetFlt(node, "spaceScale");
     inData->skip = AiNodeGetInt(node, "skip");
     inData->chunkSize = AiNodeGetInt(node, "chunkSize");
-DL;
+
     inData->clip.on = AiNodeGetBool(node, "clipOn");
     inData->clip.minX = AiNodeGetFlt(node, "clipMinX");
     inData->clip.maxX = AiNodeGetFlt(node, "clipMaxX");
@@ -518,17 +517,17 @@ DL;
     inData->clip.maxY = AiNodeGetFlt(node, "clipMaxY");
     inData->clip.minZ = AiNodeGetFlt(node, "clipMinZ");
     inData->clip.maxZ = AiNodeGetFlt(node, "clipMaxZ");
-DL;
+
     inData->radius = AiNodeGetFlt(node, "pointRadius");
     inData->useChannelToModulateRadius = AiNodeGetBool(node, "useChannelToModulateRadius");
-DL;
+
     inData->camRadius = AiNodeGetBool(node, "camRadiusOn");
     inData->camRadiusStartDistance = AiNodeGetFlt(node, "camRadiusStartDistance");
     inData->camRadiusEndDistance = AiNodeGetFlt(node, "camRadiusEndDistance");
     inData->camRadiusStartFactor = AiNodeGetFlt(node, "camRadiusStartFactor");
     inData->camRadiusEndFactor = AiNodeGetFlt(node, "camRadiusEndFactor");
     inData->camRadiusFactorExponent = AiNodeGetFlt(node, "camRadiusFactorExponent");
-DL;
+
     inData->mpSamples =  AiNodeGetInt(node, "mpSamples");
     inData->mpMinRadius = AiNodeGetFlt(node, "mpMinRadius");
     inData->mpMaxRadius = AiNodeGetFlt(node, "mpMaxRadius");
@@ -542,39 +541,39 @@ DL;
     inData->diagnostics.DEBUG = AiNodeGetInt(node, "debug");
 
     inData->hotData = AiNodeGetBool(node, "hotData");
-DL;
+
 	const AtString bifFilenameParam("bifFilename");
     const AtString bifFilename = AiNodeGetStr(node, bifFilenameParam );
 	size_t inputLen = bifFilename.length();
 	inData->bifFilename = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->bifFilename, bifFilename.c_str() );
-DL;
+
 	const AtString primVarNamesParam("primVarNames");
     const AtString primVarNames = AiNodeGetStr(node, primVarNamesParam );
 	inputLen = primVarNames.length();
 	inData->primVarNames = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->primVarNames, primVarNames.c_str() );
-DL;
+
 	const AtString inputChannelNameParam("inputChannelName");
     const AtString inputChannelName = AiNodeGetStr(node, inputChannelNameParam );
 	inputLen = inputChannelName.length();
 	inData->inputChannelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->inputChannelName, inputChannelName.c_str() );
-DL;
+
 	const AtString bifrostObjectNameParam("bifrostObjectName");
     const AtString bifrostObjectName = AiNodeGetStr(node, bifrostObjectNameParam );
 	inputLen = bifrostObjectName.length();
 	inData->bifrostObjectName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->bifrostObjectName, bifrostObjectName.c_str() );
-DL;
+
 	// arnold specific parameters
     inData->motionBlur = AiNodeGetBool( node, "motionBlur" );
     inData->shutterStart = AiNodeGetFlt( node, "shutterStart" );
     inData->shutterEnd = AiNodeGetFlt( node, "shutterEnd" );
-DL;
+
 	//check params
 	inData->checkParameters();
-DL;
+
 	if ( inData->error ) {
 		return false;
 	} else {

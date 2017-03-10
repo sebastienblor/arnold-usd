@@ -80,7 +80,6 @@ bool ProcSubdivide( BifrostPolyMeshUserData *nodeData )
 				
 				// check number of polys received, if none exit
 				if ( checkPolyCount( vertexCount, polyCount ) ) {
-                    DL;
 					return false;
 				}
 
@@ -312,10 +311,8 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 
 	const AtString distanceChannelNameParam("distanceChannel");
 	const AtString distanceChannelName = AiNodeGetStr(parentNode, distanceChannelNameParam );
-    DUMP(distanceChannelName);
 	inputLen = distanceChannelName.length();
 	inData->inputChannelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
-    DUMP((char*)inData->inputChannelName);
 	strcpy( inData->inputChannelName, distanceChannelName.c_str() );
 
 	const AtString filterBlendingChannelNameParam("filterBlendingChannel");
@@ -430,7 +427,6 @@ node_parameters
 
 procedural_init_bounds
 {
-    DL;
 	//
 	//
 	// DECLARATIONS
@@ -476,8 +472,6 @@ procedural_init_bounds
 
 	// get input data
 	bool error = getNodeParameters( inData, node );
-    DUMP(inData->error);
-    DL;
 
 	// init in memory class
 	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
@@ -1055,14 +1049,12 @@ procedural_init_bounds
 
 	data->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 	memset( data->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
-DL;
 	return true;
 }
 
 // we read the UI parameters into their global vars
 procedural_init
 {
-    DL;
 	BifrostPolyMeshUserData *nodeData = (BifrostPolyMeshUserData *) *user_ptr;
 
 	ImplicitsInputData *inData = nodeData->inputData;
@@ -1075,7 +1067,6 @@ procedural_init
 		bool success = ProcSubdivide( nodeData );
 
 		printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
-        DUMP(success);
 		return success;
 	}
 }
@@ -1083,7 +1074,6 @@ procedural_init
 // we will create one node
 procedural_num_nodes
 {
-    DL;
 	return 1;
 }
 
@@ -1091,7 +1081,6 @@ procedural_num_nodes
 // that this procedural creates.
 procedural_get_node
 {
-    DL;
 	BifrostPolyMeshUserData *nodeData = (BifrostPolyMeshUserData *) user_ptr;
 
 	if ( i >= 0 && i < (int) nodeData->createdNodes.size() )
@@ -1104,7 +1093,6 @@ procedural_get_node
 
 procedural_cleanup
 {
-    DL;
 	BifrostPolyMeshUserData *userData = (BifrostPolyMeshUserData*)user_ptr;
  
 	if ( userData ) {
@@ -1139,6 +1127,5 @@ procedural_cleanup
 		delete userData;
     }
 
-    DL;
 	return 1;
 }

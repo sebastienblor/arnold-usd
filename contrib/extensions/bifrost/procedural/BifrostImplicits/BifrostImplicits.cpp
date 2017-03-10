@@ -321,15 +321,11 @@ volume_create
     if ( inData->hotData ) {
         // write in memory pdata to a temp file
         Bifrost::API::String writeToFile;
-        DUMP(inData->bifFilename);
         if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
-            DL;
             writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-volume", writeToFolder );
         } else {
-            DL;
             writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-particle", writeToFolder );
         }
-        DL;
 
 		// realloc for the new name
 		size_t inputLen = writeToFile.length();

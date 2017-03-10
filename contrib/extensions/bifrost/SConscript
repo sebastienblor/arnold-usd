@@ -50,8 +50,8 @@ def setup(env, library):
     def addBifrostRenderCore(env):
         # TEMPORARY
         env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost', 'bifrostrendercore', 'api')])
-        env.Append(LIBPATH = [os.path.join(ROOT_DIR, BUILD_BASE_DIR, 'bifrost')])
-        env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
+        #env.Append(LIBPATH = [os.path.join(ROOT_DIR, BUILD_BASE_DIR, 'bifrost')])
+        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
         #env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'plugins', 'bifrostrendercore', 'api')])
         #env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin' if system.os() == 'darwin' else 'lib')])
         #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
