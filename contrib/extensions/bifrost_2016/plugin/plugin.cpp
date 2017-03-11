@@ -3,6 +3,7 @@
 #include "BifrostAeroMaterialTranslator.h"
 
 #include "extension/Extension.h"
+#include <maya/MTypes.h> 
 
 #include <maya/MDGMessage.h>
 #include <maya/MNodeMessage.h>
@@ -11,7 +12,8 @@
 
 extern "C"
 {
-    namespace{
+    namespace
+    {
         // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
         MCallbackId addedCbId = 0, connectionCbId = 0;
 
@@ -23,7 +25,7 @@ extern "C"
         void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
         {
             if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
-                MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
+                    MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
             {
                 // connection to shading engine made => replace shader
                 int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
@@ -31,16 +33,25 @@ extern "C"
                 MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
 
                 MFnDependencyNode shadingGroup(otherPlug.node());
-                MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
 
-                MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
-                command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
-                if(isVolume)
+                MPlug surfaceShaderPlug = shadingGroup.findPlug("surfaceShader");
+
+                MPlugArray plugArray;              
+                surfaceShaderPlug.connectedTo(plugArray,  true, false);
+                
+                if (plugArray.length() > 0)
                 {
-                    command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+                    MString oldShader = MFnDependencyNode(plugArray[0].node()).name();// oddly, even aero has a surfaceShader
+
+                    MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+                    command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
+                    if(isVolume)
+                    {
+                        command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+                    }
+                    command += "select $sel;undoInfo -closeChunk;";
+                    MGlobal::executeCommandOnIdle(command);
                 }
-                command += "select $sel;undoInfo -closeChunk;";
-                MGlobal::executeCommandOnIdle(command);
                 removeCallback(connectionCbId);
             }
         }
@@ -57,6 +68,7 @@ extern "C"
     }
 
 #ifdef ENABLE_BIFROST
+    
     DLLEXPORT void initializeExtension ( CExtension& extension )
     {
         MStatus status;
@@ -67,27 +79,31 @@ extern "C"
         extension.Requires ( "bifrostvisplugin" );
 #endif
         extension.LoadArnoldPlugin("bifrost_shaders");
-        extension.LoadArnoldPlugin("bifrost_procedurals");
+        
+        status = extension.RegisterTranslator ( "bifrostShape",
+                                                "",
+                                                CBfDescriptionTranslator::creator,
+                                                CBfDescriptionTranslator::NodeInitializer );
 
-        status = extension.RegisterTranslator ( "bifrostShape", "",
-                                                BifrostTranslator::creator,
-                                                BifrostTranslator::NodeInitializer );
 
-        status = extension.RegisterTranslator ( "bifrostAeroMaterial", "",
+        status = extension.RegisterTranslator ( "bifrostFoamMaterial",
+                                                "",
+                                                CBfFoamMaterialTranslator::creator);
+
+        status = extension.RegisterTranslator ( "bifrostAeroMaterial",
+                                                "",
                                                 CBfAeroMaterialTranslator::creator,
                                                 CBfAeroMaterialTranslator::NodeInitializer );
 
-        status = extension.RegisterTranslator ( "bifrostFoamMaterial", "",
-                                                CBfFoamMaterialTranslator::creator,
-                                                CBfFoamMaterialTranslator::NodeInitializer );
-
         addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
+       
+
     }
 
     DLLEXPORT void deinitializeExtension ( CExtension& extension )
     {
         removeCallback(addedCbId);
     }
-
 #endif
 }
+

@@ -279,7 +279,12 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+    bifrost_ext = 'bifrost_2016'
     env['ENABLE_LOOKDEVKIT'] = 1
+    env["ENABLE_COLOR_MANAGEMENT"] = 1
+    env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
+    env["MTOA_AFM"] = 1
+
 if int(maya_version) >= 201650:
     env['ENABLE_RENDERSETUP'] = 1
 
@@ -288,10 +293,9 @@ if int(maya_version_base) >= 2014:
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
 
-if int(maya_version) >= 201600:
-    env["ENABLE_COLOR_MANAGEMENT"] = 1
-    env.Append(CPPDEFINES = Split('ENABLE_COLOR_MANAGEMENT')) 
-    env["MTOA_AFM"] = 1
+if int(maya_version) >= 201700:
+    bifrost_ext = 'bifrost'
+
 
 build_id = ""
 
@@ -369,6 +373,8 @@ if system.os() == 'windows':
 
 export_symbols = env['MODE'] in ['debug', 'profile']
 
+# FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
+env['WARN_LEVEL'] = 'warn_only'
 if env['COMPILER'] == 'gcc':
     if system.os() == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
         env['CC'] = env['SHCC']
@@ -962,7 +968,7 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or
             (env['ENABLE_XGEN'] == 1 and (int(maya_version) >= 201700) and ext == 'xgenSpline') or
             ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
-            (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
+            (env['ENABLE_BIFROST'] == 1 and ext == bifrost_ext) or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
             (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
@@ -1032,6 +1038,7 @@ for ext in os.listdir(ext_base_dir):
                 procedural = EXT[2]
                 ext_files.append(procedural)
                 env.Install(TARGET_PROCEDURAL_PATH, procedural)
+                package_files += [[str(EXT[2][0]), 'shaders']]    
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
@@ -1115,7 +1122,7 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedurals%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
