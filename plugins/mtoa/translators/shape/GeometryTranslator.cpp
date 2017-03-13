@@ -647,7 +647,12 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
       }
 
       if (p_vidxs.length() <= nsides_list[faceIndex])      
-         continue; // no holes in this face
+      {
+         // No holes in this face
+         pit.next();
+         mayaPolyVtxId += p_vidxs.length();
+         continue; 
+      }
 
       // This face has holes, we need to loop over each hole now
       holeIndex = 0;
