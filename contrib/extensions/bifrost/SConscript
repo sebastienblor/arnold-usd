@@ -86,6 +86,9 @@ source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_bas
 
 local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
 src_rendercore_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
+if system.os() == 'darwin':
+    local_env.Append(LIBS=Split('tbb'))
+
 local_env.Append(CPPPATH = os.path.join(src_rendercore_dir, 'api'))
 source_files  += [os.path.join(src_rendercore_dir, x) for x in find_files_recursive(src_rendercore_dir, ['.c', '.cpp'])]
 
@@ -113,7 +116,8 @@ setup(local_env, "bifrostapi")
 src_base_dir  = os.path.join(ext_base_dir, 'procedural')
 source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 local_env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost', 'procedural', 'common', 'include')])
-
+if system.os() == 'darwin':
+    local_env.Append(LIBS=Split('tbb'))
 local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
 src_rendercore_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
 local_env.Append(CPPPATH = os.path.join(src_rendercore_dir, 'api'))
