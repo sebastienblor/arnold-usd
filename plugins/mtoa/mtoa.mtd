@@ -1956,13 +1956,13 @@
 
 [node abs]
     maya.id                 INT     0x00115D5A
-    maya.name               STRING  "aiMathAbs"
+    maya.name               STRING  "aiAbs"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node add]
     maya.id                 INT     0x00115D5B
-    maya.name               STRING  "aiMathAdd"
+    maya.name               STRING  "aiAdd"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -1979,7 +1979,7 @@
 
 [node atan]
     maya.id                 INT     0x00115D5C
-    maya.name               STRING  "aiMathAtan"
+    maya.name               STRING  "aiAtan"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2023,7 +2023,7 @@
 
 [node compare]
     maya.id                 INT     0x00115D7E
-    maya.name               STRING  "aiMathCompare"
+    maya.name               STRING  "aiCompare"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2052,7 +2052,7 @@ desc STRING "The refractive index value for the red/green/blue wavelengths (e.g.
 
 [node complement]
     maya.id                 INT     0x00115D7F
-    maya.name               STRING  "aiMathComplement"
+    maya.name               STRING  "aiComplement"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
     
@@ -2067,7 +2067,7 @@ desc STRING "The refractive index value for the red/green/blue wavelengths (e.g.
 
 [node cross]
     maya.id                 INT     0x00115D64
-    maya.name               STRING  "aiMathCross"
+    maya.name               STRING  "aiCross"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2128,20 +2128,20 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node divide]
     maya.id                 INT     0x00115D62
-    maya.name               STRING  "aiMathDivide"
+    maya.name               STRING  "aiDivide"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 
 [node dot]
     maya.id                 INT     0x00115D63
-    maya.name               STRING  "aiMathDot"
+    maya.name               STRING  "aiDot"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node exp]
     maya.id                 INT     0x00115D65
-    maya.name               STRING  "aiMathExp"
+    maya.name               STRING  "aiExp"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2175,26 +2175,26 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node fraction]
     maya.id                 INT     0x00115D68
-    maya.name               STRING  "aiMathFraction"
+    maya.name               STRING  "aiFraction"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node is_finite]
     maya.id                 INT     0x00115D69
-    maya.name               STRING  "aiMathIsFinite"
+    maya.name               STRING  "aiIsFinite"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node length]
     maya.id                 INT     0x00115D6A
-    maya.name               STRING  "aiMathLength"
+    maya.name               STRING  "aiLength"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 
 [node log]
     maya.id                 INT     0x00115D6B
-    maya.name               STRING  "aiMathLog"
+    maya.name               STRING  "aiLog"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2203,13 +2203,13 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node max]
     maya.id                 INT     0x00115D6C
-    maya.name               STRING  "aiMathMax"
+    maya.name               STRING  "aiMax"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node min]
     maya.id                 INT     0x00115D6D
-    maya.name               STRING  "aiMathMin"
+    maya.name               STRING  "aiMin"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2218,7 +2218,7 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node modulo]
     maya.id                 INT     0x00115D6E
-    maya.name               STRING  "aiMathModulo"
+    maya.name               STRING  "aiModulo"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2230,19 +2230,19 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node multiply]
     maya.id                 INT     0x00115D70
-    maya.name               STRING  "aiMathMultiply"
+    maya.name               STRING  "aiMultiply"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node negate]
     maya.id                 INT     0x00115D71
-    maya.name               STRING  "aiMathNegate"
+    maya.name               STRING  "aiNegate"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
 [node normalize]
     maya.id                 INT     0x00115D72
-    maya.name               STRING  "aiMathNormalize"
+    maya.name               STRING  "aiNormalize"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2251,7 +2251,7 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node pow]
     maya.id                 INT     0x00115D73
-    maya.name               STRING  "aiMathPow"
+    maya.name               STRING  "aiPow"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2264,7 +2264,7 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node random]
     maya.id                 INT     0x00115D74
-    maya.name               STRING  "aiMathRandom"
+    maya.name               STRING  "aiRandom"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2278,7 +2278,7 @@ desc STRING "Multiplies the curvature by this factor."
 
 [node reciprocal]
     maya.id                 INT     0x00115D82
-    maya.name               STRING  "aiMathReciprocal"
+    maya.name               STRING  "aiReciprocal"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2331,7 +2331,7 @@ maya.swatch             BOOL    False
 
 [node sign]
     maya.id                 INT     0x00115D77
-    maya.name               STRING  "aiMathSign"
+    maya.name               STRING  "aiSign"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2348,7 +2348,7 @@ maya.swatch             BOOL    False
 
 [node sqrt]
     maya.id                 INT     0x00115D79
-    maya.name               STRING  "aiMathSqrt"
+    maya.name               STRING  "aiSqrt"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2364,7 +2364,7 @@ maya.swatch             BOOL    False
 
 [node subtract]
     maya.id                 INT     0x00115D7A
-    maya.name               STRING  "aiMathSubstract"
+    maya.name               STRING  "aiSubstract"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
@@ -2435,7 +2435,7 @@ c4d.step FLOAT 0.01
 
 [node trigo]
     maya.id                 INT     0x00115D7C
-    maya.name               STRING  "aiMathTrigo"
+    maya.name               STRING  "aiTrigo"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    True
 
