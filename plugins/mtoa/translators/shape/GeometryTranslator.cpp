@@ -268,7 +268,8 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
                                     AtArray*& refNormals,
                                     AtArray*& rnidxs,
                                     AtArray*& refTangents,
-                                    AtArray*& refBitangents)
+                                    AtArray*& refBitangents,
+                                    const std::vector<unsigned int> &polyVtxRemap)
 {
    MFnMesh fnMesh(m_dagPath);
    MDagPath dagPathRef = GetMeshRefObj();
@@ -301,8 +302,10 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
          // normal_ids should have the same length as the amount of polygon vertices
          rnidxs = AiArrayAllocate((int)normal_ids.length(), 1, AI_TYPE_UINT);
          
-         for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, n, normal_ids[n]);
-         
+         if (polyVtxRemap.empty())
+            for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, n, normal_ids[n]);
+         else
+            for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, polyVtxRemap[n], normal_ids[n]);
       }
 
       MPlug pExportRefTangents = fnMesh.findPlug("aiExportRefTangents", false,
@@ -363,7 +366,8 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
 }
 
 bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
-                                          unordered_map<std::string, std::vector<float> > &vcolors)
+                                          unordered_map<std::string, std::vector<float> > &vcolors,
+                                          const std::vector<unsigned int> &polyVtxRemap)
 {
    MFnMesh fnMesh(geometry);
 
@@ -464,11 +468,23 @@ bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
             // So we can get -1 values when no color was painted for a given vertex. Do we want to keep that feature ?
             MColor unsetColor(0.f, 0.f, 0.f, 0.f);
             MStatus status = fnMesh.getFaceVertexColors(face_vtx_colors, &names[j], &unsetColor);
+
             if (status == MS::kSuccess)
             {
                colors.assign(numFaceVertices * dim, 0.f);
-               // FIXME the memcpy seems to work, make sure it is safe to assume this
-               memcpy(&colors[0], &face_vtx_colors[0], numFaceVertices * sizeof(MColor));
+
+               if (polyVtxRemap.empty())
+                  memcpy(&colors[0], &face_vtx_colors[0], numFaceVertices * sizeof(MColor));
+               else
+               {
+                  int colorId = 0;
+                  for (unsigned int f = 0; f < numFaceVertices; ++f)
+                  {
+                     colors[colorId++] = face_vtx_colors[f][0];
+                     colors[colorId++] = face_vtx_colors[f][1];
+                     colors[colorId++] = face_vtx_colors[f][2];
+                  }
+               }
             }
          }
       }
@@ -483,8 +499,10 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
       std::vector<AtArray*>& uvidxs,
       const std::vector<MString>& uvNames,
       bool exportNormals,
-      bool exportUVs)
-{
+      bool exportUVs, 
+      std::vector<unsigned int> &polyVtxRemap,
+      std::vector<unsigned int> &arnoldPolygonHoles)
+{   
 
    MFnMesh fnMesh(geometry);
 
@@ -497,60 +515,213 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
    // means "no polygons in this mesh"
    if (np == 0) return false;
 
-   nsides = AiArrayAllocate(np, 1, AI_TYPE_UINT);
+   
+   std::vector<unsigned int> nsides_list;
+   nsides_list.resize(np, 0u);
+
+   bool hasHoles = false;
+   int numHoles = 0;
+   MIntArray holeInfoArray, holeVertexArray;
+   std::vector<unsigned int> polygonHoleVertices;
+
+   int holeIndex, faceIndex, holeFaceIndex, h, numPolygonVertexCount;
    unsigned int polygonVertexCount = 0; // for counting the number of ids
-   for (unsigned int p(0); p < np; ++p)
+   
+   // Loop over mesh polygons in order to get the amount of vertices per polygon
+   MItMeshPolygon pit(geometry);
+   while(!pit.isDone())
    {
-      int numPolygonVertexCount = fnMesh.polygonVertexCount(p);
-      polygonVertexCount += numPolygonVertexCount;
-      // Num points/sides to the poly.
-      AiArraySetUInt(nsides, p, (unsigned int)numPolygonVertexCount);
+      faceIndex = pit.index(); // polygon index
+
+      // amount of vertices in this polygon
+      numPolygonVertexCount = pit.polygonVertexCount();
+
+      // check if this polygon has a hole
+      if (numPolygonVertexCount >= 6 && pit.isHoled()) 
+      {
+         if (!hasHoles)
+         {  
+            // first time we find a hole in this mesh, let's
+            // initialize the holes data
+            hasHoles = true;
+            MStatus status;
+            numHoles = fnMesh.getHoles(holeInfoArray, holeVertexArray, &status);
+            if (status != MS::kSuccess)
+               numHoles = 0;  
+
+            holeIndex = 0;
+            for (h = 0; h < numHoles; ++h, holeIndex += 3)
+            {
+               // polygon on which this hole lies
+               holeFaceIndex = holeInfoArray[holeIndex];
+               if (holeFaceIndex >= polygonHoleVertices.size())
+               {
+                  // resize dynamically the polygonHoleVertices table
+                  polygonHoleVertices.resize(holeFaceIndex + 1, 0);
+               }
+               // add the amount of hole vertices to the list for each polygon
+               polygonHoleVertices[holeFaceIndex] += holeInfoArray[holeIndex + 1];
+            }
+         }         
+
+         if (faceIndex < polygonHoleVertices.size())
+         {
+            // substracting the amount of hole-vertices in this face
+            numPolygonVertexCount -= polygonHoleVertices[faceIndex];
+         }
+      }
+
+      polygonVertexCount += numPolygonVertexCount; // increment the total amount of polygon vertices
+      nsides_list[faceIndex] = ((unsigned int)numPolygonVertexCount); // store the amount of vertices for this polygon
+
+      pit.next(); // next polygon
    }
-   vidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+
+   // store the amount of polyVertex without holes
+   unsigned int holesOffset = polygonVertexCount;
+
+   if (hasHoles)
+   {
+      holeIndex = 0;
+
+      nsides_list.resize(nsides_list.size() + numHoles, 0u);
+      arnoldPolygonHoles.reserve(numHoles * 2);
+
+      for (int h = 0; h < numHoles; ++h, holeIndex += 3)
+      {
+         int numPolygonVertexCount = holeInfoArray[holeIndex + 1];
+         nsides_list[np+h] = (unsigned int)numPolygonVertexCount;
+         polygonVertexCount += numPolygonVertexCount;
+         arnoldPolygonHoles.push_back(np+h);
+         arnoldPolygonHoles.push_back(holeInfoArray[holeIndex]);
+      }
+      polyVtxRemap.resize(polygonVertexCount, 0u);
+
+   }
+
+   nsides = AiArrayConvert(nsides_list.size(), 1, AI_TYPE_UINT, &nsides_list[0]);
+   
+   std::vector<unsigned int> vidxsVec(polygonVertexCount, 0u);
+   
    if (exportUVs)
    {
       uvidxs.resize(numUVSets);
       for (size_t i = 0; i < numUVSets; ++i)
          uvidxs[i] = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
    }
-   // Vertex indicies.
+
    MIntArray p_vidxs;
+   unsigned int arnoldPolyVtxId = 0;
+   unsigned int mayaPolyVtxId = 0;
    unsigned int id = 0;
-   for (unsigned int p(0); p < np; ++p)
+   unsigned int holePolyVtxId = 0;
+   unsigned int v, i;
+
+   pit.reset();
+   while(!pit.isDone())
    {
-      fnMesh.getPolygonVertices(p, p_vidxs);
-      for(uint v(0); v < p_vidxs.length(); ++v, ++id)
+      pit.getVertices(p_vidxs);
+      faceIndex = pit.index();
+
+      // loop over real poly vertices
+      for(v = 0; v < nsides_list[faceIndex]; ++v)
       {
-         AiArraySetUInt(vidxs, id, p_vidxs[v]);
+         id = arnoldPolyVtxId++;
+         vidxsVec[id] = p_vidxs[v];
          // UVs
          if (exportUVs)
          {
-            for (size_t i = 0; i < numUVSets; ++i)
+            for (i = 0; i < numUVSets; ++i)
             {
-               if (fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]) != MS::kSuccess)
+               if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
                {
                   uv_id = 0;
                   AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
-                               uvNames[i].asChar(), p, v, fnMesh.name().asChar());
+                               uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
                }
                AiArraySetUInt(uvidxs[i], id, uv_id);
             }
          }
+         if (hasHoles)
+            polyVtxRemap[mayaPolyVtxId + v] = id; // maya-to-arnold polyVtx index remapping
       }
-   }
 
-   MIntArray vertex_counts, normal_ids;
+      if (p_vidxs.length() <= nsides_list[faceIndex])      
+      {
+         // No holes in this face
+         pit.next();
+         mayaPolyVtxId += p_vidxs.length();
+         continue; 
+      }
+
+      // This face has holes, we need to loop over each hole now
+      holeIndex = 0;
+      for (int h = 0; h < numHoles; ++h, holeIndex += 3)
+      {
+         if (holeInfoArray[holeIndex] != faceIndex)
+            continue; // not a hole in this current face
+
+         int holeVtxCount = holeInfoArray[holeIndex + 1]; // how many vertices in this hole
+         int startHoleIndex = holeInfoArray[holeIndex + 2]; // starting index for this hole in holeVertexArray
+
+         // loop over hole vertices in inverted order
+         for (int hv = holeVtxCount - 1; hv >= 0; --hv)
+         {
+            int vtxIndex = holeVertexArray[hv + startHoleIndex]; // index of this vertex
+
+            // simple linear search over the "hole-vertices" for this face
+            for (uint v = nsides_list[faceIndex]; v < p_vidxs.length(); ++v)
+            {
+               if (p_vidxs[v] != vtxIndex)
+                  continue;
+
+               // found the good vertex
+               
+               id = holesOffset + holePolyVtxId++; // arnold polyVtx index
+               vidxsVec[id] = p_vidxs[v];
+               // UVs
+               if (exportUVs)
+               {
+                  for (size_t i = 0; i < numUVSets; ++i)
+                  {
+                     // FIXME : I have a problem here, the index doesn't seem to be correct for holes
+                     if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
+                     {
+                        uv_id = 0;
+                        AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
+                                     uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
+                     }
+                     AiArraySetUInt(uvidxs[i], id, uv_id);
+                  }
+               }
+               polyVtxRemap[mayaPolyVtxId + v] = id;
+               break;
+            }
+         }
+      }
+
+      mayaPolyVtxId += p_vidxs.length();
+      pit.next();
+   }
+   // now convert the array
+   vidxs =  AiArrayConvert(polygonVertexCount, 1, AI_TYPE_UINT, &vidxsVec[0]);
+   
    // Normals.
    if (exportNormals)
    {
-      nidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
-      id = 0;
+      std::vector<unsigned int> nidxsVec(polygonVertexCount, 0u);
+      MIntArray vertex_counts, normal_ids;
+   
       fnMesh.getNormalIds(vertex_counts, normal_ids);
-      for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(nidxs, id, normal_ids[n]);
+      if (polyVtxRemap.empty())
+         for(uint n(0); n < normal_ids.length(); ++n) nidxsVec[n] = normal_ids[n];
+      else
+         for(uint n(0); n < normal_ids.length(); ++n) nidxsVec[polyVtxRemap[n]] = normal_ids[n];
+
+      nidxs =  AiArrayConvert(polygonVertexCount, 1, AI_TYPE_UINT, &nidxsVec[0]);
    }
 
    return true;
-
 }
 
 void CPolygonGeometryTranslator::ExportShaders()
@@ -810,28 +981,31 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       AtArray* refNormals = 0; AtArray* rnidxs = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
+      std::vector<unsigned int> polyVtxRemap;
+      std::vector<unsigned int> arnoldPolygonHoles;
+
       // Get UVs
       bool exportUVs = GetUVs(geometry, uvs, uvNames);
 
-      // Get reference objects
-      bool exportReferenceObjects = GetRefObj(refVertices, refNormals, rnidxs,
-                                              refTangents, refBitangents);
-      bool exportRefVerts = refVertices != 0;
-      bool exportRefNorms = refNormals != 0;
-      bool exportRefTangents = refTangents != 0;
-
       // Get Component IDs
-      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
+      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, 
+         exportUVs, polyVtxRemap, arnoldPolygonHoles);
       // if GetComponentIDs returned false, it means that no polygons were found in the mesh. 
       // In that case uvidxs is empty, so we must not try to export the UVs
       if (!exportCompIDs) exportUVs = false;
 
+      // Get reference objects
+      bool exportReferenceObjects = GetRefObj(refVertices, refNormals, rnidxs,
+                                              refTangents, refBitangents, polyVtxRemap);
+      bool exportRefVerts = refVertices != 0;
+      bool exportRefNorms = refNormals != 0;
+      bool exportRefTangents = refTangents != 0;
 
       // Get Vertex Colors
       MPlug plug = FindMayaPlug("aiMotionVectorSource");
       if (!plug.isNull())
          m_motionVectorSource = plug.asString();
-      bool exportColors = GetVertexColors(geometry, vcolors);
+      bool exportColors = GetVertexColors(geometry, vcolors, polyVtxRemap);
 
       // Get all tangents, bitangents
       AtArray* tangents; AtArray* bitangents;
@@ -962,6 +1136,12 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          AiNodeSetArray(polymesh, "vidxs", vidxs);
          if (exportNormals)
             AiNodeSetArray(polymesh, "nidxs", nidxs);
+
+         if (!arnoldPolygonHoles.empty())
+         {
+            AtArray *polygonHoles = AiArrayConvert(arnoldPolygonHoles.size(), 1, AI_TYPE_UINT, &arnoldPolygonHoles[0]);
+            AiNodeSetArray(polymesh, "polygon_holes", polygonHoles);
+         }
       }
       
       if (exportReferenceObjects) // TODO : use local space for this and manually transform that later, 

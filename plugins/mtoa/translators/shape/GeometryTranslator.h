@@ -64,9 +64,10 @@ protected:
          AtArray*& refNormals,
          AtArray*& rnidxs,
          AtArray*& refTangents,
-         AtArray*& refBitangents);
+         AtArray*& refBitangents,
+         const std::vector<unsigned int> &polyVtxRemap);
    bool GetVertexColors(const MObject &geometry,
-         unordered_map<std::string, std::vector<float> > &vcolors);
+         unordered_map<std::string, std::vector<float> > &vcolors, const std::vector<unsigned int> &polyVtxRemap);
    bool GetComponentIDs(const MObject &geometry,
          AtArray*& nsides,
          AtArray*& vidxs,
@@ -74,7 +75,9 @@ protected:
          std::vector<AtArray*>& uvidxs,
          const std::vector<MString>& uvNames,
          bool exportNormals,
-         bool exportUVs);
+         bool exportUVs, 
+         std::vector<unsigned int> &polyVtxRemap,
+         std::vector<unsigned int> &arnoldPolygonHoles);
    
    void GetDisplacement(MObject& obj, 
          float& dispPadding, 
