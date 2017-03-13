@@ -10,6 +10,7 @@ Makefile
 *.suo
 *.ncb
 *.vcproj
+*.obj
 /custom.py
 plugins/mtoa/utils/MercurialID.h
 external/qt-4.8.5-include/*

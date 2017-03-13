@@ -79,6 +79,12 @@ MObject CArnoldVolumeShape::s_motion_start;
 MObject CArnoldVolumeShape::s_motion_end;
 MObject CArnoldVolumeShape::s_velocity_threshold;
 
+MObject CArnoldVolumeShape::s_type;
+MObject CArnoldVolumeShape::s_threshold;
+MObject CArnoldVolumeShape::s_samples;
+MObject CArnoldVolumeShape::s_solver;
+MObject CArnoldVolumeShape::s_field_channel;
+MObject CArnoldVolumeShape::s_field;
 
 CArnoldVolumeShape::CArnoldVolumeShape()
 {
@@ -131,7 +137,7 @@ MStatus CArnoldVolumeShape::initialize()
    MFnNumericAttribute nAttr;
    MFnEnumAttribute eAttr;
 
-   s_attributes.SetNode("volume_openvdb");
+   s_attributes.SetNode("volume");
 
    CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
@@ -248,7 +254,43 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_velocity_threshold);
+
+   s_type = eAttr.create("type", "type", 0);
+   eAttr.addField("volume", 0);
+   eAttr.addField("implicit", 1);
+   eAttr.setKeyable(false);
+   addAttribute(s_type);
    
+
+   s_threshold = nAttr.create("threshold", "threshold", MFnNumericData::kFloat, 0.f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_threshold);
+
+   s_samples = nAttr.create("samples", "samples", MFnNumericData::kInt, 10);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(s_samples);
+
+   s_field_channel = tAttr.create("fieldChannel", "fieldChannel", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setStorable(true);
+   addAttribute(s_field_channel);
+
+   s_solver = eAttr.create("solver", "solver", 0);
+   eAttr.addField("uniform", 0);
+   eAttr.addField("levelset", 1);
+   eAttr.setKeyable(false);
+   addAttribute(s_solver);
+
+   s_field = nAttr.createColor("field", "field");
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   nAttr.setDefault(0.f, 0.f, 0.f);
+   addAttribute(s_field);
+
    return MStatus::kSuccess;
 }
 

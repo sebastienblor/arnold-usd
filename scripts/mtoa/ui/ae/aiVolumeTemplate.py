@@ -16,6 +16,36 @@ def ArnoldVolumeAutoStepChange(nodeName):
     pm.editorTemplate(dimControl=(nodeName, "stepSize",  dimStepSize))
     pm.editorTemplate(dimControl=(nodeName, "stepScale", dimStepScale))
 
+def ArnoldVolumeTypeChange(nodeName):
+    volumeType = cmds.getAttr(nodeName + '.type')
+    dimImplicitAttrs = True
+    if (volumeType == 1):
+        dimImplicitAttrs = False
+
+    pm.editorTemplate(dimControl=(nodeName, "field",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "solver",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "fieldChannel",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "samples",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "threshold",  dimImplicitAttrs))
+
+def aiVolumeFieldReplace(plugName):
+    nodeAndAttrs = plugName.split(".")
+    node = nodeAndAttrs[0]
+    ctrlName = "aiVolumeImplicit"
+    ctrlName += nodeAndAttrs[1]
+    cmds.attrNavigationControlGrp(ctrlName, edit=True, attribute=(plugName),  cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
+
+def aiVolumeFieldNew(plugName):
+    pm.setUITemplate('attributeEditorTemplate', pst=True)
+
+    nodeAndAttrs = plugName.split(".")
+    ctrlName = "aiVolumeImplicit"
+    ctrlName += nodeAndAttrs[1]
+
+    cmds.attrNavigationControlGrp(ctrlName, label=nodeAndAttrs[1], cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
+    pm.setUITemplate(ppt=True)
+    aiVolumeFieldReplace(plugName)
+
 class AEaiVolumeTemplate(ShaderAETemplate):
 
     def filenameEdit(self, nodeName, mPath) :
@@ -29,12 +59,10 @@ class AEaiVolumeTemplate(ShaderAETemplate):
             return
 
         gridsList = ai.AiVolumeFileGetChannels(mPath);
-
         numGrids = ai.AiArrayGetNumElements(gridsList)
         for i in range(0, numGrids):
-            cmds.textScrollList(self.gridsListPath, edit=True, append=ai.AiArrayGetStr(gridsList, i))
-
-        if len(gridsList) > 0:
+            cmds.textScrollList(self.gridsListPath, edit=True, append=str(ai.AiArrayGetStr(gridsList, i)))
+        if numGrids > 0:
             cmds.textScrollList(self.gridsListPath, edit=True, selectIndexedItem=1)
 
     def filenameButtonPush(self, nodeName):
@@ -167,27 +195,26 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         
 
         filename = cmds.getAttr(attrName)
-        
         if filename is not None and os.path.isfile(filename):
             gridsList = ai.AiVolumeFileGetChannels(filename);
-
+            
             numGrids = ai.AiArrayGetNumElements(gridsList)
             for i in range(0, numGrids):
-                cmds.textScrollList(gridListField, edit=True, append=ai.AiArrayGetStr(gridsList, i))
+                cmds.textScrollList(gridListField, edit=True, append=str(ai.AiArrayGetStr(gridsList, i)))
 
             # if parameter 'grids' wasn't previously set, choose the first in the file list
             # FIXME do we really want to do that, or do we want to have a hardcoded default ?
             # note that nothing will happen until the node is shown in AE
             if not gridsParam:
-                if len(gridsList) > 0:
+                if numGrids > 0:
                     if not isVelocity:
                         cmds.textScrollList(gridListField, edit=True, selectIndexedItem=1)
-                        cmds.setAttr(nodeName, gridsList[0], type='string')
+                        cmds.setAttr(nodeName, str(ai.AiArrayGetStr(gridsList,0)), type='string')
             else:
                 self.updateList(gridsParam, isVelocity)
 
         cmds.textField(gridTextField, edit=True, text=cmds.getAttr(nodeName))
-
+        
 
 
     def setup(self):
@@ -230,9 +257,16 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('velocityThreshold')
         self.addSeparator()
 
+        self.addControl('type', changeCommand=ArnoldVolumeTypeChange)
+        self.addControl('solver')
+        self.addControl('threshold')
+        self.addControl('samples')
+        self.addControl('fieldChannel')
+        self.addCustom("field", aiVolumeFieldNew, aiVolumeFieldReplace)
+        #self.addControl('field')
+
         self.endLayout()
-        
-        
+                
         self.beginLayout('Render Stats', collapse=True)
         self.beginNoOptimize()
         self.addControl("castsShadows")
@@ -252,7 +286,6 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         
         self.endLayout()
     
-
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
         
