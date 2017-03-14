@@ -463,6 +463,8 @@ void CArnoldStandInSubSceneOverride::update(
     // if we have any UI items to draw then add them here
     MHWRender::MRenderItem* thisItem = NULL;
 
+    unsigned int depthPriority;
+
     // three different states (selected, unselected, and lead)
     // same geometry, different shaders.
     for (int x = 0; x < 3; ++x)
@@ -482,8 +484,17 @@ void CArnoldStandInSubSceneOverride::update(
                     if (!thisItem)
                     {
                         // Create the ui render item if needed
+                        if(i == 1)
+                        {
+                            depthPriority = x == 1 ? MHWRender::MRenderItem::sActiveWireDepthPriority : MHWRender::MRenderItem::sDormantPointDepthPriority;
+                        }
+                        else
+                        {
+                            depthPriority = x == 1 ? MHWRender::MRenderItem::sActiveLineDepthPriority : MHWRender::MRenderItem::sDormantWireDepthPriority;
+                        }
+
                         geometryType = (i > 0) ? MHWRender::MGeometry::kLines : MHWRender::MGeometry::kPoints;
-                        thisItem = getItem(container, itemName, geometryType, MHWRender::MRenderItem::sActiveLineDepthPriority);
+                        thisItem = getItem(container, itemName, geometryType, depthPriority);
                         if (i > 2) // first three are not cubes, last two are.
                             updateWireframeCubeItem(standIn, thisItem, shaders[x], isDeferBox);
                         else
