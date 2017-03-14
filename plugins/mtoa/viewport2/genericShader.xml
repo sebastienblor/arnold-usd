@@ -6,6 +6,7 @@
         <fragment_ref name="standardShaderLightingCombiner" ref="standardShaderLightingCombiner" />
         <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
         <fragment_ref name="standardShaderLightingData" ref="standardShaderLightingData" />
+        <fragment_ref name="textureMapping" ref="textureMapping" />
     </fragments>
     <connections>
         <connect from="genericShaderCombiner.genericShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
@@ -13,16 +14,29 @@
         <connect from="standardShaderDiffuse.outColor" to="maya16LightAccum.scaledDiffuse" />
         <connect from="standardShaderLightingData.standardShaderLightingData" to="standardShaderDiffuse.lightingData" />
         <connect from="standardShaderLightingCombiner.lightingData" to="standardShaderLightingData.standardShaderLightingData" />
+        <connect from="textureMapping.outColor" to="genericShaderCombiner.texColor" />
     </connections>
     <properties>
         <float3 name="hardwareColor" ref="genericShaderCombiner.hardwareColor" />
-        <float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
+        <float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />
         <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />
         <float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
         <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
         <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />
         <string name="selector" ref="maya16LightAccum.selector" />
+        <float2 name="uvcoords" ref="textureMapping.uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
+        <texture2 name="map" ref="textureMapping.map" />
+        <sampler name="textureSampler" ref="textureMapping.textureSampler" />
+        <float3 name="multiply" ref="genericShaderCombiner.multiply" />
+        <float3 name="offset" ref="genericShaderCombiner.offset" />
+        <float name="soffset" ref="textureMapping.soffset" />
+        <float name="toffset" ref="textureMapping.toffset" />
+        <float name="sscale" ref="textureMapping.sscale" />
+        <float name="tscale" ref="textureMapping.tscale" />
+        <bool name="sflip" ref="textureMapping.sflip" />
+        <bool name="tflip" ref="textureMapping.tflip" />
+        <bool name="swapSt" ref="textureMapping.swapSt" />
         <undefined name="GPUStage" ref="genericShaderCombiner.GPUStage" />
     </properties>
     <values>

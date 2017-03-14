@@ -16,9 +16,16 @@ public:
    virtual void updateDG();
    virtual void updateShader(MHWRender::MShaderInstance& shader,
                               const MHWRender::MAttributeParameterMappingList& mappings);
+
+   virtual bool valueChangeRequiresFragmentRebuild(const MPlug* plug) const;
 private:
    ArnoldGenericShaderOverride(const MObject& obj);
 
    MObject m_object;
    MString m_fragmentName;
+
+   MString m_fileName;
+   MString fResolvedMapName;
+   MString fResolvedSamplerName;
+   const MHWRender::MSamplerState* fSamplerState;
 };

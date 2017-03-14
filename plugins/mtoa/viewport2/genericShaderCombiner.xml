@@ -3,6 +3,9 @@
     <properties>
         <float3 name="hardwareColor" />
         <float3 name="diffuseInput" />
+        <float4 name="texColor" />
+        <float3 name="multiply" />
+        <float3 name="offset" />
         <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
@@ -18,7 +21,10 @@
                 <![CDATA[
 mayaSurfaceShaderOutput genericShaderCombiner(
                 float3 hardwareColor,
-                float3 diffuseInput)
+                float3 diffuseInput,
+                float4 texColor,
+                float3 multiply,
+                float3 offset)
 {
     mayaSurfaceShaderOutput result;
 
@@ -38,11 +44,14 @@ mayaSurfaceShaderOutput genericShaderCombiner(
                  <![CDATA[
 mayaSurfaceShaderOutput genericShaderCombiner(
                 float3 hardwareColor,
-                float3 diffuseInput)
+                float3 diffuseInput,
+                float4 texColor,
+                float3 multiply,
+                float3 offset)
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset )  * hardwareColor * diffuseInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -58,7 +67,10 @@ mayaSurfaceShaderOutput genericShaderCombiner(
                  <![CDATA[
 mayaSurfaceShaderOutput genericShaderCombiner(
                 vec3 hardwareColor,
-                vec3 diffuseInput)
+                vec3 diffuseInput,
+                vec4 texColor,
+                vec3 multiply,
+                vec3 offset)
 {
     mayaSurfaceShaderOutput result;
 

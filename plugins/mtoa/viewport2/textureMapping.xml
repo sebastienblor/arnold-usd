@@ -1,0 +1,105 @@
+<fragment uiName="textureMapping" name="textureMapping" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[Combines inputs for the skin shader.]]></description>
+    <properties>
+        <float2 name="uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
+        <texture2 name="map" />
+        <sampler name="textureSampler" />
+        <float name="soffset" />
+        <float name="toffset" />
+        <float name="sscale" />
+        <float name="tscale" />
+        <bool name="sflip" />
+        <bool name="tflip" />
+        <bool name="swapSt" />
+    </properties>
+    <values>
+    </values>
+    <outputs>
+        <float4 name="outColor" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="textureMapping" />
+            <source>
+                <![CDATA[
+float4 textureMapping(
+                float2 uv, 
+                texture2D map, 
+                sampler2D mapSampler,
+                float soffset,
+                float toffset,
+                float sscale,
+                float tscale,
+                bool sflip,
+                bool tflip,
+                bool swapSt)
+{
+    float4 result = float4(1, 0, 0, 1);
+	uv -= floor(uv);
+	uv.y = 1.0f - uv.y;
+	float4 color = tex2D(mapSampler, uv);
+	result = color;
+	return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="textureMapping" />
+            <source>
+                 <![CDATA[
+float4 textureMapping(
+                float2 uv, 
+                Texture2D map, 
+                sampler mapSampler,
+                float soffset,
+                float toffset,
+                float sscale,
+                float tscale,
+                bool sflip,
+                bool tflip,
+                bool swapSt)
+{
+    float2 texUV = uv * float2(sscale, tscale) + float2(soffset, toffset);
+
+    if(sflip)
+        texUV.x *= -1;
+    if(tflip)
+        texUV.y *= -1;
+    if(swapSt)
+        texUV.xy = texUV.yx;
+
+	texUV.y = 1.0f - texUV.y;
+	float4 color = map.Sample(mapSampler, texUV);
+	return color;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
+            <function_name val="textureMapping" />
+            <source>
+                 <![CDATA[
+vec4 textureMapping(
+                vec2 uv, 
+                sampler2D mapSampler,
+                float soffset,
+                float toffset,
+                float sscale,
+                float tscale,
+                bool sflip,
+                bool tflip,
+                bool swapSt)
+{
+    vec4 result;
+	uv -= floor(uv);
+	uv.y = 1.0f - uv.y;
+	vec4 color = texture(mapSampler, uv);
+	result = color;
+	return result;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>
