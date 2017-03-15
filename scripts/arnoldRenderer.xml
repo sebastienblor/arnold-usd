@@ -36,6 +36,8 @@
     <attrString n="im" s="defaultRenderGlobals.imageFilePrefix" t="filename" h="Image file output name"/>
     <attr n="rt" s="defaultArnoldRenderOptions.renderType" t="int" h="Render type (0 = render, 1 = export ass, 2 = export and kick)"/>
     <mel n="lic" p="1" s="setAttr defaultArnoldRenderOptions.skipLicenseCheck (!(int(%1)))" t="boolean" h="Turn licensing on or off"/>
+    <attrString n="of" s="defaultArnoldDriver.aiTranslator" t="format" h="Output image file format. See the Render Settings window to\n\tfind available formats"/>
+    <mel n="fnc" s='setMayaSoftwareFrameExt("%1", 1)' p="1" t="int" h="File Name Convention: any of name, name.ext, ... See the\n\tRender Settings window to find available options. Use namec and\n\tnamec.ext for Multi Frame Concatenated formats. As a shortcut,\n\tnumbers 1, 2, ... can also be used"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Frame numbering options"/>
