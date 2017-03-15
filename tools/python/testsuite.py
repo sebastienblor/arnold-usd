@@ -12,11 +12,80 @@ import system
 import glob
 import colorama
 import subprocess
+import platform
 from colorama import Fore, Style
+import shlex
 
 from build_tools import process_return_code, saferemove
 
 colorama.init(autoreset=True)
+
+# Obtain information about the system only once, when loaded
+os_name = platform.system().lower()
+
+_linux   = 'linux'
+_darwin  = 'darwin'
+_windows = 'windows'
+
+
+# These data avoid writing error prone checks like "os.system.os == 'linux'"
+is_linux   = os_name == _linux
+is_darwin  = os_name == _darwin
+is_windows = os_name == _windows
+
+# startupinfo to prevent Windows processes to display a console window
+if is_windows:
+    _no_window = subprocess.STARTUPINFO()
+    _no_window.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+else:
+    _no_window = None
+
+
+
+
+def cmd_execute(cmd, env=None, cwd=None, verbose=False, shell=False, callback=lambda line: None, timeout=0):
+   '''
+   Executes a command and returns a tuple with the exit code and the output
+   '''
+   # Things to do before executing the command:
+   # - Split cmd into a list if it is a string
+   # - Initialize the output and return codes
+   # - Normalize environment to strings
+   c = shlex.split(cmd, posix=(not is_windows)) if (type(cmd) == str) and not shell else cmd
+   r, o = 0, []
+   e = None
+   # Create a dictionary with the arguments for subprocess.Popen()
+   popen_args = {
+      'args'    : c,
+      'stdout'  : subprocess.PIPE,
+      'stderr'  : subprocess.STDOUT,
+      'cwd'     : cwd,
+      'env'     : e,
+      'shell'   : shell,
+      'bufsize' : 1,
+      'universal_newlines': True,
+   }
+   try:
+      t = time.time()
+      p = subprocess.Popen(**popen_args)
+      with p.stdout:
+         for line in iter(p.stdout.readline, b''):
+            if not line:
+               break
+            elif timeout and (time.time() - t) > timeout:
+               p.kill()
+               break
+            line = line.rstrip('\n')
+            o.append(line)
+            callback(line)
+            if verbose:
+               print(line)
+      r = p.wait()
+   except OSError as e:
+      o = [e.strerror]
+      r = e.errno
+   return (r, o)
+
 
 # for windows we use a fake lock to keep the code cleaner
 class DummyLock(object):
@@ -193,13 +262,13 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                     img_diff_cmd = ('%s ' + img_diff_opt + ' --diff %s %s') % (oiiotool_path, output, reference)
             
                     img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o dif_testrender.jpg ' % tuple([channels] + [alpha] * 4)
-                    
+            
                     f = open(os.path.join(test_dir, "%s.diff.log") % test_name, 'w')
-                    p = subprocess.Popen(img_diff_cmd, cwd=test_dir, shell=0, stdout=f, stderr=subprocess.STDOUT)
+
+                    retcode, out = cmd_execute(img_diff_cmd, cwd=test_dir, shell=use_shell)
                     f.close()
 
-                    diff_retcode = p.wait()
-                    if diff_retcode != 0:
+                    if retcode != 0:
                         status = 'FAILED'
                         cause = 'images differ'
                         current_status = 'FAILED'
