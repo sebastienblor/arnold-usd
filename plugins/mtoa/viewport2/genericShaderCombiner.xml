@@ -28,7 +28,7 @@ mayaSurfaceShaderOutput genericShaderCombiner(
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset ) * hardwareColor * diffuseInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -51,7 +51,7 @@ mayaSurfaceShaderOutput genericShaderCombiner(
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = ( texColor.rgb * multiply + offset )  * hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset ) * hardwareColor * diffuseInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -74,7 +74,7 @@ mayaSurfaceShaderOutput genericShaderCombiner(
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset ) * hardwareColor * diffuseInput;
     result.outTransparency = vec3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = vec3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = vec3(-1.0e+06f, -1.0e+06f, -1.0e+06f);

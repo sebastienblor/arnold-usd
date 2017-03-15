@@ -34,12 +34,18 @@ float4 textureMapping(
                 bool tflip,
                 bool swapSt)
 {
-    float4 result = float4(1, 0, 0, 1);
-	uv -= floor(uv);
-	uv.y = 1.0f - uv.y;
-	float4 color = tex2D(mapSampler, uv);
-	result = color;
-	return result;
+    float2 texUV = uv * float2(sscale, tscale) + float2(soffset, toffset);
+
+    if(sflip)
+        texUV.x *= -1;
+    if(tflip)
+        texUV.y *= -1;
+    if(swapSt)
+        texUV.xy = texUV.yx;
+
+	texUV.y = 1.0f - texUV.y;
+	float4 color = tex2D(mapSampler, texUV);
+	return color;
 }
                 ]]>
             </source>
@@ -91,12 +97,18 @@ vec4 textureMapping(
                 bool tflip,
                 bool swapSt)
 {
-    vec4 result;
-	uv -= floor(uv);
-	uv.y = 1.0f - uv.y;
-	vec4 color = texture(mapSampler, uv);
-	result = color;
-	return result;
+    vec2 texUV = uv * vec2(sscale, tscale) + vec2(soffset, toffset);
+
+    if(sflip)
+        texUV.x *= -1;
+    if(tflip)
+        texUV.y *= -1;
+    if(swapSt)
+        texUV.xy = texUV.yx;
+
+	texUV.y = 1.0f - texUV.y;
+	vec4 color = texture(mapSampler, texUV);
+	return color;
 }
                 ]]>
             </source>

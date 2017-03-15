@@ -24,8 +24,5 @@ private:
    MObject m_object;
    MString m_fragmentName;
 
-   MString m_fileName;
-   MString fResolvedMapName;
-   MString fResolvedSamplerName;
-   const MHWRender::MSamplerState* fSamplerState;
+   mutable const MHWRender::MSamplerState* m_samplerState;
 };
