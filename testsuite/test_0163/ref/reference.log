@@ -21,10 +21,10 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   520MB         | log started Fri Mar 10 13:49:05 2017
-00:00:00   520MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   520MB         | running on REM8WCK8D2, pid=6940
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+00:00:00   520MB         | log started Thu Mar 16 14:45:17 2017
+00:00:00   520MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   520MB         | running on REM8WCK8D2, pid=11100
 00:00:00   520MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
 00:00:00   520MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
 00:00:00   520MB         |  soft limit for open files raised from 512 to 2048
@@ -35,8 +35,8 @@ pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK
 00:00:00   526MB WARNING | [mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type "aiSwitchShader"
 00:00:00   526MB ERROR   | [mtoa.attr] Unable to create extension attribute .aiUserOptions
 
-API error detected in 00:00:00   526MB ERROR   | [mtoa.attr] Unable to create extension attribute .index
-plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+API error detected in plugins\m00:00:00   526MB ERROR   | [mtoa.attr] Unable to create extension attribute .index
+toa\attributes\AttrHelper.cpp at line 1272
 : (kInvalidParameter): Object is incompatible with this method
 00:00:00   526MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0
 
@@ -159,15 +159,11 @@ API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
 API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
 : (kInvalidParameter): Object is incompatible with this method
 
-API error detected in plugins\mtoa\attributes\At00:00:00   526MB WARNING | [mtoa.attr] CBaseAttrHelper passed unknown Arnold node type "volume_openvdb"
-trHelper.cpp at line 1272
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
 : (kInvalidParameter): Object is incompatible with this method
 
 API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
 : (kInvalidParameter): Object is incompatible with this method
-00:00:00   526MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "self_shadows"
-00:00:00   526MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "opaque"
-00:00:00   526MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "matte"
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
 00:00:00   530MB ERROR   | [mtoa.attr] Arnold parameter "hair.uparam" does not exist.
@@ -180,38 +176,35 @@ Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-00:00:00   534MB         | log started Fri Mar 10 13:49:06 2017
-00:00:00   534MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   534MB         | running on REM8WCK8D2, pid=6940
-00:00:00   534MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   534MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   534MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   534MB         |  
-00:00:00   534MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   534MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   534MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   535MB         | log started Thu Mar 16 14:45:17 2017
+00:00:00   535MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   535MB         | running on REM8WCK8D2, pid=11100
+00:00:00   535MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   535MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   535MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   535MB         |  
+00:00:00   535MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   535MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   535MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
 00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
 00:00:00 WARNING |  node "MayaClamp" is already installed
 00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
 00:00:00 WARNING |  node "MayaCondition" is already installed
 00:00:00 WARNING |  node "MayaReverse" is already installed
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0163/test.ma line 7: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0163/test.ma line 200: Unrecognized node type 'aiSkin'; preserving node information during this session.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0163/test.ma line 235: The aiHair 'aiHair2' has no '.diffuse_cache' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0163/test.ma line 235: setAttr: No object matches name: .diffuse_cache
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0163/test.ma line 201: Unrecognized node type 'aiSkin'; preserving node information during this session.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  0.95 seconds.
-Error: line 1: Error reading file.
-Error: line 1: Error reading file.
-00:00:00   538MB         | log started Fri Mar 10 13:49:06 2017
-00:00:00   538MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   538MB         | running on REM8WCK8D2, pid=6940
+File read in  0.85 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0163/test.ma
+00:00:00   538MB         | log started Thu Mar 16 14:45:18 2017
+00:00:00   538MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   538MB         | running on REM8WCK8D2, pid=11100
 00:00:00   538MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
 00:00:00   538MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
 00:00:00   538MB         |  soft limit for open files raised from 2048 to 2048
 00:00:00   538MB         |  
 00:00:00   538MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   538MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
+00:00:00   538MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
 00:00:00   538MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
 00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
 00:00:00 WARNING |  node "MayaClamp" is already installed
