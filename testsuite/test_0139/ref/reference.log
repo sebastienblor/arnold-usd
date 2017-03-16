@@ -21,14 +21,619 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-4.2.15.1-windows\bin
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   485MB         | log started Thu Mar 16 21:08:13 2017
+00:00:00   485MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   485MB         | running on REM8WCK8D2, pid=5560
+00:00:00   485MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   485MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   485MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   485MB         |  
+00:00:00   485MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   485MB ERROR   | [mtoa.attr] Arnold parameter "skydome_light.time_samples" does not exist.
+00:00:00   489MB WARNING | [mtoa] [syncolor_shaders] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+00:00:00   491MB WARNING | [mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type "aiSwitchShader"
+00:00:00   491MB ERROR   | [mtoa.attr] Unable to create extension attribute .aiUserOptions
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
+API error detected in plugins\mtoa\a00:00:00   491MB ERROR   | [mtoa.attr] Unable to create extension attribute .index
+ttributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+00:00:00   491MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+00:00:00   491MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0A
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+00:00:00   491MB ERROR   | [mtoa.attr] Unable to create extension attribute .input1
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
+: (kInvalidParameter): Object is incompatible with this method
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
+
+00:00:00   494MB ERROR   | [mtoa.attr] Arnold parameter "hair.uparam" does not exist.
+00:00:00   494MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
+00:00:00   494MB ERROR   | [mtoa.attr] Arnold parameter "hair.vparam" does not exist.
+00:00:00   494MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
+00:00:00   494MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_diffuse" does not exist.
+00:00:00   494MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_specular" does not exist.
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0139/test.ma line 8: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-File read in  0.93 seconds.
+00:00:00   499MB         | log started Thu Mar 16 21:08:13 2017
+00:00:00   499MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   499MB         | running on REM8WCK8D2, pid=5560
+00:00:00   499MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   499MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   499MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   499MB         |  
+00:00:00   499MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   499MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   499MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   499MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   499MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   499MB         | running on REM8WCK8D2, pid=5560
+00:00:00   499MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   499MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   499MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   499MB         |  
+00:00:00   499MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   499MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   499MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   501MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   501MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   501MB         | running on REM8WCK8D2, pid=5560
+00:00:00   501MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   501MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   501MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   501MB         |  
+00:00:00   501MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   501MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   501MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   501MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   501MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   501MB         | running on REM8WCK8D2, pid=5560
+00:00:00   501MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   501MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   501MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   501MB         |  
+00:00:00   501MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   501MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   501MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   513MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   513MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   513MB         | running on REM8WCK8D2, pid=5560
+00:00:00   513MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   513MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   513MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   513MB         |  
+00:00:00   513MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   513MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   513MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   513MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   513MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   513MB         | running on REM8WCK8D2, pid=5560
+00:00:00   513MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   513MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   513MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   513MB         |  
+00:00:00   513MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   513MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   513MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   514MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   514MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   514MB         | running on REM8WCK8D2, pid=5560
+00:00:00   514MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   514MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   514MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   514MB         |  
+00:00:00   514MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   514MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   514MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   514MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   514MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   514MB         | running on REM8WCK8D2, pid=5560
+00:00:00   514MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   514MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   514MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   514MB         |  
+00:00:00   514MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   514MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   514MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   515MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   515MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   515MB         | running on REM8WCK8D2, pid=5560
+00:00:00   515MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   515MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   515MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   515MB         |  
+00:00:00   515MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   515MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   515MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   515MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   515MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   515MB         | running on REM8WCK8D2, pid=5560
+00:00:00   515MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   515MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   515MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   515MB         |  
+00:00:00   515MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   515MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   515MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   517MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   517MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   517MB         | running on REM8WCK8D2, pid=5560
+00:00:00   517MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   517MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   517MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   517MB         |  
+00:00:00   517MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   517MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   517MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   521MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   521MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   521MB         | running on REM8WCK8D2, pid=5560
+00:00:00   521MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   521MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   521MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   521MB         |  
+00:00:00   521MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   521MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   521MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   522MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   522MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   522MB         | running on REM8WCK8D2, pid=5560
+00:00:00   522MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   522MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   522MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   522MB         |  
+00:00:00   522MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   522MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   522MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   522MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   522MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   522MB         | running on REM8WCK8D2, pid=5560
+00:00:00   522MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   522MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   522MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   522MB         |  
+00:00:00   522MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   522MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   522MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   522MB         | log started Thu Mar 16 21:08:14 2017
+00:00:00   522MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   522MB         | running on REM8WCK8D2, pid=5560
+00:00:00   522MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   522MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   522MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   522MB         |  
+00:00:00   522MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   522MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   522MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   532MB         | log started Thu Mar 16 21:08:18 2017
+00:00:00   532MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   532MB         | running on REM8WCK8D2, pid=5560
+00:00:00   532MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   532MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   532MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   532MB         |  
+00:00:00   532MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   532MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   532MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   532MB         | log started Thu Mar 16 21:08:18 2017
+00:00:00   532MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   532MB         | running on REM8WCK8D2, pid=5560
+00:00:00   532MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   532MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   532MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   532MB         |  
+00:00:00   532MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   532MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   532MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00   569MB         | log started Thu Mar 16 21:08:18 2017
+00:00:00   569MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   569MB         | running on REM8WCK8D2, pid=5560
+00:00:00   569MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   569MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   569MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   569MB         |  
+00:00:00   569MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   569MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   569MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0139/test.ma line 9: line 1: Cannot find procedure "nodeEdRefreshVnnNodeTreeListers".
+00:00:00   581MB         | log started Thu Mar 16 21:08:18 2017
+00:00:00   581MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   581MB         | running on REM8WCK8D2, pid=5560
+00:00:00   581MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   581MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   581MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   581MB         |  
+00:00:00   581MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   581MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   581MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+File read in  0.38 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0139/test.ma
+00:00:00   595MB         | log started Thu Mar 16 21:08:18 2017
+00:00:00   595MB         | Arnold 5.0.0.0.wip [6615b985] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/13 15:53:11
+00:00:00   595MB         | running on REM8WCK8D2, pid=5560
+00:00:00   595MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   595MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   595MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   595MB         |  
+00:00:00   595MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   595MB         | loaded 127 plugins from 11 lib(s) in 0:00.00
+00:00:00   595MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+
+Avaliable channels:
+	density, 1
+	smoke, 1
+	smoke_distance, 1
+	temperature, 1
+	transition, 1
+	velocity_u, 1
+	velocity_v, 1
+	velocity_w, 1
+
+Processing PRIMVARS List...
+
+	Final list of Primvars to Export:
+		temperature, 1
+
+	MaxElementCount: 1
+
+
+	Final list of channels to load:
+		temperature
+		smoke
+
+Parameters for the Plugin:
+	Using in memory data!
+	inputChannel: smoke
+	primVarNames: temperature
+	channelScale: 1.000000
+	velocityScale: 0.041667 fps: 24.000000
+	spaceScale: 1.000000
+
+	smoothing: OFF
+
+	clipBox: OFF
+
+	DEBUG: 1
+
+
+Load time:0.000000 secs
+
+File Info:
+	filename: C:/Users/blaines/AppData/Local/Temp/1c-2c-18-73/AeroObject_volume.0008.bif
+	frame: 0 version: 9 compression: 0
+
+	Component 1: AeroObject-volume
+	Layout: AeroObject-volumeLayout
+		VoxelScale: 0.5
+		MaxDepth: 7
+		Total TileCount: 258
+			TileCount 0: 1
+			TileCount 1: 19
+			TileCount 2: 19
+			TileCount 3: 19
+			TileCount 4: 19
+			TileCount 5: 19
+			TileCount 6: 27
+			TileCount 7: 135
+
+THIS IS A VOXEL CACHE!
+
+Rendering Channel is: AeroObject.AeroObject-volume.smoke...
+
+Processing PRIMVARS List...
+	Final list of Primvars to Export:
+		temperature
+
+MotionBlur: OFF
+
+
+Channel Min-Max Values:
+	Channel: temperature
+	Min:0.00, Max: 1046.22
+
+
+---------------------------------------
+[BIFROST VOLUME] END OUTPUT
+---------------------------------------
+
+smoke - 0 - 0
+temperature - 256 - 0
+Creating a new sampler for channel smoke and thread 1...
+Creating a new sampler for channel temperature and thread 1...
+Creating a new sampler for channel smoke and thread 5...
+Creating a new sampler for channel temperature and thread 5...
+Creating a new sampler for channel smoke and thread 2...
+Creating a new sampler for channel temperature and thread 2...
+Creating a new sampler for channel smoke and thread 24...
+Creating a new sampler for channel smoke and thread 12...
+Creating a new sampler for channel smoke and thread 21...
+Creating a new sampler for channel smoke and thread 25...
+Creating a new sampler for channel smoke and thread 8...
+Creating a new sampler for channel smoke and thread 14...
+Creating a new sampler for channel temperature and thread 12...
+Creating a new sampler for channel temperature and thread 21...
+Creating a new sampler for channel smoke and thread 9...
+Creating a new sampler for channel temperature and thread 8...
+Creating a new sampler for channel smoke and thread 36...
+Creating a new sampler for channel smoke and thread 7...
+Creating a new sampler for channel temperature and thread 24...
+Creating a new sampler for channel smoke and thread 27...
+Creating a new sampler for channel smoke and thread 39...
+Creating a new sampler for channel smoke and thread 34...
+Creating a new sampler for channel smoke and thread 26...
+Creating a new sampler for channel smoke and thread 17...
+Creating a new sampler for channel smoke and thread 10...
+Creating a new sampler for channel smoke and thread 37...
+Creating a new sampler for channel temperature and thread 39...
+Creating a new sampler for channel smoke and thread 38...
+Creating a new sampler for channel smoke and thread 6...
+Creating a new sampler for channel temperature and thread 17...
+Creating a new sampler for channel temperature and thread 10...
+Creating a new sampler for channel smoke and thread 11...
+Creating a new sampler for channel smoke and thread 32...
+Creating a new sampler for channel temperature and thread 11...
+Creating a new sampler for channel smoke and thread 23...
+Creating a new sampler for channel temperature and thread 37...
+Creating a new sampler for channel temperature and thread 23...
+Creating a new sampler for channel smoke and thread 15...
+Creating a new sampler for channel smoke and thread 29...
+Creating a new sampler for channel smoke and thread 20...
+Creating a new sampler for channel temperature and thread 15...
+Creating a new sampler for channel temperature and thread 25...
+Creating a new sampler for channel smoke and thread 19...
+Creating a new sampler for channel smoke and thread 30...
+Creating a new sampler for channel temperature and thread 19...
+Creating a new sampler for channel smoke and thread 18...
+Creating a new sampler for channel smoke and thread 13...
+Creating a new sampler for channel smoke and thread 0...
+Creating a new sampler for channel temperature and thread 14...
+Creating a new sampler for channel temperature and thread 9...
+Creating a new sampler for channel temperature and thread 36...
+Creating a new sampler for channel temperature and thread 7...
+Creating a new sampler for channel temperature and thread 27...
+Creating a new sampler for channel temperature and thread 26...
+Creating a new sampler for channel smoke and thread 28...
+Creating a new sampler for channel temperature and thread 34...
+Creating a new sampler for channel smoke and thread 35...
+Creating a new sampler for channel smoke and thread 31...
+Creating a new sampler for channel temperature and thread 6...
+Creating a new sampler for channel temperature and thread 31...
+Creating a new sampler for channel smoke and thread 22...
+Creating a new sampler for channel temperature and thread 32...
+Creating a new sampler for channel temperature and thread 22...
+Creating a new sampler for channel smoke and thread 33...
+Creating a new sampler for channel smoke and thread 4...
+Creating a new sampler for channel smoke and thread 16...
+Creating a new sampler for channel temperature and thread 29...
+Creating a new sampler for channel temperature and thread 20...
+Creating a new sampler for channel smoke and thread 3...
+Creating a new sampler for channel temperature and thread 30...
+Creating a new sampler for channel temperature and thread 13...
+Creating a new sampler for channel temperature and thread 0...
+Creating a new sampler for channel temperature and thread 18...
+Creating a new sampler for channel temperature and thread 28...
+Creating a new sampler for channel temperature and thread 38...
+Creating a new sampler for channel temperature and thread 35...
+Creating a new sampler for channel temperature and thread 33...
+Creating a new sampler for channel temperature and thread 4...
+Creating a new sampler for channel temperature and thread 16...
+Creating a new sampler for channel temperature and thread 3...
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0139\test.ma completed.
