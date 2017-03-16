@@ -2,6 +2,7 @@
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldGenericShaderOverride.h"
+#include "viewport2/ArnoldAiImageShaderOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
@@ -268,6 +269,10 @@ namespace // <anonymous>
          "drawdb/shader/surface/arnold/genericShader",
          "arnoldGenericShaderOverride",
          ArnoldGenericShaderOverride::creator
+      } , {
+          "drawdb/shader/surface/arnold/image",
+          "arnoldAiImageShaderOverride",
+          ArnoldAiImageShaderOverride::creator
       }
    };
 

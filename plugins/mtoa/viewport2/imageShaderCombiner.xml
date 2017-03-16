@@ -1,28 +1,34 @@
-<fragment uiName="genericShaderCombiner" name="genericShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+<fragment uiName="imageShaderCombiner" name="imageShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Combines inputs for the skin shader.]]></description>
     <properties>
         <float3 name="hardwareColor" />
         <float3 name="diffuseInput" />
+        <float4 name="texColor" />
+        <float3 name="multiply" />
+        <float3 name="offset" />
         <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
         <float3 name="hardwareColor" value="1.0 1.0 1.0" />
     </values>
     <outputs>
-        <struct name="genericShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
+        <struct name="imageShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
     </outputs>
     <implementation>
         <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
-            <function_name val="genericShaderCombiner" />
+            <function_name val="imageShaderCombiner" />
             <source>
                 <![CDATA[
-mayaSurfaceShaderOutput genericShaderCombiner(
+mayaSurfaceShaderOutput imageShaderCombiner(
                 float3 hardwareColor,
-                float3 diffuseInput)
+                float3 diffuseInput,
+                float4 texColor,
+                float3 multiply,
+                float3 offset)
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset ) * hardwareColor * diffuseInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -33,16 +39,19 @@ mayaSurfaceShaderOutput genericShaderCombiner(
             </source>
         </implementation>
         <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
-            <function_name val="genericShaderCombiner" />
+            <function_name val="imageShaderCombiner" />
             <source>
                  <![CDATA[
-mayaSurfaceShaderOutput genericShaderCombiner(
+mayaSurfaceShaderOutput imageShaderCombiner(
                 float3 hardwareColor,
-                float3 diffuseInput)
+                float3 diffuseInput,
+                float4 texColor,
+                float3 multiply,
+                float3 offset)
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset ) * hardwareColor * diffuseInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -53,16 +62,19 @@ mayaSurfaceShaderOutput genericShaderCombiner(
             </source>
         </implementation>
         <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
-            <function_name val="genericShaderCombiner" />
+            <function_name val="imageShaderCombiner" />
             <source>
                  <![CDATA[
-mayaSurfaceShaderOutput genericShaderCombiner(
+mayaSurfaceShaderOutput imageShaderCombiner(
                 vec3 hardwareColor,
-                vec3 diffuseInput)
+                vec3 diffuseInput,
+                vec4 texColor,
+                vec3 multiply,
+                vec3 offset)
 {
     mayaSurfaceShaderOutput result;
 
-    result.outColor = hardwareColor * diffuseInput;
+    result.outColor = ( texColor.rgb * multiply + offset ) * hardwareColor * diffuseInput;
     result.outTransparency = vec3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = vec3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = vec3(-1.0e+06f, -1.0e+06f, -1.0e+06f);

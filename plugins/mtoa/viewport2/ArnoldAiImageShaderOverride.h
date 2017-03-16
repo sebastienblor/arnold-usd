@@ -2,12 +2,12 @@
 
 #include <maya/MPxSurfaceShadingNodeOverride.h>
 
-class ArnoldGenericShaderOverride : public MHWRender::MPxSurfaceShadingNodeOverride
+class ArnoldAiImageShaderOverride : public MHWRender::MPxSurfaceShadingNodeOverride
 {
 public:
    static MHWRender::MPxSurfaceShadingNodeOverride* creator(const MObject& obj);
 
-   virtual ~ArnoldGenericShaderOverride();
+   virtual ~ArnoldAiImageShaderOverride();
 
    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
    virtual MString fragmentName() const;
@@ -16,9 +16,13 @@ public:
    virtual void updateDG();
    virtual void updateShader(MHWRender::MShaderInstance& shader,
                               const MHWRender::MAttributeParameterMappingList& mappings);
+
+   virtual bool valueChangeRequiresFragmentRebuild(const MPlug* plug) const;
 private:
-   ArnoldGenericShaderOverride(const MObject& obj);
+   ArnoldAiImageShaderOverride(const MObject& obj);
 
    MObject m_object;
    MString m_fragmentName;
+
+   mutable const MHWRender::MSamplerState* m_samplerState;
 };
