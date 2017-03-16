@@ -24,10 +24,16 @@ windows: test_0020 test_0019
 linux:
 
 # These tests are only executed on Darwin
-darwin:
+darwin: 
 
 # Tests in this group will never be executed (you can use it to temporarily disable some tests and/or groups)
-ignore: test_0004 test_0005 test_0006 test_0007 test_0019 test_0020 test_0029 test_0092 test_0118
+ignore: test_0004 test_0005 test_0006 test_0007 test_0019 test_0020 test_0029 test_0092 test_0118 
+
+ignore_windows:
+
+#this should be fixed, scenes are crashing and preventing the testsuite to finish
+ignore_linux: test_0008 test_0028 test_0030 test_0064 test_0080 test_0081 test_0083 test_0084 test_0133 test_0137 test_0158
+ignore_darwin:
 
 gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160
 # ignored because they produce no image

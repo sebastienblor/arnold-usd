@@ -73,7 +73,10 @@ def saferemove(path):
    '''
    for p in glob.glob(path):
       if os.path.isfile(p):
-          os.remove(p)
+          try:
+             os.remove(p)
+          except OSError as e:
+             print "Couldn't remove %s"  % p
 
 def copy_file_or_link(src, target):
    '''
