@@ -2379,7 +2379,7 @@ maya.swatch             BOOL    False
 
     [attr index]
     min INT 0
-    min INT 19
+    max INT 19
     
 #enable thin_film
 [node thin_film]
