@@ -1847,31 +1847,6 @@ void CAiMixShaderTranslator::Export(AtNode* shader)
 
 void CAiMixShaderTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "mix_shader");
-   CAttrData data;
-
-   data.defaultValue.RGBA() = AI_RGBA_ZERO;
-   data.keyable = true;
-   data.linkable = true;
-   data.name = "shader1";
-   data.shortName = "shader1";
-   helper.MakeInputRGBA(data);
-
-   data.name = "shader2";
-   data.shortName = "shader2";
-   helper.MakeInputRGBA(data);
-
-   data.defaultValue.RGB() = AtRGB(0.5 ,0.5, 0.5);
-   data.name = "mix";
-   data.shortName = "mix";
-   helper.MakeInputRGBA(data);
-
-   data.defaultValue.INT() = 0;
-   data.name = "mode";
-   data.shortName = "mode";
-   data.enums.append("blend");
-   data.enums.append("add");
-   helper.MakeInputEnum(data);  
 }
 
 
@@ -1947,28 +1922,6 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
 
 void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "switch_shader");
-   CAttrData data;
-
-   data.defaultValue.INT() = 0;
-   data.keyable = true;
-   data.linkable = true;
-   data.name = "index";
-   data.shortName = "index";
-   helper.MakeInputInt(data);
-
-   data.defaultValue.RGBA() = AI_RGBA_ZERO;
-   data.keyable = true;
-   data.linkable = true;
-
-   for (unsigned int i = 0; i < 20; ++i)
-   {
-      MString attrName = "input";
-      attrName += (int)i;
-      data.name = attrName;
-      data.shortName = attrName;
-      helper.MakeInputRGBA(data);
-   }
 }
 
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
