@@ -356,7 +356,7 @@ void CArnoldStandInSubSceneOverride::update(
     bool wantWireframe(mode==2||mode==3||mode==5);
     bool wantPoints(mode==4);
     bool wantShaded(mode==5||mode==6);
-    bool wantDeferBox = (standIn->deferStandinLoad() && drawOverride <= 0);
+    //bool wantDeferBox = (standIn->deferStandinLoad() && drawOverride <= 0);
 
     MHWRender::MRenderItem* shadedItem = NULL;
     MHWRender::MRenderItem* selectedItem = NULL;
@@ -393,7 +393,7 @@ void CArnoldStandInSubSceneOverride::update(
         else
             shadedItem->enable(true);
  
-        if (!wantWireframe && !wantDeferBox)
+        if (!wantWireframe /*&& !wantDeferBox*/)
         {
             // if only drawing shaded mode then draw a box for the selected instances 
             // to give some indication of the selection.  Don't draw any boxes for unselected items.
@@ -457,8 +457,8 @@ void CArnoldStandInSubSceneOverride::update(
         wantBox = (geom->VisibleGeometryCount() == 0); // no visible geometry.  Draw a single box.
     }
 
-    const bool testType[] = { wantPoints, wantWireframe, wantBoxes, wantBox, wantDeferBox };
-    const MString typeNames[] = { "_wires", "_points", "_boxes", "_box", "_deferBox" };
+    const bool testType[] = { wantPoints, wantWireframe, wantBoxes, wantBox/*, wantDeferBox*/ };
+    const MString typeNames[] = { "_wires", "_points", "_boxes", "_box", /*"_deferBox"*/ };
 
     // if we have any UI items to draw then add them here
     MHWRender::MRenderItem* thisItem = NULL;
@@ -472,7 +472,7 @@ void CArnoldStandInSubSceneOverride::update(
         if (test[x])
         {
             // five different types (wires, points, boxes, box, and/or deferBox)
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 4; ++i)
             {
                 MString itemName = itemNames[x];
                 itemName += typeNames[i];
@@ -496,7 +496,7 @@ void CArnoldStandInSubSceneOverride::update(
                         geometryType = (i > 0) ? MHWRender::MGeometry::kLines : MHWRender::MGeometry::kPoints;
                         thisItem = getItem(container, itemName, geometryType, depthPriority);
                         if (i > 2) // first three are not cubes, last two are.
-                            updateWireframeCubeItem(standIn, thisItem, shaders[x], isDeferBox);
+                            updateWireframeCubeItem(standIn, thisItem, shaders[x], false /*isDeferBox*/);
                         else
                         {
                             bool boxMode = (i == 2);
@@ -507,10 +507,10 @@ void CArnoldStandInSubSceneOverride::update(
                     else
                         thisItem->enable(true);
 
-                    if (isDeferBox)
-                        *(deferItems[x]) = thisItem;
-                    else
-                        *(items[x]) = thisItem;
+                    //if (isDeferBox)
+                        //*(deferItems[x]) = thisItem;
+                    //else
+                    *(items[x]) = thisItem;
                 }
                 else // clear or reset the item if not used
                     clearRenderItem(container, itemName, mReuseBuffers);
@@ -519,7 +519,7 @@ void CArnoldStandInSubSceneOverride::update(
         else
         {
             // clear or reset the item if it is not used.  This includes the wires, points, boxes, box and deferred box.
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 4; ++i)
             {
                 clearRenderItem(container, itemNames[x] + typeNames[i], mReuseBuffers);
             }

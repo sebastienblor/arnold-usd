@@ -699,10 +699,9 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          printf("strData=%s\n",strData.c_str() );
 #endif
          // Set other arguments
-         AiNodeSetBool( shape, "load_at_init", true );
          AiNodeSetStr( shape, "data", strData.c_str() );
-         AiNodeSetVec( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
-         AiNodeSetVec( shape, "max", info.fBoundingBox[3], info.fBoundingBox[4], info.fBoundingBox[5] );
+         //AiNodeSetVec( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
+         //AiNodeSetVec( shape, "max", info.fBoundingBox[3], info.fBoundingBox[4], info.fBoundingBox[5] );
 
          AiNodeDeclare( shape, "irRenderCam", "constant STRING" );
          AiNodeDeclare( shape, "irRenderCamFOV", "constant STRING" );

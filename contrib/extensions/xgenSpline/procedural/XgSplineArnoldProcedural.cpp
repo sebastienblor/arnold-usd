@@ -348,10 +348,6 @@ procedural_cleanup
     delete reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return 1;
 }
-procedural_init_bounds
-{
-    return true;
-}
 procedural_num_nodes
 {
     XgSplineProcedural* proc = reinterpret_cast<XgSplineProcedural*>(user_ptr);

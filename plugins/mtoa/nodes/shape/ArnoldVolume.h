@@ -46,7 +46,7 @@ private:
 
    // Attributes
    static CStaticAttrHelper s_attributes;
-   static MObject s_loadAtInit;
+//   static MObject s_loadAtInit;
    
    static MObject s_stepSize;
    static MObject s_boundingBoxMin;

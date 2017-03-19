@@ -24,14 +24,14 @@ void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
    CShapeTranslator::MakeCommonAttributes(helper);
 
    CAttrData data;
-
+/*
    data.defaultValue.BOOL() = true;
    data.name = "deferStandinLoad";
    data.shortName = "deferStandinLoad";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
-
+*/
    data.name = "dso";
    data.shortName = "dso";
    data.channelBox = false;
@@ -111,12 +111,13 @@ void CArnoldProceduralTranslator::Export(AtNode* node)
          
       GetSessionOptions().FormatProceduralPath(resolvedName);
       AiNodeSetStr(node, "filename", resolvedName.asChar());
-
+/*
       MPlug deferStandinLoad = dagNode.findPlug("deferStandinLoad");
       if (!deferStandinLoad.asBool())
           AiNodeSetBool(node, "load_at_init", true);
       else
           ExportBoundingBox(node);
+*/
 
       MPlug data = dagNode.findPlug("data");
       int sizeData = strlen(data.asString().asChar());
@@ -203,13 +204,14 @@ void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
 
-   if (plugName == ".deferStandinLoad" || plugName == ".dso" || plugName == ".data")
+   if (/*plugName == ".deferStandinLoad" ||*/ plugName == ".dso" || plugName == ".data")
       SetUpdateMode(AI_RECREATE_NODE);
    
    CShapeTranslator::NodeChanged(node, plug);
 }
 
 
+/*
 void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
 {
    MFnDagNode dagNode(m_dagPath.node());
@@ -228,4 +230,4 @@ void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
    AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
 
-
+*/

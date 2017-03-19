@@ -425,8 +425,11 @@ node_parameters
     AiParameterFlt( "shutterEnd" , 0);
 }
 
-procedural_init_bounds
+
+// we read the UI parameters into their global vars
+procedural_init
 {
+
 	//
 	//
 	// DECLARATIONS
@@ -983,13 +986,14 @@ procedural_init_bounds
 	computeIsosurfaceBounds( frameData->srcChannel, bboxMin, bboxMax);
 
 	// set bounds for the proc
+/*
 	bounds->min[0] = data->bbox.min.x = frameData->bboxSim.world.min[0] = (float) bboxMin[0];
 	bounds->min[1] = data->bbox.min.y = frameData->bboxSim.world.min[1] = (float) bboxMin[1];
 	bounds->min[2] = data->bbox.min.z = frameData->bboxSim.world.min[2] = (float) bboxMin[2];
 	bounds->max[0] = data->bbox.max.x = frameData->bboxSim.world.max[0] = (float) bboxMax[0];
 	bounds->max[1] = data->bbox.max.y = frameData->bboxSim.world.max[1] = (float) bboxMax[1];
 	bounds->max[2] = data->bbox.max.z = frameData->bboxSim.world.max[2] = (float) bboxMax[2];
-
+*/
 	frameData->bboxSim.world.calcFromMinMax();
 
 	//
@@ -1049,22 +1053,13 @@ procedural_init_bounds
 
 	data->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 	memset( data->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
-	return true;
-}
-
-// we read the UI parameters into their global vars
-procedural_init
-{
-	BifrostPolyMeshUserData *nodeData = (BifrostPolyMeshUserData *) *user_ptr;
-
-	ImplicitsInputData *inData = nodeData->inputData;
 
 	if ( inData->error ) {
         AiMsgWarning("Input data has errors");
 		return false;
 	} else {
 		// now do creation of nodes
-		bool success = ProcSubdivide( nodeData );
+		bool success = ProcSubdivide( data );
 
 		printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
 		return success;

@@ -125,7 +125,7 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
       }
    }
 }
-
+/*
 void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
 {
    AiNodeSetVec(volume, "min",
@@ -138,7 +138,7 @@ void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
                         m_DagNode.findPlug("max").child(1).asFloat(),
                         m_DagNode.findPlug("max").child(2).asFloat());
 }
-
+*/
 
 AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 {
@@ -157,12 +157,13 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 
    if (!update)
    {
-      MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
+
+/*      MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
       if (loadAtInit.asBool())
          AiNodeSetBool(volume, "load_at_init", true);
       
       ExportBoundingBox(volume);
-
+*/
       MString filename = m_DagNode.findPlug("filename").asString();
       int start = 0;
       int end = 0;

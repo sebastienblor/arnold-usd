@@ -20,7 +20,7 @@ protected:
       CShapeTranslator()
    {}
    
-   void ExportBoundingBox(AtNode* procedural);
+//   void ExportBoundingBox(AtNode* procedural);
 
    void ExportVolumeShaders(AtNode* procedural);
    virtual void ExportShaders();

@@ -455,14 +455,6 @@ node_parameters
     AiParameterFlt( "shutterEnd" , 0);
 }
 
-procedural_init_bounds
-{
-    *user_ptr = NULL;
-    bounds->min.x = bounds->min.y = bounds->min.z = -FLT_MIN;
-    bounds->max.x = bounds->max.y = bounds->max.z = FLT_MAX;
-    return true;
-}
-
 // we read the UI parameters into their global vars
 procedural_init
 {

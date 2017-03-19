@@ -21,7 +21,7 @@ protected:
       CShapeTranslator()
    {}
    
-   void ExportBoundingBox(AtNode* procedural);
+   //void ExportBoundingBox(AtNode* procedural);
 
    void ExportStandinsShaders(AtNode* procedural);
    virtual void ExportShaders();

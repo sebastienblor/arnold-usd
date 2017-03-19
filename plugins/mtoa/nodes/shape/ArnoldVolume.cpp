@@ -53,7 +53,7 @@ MTypeId CArnoldVolumeShape::id(ARNOLD_NODEID_VOLUME);
 
 CStaticAttrHelper CArnoldVolumeShape::s_attributes(CArnoldVolumeShape::addAttribute);
 
-MObject CArnoldVolumeShape::s_loadAtInit;
+//MObject CArnoldVolumeShape::s_loadAtInit;
 MObject CArnoldVolumeShape::s_stepSize;
 MObject CArnoldVolumeShape::s_boundingBoxMin;
 MObject CArnoldVolumeShape::s_boundingBoxMax;
@@ -141,12 +141,12 @@ MStatus CArnoldVolumeShape::initialize()
 
    CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
-   s_loadAtInit = nAttr.create("loadAtInit", "loadAtInit", MFnNumericData::kBoolean, 0);
+   /*s_loadAtInit = nAttr.create("loadAtInit", "loadAtInit", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_loadAtInit);
-   
+   */
    s_stepSize = nAttr.create("stepSize", "stepSize", MFnNumericData::kFloat, 0);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
@@ -162,7 +162,7 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_stepScale);
    
-   s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, 0.0);
+   /*s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, 0.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
@@ -173,7 +173,7 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
-
+*/
    s_disable_ray_extents = nAttr.create("disableRayExtents", "disableRayExtents", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -316,7 +316,7 @@ MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& p
 {
    // If more attributes are added which require update, they
    // shoukd be added here
-   if (plug == s_loadAtInit ||
+   if (/*plug == s_loadAtInit ||*/
       plug == s_stepSize ||
       plug == s_stepScale ||
       plug == s_autoStepSize ||

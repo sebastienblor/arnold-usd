@@ -241,7 +241,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('autoStepSize', label = "Automatic Step Size", changeCommand=ArnoldVolumeAutoStepChange)
         self.addControl('stepSize')
         self.addControl('stepScale')
-        self.addControl('loadAtInit')
+#        self.addControl('loadAtInit')
         self.addSeparator()
         self.addControl('disableRayExtents')
         self.addControl('boundsSlack')
