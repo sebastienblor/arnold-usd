@@ -240,9 +240,12 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
-   
-   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
-   AiNodeSetByte(instance, "visibility", visibility);
+  
+   // #2858 we must recompute the visibility instead of getting the master's one
+   // since we're not sure the master has already been exported 
+   //AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   //AiNodeSetByte(instance, "visibility", visibility);
+   ProcessRenderFlags(instance);
 
    m_DagNode.setObject(masterInstance);
    
