@@ -338,7 +338,6 @@ int Procedural::Init(AtNode* node)
          // Change name, dso, userdata, and bounding box
          AiNodeSetStr( nodeFaceProc, "name", getUniqueName(buf,strFaceProcName.c_str()) );
          AiNodeSetStr( nodeFaceProc, "dso", strParentDso.c_str() );
-         AiNodeSetBool( nodeFaceProc, "load_at_init", bLoadAtInit );
          AiNodeSetPtr( nodeFaceProc, "userptr", (void*)new ProceduralWrapper( pProc, false ) );
          AiNodeSetPnt( nodeFaceProc, "min", (float)total.xmin, (float)total.ymin, (float)total.zmin );
          AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
@@ -354,7 +353,6 @@ int Procedural::Init(AtNode* node)
          AiNodeSetStr( nodeCleanupProc, "name", getUniqueName(buf,strCleanupProcName.c_str()) );
          AiNodeSetStr( nodeCleanupProc, "dso", strParentDso.c_str() );
          AiNodeSetStr( nodeCleanupProc, "data", "cleanup" );
-         AiNodeSetBool( nodeCleanupProc, "load_at_init", bLoadAtInit );
          AiNodeSetPtr( nodeCleanupProc, "userptr", (void*)new ProceduralWrapper( this, true ) );
 
          AtPoint minParentBBox = AiNodeGetPnt( m_node, "min" );

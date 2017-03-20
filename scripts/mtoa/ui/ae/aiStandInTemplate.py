@@ -54,12 +54,13 @@ def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
         cmds.textField('standInData', edit=True, enable=False)
     cmds.textField('standInDsoPath', edit=True, text=mArchivePath)
 
-def ArnoldStandInBBoxScaleEdit(mScale) :
+
+#def ArnoldStandInBBoxScaleEdit(mScale) :
     # Get AE tab name
-    node = mel.eval('$tempNode = $gAECurrentTab')
+#    node = mel.eval('$tempNode = $gAECurrentTab')
     
     # Update value
-    cmds.setAttr(node+'.bboxScale',mScale)
+#    cmds.setAttr(node+'.bboxScale',mScale)
     
 def ArnoldStandInDataEdit(mData) :
     # Get AE tab name
@@ -105,23 +106,23 @@ def ArnoldStandInTemplateDataReplace(plugName) :
         cmds.text('standInDataLabel', edit=True, enable=False)
         cmds.textField('standInData', edit=True, enable=False)
 
-def deferStandinLoadChange(nodeName):
-    status = cmds.getAttr(nodeName+'.deferStandinLoad')
-    if status == False:
-        cmds.floatField('standInBBoxScale', edit=True, enable=False)
-        cmds.text('standInBBoxScaleLabel', edit=True, enable=False)
-    else:
-        cmds.floatField('standInBBoxScale', edit=True, enable=True)
-        cmds.text('standInBBoxScaleLabel', edit=True, enable=True)
+#def deferStandinLoadChange(nodeName):
+#    status = cmds.getAttr(nodeName+'.deferStandinLoad')
+#    if status == False:
+#        cmds.floatField('standInBBoxScale', edit=True, enable=False)
+#        cmds.text('standInBBoxScaleLabel', edit=True, enable=False)
+#    else:
+#        cmds.floatField('standInBBoxScale', edit=True, enable=True)
+#        cmds.text('standInBBoxScaleLabel', edit=True, enable=True)
 
-def ArnoldStandInTemplateBBoxScaleNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'left', 0)], columnWidth=[(1,145),(2,70)] )
-    cmds.text('standInBBoxScaleLabel', label='Bounding Box Scale ', enable=False)
-    path = cmds.floatField('standInBBoxScale', changeCommand=ArnoldStandInBBoxScaleEdit)
-    cmds.floatField(path, edit=True, value=cmds.getAttr(nodeName), enable=False)
+#def ArnoldStandInTemplateBBoxScaleNew(nodeName) :
+#    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'left', 0)], columnWidth=[(1,145),(2,70)] )
+#    cmds.text('standInBBoxScaleLabel', label='Bounding Box Scale ', enable=False)
+#    path = cmds.floatField('standInBBoxScale', changeCommand=ArnoldStandInBBoxScaleEdit)
+#    cmds.floatField(path, edit=True, value=cmds.getAttr(nodeName), enable=False)
         
-def ArnoldStandInTemplateBBoxScaleReplace(plugName) :
-    cmds.floatField('standInBBoxScale', edit=True, value=cmds.getAttr(plugName) )
+#def ArnoldStandInTemplateBBoxScaleReplace(plugName) :
+#    cmds.floatField('standInBBoxScale', edit=True, value=cmds.getAttr(plugName) )
 
 # #################################
 # #################################
@@ -911,9 +912,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
         
-        self.addSeparator()
-        self.addControl('deferStandinLoad', label='Defer StandIn Load', changeCommand=deferStandinLoadChange)
-        self.addCustom('bboxScale', ArnoldStandInTemplateBBoxScaleNew, ArnoldStandInTemplateBBoxScaleReplace)
+#        self.addSeparator()
+        #self.addControl('deferStandinLoad', label='Defer StandIn Load', changeCommand=deferStandinLoadChange)
+#        self.addCustom('bboxScale', ArnoldStandInTemplateBBoxScaleNew, ArnoldStandInTemplateBBoxScaleReplace)
         self.endLayout()
         
         self.beginLayout('Render Stats', collapse=True)

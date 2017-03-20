@@ -240,9 +240,12 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
-   
-   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
-   AiNodeSetByte(instance, "visibility", visibility);
+  
+   // #2858 we must recompute the visibility instead of getting the master's one
+   // since we're not sure the master has already been exported 
+   //AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   //AiNodeSetByte(instance, "visibility", visibility);
+   ProcessRenderFlags(instance);
 
    m_DagNode.setObject(masterInstance);
    
@@ -297,7 +300,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
       }
    }
 }
-
+/*
 void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
 {
    int drawOverride = m_DagNode.findPlug("standin_draw_override").asShort(); 
@@ -334,10 +337,10 @@ void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   AiNodeSetVec(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
-   AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
+   //AiNodeSetVec(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
+   //AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
-
+*/
 
 AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool update)
 {
@@ -468,12 +471,13 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       
       GetSessionOptions().FormatProceduralPath(resolvedName);
       AiNodeSetStr(procedural, "filename", resolvedName.asChar());
-
+/*
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");
       if (!deferStandinLoad.asBool())
          AiNodeSetBool(procedural, "load_at_init", true);
       else
          ExportBoundingBox(procedural);
+*/
 
       MPlug data = m_DagNode.findPlug("data");
       int sizeData = strlen(data.asString().asChar());

@@ -31,7 +31,7 @@ public:
    bool useSubFrame;
    bool IsGeomLoaded;
    MBoundingBox bbox;
-   bool deferStandinLoad;
+//   bool deferStandinLoad;
    float scale;
    MPoint BBmin;
    MPoint BBmax;
@@ -86,7 +86,7 @@ public:
    CArnoldStandInGeom* geometry();
 
    int drawMode();
-   bool deferStandinLoad();
+   //bool deferStandinLoad();
 
    static MTypeId id;
 
@@ -101,7 +101,7 @@ private:
    static MObject s_useSubFrame;
    static MObject s_frameOffset;
    static MObject s_data;
-   static MObject s_deferStandinLoad;
+   //static MObject s_deferStandinLoad;
    static MObject s_scale;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;

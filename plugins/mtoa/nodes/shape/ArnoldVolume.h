@@ -46,7 +46,7 @@ private:
 
    // Attributes
    static CStaticAttrHelper s_attributes;
-   static MObject s_loadAtInit;
+//   static MObject s_loadAtInit;
    
    static MObject s_stepSize;
    static MObject s_boundingBoxMin;
@@ -77,6 +77,12 @@ private:
    static MObject s_motion_end;
    static MObject s_velocity_threshold;
    
+   static MObject s_type;
+   static MObject s_threshold;
+   static MObject s_samples;
+   static MObject s_solver;
+   static MObject s_field_channel;
+   static MObject s_field;
 
    MString m_filename;
    MString m_grids;

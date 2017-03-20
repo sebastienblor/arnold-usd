@@ -1,0 +1,129 @@
+<fragment_graph  name="standardHairShader" ref="standardHairShader" class="FragmentGraph" version="1.0" feature_level="0" >
+  <fragments>
+    <fragment_ref name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput" />
+    <fragment_ref name="mayaComputeSurfaceFinal" ref="mayaComputeSurfaceFinal" />
+    <fragment_ref name="hairShaderCombiner" ref="standardHairShaderCombiner" />
+    <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
+    <fragment_ref name="mayaLambertDiffuse" ref="mayaLambertDiffuse" />
+    <fragment_ref name="mayaShaderGeom" ref="mayaShaderGeom" />
+    <fragment_ref name="mayaHVector" ref="mayaHVector" />
+    <fragment_ref name="mayaTranslucence" ref="mayaTranslucence" />
+    <fragment_ref name="standardShaderEmission" ref="standardShaderEmission" />
+    <fragment_ref name="iorPassThrough" ref="mayafloatPassThrough" />
+    <fragment_ref name="roughnessPassThrough" ref="mayafloatPassThrough" />
+    <fragment_ref name="mayaAnisotropicSpecular" ref="mayaAnisotropicSpecular" />
+    <fragment_ref name="mayaAnisotropicDataOutput" ref="mayaAnisotropicDataOutput" />
+    <fragment_ref name="mayaAnisotropicComputeData" ref="mayaAnisotropicComputeData" />
+    <fragment_ref name="maya_FogDepthSurface" ref="maya_FogDepthSurface" />
+  </fragments>
+  <connections>
+    <connect from="mayaComputeSurfaceFinal.mayaComputeSurfaceFinal" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" name="mayaSurfaceShaderOutput" />
+    <connect from="hairShaderCombiner.output" to="mayaComputeSurfaceFinal.input" name="input" />
+    <connect from="maya_FogDepthSurface.maya_FogDepthSurface" to="mayaComputeSurfaceFinal.maya_FogDepthSurface" name="maya_FogDepthSurface" />
+    <connect from="maya16LightAccum.scaledDiffuse" to="hairShaderCombiner.diffuseInput" name="diffuseInput" />
+    <connect from="maya16LightAccum.scaledSpecular" to="hairShaderCombiner.specularInput" name="specularInput" />
+    <connect from="standardShaderEmission.outColor" to="hairShaderCombiner.emissionInput" />
+    <connect from="mayaLambertDiffuse.mayaLambertDiffuse" to="maya16LightAccum.scaledDiffuse" name="scaledDiffuse" />
+    <connect from="mayaAnisotropicSpecular.mayaAnisotropicSpecular" to="maya16LightAccum.scaledSpecular" name="scaledSpecular" />
+    <connect from="mayaShaderGeom.mayaShaderGeom" to="hairShaderCombiner.shaderGeomInput" name="shaderGeomInput" />
+    <connect from="mayaShaderGeom.mayaShaderGeom" to="mayaLambertDiffuse.shaderGeomInput" name="shaderGeomInput" />
+    <connect from="mayaTranslucence.mayaTranslucence" to="mayaLambertDiffuse.translucenceIn" name="translucenceIn" />
+    <connect from="mayaHVector.mayaHVector" to="mayaShaderGeom.Hw" name="Hw" />
+    <connect from="iorPassThrough.mayafloatPassThrough" to="hairShaderCombiner.IOR" name="IOR" />
+    <connect from="iorPassThrough.mayafloatPassThrough" to="mayaAnisotropicComputeData.fresnelRefractiveIndex" name="IOR" />
+    <connect from="roughnessPassThrough.mayafloatPassThrough" to="hairShaderCombiner.roughness" name="roughness" />
+    <connect from="roughnessPassThrough.mayafloatPassThrough" to="mayaAnisotropicComputeData.roughness" name="roughness" />
+    <connect from="mayaShaderGeom.mayaShaderGeom" to="mayaTranslucence.shaderGeomInput" name="shaderGeomInput" />
+    <connect from="mayaShaderGeom.mayaShaderGeom" to="mayaAnisotropicSpecular.shaderGeomInput" name="shaderGeomInput" />
+    <connect from="mayaAnisotropicDataOutput.mayaAnisotropicDataOutput" to="mayaAnisotropicSpecular.input" name="input" />
+    <connect from="mayaAnisotropicComputeData.mayaAnisotropicComputeData" to="mayaAnisotropicDataOutput.mayaAnisotropicDataOutput" name="mayaAnisotropicDataOutput" />
+  </connections>
+  <properties>
+    <undefined  name="GPUStage" ref="mayaComputeSurfaceFinal.GPUStage" semantic="GPUStage" />
+    <float3  name="Nw" ref="mayaShaderGeom.Nw" flags="varyingInputParam" />
+    <float3  name="Lw" ref="mayaShaderGeom.Lw" />
+    <float3  name="Vw" ref="mayaShaderGeom.Vw" flags="varyingInputParam" />
+    <float3  name="HLw" ref="mayaHVector.HLw" />
+    <float3  name="diffuseI" ref="mayaLambertDiffuse.diffuseI" />
+    <float  name="translucence" ref="mayaTranslucence.translucence" />
+    <float  name="translucenceDepth" ref="mayaTranslucence.translucenceDepth" />
+    <float  name="translucenceFocus" ref="mayaTranslucence.translucenceFocus" />
+    <float3  name="specularI" ref="mayaAnisotropicSpecular.specularI" />
+    <float3  name="SLw" ref="mayaAnisotropicSpecular.SLw" />
+    <float3  name="mayaTangentIn" ref="mayaAnisotropicComputeData.mayaTangentIn" semantic="tangent" flags="varyingInputParam" />
+    <float3  name="mayaBitangentIn" ref="mayaAnisotropicComputeData.mayaBitangentIn" semantic="bitangent" flags="varyingInputParam" />
+    <float4x4  name="worldInverseTranspose" ref="mayaAnisotropicComputeData.worldInverseTranspose" semantic="worldinversetranspose" />
+    <float  name="angle" ref="mayaAnisotropicComputeData.angle" />
+    <float  name="spreadX" ref="mayaAnisotropicComputeData.spreadX" />
+    <float  name="spreadY" ref="mayaAnisotropicComputeData.spreadY" />
+    <float  name="roughness" ref="roughnessPassThrough.input" />
+    <float  name="ior" ref="iorPassThrough.input" />
+    <string  name="selector" ref="maya16LightAccum.selector" />
+
+    <float name="base" ref="hairShaderCombiner.base" />
+    <float3 name="baseColor" ref="hairShaderCombiner.baseColor" />
+    <float name="melanin" ref="hairShaderCombiner.melanin" />
+    <float name="melaninRedness" ref="hairShaderCombiner.melaninRedness" />
+    <float name="melaninRandomize" ref="hairShaderCombiner.melaninRandomize" />
+    <float name="diffuse" ref="hairShaderCombiner.diffuse" />
+    <float3 name="diffuseColor" ref="hairShaderCombiner.diffuseColor" />
+    <float name="shift" ref="hairShaderCombiner.shift" />
+    <float3 name="specularTint" ref="hairShaderCombiner.specularTint" />
+    <float3 name="specularTint2" ref="hairShaderCombiner.specularTint2" />
+    <float3 name="transmissionTint" ref="hairShaderCombiner.transmissionTint" />
+    <float3 name="transparency" ref="hairShaderCombiner.transparency" />
+    <float name="indirectDiffuse" ref="hairShaderCombiner.indirectDiffuse" />
+    <float name="indirectSpecular" ref="hairShaderCombiner.indirectSpecular" />
+    <float3 name="IrradianceEnv" ref="hairShaderCombiner.IrradianceEnv" />
+    <float3 name="SpecularEnv" ref="hairShaderCombiner.SpecularEnv" />
+    <float3 name="matteColor" ref="hairShaderCombiner.matteColor" />
+    <float name="matteOpacity" ref="hairShaderCombiner.matteOpacity" />
+    
+    <float name="lambert_diffuse" ref="mayaLambertDiffuse.diffuse" />
+    <float3 name="specular_color" ref="mayaAnisotropicSpecular.specularColor" />
+    <float3 name="emissionColor" ref="standardShaderEmission.emissionColor" />
+    <float name="emission" ref="standardShaderEmission.emission" />
+
+    <float  name="extraOpacity" ref="mayaComputeSurfaceFinal.extraOpacity" />
+    <bool  name="fogEnabled" ref="mayaComputeSurfaceFinal.fogEnabled" />
+    <float3  name="Pw" ref="maya_FogDepthSurface.Pw" semantic="Pw" />
+    <float4x4  name="ViewProj" ref="maya_FogDepthSurface.ViewProj" semantic="viewprojection" />
+    <float  name="fogStart" ref="maya_FogDepthSurface.fogStart" />
+    <float  name="fogEnd" ref="maya_FogDepthSurface.fogEnd" />
+    <int  name="fogMode" ref="maya_FogDepthSurface.fogMode" />
+    <float  name="fogDensity" ref="maya_FogDepthSurface.fogDensity" />
+    <float4  name="fogColor" ref="mayaComputeSurfaceFinal.fogColor" />
+    <float  name="fogMultiplier" ref="mayaComputeSurfaceFinal.fogMultiplier" />
+  </properties>
+  <values>
+    <float3 name="Lw" value="0.000000,0.000000,0.000000"  />
+    <float3 name="HLw" value="0.000000,0.000000,0.000000"  />
+    <float3 name="diffuseI" value="0.000000,0.000000,0.000000"  />
+    <float name="lambert_diffuse" value="1.00000"  />
+    <float3 name="specular_color" value="1.000000,1.000000,1.000000"  />
+    <float name="translucence" value="0.000000"  />
+    <float name="translucenceDepth" value="0.500000"  />
+    <float name="translucenceFocus" value="0.500000"  />
+    <float3 name="specularI" value="0.000000,0.000000,0.000000"  />
+    <float3 name="SLw" value="0.000000,0.000000,0.000000"  />
+    <float name="angle" value="180.000000"  />
+    <float name="spreadX" value="5.0"  />
+    <float name="spreadY" value="1.5"  />
+    <float name="roughness" value="0.2"  />
+    <float name="ior" value="1.55"  />
+    <float3 name="IrradianceEnv" value="0.000000,0.000000,0.000000"  />
+    <float3 name="SpecularEnv" value="0.000000,0.000000,0.000000"  />
+    <float name="extraOpacity" value="1.000000"  />
+    <bool name="fogEnabled" value="false"  />
+    <float name="fogStart" value="0.000000"  />
+    <float name="fogEnd" value="92.000000"  />
+    <int name="fogMode" value="0"  />
+    <float name="fogDensity" value="0.100000"  />
+    <float4 name="fogColor" value="0.500000,0.500000,0.500000,1.000000"  />
+    <float name="fogMultiplier" value="1.000000"  />
+  </values>
+  <outputs>
+    <struct  name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
+    <float3  name="outTransparency" ref="mayaSurfaceShaderOutput.outTransparency" />
+  </outputs>
+</fragment_graph>

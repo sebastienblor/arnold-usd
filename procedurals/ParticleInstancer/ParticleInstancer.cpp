@@ -258,13 +258,6 @@ procedural_num_nodes
    return nbInsts;
 }
 
-// Get the i_th node
-procedural_init_bounds
-{
-   // FIXME Arnold5 return true or false? 
-   return false;
-}
-
 procedural_get_node
 {
    AtNode *instance;

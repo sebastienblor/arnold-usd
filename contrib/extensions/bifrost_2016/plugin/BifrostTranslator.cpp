@@ -392,7 +392,6 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
          return;
       }
    }
-   AiNodeSetBool( shape, "load_at_init", true );
 
    AiNodeDeclare(shape, "object_name", "constant STRING");
    AiNodeDeclare(shape, "file_name", "constant STRING");
@@ -426,8 +425,8 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
       return;
    }
  
-   AiNodeSetVec(shape, "min", (float)bboxMin[0], (float)bboxMin[1], (float)bboxMin[2] );
-   AiNodeSetVec(shape, "max", (float)bboxMax[0], (float)bboxMax[1], (float)bboxMax[2] );
+   //AiNodeSetVec(shape, "min", (float)bboxMin[0], (float)bboxMin[1], (float)bboxMin[2] );
+   //AiNodeSetVec(shape, "max", (float)bboxMax[0], (float)bboxMax[1], (float)bboxMax[2] );
 
    AiNodeSetByte(shape, "visibility", 243);
 

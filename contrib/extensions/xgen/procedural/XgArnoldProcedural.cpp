@@ -18,10 +18,7 @@ node_parameters
 {
 	AiParameterStr("data", "");
 }
-procedural_init_bounds
-{
-   return true;
-}
+
 procedural_init
 {
    //AiMsgInfo("[xgArnoldProcedural] Init()");

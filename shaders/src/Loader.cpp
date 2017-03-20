@@ -54,8 +54,7 @@ extern const AtNodeMethods* WriteFloatMtd;
 extern const AtNodeMethods* WriteColorInlineMtd;
 extern const AtNodeMethods* WriteFloatInlineMtd;
 extern const AtNodeMethods* WriteVectorInlineMtd;
-extern const AtNodeMethods* WritePointInlineMtd;
-extern const AtNodeMethods* WritePoint2InlineMtd;
+extern const AtNodeMethods* WriteVector2InlineMtd;
 extern const AtNodeMethods* AnimFloatMtd;
 extern const AtNodeMethods* AnimPointMtd;
 extern const AtNodeMethods* AnimVectorMtd;
@@ -169,8 +168,7 @@ enum{
    SHADER_SHADINGENGINE,   
    SHADER_SAMPLERINFO3D,
    SHADER_WRITEVECTORINLINE,
-   SHADER_WRITEPOINTINLINE,
-   SHADER_WRITEPOINT2INLINE,
+   SHADER_WRITEVECTOR2INLINE,
    SHADER_NORMALDISPLACEMENT,
    SHADER_VECTORDISPLACEMENT,
    SHADER_USERDATABOOL,
@@ -650,17 +648,10 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case SHADER_WRITEPOINTINLINE:
-      node->methods     = WritePointInlineMtd;
-      node->output_type = AI_TYPE_VECTOR;
-      node->name        = "aovWritePoint";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case SHADER_WRITEPOINT2INLINE:
-      node->methods     = WritePoint2InlineMtd;
+   case SHADER_WRITEVECTOR2INLINE:
+      node->methods     = WriteVector2InlineMtd;
       node->output_type = AI_TYPE_VECTOR2;
-      node->name        = "aovWritePoint2";
+      node->name        = "aovWriteVector2";
       node->node_type   = AI_NODE_SHADER;
       break;
       

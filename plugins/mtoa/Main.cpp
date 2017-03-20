@@ -1,6 +1,7 @@
 #ifdef ENABLE_VP2
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
+#include "viewport2/ArnoldStandardHairShaderOverride.h"
 #include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
@@ -262,7 +263,11 @@ namespace // <anonymous>
          "drawdb/shader/surface/arnold/standard",
          "arnoldStandardShaderOverride",
          ArnoldStandardShaderOverride::creator
-      } , {
+	  } ,{
+		  "drawdb/shader/surface/arnold/standard_hair",
+		  "arnoldStandardHairShaderOverride",
+		  ArnoldStandardHairShaderOverride::creator
+	  } ,{
          "drawdb/shader/surface/arnold/skin",
          "arnoldSkinShaderOverride",
          ArnoldSkinShaderOverride::creator

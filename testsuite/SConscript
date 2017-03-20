@@ -171,10 +171,15 @@ class MayaTestRunner(object):
     def fill_blacklist(self):
         # blacklist
         self.black_list = find_test_group('ignore')
+
         # Add tests intended for other platforms to the black list
         for o in system.get_valid_oses():
             if o != system.os():
                 self.black_list.extend(find_test_group(o))
+
+        ignore_os = 'ignore_' + system.os()
+
+        self.black_list.extend(find_test_group(ignore_os))
 
     def add_test(self, test_dir):
         test_name = os.path.basename(test_dir)
@@ -367,13 +372,18 @@ class MayaTestRunner(object):
             args = []
             for test_name in self.tests:
                 test_dir       = os.path.join(self.build_dir, test_name)
+                test_script = test_env['MAYA_ROOT']
+                test_script += '/bin/'
+                test_script += self.script
+
                 args.append((test_name,
                             lock,
                             test_dir,
-                            self.script,
+                            test_script,
                             self.output_image,
                             os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                             self.force_result,
+                            oiiotool_path,
                             test_env['UPDATE_REFERENCE'],
                             show_test_output,
                             test_env['COLOR_CMDS']) )

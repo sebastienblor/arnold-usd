@@ -23,7 +23,7 @@ protected:
    {}
    
    // Method used to set the min/max parameters for this procedural
-   void ExportBoundingBox(AtNode* procedural);
+   //void ExportBoundingBox(AtNode* procedural);
    // Export this node as an instance (if IsMasterInstance() is false)
    void ExportInstance(AtNode *instance);
    

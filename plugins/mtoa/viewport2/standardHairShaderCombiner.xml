@@ -1,0 +1,410 @@
+<fragment uiName="standardHairShaderCombiner" name="standardHairShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[Combines inputs for the hair shader.]]></description>
+    <properties>
+        <float name="base" />
+        <float3 name="baseColor" />
+        <float name="melanin" />
+        <float name="melaninRedness" />
+        <float name="melaninRandomize" />
+        <float3 name="diffuseInput" />
+        <float3 name="specularInput" />
+        <float3 name="emissionInput" />
+        <float name="diffuse" />
+        <float3 name="diffuseColor" />
+        <float name="roughness" />     
+        <float name="IOR" />
+        <float name="shift" />
+        <float3 name="specularTint" />
+        <float3 name="specularTint2" />
+        <float3 name="transmissionTint" />
+        <float3 name="transparency" />
+        <float name="indirectDiffuse" />
+        <float name="indirectSpecular" />
+        <float3 name="IrradianceEnv" />
+        <float3 name="SpecularEnv" />
+        <float3 name="matteColor" />
+        <float name="matteOpacity" />
+        <float4 name="shaderGeomInput" />
+    </properties>
+    <values>
+        <float name="base" value="1.0" />
+        <float3 name="baseColor" value="1.0 1.0 1.0" />
+        <float name="melanin" value="1.0" />
+        <float name="melaninRedness" value="0.5" />
+        <float name="melaninRandomize" value="0.0" />
+        <float name="diffuse" value="0.0" />
+        <float3 name="diffuseColor" value="0.0 0.0 0.0" />
+        <float name="IOR" value="1.5" />
+        <float name="shift" value="2.2" />
+        <float3 name="specularTint" value="1.0 1.0 1.0" />
+        <float3 name="specularTint2" value="1.0 1.0 1.0" />
+        <float3 name="transmissionTint" value="1.0 1.0 1.0" />
+        <float3 name="transparency" value="0.0 0.0 0.0" />
+        <float name="indirectDiffuse" value="1.0" />
+        <float name="indirectSpecular" value="1.0" />
+        <float3 name="IrradianceEnv" value="0.0 0.0 0.0" />
+        <float3 name="SpecularEnv" value="0.0 0.0 0.0" />
+        <float3 name="matteColor" value="0.0 0.0 0.0" />
+        <float name="matteOpacity" value="1.0" />
+    </values>
+    <outputs>
+        <struct name="output" struct_name="mayaSurfaceShaderOutput" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="hairShaderCombiner" />
+            <source>
+                <![CDATA[
+float3 HSVtoRGB( float hue, float sat, float val )
+    {
+        float   HueSlice = 6.0 * hue;                                            // In [0,6[
+        float   HueSliceInteger = floor( HueSlice );
+        float   HueSliceInterpolant = HueSlice - HueSliceInteger;                   // In [0,1[ for each hue slice
+
+        float3  TempRGB = float3( val * (1.0 - sat), val * (1.0 - sat * HueSliceInterpolant), val * (1.0 - sat * (1.0 - HueSliceInterpolant)) );
+        float   IsOddSlice = fmod( HueSliceInteger, 2.0 );                          // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+        float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);          // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+        float3  ScrollingRGBForEvenSlices = float3( val, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+        float3  ScrollingRGBForOddSlices = float3( TempRGB.y, val, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+        float3  ScrollingRGB = lerp( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
+        float   IsNotFirstSlice = saturate( ThreeSliceSelector );                   // 1 if NOT the first slice (true for slices 1 and 2)
+        float   IsNotSecondSlice = saturate( ThreeSliceSelector-1.0 );              // 1 if NOT the first or second slice (true only for slice 2)
+
+        return  lerp( ScrollingRGB.xyz, lerp( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+    }
+        
+mayaSurfaceShaderOutput hairShaderCombiner(
+                float base,
+                float3 baseColor,
+                float melanin,
+                float melaninRedness,
+                float melaninRandomize,
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput,
+                float diffuse,
+                float3 diffuseColor,
+                float roughness,
+                float IOR,
+                float shift,
+                float3 specularTint,
+                float3 specular2Tint,
+                float3 transmissionTint,
+                float3 transparency,
+                float indirectDiffuse,
+                float indirectSpecular,
+                float3 IrradianceEnv,
+                float3 SpecularEnv,
+                float3 matteColor,
+                float matteOpacity,
+                float4 NL_NV_NH_VH )
+{
+    const float3 BLACK = float3(0.0,0.0,0.0);
+    const float yellowHue = .12;
+    const float redHue = 0.0;
+    
+    mayaSurfaceShaderOutput result;
+    
+    // start by clamping the melanin from 0-1
+    float melC = saturate(melanin);   
+    
+    // calculate the fresnel
+    float fresnel = 1.0;
+    if (NL_NV_NH_VH.y > 0.0f)
+    {
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
+        fresnelWeight *= fresnelWeight;
+        float temp = 1.0f - NL_NV_NH_VH.y;
+        float fweight = temp * temp;
+        fweight *= fweight;
+        fweight *= temp;
+        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+    }
+
+    float fresnelCurve = clamp(pow(melC*2, 2.0), 0.5, 1.0);
+    fresnelCurve = pow(fresnel, fresnelCurve);
+    
+    // Calculate the melanin contribution using hue, saturation, and value.
+    // All values are tweaked using melanin based exponent curves.
+    // Hue is a color shift between yellow and red.
+    // Saturation is a shift between 0.6 and 1.0 using the melanin redness. More redness = greater saturation.
+    // Multiplying the saturation by a melanin based curve gives a falloff to gray as melanin goes to 0.
+    // Multiplying saturation by a fresnel curve gives the illusion of picking up more color through transmission.
+    // Value uses an inverse curve to change the color from light to dark as the melanin is increased.
+    float hue = lerp(yellowHue, redHue, pow(melC, 0.8));
+    float satCurve = saturate(pow(melC*2, 0.2));
+    float sat = satCurve * lerp(0.6, 1.0, melaninRedness * pow(fresnel, 0.2));
+    float val = (1.0 - pow(melC, 0.25));
+    float3 mel = HSVtoRGB(hue, sat, val);   
+    
+    // calculate the total amount of irradiance
+    float3 irrad = diffuseInput + IrradianceEnv;
+
+    float3 B = base * baseColor * mel;
+    float3 D = diffuse * diffuseColor;
+    
+    // combine the base color, the melanin contribution, and the transmission tint.
+    float3 color =  irrad * (1.0f - diffuse) * (B * transmissionTint);
+
+    // darken the irradiance color where the fresnel is low.
+    color *= fresnelCurve;
+    
+    // include the non-physically based diffuse
+    color += irrad * D;
+    
+    // calculate and add the specular color.  The base specular color is 15% brighter than the diffuse.
+    float3 specular = (1.0f - diffuse) * (specularInput + SpecularEnv) * (B+0.15) * specularTint;
+    specular *= fresnel;
+    color += specular;
+    
+    // add the emission input
+    color += emissionInput;
+    
+    result.outColor = color;
+    result.outTransparency = transparency;
+    result.outGlowColor = BLACK;
+    result.outMatteOpacity = matteOpacity * matteColor;
+ 	  result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="hairShaderCombiner" />
+            <source>
+                 <![CDATA[
+float3 HSVtoRGB( float hue, float sat, float val )
+    {
+        float   HueSlice = 6.0 * hue;                                            // In [0,6[
+        float   HueSliceInteger = floor( HueSlice );
+        float   HueSliceInterpolant = HueSlice - HueSliceInteger;                   // In [0,1[ for each hue slice
+
+        float3  TempRGB = float3( val * (1.0 - sat), val * (1.0 - sat * HueSliceInterpolant), val * (1.0 - sat * (1.0 - HueSliceInterpolant)) );
+        float   IsOddSlice = fmod( HueSliceInteger, 2.0 );                          // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+        float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);          // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+        float3  ScrollingRGBForEvenSlices = float3( val, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+        float3  ScrollingRGBForOddSlices = float3( TempRGB.y, val, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+        float3  ScrollingRGB = lerp( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
+        float   IsNotFirstSlice = saturate( ThreeSliceSelector );                   // 1 if NOT the first slice (true for slices 1 and 2)
+        float   IsNotSecondSlice = saturate( ThreeSliceSelector-1.0 );              // 1 if NOT the first or second slice (true only for slice 2)
+
+        return  lerp( ScrollingRGB.xyz, lerp( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+    }
+        
+mayaSurfaceShaderOutput hairShaderCombiner(
+                float base,
+                float3 baseColor,
+                float melanin,
+                float melaninRedness,
+                float melaninRandomize,
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput,
+                float diffuse,
+                float3 diffuseColor,
+                float roughness,
+                float IOR,
+                float shift,
+                float3 specularTint,
+                float3 specular2Tint,
+                float3 transmissionTint,
+                float3 transparency,
+                float indirectDiffuse,
+                float indirectSpecular,
+                float3 IrradianceEnv,
+                float3 SpecularEnv,
+                float3 matteColor,
+                float matteOpacity,
+                float4 NL_NV_NH_VH)
+{
+    const float3 BLACK = float3(0.0,0.0,0.0);
+    const float yellowHue = .12;
+    const float redHue = 0.0;
+    
+    mayaSurfaceShaderOutput result;
+    
+    // start by clamping the melanin from 0-1
+    float melC = saturate(melanin);   
+    
+    // calculate the fresnel
+    float fresnel = 1.0;
+    if (NL_NV_NH_VH.y > 0.0f)
+    {
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
+        fresnelWeight *= fresnelWeight;
+        float temp = 1.0f - NL_NV_NH_VH.y;
+        float fweight = temp * temp;
+        fweight *= fweight;
+        fweight *= temp;
+        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+    }
+
+    float fresnelCurve = clamp(pow(melC*2, 2.0), 0.5, 1.0);
+    fresnelCurve = pow(fresnel, fresnelCurve);
+    
+    // Calculate the melanin contribution using hue, saturation, and value.
+    // All values are tweaked using melanin based exponent curves.
+    // Hue is a color shift between yellow and red.
+    // Saturation is a shift between 0.6 and 1.0 using the melanin redness. More redness = greater saturation.
+    // Multiplying the saturation by a melanin based curve gives a falloff to gray as melanin goes to 0.
+    // Multiplying saturation by a fresnel curve gives the illusion of picking up more color through transmission.
+    // Value uses an inverse curve to change the color from light to dark as the melanin is increased.
+    float hue = lerp(yellowHue, redHue, pow(melC, 0.8));
+    float satCurve = saturate(pow(melC*2, 0.2));
+    float sat = satCurve * lerp(0.6, 1.0, melaninRedness * pow(fresnel, 0.2));
+    float val = (1.0 - pow(melC, 0.25));
+    float3 mel = HSVtoRGB(hue, sat, val);   
+    
+    // calculate the total amount of irradiance
+    float3 irrad = diffuseInput + IrradianceEnv;
+
+    float3 B = base * baseColor * mel;
+    float3 D = diffuse * diffuseColor;
+    
+    // combine the base color, the melanin contribution, and the transmission tint.
+    float3 color =  irrad * (1.0f - diffuse) * (B * transmissionTint);
+
+    // darken the irradiance color where the fresnel is low.
+    color *= fresnelCurve;
+    
+    // include the non-physically based diffuse
+    color += irrad * D;
+    
+    // calculate and add the specular color.  The base specular color is 15% brighter than the diffuse.
+    float3 specular = (1.0f - diffuse) * (specularInput + SpecularEnv) * (B+0.15) * specularTint;
+    specular *= fresnel;
+    color += specular;
+    
+    // add the emission input
+    color += emissionInput;
+    
+    result.outColor = color;
+    result.outTransparency = transparency;
+    result.outGlowColor = BLACK;
+    result.outMatteOpacity = matteOpacity * matteColor;
+ 	  result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
+            <function_name val="hairShaderCombiner" />
+            <source>
+                 <![CDATA[
+vec3 HSVtoRGB( float hue, float sat, float val )
+{
+    float   HueSlice = 6.0 * hue; // In [0,6[
+    float   HueSliceInteger = floor( HueSlice );
+    float   HueSliceInterpolant = HueSlice - HueSliceInteger; // In [0,1[ for each hue slice
+    vec3  TempRGB = vec3(   val * (1.0 - sat), val * (1.0 - sat * HueSliceInterpolant), val * (1.0 - sat * (1.0 - HueSliceInterpolant)) );
+    float   IsOddSlice = mod( HueSliceInteger, 2.0 ); // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+    float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice); // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+    vec3  ScrollingRGBForEvenSlices = vec3( val, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+    vec3  ScrollingRGBForOddSlices = vec3( TempRGB.y, val, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+    vec3  ScrollingRGB = mix( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
+    float   IsNotFirstSlice = clamp( ThreeSliceSelector, 0.0,1.0 );                   // 1 if NOT the first slice (true for slices 1 and 2)
+    float   IsNotSecondSlice = clamp( ThreeSliceSelector-1.0, 0.0,1. );              // 1 if NOT the first or second slice (true only for slice 2)
+    return  mix( ScrollingRGB.xyz, mix( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+}
+        
+mayaSurfaceShaderOutput hairShaderCombiner(
+                float base,
+                vec3 baseColor,
+                float melanin,
+                float melaninRedness,
+                float melaninRandomize,
+                vec3 diffuseInput,
+                vec3 specularInput,
+                vec3 emissionInput,
+                float diffuse,
+                vec3 diffuseColor,
+                float roughness,
+                float IOR,
+                float shift,
+                vec3 specularTint,
+                vec3 specular2Tint,
+                vec3 transmissionTint,
+                vec3 transparency,
+                float indirectDiffuse,
+                float indirectSpecular,
+                vec3 IrradianceEnv,
+                vec3 SpecularEnv,
+                vec3 matteColor,
+                float matteOpacity,
+                vec4 NL_NV_NH_VH)
+{
+    const vec3 BLACK = vec3(0.0,0.0,0.0);
+    const float yellowHue = .12;
+    const float redHue = 0.0;
+    
+    mayaSurfaceShaderOutput result;
+    
+    // start by clamping the melanin from 0-1
+    float melC = clamp(melanin, 0.0, 1.0);   
+    
+    // calculate the fresnel
+    float fresnel = 1.0;
+    if (NL_NV_NH_VH.y > 0.0f)
+    {
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
+        fresnelWeight *= fresnelWeight;
+        float temp = 1.0f - NL_NV_NH_VH.y;
+        float fweight = temp * temp;
+        fweight *= fweight;
+        fweight *= temp;
+        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+    }
+
+    float fresnelCurve = clamp(pow(melC*2, 2.0), 0.5, 1.0);
+    fresnelCurve = pow(fresnel, fresnelCurve);
+    
+    // Calculate the melanin contribution using hue, saturation, and value.
+    // All values are tweaked using melanin based exponent curves.
+    // Hue is a color shift between yellow and red.
+    // Saturation is a shift between 0.6 and 1.0 using the melanin redness. More redness = greater saturation.
+    // Multiplying the saturation by a melanin based curve gives a falloff to gray as melanin goes to 0.
+    // Multiplying saturation by a fresnel curve gives the illusion of picking up more color through transmission.
+    // Value uses an inverse curve to change the color from light to dark as the melanin is increased.
+    float hue = lerp(yellowHue, redHue, pow(melC, 0.8));
+    float satCurve = clamp(pow(melC*2, 0.2), 0.0, 1.0);
+    float sat = satCurve * lerp(0.6, 1.0, melaninRedness * pow(fresnel, 0.2));
+    float val = (1.0 - pow(melC, 0.25));
+    vec3 mel = HSVtoRGB(hue, sat, val);   
+    
+    // calculate the total amount of irradiance
+    vec3 irrad = diffuseInput + IrradianceEnv;
+
+    vec3 B = base * baseColor * mel;
+    vec3 D = diffuse * diffuseColor;
+    
+    // combine the base color, the melanin contribution, and the transmission tint.
+    vec3 color =  irrad * (1.0f - diffuse) * (B * transmissionTint);
+
+    // darken the irradiance color where the fresnel is low.
+    color *= fresnelCurve;
+    
+    // include the non-physically based diffuse
+    color += irrad * D;
+    
+    // calculate and add the specular color
+    vec3 specular = (1.0f - diffuse) * (specularInput + SpecularEnv) * (B+0.15) * specularTint;
+    specular *= fresnel;
+    color += specular;
+    
+    // add the emission input
+    color += emissionInput;
+    
+    result.outColor = color;
+    result.outTransparency = transparency;
+    result.outGlowColor = BLACK;
+    result.outMatteOpacity = matteOpacity * matteColor;
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

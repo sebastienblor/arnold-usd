@@ -21,7 +21,7 @@ enum VolumeType{
 
 void CArnoldVolumeTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "volume_openvdb");
+   CExtensionAttrHelper helper(context.maya, "volume");
    CShapeTranslator::MakeCommonAttributes(helper);
    CShapeTranslator::MakeMayaVisibilityFlags(helper);
 }
@@ -31,8 +31,12 @@ AtNode* CArnoldVolumeTranslator::CreateArnoldNodes()
    if (IsMasterInstance())
    {
       // if type is vdb, create volume_openvdb
-      AtNode * tmpRes = AddArnoldNode("volume_openvdb");
-      return  tmpRes;
+      MPlug plug = FindMayaPlug("type");
+      if (plug.asInt() == 0)
+         return AddArnoldNode("volume");
+      else
+         return AddArnoldNode("volume_implicit");
+
    }
    else
    {
@@ -121,7 +125,7 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
       }
    }
 }
-
+/*
 void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
 {
    AiNodeSetVec(volume, "min",
@@ -134,7 +138,7 @@ void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
                         m_DagNode.findPlug("max").child(1).asFloat(),
                         m_DagNode.findPlug("max").child(2).asFloat());
 }
-
+*/
 
 AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 {
@@ -153,12 +157,13 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 
    if (!update)
    {
-      MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
+
+/*      MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
       if (loadAtInit.asBool())
          AiNodeSetBool(volume, "load_at_init", true);
       
       ExportBoundingBox(volume);
-
+*/
       MString filename = m_DagNode.findPlug("filename").asString();
       int start = 0;
       int end = 0;
@@ -239,6 +244,25 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeSetBool(volume, "disable_ray_extents", m_DagNode.findPlug("disableRayExtents").asBool());
       AiNodeSetBool(volume, "compress", m_DagNode.findPlug("compress").asBool());
       AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("boundsSlack").asFloat());
+
+      const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(volume));
+      if (strcmp(nodeType, "volume_implicit") == 0)
+      {
+         // export as implicit
+         AiNodeSetFlt(volume, "threshold", m_DagNode.findPlug("threshold").asFloat());
+         AiNodeSetUInt(volume, "samples", m_DagNode.findPlug("samples").asInt());
+         AiNodeSetInt(volume, "solver", m_DagNode.findPlug("solver").asInt());
+         AiNodeSetStr(volume, "field_channel", AtString(m_DagNode.findPlug("fieldChannel").asString().asChar()));
+
+         MPlugArray conns;   
+         MPlug field = FindMayaPlug("field");
+         field.connectedTo(conns, true, false);
+         if (conns.length() > 0)
+            AiNodeSetPtr(volume, "field", ExportConnectedNode(conns[0]));
+         else
+            AiNodeSetPtr(volume, "field", NULL);
+
+      }
    }
    return volume;
 }

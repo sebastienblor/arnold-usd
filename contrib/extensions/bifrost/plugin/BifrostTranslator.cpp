@@ -231,7 +231,6 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 	// we have some data
 	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
 
-	AiNodeSetBool( shape, "load_at_init", true );
 	AiNodeSetBool( shape, "opaque", false );
 	AiNodeSetBool( shape, "matte", false );
 
@@ -466,8 +465,6 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 	// we have some data
 	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
 
-	AiNodeSetBool( shape, "load_at_init", true );
-
 	AiNodeSetBool( shape, "opaque", false );
 	AiNodeSetBool( shape, "matte", false );
 
@@ -679,7 +676,6 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 
 void BifrostTranslator::getLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *shape )
 {
-	AiNodeSetBool( shape, "load_at_init", true );
 	AiNodeSetBool( shape, "opaque", false );
 	AiNodeSetBool( shape, "matte", false );
 	AiNodeSetByte( shape, "visibility", AI_RAY_ALL );
