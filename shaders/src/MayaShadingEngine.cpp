@@ -109,7 +109,7 @@ shader_evaluate
                   AiAOVSetVec2(sg, name, sg->out.VEC2());
                   break;
                case AI_TYPE_NODE:
-               case AI_TYPE_VECTORER:
+               case AI_TYPE_POINTER:
                   AiAOVSetPtr(sg, name, sg->out.PTR);
                   break;
             }
