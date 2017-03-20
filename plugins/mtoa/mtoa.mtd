@@ -1969,13 +1969,29 @@
 
 
 [node aov_write_float]
-    maya.hide               BOOL    True
+    maya.name               STRING  "aiWriteFloat"
+    maya.id                 INT     0x00115D11
+    maya.classification     STRING  "utility/aov"
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    
 
 [node aov_write_int]
     maya.hide               BOOL    True
 
 [node aov_write_rgb]
-    maya.hide               BOOL    True
+    maya.name               STRING  "aiWriteColor"
+    maya.id                 INT     0x00115D10
+    maya.classification     STRING  "utility/aov"
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    [attr blend_opacity]
+        maya.name           STRING  "blend"
+    
 
 [node atan]
     maya.id                 INT     0x00115D5C

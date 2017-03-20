@@ -1924,6 +1924,101 @@ void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
 {
 }
 
+//////////////////////////////////////////////////////
+AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlug inputPlug = dnode.findPlug("beauty");
+
+   bool isRGBA = false;
+   if (!inputPlug.isNull())
+   {
+      MPlugArray conns;
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+      {
+         // export the connected node
+         AtNode *node = ExportConnectedNode(conns[0]);
+         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) != AI_TYPE_CLOSURE)
+            isRGBA = true;
+            
+      }
+   }
+
+   if (isRGBA)
+      return AddArnoldNode("writeColor");
+   
+   return AddArnoldNode("aov_write_rgb");
+}
+
+void CAiAovWriteColorTranslator::Export(AtNode* shader)
+{
+   static const AtString writeColorShader("aov_write_rgb");
+
+   if (AiNodeIs(shader, writeColorShader))
+      ProcessParameter(shader, "passthrough", AI_TYPE_CLOSURE, "beauty"); // Closure version of the shader
+   else
+      ProcessParameter(shader, "passthrough", AI_TYPE_RGBA, "beauty"); // RGBA version of the shader
+
+   ProcessParameter(shader, "blend_opacity", AI_TYPE_BOOLEAN, "blend");
+   ProcessParameter(shader, "aov_name", AI_TYPE_STRING,  "aov_name");
+   ProcessParameter(shader, "aov_input", AI_TYPE_RGB, "input");
+
+}
+
+void CAiAovWriteColorTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+//////////////////////////////////////////////////////
+AtNode* CAiAovWriteFloatTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlug inputPlug = dnode.findPlug("beauty");
+
+   bool isRGBA = false;
+   if (!inputPlug.isNull())
+   {
+      MPlugArray conns;
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+      {
+
+         // export the connected node
+         AtNode *node = ExportConnectedNode(conns[0]);
+         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) != AI_TYPE_CLOSURE)
+            isRGBA = true;
+            
+      }
+   }
+
+   if (isRGBA)
+      return AddArnoldNode("writeFloat");
+
+   
+   return AddArnoldNode("aov_write_float");
+}
+
+void CAiAovWriteFloatTranslator::Export(AtNode* shader)
+{
+   static const AtString writeFloatShader("aov_write_float");
+
+   if (AiNodeIs(shader, writeFloatShader))
+      ProcessParameter(shader, "passthrough", AI_TYPE_CLOSURE, "beauty"); // Closure version of the shader
+   else
+      ProcessParameter(shader, "passthrough", AI_TYPE_RGBA, "beauty"); // RGBA version of the shader
+
+   ProcessParameter(shader, "blend_opacity", AI_TYPE_BOOLEAN, "blend");
+   ProcessParameter(shader, "aov_name", AI_TYPE_STRING,  "aov_name");
+   ProcessParameter(shader, "aov_input", AI_TYPE_FLOAT, "input");
+
+}
+
+void CAiAovWriteFloatTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+/////////////////
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
 {
 

@@ -176,3 +176,23 @@ public:
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
 };
+
+class CAiAovWriteColorTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiAovWriteColorTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+
+};
+
+class CAiAovWriteFloatTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiAovWriteFloatTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+
+};

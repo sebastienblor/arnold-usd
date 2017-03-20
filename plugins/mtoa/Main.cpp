@@ -408,6 +408,17 @@ namespace // <anonymous>
                                     CAiSwitchShaderTranslator::creator,
                                     CAiSwitchShaderTranslator::NodeInitializer);
 
+      builtin->RegisterTranslator("aiWriteFloat",
+                                    "",
+                                    CAiAovWriteFloatTranslator::creator,
+                                    CAiAovWriteFloatTranslator::NodeInitializer);
+
+      builtin->RegisterTranslator("aiWriteColor",
+                                    "",
+                                    CAiAovWriteColorTranslator::creator,
+                                    CAiAovWriteColorTranslator::NodeInitializer);
+
+
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",
