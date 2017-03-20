@@ -190,7 +190,16 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
         return
 
     running_time = time.time() - before_time
-                          
+               
+    # check if a post_script.py file exists
+    post_script = os.path.join(test_dir, 'post_script.py')
+
+    if os.path.exists(post_script):
+        print 'Executing post-script'
+        import sys; sys.argv = ['post_script.py', test_dir, oiiotool_path]
+        execfile(post_script)
+
+
     ## redirect test output (if not using os.system
     # if output_to_file:
         # file = open("%s.log" % (test_name), 'w')
