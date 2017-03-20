@@ -16,6 +16,11 @@
 #include <bifrostrendercore/bifrostrender_tools.h>
 #include <bifrostrendercore/bifrostrender_visitors.h>
 
+
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
+
 namespace Bifrost{
 namespace RenderCore{
 
@@ -771,7 +776,7 @@ Bifrost::API::String writeHotDataToDisk(	CoreObjectUserData& objectRef,
 	// declare State Server
 	Bifrost::API::StateServer hotServer( objectRef.stateServer() );
 
-	writeToFolder = Bifrost::API::File::createTempFolder();
+    writeToFolder = Bifrost::API::File::createTempFolder();
 	writeToFolder.trimRight( "/" );
 
 	Bifrost::API::String filenameOnly;
@@ -779,13 +784,21 @@ Bifrost::API::String writeHotDataToDisk(	CoreObjectUserData& objectRef,
     filenameOnly = Bifrost::API::String("/").append(filenameOnly);
     Bifrost::API::String writeToFile = Bifrost::API::String(writeToFolder).append(filenameOnly);
 
-	Bifrost::API::ObjectModel OM;
-	Bifrost::API::FileIO fio = OM.createFileIO( writeToFile );
-	Bifrost::API::Component component = hotServer.findComponent( componentName );
+    { // REMOVE
+        Bifrost::API::String hotFile = "/home/beauchc/bifrost_debug/tmp/";
+        hotFile += filenameOnly;
+        Bifrost::API::ObjectModel OM;
+        Bifrost::API::FileIO fio = OM.createFileIO( hotFile );
+        Bifrost::API::Component component = hotServer.findComponent( componentName );
+        fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
+    }
+    Bifrost::API::ObjectModel OM;
+    Bifrost::API::FileIO fio = OM.createFileIO( writeToFile );
+    Bifrost::API::Component component = hotServer.findComponent( componentName );
 
-	fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
+    fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
 
-	return writeToFile;
+    return writeToFile;
 }
 
 void initAndGetFrameData(	FrameData *frameData,

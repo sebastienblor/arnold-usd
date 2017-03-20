@@ -393,7 +393,7 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 	AiNodeSetFlt( shape, "mpDisplacementNoiseFrequency", attrVal );
 
 
-	intAttrVal = bifrostDesc.findPlug( "pointDebug" ).asInt();
+    intAttrVal = bifrostDesc.findPlug( "debug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 
@@ -627,7 +627,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 
 	// diagnotics params
 
-	intAttrVal = bifrostDesc.findPlug( "aeroDebug" ).asInt();
+    intAttrVal = bifrostDesc.findPlug( "debug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 
@@ -901,7 +901,7 @@ void BifrostTranslator::getLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *s
 
 	// diagnostics params
 
-	intAttrVal = bifrostDesc.findPlug( "liquidDebug" ).asInt();
+    intAttrVal = bifrostDesc.findPlug( "debug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 
@@ -949,7 +949,6 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 
 	bool hotData = objectRef.objectExists();
 
-
 	if ( hotData ) {
 		AiNodeSetBool( shape, "hotData", 1 );
 	} else {
@@ -957,7 +956,7 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 		// Try to load the object from the cache file.
 
 		const float frame = (float)MAnimControl::currentTime().value();
-		const bool cacheExist = objectRef.checkCacheFileExist( frame );
+        const bool cacheExist = objectRef.checkCacheFileExist( frame );
 
 		if ( !cacheExist ) {
 			AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str());
@@ -981,6 +980,9 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 	AiNodeSetInt( shape, "sampleRate", intAttrVal );
 
 	getLiquidAttributes( bifrostDesc, shape );
+    //AiNodeSetStr(shape, "bifFilename", "/home/beauchc/bifrost_debug/whale/cache/bifrost/class04_whale_simulation_end/bifrostLiquidContainer1/voxel_liquid/voxel_liquid_volume.0035.bif");
+    //AiNodeSetBool( shape, "hotData", 0 );AiNodeSetBool( shape, "hotData", 0 );
+
 
 	// export shaders
 	if ( RequiresShaderExport() ) {
@@ -1223,7 +1225,6 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
 
     ADD_DFLT("liquidVelocityScale", 1.f);
     ADD_DFLT("liquidSpaceScale", 1.f);
-    ADD_DINT("liquidDebug", 1);
 
     ADD_DSTR("liquidPrimVars", "vorticity");
     ADD_DSTR("distanceChannel", "distance");
@@ -1318,4 +1319,7 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DFLT("mpFalloffEnd", 1.f);
     ADD_DFLT("mpDisplacementValue", 0.f);
     ADD_DFLT("mpDisplacementNoiseFrequency", 1.f);
+
+    ADD_DINT("debug", 1);
+    ADD_DINT("silent", 0);
 }

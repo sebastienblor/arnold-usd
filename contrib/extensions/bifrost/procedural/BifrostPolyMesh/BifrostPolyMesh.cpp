@@ -410,7 +410,8 @@ node_parameters
     AiParameterBool( "doMorphologicalDilation" , false);
     AiParameterBool( "doErodeSheetsAndDroplets" , false);
 
-    AiParameterInt( "debug" , 0);
+    AiParameterInt( "debug" , 1);
+    AiParameterInt( "silent" , 0);
     AiParameterBool( "hotData" , false);
 
     AiParameterStr("bifFilename" , "");
@@ -425,14 +426,8 @@ node_parameters
     AiParameterFlt( "shutterEnd" , 0);
 }
 
-procedural_init_bounds
+static bool ProceduralInitBounds(AtNode* node, AtBBox* bounds, void** user_ptr)
 {
-	//
-	//
-	// DECLARATIONS
-	//
-	//
-
 	// create nodeData
 	BifrostPolyMeshUserData *data = new BifrostPolyMeshUserData();
 	data->objectRef = 0;
@@ -488,12 +483,13 @@ procedural_init_bounds
 	//
 	Bifrost::API::String writeToFolder;
 	if ( inData->hotData ) {
+        DUMP(inData->inMemoryRef->objectExists());
 		// write in memory data to a temp file
 		Bifrost::API::String writeToFile;
 		if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
-			writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-volume", writeToFolder );
+            writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-volume", writeToFolder );
 		} else {
-			writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-particle", writeToFolder );
+            writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "voxel_liquid-particle", writeToFolder );
 		}
 
 		// realloc for the new name
@@ -584,6 +580,7 @@ procedural_init_bounds
 	//
 	//
 	//
+    DUMP(correctedFilename);
     Bifrost::API::ObjectModel om;
 	Bifrost::API::FileIO fio = om.createFileIO( correctedFilename );
 
@@ -1031,33 +1028,36 @@ procedural_init_bounds
     int samplerChannelCount = 0;
 
     for ( unsigned int i = 0; i < channels.count(); i++ ) {
-		Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
-		AtString tmpString ( channel.name().c_str() );
-		int startIndex = samplerChannelCount * AI_MAX_THREADS;
-		data->channelSamplerIndexes[ tmpString ] = startIndex;
+        Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
+        AtString tmpString ( channel.name().c_str() );
+        int startIndex = samplerChannelCount * AI_MAX_THREADS;
+        data->channelSamplerIndexes[ tmpString ] = startIndex;
 
-		if ( tmpString == Bifrost::API::String( inData->inputChannelName ) ) {
-			data->srcChannelSamplerIndexStart = startIndex;
-		}
+        if ( tmpString == Bifrost::API::String( inData->inputChannelName ) ) {
+            data->srcChannelSamplerIndexStart = startIndex;
+        }
 
-		if ( inData->diagnostics.DEBUG > 0 ) {
-			printf("%s - %d - %d\n", channel.name().c_str(), data->channelSamplerIndexes[ tmpString ], data->srcChannelSamplerIndexStart );
-		}
+        if ( inData->diagnostics.DEBUG > 0 ) {
+            printf("%s - %d - %d\n", channel.name().c_str(), data->channelSamplerIndexes[ tmpString ], data->srcChannelSamplerIndexStart );
+        }
 
         samplerChannelCount++;
-	}
+    }
 
-	data->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
-	memset( data->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
+    data->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
+    memset( data->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
 	return true;
 }
 
 // we read the UI parameters into their global vars
 procedural_init
 {
+    AtBBox bounds;
+    ProceduralInitBounds(node, &bounds, user_ptr);
+
 	BifrostPolyMeshUserData *nodeData = (BifrostPolyMeshUserData *) *user_ptr;
 
-	ImplicitsInputData *inData = nodeData->inputData;
+    ImplicitsInputData *inData = nodeData->inputData;
 
 	if ( inData->error ) {
         AiMsgWarning("Input data has errors");
@@ -1068,7 +1068,7 @@ procedural_init
 
 		printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
 		return success;
-	}
+    }
 }
 
 // we will create one node
