@@ -4,7 +4,7 @@
 namespace
 {
 
-enum WritePoint2InlineParams
+enum WriteVector2InlineParams
 {
    p_input,
    p_name,
@@ -14,7 +14,7 @@ enum WritePoint2InlineParams
 
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(WritePoint2InlineMtd);
+AI_SHADER_NODE_EXPORT_METHODS(WriteVector2InlineMtd);
 
 node_parameters
 {
