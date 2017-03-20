@@ -87,9 +87,7 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    // arrays
    // TODO: use metdata to rename this attribute to light_filters
    s_attributes.MakeInput("filters");
-   s_attributes.MakeInput("time_samples");
-
-
+   
 
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
