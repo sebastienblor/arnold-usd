@@ -304,7 +304,8 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiSamples")
         self.addControl("aiRadius")
         self.addControl("aiNormalize")
-
+        self.addControl("aiRoundness")
+        
         self.addSeparator()
 
         self.addControl("aiCastShadows")

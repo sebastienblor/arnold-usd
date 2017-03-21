@@ -75,6 +75,7 @@ void CSpotLightTranslator::Export(AtNode* light)
 
    AiNodeSetFlt(light, "aspect_ratio", FindMayaPlug("aiAspectRatio").asFloat());
    AiNodeSetFlt(light, "lens_radius", FindMayaPlug("aiLensRadius").asFloat());
+   AiNodeSetFlt(light, "roundness", FindMayaPlug("aiRoundness").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
@@ -87,6 +88,7 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("aspect_ratio");
    helper.MakeInput("radius");
    helper.MakeInput("lens_radius");
+   helper.MakeInput("roundness");
 }
 
 // Quad AreaLight
@@ -113,6 +115,9 @@ void CQuadLightTranslator::Export(AtNode* light)
 
    AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
    AiNodeSetFlt(light, "spread", FindMayaPlug("aiSpread").asFloat());
+   AiNodeSetFlt(light, "roundness", FindMayaPlug("aiRoundness").asFloat());
+   AiNodeSetFlt(light, "soft_edge", FindMayaPlug("aiSoftEdge").asFloat());
+   
    //AiNodeSetBool(light, "portal", FindMayaPlug("aiPortal").asBool()); removed it from here as we now have a dedicated light portal node
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
@@ -157,6 +162,8 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("shadow_color");
    helper.MakeInput("resolution");
    helper.MakeInput("spread");
+   helper.MakeInput("roundness");
+   helper.MakeInput("soft_edge");
    //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
    helper.MakeInput("cast_volumetric_shadows");
 }
