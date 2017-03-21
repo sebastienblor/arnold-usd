@@ -20,7 +20,6 @@ extern const AtNodeMethods* MayaRampMtd;
 extern const AtNodeMethods* MayaProjectionMtd;
 extern const AtNodeMethods* MayaLuminanceMtd;
 extern const AtNodeMethods* MayaSetRangeMtd;
-extern const AtNodeMethods* MeshInfoMtd;
 extern const AtNodeMethods* MayaCheckerMtd;
 extern const AtNodeMethods* MayaBulgeMtd;
 extern const AtNodeMethods* MayaClothMtd;
@@ -122,7 +121,6 @@ enum{
    SHADER_PLACE2DTEXTURE,
    SHADER_RAMP,
    SHADER_PROJECTION,
-   SHADER_MESHINFO,
    SHADER_CHECKER,
    SHADER_BULGE,
    SHADER_CLOTH,
@@ -324,13 +322,6 @@ node_loader
       node->methods     = MayaProjectionMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaProjection";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case SHADER_MESHINFO:
-      node->methods     = MeshInfoMtd;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "MeshInfo";
       node->node_type   = AI_NODE_SHADER;
       break;
 
