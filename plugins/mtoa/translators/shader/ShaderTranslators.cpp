@@ -1835,14 +1835,13 @@ void CAiMixShaderTranslator::Export(AtNode* shader)
    {
       ProcessParameter(shader, "shader1", AI_TYPE_CLOSURE, "shader1");
       ProcessParameter(shader, "shader2", AI_TYPE_CLOSURE, "shader2");
-      ProcessParameter(shader, "mix", AI_TYPE_RGB, "mix");
       ProcessParameter(shader, "mode", AI_TYPE_INT, "mode");
    } else
    {
       ProcessParameter(shader, "input1", AI_TYPE_RGBA, "shader1");
       ProcessParameter(shader, "input2", AI_TYPE_RGBA, "shader2");
-      ProcessParameter(shader, "mix", AI_TYPE_FLOAT, "mix");
    }   
+   ProcessParameter(shader, "mix", AI_TYPE_FLOAT, "mix");
 }
 
 void CAiMixShaderTranslator::NodeInitializer(CAbTranslator context)
