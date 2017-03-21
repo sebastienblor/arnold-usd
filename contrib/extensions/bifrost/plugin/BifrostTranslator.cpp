@@ -106,6 +106,7 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
 	MString objStr = objectPlug.asString();
    
 	c_object = std::string( objStr.asChar() );
+    std::cerr << "OBJECT = " << c_object.c_str() << std::endl;
 
 	MFnDependencyNode bfContainer(objectPlug.source().node());
 
@@ -916,7 +917,7 @@ void BifrostTranslator::getLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *s
 	}
 
 
-	AiNodeSetStr( shape, "bifFilename", particleFilename.c_str() );
+    //AiNodeSetStr( shape, "bifFilename", particleFilename.c_str() );
 
 
 	MString strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
@@ -943,6 +944,25 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 	bifrostDesc.setObject( m_dagPath.node() );
 	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
 
+    {
+        // Determine the final BIF file name
+        const float frame = (float)MAnimControl::currentTime().value();
+
+        std::string particleFilename;
+        {
+            const int frameNumber  = (int)floorf(frame);
+
+            std::string path = c_file + ".#.bif";
+            particleFilename = Bifrost::API::File::resolveFramePadding( path.c_str(), frameNumber ).c_str();
+        }
+        Bifrost::API::String writeToFolder;
+        Bifrost::API::String componentName = strstr( particleFilename.c_str(), "volume" ) != NULL? "voxel_liquid-volume" : "voxel_liquid-particle";
+        Bifrost::API::String filename = writeHotDataToDisk( objectRef, particleFilename.c_str(), componentName, writeToFolder );
+        AiNodeSetStr( shape, "bifFilename", filename.c_str() );
+        AiNodeSetStr( shape, "bifrostObjectName", "" );
+    }
+
+
 	bool hotData = objectRef.objectExists();
 
 	if ( hotData ) {
@@ -964,7 +984,7 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 
 	// we have some data
 
-	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
+    //AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
 
 	// set user params
 
@@ -987,6 +1007,8 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 
 	// export lighting
 	ExportLightLinking( shape );
+
+    //AiNodeSetBool( shape, "hotData", 0 );
 }
 
 void BifrostTranslator::ExportLiquidImplicit(AtNode *shape)

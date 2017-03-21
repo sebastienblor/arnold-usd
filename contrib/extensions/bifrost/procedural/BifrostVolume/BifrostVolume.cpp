@@ -1,3 +1,5 @@
+/*
+
 #include <string>
 #include <math.h>
 #include <vector>
@@ -110,12 +112,12 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 	inData->smooth.remapInvert = AiNodeGetBool(parentNode, "smoothRemapInvert");
 
 	inData->clip.on = AiNodeGetBool( parentNode, "clipOn" );
-	inData->clip.minX = AiNodeGetFlt(parentNode, "clipMinX");
-	inData->clip.maxX = AiNodeGetFlt(parentNode, "clipMaxX");
-	inData->clip.minY = AiNodeGetFlt(parentNode, "clipMinY");
-	inData->clip.maxY = AiNodeGetFlt(parentNode, "clipMaxY");
-	inData->clip.minZ = AiNodeGetFlt(parentNode, "clipMinZ");
-	inData->clip.maxZ = AiNodeGetFlt(parentNode, "clipMaxZ");
+    inData->clip.minX = AiNodeGetFlt(parentNode, "clipMinX");
+    inData->clip.maxX = AiNodeGetFlt(parentNode, "clipMaxX");
+    inData->clip.minY = AiNodeGetFlt(parentNode, "clipMinY");
+    inData->clip.maxY = AiNodeGetFlt(parentNode, "clipMaxY");
+    inData->clip.minZ = AiNodeGetFlt(parentNode, "clipMinZ");
+    inData->clip.maxZ = AiNodeGetFlt(parentNode, "clipMaxZ");
 
 	inData->splatResolutionFactor = AiNodeGetFlt(parentNode, "splatResolutionFactor");
 	inData->skip = std::max(1, AiNodeGetInt( parentNode, "skip" ) );
@@ -131,7 +133,7 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 
 	inData->diagnostics.DEBUG = AiNodeGetInt( parentNode, "debug" );
 
-	inData->hotData = AiNodeGetBool( parentNode, "hotData" );
+    //inData->hotData = AiNodeGetBool( parentNode, "hotData" );
 
 	// get string data
 	const AtString bifFilenameParam("bifFilename");
@@ -152,7 +154,7 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 	inData->smooth.channelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->smooth.channelName, smoothChannelName.c_str() );
 
-	const AtString primVarNamesParam("primVarNames");
+    const AtString primVarNamesParam("primVarNabifrostObjectNamemes");
 	const AtString primVarNames = AiNodeGetStr(parentNode, primVarNamesParam );
 	inputLen = primVarNames.length();
 	inData->primVarNames = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
@@ -173,6 +175,56 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 
 	return inData->error;
 }
+
+enum Params
+{
+    p_channelScale,
+    p_velocityScale,
+    p_fps,
+    p_spaceScale,
+
+    p_smoothOn,
+    p_smoothMode,
+    p_smoothAmount,
+    p_smoothIterations,
+    p_smoothWeight,
+    p_smoothRemapMin,
+    p_smoothRemapMax,
+    p_smoothRemapInvert,
+
+    p_clipOn,
+    p_clipMinX,
+    p_clipMaxX,
+    p_clipMinY,
+    p_clipMaxY,
+    p_clipMinZ,
+    p_clipMaxZ,
+
+    p_splatResolutionFactor,
+    p_skip,
+    p_splatSamples,
+    p_splatMinRadius,
+    p_splatMaxRadius,
+    p_splatSurfaceAttract,
+    p_splatFalloffType,
+    p_splatFalloffStart,
+    p_splatFalloffEnd,
+    p_splatDisplacement,
+    p_splatNoiseFreq,
+
+    p_debug,
+    p_hotData,
+
+    p_bifFilename,
+    p_inputChannelName,
+    p_smoothChannelName,
+    p_primVarNames,
+    p_bifrostObjectName,
+
+    p_motionBlur,
+    p_shutterStart,
+    p_shutterEnd,
+};
 
 } // namespace
 
@@ -250,6 +302,8 @@ volume_create
     // get input pdata
 	bool error = getNodeParameters( inData, node );
 
+    bool hotData = AiNodeGetBool( node, "hotData" );
+
 	// init in memory class
 	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
 
@@ -279,9 +333,9 @@ volume_create
 	//
 	// CHECK INPUT FILE
 	//
-	//
+    //
 	Bifrost::API::String writeToFolder;
-	if ( inData->hotData ) {
+    if ( hotData ) {
         // write in memory pdata to a temp file
 		Bifrost::API::String writeToFile;
 		if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
@@ -300,7 +354,7 @@ volume_create
 	Bifrost::API::String correctedFilename = Bifrost::API::File::forwardSlashes(inData->bifFilename);
 
     // check for existence of files if we don't have hot pdata
-	if ( !inData->hotData ) {
+    if ( !hotData ) {
 		if (FILE *file = fopen(correctedFilename.c_str(), "r")) {
 			fclose(file);
 		} else {
@@ -328,7 +382,7 @@ volume_create
 	FrameData *frameData = (FrameData *) new (FrameData);
 	frameData->init();
 	frameData->pluginType = PLUGIN_VOLUME;
-	frameData->hotData = inData->hotData;
+    //frameData->hotData = inData->hotData;
 	frameData->tmpFolder = writeToFolder;
 
     pdata->frameData = frameData;
@@ -360,8 +414,8 @@ volume_create
 	
 	amino::Math::bboxf clipBox;
 	if ( inData->clip.on ) {
-		amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
-		amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
+        amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
+        amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
 
 		clipBox = amino::Math::bboxf( min, max );
 	}
@@ -771,9 +825,9 @@ volume_cleanup
     VolumeInputData *inData = volData->inputData;
 
     if ( frameData ) {
-        if ( inData->hotData ) {
-            Bifrost::API::File::deleteFolder( frameData->tmpFolder );
-        }
+        //if ( inData->hotData ) {
+        //    Bifrost::API::File::deleteFolder( frameData->tmpFolder );
+        //}
     }
 
     if ( inData ) {
@@ -857,3 +911,5 @@ volume_update
 {
     return true;
 }
+
+//*/

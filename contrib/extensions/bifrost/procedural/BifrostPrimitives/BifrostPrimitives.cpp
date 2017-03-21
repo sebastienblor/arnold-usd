@@ -1,3 +1,5 @@
+/*
+
 #include <ai.h>
 #include <ai_procedural.h>
 
@@ -109,8 +111,8 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	amino::Math::bboxf clipBox;
 	if ( inData->clip.on ) {
-		amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
-		amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
+        amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
+        amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
 
 		clipBox = amino::Math::bboxf( min, max );
 	}
@@ -651,3 +653,5 @@ procedural_cleanup
 
 	return 1;
 }
+
+//*/

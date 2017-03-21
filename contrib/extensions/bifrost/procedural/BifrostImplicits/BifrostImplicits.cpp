@@ -73,7 +73,7 @@ struct BifrostImplicitsUserData {
 	std::map<AtString, int> channelSamplerIndexes;
 	int srcChannelSamplerIndexStart;
 
-	Bifrost::API::Component voxelComponent;
+    Bifrost::API::Component voxelComponent;
 
     ImplicitsInputData *inputData;
     FrameData *frameData;
@@ -149,7 +149,7 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
 
     inData->diagnostics.DEBUG = AiNodeGetInt( parentNode, "debug" );
 
-    inData->hotData = AiNodeGetBool( parentNode, "hotData" );
+    //inData->hotData = AiNodeGetBool( parentNode, "hotData" );
 
     // get string data
     const AtString bifFilenameParam("bifFilename");
@@ -194,7 +194,7 @@ bool getNodeParameters( ImplicitsInputData *inData, const AtNode *parentNode )
     inData->shutterEnd = AiNodeGetFlt( parentNode, "shutterEnd" );
 
     // check parameters
-    inData->checkParameters( PLUGIN_IMPLICITS );
+    inData->checkParameters();
 
     return error;
 }
@@ -207,7 +207,7 @@ node_parameters
     AiParameterFlt("narrowBandThicknessInVoxels",0);
     AiParameterFlt("liquidStepSize",0);
 
-    AiParameterBool( "cullSidesOn" , false);
+    AiParameterBool("cullSidesOn", false);
     AiParameterFlt("cullSidesStart", 0);
     AiParameterFlt("cullSidesEnd", 1);
     AiParameterFlt("cullDepthAtStartInVoxels", 0);
@@ -227,7 +227,7 @@ node_parameters
     AiParameterFlt("smoothRemapMax", 1);
     AiParameterBool("smoothRemapInvert", false);
 
-    AiParameterBool( "clipOn", false );
+    AiParameterBool("clipOn", false);
     AiParameterFlt("clipMinX", 0);
     AiParameterFlt("clipMaxX", 1);
     AiParameterFlt("clipMinY", 0);
@@ -312,13 +312,15 @@ volume_create
     // set step size
     data->auto_step_size = inData->stepSize;
 
+    bool hotData = AiNodeGetBool( node, "hotData" );
+
 	//
 	//
 	// CHECK INPUT FILE
 	//
 	//
 	Bifrost::API::String writeToFolder;
-    if ( inData->hotData ) {
+    if ( hotData ) {
         // write in memory pdata to a temp file
         Bifrost::API::String writeToFile;
         if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
@@ -337,7 +339,7 @@ volume_create
     Bifrost::API::String correctedFilename = Bifrost::API::File::forwardSlashes(inData->bifFilename);
 
     // check for existence of files if we don't have hot pdata
-    if ( !inData->hotData ) {
+    if ( !hotData ) {
 		if (FILE *file = fopen(correctedFilename.c_str(), "r")) {
 			fclose(file);
 		} else {
@@ -379,7 +381,7 @@ volume_create
     if ( inData->cullSides.on ) {
 		frameData->presenceNeeded = true;
 	}
-    frameData->hotData = inData->hotData;
+    //frameData->hotData = inData->hotData;
 	frameData->tmpFolder = writeToFolder;
 
     pdata->frameData = frameData;
@@ -661,9 +663,7 @@ volume_create
 		frameData->bifInfo.tilesWithChildTiles[i] = 0;
 	}
 
-	IFNOTSILENT { printf( "\nSHADING RATE: %.3f\n", frameData->shadingRate ); }
-
-	// check whether we need to export motion blur
+    // check whether we need to export motion blur
 	frameData->velocityScale = 0.0f;
 	frameData->shutterSize = 0.0f;
 	IFNOTSILENT { printf("\nMotionBlur: "); }
@@ -901,9 +901,9 @@ volume_cleanup
     FrameData *frameData = userData->frameData;
     ImplicitsInputData *inData = userData->inputData;
 
-    if ( frameData && inData->hotData ) {
-        Bifrost::API::File::deleteFolder( frameData->tmpFolder );
-    }
+    //if ( frameData && inData->hotData ) {
+    //    Bifrost::API::File::deleteFolder( frameData->tmpFolder );
+    //}
     if ( inData ) {
         free( inData->bifFilename );
         free( inData->inputChannelName );
@@ -990,20 +990,16 @@ volume_gradient
 		threadSampler->sampleGradient<float>(pos, normal);
 	}
 
-	(*gradient)[0] = normal[0];
-	(*gradient)[1] = normal[1];
-	(*gradient)[2] = normal[2];
+    for(unsigned int i = 0; i < 3; ++i)
+        (*gradient)[i] = normal[i];
 
 	return true;
 }
 
 volume_ray_extents
 {
-    BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*)data->private_info;
-	if (userData == 0) return;
-	AiVolumeAddIntersection(info, t0, t1);
+    if(data->private_info) AiVolumeAddIntersection(info, t0, t1);
 }
-
 volume_update
 {
 	return true;

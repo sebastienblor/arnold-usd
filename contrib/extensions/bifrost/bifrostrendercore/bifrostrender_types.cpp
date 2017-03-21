@@ -162,8 +162,7 @@ void FrameData::dump()
 
 void FrameData::init()
 {
-	this->hotData = false;
-	this->hullCount = 8;
+    this->hullCount = 8;
 	this->offsetSize = 0.0f;
 	this->bifInfo.rangeStrategy = LEVELFULLCHECK;
 	this->diagnostics = ALL;
@@ -208,12 +207,6 @@ void PrimitivesFrameData::init()
 	this->hotData = false;
 }
 
-void PolyMeshFrameData::init()
-{
-	this->error = false;
-	this->hotData = false;
-}
-
 //
 // ImplicitsInputData functions
 //
@@ -223,11 +216,11 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 	printf("\nParameters for the Plugin:\n");
 	
 	// get string data
-	if ( this->hotData ) {
-		printf("\tUsing in memory data!\n");
-	} else {
-		printf("\tfilename: %s\n", this->bifFilename);
-	}
+    //if ( this->hotData ) {
+    //	printf("\tUsing in memory data!\n");
+    //} else {
+    //	printf("\tfilename: %s\n", this->bifFilename);
+    //}
 	printf("\tdistanceChannel: %s\n", this->inputChannelName);
 	printf("\tprimVarNames: %s\n", this->primVarNames);
 
@@ -263,7 +256,7 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 				printf("\tsmoothMode: Curvature Flow\n");
 				break;
 			case kLaplacianFlow:
-				printf("\tsmoothMode: LaplacianFlow\n");
+                printf("\tsmoothMode: LaplacianFlow\n");
 				break;
 			default:
 				break;
@@ -355,11 +348,11 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	printf("\nParameters for the Plugin:\n");
 	
 	// get string data
-	if ( this->hotData ) {
-		printf("\tUsing in memory data!\n");
-	} else {
-		printf("\tfilename: %s\n", this->bifFilename);
-	}
+    //if ( this->hotData ) {
+    //	printf("\tUsing in memory data!\n");
+    //} else {
+    //	printf("\tfilename: %s\n", this->bifFilename);
+    //}
 	printf("\tinputChannel: %s\n", this->inputChannelName);
 	printf("\tprimVarNames: %s\n", this->primVarNames);
 
@@ -405,12 +398,12 @@ void VolumeInputData::printParameters( bool isParticleCache )
 
 	if ( this->clip.on ) {
 		printf("\tclipBox: ON\n");
-		printf("\tMinX: %f\n", this->clip.minX);
-		printf("\tMaxX: %f\n", this->clip.maxX);
-		printf("\tMinY: %f\n", this->clip.minY);
-		printf("\tMaxY: %f\n", this->clip.maxY);
-		printf("\tMinZ: %f\n", this->clip.minZ);
-		printf("\tMaxZ: %f\n\n", this->clip.maxZ);
+        printf("\tMinX: %f\n", this->clip.minX);
+        printf("\tMaxX: %f\n", this->clip.maxX);
+        printf("\tMinY: %f\n", this->clip.minY);
+        printf("\tMaxY: %f\n", this->clip.maxY);
+        printf("\tMinZ: %f\n", this->clip.minZ);
+        printf("\tMaxZ: %f\n\n", this->clip.maxZ);
 	} else {
 		printf("\tclipBox: OFF\n\n");
 	}
@@ -430,57 +423,6 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	}
 
 	printf("\tDEBUG: %u\n\n", this->diagnostics.DEBUG);
-}
-
-void PolyMeshInputData::printParameters()
-{
-	printf("\nInput Parameters:\n");
-	
-	// string args
-	if ( this->hotData ) {
-		printf("\tUsing in memory data!\n");
-	} else {
-		printf("\tfilename: %s\n", this->particleFilename);
-		printf("\tVoxelCache: %s\n", this->voxelFilename);
-	}
-	printf("\tprimVarNames: %s\n\n", this->primVarNames);
-
-	// numeric args
-	printf("\tMeshing with: ");
-	switch ( this->mesherAlgo ) {
-		case MESH_BIFROST:
-			printf("Bifrost Mesher\n");
-			break;
-		case MESH_MARCHINGCUBES:
-			printf("Marching Cubes\n");
-			break;
-		case MESH_MARCHINGTETS:
-			printf("Marching Tetrahedrons\n");
-			break;
-		case MESH_NAIVESURFACENETS:
-			printf("Surface Nets\n");
-			break;
-		default:
-			printf("Not supported\n");
-			break;
-	}
-	printf("\tvelocityScale: %f fps: %f\n", this->velocityScale, this->fps);
-	printf("\tspaceScale: %f\n\n", this->spaceScale);
-
-	printf("\tdropletRevealFactor: %f\n", this->dropletRevealFactor);
-	printf("\tsurfaceRadius: %f\n", this->surfaceRadius);
-	printf("\tdropletRadius: %f\n", this->dropletRadius);
-	printf("\tkernelFactor: %f\n", this->kernelFactor);
-	printf("\tresolutionFactor: %f\n", this->resolutionFactor);
-	printf("\tsmoothing: %d\n", this->smoothing);
-	printf("\tminimumFeatureAngle: %f\n", this->minimumFeatureAngle);
-
-	if ( this->diagnostics.DEBUG ) {
-		printf("\tDEBUG: ON\n");
-	} else {
-		printf("\tDEBUG: OFF\n");
-	}
-	printf("\n\n");
 }
 
 void PrimitivesInputData::printParameters()
@@ -528,12 +470,12 @@ void PrimitivesInputData::printParameters()
 
 	if ( this->clip.on ) {
 		printf("\tclipBox: ON\n");
-		printf("\tMinX: %f\n", this->clip.minX);
-		printf("\tMaxX: %f\n", this->clip.maxX);
-		printf("\tMinY: %f\n", this->clip.minY);
-		printf("\tMaxY: %f\n", this->clip.maxY);
-		printf("\tMinZ: %f\n", this->clip.minZ);
-		printf("\tMaxZ: %f\n\n", this->clip.maxZ);
+        printf("\tMinX: %f\n", this->clip.minX);
+        printf("\tMaxX: %f\n", this->clip.maxX);
+        printf("\tMinY: %f\n", this->clip.minY);
+        printf("\tMaxY: %f\n", this->clip.maxY);
+        printf("\tMinZ: %f\n", this->clip.minZ);
+        printf("\tMaxZ: %f\n\n", this->clip.maxZ);
 	} else {
 		printf("\tclipBox: OFF\n\n");
 	}
@@ -602,7 +544,7 @@ void PrimitivesInputData::checkParameters()
 
 	// if there is something fishy error out
 	if ( this->clip.on ) {
-		if ( this->clip.maxX <= this->clip.minX || this->clip.maxY <= this->clip.minY || this->clip.maxZ <= this->clip.minZ ) {
+        if ( this->clip.maxX <= this->clip.minX || this->clip.maxY <= this->clip.minY || this->clip.maxZ <= this->clip.minZ ) {
 			printf("[BIFROST PRIMITIVES] ClipBox coordinates are wrong: one or more of MaxXYZ is smaller than MinXYZ\n");
 			this->error = true;
 		}
@@ -623,12 +565,12 @@ void PrimitivesInputData::checkParameters()
 	}
 }
 
-void ImplicitsInputData::checkParameters( PluginType plugType )
+void ImplicitsInputData::checkParameters()
 {
 	this->cullSides.range = this->cullSides.end - this->cullSides.start;
 	this->diagnostics.silent = 0;
 
-	if ( plugType == PLUGIN_IMPLICITS && this->narrowBandThicknessInVoxels < 1.0f ) {
+    if ( this->narrowBandThicknessInVoxels < 1.0f ) {
 		printf("\t\tnarrowBandThickness can not be smaller than a voxel!\n\t\tThis will be reset to default 1.5 voxels!\n");
 		this->narrowBandThicknessInVoxels = 1.5f;
 	}
@@ -643,7 +585,7 @@ void ImplicitsInputData::checkParameters( PluginType plugType )
 	}
 
 	if ( this->clip.on ) {
-		if ( this->clip.maxX <= this->clip.minX || this->clip.maxY <= this->clip.minY || this->clip.maxZ <= this->clip.minZ ) {
+        if ( this->clip.maxX <= this->clip.minX || this->clip.maxY <= this->clip.minY || this->clip.maxZ <= this->clip.minZ ) {
 			printf("ClipBox coordinates are wrong: one or more of MaxXYZ is smaller than MinXYZ\n");
 			this->error = true;
 		}
@@ -656,12 +598,12 @@ void ImplicitsInputData::checkParameters( PluginType plugType )
 		this->velocityScale = this->velocityScale / this->fps;
 	}
 
-	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
-		// although hotdata is true, there is no in memory bif structure
-		// so reset hotdata
-		this->hotData = false;
-		printf("HotData is on but there is no in memory bif!\n");
-	}
+//	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
+//		// although hotdata is true, there is no in memory bif structure
+//		// so reset hotdata
+//		this->hotData = false;
+//		printf("HotData is on but there is no in memory bif!\n");
+//	}
 }
 
 
@@ -671,7 +613,7 @@ void VolumeInputData::checkParameters()
 	this->diagnostics.silent = 0;
 
 	if ( this->clip.on ) {
-		if ( this->clip.maxX <= this->clip.minX || this->clip.maxY <= this->clip.minY || this->clip.maxZ <= this->clip.minZ ) {
+        if ( this->clip.maxX <= this->clip.minX || this->clip.maxY <= this->clip.minY || this->clip.maxZ <= this->clip.minZ ) {
 			printf("ClipBox coordinates are wrong: one or more of MaxXYZ is smaller than MinXYZ\n");
 			this->error = true;
 		}
@@ -684,12 +626,12 @@ void VolumeInputData::checkParameters()
 		this->velocityScale = this->velocityScale / this->fps;
 	}
 
-	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
-		// although hotdata is true, there is no in memory bif structure
-		// so reset hotdata
-		this->hotData = false;
-		printf("HotData is on but there is no in memory bif!\n");
-	}
+//	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
+//		// although hotdata is true, there is no in memory bif structure
+//		// so reset hotdata
+//		this->hotData = false;
+//		printf("HotData is on but there is no in memory bif!\n");
+//	}
 }
 
 }}

@@ -1,10 +1,10 @@
 #include <ai.h>
 #include <cstdio>
 
-extern const AtNodeMethods* BifrostPolymeshMtd;
-extern const AtNodeMethods* BifrostPrimitivesMtd;
-extern const AtNodeMethods* BifrostVolumeMtd;
 extern const AtNodeMethods* BifrostImplicitsMtd;
+extern const AtNodeMethods* BifrostPolymeshMtd;
+//extern const AtNodeMethods* BifrostPrimitivesMtd;
+//extern const AtNodeMethods* BifrostVolumeMtd;
 
 enum{
     BIFROST_POLYMESH = 0,
@@ -26,12 +26,12 @@ node_loader
         break;
     case BIFROST_PRIMITIVES:
         node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
-        node->methods      = BifrostPrimitivesMtd;
+        //node->methods      = BifrostPrimitivesMtd;
         node->name         = "bifrostPrimitives";
         break;
     case BIFROST_VOLUME:
         node->node_type    = AI_NODE_SHAPE_VOLUME;
-        node->methods      = BifrostVolumeMtd;
+        //node->methods      = BifrostVolumeMtd;
         node->name         = "bifrostVolume";
         break;
     case BIFROST_IMPLICITS:
