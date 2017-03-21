@@ -798,6 +798,56 @@ namespace // <anonymous>
    }
 } // namespace
 
+enum MtoAInitializedData
+{
+   MTOA_INIT_FILE_EXPORT = 0,
+   MTOA_INIT_FILE_IMPORT = 1,
+   MTOA_INIT_TX_FILE,
+   MTOA_INIT_MATERIAL_VIEW,
+   MTOA_INIT_REGISTER_SWATCH,
+   MTOA_INIT_COMMANDS,
+   MTOA_INIT_ARNOLD_NODES,
+   MTOA_INIT_RENDERER,
+   MTOA_INIT_COUNT
+};
+void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &initData)
+{
+   if (initData.empty())
+      return;
+
+   if (initData[MTOA_INIT_RENDERER])
+      MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
+
+   if (initData[MTOA_INIT_ARNOLD_NODES])
+      UnregisterArnoldNodes(object);
+
+   if (initData[MTOA_INIT_COMMANDS])
+      for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
+         plugin.deregisterCommand(mayaCmdList[i].name);
+
+   if (initData[MTOA_INIT_MATERIAL_VIEW])
+      plugin.deregisterRenderer(CMaterialView::Name());
+
+   if (initData[MTOA_INIT_REGISTER_SWATCH])
+      MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
+
+   if (initData[MTOA_INIT_TX_FILE])
+      plugin.deregisterImageFile(CTxTextureFile::fileName);
+
+   if (initData[MTOA_INIT_FILE_IMPORT])
+      plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeImport);
+
+   if (initData[MTOA_INIT_FILE_EXPORT])
+      plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeExport);
+
+   if (connectionCallback)
+      MMessage::removeCallback(connectionCallback);
+
+   if (AiUniverseIsActive())
+      ArnoldUniverseEnd();
+
+}
+
 DLLEXPORT MStatus initializePlugin(MObject object)
 {
    // This will dump memory leak info in debugger output window on program exit.
@@ -807,6 +857,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MStatus status, returnStatus;
    returnStatus = MStatus::kSuccess;
+   connectionCallback = 0;
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
@@ -816,6 +867,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    SetMetafile(metafile);
 
    ArnoldUniverseBegin(GetStartupLogLevel());
+
+   std::vector<bool> initializedData(MTOA_INIT_COUNT, false);
 
    // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
@@ -828,12 +881,14 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold ass file exporter");
+      initializedData[MTOA_INIT_FILE_EXPORT] = true;
    }
    else
    {
       AiMsgError("Failed to register Arnold ass file exporter");
       MGlobal::displayError("Failed to register Arnold ass file exporter");
-      ArnoldUniverseEnd();
+      
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
    
@@ -847,12 +902,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold ass file importer");
+      initializedData[MTOA_INIT_FILE_IMPORT] = true;
    }
    else
    {
       AiMsgError("Failed to register Arnold ass file importer");
       MGlobal::displayError("Failed to register Arnold ass file importer");
-      ArnoldUniverseEnd();
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
    
@@ -867,12 +923,14 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered tx texture file");
+      initializedData[MTOA_INIT_TX_FILE] = true;
    }
    else
    {
       AiMsgError("Failed to register tx texture file");
       MGlobal::displayError("Failed to register tx texture file");
-      ArnoldUniverseEnd();
+      
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
 
@@ -883,12 +941,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold material view renderer");
+      initializedData[MTOA_INIT_MATERIAL_VIEW] = true;
    }
    else
    {
       AiMsgError("Failed to register Arnold material view renderer");
       MGlobal::displayError("Failed to register Arnold material view renderer");
-      ArnoldUniverseEnd();
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
 #endif // ENABLE_MATERIAL_VIEW
@@ -899,12 +958,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold swatch renderer");
+      initializedData[MTOA_INIT_REGISTER_SWATCH] = true;
    }
    else
    {
       AiMsgError("Failed to register Arnold swatch renderer");
       MGlobal::displayError("Failed to register Arnold swatch renderer");
-      ArnoldUniverseEnd();
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
 
@@ -922,15 +982,26 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                      cmd.name, status.errorString().asChar());
          MGlobal::displayError(MString("[mtoa] Failed to register '") +
                      MString(cmd.name) + MString("'' command."));
+
+         MtoAInitFailed(object, plugin, initializedData);
+
+         // unregister the previous commands
+         for (size_t j = 0; j < i; ++j)
+         {
+            const mayaCmd& cmd = mayaCmdList[j];
+            plugin.deregisterCommand(cmd.name);
+         }
          return MStatus::kFailure;
       }
    }
+   initializedData[MTOA_INIT_COMMANDS] = true;
 
    status = RegisterArnoldNodes(object);
    // Nodes
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold nodes");
+      initializedData[MTOA_INIT_ARNOLD_NODES] = true;      
    }
    else
    {
@@ -953,7 +1024,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    {
       AiMsgError("Failed to import python module 'arnold'");
       MGlobal::displayError("Failed to import python module 'arnold'");
-      ArnoldUniverseEnd();
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
    status = MGlobal::executePythonCommand(MString("import mtoa"), true, false);
@@ -967,7 +1038,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    {
       AiMsgError("Failed to import python module 'mtoa'");
       MGlobal::displayError("Failed to import python module 'mtoa'");
-      ArnoldUniverseEnd();
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
 
@@ -978,12 +1049,13 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    {
       AiMsgDebug("Successfully registered renderer 'arnold'");
       MGlobal::displayInfo("Successfully registered renderer 'arnold'");
+      initializedData[MTOA_INIT_RENDERER] = true;
    }
    else
    {
       AiMsgError("Failed to register renderer 'arnold'");
       MGlobal::displayError("Failed to register renderer 'arnold'");
-      ArnoldUniverseEnd();
+      MtoAInitFailed(object, plugin, initializedData);
       return MStatus::kFailure;
    }
 
