@@ -68,6 +68,8 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "rock");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaRock");
+
 }
 
 node_initialize

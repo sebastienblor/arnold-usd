@@ -30,6 +30,8 @@ node_parameters
    AiParameterEnum("use_as", 0, useAsNames)
    AiParameterVec("normal", 0.f, 1.f, 0.f);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaBump2D");
 }
 
 enum mayaBump2DParams {

@@ -57,6 +57,8 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "crater");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaCrater");
+
 }
 
 node_initialize

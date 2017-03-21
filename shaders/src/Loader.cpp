@@ -708,63 +708,63 @@ node_loader
    case SHADER_BUMP2D:
       node->methods     = MayaBump2DMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "mayaBump2D";
+      node->name        = "MayaBump2D";
       node->node_type   = AI_NODE_SHADER;
       break;
       
    case SHADER_MAYAFLUID:
       node->methods     = MayaFluidMtd;
       node->output_type = AI_TYPE_CLOSURE;
-      node->name        = "mayaFluid";
+      node->name        = "MayaFluid";
       node->node_type   = AI_NODE_SHADER;
       break;
       
    case SHADER_MAYAMARBLE:
       node->methods     = MayaMarbleMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "mayaMarble";
+      node->name        = "MayaMarble";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_MAYAMOUNTAIN:
        node->methods = MayaMountainMtd;
        node->output_type = AI_TYPE_RGBA;
-       node->name = "mayaMountain";
+       node->name = "MayaMountain";
        node->node_type = AI_NODE_SHADER;
        break;
 
    case SHADER_MAYAWATER:
        node->methods = MayaWaterMtd;
        node->output_type = AI_TYPE_RGBA;
-       node->name = "mayaWater";
+       node->name = "MayaWater";
        node->node_type = AI_NODE_SHADER;
        break;
 
    case SHADER_MAYACRATER:
        node->methods = MayaCraterMtd;
        node->output_type = AI_TYPE_RGBA;
-       node->name = "mayaCrater";
+       node->name = "MayaCrater";
        node->node_type = AI_NODE_SHADER;
        break;
 
    case SHADER_MAYALEATHER:
        node->methods = MayaLeatherMtd;
        node->output_type = AI_TYPE_RGBA;
-       node->name = "mayaLeather";
+       node->name = "MayaLeather";
        node->node_type = AI_NODE_SHADER;
        break;
 
    case SHADER_MAYAGRANITE:
        node->methods = MayaGraniteMtd;
        node->output_type = AI_TYPE_RGBA;
-       node->name = "mayaGranite";
+       node->name = "MayaGranite";
        node->node_type = AI_NODE_SHADER;
        break;
 
    case SHADER_MAYAROCK:
        node->methods = MayaRockMtd;
        node->output_type = AI_TYPE_RGBA;
-       node->name = "mayaRock";
+       node->name = "MayaRock";
        node->node_type = AI_NODE_SHADER;
        break;
 
