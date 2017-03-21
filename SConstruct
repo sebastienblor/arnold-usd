@@ -278,7 +278,10 @@ env['MAYA_VERSION_BASE'] = maya_version_base
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
-    env['ENABLE_BIFROST'] = 1
+
+    if env['MODE'] != 'debug' :    
+        env['ENABLE_BIFROST'] = 1
+
     bifrost_ext = 'bifrost_2016'
     env['ENABLE_LOOKDEVKIT'] = 1
     env["ENABLE_COLOR_MANAGEMENT"] = 1
@@ -295,6 +298,7 @@ if int(maya_version_base) >= 2014:
 
 if int(maya_version) >= 201700:
     bifrost_ext = 'bifrost'
+
 
 
 build_id = ""
