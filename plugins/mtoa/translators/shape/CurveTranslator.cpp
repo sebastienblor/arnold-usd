@@ -179,15 +179,15 @@ void CCurveTranslator::Export( AtNode *curve )
          // check if the internal root shader was already created in a previous export
          shader = GetArnoldNode("rootShader");
          if (shader == NULL)
-            shader = AddArnoldNode("hair", "rootShader");
+            shader = AddArnoldNode("standard_hair", "rootShader");
             
          MString hairShaderName = fnDepNodeCurve.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
 
          // Add shader uparam and vparam names
-         AiNodeSetStr(shader, "uparam", "uparamcoord");
-         AiNodeSetStr(shader, "vparam", "vparamcoord");
+         //AiNodeSetStr(shader, "uparam", "uparamcoord");
+         //AiNodeSetStr(shader, "vparam", "vparamcoord");
       }
       SetRootShader(shader);      
    }   

@@ -59,10 +59,7 @@ extern const AtNodeMethods* AnimPointMtd;
 extern const AtNodeMethods* AnimVectorMtd;
 extern const AtNodeMethods* AnimColorMtd;
 extern const AtNodeMethods* AnimMatrixMtd;
-extern const AtNodeMethods* UserDataFloatMtd;
 extern const AtNodeMethods* UserDataVectorMtd;
-extern const AtNodeMethods* UserDataColorMtd;
-extern const AtNodeMethods* UserDataStringMtd;
 extern const AtNodeMethods* UserDataBoolMtd;
 extern const AtNodeMethods* MayaShadingEngineMtd;
 extern const AtNodeMethods* MayaSamplerInfo1DMtd;
@@ -74,7 +71,6 @@ extern const AtNodeMethods* ShadowCatcherMtd;
 extern const AtNodeMethods* MayaHairMtd;
 extern const AtNodeMethods* MeshLightMaterialMtd;
 extern const AtNodeMethods* UserDataPnt2Mtd;
-extern const AtNodeMethods* UserDataIntMtd;
 extern const AtNodeMethods* MayaBump2DMtd;
 extern const AtNodeMethods* MayaFluidMtd;
 extern const AtNodeMethods* MayaMarbleMtd;
@@ -159,10 +155,7 @@ enum{
    SHADER_ANIMVECTOR,
    SHADER_ANIMCOLOR,
    SHADER_ANIMMATRIX,
-   SHADER_USERDATAFLOAT,
    SHADER_USERDATAVECTOR,
-   SHADER_USERDATACOLOR,
-   SHADER_USERDATASTRING,
    SHADER_SHADINGENGINE,   
    SHADER_SAMPLERINFO3D,
    SHADER_WRITEVECTORINLINE,
@@ -173,7 +166,6 @@ enum{
    SHADER_HAIR,
    SHADER_LIGHTMATERIAL,
    SHADER_USERDATAPNT2,
-   SHADER_USERDATAINT,
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
    SHADER_MAYAMARBLE,
@@ -590,31 +582,10 @@ node_loader
       node->name        = "anim_matrix";
       node->node_type   = AI_NODE_SHADER;
    break;
-   case SHADER_USERDATAFLOAT:
-      node->methods     = UserDataFloatMtd;
-      node->output_type = AI_TYPE_FLOAT;
-      node->name        = "userDataFloat";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
    case SHADER_USERDATAVECTOR:
       node->methods     = UserDataVectorMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "userDataVector";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case SHADER_USERDATACOLOR:
-      node->methods     = UserDataColorMtd;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "userDataColor";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case SHADER_USERDATASTRING:
-      node->methods     = UserDataStringMtd;
-      node->output_type = AI_TYPE_STRING;
-      node->name        = "userDataString";
       node->node_type   = AI_NODE_SHADER;
       break;
 
@@ -686,13 +657,6 @@ node_loader
       node->methods     = UserDataPnt2Mtd;
       node->output_type = AI_TYPE_VECTOR2;
       node->name        = "userDataPnt2";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-      
-   case SHADER_USERDATAINT:
-      node->methods     = UserDataIntMtd;
-      node->output_type = AI_TYPE_INT;
-      node->name        = "userDataInt";
       node->node_type   = AI_NODE_SHADER;
       break;
       

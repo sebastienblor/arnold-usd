@@ -258,14 +258,12 @@ void CHairTranslator::Export( AtNode *curve )
    // until it returns a closest face as well as a closest point
    m_hasConnectedShapes = false;
    // The U and V param coords arrays
-   AtArray* curveUParamCoord = NULL;
-   AtArray* curveVParamCoord = NULL;
+   AtArray* curveParamCoord = NULL;
    MMatrix shapeTransform;
    if (m_export_curve_uvs)
    {
-      curveUParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_FLOAT);
-      curveVParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_FLOAT);
-
+      curveParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_VECTOR2);
+      
       // Get connected shapes
       MDagPathArray connectedShapes;
       GetHairShapeMeshes(hairSystemObject, connectedShapes);
@@ -370,8 +368,8 @@ void CHairTranslator::Export( AtNode *curve )
          // TODO : leave an option to use exact but slow method?
          if (m_hasConnectedShapes)
             uvparam = GetHairRootUVs(line[0], m_mesh, shapeTransform);
-         AiArraySetFlt(curveUParamCoord, i, uvparam.x);
-         AiArraySetFlt(curveVParamCoord, i, uvparam.y);
+         AiArraySetVec2(curveParamCoord, i, uvparam);
+
       }
    }
    
@@ -386,10 +384,7 @@ void CHairTranslator::Export( AtNode *curve )
    
    if (m_export_curve_uvs)
    {
-      AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
-      AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
-      AiNodeSetArray(curve, "uparamcoord", curveUParamCoord);
-      AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
+      AiNodeSetArray(curve, "uvs", curveParamCoord);
    }
 
    // Hair specific Arnold render settings.

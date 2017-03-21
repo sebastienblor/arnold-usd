@@ -1249,29 +1249,6 @@
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
    
-    # AOVs
-    [attr aov_emission]
-    aov.type                INT     0x05
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_specular]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
-    [attr aov_indirect_specular]
-    aov.type                INT     0x05
-    [attr aov_reflection]
-    aov.type                INT     0x05
-    [attr aov_refraction]
-    aov.type                INT     0x05
-    [attr aov_refraction_opacity]
-    aov.type                INT     0x05
-    [attr aov_sss]
-    aov.type                INT     0x05
-    [attr aov_direct_sss]
-    aov.type                INT     0x05
-    [attr aov_indirect_sss]
-    aov.type                INT     0x05
 
 
 [node standard_surface]
@@ -1373,6 +1350,8 @@
 
 [node ray_switch_rgba]
     maya.hide               BOOL    True
+    maya.id                 INT     0x00115D84
+    
 
 [node ambient_occlusion]
     desc                    STRING  "This shader can be used to display ambient occlusion on a geometry."
@@ -1415,15 +1394,12 @@
 
 [node flat]
     maya.hide               BOOL    True
+    maya.id                 INT     0x00115D85
 
 [node lambert]
     maya.hide               BOOL    True
-    
-    # AOVs
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
+    maya.id                 INT     0x00115D86
+
 
 [node noise]
     desc                    STRING  "2D procedural noise"
@@ -1575,22 +1551,6 @@
         softmin             FLOAT   0.5
         softmax             FLOAT   5.0
         default             FLOAT   1.0
-    [attr uparam]
-        desc                STRING  "Name of the U param coordinates "
-        label               STRING  "U Param"
-    [attr vparam]
-        desc                STRING  "Name of the V param coordinates "
-        label               STRING  "V Param"
-        
-    # AOVs
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_specular]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_transmission]
-    aov.type                INT     0x05
 
 
 [node standard_hair]
@@ -1642,16 +1602,8 @@
     [attr indirect_specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-   # AOVs
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_specular]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_transmission]
-    aov.type                INT     0x05
-
+   
+   
 [node standard_volume]
     desc                    STRING  "Basic Volume Shader"
     maya.name               STRING  "aiStandardVolume"
@@ -1994,6 +1946,7 @@
 
 [node aov_write_int]
     maya.hide               BOOL    True
+    maya.id                 INT     0x00115D87
 
 [node aov_write_rgb]
     maya.name               STRING  "aiWriteColor"
@@ -2029,6 +1982,7 @@
 
 [node camera_projection]
     maya.hide               BOOL    True
+    maya.id                 BOOL    0x00115D88
 
 [node checkerboard]
     maya.hide               BOOL    True
@@ -2482,19 +2436,34 @@ c4d.step FLOAT 0.01
     linkable BOOL True
 
 [node user_data_float]
-    maya.hide               BOOL    True
+    maya.id                 INT      0x00115D12
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    False
+    maya.name               STRING  "aiUserDataFloat"
 
 [node user_data_int]
-    maya.hide               BOOL    True
+    maya.id                 INT      0x00115D1D
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    False
+    maya.name               STRING  "aiUserDataInt"
+    
 
 [node user_data_rgb]
-    maya.hide               BOOL    True
+    maya.id                 INT      0x00115D14
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    False
+    maya.name               STRING  "aiUserDataColor"
 
 [node user_data_rgba]
     maya.hide               BOOL    True
 
 [node user_data_string]
-    maya.hide               BOOL    True
+    maya.id                 INT      0x00115D15
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    False
+    maya.name               STRING  "aiUserDataString"
+
+
 
 
 [node uv_transform]

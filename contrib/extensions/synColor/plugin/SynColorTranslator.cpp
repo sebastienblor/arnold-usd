@@ -96,14 +96,14 @@ void CSynColorTranslator::Export(AtNode* node)
       break;
 
       case 1:
-         AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
+         //AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
       break;
 
       case 2:
 #if MAYA_API_VERSION >= 201800
          AiNodeSetBool(node, "output_color_conversion", defaultColorSettings.findPlug("outputTransformUseColorConversion").asBool());
 #endif
-         AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("outputTransformName").asString().asChar());
+         //AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("outputTransformName").asString().asChar());
       break;
 
    }

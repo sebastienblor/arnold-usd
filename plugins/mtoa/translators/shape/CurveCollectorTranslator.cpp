@@ -387,11 +387,11 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
          // check if the internal root shader was already created in a previous export
          shader = GetArnoldNode("hairShader");
          if (shader == NULL)
-            shader = AddArnoldNode("hair", "hairShader");
+            shader = AddArnoldNode("standard_hair", "hairShader");
          
          // Add shader uparam and vparam names
-         AiNodeSetStr(shader, "uparam", "uparamcoord");
-         AiNodeSetStr(shader, "vparam", "vparamcoord");
+         //AiNodeSetStr(shader, "uparam", "uparamcoord");
+         //AiNodeSetStr(shader, "vparam", "vparamcoord");
       }
       SetRootShader(shader);      
    }   
