@@ -825,9 +825,11 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
       for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
          plugin.deregisterCommand(mayaCmdList[i].name);
 
+#ifdef ENABLE_MATERIAL_VIEW
    if (initData[MTOA_INIT_MATERIAL_VIEW])
       plugin.deregisterRenderer(CMaterialView::Name());
-
+#endif
+   
    if (initData[MTOA_INIT_REGISTER_SWATCH])
       MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
 
