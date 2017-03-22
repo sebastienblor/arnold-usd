@@ -400,7 +400,7 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     result.outTransparency = transparency;
     result.outGlowColor = BLACK;
     result.outMatteOpacity = matteOpacity * matteColor;
-    result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    result.outSurfaceFinal = vec4(result.outColor, 1.0);
     return result;
 }
                 ]]>
