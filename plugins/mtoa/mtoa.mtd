@@ -2440,19 +2440,38 @@ c4d.step FLOAT 0.01
     maya.classification     STRING  "utility/user data"
     maya.swatch             BOOL    False
     maya.name               STRING  "aiUserDataFloat"
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "floatAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
+
 
 [node user_data_int]
     maya.id                 INT      0x00115D1D
     maya.classification     STRING  "utility/user data"
     maya.swatch             BOOL    False
     maya.name               STRING  "aiUserDataInt"
-    
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "intAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
 
 [node user_data_rgb]
     maya.id                 INT      0x00115D14
     maya.classification     STRING  "utility/user data"
     maya.swatch             BOOL    False
     maya.name               STRING  "aiUserDataColor"
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "colorAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
+        
 
 [node user_data_rgba]
     maya.hide               BOOL    True
@@ -2462,8 +2481,12 @@ c4d.step FLOAT 0.01
     maya.classification     STRING  "utility/user data"
     maya.swatch             BOOL    False
     maya.name               STRING  "aiUserDataString"
-
-
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "stringAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
 
 
 [node uv_transform]
