@@ -239,7 +239,7 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 
 	printf("\tdilateAmount: %f\n", this->dilateAmount);
 	printf("\terodeAmount: %f\n", this->erodeAmount);
-	if ( this->smooth.on ) {
+    if ( this->smooth.amount > 0 ) {
 		printf("\tsmoothKernelSize: %d\n", this->smooth.amount);
 	
 		switch (this->smooth.mode ) {
@@ -360,7 +360,7 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	printf("\tvelocityScale: %f fps: %f\n", this->velocityScale, this->fps);
 	printf("\tspaceScale: %f\n", this->spaceScale);
 
-	if ( this->smooth.on ) {
+    if ( this->smooth.amount > 0 ) {
 		printf("\n\tsmoothKernelSize: %d\n", this->smooth.amount);
 	
 		switch (this->smooth.mode ) {

@@ -681,33 +681,26 @@ void BifrostTranslator::getLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *s
 	AiNodeSetBool( shape, "matte", false );
 	AiNodeSetByte( shape, "visibility", AI_RAY_ALL );
 
-	float spaceScale = bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat();
-	ExportMatrixWithSpaceScale( shape, spaceScale );
+    ExportMatrixWithSpaceScale(shape, bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat());
 
 	// setup motion blur stuff
-
-	AiNodeSetBool( shape, "motionBlur", IsMotionBlurEnabled() );
-
+    AiNodeSetBool(shape, "motionBlur", IsMotionBlurEnabled());
 	double shutterStart, shutterEnd;
 	shutterStart = shutterEnd = 0.0;
 	if (  IsMotionBlurEnabled() ) {
 		GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
 	}
-
-
-	AiNodeSetFlt( shape, "shutterStart", (float) shutterStart );
-
-
-	AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
+    AiNodeSetFlt( shape, "shutterStart", (float) shutterStart );
+    AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
 
 	// culling params
 
-	bool boolAttrVal = bifrostDesc.findPlug( "cullSidesOn" ).asBool();
-	AiNodeSetBool( shape, "cullSidesOn", boolAttrVal );
+    bool boolAttrVal = bifrostDesc.findPlug( "cullSidesOn" ).asBool();
+    AiNodeSetBool(shape, "cullSidesOn", boolAttrVal );
 
 
-	float attrVal = bifrostDesc.findPlug( "cullSidesStart" ).asFloat();
-	AiNodeSetFlt( shape, "cullSidesStart", attrVal );
+    float attrVal = bifrostDesc.findPlug( "cullSidesStart" ).asFloat();
+    AiNodeSetFlt( shape, "cullSidesStart", attrVal );
 
 
 	attrVal = bifrostDesc.findPlug( "cullSidesEnd" ).asFloat();

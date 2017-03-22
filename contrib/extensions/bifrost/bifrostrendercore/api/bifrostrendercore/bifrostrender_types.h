@@ -333,8 +333,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 };
 
 struct BIFROSTRENDERAPI_DECL SmoothFilterParams {
-	bool on;
-	SmoothFilterType mode;
+    SmoothFilterType mode;
 	int amount;
 	int iterations;
 	float weight;
