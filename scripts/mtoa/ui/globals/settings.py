@@ -224,7 +224,7 @@ def buildAtmosphereMenu(popup, field, select):
     
     pm.menuItem(parent=popup, divider=True)
     
-    for typ in pm.listNodeTypes(['rendernode/arnold/shader/volume/atmosphere']) or []:
+    for typ in pm.listNodeTypes(['rendernode/arnold/light/volume']) or []:
         menuLabel = "Create "+typ
         pm.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
         
