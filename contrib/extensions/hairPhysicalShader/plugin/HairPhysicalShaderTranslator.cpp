@@ -10,7 +10,7 @@ void CHairPhysicalShaderTranslator::NodeInitializer(CAbTranslator context)
 
     // Diffuse
     helper.MakeInput("kd_ind");
-
+/*
     // UVs
     {
         CAttrData data;
@@ -29,7 +29,7 @@ void CHairPhysicalShaderTranslator::NodeInitializer(CAbTranslator context)
     helper.MakeInput("aov_direct_diffuse");
     helper.MakeInput("aov_direct_specular");
     helper.MakeInput("aov_direct_transmission");
-    helper.MakeInput("aov_indirect_diffuse");
+    helper.MakeInput("aov_indirect_diffuse");*/
 }
 
 AtNode* CHairPhysicalShaderTranslator::CreateArnoldNodes()
@@ -128,14 +128,8 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
     ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, "ai_kd_ind");
 
     // UVs
-    ProcessParameter(shader, "uparam", AI_TYPE_STRING, "ai_uparam");
-    ProcessParameter(shader, "vparam", AI_TYPE_STRING, "ai_vparam");
 
     // AOVs
-    ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, "ai_aov_direct_diffuse");
-    ProcessParameter(shader, "aov_direct_specular", AI_TYPE_STRING, "ai_aov_direct_specular");
-    ProcessParameter(shader, "aov_direct_transmission", AI_TYPE_STRING, "ai_aov_direct_transmission");
-    ProcessParameter(shader, "aov_indirect_diffuse", AI_TYPE_STRING, "ai_aov_indirect_diffuse");
 
     
     // Unsupported attributes

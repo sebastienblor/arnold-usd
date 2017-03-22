@@ -20,8 +20,6 @@ enum ShaveHairParams
    p_spec_color,
    p_spec,
    p_kd_ind,
-   p_uparam,
-   p_vparam,
    p_direct_diffuse,
    p_indirect_diffuse,
    p_aov_direct_diffuse,
@@ -42,8 +40,6 @@ node_parameters
    AiParameterFLT(       "kd_ind"           , 1.0f);
    AiMetaDataSetFlt(mds, "kd_ind"           , "softmax", 10.0f);
    AiMetaDataSetFlt(mds, "kd_ind"           , "min",     0.0f);
-   AiParameterSTR(       "uparam"           , NULL);
-   AiParameterSTR(       "vparam"           , NULL);
    AiParameterFLT(       "direct_diffuse"   , 1.0f);
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "softmax", 1.0f);
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "min",     0.0f);
@@ -109,14 +105,8 @@ shader_evaluate
    AtColor Cdiff = AI_RGB_BLACK;
    AtColor Cspec = AI_RGB_BLACK;
 
-   // change the current (u,v) position according to the specified userdata channels
-   float oldU = sg->u;
-   float oldV = sg->v;
 
    AtParamValue *params = AiNodeGetParams(node);
-
-   AiUDataGetFlt(params[p_uparam].STR, &(sg->u));
-   AiUDataGetFlt(params[p_vparam].STR, &(sg->v));
    float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
    float gloss      = AiShaderEvalParamFlt(p_gloss) * 2000;
    float spec       = AiShaderEvalParamFlt(p_spec);
@@ -134,9 +124,6 @@ shader_evaluate
    AiUDataGetRGB(params[p_tipcolor].STR, &tip_color);
 
    
-   // restore original (u,v)
-   sg->u = oldU;
-   sg->v = oldV;
 
    // mix root and tip colors
    AtColor diff_color;

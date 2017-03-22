@@ -82,10 +82,7 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
       AiNodeLink (ramp, "strand_opacity", shader);
    }
 
-   // Add shader uparam and vparam names.
-   AiNodeSetStr(shader, "uparam",   "uparamcoord");
-   AiNodeSetStr(shader, "vparam",   "vparamcoord");
-
+   
    // Add root and tip color.
    AiNodeSetStr(shader, "rootcolor","rootcolorparam");
    AiNodeSetStr(shader, "tipcolor", "tipcolorparam");
@@ -186,8 +183,8 @@ void CShaveTranslator::Export(AtNode* curve)
    
 
    // The U and V paramcoords array
-   AtArray* curveUParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_FLOAT);
-   AtArray* curveVParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_FLOAT);
+   AtArray* curveParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_VECTOR2);
+   
 
    for (int i = 0; i < m_hairInfo.numHairs; ++i)
    {
@@ -198,9 +195,8 @@ void CShaveTranslator::Export(AtNode* curve)
       AiArraySetInt(curveNumPoints, i, (numRenderLineCVs+2));
 
       // Set UV
-      AiArraySetFlt(curveUParamCoord, i, m_hairInfo.uvws[hairRootIndex].x);
-      AiArraySetFlt(curveVParamCoord, i, m_hairInfo.uvws[hairRootIndex].y);
-
+      AiArraySetVec2(curveParamCoord, i, m_hairInfo.uvws[hairRootIndex]);
+      
       // Root and tip colours for the ShaveHair shader.
       // TODO: Make exporting all the info for the ShaveHair shader an option.
       if (export_curve_color)
@@ -259,12 +255,8 @@ void CShaveTranslator::Export(AtNode* curve)
    AiNodeSetArray(curve, "points",                 curvePoints);
    AiNodeSetArray(curve, "radius",                 curveWidths);
 
-   // Add our extra attributes
-   AiNodeDeclare(curve, "uparamcoord",             "uniform FLOAT");
-   AiNodeDeclare(curve, "vparamcoord",             "uniform FLOAT");
-   AiNodeSetArray(curve, "uparamcoord",            curveUParamCoord);
-   AiNodeSetArray(curve, "vparamcoord",            curveVParamCoord);
-
+   AiNodeSetArray(curve, "uvs",            curveParamCoord);
+   
    // Finally add and set the hair color arrays as needed.
    if(export_curve_color)
    {

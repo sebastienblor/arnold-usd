@@ -24,9 +24,7 @@ public:
         , _numPoints(NULL)
         , _points(NULL)
         , _radius(NULL)
-        , _uCoord(NULL)
-        , _vCoord(NULL)
-        , _wCoord(NULL)
+        , _uvCoord(NULL)
         , _shader(NULL)
         , _aiMinPixelWidth(0.0f)
         , _aiMode(0)
@@ -162,12 +160,6 @@ private:
         // Curves mode ("thick", "ribbon", or "oriented")
         AiNodeSetStr(_curves, "mode", (_aiMode == 1) ? "thick" : "ribbon");
 
-        // (u, v) on patch
-        AiNodeDeclare(_curves, "uparamcoord", "uniform FLOAT");
-        AiNodeDeclare(_curves, "vparamcoord", "uniform FLOAT");
-
-        // (w) from root to tip
-        AiNodeDeclare(_curves, "wparamcoord", "varying FLOAT");
     }
 
     void fillCurves(AtNode* procedural)
@@ -191,19 +183,15 @@ private:
         _numPoints  = AiArrayAllocate(curveCount, 1, AI_TYPE_UINT);
         _points     = AiArrayAllocate(pointInterpoCount, steps, AI_TYPE_VECTOR);
         _radius     = AiArrayAllocate(pointCount, 1, AI_TYPE_FLOAT);
-        _uCoord     = AiArrayAllocate(curveCount, 1, AI_TYPE_FLOAT);
-        _vCoord     = AiArrayAllocate(curveCount, 1, AI_TYPE_FLOAT);
-        _wCoord     = AiArrayAllocate(pointInterpoCount, 1, AI_TYPE_FLOAT);
-
+        _uvCoord     = AiArrayAllocate(curveCount, 1, AI_TYPE_VECTOR2);
+        
         // FIXME Arnold 5
         // here we're doing AiNodeSetArray below, so we won't need to unMap the arrays
         unsigned int*   numPoints   = reinterpret_cast<unsigned int*>(AiArrayMap(_numPoints));
         SgVec3f*        points      = reinterpret_cast<SgVec3f*>(AiArrayMap(_points));
         float*          radius      = reinterpret_cast<float*>(AiArrayMap(_radius));
-        float*          uCoord      = reinterpret_cast<float*>(AiArrayMap(_uCoord));
-        float*          vCoord      = reinterpret_cast<float*>(AiArrayMap(_vCoord));
-        float*          wCoord      = reinterpret_cast<float*>(AiArrayMap(_wCoord));
-
+        SgVec2f*        uvCoord      = reinterpret_cast<SgVec2f*>(AiArrayMap(_uvCoord));
+        
         // Fill the array buffers for motion step 0
         for (XgItSpline splineIt = _splines.iterator(); !splineIt.isDone(); splineIt.next())
         {
@@ -224,24 +212,24 @@ private:
                 *numPoints++ = length + 2;
 
                 // Texcoord using the patch UV from the root point
-                *uCoord++ = patchUVs[offset][0];
-                *vCoord++ = patchUVs[offset][1];
+                *uvCoord++ = patchUVs[offset];
+                
 
                 // Add phantom points at the beginning
                 *points++ = phantomFirst(&positions[offset], length);
-                *wCoord++ = phantomFirst(&texcoords[offset], length)[1];
+                //*wCoord++ = phantomFirst(&texcoords[offset], length)[1];
 
                 // Copy varying data
                 for (unsigned int i = 0; i < length; i++)
                 {
                     *points++ = positions[offset + i];
                     *radius++ = width[offset + i] * 0.5f;
-                    *wCoord++ = texcoords[offset + i][1];
+                    //*wCoord++ = texcoords[offset + i][1];
                 }
 
                 // Add phantom points at the end
                 *points++ = phantomLast(&positions[offset], length);
-                *wCoord++ = phantomLast(&texcoords[offset], length)[1];
+                //*wCoord++ = phantomLast(&texcoords[offset], length)[1];
 
             } // for each primitive
         } // for each primitive batch
@@ -281,9 +269,7 @@ private:
         AiNodeSetArray(_curves, "num_points", _numPoints);
         AiNodeSetArray(_curves, "points", _points);
         AiNodeSetArray(_curves, "radius", _radius);
-        AiNodeSetArray(_curves, "uparamcoord", _uCoord);
-        AiNodeSetArray(_curves, "vparamcoord", _vCoord);
-        AiNodeSetArray(_curves, "wparamcoord", _wCoord);
+        AiNodeSetArray(_curves, "uvs", _uvCoord);
     }
 
     template<typename T>
@@ -310,10 +296,8 @@ private:
     AtArray*    _numPoints;
     AtArray*    _points;
     AtArray*    _radius;
-    AtArray*    _uCoord;
-    AtArray*    _vCoord;
-    AtArray*    _wCoord;
-
+    AtArray*    _uvCoord;
+    
     // Material
     AtNode*     _shader;
 

@@ -10,17 +10,8 @@ class hairPhysicalShaderTemplate(templates.AttributeTemplate):
         self.addSeparator()
 
         # UVs
-        self.addControl("ai_uparam")
-        self.addControl("ai_vparam")
-        self.addSeparator()
 
         # AOVs
-        self.beginLayout("AOV Names", collapse=True)
-        self.addControl("ai_aov_direct_diffuse", label="Direct Diffuse")
-        self.addControl("ai_aov_direct_specular", label="Direct Specular")
-        self.addControl("ai_aov_direct_transmission", label="Direct Transmission")
-        self.addControl("ai_aov_indirect_diffuse", label="Indirect Diffuse")
-        self.endLayout()
 
         # Custom Buttons
         self.addCustom("buttons", self.buttonsNew, self.buttonsReplace)
