@@ -60,6 +60,7 @@ extern const AtNodeMethods* AnimVectorMtd;
 extern const AtNodeMethods* AnimColorMtd;
 extern const AtNodeMethods* AnimMatrixMtd;
 extern const AtNodeMethods* UserDataVectorMtd;
+extern const AtNodeMethods* UserDataColorMtd;
 extern const AtNodeMethods* UserDataBoolMtd;
 extern const AtNodeMethods* MayaShadingEngineMtd;
 extern const AtNodeMethods* MayaSamplerInfo1DMtd;
@@ -156,6 +157,7 @@ enum{
    SHADER_ANIMCOLOR,
    SHADER_ANIMMATRIX,
    SHADER_USERDATAVECTOR,
+   SHADER_USERDATACOLOR,
    SHADER_SHADINGENGINE,   
    SHADER_SAMPLERINFO3D,
    SHADER_WRITEVECTORINLINE,
@@ -588,6 +590,13 @@ node_loader
       node->name        = "userDataVector";
       node->node_type   = AI_NODE_SHADER;
       break;
+   case SHADER_USERDATACOLOR:
+      node->methods     = UserDataColorMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "userDataColor";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
 
    case SHADER_SHADINGENGINE:
       node->methods     = MayaShadingEngineMtd;
