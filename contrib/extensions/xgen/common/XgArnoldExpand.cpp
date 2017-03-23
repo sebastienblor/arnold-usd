@@ -184,6 +184,9 @@ Procedural::Procedural()
 , m_shaders( NULL )
 , m_patch( NULL )
 , m_merged_data ( NULL )
+#ifdef XGEN_RENDER_API_PARALLEL
+, m_parallel ( NULL )
+#endif
 {
    //m_mutex = new XgMutex();
 }
@@ -197,6 +200,10 @@ Procedural::~Procedural()
       m_patch = NULL;
       //m_mutex = NULL;
    }
+
+#ifdef XGEN_RENDER_API_PARALLEL
+    delete m_parallel;
+#endif
 }
 
 bool Procedural::nextFace( bbox& b, unsigned int& f )
@@ -216,6 +223,12 @@ bool Procedural::initPatchRenderer( const char* in_params )
    /*const char* params = "-debug 1 -warning 1 -stats 1  -shutter 0.0 -file ${XGEN_ROOT}/../scen/untitled__collection9.xgen -palette collection9 -geom ${XGEN_ROOT}/../scen/untitled__collection9.abc -patch pSphere1  -description description10 -fps 24.0 -frame 1.000000";
    m_patch = PatchRenderer::init( (ProceduralCallbacks*)this, params );*/
    bool result = (m_patch!=NULL);
+#ifdef XGEN_RENDER_API_PARALLEL
+   if (result && AiNodeGetBool( m_node, "xgen_multithreading" ))
+   {
+       m_parallel = ParallelRenderer::init( m_patch );
+   }
+#endif
    m_mutex->leave();
    return result;
 }
@@ -234,8 +247,29 @@ bool Procedural::initFaceRenderer( Procedural* pProc, unsigned int f )
 bool Procedural::render()
 {
    m_mutex->enter();
+#ifdef XGEN_RENDER_API_PARALLEL
+   if (m_parallel && m_parallel->canRunInParallel())
+   {
+       std::vector<FaceRenderer*>::iterator it;
+       for (it = m_faces.begin(); it != m_faces.end(); ++it)
+       {
+           m_parallel->enqueue(*it);
+       }
+       m_parallel->spawnAndWait();
+   }
+   else
+   {
+       // Fallback
+       std::vector<FaceRenderer*>::iterator it;
+       for (it = m_faces.begin(); it != m_faces.end(); ++it)
+       {
+          (*it)->render();
+       }
+   }
+#else
    for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
       (*it)->render();
+#endif
    m_mutex->leave();
    return true;
 }
