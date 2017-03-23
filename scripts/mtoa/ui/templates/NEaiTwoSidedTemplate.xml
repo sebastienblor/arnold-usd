@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiTwoSided'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='front' type='maya.float3'>
+			<label>Front</label>
+		</attribute>
+		<attribute name='back' type='maya.float3'>
+			<label>Back</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiTwoSided'>
+		<property name='outColor'/>
+		<property name='front'/>
+		<property name='back'/>
+	</view>
+</templates>

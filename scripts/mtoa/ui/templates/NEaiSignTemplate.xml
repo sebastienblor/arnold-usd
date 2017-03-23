@@ -1,12 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
-	<template name='NEaiMotionVector'>
+	<template name='NEaiSign'>
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
 	</template>
-	<view name='NEDefault' template='NEaiMotionVector'>
+	<view name='NEDefault' template='NEaiSign'>
 		<property name='outColor'/>
+		<property name='input'/>
 	</view>
 </templates>

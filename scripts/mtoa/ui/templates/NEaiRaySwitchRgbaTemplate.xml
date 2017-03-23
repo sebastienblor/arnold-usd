@@ -1,12 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
-	<template name='NEaiRaySwitch'>
+	<template name='NEaiRaySwitchRgba'>
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
-		</attribute>
-		<attribute name='outAlpha' type='maya.float'>
-			<label>Out Alpha</label>
 		</attribute>
 		<attribute name='camera' type='maya.float3'>
 			<label>Camera</label>
@@ -17,11 +14,11 @@
 		<attribute name='diffuseReflection' type='maya.float3'>
 			<label>Diffuse Reflection</label>
 		</attribute>
-		<attribute name='specularReflection' type='maya.float3'>
-			<label>Specular Reflection</label>
-		</attribute>
 		<attribute name='diffuseTransmission' type='maya.float3'>
 			<label>Diffuse Transmission</label>
+		</attribute>
+		<attribute name='specularReflection' type='maya.float3'>
+			<label>Specular Reflection</label>
 		</attribute>
 		<attribute name='specularTransmission' type='maya.float3'>
 			<label>Specular Transmission</label>
@@ -30,14 +27,13 @@
 			<label>Volume</label>
 		</attribute>
 	</template>
-	<view name='NEDefault' template='NEaiRaySwitch'>
+	<view name='NEDefault' template='NEaiRaySwitchRgba'>
 		<property name='outColor'/>
-		<property name='outAlpha'/>
 		<property name='camera'/>
 		<property name='shadow'/>
 		<property name='diffuseReflection'/>
-		<property name='specularReflection'/>
 		<property name='diffuseTransmission'/>
+		<property name='specularReflection'/>
 		<property name='specularTransmission'/>
 		<property name='volume'/>
 	</view>

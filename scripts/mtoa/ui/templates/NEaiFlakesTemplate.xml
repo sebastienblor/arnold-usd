@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiFlakes'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='scale' type='maya.float'>
+			<label>Scale</label>
+		</attribute>
+		<attribute name='size' type='maya.float'>
+			<label>Size</label>
+		</attribute>
+		<attribute name='normalRandomize' type='maya.float'>
+			<label>Normal Randomize</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiFlakes'>
+		<property name='message'/>
+		<property name='outColor'/>
+		<property name='scale'/>
+		<property name='size'/>
+		<property name='normalRandomize'/>
+	</view>
+</templates>

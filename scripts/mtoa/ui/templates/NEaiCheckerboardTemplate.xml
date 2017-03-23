@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiCheckerboard'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='color1' type='maya.float3'>
+			<label>Color 1</label>
+		</attribute>
+		<attribute name='color2' type='maya.float3'>
+			<label>Color 2</label>
+		</attribute>
+		<attribute name='contrast' type='maya.float'>
+			<label>Contrast</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiCheckerboard'>
+		<property name='outColor'/>
+		<property name='color1'/>
+		<property name='color2'/>
+		<property name='contrast'/>
+	</view>
+</templates>

@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiStandardSurface'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='base' type='maya.float'>
+			<label>Base</label>
+		</attribute>
+		<attribute name='baseColor' type='maya.float3'>
+			<label>Base Color</label>
+		</attribute>
+		<attribute name='diffuseRoughness' type='maya.float'>
+			<label>Diffuse Roughness</label>
+		</attribute>
+		<attribute name='specular' type='maya.float'>
+			<label>Specular</label>
+		</attribute>
+		<attribute name='specularColor' type='maya.float3'>
+			<label>Specular Color</label>
+		</attribute>
+		<attribute name='specularRoughness' type='maya.float'>
+			<label>Specular Roughness</label>
+		</attribute>
+		<attribute name='transmission' type='maya.float'>
+			<label>Transmission</label>
+		</attribute>
+		<attribute name='transmissionColor' type='maya.float3'>
+			<label>Transmission Color</label>
+		</attribute>
+		<attribute name='transmissionDepth' type='maya.float'>
+			<label>Transmission Depth</label>
+		</attribute>
+		<attribute name='transmissionScatter' type='maya.float3'>
+			<label>Transmission Scatter</label>
+		</attribute>
+		<attribute name='transmissionExtraRoughness' type='maya.float'>
+			<label>Transmission Extra Roughness</label>
+		</attribute>
+		<attribute name='subsurface' type='maya.float'>
+			<label>Subsurface</label>
+		</attribute>
+		<attribute name='subsurfaceColor' type='maya.float3'>
+			<label>Subsurface Color</label>
+		</attribute>
+		<attribute name='subsurfaceRadius' type='maya.float3'>
+			<label>Subsurface Radius</label>
+		</attribute>
+		<attribute name='coat' type='maya.float'>
+			<label>Coat</label>
+		</attribute>
+		<attribute name='coatColor' type='maya.float3'>
+			<label>Coat Color</label>
+		</attribute>
+		<attribute name='coatRoughness' type='maya.float'>
+			<label>Coat Roughness</label>
+		</attribute>
+		<attribute name='emission' type='maya.float'>
+			<label>Emission</label>
+		</attribute>
+		<attribute name='emissionColor' type='maya.float3'>
+			<label>Emission Color</label>
+		</attribute>
+		<attribute name='opacity' type='maya.float3'>
+			<label>Opacity</label>
+		</attribute>
+		<attribute name='normalCamera' type='maya.float3'>
+			<label>Normal Camera</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiStandardSurface'>
+		<property name='outColor'/>
+		<property name='base'/>
+		<property name='baseColor'/>
+		<property name='diffuseRoughness'/>
+		<property name='specular'/>
+		<property name='specularColor'/>
+		<property name='specularRoughness'/>
+		<property name='transmission'/>
+		<property name='transmissionColor'/>
+		<property name='transmissionDepth'/>
+		<property name='transmissionScatter'/>
+		<property name='transmissionExtraRoughness'/>
+		<property name='subsurface'/>
+		<property name='subsurfaceColor'/>
+		<property name='subsurfaceRadius'/>
+		<property name='coat'/>
+		<property name='coatColor'/>
+		<property name='coatRoughness'/>
+		<property name='emission'/>
+		<property name='emissionColor'/>
+		<property name='opacity'/>
+		<property name='normalCamera'/>
+	</view>
+</templates>

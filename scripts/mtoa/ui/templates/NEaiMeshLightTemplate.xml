@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiMeshLight'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='color' type='maya.float3'>
+			<label>Color</label>
+		</attribute>
+		<attribute name='intensity' type='maya.float'>
+			<label>Intensity</label>
+		</attribute>
+		<attribute name='aiExposure' type='maya.float'>
+			<label>Ai Exposure</label>
+		</attribute>
+		<attribute name='aiShadowColor' type='maya.float3'>
+			<label>Ai Shadow Color</label>
+		</attribute>
+		<attribute name='aiShadowDensity' type='maya.float'>
+			<label>Ai Shadow Density</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiMeshLight'>
+		<property name='outColor'/>
+		<property name='color'/>
+		<property name='intensity'/>
+		<property name='aiExposure'/>
+		<property name='aiShadowColor'/>
+		<property name='aiShadowDensity'/>
+	</view>
+</templates>

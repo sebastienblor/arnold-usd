@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiComposite'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='A' type='maya.float3'>
+			<label>A</label>
+		</attribute>
+		<attribute name='B' type='maya.float3'>
+			<label>B</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiComposite'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='A'/>
+		<property name='B'/>
+	</view>
+</templates>

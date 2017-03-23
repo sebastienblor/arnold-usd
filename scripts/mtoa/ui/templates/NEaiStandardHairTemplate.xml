@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiStandardHair'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='base' type='maya.float'>
+			<label>Base</label>
+		</attribute>
+		<attribute name='baseColor' type='maya.float3'>
+			<label>Base Color</label>
+		</attribute>
+		<attribute name='melanin' type='maya.float'>
+			<label>Melanin</label>
+		</attribute>
+		<attribute name='melaninRedness' type='maya.float'>
+			<label>Melanin Redness</label>
+		</attribute>
+		<attribute name='melaninRandomize' type='maya.float'>
+			<label>Melanin Randomize</label>
+		</attribute>
+		<attribute name='roughness' type='maya.float'>
+			<label>Roughness</label>
+		</attribute>
+		<attribute name='specular2Tint' type='maya.float3'>
+			<label>Specular 2Tint</label>
+		</attribute>
+		<attribute name='specularTint' type='maya.float3'>
+			<label>Specular Tint</label>
+		</attribute>
+		<attribute name='transmissionTint' type='maya.float3'>
+			<label>Transmission Tint</label>
+		</attribute>
+		<attribute name='diffuse' type='maya.float'>
+			<label>Diffuse</label>
+		</attribute>
+		<attribute name='diffuseColor' type='maya.float3'>
+			<label>Diffuse Color</label>
+		</attribute>
+		<attribute name='emission' type='maya.float'>
+			<label>Emission</label>
+		</attribute>
+		<attribute name='emissionColor' type='maya.float3'>
+			<label>Emission Color</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiStandardHair'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='base'/>
+		<property name='baseColor'/>
+		<property name='melanin'/>
+		<property name='melaninRedness'/>
+		<property name='melaninRandomize'/>
+		<property name='roughness'/>
+		<property name='specular2Tint'/>
+		<property name='specularTint'/>
+		<property name='transmissionTint'/>
+		<property name='diffuse'/>
+		<property name='diffuseColor'/>
+		<property name='emission'/>
+		<property name='emissionColor'/>
+	</view>
+</templates>

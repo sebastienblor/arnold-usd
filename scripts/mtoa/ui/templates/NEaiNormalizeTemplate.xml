@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
-	<template name='NEaiUserDataVector'>
+	<template name='NEaiNormalize'>
 		<attribute name='outValue' type='maya.float3'>
 			<label>Out Value</label>
 		</attribute>
-		<attribute name='defaultValue' type='maya.float3'>
-			<label>Default Value</label>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
 		</attribute>
 	</template>
-	<view name='NEDefault' template='NEaiUserDataVector'>
+	<view name='NEDefault' template='NEaiNormalize'>
 		<property name='outValue'/>
-		<property name='defaultValue'/>
+		<property name='input'/>
 	</view>
 </templates>

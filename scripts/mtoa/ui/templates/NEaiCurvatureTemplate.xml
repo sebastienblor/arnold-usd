@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiCurvature'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='radius' type='maya.float'>
+			<label>Radius</label>
+		</attribute>
+		<attribute name='spread' type='maya.float'>
+			<label>Spread</label>
+		</attribute>
+		<attribute name='threshold' type='maya.float'>
+			<label>Threshold</label>
+		</attribute>
+		<attribute name='bias' type='maya.float'>
+			<label>Bias</label>
+		</attribute>
+		<attribute name='multiply' type='maya.float'>
+			<label>Multiply</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiCurvature'>
+		<property name='message'/>
+		<property name='outColor'/>
+		<property name='radius'/>
+		<property name='spread'/>
+		<property name='threshold'/>
+		<property name='bias'/>
+		<property name='multiply'/>
+	</view>
+</templates>

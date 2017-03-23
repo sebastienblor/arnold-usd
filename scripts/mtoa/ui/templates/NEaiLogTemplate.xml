@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiLog'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='base' type='maya.float3'>
+			<label>Base</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiLog'>
+		<property name='outColor'/>
+		<property name='input'/>
+		<property name='base'/>
+	</view>
+</templates>

@@ -1,28 +1,28 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
-	<template name='NEaiImage'>
+	<template name='NEaiMixRgba'>
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
 		<attribute name='outAlpha' type='maya.float'>
 			<label>Out Alpha</label>
 		</attribute>
-		<attribute name='multiply' type='maya.float3'>
-			<label>Multiply</label>
+		<attribute name='input1' type='maya.float3'>
+			<label>Input 1</label>
 		</attribute>
-		<attribute name='offset' type='maya.float3'>
-			<label>Offset</label>
+		<attribute name='input2' type='maya.float3'>
+			<label>Input 2</label>
 		</attribute>
-		<attribute name='uvcoords' type='maya.float2'>
-			<label>Uvcoords</label>
+		<attribute name='mix' type='maya.float'>
+			<label>Mix</label>
 		</attribute>
 	</template>
-	<view name='NEDefault' template='NEaiImage'>
+	<view name='NEDefault' template='NEaiMixRgba'>
 		<property name='outColor'/>
 		<property name='outAlpha'/>
-		<property name='multiply'/>
-		<property name='offset'/>
-		<property name='uvcoords'/>
+		<property name='input1'/>
+		<property name='input2'/>
+		<property name='mix'/>
 	</view>
 </templates>

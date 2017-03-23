@@ -1,12 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
-	<template name='NEaiMotionVector'>
+	<template name='NEaiThinFilm'>
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
+		<attribute name='thickness' type='maya.float'>
+			<label>Thickness</label>
+		</attribute>
 	</template>
-	<view name='NEDefault' template='NEaiMotionVector'>
+	<view name='NEDefault' template='NEaiThinFilm'>
 		<property name='outColor'/>
+		<property name='thickness'/>
 	</view>
 </templates>

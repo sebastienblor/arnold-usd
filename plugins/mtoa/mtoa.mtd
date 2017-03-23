@@ -1393,8 +1393,10 @@
         desc                STRING  "Base geometry element used for edge display."
 
 [node flat]
-    maya.hide               BOOL    true
     maya.id                 INT     0x00115D85
+
+[node color_jitter]
+    maya.id                 INT     0x00115D89
 
 [node lambert]
     maya.hide               BOOL    true

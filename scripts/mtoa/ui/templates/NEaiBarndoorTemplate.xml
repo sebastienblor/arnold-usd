@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
-	<template name='NEaiMotionVector'>
+	<template name='NEaiBarndoor'>
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
 	</template>
-	<view name='NEDefault' template='NEaiMotionVector'>
+	<view name='NEDefault' template='NEaiBarndoor'>
 		<property name='outColor'/>
 	</view>
 </templates>
