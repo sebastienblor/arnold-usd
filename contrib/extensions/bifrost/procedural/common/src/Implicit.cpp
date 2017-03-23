@@ -40,14 +40,13 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
 
     AiParameterBool("clipOn", 0);
     AiParameterVec("clipMin", 0, 0, 0);
-    AiParameterVec("clipMax", 0, 0, 0);
+    AiParameterVec("clipMax", 1, 1, 1);
 
     AiParameterBool("infCubeBlendingOn", false);
     AiParameterInt("infCubeOutputType", OUTPUT_SIMONLY);
     AiParameterFlt("simWaterLevel", 0);
     AiParameterVec("infCubeTopCenter", 0, 0, 0);
-    AiParameterFlt("infCubeDimX", 1);
-    AiParameterFlt("infCubeDimZ", 1);
+    AiParameterVec("infCubeDim", 100, 100, 100);
     AiParameterInt("blendType", kLinear);
     AiParameterVec2("infCubeBlendRange", 0, 1);
     AiParameterVec2("blendingChannelRemapRange", 0, 1);
@@ -77,78 +76,80 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterFlt("shutterEnd", 1);
 }
 
-bool getNodeParameters( ImplicitsInputData *inData, const AtNode *node )
+bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
 {
-    DUMP(inData->cullSides.on = AiNodeGetBool( node, "cullSidesOn" ));
+    inData->cullSides.on = AiNodeGetBool( node, "cullSidesOn" );
     AtVector2 cullSidesRange = AiNodeGetVec2(node, "cullSidesRange");
-    DUMP(inData->cullSides.start = cullSidesRange.x);
-    DUMP(inData->cullSides.end = cullSidesRange.y);
-    DUMP(inData->cullSides.depthAtStartInVoxels = AiNodeGetFlt(node, "cullDepthAtStartInVoxels"));
+    inData->cullSides.start = cullSidesRange.x;
+    inData->cullSides.end = cullSidesRange.y;
+    inData->cullSides.depthAtStartInVoxels = AiNodeGetFlt(node, "cullDepthAtStartInVoxels");
 
-    DUMP(inData->velocityScale = AiNodeGetFlt(node, "velocityScale"));
-    DUMP(inData->fps = AiNodeGetFlt(node, "fps"));
-    DUMP(inData->spaceScale = AiNodeGetFlt(node, "spaceScale"));
+    inData->velocityScale = AiNodeGetFlt(node, "velocityScale");
+    inData->fps = AiNodeGetFlt(node, "fps");
+    inData->spaceScale = AiNodeGetFlt(node, "spaceScale");
 
-    DUMP(inData->dilateAmount = AiNodeGetFlt(node, "dilateAmount"));
-    DUMP(inData->erodeAmount = AiNodeGetFlt(node, "erodeAmount"));
-    DUMP(inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( node, "smoothMode" ));
-    DUMP(inData->smooth.amount = AiNodeGetInt( node, "smoothAmount" ));
-    DUMP(inData->smooth.iterations = AiNodeGetInt( node, "smoothIterations" ));
-    DUMP(inData->smooth.weight = AiNodeGetFlt( node, "smoothWeight" ));
+    inData->dilateAmount = AiNodeGetFlt(node, "dilateAmount");
+    inData->erodeAmount = AiNodeGetFlt(node, "erodeAmount");
+    inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( node, "smoothMode" );
+    inData->smooth.amount = AiNodeGetInt( node, "smoothAmount" );
+    inData->smooth.iterations = AiNodeGetInt( node, "smoothIterations" );
+    inData->smooth.weight = AiNodeGetFlt( node, "smoothWeight" );
     AtVector2 smoothRemapRange = AiNodeGetVec2(node, "smoothRemapRange");
-    DUMP(inData->smooth.remapMin = smoothRemapRange.x);
-    DUMP(inData->smooth.remapMax = smoothRemapRange.y);
-    DUMP(inData->smooth.remapInvert = AiNodeGetBool(node, "smoothRemapInvert"));
+    inData->smooth.remapMin = smoothRemapRange.x;
+    inData->smooth.remapMax = smoothRemapRange.y;
+    inData->smooth.remapInvert = AiNodeGetBool(node, "smoothRemapInvert");
 
-    DUMP(inData->clip.on = AiNodeGetBool( node, "clipOn" ));
+    inData->clip.on = AiNodeGetBool( node, "clipOn" );
     AtVector clipMin = AiNodeGetVec(node, "clipMin"), clipMax = AiNodeGetVec(node, "clipMax");
-    DUMP(inData->clip.minX = clipMin.x);
-    DUMP(inData->clip.minY = clipMin.y);
-    DUMP(inData->clip.minZ = clipMin.z);
-    DUMP(inData->clip.maxX = clipMax.x);
-    DUMP(inData->clip.maxY = clipMax.y);
-    DUMP(inData->clip.maxZ = clipMax.z);
+    inData->clip.minX = clipMin.x;
+    inData->clip.minY = clipMin.y;
+    inData->clip.minZ = clipMin.z;
+    inData->clip.maxX = clipMax.x;
+    inData->clip.maxY = clipMax.y;
+    inData->clip.maxZ = clipMax.z;
 
-    DUMP(inData->infCube.on = AiNodeGetBool( node, "infCubeBlendingOn" ));
-    DUMP(inData->infCube.outputType = (InfCubeOutputType) AiNodeGetInt( node, "infCubeOutputType" ));
-    DUMP(inData->infCube.simWaterLevel = AiNodeGetFlt(node, "simWaterLevel"));
+    inData->infCube.on = AiNodeGetBool( node, "infCubeBlendingOn" );
+    inData->infCube.outputType = (InfCubeOutputType) AiNodeGetInt( node, "infCubeOutputType" );
+    inData->infCube.simWaterLevel = AiNodeGetFlt(node, "simWaterLevel");
     AtVector infCubeTopCenter = AiNodeGetVec(node, "infCubeTopCenter");
-    DUMP(inData->infCube.topCenterX = infCubeTopCenter.x);
-    DUMP(inData->infCube.topCenterY = infCubeTopCenter.y);
-    DUMP(inData->infCube.topCenterZ = infCubeTopCenter.z);
-    DUMP(inData->infCube.dimX = AiNodeGetFlt(node, "infCubeDimX"));
-    DUMP(inData->infCube.dimZ = AiNodeGetFlt(node, "infCubeDimZ"));
-    DUMP(inData->infCube.blendType = (FalloffType) AiNodeGetInt( node, "blendType" ));
+    inData->infCube.topCenterX = infCubeTopCenter.x;
+    inData->infCube.topCenterY = infCubeTopCenter.y;
+    inData->infCube.topCenterZ = infCubeTopCenter.z;
+    AtVector infCubeDim = AiNodeGetVec(node, "infCubeDim");
+    inData->infCube.dimX = infCubeDim.x;
+    inData->infCube.dimY = infCubeDim.y;
+    inData->infCube.dimZ = infCubeDim.z;
+    inData->infCube.blendType = (FalloffType) AiNodeGetInt( node, "blendType" );
     AtVector2 infCubeBlendRange = AiNodeGetVec2(node, "infCubeBlendRange");
-    DUMP(inData->infCube.blendStart = infCubeBlendRange.x);
-    DUMP(inData->infCube.blendEnd = infCubeBlendRange.y);
+    inData->infCube.blendStart = infCubeBlendRange.x;
+    inData->infCube.blendEnd = infCubeBlendRange.y;
     AtVector2 blendChannelRemapRange = AiNodeGetVec2(node, "blendingChannelRemapRange");
-    DUMP(inData->infCube.remapMin = blendChannelRemapRange.x);
-    DUMP(inData->infCube.remapMax = blendChannelRemapRange.y);
-    DUMP(inData->infCube.remapInvert = AiNodeGetBool( node, "blendingChannelRemapInvert" ));
+    inData->infCube.remapMin = blendChannelRemapRange.x;
+    inData->infCube.remapMax = blendChannelRemapRange.y;
+    inData->infCube.remapInvert = AiNodeGetBool( node, "blendingChannelRemapInvert" );
 
-    DUMP(inData->resolutionFactor = AiNodeGetFlt(node, "implicitResolutionFactor"));
-    DUMP(inData->dropletRevealFactor = AiNodeGetFlt(node, "implicitDropletRevealFactor"));
-    DUMP(inData->surfaceRadius = AiNodeGetFlt(node, "implicitSurfaceRadius"));
-    DUMP(inData->dropletRadius = AiNodeGetFlt(node, "implicitDropletRadius"));
-    DUMP(inData->maxVolumeOfHolesToClose = AiNodeGetFlt(node, "implicitMaxVolumeOfHolesToClose"));
-    DUMP(inData->doMorphologicalDilation = AiNodeGetBool( node, "doMorphologicalDilation" ));
-    DUMP(inData->doErodeSheetsAndDroplets = AiNodeGetBool( node, "doErodeSheetsAndDroplets" ));
+    inData->resolutionFactor = AiNodeGetFlt(node, "implicitResolutionFactor");
+    inData->dropletRevealFactor = AiNodeGetFlt(node, "implicitDropletRevealFactor");
+    inData->surfaceRadius = AiNodeGetFlt(node, "implicitSurfaceRadius");
+    inData->dropletRadius = AiNodeGetFlt(node, "implicitDropletRadius");
+    inData->maxVolumeOfHolesToClose = AiNodeGetFlt(node, "implicitMaxVolumeOfHolesToClose");
+    inData->doMorphologicalDilation = AiNodeGetBool( node, "doMorphologicalDilation" );
+    inData->doErodeSheetsAndDroplets = AiNodeGetBool( node, "doErodeSheetsAndDroplets" );
 
-    DUMP(inData->diagnostics.DEBUG = AiNodeGetInt(node, "debug"));
-    DUMP(inData->diagnostics.silent = AiNodeGetInt(node, "silent"));
+    inData->diagnostics.DEBUG = AiNodeGetInt(node, "debug");
+    inData->diagnostics.silent = AiNodeGetInt(node, "silent");
 
-    DUMP(inData->bifFilename = StringToChar(AiNodeGetStr(node, "bifFilename")));
-    DUMP(inData->inputChannelName = StringToChar(AiNodeGetStr(node, "distanceChannel")));
-    DUMP(inData->smooth.channelName = StringToChar(AiNodeGetStr(node, "filterBlendingChannel")));
-    DUMP(inData->infCube.channelName = StringToChar(AiNodeGetStr(node, "infiniteSurfaceBlendingChannel")));
-    DUMP(inData->primVarNames = StringToChar(AiNodeGetStr(node, "primVarNames")));
-    DUMP(inData->bifrostObjectName = StringToChar(AiNodeGetStr(node, "bifrostObjectName")));
+    inData->bifFilename = StringToChar(AiNodeGetStr(node, "bifFilename"));
+    inData->inputChannelName = StringToChar(AiNodeGetStr(node, "distanceChannel"));
+    inData->smooth.channelName = StringToChar(AiNodeGetStr(node, "filterBlendingChannel"));
+    inData->infCube.channelName = StringToChar(AiNodeGetStr(node, "infiniteSurfaceBlendingChannel"));
+    inData->primVarNames = StringToChar(AiNodeGetStr(node, "primVarNames"));
+    inData->bifrostObjectName = StringToChar(AiNodeGetStr(node, "bifrostObjectName"));
 
     // arnold specific parameters
-    DUMP(inData->motionBlur = AiNodeGetBool( node, "motionBlur" ));
-    DUMP(inData->shutterStart = AiNodeGetFlt( node, "shutterStart" ));
-    DUMP(inData->shutterEnd = AiNodeGetFlt( node, "shutterEnd" ));
+    inData->motionBlur = AiNodeGetBool( node, "motionBlur" );
+    inData->shutterStart = AiNodeGetFlt( node, "shutterStart" );
+    inData->shutterEnd = AiNodeGetFlt( node, "shutterEnd" );
 
     // check parameters
     inData->checkParameters();
@@ -216,7 +217,7 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
     }
 }
 
-CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename, Bifrost::API::String& writeToFolder){
+CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename){
     // TODO Setup clipping
 
     /*
@@ -227,7 +228,6 @@ CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost
         clipBox = amino::Math::bboxf( min, max );
     }
     if(!inData->inMemoryRef->objectExists()){
-        DUMP(correctedFilename);
         Bifrost::API::ObjectModel om;
         Bifrost::API::FileIO fio = om.createFileIO( correctedFilename );
         inSS = om.createStateServer();
@@ -246,40 +246,26 @@ CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost
     }
     */
 
-    std::cerr << std::endl;
-    DUMP("***** CREATE CORE OBJECT START *****");
-    DUMP("BEFORE");
-    DUMP(json.c_str());
-    DUMP(filename.c_str());
+    Bifrost::API::String tmpFolder;
 
-    CoreObjectUserData *out = new CoreObjectUserData( json, filename );
-    CoreObjectUserData *tmp = out;
-
-    bool exists = out->objectExists();
-    if(exists){
-        DUMP(out->bifrostObject().stateID());
+    CoreObjectUserData tmpObj(json, filename);
+    if(tmpObj.objectExists()){
         // write in memory data to a temp file
         Bifrost::API::String componentName = strstr( filename.c_str(), "volume" ) != NULL? "voxel_liquid-volume" : "voxel_liquid-particle";
-        filename = writeHotDataToDisk( *out, filename, componentName, writeToFolder );
+        filename = writeHotDataToDisk(tmpObj, filename, componentName, tmpFolder);
     }
-    out = new CoreObjectUserData( "", filename );
+    // TODO: the right thing
+    CoreObjectUserData* out = new CoreObjectUserData( "", filename );
     out->loadFromFile(35);
     json = out->object();
 
-    bool same = (out->bifrostObject() == tmp->bifrostObject());
-    delete tmp;
-    if(same || !out->objectExists()){
+    // at this point, bifrost object is in memory => can delete temporary folder
+    if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
+
+    if(!out->objectExists()){
         delete out;
         return NULL;
     }
-
-    std::cerr << std::endl;
-    DUMP("AFTER");
-    DUMP(json.c_str());
-    DUMP(filename.c_str());
-    DUMP(out->objectExists());
-    DUMP("***** CREATE CORE OBJECT ENDS *****");
-    std::cerr << std::endl;
 
     return out;
 }
@@ -294,10 +280,10 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     // log start
     printEndOutput( "[BIFROST POLYMESH] START OUTPUT", inData->diagnostics );
 
-    Bifrost::API::String writeToFolder;
+
     { // init in memory class
         Bifrost::API::String obj = inData->bifrostObjectName, file = inData->bifFilename;
-        inData->inMemoryRef = createCoreObjectUserData(obj, file, writeToFolder);
+        inData->inMemoryRef = createCoreObjectUserData(obj, file);
         ERROR_ASSERT(inData->inMemoryRef);
 
         // realloc for the new name
@@ -317,8 +303,6 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     frameData->init();
     frameData->pluginType = PLUGIN_IMPLICITS;
     frameData->presenceNeeded = inData->cullSides.on;
-    frameData->tmpFolder = writeToFolder;
-//	data->frameData = frameData;
 
     // process which channels to load
     initAndGetFrameData(	frameData,
@@ -339,7 +323,6 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
 
     Bifrost::API::StateServer inSS = Bifrost::API::ObjectModel().stateServer(inData->inMemoryRef->bifrostObject().stateID());
     frameData->inSS = inSS;
-    DUMP(inSS.valid());
 
     //
     // FILE CLASS GATHERING
@@ -352,11 +335,10 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     Bifrost::API::RefArray components = inSS.components();
     Bifrost::API::Component component = components[0];
     component = components[components.findFirstByName(strstr( inData->bifFilename, "volume" ) != NULL? "voxel_liquid-volume" : "voxel_liquid-particle")];
-    DUMP(component.name());
 
-    for(unsigned int i = 0; i < components.count(); ++i){
-        DUMP(Bifrost::API::Component(components[i]).name());
-    }
+    //for(unsigned int i = 0; i < components.count(); ++i){
+    //    DUMP(Bifrost::API::Component(components[i]).name());
+    //}
 
     Bifrost::API::Layout layout = component.layout();
     Bifrost::API::RefArray channels = component.channels();
@@ -367,7 +349,7 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     }
 
     // print parameters
-    //IFNOTSILENT { inData->printParameters( frameData->isPointCache ); }
+    IFNOTSILENT { inData->printParameters( frameData->isPointCache ); }
 
     // print load time
     IFNOTSILENT {
@@ -419,8 +401,9 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     //
     // OPTIMIZE CACHE FOR RENDERING
     //
-    Bifrost::API::Channel inChannel = component.findChannel( Bifrost::API::String( inData->inputChannelName ) );
-    optimizeInputForRendering ( frameData, inChannel, inData->diagnostics );
+    // TODO: do it? necessary? would need to compute frameData->hullCorners
+    // Bifrost::API::Channel inChannel = component.findChannel( Bifrost::API::String( inData->inputChannelName ) );
+    // optimizeInputForRendering( frameData, inChannel, inData->diagnostics );
 
     //
     // CONVERT PARTICLES TO VOXELS IF NEEDED
@@ -428,11 +411,7 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     if ( cacheType == PARTICLE ) {
         IFNOTSILENT { printf("\nConverting particles to voxels...\n"); }
 
-        component = convertParticlesToVoxels(	component,
-                                                inData,
-                                                frameData,
-                                                inSS,
-                                                frameData->loadChannelNames );
+        component = convertParticlesToVoxels(component, inData, frameData, inSS, frameData->loadChannelNames );
 
         // update layout and channels as we now have another component
         layout = component.layout();
@@ -447,8 +426,7 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
 
     // check whether we have a channel named as the input after conversion
     frameData->orgInputChannel = component.findChannel( Bifrost::API::String( inData->inputChannelName ) );
-
-    if ( frameData->orgInputChannel.valid() == false ) {
+    if( !frameData->orgInputChannel.valid()){
         IFNOTSILENT ( printf( "\n\nNo valid channel found with the name: %s\nCan not continue!\n", inData->inputChannelName ) );
         return false;
     } else {
@@ -462,10 +440,7 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     //
 
     //
-    //
     // CREATE EXTRA RUNTIME CHANNELS
-    //
-    //
     //
     if ( frameData->speedNeeded ) {
         IFNOTSILENT { printf("\nCreating primvar: \n\tspeed\n"); }
@@ -550,7 +525,8 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
         IFNOTSILENT { printf("OFF\n\n"); }
     }
 
-    PostProcessVoxels(inData, frameData); // erode, dilate, smooth
+    // POST PROCESS : dilate, smooth, erode
+    PostProcessVoxels(inData, frameData);
 
     //
     // INFCUBE BLENDING
@@ -595,7 +571,6 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     bounds->max[0] = frameData->bboxSim.world.max[0] = (float) bboxMax[0];
     bounds->max[1] = frameData->bboxSim.world.max[1] = (float) bboxMax[1];
     bounds->max[2] = frameData->bboxSim.world.max[2] = (float) bboxMax[2];
-
     frameData->bboxSim.world.calcFromMinMax();
 
     //
@@ -615,7 +590,6 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
         frameData->infCubeBlendChannel = component.findChannel( inData->infCube.channelName );
         frameData->reportChannels.push_back( frameData->infCubeBlendChannel );
     }
-
     reportChannelRanges ( frameData, component, inData->diagnostics );
 
     IFNOTSILENT {
@@ -623,4 +597,5 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
             dumpStateServer( inSS, "AFTER ALL OPS" );
         }
     }
+    return true;
 }

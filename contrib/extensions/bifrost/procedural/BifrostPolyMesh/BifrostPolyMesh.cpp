@@ -27,7 +27,7 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPolymeshMtd)
 
 namespace {
 
-AtNode* ProcSubdivide( ImplicitsInputData *inData, FrameData *frameData )
+AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
 {
     printf("\nCreating the mesh...\n");
     Bifrost::API::StateServer SS = frameData->inSS;
@@ -106,7 +106,7 @@ AtNode* ProcSubdivide( ImplicitsInputData *inData, FrameData *frameData )
 
     AtArray *normalArray = NULL;
     AtArray *vertexNormalArray = NULL;
-    if ( frameData-> exportNormals ) {
+    if ( frameData->exportNormals ) {
         normalArray = AiArrayAllocate( (uint32_t) vertexCount, frameData->motionBlur ? 2 : 1, AI_TYPE_VECTOR );
         vertexNormalArray = AiArrayAllocate( (uint32_t) polyCount * 3, 1, AI_TYPE_UINT );
     }
@@ -217,28 +217,25 @@ AtNode* ProcSubdivide( ImplicitsInputData *inData, FrameData *frameData )
 
 procedural_init
 {
-    ImplicitsInputData *inData = new ImplicitsInputData;
-    DUMP(inData->mesherAlgo = (MesherAlgorithm) AiNodeGetInt(node, "mesherAlgo"));
-    DUMP(inData->sampleRate = AiNodeGetInt(node, "sampleRate"));
-    getNodeParameters(inData, node);
+    ImplicitsInputData inData;
+    FrameData frameData;
+    AtBBox bounds; // dummy
 
-    FrameData* frameData = new FrameData;
-    AtBBox bounds;
-    InitializeImplicit(inData, frameData, &bounds);
+    // polymesh specific inputs
+    inData.mesherAlgo = MESH_MARCHINGCUBES; // the only one available
+    inData.sampleRate = AiNodeGetInt(node, "sampleRate");
+    getNodeParameters(&inData, node);
 
-    AtNode* polymesh = inData->error? NULL : ProcSubdivide(inData, frameData);
-    *user_ptr = polymesh;
-
-    printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
-
-    if (frameData) {
-        //if ( inData->hotData ) {
-        //    Bifrost::API::File::deleteFolder( frameData->tmpFolder );
-        //}
-        delete frameData;
+    if(!InitializeImplicit(&inData, &frameData, &bounds)){
+        AiMsgError("Failed to initialize implicit data on node '%s'", AiNodeGetName(node));
+        return false;
     }
-
-    if(inData) { delete inData; }
+    if(inData.error){
+       AiMsgError("Invalid input data on node '%s'", AiNodeGetName(node));
+       return false;
+    }
+    AtNode* polymesh = inData.error? NULL : ProcSubdivide(&inData, &frameData);
+    *user_ptr = polymesh;
 
     return polymesh != NULL;
 }
@@ -257,7 +254,6 @@ procedural_cleanup
 }
 node_parameters
 {
-    AiParameterInt("mesherAlgo", 0);
     AiParameterInt("sampleRate", 1);
     ImplicitNodeDeclareParameters(params, nentry);
 }

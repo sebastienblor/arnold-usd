@@ -101,7 +101,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		AiNodeSetArray( newNode, "radius", radiusArray );
         //AiNodeSetFlt( newNode, "motion_start", 0 );
         //AiNodeSetFlt( newNode, "motion_end", 0 );
-        DUMP(meanWidth);
+
         AiNodeSetFlt(newNode, "step_size", meanWidth);
         //AiMsgError("sdlkjfhkdsjh");
 

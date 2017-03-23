@@ -23,7 +23,7 @@ class BifrostTranslator : public CShapeTranslator
 		virtual void Export( AtNode *shape );
 		void ExportMotion( AtNode *shape );
 
-		void getLiquidAttributes( MFnDagNode& bifrostDesc, AtNode *shape );
+        void ExportLiquidAttributes( MFnDagNode& bifrostDesc, AtNode *shape );
 		void ExportPoint(AtNode *shape);
 		void ExportAero(AtNode *shape);
 		void ExportLiquidPolyMesh(AtNode *shape);

@@ -775,11 +775,7 @@ Bifrost::API::String writeHotDataToDisk(	CoreObjectUserData& objectRef,
 											Bifrost::API::String& writeToFolder )
 {
 	// declare State Server
-    DUMP("AAAAAAAAAAAAAAAAAA");
     Bifrost::API::StateServer hotServer( objectRef.stateServer() );
-
-    DUMP(objectRef.file());
-    DUMP(filename);
 
     writeToFolder = Bifrost::API::File::createTempFolder();
 	writeToFolder.trimRight( "/" );
@@ -789,22 +785,11 @@ Bifrost::API::String writeHotDataToDisk(	CoreObjectUserData& objectRef,
     filenameOnly = Bifrost::API::String("/").append(filenameOnly);
     Bifrost::API::String writeToFile = Bifrost::API::String(writeToFolder).append(filenameOnly);
 
-    { // REMOVE
-        Bifrost::API::String hotFile = "/home/beauchc/bifrost_debug/tmp/";
-        hotFile += filenameOnly;
-        Bifrost::API::ObjectModel OM;
-        Bifrost::API::FileIO fio = OM.createFileIO( hotFile );
-        Bifrost::API::Component component = hotServer.findComponent( componentName );
-        fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
-    }
     Bifrost::API::ObjectModel OM;
     Bifrost::API::FileIO fio = OM.createFileIO( writeToFile );
     Bifrost::API::Component component = hotServer.findComponent( componentName );
 
     fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
-    DUMP(fio.result().status == Bifrost::API::BIF::JobResult::Success);
-
-    DUMP(writeToFile);
 
     return writeToFile;
 }

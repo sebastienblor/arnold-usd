@@ -55,8 +55,7 @@ enum SmoothFilterType {
 	kGaussian,
 	kMedianValue,
 	kLaplacianFlow,
-	kCurvatureFlow
-//	kMentalRay
+    kCurvatureFlow
 }; 
 
 // enum for blending types
@@ -171,7 +170,7 @@ struct primVarInfo {
 	float min;
 	float max;
 	float defVal;
-	bool exportToRIB;
+    bool exportToRIB;
 
 	int exportArraysIndex;
 	int samplerArrayIndex;
@@ -248,7 +247,7 @@ struct BIFROSTRENDERAPI_DECL ThreadNames {
 
 // struct to hold frame data
 struct BIFROSTRENDERAPI_DECL FrameData {
-	Bifrost::API::Layout layout;
+    Bifrost::API::Layout layout;
     Bifrost::API::VoxelChannel orgInputChannel;
 	Bifrost::API::VoxelChannel srcChannel;
 	Bifrost::API::VoxelChannel safeChannel;
@@ -262,7 +261,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 
 	Bifrost::API::StateServer inSS;
 
-	Bifrost::API::Object inObj;
+    Bifrost::API::Object inObj;
 
 	std::vector<Bifrost::API::VoxelChannel> reportChannels;
 	std::vector<primVarInfo> primVars;
@@ -285,7 +284,6 @@ struct BIFROSTRENDERAPI_DECL FrameData {
     std::string idString;
 
 	bool error;
-	Bifrost::API::String tmpFolder;
 	bool isPointCache;
 	bool idExists;
 	bool smoothChannelExists;
@@ -360,7 +358,8 @@ struct BIFROSTRENDERAPI_DECL InfCubeParams {
 	float topCenterX;
 	float topCenterY;
 	float topCenterZ;
-	float dimX;
+    float dimX;
+    float dimY; // ??
 	float dimZ;
 	FalloffType blendType;
 	float blendStart;
@@ -398,7 +397,13 @@ struct BIFROSTRENDERAPI_DECL CullSidesParams {
 
 // Input data for BifrostImplicits
 struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
-    ImplicitsInputData () : bifFilename(NULL), inputChannelName(NULL), primVarNames(NULL), bifrostObjectName(NULL), inMemoryRef(NULL) {}
+    ImplicitsInputData () :
+        bifFilename(NULL),
+        inputChannelName(NULL),
+        primVarNames(NULL),
+        bifrostObjectName(NULL),
+        inMemoryRef(NULL) {}
+
     ~ImplicitsInputData() {
         FREESTR(bifFilename);
         FREESTR(inputChannelName);

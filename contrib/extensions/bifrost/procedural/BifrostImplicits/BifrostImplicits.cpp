@@ -1,29 +1,9 @@
-#include <string>
-#include <math.h>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <thread>
-#include <string>
-#include <algorithm>
-#include <random>
-#include <ctime>
-
 #include <ai.h>
-
-#include <bifrostrendercore/bifrostrender_defs.h>
-#include <bifrostrendercore/bifrostrender_types.h>
-#include <bifrostrendercore/bifrostrender_math.h>
-#include <bifrostrendercore/bifrostrender_tools.h>
-#include <bifrostrendercore/bifrostrender_primvars.h>
-#include <bifrostrendercore/bifrostrender_visitors.h>
-#include <Tools.h>
-
 #include <Implicit.h>
-
-#include <bifrostrendercore/bifrostrender_filters.h>
-
-#include <bifrostrendercore/bifrostrender_objectuserdata.h>
+#include <map>
+#include <string>
+#include <vector>
+#include <iostream>
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
@@ -35,26 +15,56 @@ using namespace Bifrost::RenderCore;
 
 namespace
 {
-void cleanVoxelSamplers(Bifrost::API::VoxelSampler **samplers)
-{
-	for (int i = 0; i < AI_MAX_THREADS; ++i) {
-		if ( samplers[i] ) {
-			delete samplers[i];
-			samplers[i] = 0;
-		}
-	}
-}
 
-struct BifrostImplicitsUserData {
-	Bifrost::API::VoxelSampler **channelSamplers;
-	std::map<AtString, int> channelSamplerIndexes;
-	int srcChannelSamplerIndexStart;
+struct Samplers {
+    Bifrost::API::VoxelChannel channel;
+    std::vector<Bifrost::API::VoxelSampler*> samplers;
 
-    Bifrost::API::Component voxelComponent;
-
-    ImplicitsInputData *inputData;
-    FrameData *frameData;
+    Samplers(Bifrost::API::VoxelChannel channel, unsigned int size) : channel(channel) {
+        samplers.resize(size, NULL);
+    }
+    virtual ~Samplers(){
+        for(unsigned int i = 0; i < samplers.size(); ++i)
+            if(samplers[i]) delete samplers[i];
+    }
+    Bifrost::API::VoxelSampler* operator[](unsigned int tid){
+        if(!samplers[tid])
+            samplers[tid] = new Bifrost::API::VoxelSampler(channel.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
+        return samplers[tid];
+    }
 };
+
+struct UserData{
+    Bifrost::API::VoxelComponent component;
+    std::map<std::string, Samplers*> samplers; // channel name => samplers/thread
+    AtCritSec lock;
+
+    UserData(const Bifrost::API::VoxelComponent& component) : component(component) {
+        AiCritSecInit(&lock);
+    }
+    ~UserData(){
+        for(auto it = samplers.begin(); it != samplers.end(); ++it)
+            if(it->second) delete it->second;
+        samplers.clear();
+    }
+    Samplers* operator[](const std::string& channel) {
+        if(samplers.find(channel) == samplers.end())
+        { // first time this channel is queried
+            AiCritSecEnter(&lock);
+            if(samplers.find(channel) == samplers.end()){
+                Bifrost::API::Ref ref = component.findChannel(channel.c_str());
+                samplers[channel] = ref.valid()? new Samplers(Bifrost::API::VoxelChannel(ref), AI_MAX_THREADS) : NULL;
+            }
+            AiCritSecLeave(&lock);
+        }
+        return samplers[channel];
+    }
+};
+
+inline Bifrost::API::VoxelSampler* GetThreadSampler(const AtVolumeData* data, const AtString& channel, uint16_t tid, int interp){
+    Samplers* samplers = (*((UserData*) data->private_info))[channel.c_str()];
+    return samplers? (*samplers)[tid] : NULL;
+}
 
 } // namespace
 
@@ -67,161 +77,51 @@ node_parameters
 
 volume_create
 {
-    BifrostImplicitsUserData *pdata = new BifrostImplicitsUserData;
+    data->private_info = NULL;
 
-    ImplicitsInputData *inData = new ImplicitsInputData;
-    DUMP(inData->narrowBandThicknessInVoxels = AiNodeGetFlt(node, "narrowBandThicknessInVoxels"));
-    DUMP(inData->stepSize = AiNodeGetFlt(node, "liquidStepSize"));
-    getNodeParameters(inData, node);
-    FrameData* frameData = new FrameData;
-    pdata->inputData = inData;
-    pdata->frameData = frameData;
+    ImplicitsInputData inData;
+    FrameData frameData;
 
-    InitializeImplicit(inData, frameData, &data->bbox);
+    // Implicit specific inputs
+    inData.narrowBandThicknessInVoxels = AiNodeGetFlt(node, "narrowBandThicknessInVoxels");
+    inData.stepSize = AiNodeGetFlt(node, "liquidStepSize");
+    getNodeParameters(&inData, node);
 
-    data->private_info = pdata;
-    //data->bbox.min = AtVector(-10000,-10000,-10000);// = frameData->bboxSim;
-    //data->bbox.max = AtVector(10000,10000,10000);// = frameData->bboxSim;
-    data->auto_step_size = inData->stepSize;
-
-    Bifrost::API::Component component = frameData->inSS.components()[0];
-    DUMP(component.name());
-    Bifrost::API::RefArray channels = component.channels();
-    DUMP(channels.count());
-
-	// now allocate space for samplers
-    pdata->voxelComponent = component;
-    pdata->srcChannelSamplerIndexStart = -1;
-	int samplerChannelCount = 0;
-
-    for ( unsigned int i = 0; i < channels.count(); i++ ) {
-		Bifrost::API::Channel channel = (Bifrost::API::Channel) channels[i];
-		AtString tmpString ( channel.name().c_str() );
-		int startIndex = samplerChannelCount * AI_MAX_THREADS;
-        pdata->channelSamplerIndexes[ tmpString ] = startIndex;
-
-        if ( tmpString == Bifrost::API::String( inData->inputChannelName ) ) {
-            pdata->srcChannelSamplerIndexStart = startIndex;
-		}
-
-        if ( inData->diagnostics.DEBUG > 0 ) {
-            printf("%s - %d - %d\n", channel.name().c_str(), pdata->channelSamplerIndexes[ tmpString ], pdata->srcChannelSamplerIndexStart );
-		}
-
-		samplerChannelCount++;		
-	}
-
-    pdata->channelSamplers = ( Bifrost::API::VoxelSampler ** ) malloc( samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
-    memset( pdata->channelSamplers, 0, samplerChannelCount * AI_MAX_THREADS * sizeof( void * ) );
-
-	//
-	//
-	// FINISH
-	//
-	//
-    printEndOutput( "[BIFROST IMPLICITS] END OUTPUT", inData->diagnostics );
-
-    return true;
-}
-
-volume_cleanup
-{
-    BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*) data->private_info;
-    if(!userData){
+    if(!InitializeImplicit(&inData, &frameData, &data->bbox)){
+        AiMsgError("Failed to initialize implicit data on node '%s'", AiNodeGetName(node));
         return false;
     }
-    FrameData *frameData = userData->frameData;
-    ImplicitsInputData *inData = userData->inputData;
-
-    //if ( frameData && inData->hotData ) {
-    //    Bifrost::API::File::deleteFolder( frameData->tmpFolder );
-    //}
-    if ( inData ) {
-        free( inData->bifFilename );
-        free( inData->inputChannelName );
-        free( inData->smooth.channelName );
-        free( inData->infCube.channelName );
-        free( inData->primVarNames );
-        free( inData->bifrostObjectName );
+    if(inData.error){
+       AiMsgError("Invalid input data on node '%s'", AiNodeGetName(node));
+       return false;
     }
 
-    delete userData;
-    data->private_info = NULL;
-	return true;
+
+    UserData* userData = new UserData(frameData.inSS.components()[0]);
+    data->private_info = userData;
+    data->auto_step_size = inData.stepSize;
+    return true;
 }
 
 volume_sample
 {
-	if (!data->private_info) return false;
-
-	BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*) data->private_info;
-	ImplicitsInputData *inData = userData->inputData;
-
-	amino::Math::vec3f pos;
-	pos[0] = sg->P.x;
-	pos[1] = sg->P.y;
-	pos[2] = sg->P.z;
-
-	int samplerIndexStart = userData->channelSamplerIndexes[ channel ];
-	Bifrost::API::VoxelSampler *threadSampler = userData->channelSamplers[ samplerIndexStart + sg->tid ];
-
-	if (threadSampler == 0) {
-        if ( inData->diagnostics.DEBUG > 0 ) {
-			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
-		}
-		Bifrost::API::VoxelChannel bifChannel = userData->voxelComponent.findChannel( channel.c_str() );
-
-		threadSampler = new Bifrost::API::VoxelSampler( bifChannel.createSampler( Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace ) );
-		userData->channelSamplers[ samplerIndexStart + sg->tid ] = threadSampler;
-	}
-
-	*type = AI_TYPE_FLOAT;
-	if ( samplerIndexStart >= userData->srcChannelSamplerIndexStart && samplerIndexStart < userData->srcChannelSamplerIndexStart + AI_MAX_THREADS ) {
-		// this is sampling the input channel so we need to apply the scalar
-        //value->FLT = inData->channelScale * threadSampler->sample<float>(pos);
-        value->FLT() = threadSampler->sample<float>(pos);
-	} else {
-        value->FLT() = threadSampler->sample<float>(pos);
-	}
+    if(!data->private_info) return false;
+    Bifrost::API::VoxelSampler* sampler = GetThreadSampler(data, channel, sg->tid, interp);
+    if(!sampler) return false;
+    *type = AI_TYPE_FLOAT;
+    value->FLT() = sampler->sample<float>(amino::Math::vec3f(sg->P.x,sg->P.y,sg->P.z));
 	return true;
 }
 
 volume_gradient
 {
-	if (!data->private_info) return false;
-
-	BifrostImplicitsUserData *userData = (BifrostImplicitsUserData*) data->private_info;
-	ImplicitsInputData *inData = userData->inputData;
-
-	amino::Math::vec3f pos;
-	pos[0] = sg->P.x;
-	pos[1] = sg->P.y;
-	pos[2] = sg->P.z;
-
-	int samplerIndexStart = userData->channelSamplerIndexes[ channel ];
-	Bifrost::API::VoxelSampler *threadSampler = userData->channelSamplers[ samplerIndexStart + sg->tid ];
-
-	if (threadSampler == 0) {
-        if ( inData->diagnostics.DEBUG > 0 ) {
-			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
-		}
-		Bifrost::API::VoxelChannel bifChannel = userData->voxelComponent.findChannel( channel.c_str() );
-        // should use appropriate interpolation type?
-		threadSampler = new Bifrost::API::VoxelSampler( bifChannel.createSampler( Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace ) );
-		userData->channelSamplers[ samplerIndexStart + sg->tid ] = threadSampler;
-	}
-
-	amino::Math::vec3f normal;
-	if ( samplerIndexStart >= userData->srcChannelSamplerIndexStart && samplerIndexStart < userData->srcChannelSamplerIndexStart + AI_MAX_THREADS ) {
-		// this is sampling the input channel so we need to apply the scalar
-		threadSampler->sampleGradient<float>(pos, normal);
-	} else {
-		threadSampler->sampleGradient<float>(pos, normal);
-	}
-
+    if(!data->private_info) return false;
+    Bifrost::API::VoxelSampler* sampler = GetThreadSampler(data, channel, sg->tid, interp);
+    if(!sampler) return false;
+    amino::Math::vec3f normal;
+    sampler->sampleGradient<float>(amino::Math::vec3f(sg->P.x,sg->P.y,sg->P.z), normal);
     for(unsigned int i = 0; i < 3; ++i)
         (*gradient)[i] = normal[i];
-
 	return true;
 }
 
@@ -229,7 +129,15 @@ volume_ray_extents
 {
     if(data->private_info) AiVolumeAddIntersection(info, t0, t1);
 }
+
 volume_update
 {
 	return true;
+}
+
+volume_cleanup
+{
+    delete ((UserData*) data->private_info);
+    data->private_info = NULL;
+    return true;
 }

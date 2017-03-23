@@ -360,7 +360,7 @@ bool CoreObjectUserData::loadFromFile(const float frame)
 	Bifrost::API::StateServer state = fileio.load();
 	if (!state.valid())
 	{
-		printf("Unable to load BIF cache: %s", bif.c_str());		
+        printf("Unable to load BIF cache: %s", bif.c_str());
 		return false;
 	}
 
