@@ -936,7 +936,7 @@ namespace{
         ADD_DFLT("aeroSpaceScale", 1.f);
         ADD_DINT("aeroSilent", 0);
 
-        ADD_DSTR("aeroPrimVars", "");
+        ADD_DSTR("aeroPrimVars", "temperature");
         ADD_DSTR("aeroChannel", "smoke");
         ADD_DSTR("aeroSmoothChannel", "");
 

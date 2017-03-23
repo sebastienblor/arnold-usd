@@ -383,6 +383,7 @@ volume_create
 	std::time_t start, end;
 
 	start = std::time(NULL);
+    frameData->loadChannelNames.add(inData->inputChannelName);
 
 	if ( inData->clip.on ) {
 		loadSt = fio.load( inSS, frameData->loadChannelNames, clipBox);
@@ -816,9 +817,6 @@ volume_sample
 	Bifrost::API::VoxelSampler *threadSampler = volData->channelSamplers[ samplerIndexStart + sg->tid ];
 
 	if (threadSampler == 0) {
-		if ( inData->diagnostics.DEBUG > 0 ) {
-			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
-		}
 		Bifrost::API::VoxelChannel bifChannel = volData->voxelComponent.findChannel( channel.c_str() );
 
 		threadSampler = new Bifrost::API::VoxelSampler( bifChannel.createSampler( Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace ) );
