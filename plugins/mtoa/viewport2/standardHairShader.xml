@@ -40,26 +40,6 @@
   </connections>
   <properties>
     <undefined  name="GPUStage" ref="mayaComputeSurfaceFinal.GPUStage" semantic="GPUStage" />
-    <float3  name="Nw" ref="mayaShaderGeom.Nw" flags="varyingInputParam" />
-    <float3  name="Lw" ref="mayaShaderGeom.Lw" />
-    <float3  name="Vw" ref="mayaShaderGeom.Vw" flags="varyingInputParam" />
-    <float3  name="HLw" ref="mayaHVector.HLw" />
-    <float3  name="diffuseI" ref="mayaLambertDiffuse.diffuseI" />
-    <float  name="translucence" ref="mayaTranslucence.translucence" />
-    <float  name="translucenceDepth" ref="mayaTranslucence.translucenceDepth" />
-    <float  name="translucenceFocus" ref="mayaTranslucence.translucenceFocus" />
-    <float3  name="specularI" ref="mayaAnisotropicSpecular.specularI" />
-    <float3  name="SLw" ref="mayaAnisotropicSpecular.SLw" />
-    <float3  name="mayaTangentIn" ref="mayaAnisotropicComputeData.mayaTangentIn" semantic="tangent" flags="varyingInputParam" />
-    <float3  name="mayaBitangentIn" ref="mayaAnisotropicComputeData.mayaBitangentIn" semantic="bitangent" flags="varyingInputParam" />
-    <float4x4  name="worldInverseTranspose" ref="mayaAnisotropicComputeData.worldInverseTranspose" semantic="worldinversetranspose" />
-    <float  name="angle" ref="mayaAnisotropicComputeData.angle" />
-    <float  name="spreadX" ref="mayaAnisotropicComputeData.spreadX" />
-    <float  name="spreadY" ref="mayaAnisotropicComputeData.spreadY" />
-    <float  name="roughness" ref="roughnessPassThrough.input" />
-    <float  name="ior" ref="iorPassThrough.input" />
-    <string  name="selector" ref="maya16LightAccum.selector" />
-
     <float name="base" ref="hairShaderCombiner.base" />
     <float3 name="baseColor" ref="hairShaderCombiner.baseColor" />
     <float name="melanin" ref="hairShaderCombiner.melanin" />
@@ -94,6 +74,28 @@
     <float  name="fogDensity" ref="maya_FogDepthSurface.fogDensity" />
     <float4  name="fogColor" ref="mayaComputeSurfaceFinal.fogColor" />
     <float  name="fogMultiplier" ref="mayaComputeSurfaceFinal.fogMultiplier" />
+
+    <float  name="angle" ref="mayaAnisotropicComputeData.angle" />
+    <float  name="spreadX" ref="mayaAnisotropicComputeData.spreadX" />
+    <float  name="spreadY" ref="mayaAnisotropicComputeData.spreadY" />
+    <float  name="roughness" ref="roughnessPassThrough.input" />
+    <float  name="ior" ref="iorPassThrough.input" />
+    <string  name="selector" ref="maya16LightAccum.selector" />
+
+    <float3  name="Nw" ref="mayaShaderGeom.Nw" flags="varyingInputParam" />
+    <float3  name="Lw" ref="mayaShaderGeom.Lw" />
+    <float3  name="Vw" ref="mayaShaderGeom.Vw" flags="varyingInputParam" />
+    <float3  name="HLw" ref="mayaHVector.HLw" />
+    <float3  name="diffuseI" ref="mayaLambertDiffuse.diffuseI" />
+    <float  name="translucence" ref="mayaTranslucence.translucence" />
+    <float  name="translucenceDepth" ref="mayaTranslucence.translucenceDepth" />
+    <float  name="translucenceFocus" ref="mayaTranslucence.translucenceFocus" />
+    <float3  name="specularI" ref="mayaAnisotropicSpecular.specularI" />
+    <float3  name="SLw" ref="mayaAnisotropicSpecular.SLw" />
+    <float3  name="mayaTangentIn" ref="mayaAnisotropicComputeData.mayaTangentIn" semantic="tangent" flags="varyingInputParam" />
+    <float3  name="mayaBitangentIn" ref="mayaAnisotropicComputeData.mayaBitangentIn" semantic="bitangent" flags="varyingInputParam" />
+    <float4x4  name="worldInverseTranspose" ref="mayaAnisotropicComputeData.worldInverseTranspose" semantic="worldinversetranspose" />
+
   </properties>
   <values>
     <float3 name="Lw" value="0.000000,0.000000,0.000000"  />
