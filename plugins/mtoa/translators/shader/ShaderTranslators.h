@@ -40,7 +40,6 @@ SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
 SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
-SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
@@ -167,6 +166,17 @@ public:
    AtNode* CreateArnoldNodes();
 
 };
+
+class CRampTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CRampTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+
+};
+
 
 class CAiMixShaderTranslator : public CShaderTranslator{
 public:

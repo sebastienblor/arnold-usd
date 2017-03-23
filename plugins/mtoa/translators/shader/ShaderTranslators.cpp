@@ -886,6 +886,7 @@ void CRampTranslator::Export(AtNode* shader)
    AiNodeSetBool(shader, "alphaIsLuminance", true);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "uvCoord", AI_TYPE_VECTOR2);
+   ProcessParameter(shader, "curveImplicitUvs", AI_TYPE_BOOLEAN, "aiCurveImplicitUvs");
 
    MPlug plug, elem, pos, col;
 
@@ -898,6 +899,19 @@ void CRampTranslator::Export(AtNode* shader)
 
    MObject ocol = fnNode.attribute("color");
    ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);   
+
+}
+
+void CRampTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("ramp");
+   
+   CAttrData data;
+   
+   data.defaultValue.BOOL() = true;
+   data.name = "aiCurveImplicitUvs";
+   data.shortName = "ai_curve_implicit_uvs";
+   helper.MakeInputBoolean(data);
 }
 
 // Place2DTexture

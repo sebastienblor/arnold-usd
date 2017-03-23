@@ -56,6 +56,7 @@ enum MayaRampParams
    p_hue_noise_freq,
    p_sat_noise_freq,
    p_val_noise_freq,
+   p_curve_implicit_uvs,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -144,6 +145,7 @@ node_parameters
    AiParameterFlt("hueNoiseFreq", 0.5f);
    AiParameterFlt("satNoiseFreq", 0.5f);
    AiParameterFlt("valNoiseFreq", 0.5f);
+   AiParameterBool("curveImplicitUvs", true);
 
    AddMayaColorBalanceParams(params, nentry);
 
@@ -193,7 +195,6 @@ node_finish
    delete reinterpret_cast<MayaRampData*>(AiNodeGetLocalData(node));
 }
 
-
 shader_evaluate
 {
    AtRGB result = AI_RGB_BLACK;
@@ -212,7 +213,17 @@ shader_evaluate
    // Will be set to GLOBALS by update if unconnected
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
-   
+
+   static const AtString curves("curves");
+   // for curves shapes, we check if "curveImplicitUvs" is enabled. If so, we want to use
+   // implicit (barycentric) coordinates (root-to-tip)
+   bool implicitUvs = (AiShaderEvalParamBool(p_curve_implicit_uvs) && sg->Op && AiNodeEntryGetNameAtString(AiNodeGetNodeEntry(sg->Op)) == curves);
+
+   if (implicitUvs)
+   {
+      uv.x = sg->bu;
+      uv.y = sg->bv;
+   }
 
    if (!IsValidUV(uv))
    {

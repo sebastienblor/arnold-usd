@@ -668,7 +668,8 @@ namespace // <anonymous>
                                        ProjectionTranslatorNodeInitializer);
          shaders->RegisterTranslator("ramp",
                                        "",
-                                       CRampTranslator::creator);
+                                       CRampTranslator::creator,
+                                       CRampTranslator::NodeInitializer);
          shaders->RegisterTranslator("animCurveTA",
                                        "",
                                        CAnimCurveTranslator::creator);
