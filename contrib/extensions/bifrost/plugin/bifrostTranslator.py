@@ -13,7 +13,7 @@ def bifrostRenderExportShowBlock(controlName, condition):
 
 def Hide(controlName):
     control = controlName.split('.')[-1]
-    cmds.paneLayout(control, visible=False)
+    cmds.paneLayout(control, edit=cmds.paneLayout(control, exists=True), visible=False)
 
 def CheckRenderType( nodeName ):
     # this is to enable disable parts of the AE
