@@ -86,6 +86,8 @@ struct DescInfo
    std::string auxRenderPatch;
    bool useAuxRenderPatch;
 
+   bool multithreading;
+
    void setBoundingBox( float xmin, float ymin, float zmin, float xmax, float ymax, float zmax )
    {
       fBoundingBox[0] = xmin;
@@ -260,6 +262,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
                info.moblurFactor = 0.5;
                info.auxRenderPatch = xgenDesc.findPlug("aiAuxRenderPatch").asString().asChar();
                info.useAuxRenderPatch = xgenDesc.findPlug("aiUseAuxRenderPatch").asBool();
+               info.multithreading = xgenDesc.findPlug("aiMultithreading").asBool();
 
                //  use render globals moblur settings
                if (info.moblur == 0)
@@ -734,6 +737,9 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 
          AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
          AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
+
+         AiNodeDeclare( shape, "xgen_multithreading", "constant BOOL" );
+         AiNodeSetBool ( shape, "xgen_multithreading", info.multithreading );
       }
       
       ExportLightLinking(shape);
@@ -863,6 +869,11 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiAuxRenderPatch";
    data.shortName = "ai_batch_render_patch";
    helper.MakeInputString ( data );
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiMultithreading";
+   data.shortName = "ai_multithreading";
+   helper.MakeInputBoolean ( data );
 }
 
 AtNode* CXgDescriptionTranslator::ExportRootShader(AtNode* instance)

@@ -42,6 +42,7 @@ maya.stringTable['y_xgenArnoldUI.kCurveModeFlat'] = u'Flat'
 maya.stringTable['y_xgenArnoldUI.kArnoldAdvancedSettings'] = u'Arnold Advanced Settings'
 maya.stringTable['y_xgenArnoldUI.kUsePatchesPath'] = u'Use Aux Render Patch'
 maya.stringTable['y_xgenArnoldUI.kPatchesPath'] = u'Auxilary Render Patch'
+maya.stringTable['y_xgenArnoldUI.kMultithreading'] = u'Multithreading'
 
 
 
