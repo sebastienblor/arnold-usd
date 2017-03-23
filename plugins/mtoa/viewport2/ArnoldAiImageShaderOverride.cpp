@@ -20,15 +20,10 @@ ArnoldAiImageShaderOverride::ArnoldAiImageShaderOverride(const MObject& obj)
 , m_object(obj)
 , m_samplerState(NULL)
 {
-   MStringArray reqs;
-   reqs.append("imageShaderCombiner");
-   reqs.append("standardShaderLightingData");
-   reqs.append("standardShaderCombiner");
-   reqs.append("standardShaderDiffuse");
-   reqs.append("standardShaderLightingCombiner");
-   reqs.append("textureMapping");
-   if (LoadFragmentGraph("imageShader", reqs))
-      m_fragmentName = "imageShader";
+    MStringArray reqs;
+    reqs.append("textureMapping");
+    if (LoadFragmentGraph("imageShader", reqs))
+        m_fragmentName = "imageShader";
 }
 
 ArnoldAiImageShaderOverride::~ArnoldAiImageShaderOverride()
