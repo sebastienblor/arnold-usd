@@ -284,6 +284,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
     std::string idString;
 
 	bool error;
+    Bifrost::API::String tmpFolder;
 	bool isPointCache;
 	bool idExists;
 	bool smoothChannelExists;

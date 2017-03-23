@@ -309,7 +309,6 @@ Bifrost::API::Ref CoreObjectUserData::createChannel(
 
 Bifrost::API::String CoreObjectUserData::getCacheFilename( const float frame )
 {
-    return m_file;
 	// file includes both the cacheDir and the cacheName. This was done to reduce the changes to the .mi parameters.
 	// file has the cacheDir and cacheName so we extract them
 	Bifrost::API::String cacheDir, cacheName;

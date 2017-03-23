@@ -254,6 +254,6 @@ procedural_cleanup
 }
 node_parameters
 {
-    AiParameterInt("sampleRate", 1);
+    AiParameterInt("sampleRate", 2);
     ImplicitNodeDeclareParameters(params, nentry);
 }

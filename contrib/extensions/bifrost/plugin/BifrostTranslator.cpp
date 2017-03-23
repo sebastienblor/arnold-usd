@@ -219,9 +219,6 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
 	bool hotData = objectRef.objectExists();
 
-
-
-
 	if ( hotData ) {
 		AiNodeSetBool( shape, "hotData", 1 );
 	} else {
@@ -523,11 +520,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 
 	AiNodeSetFlt( shape, "spaceScale", 1 );
 
-	// smooth params
-
-	bool boolAttrVal = bifrostDesc.findPlug( "aeroSmoothOn" ).asBool();
-	AiNodeSetBool( shape, "smoothOn", boolAttrVal );
-
+    // smooth params
 
 	int intAttrVal = bifrostDesc.findPlug( "aeroSmoothMode" ).asInt();
 	AiNodeSetInt( shape, "smoothMode", intAttrVal );
@@ -553,7 +546,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 	AiNodeSetFlt( shape, "smoothRemapMax", attrVal );
 
 
-	boolAttrVal = bifrostDesc.findPlug( "aeroSmoothRemapInvert" ).asBool();
+    bool boolAttrVal = bifrostDesc.findPlug( "aeroSmoothRemapInvert" ).asBool();
 	AiNodeSetBool( shape, "smoothRemapInvert", boolAttrVal );
 
 
@@ -717,7 +710,6 @@ void BifrostTranslator::ExportLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode
 	// post process params
     EXPORT_FLT("dilateAmount");
     EXPORT_FLT("erodeAmount");
-    EXPORT_BOOL("smoothOn");
     EXPORT_INT("smoothMode");
     EXPORT_INT("smoothAmount");
     EXPORT_INT("smoothIterations");
@@ -948,7 +940,6 @@ namespace{
         ADD_DSTR("aeroChannel", "smoke");
         ADD_DSTR("aeroSmoothChannel", "");
 
-        ADD_DBOOL("aeroSmoothOn", false);
         ADD_DSMOOTH_ENUM("aeroSmoothMode");
         ADD_DINT("aeroSmoothAmount", 1);
         ADD_DINT("aeroSmoothIterations", 1);
@@ -984,7 +975,7 @@ namespace{
         }\
         helper.MakeInputEnum(data);
         ADD_DDATA_ENUM("renderData");
-        ADD_DINT("sampleRate", 1);
+        ADD_DINT("sampleRate", 2);
 
         ADD_DFLT("liquidVelocityScale", 1.f);
         ADD_DFLT("liquidSpaceScale", 1.f);
@@ -1002,10 +993,10 @@ namespace{
 
         ADD_DFLT("dilateAmount", 0.f);
         ADD_DFLT("erodeAmount", 0.f);
-        ADD_DBOOL("smoothOn", false);
         ADD_DSMOOTH_ENUM("smoothMode");
         ADD_DINT("smoothAmount", 1);
         ADD_DINT("smoothIterations", 1);
+        ADD_DFLT("smoothWeight", 0.f);
         ADD_DFLT2("smoothRemapRange", 0.f, 1.f);
         ADD_DBOOL("smoothRemapInvert", false);
 

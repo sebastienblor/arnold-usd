@@ -88,14 +88,13 @@ volume_create
     getNodeParameters(&inData, node);
 
     if(!InitializeImplicit(&inData, &frameData, &data->bbox)){
-        AiMsgError("Failed to initialize implicit data on node '%s'", AiNodeGetName(node));
+        AiMsgError("[BIFROST] Failed to initialize implicit data on node '%s'", AiNodeGetName(node));
         return false;
     }
     if(inData.error){
-       AiMsgError("Invalid input data on node '%s'", AiNodeGetName(node));
+       AiMsgError("[BIFROST] Invalid input data on node '%s'", AiNodeGetName(node));
        return false;
     }
-
 
     UserData* userData = new UserData(frameData.inSS.components()[0]);
     data->private_info = userData;

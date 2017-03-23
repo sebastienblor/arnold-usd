@@ -17,7 +17,7 @@ using namespace Bifrost::RenderCore;
 #define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
 #define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 #define INIT_ASSERT(condition) if(!condition){ AiMsgWarning("%s:%d condition failed: %s", __FILENAME__, __LINE__, #condition); printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics ); return false; }
-#define ERROR_ASSERT(condition) if(!condition){ AiMsgError("%s:%d condition failed: %s", __FILENAME__, __LINE__, #condition); }
+#define ERROR_ASSERT(condition) if(!condition){ AiMsgError("[BIFROST] Critical condition failed: (%s) (%s:%d)", #condition, __FILENAME__, __LINE__); return false; }
 
 void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterBool("cullSidesOn", false);
@@ -217,55 +217,48 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
     }
 }
 
-CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename){
-    // TODO Setup clipping
-
-    /*
-    amino::Math::bboxf clipBox;
-    if ( inData->clip.on ) {
-        amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
-        amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
-        clipBox = amino::Math::bboxf( min, max );
-    }
-    if(!inData->inMemoryRef->objectExists()){
-        Bifrost::API::ObjectModel om;
-        Bifrost::API::FileIO fio = om.createFileIO( correctedFilename );
-        inSS = om.createStateServer();
-
-        // timer for diagnostics
-        std::time_t start = std::time(NULL), end;
-        Bifrost::API::Status loadSt = inData->clip.on? fio.load( inSS, frameData->loadChannelNames, clipBox) : fio.load( inSS, frameData->loadChannelNames);
-
-        end = std::time(NULL);
-        double duration = difftime( end, start );
-
-        if( loadSt == Bifrost::API::Status::Failure ) {
-            IFNOTSILENT { printf("Bif file can not be loaded, please check the file!\n"); }
-            return false;
-        }
-    }
-    */
+CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename, const ClipParams& clip){
+    CoreObjectUserData* out = NULL;
 
     Bifrost::API::String tmpFolder;
-
     CoreObjectUserData tmpObj(json, filename);
     if(tmpObj.objectExists()){
         // write in memory data to a temp file
+        // TODO: get component in a more robust way....
         Bifrost::API::String componentName = strstr( filename.c_str(), "volume" ) != NULL? "voxel_liquid-volume" : "voxel_liquid-particle";
         filename = writeHotDataToDisk(tmpObj, filename, componentName, tmpFolder);
     }
-    // TODO: the right thing
-    CoreObjectUserData* out = new CoreObjectUserData( "", filename );
-    out->loadFromFile(35);
-    json = out->object();
 
-    // at this point, bifrost object is in memory => can delete temporary folder
-    if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
+    // TODO: only import required channels (frameData->loadChannelNames)
+    // Now we have the right file name
+    Bifrost::API::Status loadState;
+    Bifrost::API::ObjectModel om;
+    Bifrost::API::FileIO fio = om.createFileIO(Bifrost::API::File::forwardSlashes(filename));
+    Bifrost::API::StateServer ss = om.createStateServer();
 
-    if(!out->objectExists()){
-        delete out;
-        return NULL;
+    // timer for diagnostics
+    if(clip.on){
+        loadState = fio.load(ss, amino::Math::bboxf( amino::Math::vec3f(clip.minX, clip.minY, clip.minZ),
+                                                     amino::Math::vec3f(clip.maxX, clip.maxY, clip.maxZ)));
+    }else{
+        loadState = fio.load(ss);
     }
+    if(loadState == Bifrost::API::Status::Success){
+        Bifrost::API::RefArray objects = ss.objects();
+        if(objects.count() == 1){
+            json = CoreObjectUserData::writeDictObject(ss.stateID(), Bifrost::API::Object(objects[0]).name()).saveJSON();
+            out = new CoreObjectUserData(json, filename);
+            if(!out->objectExists()){
+                delete out;
+                out = NULL;
+            }
+        }else{
+            AiMsgWarning("[BIFROST] Can't find bif object in file '%s' (%d objects exist).", filename.c_str(), objects.count());
+        }
+    }else{
+        AiMsgWarning("[BIFROST] Failed to load bif file '%s'.", filename.c_str());
+    }
+    if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
 
     return out;
 }
@@ -283,18 +276,13 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
 
     { // init in memory class
         Bifrost::API::String obj = inData->bifrostObjectName, file = inData->bifFilename;
-        inData->inMemoryRef = createCoreObjectUserData(obj, file);
-        ERROR_ASSERT(inData->inMemoryRef);
+        inData->inMemoryRef = createCoreObjectUserData(obj, file, inData->clip);
+        ERROR_ASSERT(inData->inMemoryRef != NULL);
 
         // realloc for the new name
         free(inData->bifFilename); inData->bifFilename = StringToChar(file);
         free(inData->bifrostObjectName); inData->bifrostObjectName = StringToChar(obj);
     }
-    IFNOTSILENT {
-        Bifrost::API::String correctedFilename = Bifrost::API::File::forwardSlashes(inData->bifFilename);
-        inData->printParameters( correctedFilename.find("particle") != Bifrost::API::String::npos );
-    }
-
     //
     // PRELOADING AND INFO GATHERING
     //
