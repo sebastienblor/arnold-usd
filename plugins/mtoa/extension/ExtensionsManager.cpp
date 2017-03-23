@@ -38,6 +38,8 @@ MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
 
+static unordered_set<std::string>  s_deferredExtensions;
+
 /// The Maya plugin it's used in (MtoA)
 void CExtensionsManager::SetMayaPlugin(const MObject& plugin)
 {
@@ -968,8 +970,43 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
    MString pluginName = strs[1];
    std::string plugin_str(pluginName.asChar());
    // start up the arnold universe so that attribute helpers can query arnold nodes
-   bool AiUniverseCreated = ArnoldUniverseBegin();
+
    ExtensionsList::iterator extIt;
+   
+   if (plugin_str == "mtoa")
+   {
+      // we're first called when MtoA finished loading.
+      // Let's loop over the the extensions, and keep the deferred ones
+      // in a list
+      for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+      {         
+         if (!extIt->IsDeferred())
+            continue;
+
+         const unordered_set<std::string> &extensionPlugins = extIt->m_impl->m_requiredMayaPlugins;
+         for (unordered_set<std::string>::iterator plIt = extensionPlugins.begin(); plIt != extensionPlugins.end(); ++plIt)
+         {
+            s_deferredExtensions.insert(*plIt);
+         }
+         
+      }
+      return;
+   }
+
+   if (s_deferredExtensions.empty())
+      return;
+
+   // a new plugin has been loaded, we must check if it is in the list 
+   // of deferred extensions
+   if (s_deferredExtensions.find(plugin_str) == s_deferredExtensions.end())
+      return;
+
+   // the plugin that was just loaded is in our list, we need to loop over all our 
+   // extensions and see which one needs to be registered
+
+   bool universeCreated = false;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
          extIt++)
@@ -978,10 +1015,16 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
             && extIt->m_impl->m_requiredMayaPlugins.find(plugin_str)
             != extIt->m_impl->m_requiredMayaPlugins.end())
       {
+         if (!universeCreated)
+            universeCreated = ArnoldUniverseBegin();
+
          RegisterExtension(&(*extIt));
       }
    }
-   if (AiUniverseCreated) ArnoldUniverseEnd();
+   if (universeCreated) ArnoldUniverseEnd();
+
+   // remove this plugin from our list now that it was registered
+   s_deferredExtensions.erase(plugin_str);
 }
 
 /// Installs the plugin-loaded callback
