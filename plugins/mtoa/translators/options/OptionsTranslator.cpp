@@ -671,7 +671,7 @@ void COptionsTranslator::Export(AtNode *options)
             AiNodeSetInt(options, "AA_samples", AA_samples == 0 ? 1 : AA_samples);
          } else if (strcmp(paramName, "thread_priority") == 0)
          {
-            AiNodeSetInt(options, "thread_priority", 2);
+            //AiNodeSetInt(options, "thread_priority", 2 );
          }
          else
          {
