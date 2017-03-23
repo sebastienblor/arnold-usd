@@ -986,7 +986,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
             continue;
 
          const unordered_set<std::string> &extensionPlugins = extIt->m_impl->m_requiredMayaPlugins;
-         for (unordered_set<std::string>::iterator plIt = extensionPlugins.begin(); plIt != extensionPlugins.end(); ++plIt)
+         for (unordered_set<std::string>::const_iterator plIt = extensionPlugins.begin(); plIt != extensionPlugins.end(); ++plIt)
          {
             s_deferredExtensions.insert(*plIt);
          }
