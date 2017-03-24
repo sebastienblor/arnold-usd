@@ -9,6 +9,8 @@
 #include <maya/MFileIO.h>
 #include <maya/MGlobal.h>
 
+// TODO: remove this comment
+
 extern "C"
 {
     namespace{
