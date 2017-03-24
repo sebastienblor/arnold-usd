@@ -446,7 +446,6 @@ struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
 
 	// diagnostics parameters
 	DiagnosticsParams diagnostics; // 47 params - silent is not get with the current system
-    //bool hotData; // 47 params
 
 	// for arnold
 	float stepSize;
@@ -520,7 +519,6 @@ struct BIFROSTRENDERAPI_DECL PrimitivesInputData {
 	CvString bifrostObjectName;
 
 	DiagnosticsParams diagnostics;
-	bool hotData;
 
 	// in memory data structure
 	CoreObjectUserData *inMemoryRef;
@@ -572,7 +570,6 @@ struct BIFROSTRENDERAPI_DECL VolumeInputData {
 
 	// state parameters
 	DiagnosticsParams diagnostics; // 31 params
-    //bool hotData; // 32 params
 
 	// in memory data structure
 	CoreObjectUserData *inMemoryRef;
@@ -629,7 +626,6 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 	int finalChunkSize;
 
 	bool error;
-	bool hotData;
 	Bifrost::API::String tmpFolder;
 
 	PluginType pluginType;

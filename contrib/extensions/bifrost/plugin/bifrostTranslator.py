@@ -42,12 +42,12 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addCustom("AeroExportHideThis", Hide, Hide)
 
         self.beginLayout("Globals", collapse=False)
-        self.addControl("aeroRenderData", label="Components")
-        self.addControl("aeroChannel")
-        self.addControl("aeroChannelScale")
-        self.addControl("aeroVelocityScale")
-        self.addControl("aeroSpaceScale")
-        self.addControl("aeroPrimVars")
+        self.addControl("aeroRenderData", label="Render Components")
+        self.addControl("aeroChannel", label="Density Channel")
+        self.addControl("aeroChannelScale", label="Channel Scale")
+        self.addControl("aeroVelocityScale", label="Velocity Scale")
+        self.addControl("aeroSpaceScale", label="Space Scale")
+        self.addControl("aeroPrimVars", label="Export Channels")
         self.endLayout() # Globals
 
         self.beginLayout("Smoothing", collapse=False)
@@ -55,11 +55,11 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("aeroSmoothWeight", "Weight")
         self.addControl("aeroSmoothIterations", "Iterations")
 
-        self.beginLayout("Blend Raw And Smooth", collapse=False)
-        self.addControl("aeroSmoothChannel")
+        self.beginLayout("Blend Raw And Smooth", collapse=True)
+        self.addControl("aeroSmoothChannel", label="Smooth Channel")
         self.addControl("aeroSmoothRemapMin")
         self.addControl("aeroSmoothRemapMax")
-        self.addControl("aeroSmoothRemapInvert")
+        self.addControl("aeroSmoothRemapInvert", label="Invert")
         self.endLayout() # Blend Raw And Smooth
         self.endLayout() # Smoothing
 
@@ -93,7 +93,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Globals", collapse=False)
         self.addControl("renderMethod")
-        self.addControl("renderData", label="Components")
+        self.addControl("renderData", label="Render Components")
         self.addControl("distanceChannel")
         self.addControl("liquidPrimVars", label="Export Channels")
         self.addControl("liquidVelocityScale", label="Velocity Scale")
@@ -154,7 +154,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.beginLayout("Mesh Controls", collapse=True)
         self.addControl("sampleRate", label="Tesselation")
         self.endLayout() # Mesh
-        self.beginLayout("Particle To Voxels Controls", collapse=True)
+        self.beginLayout("Particle To Voxels Controls", collapse=False)
         self.addControl("implicitResolutionFactor", label="Resolution Factor")
         self.addControl("implicitDropletRevealFactor", label="Droplet Reveal Factor")
         self.addControl("implicitSurfaceRadius", label="Surface Radius")
@@ -172,23 +172,19 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addCustom("PointExportHideThis", Hide, Hide)
 
         self.beginLayout("Globals", collapse=False)
-        self.addControl("renderPrimitiveType")
-        self.addControl("pointSkip")
-        self.addControl("chunkSize")
-        self.addControl("pointVelocityScale")
-        self.addControl("pointSpaceScale")
-        self.addControl("pointPrimVars")
+        self.addControl("renderPrimitiveType", label="Primitive Type")
+        self.addControl("pointVelocityScale", label="Velocity Scale")
+        self.addControl("pointSpaceScale", label="Space Scale")
+        self.addControl("pointPrimVars", label="Export Channels")
 
         self.beginLayout("Render Channel", collapse=False)
         self.addControl("pointChannel")
-        self.addControl("pointChannelScale")
-        self.addControl("useChannelGradientAsNormal")
-        self.addControl("exportNormalAsPrimvar")
+        self.addControl("pointChannelScale", label="Channel Scale")
         self.endLayout() # Render Channel
         self.endLayout() # Globals
 
         self.beginLayout("Radius", collapse=False)
-        self.addControl("pointRadius")
+        self.addControl("pointRadius", label="Radius")
         self.addControl("useChannelToModulateRadius")
 
         self.beginLayout("Camera Dependent Radius", collapse=True)
@@ -218,6 +214,14 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("mpDisplacementValue")
         self.addControl("mpDisplacementNoiseFrequency")
         self.endLayout() # Multi Pointing
+
+        self.beginLayout("Other", collapse=True)
+        self.addControl("pointSkip")
+        self.addControl("chunkSize")
+        self.addControl("useChannelGradientAsNormal")
+        self.addControl("exportNormalAsPrimvar")
+        self.endLayout()
+
         self.endLayout() # Foam Attributes
 
     def setup(self):
@@ -226,12 +230,11 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.setupLiquid()
         self.setupFoam()
 
-        self.beginLayout("Hidden")
+        self.beginLayout("Hidden", visible=False)
         self.addCustom("HiddenHideThis", Hide, Hide)
         self.addControl("bifrostRenderType", changeCommand=CheckRenderType);
         self.endLayout()
 
-        self.suppress("aeroSilent")
         self.suppress("aiDebug")
         self.suppress("debug")
         self.suppress("silent")

@@ -204,7 +204,6 @@ void FrameData::init()
 void PrimitivesFrameData::init()
 {
 	this->error = false;
-	this->hotData = false;
 }
 
 //
@@ -216,11 +215,6 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 	printf("\nParameters for the Plugin:\n");
 	
 	// get string data
-    //if ( this->hotData ) {
-    //	printf("\tUsing in memory data!\n");
-    //} else {
-    //	printf("\tfilename: %s\n", this->bifFilename);
-    //}
 	printf("\tdistanceChannel: %s\n", this->inputChannelName);
 	printf("\tprimVarNames: %s\n", this->primVarNames);
 
@@ -347,12 +341,6 @@ void VolumeInputData::printParameters( bool isParticleCache )
 {
 	printf("\nParameters for the Plugin:\n");
 	
-	// get string data
-    //if ( this->hotData ) {
-    //	printf("\tUsing in memory data!\n");
-    //} else {
-    //	printf("\tfilename: %s\n", this->bifFilename);
-    //}
 	printf("\tinputChannel: %s\n", this->inputChannelName);
 	printf("\tprimVarNames: %s\n", this->primVarNames);
 
@@ -428,13 +416,6 @@ void VolumeInputData::printParameters( bool isParticleCache )
 void PrimitivesInputData::printParameters()
 {
 	printf("\nInput Parameters:\n");
-
-	// string args
-	if ( this->hotData ) {
-		printf("\tUsing in memory data!\n");
-	} else {
-		printf("\tfilename: %s\n", this->bifFilename);
-	}
 
 	// numeric args
 	if (this->renderType == PRIM_POINT) {
@@ -556,13 +537,6 @@ void PrimitivesInputData::checkParameters()
 		// if not calc correct velocity scale
 		this->velocityScale = this->velocityScale / this->fps;
 	}
-
-	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
-		// although hotdata is true, there is no in memory bif structure
-		// so reset hotdata
-		this->hotData = false;
-		printf("[BIFROST PRIMITIVES] HotData is on but there is no in memory bif!\n");
-	}
 }
 
 void ImplicitsInputData::checkParameters()
@@ -597,13 +571,6 @@ void ImplicitsInputData::checkParameters()
 		// if not calc correct velocity scale
 		this->velocityScale = this->velocityScale / this->fps;
 	}
-
-//	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
-//		// although hotdata is true, there is no in memory bif structure
-//		// so reset hotdata
-//		this->hotData = false;
-//		printf("HotData is on but there is no in memory bif!\n");
-//	}
 }
 
 
@@ -625,13 +592,6 @@ void VolumeInputData::checkParameters()
 		// if not calc correct velocity scale
 		this->velocityScale = this->velocityScale / this->fps;
 	}
-
-//	if ( this->hotData && strcmp ( this->bifrostObjectName, "none" ) == 0 ) {
-//		// although hotdata is true, there is no in memory bif structure
-//		// so reset hotdata
-//		this->hotData = false;
-//		printf("HotData is on but there is no in memory bif!\n");
-//	}
 }
 
 }}

@@ -33,6 +33,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 
 	// init in memory class
 	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
+    bool hotData = inData->inMemoryRef->objectExists();
 
 	printEndOutput( "[BIFROST PRIMITIVES] START OUTPUT", inData->diagnostics );
 
@@ -44,7 +45,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		printEndOutput( "[BIFROST PRIMITIVES] END OUTPUT", inData->diagnostics );
 
 		return false;
-	}
+    }
 
 	//
 	//
@@ -53,7 +54,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	//
 	Bifrost::API::String writeToFolder;
-	if ( inData->hotData ) {
+    if ( hotData ) {
 		// write in memory volume data to a temp file
 		Bifrost::API::String writeToFile;
 		writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "Foam-particle", writeToFolder );
@@ -441,8 +442,6 @@ node_parameters
 
     AiParameterInt("debug", 0);
 
-    AiParameterBool("hotData", 0);
-
     AiParameterStr("bifFilename" , "");
     AiParameterStr("primVarNames" , "");
     AiParameterStr("inputChannelName" , "");
@@ -462,7 +461,7 @@ procedural_init
 	AIProcNodeData *nodeData = new AIProcNodeData();
 
 	// create Input Data
-	PrimitivesInputData *inData = (PrimitivesInputData *) malloc( sizeof( PrimitivesInputData ) );
+    PrimitivesInputData *inData = new PrimitivesInputData;
 	inData->diagnostics.silent = 0;
 	nodeData->inData = inData;
 
@@ -532,8 +531,6 @@ procedural_init
 
     inData->diagnostics.DEBUG = AiNodeGetInt(node, "debug");
 
-    inData->hotData = AiNodeGetBool(node, "hotData");
-
 	const AtString bifFilenameParam("bifFilename");
     const AtString bifFilename = AiNodeGetStr(node, bifFilenameParam );
 	size_t inputLen = bifFilename.length();
@@ -571,7 +568,6 @@ procedural_init
 	} else {
 		// now do creation of nodes
         bool success = ProcSubdivide( nodeData, inData );
-        std::cerr << "INIT ENDS" << std::endl;
         return success;
 	}
 }
@@ -585,7 +581,6 @@ procedural_num_nodes
 	if ( inData->diagnostics.DEBUG > 1 ) {
 		printf( "%d nodes created\n", (int) nodeData->createdNodes.size() );
 	}
-    std::cerr << "NUM NODES = " << ((int) nodeData->createdNodes.size()) << std::endl;
 	return (int) nodeData->createdNodes.size();
 }
 
@@ -593,7 +588,6 @@ procedural_num_nodes
 // that this procedural creates.
 procedural_get_node
 {
-    std::cerr << "GET NODE " << i << std::endl;
 	AIProcNodeData *nodeData = (AIProcNodeData *) user_ptr;
 	PrimitivesInputData *inData = (PrimitivesInputData *) nodeData->inData;
 
@@ -613,7 +607,6 @@ procedural_get_node
 
 procedural_cleanup
 {
-    std::cerr << "CLEANUP START" << std::endl;
 	AIProcNodeData *nodeData = (AIProcNodeData *) user_ptr;
 
 	// free mem
@@ -622,14 +615,14 @@ procedural_cleanup
 		PrimitivesFrameData *frameData = (PrimitivesFrameData *) nodeData->frameData;
 
 		if ( frameData ) {
-			if ( inData->hotData ) {
+            if (!frameData->tmpFolder.empty()) {
 				Bifrost::API::File::deleteFolder( frameData->tmpFolder );
 			}
-
 			// free the assembled data arrays
             for ( unsigned int i = 0; i < frameData->mem.size(); i++) {
 				free ( frameData->mem[i] );
 			}
+            delete frameData;
 		}
 
 		if ( nodeData->inData ) {
@@ -637,10 +630,8 @@ procedural_cleanup
 			free( inData->primVarNames );
 			free( inData->bifFilename );
 			free( inData->bifrostObjectName );
-
 			delete inData->inMemoryRef;
-
-			free( inData );
+            delete inData;
 		}
 
         if ( nodeData->bifrostCtx ) {
@@ -649,7 +640,6 @@ procedural_cleanup
 
         delete nodeData;
 	}
-    std::cerr << "CLEANUP ENDS" << std::endl;
 
 	return 1;
 }

@@ -130,8 +130,6 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *node )
 
     inData->diagnostics.DEBUG = AiNodeGetInt( node, "debug" );
 
-    //inData->hotData = AiNodeGetBool( parentNode, "hotData" );
-
 	// get string data
 	const AtString bifFilenameParam("bifFilename");
     const AtString bifFilename = AiNodeGetStr(node, bifFilenameParam );
@@ -249,10 +247,10 @@ volume_create
     // get input pdata
 	bool error = getNodeParameters( inData, node );
 
-    bool hotData = AiNodeGetBool( node, "hotData" );
+    // init in memory class
+    inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
 
-	// init in memory class
-	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
+    bool hotData = inData->inMemoryRef->objectExists();
 
     // init user pdata stuff
     pdata->objectRef = inData->inMemoryRef;
@@ -329,7 +327,6 @@ volume_create
 	FrameData *frameData = (FrameData *) new (FrameData);
 	frameData->init();
 	frameData->pluginType = PLUGIN_VOLUME;
-    //frameData->hotData = inData->hotData;
 	frameData->tmpFolder = writeToFolder;
 
     pdata->frameData = frameData;
@@ -765,20 +762,19 @@ volume_create
 volume_cleanup
 {
     BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
-    if(!volData){
-        return  false;
-    }
+    if(!volData){ return  false; }
 
     FrameData *frameData = volData->frameData;
     VolumeInputData *inData = volData->inputData;
 
-    if ( frameData ) {
-        //if ( inData->hotData ) {
-        //    Bifrost::API::File::deleteFolder( frameData->tmpFolder );
-        //}
+    if(frameData){
+        if(!frameData->tmpFolder.empty()){
+            Bifrost::API::File::deleteFolder( frameData->tmpFolder );
+        }
+        delete frameData;
     }
 
-    if ( inData ) {
+    if(inData){
         free( inData->bifFilename );
         free( inData->inputChannelName );
         free( inData->smooth.channelName );
@@ -788,6 +784,7 @@ volume_cleanup
         if ( inData->inMemoryRef ) {
             delete inData->inMemoryRef;
         }
+        delete inData;
     }
 
     delete volData;
