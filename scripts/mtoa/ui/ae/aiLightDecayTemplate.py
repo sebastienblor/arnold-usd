@@ -25,15 +25,15 @@ class AEaiLightDecayTemplate(ShaderAETemplate):
         
         self.beginLayout('Attenuation', collapse=False)
 
-        self.addControl('use_near_atten', changeCommand=self.checkNearAtten, label='Use Near Attenuation')
-        self.addControl('near_start', label='Near Start')
-        self.addControl('near_end', label='Near End')
+        self.addControl('useNearAtten', changeCommand=self.checkNearAtten, label='Use Near Attenuation')
+        self.addControl('nearStart', label='Near Start')
+        self.addControl('nearEnd', label='Near End')
 
         self.addSeparator()
         
-        self.addControl('use_far_atten', changeCommand=self.checkFarAtten, label='Use Far Attenuation')
-        self.addControl('far_start', label='Far Start')
-        self.addControl('far_end', label='Far End')
+        self.addControl('useFarAtten', changeCommand=self.checkFarAtten, label='Use Far Attenuation')
+        self.addControl('farStart', label='Far Start')
+        self.addControl('farEnd', label='Far End')
         
         self.endLayout()
         

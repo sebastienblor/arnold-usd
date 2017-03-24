@@ -1,0 +1,29 @@
+import pymel.core as pm
+import mtoa.utils as utils
+import mtoa.ui.ae.utils as aeUtils
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+
+class AEaiFlakesTemplate(ShaderAETemplate):
+
+   
+    def setup(self):
+        self.addSwatch()
+       
+        self.beginScrollLayout()
+        
+        self.beginLayout('Flakes', collapse=False)
+        self.addControl('scale', label='Scale')
+        self.addControl('size', label='Size')
+        self.addControl('normalRandomize', label='Normal Randomize')        
+        self.addControl('coordSpace', label='Coord Space')
+        self.addControl('outputSpace', label='Output Space')
+        
+        self.endLayout()
+  
+        # include/call base class/node attributes
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        
+        self.addExtraControls()
+        
+        self.endScrollLayout()

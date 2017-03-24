@@ -17,6 +17,9 @@
 		<attribute name='black' type='maya.float3'>
 			<label>Black</label>
 		</attribute>
+		<attribute name='normal' type='maya.float3'>
+			<label>Normal</label>
+		</attribute>		
 	</template>
 	<view name='NEDefault' template='NEaiAmbientOcclusion'>
 		<property name='outColor'/>
@@ -24,5 +27,6 @@
 		<property name='falloff'/>
 		<property name='white'/>
 		<property name='black'/>
+		<property name='normal'/>
 	</view>
 </templates>

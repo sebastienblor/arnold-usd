@@ -12,7 +12,7 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         self.beginLayout("Physical Sky Attributes", collapse=False)
         
         self.addControl("turbidity", label="Turbidity")
-        self.addControl("ground_albedo", label="Ground Albedo")
+        self.addControl("groundAlbedo", label="Ground Albedo")
         
         self.addControl("elevation", label="Elevation", annotation="WARNING : Linking rendertime graphs are not supported!")
         self.addControl("azimuth", label="Azimuth", annotation="WARNING : Linking rendertime graphs are not supported!")
@@ -20,10 +20,10 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         
         self.addSeparator()
         
-        self.addControl("sky_tint", label="Sky Tint")
-        self.addControl("sun_tint", label="Sun Tint")
-        self.addControl("sun_size", label="Sun Size")
-        self.addControl("enable_sun", label="Enable Sun")
+        self.addControl("skyTint", label="Sky Tint")
+        self.addControl("sunTint", label="Sun Tint")
+        self.addControl("sunSize", label="Sun Size")
+        self.addControl("enableSun", label="Enable Sun")
         
         self.endLayout()
         

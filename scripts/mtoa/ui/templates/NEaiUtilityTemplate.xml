@@ -9,14 +9,14 @@
 		<attribute name='color' type='maya.float3'>
 			<label>Color</label>
 		</attribute>
-		<attribute name='opacity' type='maya.float3'>
-			<label>Opacity</label>
-		</attribute>
+		<attribute name='normal' type='maya.float3'>
+			<label>Normal</label>
+		</attribute>	
 	</template>
 	<view name='NEDefault' template='NEaiUtility'>
 		<property name='outColor'/>
 		<property name='color'/>
-		<property name='opacity'/>
+		<property name='normal'/>
 	</view>
 	<view name='NEDefaultSoloOutput' template='NEaiUtility'>
 		<property name='outColor'/>

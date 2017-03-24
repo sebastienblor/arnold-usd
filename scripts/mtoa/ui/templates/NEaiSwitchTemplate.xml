@@ -20,6 +20,24 @@
 		<attribute name='input3' type='maya.float3'>
 			<label>Input 3</label>
 		</attribute>
+		<attribute name='input4' type='maya.float3'>
+			<label>Input 4</label>
+		</attribute>
+		<attribute name='input5' type='maya.float3'>
+			<label>Input 5</label>
+		</attribute>
+		<attribute name='input6' type='maya.float3'>
+			<label>Input 6</label>
+		</attribute>
+		<attribute name='input7' type='maya.float3'>
+			<label>Input 7</label>
+		</attribute>
+		<attribute name='input8' type='maya.float3'>
+			<label>Input 8</label>
+		</attribute>
+		<attribute name='input9' type='maya.float3'>
+			<label>Input 9</label>
+		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiSwitch'>
 		<property name='message'/>
@@ -28,5 +46,11 @@
 		<property name='input1'/>
 		<property name='input2'/>
 		<property name='input3'/>
+		<property name='input4'/>
+		<property name='input5'/>
+		<property name='input6'/>
+		<property name='input7'/>
+		<property name='input8'/>
+		<property name='input9'/>
 	</view>
 </templates>

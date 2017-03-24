@@ -19,7 +19,7 @@ class AEaiMotionVectorTemplate(ShaderAETemplate):
         self.addControl("time1", label="End Time")
         self.addSeparator()
         self.addControl("raw", changeCommand=self.checkRaw, label="Encode Raw Vector")
-        self.addControl("max_displace", label="Max Displace")
+        self.addControl("maxDisplace", label="Max Displace")
         
         self.endLayout()
         

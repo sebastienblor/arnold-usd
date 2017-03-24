@@ -21,9 +21,9 @@ class AEaiCurvatureTemplate(ShaderAETemplate):
         self.addControl('threshold', label='Threshold')
         self.addControl('bias', label='Bias')
         self.addControl('multiply', label='multiply')
-        self.addControl('trace_set', label='Trace Set')
+        self.addControl('traceSet', label='Trace Set')
         self.addControl('inclusive', label='Inclusive')
-        self.addControl('self_only', label='Self Only')
+        self.addControl('selfOnly', label='Self Only')
         
         self.endLayout()
   

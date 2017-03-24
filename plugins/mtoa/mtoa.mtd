@@ -1394,9 +1394,13 @@
 
 [node flat]
     maya.id                 INT     0x00115D85
+    maya.name               STRING  "aiFlat"
+    maya.classification     STRING  "shader/surface"
 
 [node color_jitter]
     maya.id                 INT     0x00115D89
+    maya.name               STRING  "aiColorJitter"
+    maya.classification     STRING  "utility/shader"
 
 [node lambert]
     maya.hide               BOOL    true
@@ -1701,8 +1705,8 @@
         desc                STRING  "Scattering effect on diffuse rays."
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr affect_reflection]
-        desc                STRING  "Scattering effect on reflection rays."
+    [attr affect_specular]
+        desc                STRING  "Scattering effect on specular rays."
         min                 FLOAT   0.0
         max                 FLOAT   1.0
     [attr attenuation]
@@ -1974,6 +1978,12 @@
     maya.name               STRING  "aiBlackbody"
     maya.classification     STRING  "utility/shader"
     maya.swatch             BOOL    true
+    [attr temperature]
+        min                 FLOAT   0.0
+        softmax             FLOAT   20000.0
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
 
 [node cache]
     maya.id                 INT     0x00115D5D
@@ -2136,6 +2146,12 @@ desc STRING "Multiplies the curvature by this factor."
     maya.name               STRING  "aiFacingRatio"
     maya.classification     STRING  "utility/shader"
     maya.swatch             BOOL    true
+    [attr bias]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr gain]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
 
 
 # enable flakes
@@ -2144,12 +2160,24 @@ desc STRING "Multiplies the curvature by this factor."
     maya.name               STRING  "aiFlakes"
     maya.classification     STRING  "texture"
     maya.swatch             BOOL    true
+    [attr scale]
+        min                 FLOAT   0.0
+        softmax             FLOAT   100.0
+    [attr size]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr normal_randomize]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    
+
+
 
 
 [node float_to_int]
     maya.id                 INT     0x00115D67
     maya.name               STRING  "aiFloatToInt"
-    maya.classification     STRING  "utility/shader"
+    maya.classification     STRING  "utility/conversion"
     maya.swatch             BOOL    true
 
 [node float_to_matrix]
@@ -2272,7 +2300,7 @@ desc STRING "Multiplies the curvature by this factor."
 [node rgb_to_float]
     maya.id                 INT     0x00115D76
     maya.name               STRING  "aiColorToFloat"
-    maya.classification     STRING  "utility/shader"
+    maya.classification     STRING  "utility/conversion"
     maya.swatch             BOOL    true
 
 
