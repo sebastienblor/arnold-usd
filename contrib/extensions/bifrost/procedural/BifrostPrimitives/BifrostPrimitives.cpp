@@ -1,5 +1,3 @@
-//*
-
 #include <ai.h>
 #include <ai_procedural.h>
 
@@ -33,7 +31,6 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 
 	// init in memory class
 	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
-    bool hotData = inData->inMemoryRef->objectExists();
 
 	printEndOutput( "[BIFROST PRIMITIVES] START OUTPUT", inData->diagnostics );
 
@@ -45,7 +42,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		printEndOutput( "[BIFROST PRIMITIVES] END OUTPUT", inData->diagnostics );
 
 		return false;
-    }
+	}
 
 	//
 	//
@@ -54,7 +51,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	//
 	Bifrost::API::String writeToFolder;
-    if ( hotData ) {
+	if ( inData->hotData ) {
 		// write in memory volume data to a temp file
 		Bifrost::API::String writeToFile;
 		writeToFile = writeHotDataToDisk( *(inData->inMemoryRef), inData->bifFilename, "Foam-particle", writeToFolder );
@@ -79,7 +76,6 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		return false;
 	}
 
-
 	// output parameters to console
  	inData->printParameters();
 
@@ -89,6 +85,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	//
 	//
+
 	// init FrameData struct that holds information specific to the frame we are rendering
 	PrimitivesFrameData *frameData = (PrimitivesFrameData *) new( PrimitivesFrameData );
 	frameData->init();
@@ -112,11 +109,12 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	amino::Math::bboxf clipBox;
 	if ( inData->clip.on ) {
-        amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
-        amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
+		amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
+		amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
 
 		clipBox = amino::Math::bboxf( min, max );
 	}
+
 	//
 	//
 	// FILE LOADING
@@ -236,6 +234,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		printf( "\tuseChannelToModulateRadius is also ON which means you may not see that much stuff if your density range is low!\n");
 		printf( "\tYou can check your density range above\n");
 	}
+
 	//
 	//
 	// PRE EXPORT
@@ -298,7 +297,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 
 	// now calculate a new chunksize depending on mpSamples. it is easier this way
 	// if mpSamples == 1, this would be the same as the input chunkSize
-    frameData->finalChunkSize = inData->mpSamples * ( inData->chunkSize / inData->mpSamples );
+	frameData->finalChunkSize = inData->mpSamples * ( inData->chunkSize / inData->mpSamples );
 
 	// report id range
 	reportIdRange( idChan );
@@ -333,6 +332,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	frameData->minDistance = std::numeric_limits<float>::max();
 	frameData->maxDistance = -std::numeric_limits<float>::max();
+
 	int xMulti = dumpPrimitives	(	inData,
 									frameData,
 									component,
@@ -442,6 +442,8 @@ node_parameters
 
     AiParameterInt("debug", 0);
 
+    AiParameterBool("hotData", 0);
+
     AiParameterStr("bifFilename" , "");
     AiParameterStr("primVarNames" , "");
     AiParameterStr("inputChannelName" , "");
@@ -456,12 +458,11 @@ node_parameters
 // we read the UI parameters into their global vars
 procedural_init
 {
-    std::cerr << "INIT_START" << std::endl;
 	// create nodeData
 	AIProcNodeData *nodeData = new AIProcNodeData();
 
 	// create Input Data
-    PrimitivesInputData *inData = new PrimitivesInputData;
+	PrimitivesInputData *inData = (PrimitivesInputData *) malloc( sizeof( PrimitivesInputData ) );
 	inData->diagnostics.silent = 0;
 	nodeData->inData = inData;
 
@@ -531,6 +532,8 @@ procedural_init
 
     inData->diagnostics.DEBUG = AiNodeGetInt(node, "debug");
 
+    inData->hotData = AiNodeGetBool(node, "hotData");
+
 	const AtString bifFilenameParam("bifFilename");
     const AtString bifFilename = AiNodeGetStr(node, bifFilenameParam );
 	size_t inputLen = bifFilename.length();
@@ -567,8 +570,7 @@ procedural_init
 		return false;
 	} else {
 		// now do creation of nodes
-        bool success = ProcSubdivide( nodeData, inData );
-        return success;
+		return ProcSubdivide( nodeData, inData );
 	}
 }
 
@@ -615,14 +617,14 @@ procedural_cleanup
 		PrimitivesFrameData *frameData = (PrimitivesFrameData *) nodeData->frameData;
 
 		if ( frameData ) {
-            if (!frameData->tmpFolder.empty()) {
+			if ( inData->hotData ) {
 				Bifrost::API::File::deleteFolder( frameData->tmpFolder );
 			}
+
 			// free the assembled data arrays
             for ( unsigned int i = 0; i < frameData->mem.size(); i++) {
 				free ( frameData->mem[i] );
 			}
-            delete frameData;
 		}
 
 		if ( nodeData->inData ) {
@@ -630,8 +632,10 @@ procedural_cleanup
 			free( inData->primVarNames );
 			free( inData->bifFilename );
 			free( inData->bifrostObjectName );
+
 			delete inData->inMemoryRef;
-            delete inData;
+
+			free( inData );
 		}
 
         if ( nodeData->bifrostCtx ) {
@@ -643,5 +647,3 @@ procedural_cleanup
 
 	return 1;
 }
-
-//*/

@@ -42,12 +42,10 @@ class BIFROSTRENDERAPI_DECL CoreObjectUserData
 public:
 	CoreObjectUserData() {}
 	CoreObjectUserData(const Bifrost::API::String& object, const Bifrost::API::String& file);
-    ~CoreObjectUserData() {}
+	~CoreObjectUserData() {}
 
 	Bifrost::API::String object() const { return m_object.saveJSON(); }
 	const Bifrost::API::String& file()   const { return m_file; }
-
-    Bifrost::API::Object bifrostObject() const;
 
 	// Check whether the state server and object exist
 	bool objectExists() const;

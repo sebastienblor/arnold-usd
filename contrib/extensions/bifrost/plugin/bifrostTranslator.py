@@ -13,7 +13,7 @@ def bifrostRenderExportShowBlock(controlName, condition):
 
 def Hide(controlName):
     control = controlName.split('.')[-1]
-    cmds.paneLayout(control, edit=cmds.paneLayout(control, exists=True), visible=False)
+    cmds.paneLayout(control, visible=False)
 
 def CheckRenderType( nodeName ):
     # this is to enable disable parts of the AE
@@ -33,45 +33,46 @@ def CheckRenderType( nodeName ):
         bifrostRenderExportShowBlock("AeroExportHideThis", False)
         bifrostRenderExportShowBlock("LiquidExportHideThis", False)
         bifrostRenderExportShowBlock("PointExportHideThis", True)
-    bifrostRenderExportShowBlock("HiddenHideThis", False);
 
 class BifrostTemplate(ShapeTranslatorTemplate):
-    def setupAero(self):
+    def setup(self):
+        self.addControl("bifrostRenderType", changeCommand=CheckRenderType);
+        # FIXME: Suppress "bifrostRenderType" control
+
         # this is for aero
-        self.beginLayout("Aero Attributes", collapse=False)
+        self.beginLayout("AeroExportAttributes", collapse=False)
         self.addCustom("AeroExportHideThis", Hide, Hide)
 
-        self.beginLayout("Globals", collapse=False)
-        self.addControl("aeroRenderData", label="Render Components")
-        self.addControl("aeroChannel", label="Density Channel")
-        self.addControl("aeroChannelScale", label="Channel Scale")
-        self.addControl("aeroVelocityScale", label="Velocity Scale")
-        self.addControl("aeroSpaceScale", label="Space Scale")
-        self.addControl("aeroPrimVars", label="Export Channels")
-        self.endLayout() # Globals
+        self.beginLayout("AeroGlobals", collapse=False)
+        self.addControl("aeroRenderData")
+        self.addControl("aeroChannel")
+        self.addControl("aeroChannelScale")
+        self.addControl("aeroVelocityScale")
+        self.addControl("aeroSpaceScale")
+        self.addControl("aeroPrimVars")
+        self.endLayout()
 
-        self.beginLayout("Smoothing", collapse=False)
-        self.addControl("aeroSmoothMode", "Mode")
-        self.addControl("aeroSmoothAmount", "Smoothing")
-        self.addControl("aeroSmoothWeight", "Weight")
-        self.addControl("aeroSmoothIterations", "Iterations")
+        self.beginLayout("AeroClipping", collapse=True)
+        self.addControl("aeroClipOn")
+        self.addControl("aeroClipMin")
+        self.addControl("aeroClipMax")
+        self.endLayout()
 
-        self.beginLayout("Blend Raw And Smooth", collapse=True)
-        self.addControl("aeroSmoothChannel", label="Smooth Channel")
+        self.beginLayout("Smooth", collapse=False)
+        self.addControl("aeroSmoothOn")
+        self.addControl("aeroSmoothMode")
+        self.addControl("aeroSmoothWeight")
+        self.addControl("aeroSmoothIterations")
+
+        self.beginLayout("BlendRawAndSmooth", collapse=False)
+        self.addControl("aeroSmoothChannel")
         self.addControl("aeroSmoothRemapMin")
         self.addControl("aeroSmoothRemapMax")
-        self.addControl("aeroSmoothRemapInvert", label="Invert")
-        self.endLayout() # Blend Raw And Smooth
-        self.endLayout() # Smoothing
+        self.addControl("aeroSmoothRemapInvert")
+        self.endLayout()
+        self.endLayout()
 
-        self.beginLayout("Clipping", collapse=True)
-        self.addControl("aeroClipOn", label="Enable")
-        self.addControl("aeroClipMin", label="Min")
-        self.addControl("aeroClipMax", label="Max")
-        self.endLayout() # Clipping
-
-        self.beginLayout("Advanced", collapse=True)
-        self.beginLayout("Particle Splatting", collapse=False)
+        self.beginLayout("SplatParticlesToVoxels", collapse=True)
         self.addControl("splatResolutionFactor")
         self.addControl("aeroSkip")
         self.addControl("splatSamples")
@@ -83,128 +84,133 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("splatFalloffEnd")
         self.addControl("splatDisplacement")
         self.addControl("splatNoiseFreq")
-        self.endLayout() # Splat Particles to Voxels
-        self.endLayout() # Advanced
-        self.endLayout() # Aero Attributes
+        self.endLayout()
+        self.endLayout()
 
-    def setupLiquid(self):
         # this is for liquid
-        self.beginLayout("Liquid Attributes", collapse=False)
+        self.beginLayout("LiquidExportAttributes", collapse=False)
         self.addCustom("LiquidExportHideThis", Hide, Hide)
 
-        self.beginLayout("Globals", collapse=False)
+        self.beginLayout("LiquidGlobals", collapse=False)
         self.addControl("renderMethod")
-        self.addControl("renderData", label="Render Components")
+        self.addControl("liquidVelocityScale")
+        self.addControl("liquidSpaceScale")
+        self.addControl("liquidPrimVars")
+        self.endLayout()
+
+        self.beginLayout("Implicit", collapse=False)
+        self.addCustom("ImplicitExportHideThis", Hide, Hide)
+
+        self.addControl("renderData")
         self.addControl("distanceChannel")
-        self.addControl("liquidPrimVars", label="Export Channels")
-        self.addControl("liquidVelocityScale", label="Velocity Scale")
-        self.addControl("liquidSpaceScale", label="Space Scale") # why????
-        self.endLayout() # LiquidGlobals
+        self.addControl("narrowBandThicknessInVoxels")
+        self.addControl("liquidStepSize")
+        self.addControl("liquidRaySamples")
+
+        self.beginLayout("CullSides", collapse=False)
+        self.addControl("cullSidesOn")
+        self.addControl("cullSidesStart")
+        self.addControl("cullSidesEnd")
+        self.addControl("cullDepthAtStartInVoxels")
+        self.endLayout()
 
         self.beginLayout("Filtering", collapse=False)
-        self.addControl("dilateAmount", label="Dilate")
-        self.addControl("smoothWeight", label="Smooth")
-        self.addControl("erodeAmount", label="Erode")
+        self.addControl("dilateAmount")
+        self.addControl("erodeAmount")
 
-        self.beginLayout("Smoothing", collapse=True)
-        self.addControl("smoothMode", label="Mode")
-        self.addControl("smoothAmount", label="Amount")
-        self.addControl("smoothIterations", label="Iterations")
-        self.endLayout() # Smoothing
+        self.beginLayout("Smoothing", collapse=False)
+        self.addControl("smoothOn")
+        self.addControl("smoothMode")
+        self.addControl("smoothAmount")
+        self.addControl("smoothIterations")
+        self.addControl("smoothWeight")
+        self.endLayout()
 
-        self.beginLayout("Blend Raw And Smooth Liquid", collapse=True)
+        self.beginLayout("BlendRawAndSmoothLiquid", collapse=False)
         self.addControl("filterBlendingChannel")
-        self.addControl("smoothRemapRange")
-        self.addControl("smoothRemapInvert", label="Invert")
-        self.endLayout() # BlendRawAndSmoothLiquid
-        self.endLayout() # Filtering
+        self.addControl("smoothRemapMin")
+        self.addControl("smoothRemapMax")
+        self.addControl("smoothRemapInvert")
+        self.endLayout()
+        self.endLayout()
 
-        self.beginLayout("Clipping", collapse=True)
-        self.addControl("liquidClipOn", label="Enable")
-        self.addControl("liquidClipMin", label="Min")
-        self.addControl("liquidClipMax", label="Max")
-        self.endLayout() # LiquidClipping
+        self.beginLayout("LiquidClipping", collapse=True)
+        self.addControl("liquidClipOn")
+        self.addControl("liquidClipMin")
+        self.addControl("liquidClipMax")
+        self.endLayout()
 
-        self.beginLayout("Cull Sides", collapse=True)
-        self.addControl("cullSidesOn", label="Enable")
-        self.addControl("cullSidesRange", label="Range")
-        self.addControl("cullDepthAtStartInVoxels", label="Depth At Start In Voxels")
-        self.endLayout() # CullSides
-
-        self.beginLayout("Extend Surface", collapse=True)
+        self.beginLayout("ExtendSurface", collapse=True)
         self.addControl("infCubeBlendingOn")
         self.addControl("infCubeOutputType")
         self.addControl("simWaterLevel")
         self.addControl("infCubeTopCenter")
         self.addControl("infCubeDim")
         self.addControl("blendType")
-        self.addControl("infCubeBlendRange")
+        self.addControl("infCubeBlendStart")
+        self.addControl("infCubeBlendEnd")
 
-        self.beginLayout("Blend Using Channel", collapse=False)
+        self.beginLayout("BlendUsingChannel", collapse=False)
         self.addControl("infiniteSurfaceBlendingChannel")
-        self.addControl("blendingChannelRemapRange")
-        self.addControl("blendingChannelRemapInvert", label="Invert")
-        self.endLayout() # BlendUsingChannel
-        self.endLayout() # ExtendSurface
+        self.addControl("blendingChannelRemapMin")
+        self.addControl("blendingChannelRemapMax")
+        self.addControl("blendingChannelRemapInvert")
+        self.endLayout()
+        self.endLayout()
 
-        self.beginLayout("Advanced", collapse=True)
-        self.beginLayout("Implicit Controls", collapse=True)
-        self.addControl("narrowBandThicknessInVoxels", label="Narow Band Thickness")
-        self.addControl("liquidStepSize", label="Step size")
-        self.endLayout() # Implicit
-        self.beginLayout("Mesh Controls", collapse=True)
-        self.addControl("sampleRate", label="Tesselation")
-        self.endLayout() # Mesh
-        self.beginLayout("Particles To Voxels Controls", collapse=True)
-        self.addControl("implicitResolutionFactor", label="Resolution Factor")
-        self.addControl("implicitDropletRevealFactor", label="Droplet Reveal Factor")
-        self.addControl("implicitSurfaceRadius", label="Surface Radius")
-        self.addControl("implicitDropletRadius", label="Droplet Radius")
-        self.addControl("implicitMaxVolumeOfHolesToClose", label="Max Volume of Holes To Close")
+        self.beginLayout("VoxelizeParticles", collapse=True)
+        self.addControl("implicitResolutionFactor")
+        self.addControl("implicitDropletRevealFactor")
+        self.addControl("implicitSurfaceRadius")
+        self.addControl("implicitDropletRadius")
+        self.addControl("implicitMaxVolumeOfHolesToClose")
         self.addControl("doMorphologicalDilation")
         self.addControl("doErodeSheetsAndDroplets")
-        self.endLayout() # Particles
-        self.endLayout() # Advanced
-        self.endLayout() # LiquidExportAttributes
+        self.endLayout()
+        self.endLayout()
+        self.endLayout()
 
-    def setupFoam(self):
         # this is for foam
-        self.beginLayout("Foam Attributes", collapse=False)
+        self.beginLayout("PointExportAttributes", collapse=False)
         self.addCustom("PointExportHideThis", Hide, Hide)
 
-        self.beginLayout("Globals", collapse=False)
-        self.addControl("renderPrimitiveType", label="Primitive Type")
-        self.addControl("pointVelocityScale", label="Velocity Scale")
-        self.addControl("pointSpaceScale", label="Space Scale")
-        self.addControl("pointPrimVars", label="Export Channels")
+        self.beginLayout("PointGlobals", collapse=False)
+        self.addControl("renderPrimitiveType")
+        self.addControl("pointSkip")
+        self.addControl("chunkSize")
+        self.addControl("pointVelocityScale")
+        self.addControl("pointSpaceScale")
+        self.addControl("pointPrimVars")
 
-        self.beginLayout("Render Channel", collapse=False)
+        self.beginLayout("RenderChannel", collapse=False)
         self.addControl("pointChannel")
-        self.addControl("pointChannelScale", label="Channel Scale")
-        self.endLayout() # Render Channel
-        self.endLayout() # Globals
+        self.addControl("pointChannelScale")
+        self.addControl("useChannelGradientAsNormal")
+        self.addControl("exportNormalAsPrimvar")
+        self.endLayout()
+        self.endLayout()
 
         self.beginLayout("Radius", collapse=False)
-        self.addControl("pointRadius", label="Radius")
+        self.addControl("pointRadius")
         self.addControl("useChannelToModulateRadius")
 
-        self.beginLayout("Camera Dependent Radius", collapse=True)
+        self.beginLayout("CameraDependentRadius", collapse=True)
         self.addControl("camRadiusOn")
         self.addControl("camRadiusStartDistance")
         self.addControl("camRadiusEndDistance")
         self.addControl("camRadiusStartFactor")
         self.addControl("camRadiusEndFactor")
         self.addControl("camRadiusFactorExponent")
-        self.endLayout() # Camera Dependent Radius
-        self.endLayout() # Radius
+        self.endLayout()
+        self.endLayout()
 
-        self.beginLayout("Clipping", collapse=True)
-        self.addControl("pointClipOn", label="Enable")
-        self.addControl("pointClipMin", label="Min")
-        self.addControl("pointClipMax", label="Max")
-        self.endLayout() # Clipping
+        self.beginLayout("PointClipping", collapse=True)
+        self.addControl("pointClipOn")
+        self.addControl("pointClipMin")
+        self.addControl("pointClipMax")
+        self.endLayout()
 
-        self.beginLayout("Multi Pointing", collapse=True)
+        self.beginLayout("MultiPointing", collapse=True)
         self.addControl("mpSamples")
         self.addControl("mpMinRadius")
         self.addControl("mpMaxRadius")
@@ -214,34 +220,16 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("mpFalloffEnd")
         self.addControl("mpDisplacementValue")
         self.addControl("mpDisplacementNoiseFrequency")
-        self.endLayout() # Multi Pointing
-
-        self.beginLayout("Other", collapse=True)
-        self.addControl("pointSkip")
-        self.addControl("chunkSize")
-        self.addControl("useChannelGradientAsNormal")
-        self.addControl("exportNormalAsPrimvar")
+        self.endLayout()
         self.endLayout()
 
-        self.endLayout() # Foam Attributes
-
-    def setup(self):
-        # FIXME: Suppress "bifrostRenderType" control
-        self.setupAero()
-        self.setupLiquid()
-        self.setupFoam()
-
-        self.beginLayout("Hidden")#, visible=False)
-        self.addCustom("HiddenHideThis", Hide, Hide)
-        self.addControl("bifrostRenderType", changeCommand=CheckRenderType);
-        self.endLayout()
-
+        self.suppress("aeroSilent")
         self.suppress("aiDebug")
-        self.suppress("debug")
-        self.suppress("silent")
         self.suppress("aiUserOptions")
         self.suppress("mesherAlgo")
+        self.suppress("hot")
         self.suppress("liquidDebug")
+        self.suppress("sampleRate")
 
 templates.registerAETemplate(BifrostTemplate, 'bifrostShape')
 

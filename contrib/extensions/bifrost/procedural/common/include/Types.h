@@ -43,4 +43,33 @@ struct AIProcNodeData {
 	std::string file;
 };
 
+struct BifrostPolyMeshUserData {
+	CoreObjectUserData *objectRef;
+
+	Bifrost::API::VoxelSampler **channelSamplers;
+	std::map<AtString, int> channelSamplerIndexes;
+	int srcChannelSamplerIndexStart;
+
+	Bifrost::API::Component voxelComponent;
+
+	ImplicitsInputData *inputData;
+	FrameData *frameData;
+
+	std::string objectName;
+	std::string file;
+
+	AtNode * proceduralNode;
+	AtNode * camNode;
+	AtMatrix world2Obj;
+	AtMatrix obj2World;
+	AtMatrix world2Cam;
+	AtMatrix obj2Cam;
+	AtBBox bbox;
+
+	AtShaderGlobals *bifrostCtx;
+    std::map<uint16_t, Bifrost::API::VoxelSampler *> samplerPool;
+	int nofNodesCreated;
+	std::vector<struct AtNode *> createdNodes;
+};
+
 #endif

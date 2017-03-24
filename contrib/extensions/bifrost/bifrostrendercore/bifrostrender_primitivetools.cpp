@@ -10,11 +10,6 @@
 // Code written by Cave (www.cavevfx.com) for Autodesk in 2015
 // Written by Erdem Taylan
 
-
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
-#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
-
 #include <bifrostrendercore/bifrostrender_primitivestools.h>
 
 namespace Bifrost{

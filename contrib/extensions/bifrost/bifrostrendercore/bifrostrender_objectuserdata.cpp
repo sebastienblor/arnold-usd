@@ -87,24 +87,6 @@ CoreObjectUserData::CoreObjectUserData( const Bifrost::API::String& object, cons
 	// about setting any new binding, etc... This would make the render support waaaay much easier to implement. 
 }
 
-Bifrost::API::Object CoreObjectUserData::bifrostObject() const
-{
-    // Parse the JSON object representation
-    Bifrost::API::StateID ssid;
-    Bifrost::API::String  object;
-    if (!parseDictObject(m_object, ssid, object))
-        return Bifrost::API::Object();
-
-    // Find the state server.
-    Bifrost::API::ObjectModel om;
-    Bifrost::API::StateServer state = om.stateServer(ssid);
-    if (!state.valid())
-        return Bifrost::API::Object();
-
-    // Find the object within the state server.
-    return state.findObject(object);
-}
-
 bool CoreObjectUserData::objectExists() const
 {
 	// Parse the JSON object representation
@@ -359,7 +341,7 @@ bool CoreObjectUserData::loadFromFile(const float frame)
 	Bifrost::API::StateServer state = fileio.load();
 	if (!state.valid())
 	{
-        printf("Unable to load BIF cache: %s", bif.c_str());
+		printf("Unable to load BIF cache: %s", bif.c_str());		
 		return false;
 	}
 
@@ -394,7 +376,8 @@ bool CoreObjectUserData::loadFromFile(const float frame)
 	// This means we are rendering a second frame and this usually happen when calling mental ray standalone with a sequence of files.
 	{
 		// Find the state server that we were using
-        FileStateServersCache::iterator it = gFileStateServers.find(m_file);
+		FileStateServersCache::iterator it =
+			gFileStateServers.find(m_file);
 		if (it != gFileStateServers.end())
 		{
 			// Delete the previous state server

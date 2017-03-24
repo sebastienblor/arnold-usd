@@ -92,8 +92,8 @@ class BIFROSTRENDERAPI_DECL CoreMesherInterface {
 		void setPrimVarArraySizes( size_t size )
 		{
 			for ( size_t var = 0; var < c_frameData->primVars.size(); var++ ) {
-                c_primVars[ c_frameData->primVars[var].name ] = std::vector<float>();
-                c_primVars[ c_frameData->primVars[var].name ].resize( size, 0.0f );
+				c_primVars[ c_frameData->primVars[var].name ] = std::vector<float>();
+				c_primVars[ c_frameData->primVars[var].name ].resize( size, 0.0f );
 			}
 		}
 

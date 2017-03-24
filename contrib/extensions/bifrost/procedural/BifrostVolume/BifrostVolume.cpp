@@ -1,5 +1,3 @@
-//*
-
 #include <string>
 #include <math.h>
 #include <vector>
@@ -48,8 +46,10 @@
 #include <bifrostrendercore/bifrostrender_objectuserdata.h>
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
-#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
+//#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+//#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
+#define DL 
+#define DUMP
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostVolumeMtd)
 
 using namespace Bifrost::RenderCore;
@@ -90,81 +90,84 @@ struct BifrostVolumeUserData {
 
 };
 
-bool getNodeParameters( VolumeInputData *inData, const AtNode *node )
+bool getNodeParameters( VolumeInputData *inData, const AtNode *parentNode )
 {
 	inData->error = false;
 
 	// get numeric data
-    inData->channelScale = AiNodeGetFlt(node, "channelScale");
-    inData->velocityScale = AiNodeGetFlt(node, "velocityScale");
-    inData->fps = AiNodeGetFlt(node, "fps");
-    inData->spaceScale = AiNodeGetFlt(node, "spaceScale");
+	inData->channelScale = AiNodeGetFlt(parentNode, "channelScale");
+	inData->velocityScale = AiNodeGetFlt(parentNode, "velocityScale");
+	inData->fps = AiNodeGetFlt(parentNode, "fps");
+	inData->spaceScale = AiNodeGetFlt(parentNode, "spaceScale");
 
-    inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( node, "smoothMode" );
-    inData->smooth.amount = AiNodeGetInt( node, "smoothAmount" );
-    inData->smooth.iterations = AiNodeGetInt( node, "smoothIterations" );
-    inData->smooth.weight = AiNodeGetFlt( node, "smoothWeight" );
-    inData->smooth.remapMin = AiNodeGetFlt(node, "smoothRemapMin");
-    inData->smooth.remapMax = AiNodeGetFlt(node, "smoothRemapMax");
-    inData->smooth.remapInvert = AiNodeGetBool(node, "smoothRemapInvert");
+	inData->smooth.on = AiNodeGetBool( parentNode, "smoothOn" );
+	inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( parentNode, "smoothMode" );
+	inData->smooth.amount = AiNodeGetInt( parentNode, "smoothAmount" );
+	inData->smooth.iterations = AiNodeGetInt( parentNode, "smoothIterations" );
+	inData->smooth.weight = AiNodeGetFlt( parentNode, "smoothWeight" );
+	inData->smooth.remapMin = AiNodeGetFlt(parentNode, "smoothRemapMin");
+	inData->smooth.remapMax = AiNodeGetFlt(parentNode, "smoothRemapMax");
+	inData->smooth.remapInvert = AiNodeGetBool(parentNode, "smoothRemapInvert");
 
-    inData->clip.on = AiNodeGetBool( node, "clipOn" );
-    inData->clip.minX = AiNodeGetFlt(node, "clipMinX");
-    inData->clip.maxX = AiNodeGetFlt(node, "clipMaxX");
-    inData->clip.minY = AiNodeGetFlt(node, "clipMinY");
-    inData->clip.maxY = AiNodeGetFlt(node, "clipMaxY");
-    inData->clip.minZ = AiNodeGetFlt(node, "clipMinZ");
-    inData->clip.maxZ = AiNodeGetFlt(node, "clipMaxZ");
+	inData->clip.on = AiNodeGetBool( parentNode, "clipOn" );
+	inData->clip.minX = AiNodeGetFlt(parentNode, "clipMinX");
+	inData->clip.maxX = AiNodeGetFlt(parentNode, "clipMaxX");
+	inData->clip.minY = AiNodeGetFlt(parentNode, "clipMinY");
+	inData->clip.maxY = AiNodeGetFlt(parentNode, "clipMaxY");
+	inData->clip.minZ = AiNodeGetFlt(parentNode, "clipMinZ");
+	inData->clip.maxZ = AiNodeGetFlt(parentNode, "clipMaxZ");
 
-    inData->splatResolutionFactor = AiNodeGetFlt(node, "splatResolutionFactor");
-    inData->skip = std::max(1, AiNodeGetInt( node, "skip" ) );
-    inData->splatSamples = AiNodeGetInt( node, "splatSamples" );
-    inData->splatMinRadius = AiNodeGetFlt(node, "splatMinRadius");
-    inData->splatMaxRadius = AiNodeGetFlt(node, "splatMaxRadius");
-    inData->splatSurfaceAttract = AiNodeGetFlt(node, "splatSurfaceAttract");
-    inData->splatFalloffType = (FalloffType) AiNodeGetInt( node, "splatFalloffType" );
-    inData->splatFalloffStart = AiNodeGetFlt(node, "splatFalloffStart");
-    inData->splatFalloffEnd = AiNodeGetFlt(node, "splatFalloffEnd");
-    inData->splatDisplacement = AiNodeGetFlt(node, "splatDisplacement");
-    inData->splatNoiseFreq = AiNodeGetFlt(node, "splatNoiseFreq");
+	inData->splatResolutionFactor = AiNodeGetFlt(parentNode, "splatResolutionFactor");
+	inData->skip = std::max(1, AiNodeGetInt( parentNode, "skip" ) );
+	inData->splatSamples = AiNodeGetInt( parentNode, "splatSamples" );
+	inData->splatMinRadius = AiNodeGetFlt(parentNode, "splatMinRadius");
+	inData->splatMaxRadius = AiNodeGetFlt(parentNode, "splatMaxRadius");
+	inData->splatSurfaceAttract = AiNodeGetFlt(parentNode, "splatSurfaceAttract");
+	inData->splatFalloffType = (FalloffType) AiNodeGetInt( parentNode, "splatFalloffType" );
+	inData->splatFalloffStart = AiNodeGetFlt(parentNode, "splatFalloffStart");
+	inData->splatFalloffEnd = AiNodeGetFlt(parentNode, "splatFalloffEnd");
+	inData->splatDisplacement = AiNodeGetFlt(parentNode, "splatDisplacement");
+	inData->splatNoiseFreq = AiNodeGetFlt(parentNode, "splatNoiseFreq");
 
-    inData->diagnostics.DEBUG = AiNodeGetInt( node, "debug" );
+	inData->diagnostics.DEBUG = AiNodeGetInt( parentNode, "debug" );
+
+	inData->hotData = AiNodeGetBool( parentNode, "hotData" );
 
 	// get string data
 	const AtString bifFilenameParam("bifFilename");
-    const AtString bifFilename = AiNodeGetStr(node, bifFilenameParam );
+	const AtString bifFilename = AiNodeGetStr(parentNode, bifFilenameParam );
 	size_t inputLen = bifFilename.length();
 	inData->bifFilename = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->bifFilename, bifFilename.c_str() );
 
 	const AtString inputChannelNameParam("inputChannelName");
-    const AtString inputChannelName = AiNodeGetStr(node, inputChannelNameParam );
+	const AtString inputChannelName = AiNodeGetStr(parentNode, inputChannelNameParam );
 	inputLen = inputChannelName.length();
 	inData->inputChannelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->inputChannelName, inputChannelName.c_str() );
 
 	const AtString smoothChannelNameParam("smoothChannelName");
-    const AtString smoothChannelName = AiNodeGetStr(node, smoothChannelNameParam );
+	const AtString smoothChannelName = AiNodeGetStr(parentNode, smoothChannelNameParam );
 	inputLen = smoothChannelName.length();
 	inData->smooth.channelName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->smooth.channelName, smoothChannelName.c_str() );
 
-    const AtString primVarNamesParam("primVarNames");
-    const AtString primVarNames = AiNodeGetStr(node, primVarNamesParam );
+	const AtString primVarNamesParam("primVarNames");
+	const AtString primVarNames = AiNodeGetStr(parentNode, primVarNamesParam );
 	inputLen = primVarNames.length();
 	inData->primVarNames = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->primVarNames, primVarNames.c_str() );
 
 	const AtString bifrostObjectNameParam("bifrostObjectName");
-    const AtString bifrostObjectName = AiNodeGetStr(node, bifrostObjectNameParam );
+	const AtString bifrostObjectName = AiNodeGetStr(parentNode, bifrostObjectNameParam );
 	inputLen = bifrostObjectName.length();
 	inData->bifrostObjectName = (char *) malloc ( ( inputLen + 1 ) * sizeof( char ) );
 	strcpy( inData->bifrostObjectName, bifrostObjectName.c_str() );
 
 	// arnold specific parameters
-    inData->motionBlur = AiNodeGetBool( node, "motionBlur" );
-    inData->shutterStart = AiNodeGetFlt( node, "shutterStart" );
-    inData->shutterEnd = AiNodeGetFlt( node, "shutterEnd" );
+	inData->motionBlur = AiNodeGetBool( parentNode, "motionBlur" );
+	inData->shutterStart = AiNodeGetFlt( parentNode, "shutterStart" );
+	inData->shutterEnd = AiNodeGetFlt( parentNode, "shutterEnd" );
 
 	inData->checkParameters();
 
@@ -247,10 +250,8 @@ volume_create
     // get input pdata
 	bool error = getNodeParameters( inData, node );
 
-    // init in memory class
-    inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
-
-    bool hotData = inData->inMemoryRef->objectExists();
+	// init in memory class
+	inData->inMemoryRef = new CoreObjectUserData( inData->bifrostObjectName, inData->bifFilename );
 
     // init user pdata stuff
     pdata->objectRef = inData->inMemoryRef;
@@ -278,9 +279,9 @@ volume_create
 	//
 	// CHECK INPUT FILE
 	//
-    //
+	//
 	Bifrost::API::String writeToFolder;
-    if ( hotData ) {
+	if ( inData->hotData ) {
         // write in memory pdata to a temp file
 		Bifrost::API::String writeToFile;
 		if ( strstr( inData->bifFilename, "volume" ) != NULL ) {
@@ -299,7 +300,7 @@ volume_create
 	Bifrost::API::String correctedFilename = Bifrost::API::File::forwardSlashes(inData->bifFilename);
 
     // check for existence of files if we don't have hot pdata
-    if ( !hotData ) {
+	if ( !inData->hotData ) {
 		if (FILE *file = fopen(correctedFilename.c_str(), "r")) {
 			fclose(file);
 		} else {
@@ -327,6 +328,7 @@ volume_create
 	FrameData *frameData = (FrameData *) new (FrameData);
 	frameData->init();
 	frameData->pluginType = PLUGIN_VOLUME;
+	frameData->hotData = inData->hotData;
 	frameData->tmpFolder = writeToFolder;
 
     pdata->frameData = frameData;
@@ -358,13 +360,13 @@ volume_create
 	
 	amino::Math::bboxf clipBox;
 	if ( inData->clip.on ) {
-        amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
-        amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
+		amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
+		amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
 
 		clipBox = amino::Math::bboxf( min, max );
 	}
 
-    //
+	//
 	//
 	// FILE LOADING
 	//
@@ -380,7 +382,6 @@ volume_create
 	std::time_t start, end;
 
 	start = std::time(NULL);
-    frameData->loadChannelNames.add(inData->inputChannelName);
 
 	if ( inData->clip.on ) {
 		loadSt = fio.load( inSS, frameData->loadChannelNames, clipBox);
@@ -638,7 +639,7 @@ volume_create
 	//
 	//
 	//
-    if ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+	if ( inData->smooth.on && inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
 		IFNOTSILENT {
 			printf("\nPost Processing %s channel...\n", inData->inputChannelName);
 			printf("\tPost processing parameters:\n");
@@ -762,19 +763,20 @@ volume_create
 volume_cleanup
 {
     BifrostVolumeUserData *volData = (BifrostVolumeUserData*) data->private_info;
-    if(!volData){ return  false; }
+    if(!volData){
+        return  false;
+    }
 
     FrameData *frameData = volData->frameData;
     VolumeInputData *inData = volData->inputData;
 
-    if(frameData){
-        if(!frameData->tmpFolder.empty()){
+    if ( frameData ) {
+        if ( inData->hotData ) {
             Bifrost::API::File::deleteFolder( frameData->tmpFolder );
         }
-        delete frameData;
     }
 
-    if(inData){
+    if ( inData ) {
         free( inData->bifFilename );
         free( inData->inputChannelName );
         free( inData->smooth.channelName );
@@ -784,7 +786,6 @@ volume_cleanup
         if ( inData->inMemoryRef ) {
             delete inData->inMemoryRef;
         }
-        delete inData;
     }
 
     delete volData;
@@ -814,6 +815,9 @@ volume_sample
 	Bifrost::API::VoxelSampler *threadSampler = volData->channelSamplers[ samplerIndexStart + sg->tid ];
 
 	if (threadSampler == 0) {
+		if ( inData->diagnostics.DEBUG > 0 ) {
+			printf( "Creating a new sampler for channel %s and thread %d...\n", channel.c_str(), sg->tid );
+		}
 		Bifrost::API::VoxelChannel bifChannel = volData->voxelComponent.findChannel( channel.c_str() );
 
 		threadSampler = new Bifrost::API::VoxelSampler( bifChannel.createSampler( Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace ) );
@@ -853,5 +857,3 @@ volume_update
 {
     return true;
 }
-
-//*/

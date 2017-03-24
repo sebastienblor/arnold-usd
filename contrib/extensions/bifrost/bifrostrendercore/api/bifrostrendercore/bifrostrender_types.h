@@ -55,7 +55,8 @@ enum SmoothFilterType {
 	kGaussian,
 	kMedianValue,
 	kLaplacianFlow,
-    kCurvatureFlow
+	kCurvatureFlow
+//	kMentalRay
 }; 
 
 // enum for blending types
@@ -92,7 +93,8 @@ enum PrimitivesRenderType {
 enum PluginType {
 	PLUGIN_IMPLICITS = 0,
 	PLUGIN_VOLUME,
-    PLUGIN_PRIMITIVES
+	PLUGIN_PRIMITIVES,
+	PLUGIN_MESH
 };
 
 // enum for range calc strategy
@@ -137,6 +139,11 @@ enum MesherAlgorithm {
 //
 //
 
+struct BIFROSTRENDERAPI_DECL NodeData {
+	void *inputData;
+	void *frameData;
+};
+
 struct BIFROSTRENDERAPI_DECL BBox {
 	float bound[6];
 	amino::Math::vec3f min;
@@ -160,9 +167,9 @@ struct BIFROSTRENDERAPI_DECL BBoxData {
 };
 
 struct primVarInfo {
-    std::string name;
-    std::string channelName;
-    std::string tokenName;
+	std::string name;
+	std::string channelName;
+	std::string tokenName;
 	Bifrost::API::Channel channel;
 	void *inDataArray;
 	size_t size;
@@ -170,7 +177,7 @@ struct primVarInfo {
 	float min;
 	float max;
 	float defVal;
-    bool exportToRIB;
+	bool exportToRIB;
 
 	int exportArraysIndex;
 	int samplerArrayIndex;
@@ -223,32 +230,32 @@ struct FrustumPlane {
 };
 
 struct BIFROSTRENDERAPI_DECL ThreadNames {
-    std::string threadNameSrc;
-    std::string threadNameVelU;
-    std::string threadNameVelV;
-    std::string threadNameVelW;
+	std::string threadNameSrc;
+	std::string threadNameVelU;
+	std::string threadNameVelV;
+	std::string threadNameVelW;
 
-    std::string rangeMinBoundCacheName;
-    std::string rangeMaxBoundCacheName;
-    std::string rangeMinResultCacheName;
-    std::string rangeMaxResultCacheName;
-    std::string rangeCacheActiveName;
+	std::string rangeMinBoundCacheName;
+	std::string rangeMaxBoundCacheName;
+	std::string rangeMinResultCacheName;
+	std::string rangeMaxResultCacheName;
+	std::string rangeCacheActiveName;
 
-    std::string boxMinBoundCacheName;
-    std::string boxMaxBoundCacheName;
-    std::string boxMinXCacheName;
-    std::string boxMaxXCacheName;
-    std::string boxMinYCacheName;
-    std::string boxMaxYCacheName;
-    std::string boxMinZCacheName;
-    std::string boxMaxZCacheName;
-    std::string boxCacheActiveName;
+	std::string boxMinBoundCacheName;
+	std::string boxMaxBoundCacheName;
+	std::string boxMinXCacheName;
+	std::string boxMaxXCacheName;
+	std::string boxMinYCacheName;
+	std::string boxMaxYCacheName;
+	std::string boxMinZCacheName;
+	std::string boxMaxZCacheName;
+	std::string boxCacheActiveName;
 };
 
 // struct to hold frame data
 struct BIFROSTRENDERAPI_DECL FrameData {
-    Bifrost::API::Layout layout;
-    Bifrost::API::VoxelChannel orgInputChannel;
+	Bifrost::API::Layout layout;
+	Bifrost::API::VoxelChannel orgInputChannel;
 	Bifrost::API::VoxelChannel srcChannel;
 	Bifrost::API::VoxelChannel safeChannel;
 	Bifrost::API::VoxelChannel airDistanceChannel;
@@ -261,7 +268,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 
 	Bifrost::API::StateServer inSS;
 
-    Bifrost::API::Object inObj;
+	Bifrost::API::Object inObj;
 
 	std::vector<Bifrost::API::VoxelChannel> reportChannels;
 	std::vector<primVarInfo> primVars;
@@ -275,16 +282,18 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 	int metaDataLoaded;
 
 	bool motionBlur;
+	float shadingRate;
 	int sampleRate;
 	float shutter[2];
 	float shutterSize;
 	float screenWindow[4];
 	float velocityScale;
 	bool velocityExists;
-    std::string idString;
+	std::string idString;
 
 	bool error;
-    Bifrost::API::String tmpFolder;
+	bool hotData;
+	Bifrost::API::String tmpFolder;
 	bool isPointCache;
 	bool idExists;
 	bool smoothChannelExists;
@@ -306,8 +315,8 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 	float orgVoxelScale;
 	float cullDepthAtStart;
 
-    BBoxData bboxSim;
-    BBoxData bboxInf;
+	BBoxData bboxSim;
+	BBoxData bboxInf;
 
 	CvPoint hullCorners[8];
 	FrustumPlane planes[6];
@@ -317,7 +326,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 
 	Diagnostics diagnostics;
 
-    PluginType pluginType;
+	PluginType pluginType;
 
 	// for internal bookkeeping
 	bool renderInfCube;
@@ -332,7 +341,8 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 };
 
 struct BIFROSTRENDERAPI_DECL SmoothFilterParams {
-    SmoothFilterType mode;
+	bool on;
+	SmoothFilterType mode;
 	int amount;
 	int iterations;
 	float weight;
@@ -343,13 +353,13 @@ struct BIFROSTRENDERAPI_DECL SmoothFilterParams {
 };
 
 struct BIFROSTRENDERAPI_DECL ClipParams {
-    bool on;
-    float minX;
-    float maxX;
-    float minY;
-    float maxY;
-    float minZ;
-    float maxZ; // 7 params
+	bool on;
+	float minX;
+	float maxX;
+	float minY;
+	float maxY;
+	float minZ;
+	float maxZ; // 7 params
 };
 
 struct BIFROSTRENDERAPI_DECL InfCubeParams {
@@ -359,8 +369,7 @@ struct BIFROSTRENDERAPI_DECL InfCubeParams {
 	float topCenterX;
 	float topCenterY;
 	float topCenterZ;
-    float dimX;
-    float dimY; // ??
+	float dimX;
 	float dimZ;
 	FalloffType blendType;
 	float blendStart;
@@ -394,23 +403,11 @@ struct BIFROSTRENDERAPI_DECL CullSidesParams {
 	float depthAtStartInVoxels; // 4 params
 };
 
-#define FREESTR(str) if(str) { free(str); str = NULL; }
-
 // Input data for BifrostImplicits
 struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
-    ImplicitsInputData () :
-        bifFilename(NULL),
-        inputChannelName(NULL),
-        primVarNames(NULL),
-        bifrostObjectName(NULL),
-        inMemoryRef(NULL) {}
-
-    ~ImplicitsInputData() {
-        FREESTR(bifFilename);
-        FREESTR(inputChannelName);
-        FREESTR(primVarNames);
-        FREESTR(bifrostObjectName);
-    }
+	ImplicitsInputData () {
+		this->inMemoryRef = NULL;
+	}
 
 	CvString bifFilename;
 	CvString inputChannelName;
@@ -446,6 +443,7 @@ struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
 
 	// diagnostics parameters
 	DiagnosticsParams diagnostics; // 47 params - silent is not get with the current system
+	bool hotData; // 47 params
 
 	// for arnold
 	float stepSize;
@@ -471,7 +469,7 @@ struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
 	static const int nofCubeStringParams = 1;
 
 	void printParameters( bool isParticleCache );
-    void checkParameters();
+	void checkParameters( PluginType plugType );
 };
 
 struct BIFROSTRENDERAPI_DECL PrimitivesInputData {
@@ -519,6 +517,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesInputData {
 	CvString bifrostObjectName;
 
 	DiagnosticsParams diagnostics;
+	bool hotData;
 
 	// in memory data structure
 	CoreObjectUserData *inMemoryRef;
@@ -570,6 +569,7 @@ struct BIFROSTRENDERAPI_DECL VolumeInputData {
 
 	// state parameters
 	DiagnosticsParams diagnostics; // 31 params
+	bool hotData; // 32 params
 
 	// in memory data structure
 	CoreObjectUserData *inMemoryRef;
@@ -614,7 +614,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 	int velocityIndexW;
 
 	unsigned long id;
-    std::string idString;
+	std::string idString;
 
 	CvInt nofElements;
 	CvInt nofBaseElements;
@@ -626,11 +626,89 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 	int finalChunkSize;
 
 	bool error;
+	bool hotData;
 	Bifrost::API::String tmpFolder;
 
 	PluginType pluginType;
 
 	void init();
+};
+
+struct BIFROSTRENDERAPI_DECL PolyMeshFrameData {
+	std::vector<primVarInfo> primVars;
+	Bifrost::API::StringArray primVarNames;
+	Bifrost::API::StringArray inputChannelNames;
+	Bifrost::API::StringArray loadChannelNames;
+	std::vector<void *> mem;
+
+	CacheType cacheType;
+	bool speedNeeded;
+	bool transparencyNeeded;
+	bool idNeeded;
+	bool motionBlur;
+	bool velocityExists;
+	float shutter[2];
+
+	int velocityIndex;
+	int velocityIndexU;
+	int velocityIndexV;
+	int velocityIndexW;
+
+	unsigned long id;
+	std::string idString;
+
+	CvInt nofElements;
+	CvInt nofBaseElements;
+	bool isPointCache;
+	float voxelScale;
+	float minDistance;
+	float maxDistance;
+
+	BBoxData bboxSim;
+
+	bool error;
+	bool hotData;
+	Bifrost::API::String tmpFolderParticle;
+	Bifrost::API::String tmpFolderVoxel;
+
+	Bifrost::API::StateServer inSS;
+	Bifrost::API::Channel srcChannel;
+
+	PluginType pluginType;
+
+	void init();
+};
+
+struct BIFROSTRENDERAPI_DECL PolyMeshInputData {
+	MesherAlgorithm mesherAlgo;
+	float velocityScale;
+	float fps;
+	float spaceScale;
+	float dropletRevealFactor;
+	float surfaceRadius;
+	float dropletRadius;
+	float dropletThreshold;
+	float kernelFactor;
+	float resolutionFactor;
+	int smoothing;
+	float minimumFeatureAngle;
+	bool isAdaptive;
+
+	DiagnosticsParams diagnostics;
+	bool hotData;
+
+	char *primVarNames;
+	char *particleFilename;
+	char *voxelFilename;
+
+	bool error;
+
+	// for arnold
+	bool motionBlur;
+	float shutterStart;
+	float shutterEnd;
+
+	void printParameters();
 };
 
 }}

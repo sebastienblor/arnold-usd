@@ -15,12 +15,6 @@
 
 #include <bifrostrendercore/bifrostrender_tools.h>
 #include <bifrostrendercore/bifrostrender_visitors.h>
-#include <bifrostapi/bifrost_bifutils.h>
-
-
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
-#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 
 namespace Bifrost{
 namespace RenderCore{
@@ -775,9 +769,9 @@ Bifrost::API::String writeHotDataToDisk(	CoreObjectUserData& objectRef,
 											Bifrost::API::String& writeToFolder )
 {
 	// declare State Server
-    Bifrost::API::StateServer hotServer( objectRef.stateServer() );
+	Bifrost::API::StateServer hotServer( objectRef.stateServer() );
 
-    writeToFolder = Bifrost::API::File::createTempFolder();
+	writeToFolder = Bifrost::API::File::createTempFolder();
 	writeToFolder.trimRight( "/" );
 
 	Bifrost::API::String filenameOnly;
@@ -785,13 +779,13 @@ Bifrost::API::String writeHotDataToDisk(	CoreObjectUserData& objectRef,
     filenameOnly = Bifrost::API::String("/").append(filenameOnly);
     Bifrost::API::String writeToFile = Bifrost::API::String(writeToFolder).append(filenameOnly);
 
-    Bifrost::API::ObjectModel OM;
-    Bifrost::API::FileIO fio = OM.createFileIO( writeToFile );
-    Bifrost::API::Component component = hotServer.findComponent( componentName );
+	Bifrost::API::ObjectModel OM;
+	Bifrost::API::FileIO fio = OM.createFileIO( writeToFile );
+	Bifrost::API::Component component = hotServer.findComponent( componentName );
 
-    fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
+	fio.save(component, Bifrost::API::BIF::Compression::Level0, 0 );
 
-    return writeToFile;
+	return writeToFile;
 }
 
 void initAndGetFrameData(	FrameData *frameData,
@@ -1705,16 +1699,17 @@ void reportChannelRanges ( FrameData *frameData, Bifrost::API::Component compone
 	// now go over frameData->reportChannels and also store their min max values in frameData
 	frameData->channelMin.clear();
 	frameData->channelMax.clear();
-    IFNOTSILENTINFUNCTION {
-        if(frameData->reportChannels.size() > 0){
-            printf("\nChannel Min-Max Values:\n");
-        }
-    }
 	for ( int count = 0; count < frameData->reportChannels.size(); count++) {
-        ChannelValueRangeVisitor valueRangeVisitor ( frameData->reportChannels[count] );
+		IFNOTSILENTINFUNCTION {
+			if (count == 0) {
+				printf("\nChannel Min-Max Values:\n");
+			}
+		}
+
+		ChannelValueRangeVisitor valueRangeVisitor ( frameData->reportChannels[count] );
 		layout.traverse(valueRangeVisitor, Bifrost::API::TraversalMode::ParallelReduceBreadthFirst, layout.maxDepth(), layout.maxDepth() );
-        frameData->channelMin.push_back( valueRangeVisitor.m_minVal );
-        frameData->channelMax.push_back( valueRangeVisitor.m_maxVal );
+		frameData->channelMin.push_back( valueRangeVisitor.m_minVal );
+		frameData->channelMax.push_back( valueRangeVisitor.m_maxVal );
 		IFNOTSILENTINFUNCTION {
 			printf("\tChannel: %s\n", ( frameData->reportChannels[ count ] ).name().c_str());
 			printf("\tMin:%.2f, Max: %.2f\n\n", frameData->channelMin[ count ], frameData->channelMax[ count ]);

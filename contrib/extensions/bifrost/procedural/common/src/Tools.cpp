@@ -12,13 +12,16 @@ void getASSData ( void *frameData, void *inputData, PluginType pluginType )
 	} else if ( pluginType == PLUGIN_IMPLICITS ) {
 		((FrameData *)frameData)->shutter[0] = ((ImplicitsInputData *)inputData)->shutterStart;
 		((FrameData *)frameData)->shutter[1] = ((ImplicitsInputData *)inputData)->shutterEnd;
-    } else {
+	} else if ( pluginType == PLUGIN_MESH ) {
+		((PolyMeshFrameData *)frameData)->shutter[0] = ((PolyMeshInputData *)inputData)->shutterStart;
+		((PolyMeshFrameData *)frameData)->shutter[1] = ((PolyMeshInputData *)inputData)->shutterEnd;
+	} else {
 		((FrameData *)frameData)->shutter[0] = ((VolumeInputData *)inputData)->shutterStart;
 		((FrameData *)frameData)->shutter[1] = ((VolumeInputData *)inputData)->shutterEnd;
 	}
 
 	// get screen window
-    if ( pluginType != PLUGIN_PRIMITIVES ) {
+	if ( pluginType != PLUGIN_PRIMITIVES && pluginType != PLUGIN_MESH ) {
 		// renderState->GetAttribute( "ShadingRate", &( ((FrameData *)frameData)->shadingRate), sizeof( float ), &resultType, &resultCount );
 
 		// get screenWindow
