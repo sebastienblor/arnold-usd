@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiShadowMatte'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='shadowColor' type='maya.float3'>
+			<label>Shadow Color</label>
+		</attribute>
+		<attribute name='backlighting' type='maya.float'>
+			<label>Backlighting</label>
+		</attribute>
+		<attribute name='diffuseColor' type='maya.float3'>
+			<label>Diffuse Color</label>
+		</attribute>
+		<attribute name='diffuseIntensity' type='maya.float'>
+			<label>Diffuse Intensity</label>
+		</attribute>
+		<attribute name='specularColor' type='maya.float3'>
+			<label>Specular Color</label>
+		</attribute>
+		<attribute name='specularIntensity' type='maya.float'>
+			<label>Specular Intensity</label>
+		</attribute>
+		<attribute name='shadowOpacity' type='maya.float'>
+			<label>Shadow Opacity</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiShadowMatte'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='shadowColor'/>
+		<property name='backlighting'/>
+		<property name='diffuseColor'/>
+		<property name='shadowOpacity'/>
+	</view>
+</templates>

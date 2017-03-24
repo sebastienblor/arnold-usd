@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiFloatToMatrix'>
+		<attribute name='outValue' type='maya.matrix'>
+			<label>Out Value</label>
+		</attribute>
+		<attribute name='input00' type='maya.float'>
+			<label>Input 00</label>
+		</attribute>
+		<attribute name='input01' type='maya.float'>
+			<label>Input 01</label>
+		</attribute>
+		<attribute name='input02' type='maya.float'>
+			<label>Input 02</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiFloatToMatrix'>
+		<property name='outValue'/>
+		<property name='input00'/>
+		<property name='input01'/>
+		<property name='input02'/>
+	</view>
+</templates>

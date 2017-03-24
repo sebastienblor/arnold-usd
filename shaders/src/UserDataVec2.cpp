@@ -1,27 +1,27 @@
 #include <ai.h>
 
-#define ARNOLD_NODEID_USER_DATA_PNT2            0x00115D1C
+#define ARNOLD_NODEID_USER_DATA_VEC2            0x00115D1C
 
-AI_SHADER_NODE_EXPORT_METHODS(UserDataPnt2Mtd);
+AI_SHADER_NODE_EXPORT_METHODS(UserDataVec2Mtd);
 
 namespace
 {
 
-enum UserDataPnt2Params
+enum UserDataVec2Params
 {
-   p_pnt2AttrName,
+   p_vec2AttrName,
    p_defaultValue
 };
 }
 
 node_parameters
 {
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataPnt2");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USER_DATA_PNT2);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataVec2");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USER_DATA_VEC2);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
-   AiParameterStr("pnt2AttrName", "");
+   AiParameterStr("vec2AttrName", "");
    AiParameterVec2("defaultValue", 0.f, 0.f);
 }
 
@@ -39,7 +39,7 @@ node_finish
 
 shader_evaluate
 {
-   AtString name = AtString(AiShaderEvalParamStr(p_pnt2AttrName));
+   AtString name = AtString(AiShaderEvalParamStr(p_vec2AttrName));
    AtParamValue val;
    bool valid = false;
    

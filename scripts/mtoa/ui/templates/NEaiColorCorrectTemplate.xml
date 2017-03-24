@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiColorCorrect'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='alphaMultiply' type='maya.float'>
+			<label>Alpha Multiply</label>
+		</attribute>
+		<attribute name='alphaAdd' type='maya.float'>
+			<label>Alpha Add</label>
+		</attribute>
+		<attribute name='contrast' type='maya.float'>
+			<label>Contrast</label>
+		</attribute>
+		<attribute name='multiply' type='maya.float3'>
+			<label>Multiply</label>
+		</attribute>
+		<attribute name='add' type='maya.float3'>
+			<label>Add</label>
+		</attribute>
+		<attribute name='mask' type='maya.float'>
+			<label>Mask</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiColorCorrect'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='input'/>
+		<property name='alphaMultiply'/>
+		<property name='alphaAdd'/>
+		<property name='contrast'/>
+		<property name='multiply'/>
+		<property name='add'/>
+		<property name='mask'/>
+	</view>
+</templates>

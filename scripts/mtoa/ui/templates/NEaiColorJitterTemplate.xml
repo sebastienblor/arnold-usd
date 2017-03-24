@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiColorJitter'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiColorJitter'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='input'/>
+	</view>
+</templates>

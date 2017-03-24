@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiSwitch'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='input0' type='maya.float3'>
+			<label>Input 0</label>
+		</attribute>
+		<attribute name='input1' type='maya.float3'>
+			<label>Input 1</label>
+		</attribute>
+		<attribute name='input2' type='maya.float3'>
+			<label>Input 2</label>
+		</attribute>
+		<attribute name='input3' type='maya.float3'>
+			<label>Input 3</label>
+		</attribute>
+		<attribute name='input4' type='maya.float3'>
+			<label>Input 4</label>
+		</attribute>
+		<attribute name='input5' type='maya.float3'>
+			<label>Input 5</label>
+		</attribute>
+		<attribute name='input6' type='maya.float3'>
+			<label>Input 6</label>
+		</attribute>
+		<attribute name='input7' type='maya.float3'>
+			<label>Input 7</label>
+		</attribute>
+		<attribute name='input8' type='maya.float3'>
+			<label>Input 8</label>
+		</attribute>
+		<attribute name='input9' type='maya.float3'>
+			<label>Input 9</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiSwitch'>
+		<property name='message'/>
+		<property name='outColor'/>
+		<property name='input0'/>
+		<property name='input1'/>
+		<property name='input2'/>
+		<property name='input3'/>
+		<property name='input4'/>
+		<property name='input5'/>
+		<property name='input6'/>
+		<property name='input7'/>
+		<property name='input8'/>
+		<property name='input9'/>
+	</view>
+</templates>

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiMixRgba'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='input1' type='maya.float3'>
+			<label>Input 1</label>
+		</attribute>
+		<attribute name='input2' type='maya.float3'>
+			<label>Input 2</label>
+		</attribute>
+		<attribute name='mix' type='maya.float'>
+			<label>Mix</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiMixRgba'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='input1'/>
+		<property name='input2'/>
+		<property name='mix'/>
+	</view>
+</templates>

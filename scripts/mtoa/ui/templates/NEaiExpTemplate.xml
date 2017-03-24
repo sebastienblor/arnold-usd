@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiExp'>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiExp'>
+		<property name='input'/>
+		<property name='outColor'/>
+	</view>
+</templates>

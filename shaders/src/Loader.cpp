@@ -71,7 +71,7 @@ extern const AtNodeMethods* MayaNormalDisplacementMtd;
 extern const AtNodeMethods* ShadowCatcherMtd;
 extern const AtNodeMethods* MayaHairMtd;
 extern const AtNodeMethods* MeshLightMaterialMtd;
-extern const AtNodeMethods* UserDataPnt2Mtd;
+extern const AtNodeMethods* UserDataVec2Mtd;
 extern const AtNodeMethods* MayaBump2DMtd;
 extern const AtNodeMethods* MayaFluidMtd;
 extern const AtNodeMethods* MayaMarbleMtd;
@@ -167,7 +167,7 @@ enum{
    SHADER_USERDATABOOL,
    SHADER_HAIR,
    SHADER_LIGHTMATERIAL,
-   SHADER_USERDATAPNT2,
+   SHADER_USERDATAVEC2,
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
    SHADER_MAYAMARBLE,
@@ -662,10 +662,10 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case SHADER_USERDATAPNT2:
-      node->methods     = UserDataPnt2Mtd;
+   case SHADER_USERDATAVEC2:
+      node->methods     = UserDataVec2Mtd;
       node->output_type = AI_TYPE_VECTOR2;
-      node->name        = "userDataPnt2";
+      node->name        = "userDataVec2";
       node->node_type   = AI_NODE_SHADER;
       break;
       

@@ -1,14 +1,14 @@
 <fragment uiName="standardHairShaderCombiner" name="standardHairShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Combines inputs for the hair shader.]]></description>
     <properties>
+        <float3 name="diffuseInput" />
+        <float3 name="specularInput" />
+        <float3 name="emissionInput" />
         <float name="base" />
         <float3 name="baseColor" />
         <float name="melanin" />
         <float name="melaninRedness" />
         <float name="melaninRandomize" />
-        <float3 name="diffuseInput" />
-        <float3 name="specularInput" />
-        <float3 name="emissionInput" />
         <float name="diffuse" />
         <float3 name="diffuseColor" />
         <float name="roughness" />     
@@ -74,14 +74,14 @@ float3 HSVtoRGB( float hue, float sat, float val )
     }
         
 mayaSurfaceShaderOutput hairShaderCombiner(
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput,
                 float base,
                 float3 baseColor,
                 float melanin,
                 float melaninRedness,
                 float melaninRandomize,
-                float3 diffuseInput,
-                float3 specularInput,
-                float3 emissionInput,
                 float diffuse,
                 float3 diffuseColor,
                 float roughness,
@@ -193,14 +193,14 @@ float3 HSVtoRGB( float hue, float sat, float val )
     }
         
 mayaSurfaceShaderOutput hairShaderCombiner(
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput,
                 float base,
                 float3 baseColor,
                 float melanin,
                 float melaninRedness,
                 float melaninRandomize,
-                float3 diffuseInput,
-                float3 specularInput,
-                float3 emissionInput,
                 float diffuse,
                 float3 diffuseColor,
                 float roughness,
@@ -310,14 +310,14 @@ vec3 HSVtoRGB( float hue, float sat, float val )
 }
         
 mayaSurfaceShaderOutput hairShaderCombiner(
+                vec3 diffuseInput,
+                vec3 specularInput,
+                vec3 emissionInput,
                 float base,
                 vec3 baseColor,
                 float melanin,
                 float melaninRedness,
                 float melaninRandomize,
-                vec3 diffuseInput,
-                vec3 specularInput,
-                vec3 emissionInput,
                 float diffuse,
                 vec3 diffuseColor,
                 float roughness,

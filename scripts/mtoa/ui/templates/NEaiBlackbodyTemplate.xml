@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiBlackbody'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='temperature' type='maya.float'>
+			<label>Temperature</label>
+		</attribute>
+		<attribute name='intensity' type='maya.float'>
+			<label>Intensity</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiBlackbody'>
+		<property name='outColor'/>
+		<property name='temperature'/>
+		<property name='intensity'/>
+	</view>
+</templates>

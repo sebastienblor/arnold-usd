@@ -15,7 +15,7 @@ include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_bas
 
 plugin_env.Append(CPPPATH = ['.'])
 
-EXT = plugin_env.SharedLibrary('synColor_plugins', source_files, LIBPREFIX='')
+EXT = plugin_env.SharedLibrary('synColorTranslator', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    plugin_env['MSVSSCONSCRIPT'] = plugin_env.File('SConscript')
@@ -62,7 +62,7 @@ else:
       shader_env.Append(LIBPATH = [library_path])
       #shader_env.Install(shader_env['TARGET_BINARIES'], glob.glob(library_path + "/libsynColor.so.*"))
 
-EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREFIX='')
+EXT_SHADERS = shader_env.SharedLibrary('synColorShader', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')

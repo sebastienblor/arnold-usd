@@ -1,4 +1,3 @@
-
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
@@ -12,8 +11,6 @@
 	</template>
 	<view name='NEDefault' template='NEaiUserDataVector'>
 		<property name='outValue'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiUserDataVector'>
-		<property name='outValue'/>
+		<property name='defaultValue'/>
 	</view>
 </templates>

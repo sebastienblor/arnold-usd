@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiFloatToRgb'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='r' type='maya.float'>
+			<label>R</label>
+		</attribute>
+		<attribute name='g' type='maya.float'>
+			<label>G</label>
+		</attribute>
+		<attribute name='b' type='maya.float'>
+			<label>B</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiFloatToRgb'>
+		<property name='outColor'/>
+		<property name='r'/>
+		<property name='g'/>
+		<property name='b'/>
+	</view>
+</templates>

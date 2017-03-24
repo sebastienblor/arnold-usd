@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiSpaceTransform'>
+		<attribute name='outValue' type='maya.float3'>
+			<label>Out Value</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='tangent' type='maya.float3'>
+			<label>Tangent</label>
+		</attribute>
+		<attribute name='normal' type='maya.float3'>
+			<label>Normal</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiSpaceTransform'>
+		<property name='outValue'/>
+		<property name='input'/>
+		<property name='tangent'/>
+		<property name='normal'/>
+	</view>
+</templates>

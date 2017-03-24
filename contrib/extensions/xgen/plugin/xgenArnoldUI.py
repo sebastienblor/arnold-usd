@@ -66,6 +66,7 @@ def xgArnoldUI(selfid):
     addMethod( self, xgArnoldMotionBlurChanged )
     addMethod( self, xgArnoldPatchesChanged )
     addMethod( self, xgArnoldUseAuxPatchesChanged )
+    addMethod( self, xgArnoldMultithreadingChanged )
 
     expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldSettings'  ])
     self.arnold_expand_settings = expand
@@ -240,6 +241,16 @@ def xgArnoldUI(selfid):
     expand.addWidget(self.arnold_auxRenderPatch)
     self.connect(self.arnold_auxRenderPatch.textValue, QtCore.SIGNAL("textChanged(const QString&)"), self.xgArnoldPatchesChanged )
 
+    self.arnold_multithreading = CheckBoxUI(maya.stringTable[ 'y_xgenArnoldUI.kMultithreading'  ],"custom__arnold_multithreading",
+                                    maya.stringTable[ 'y_xgenArnoldUI.kMultithreading'  ],k_RenderAPIRendererObj)
+
+    expand.addWidget(self.arnold_multithreading)
+    self.connect(self.arnold_multithreading.boxValue[0],
+                 QtCore.SIGNAL("clicked(bool)"), self.xgArnoldMultithreadingChanged)
+
+    if cmds.about(api=True) < 201800:
+        self.arnold_multithreading.setHidden(True)
+    
     # Register the Arnold renderer in the method combo box
     self.addRenderer("Arnold Renderer")
     global k_RenderAPIRendererInit
@@ -272,6 +283,7 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
     self.declareCustomAttr( 'arnold_useAuxRenderPatch', "0" )
     self.declareCustomAttr( 'arnold_auxRenderPatch', "0" )
+    self.declareCustomAttr( 'arnold_multithreading', "1" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
@@ -286,6 +298,7 @@ def xgArnoldRefresh(selfid):
     auxRenderPatch = str(self.getCustomAttr( "arnold_auxRenderPatch" ))
     if auxRenderPatch == "0":
         auxRenderPatch = ""
+    multithreading = self.getCustomAttr( "arnold_multithreading" ) != "0"
 
     # Update the UI
     de = xgg.DescriptionEditor
@@ -308,6 +321,7 @@ def xgArnoldRefresh(selfid):
     self.arnold_useAuxRenderPatch.refresh()
     self.arnold_auxRenderPatch.refresh()
     self.arnold_auxRenderPatch.setEnabled(useAuxRenderPatch)
+    self.arnold_multithreading.refresh()
     
     pal = de.currentPalette()
     desc = de.currentDescription()
@@ -328,6 +342,7 @@ def xgArnoldRefresh(selfid):
             cmds.setAttr( nExistsName + ".motion_blur_factor", mb_factor )
             cmds.setAttr( nExistsName + ".aiUseAuxRenderPatch", useAuxRenderPatch )
             cmds.setAttr( nExistsName + ".aiAuxRenderPatch", auxRenderPatch, type="string")
+            cmds.setAttr( nExistsName + ".aiMultithreading", multithreading )
             if rendermode == 0:
                 cmds.setAttr( nExistsName + ".render_mode", 1 ) #  live = 1
             else:
@@ -371,4 +386,8 @@ def xgArnoldUseAuxPatchesChanged(self, state):
         self.arnold_auxRenderPatch.setEnabled(True)
     else:
         self.arnold_auxRenderPatch.setEnabled(False)
+    self.xgArnoldRefresh()
+
+def xgArnoldMultithreadingChanged(self, state):
+    self.setCustomAttr( "arnold_multithreading", str(int(state)) )
     self.xgArnoldRefresh()

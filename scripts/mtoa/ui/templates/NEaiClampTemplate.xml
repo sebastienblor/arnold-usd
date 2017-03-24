@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiClamp'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='min' type='maya.float'>
+			<label>Min</label>
+		</attribute>
+		<attribute name='max' type='maya.float'>
+			<label>Max</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiClamp'>
+		<property name='outColor'/>
+		<property name='input'/>
+		<property name='min'/>
+		<property name='max'/>
+	</view>
+</templates>

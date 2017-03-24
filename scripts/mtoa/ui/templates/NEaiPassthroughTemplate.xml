@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiPassthrough'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='passthrough' type='maya.float3'>
+			<label>Passthrough</label>
+		</attribute>
+		<attribute name='eval1' type='maya.float3'>
+			<label>Eval 1</label>
+		</attribute>
+		<attribute name='eval2' type='maya.float3'>
+			<label>Eval 2</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiPassthrough'>
+		<property name='outColor'/>
+		<property name='passthrough'/>
+		<property name='eval1'/>
+		<property name='eval2'/>
+	</view>
+</templates>

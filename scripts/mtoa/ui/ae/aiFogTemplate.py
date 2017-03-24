@@ -11,8 +11,8 @@ class AEaiFogTemplate(ShaderAETemplate):
         self.addControl('distance', label='Distance')
         self.addControl('height', label='Height')
         self.addSeparator()
-        self.addControl('ground_normal', label='Ground Normal')
-        self.addControl('ground_point', label='Ground Point')
+        self.addControl('groundNormal', label='Ground Normal')
+        self.addControl('groundPoint', label='Ground Point')
         self.endLayout()
         
         pm.mel.AEdependNodeTemplate(self.nodeName)

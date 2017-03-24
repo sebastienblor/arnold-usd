@@ -7,14 +7,14 @@ class AEaiLightBlockerTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         
         self.beginLayout('Light Blocker Attributes', collapse=False)
-        self.addControl('geometry_type', label='Geometry Type')
+        self.addControl('geometryType', label='Geometry Type')
         self.addControl('density', label='Density')
         self.addControl('shader', label='Shader')
         self.addSeparator()
-        self.addControl('ramp_axis', label='Axis')
+        self.addControl('rampAxis', label='Axis')
         self.addControl('ramp', label='Ramp')
-        self.addControl('height_edge', label='Height Edge')
-        self.addControl('width_edge', label='Width Edge')
+        self.addControl('heightEdge', label='Height Edge')
+        self.addControl('widthEdge', label='Width Edge')
         self.addControl('roundness', label='Roundness')
         self.endLayout()
         

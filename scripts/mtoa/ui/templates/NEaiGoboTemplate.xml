@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiGobo'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='slidemap' type='maya.float3'>
+			<label>Slidemap</label>
+		</attribute>
+		<attribute name='density' type='maya.float'>
+			<label>Density</label>
+		</attribute>
+		<attribute name='offset' type='maya.float2'>
+			<label>Offset</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiGobo'>
+		<property name='outColor'/>
+		<property name='slidemap'/>
+		<property name='density'/>
+		<property name='offset'/>
+	</view>
+</templates>

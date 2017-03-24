@@ -1140,8 +1140,8 @@ if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'syncolor_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColorShader%s' % get_library_extension()), 'shaders'])
 
 
 for p in MTOA_PROCS:

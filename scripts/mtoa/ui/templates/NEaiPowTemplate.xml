@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiPow'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='base' type='maya.float3'>
+			<label>Base</label>
+		</attribute>
+		<attribute name='exponent' type='maya.float3'>
+			<label>Exponent</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiPow'>
+		<property name='outColor'/>
+		<property name='base'/>
+		<property name='exponent'/>
+	</view>
+</templates>

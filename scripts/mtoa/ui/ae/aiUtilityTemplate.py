@@ -40,13 +40,13 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout('Utility Attributes', collapse=False)
-        self.addControl('shade_mode', changeCommand=self.checkShadeMode, label='Shade Mode')
-        self.addCustom('color_mode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
+        self.addControl('shadeMode', changeCommand=self.checkShadeMode, label='Shade Mode')
+        self.addCustom('colorMode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
         if int(ai.AiGetVersion()[2]) > 2:
-            self.addControl('overlay_mode', label='Overlay Mode')
+            self.addControl('overlayMode', label='Overlay Mode')
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
-        self.addControl('ao_distance', label='AO Distance')
+        self.addControl('aoDistance', label='AO Distance')
         self.addControl('roughness', label='Roughness')
         self.endLayout()
 

@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiOslShader'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='outValue' type='maya.message'>
+			<label>Out Value</label>
+		</attribute>
+		<attribute name='outTransparency' type='maya.float3'>
+			<label>Out Transparency</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiOslShader'>
+		<property name='message'/>
+		<property name='outValue'/>
+		<property name='outTransparency'/>
+	</view>
+</templates>

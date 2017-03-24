@@ -282,7 +282,7 @@ private:
             {
                 std::size_t seed = 0;
                 for (unsigned int i = 0; i < tuple.fSize; i++) {
-                    seed = (seed ^ (tuple.fIndices[i] << 1));
+                    seed = (seed ^ (tuple.fIndices[i] << i));
                     //boost::hash_combine(seed, tuple.fIndices[i]);
                 }
                 return seed;

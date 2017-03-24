@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiLambert'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='Kd' type='maya.float'>
+			<label>Kd</label>
+		</attribute>
+		<attribute name='KdColor' type='maya.float3'>
+			<label>Kd Color</label>
+		</attribute>
+		<attribute name='opacity' type='maya.float3'>
+			<label>Opacity</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiLambert'>
+		<property name='outColor'/>
+		<property name='Kd'/>
+		<property name='KdColor'/>
+		<property name='opacity'/>
+	</view>
+</templates>

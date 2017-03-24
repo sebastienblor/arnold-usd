@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiAtmosphereVolume'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='density' type='maya.float'>
+			<label>Density</label>
+		</attribute>
+		<attribute name='attenuation' type='maya.float'>
+			<label>Attenuation</label>
+		</attribute>
+		<attribute name='affectDiffuse' type='maya.float'>
+			<label>Affect Diffuse</label>
+		</attribute>
+		<attribute name='affectSpecular' type='maya.float'>
+			<label>Affect Specular</label>
+		</attribute>
+		<attribute name='rgbDensity' type='maya.float3'>
+			<label>Rgb Density</label>
+		</attribute>
+		<attribute name='rgbAttenuation' type='maya.float3'>
+			<label>Rgb Attenuation</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiAtmosphereVolume'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='density'/>
+		<property name='attenuation'/>
+		<property name='affectDiffuse'/>
+		<property name='affectSpecular'/>
+		<property name='rgbDensity'/>
+		<property name='rgbAttenuation'/>
+	</view>
+</templates>

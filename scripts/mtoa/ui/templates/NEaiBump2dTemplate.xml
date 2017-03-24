@@ -1,8 +1,10 @@
-
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
 	<template name='NEaiBump2d'>
+		<attribute name='outValue' type='maya.float3'>
+			<label>Out Value</label>
+		</attribute>
 		<attribute name='bumpMap' type='maya.float'>
 			<label>Bump Map</label>
 		</attribute>
@@ -11,10 +13,8 @@
 		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiBump2d'>
+		<property name='outValue'/>
 		<property name='bumpMap'/>
 		<property name='bumpHeight'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiBump2d'>
-		<property name='outColor'/>
 	</view>
 </templates>
