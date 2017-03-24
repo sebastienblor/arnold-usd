@@ -635,7 +635,7 @@ namespace{
         ADD_DSTR("aeroSmoothChannel", "");
 
         ADD_DSMOOTH_ENUM("aeroSmoothMode");
-        ADD_DINT("aeroSmoothAmount", 1);
+        ADD_DINT("aeroSmoothAmount", 0);
         ADD_DINT("aeroSmoothIterations", 1);
         ADD_DFLT("aeroSmoothWeight", 1.f);
         ADD_DFLT("aeroSmoothRemapMin", 0.f);
@@ -744,7 +744,7 @@ namespace{
         ADD_DFLT("pointChannelScale", 1.f);
         ADD_DBOOL("exportNormalAsPrimvar", false);
 
-        ADD_DFLT("pointClipOn", false);
+        ADD_DBOOL("pointClipOn", false);
         ADD_DFLT3("pointClipMin", 0.f, 0.f, 0.f);
         ADD_DFLT3("pointClipMax", 1.f, 1.f, 1.f);
         ADD_DFLT("pointRadius", .05f);

@@ -52,6 +52,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Smoothing", collapse=False)
         self.addControl("aeroSmoothMode", "Mode")
+        self.addControl("aeroSmoothAmount", "Smoothing")
         self.addControl("aeroSmoothWeight", "Weight")
         self.addControl("aeroSmoothIterations", "Iterations")
 
@@ -70,7 +71,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.endLayout() # Clipping
 
         self.beginLayout("Advanced", collapse=True)
-        self.beginLayout("Particle Splatting", collapse=True)
+        self.beginLayout("Particle Splatting", collapse=False)
         self.addControl("splatResolutionFactor")
         self.addControl("aeroSkip")
         self.addControl("splatSamples")
@@ -130,7 +131,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("cullDepthAtStartInVoxels", label="Depth At Start In Voxels")
         self.endLayout() # CullSides
 
-        self.beginLayout("ExtendSurface", collapse=True)
+        self.beginLayout("Extend Surface", collapse=True)
         self.addControl("infCubeBlendingOn")
         self.addControl("infCubeOutputType")
         self.addControl("simWaterLevel")
@@ -139,7 +140,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("blendType")
         self.addControl("infCubeBlendRange")
 
-        self.beginLayout("BlendUsingChannel", collapse=False)
+        self.beginLayout("Blend Using Channel", collapse=False)
         self.addControl("infiniteSurfaceBlendingChannel")
         self.addControl("blendingChannelRemapRange")
         self.addControl("blendingChannelRemapInvert", label="Invert")
@@ -154,7 +155,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.beginLayout("Mesh Controls", collapse=True)
         self.addControl("sampleRate", label="Tesselation")
         self.endLayout() # Mesh
-        self.beginLayout("Particle To Voxels Controls", collapse=False)
+        self.beginLayout("Particles To Voxels Controls", collapse=True)
         self.addControl("implicitResolutionFactor", label="Resolution Factor")
         self.addControl("implicitDropletRevealFactor", label="Droplet Reveal Factor")
         self.addControl("implicitSurfaceRadius", label="Surface Radius")
@@ -230,7 +231,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.setupLiquid()
         self.setupFoam()
 
-        self.beginLayout("Hidden", visible=False)
+        self.beginLayout("Hidden")#, visible=False)
         self.addCustom("HiddenHideThis", Hide, Hide)
         self.addControl("bifrostRenderType", changeCommand=CheckRenderType);
         self.endLayout()
