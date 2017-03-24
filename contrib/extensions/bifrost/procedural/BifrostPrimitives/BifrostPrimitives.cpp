@@ -1,3 +1,5 @@
+//*
+
 #include <ai.h>
 #include <ai_procedural.h>
 
@@ -76,6 +78,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		return false;
 	}
 
+
 	// output parameters to console
  	inData->printParameters();
 
@@ -85,7 +88,6 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	//
 	//
-
 	// init FrameData struct that holds information specific to the frame we are rendering
 	PrimitivesFrameData *frameData = (PrimitivesFrameData *) new( PrimitivesFrameData );
 	frameData->init();
@@ -109,12 +111,11 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	amino::Math::bboxf clipBox;
 	if ( inData->clip.on ) {
-		amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
-		amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
+        amino::Math::vec3f min ( inData->clip.minX, inData->clip.minY, inData->clip.minZ );
+        amino::Math::vec3f max ( inData->clip.maxX, inData->clip.maxY, inData->clip.maxZ );
 
 		clipBox = amino::Math::bboxf( min, max );
 	}
-
 	//
 	//
 	// FILE LOADING
@@ -234,7 +235,6 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 		printf( "\tuseChannelToModulateRadius is also ON which means you may not see that much stuff if your density range is low!\n");
 		printf( "\tYou can check your density range above\n");
 	}
-
 	//
 	//
 	// PRE EXPORT
@@ -297,7 +297,7 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 
 	// now calculate a new chunksize depending on mpSamples. it is easier this way
 	// if mpSamples == 1, this would be the same as the input chunkSize
-	frameData->finalChunkSize = inData->mpSamples * ( inData->chunkSize / inData->mpSamples );
+    frameData->finalChunkSize = inData->mpSamples * ( inData->chunkSize / inData->mpSamples );
 
 	// report id range
 	reportIdRange( idChan );
@@ -332,7 +332,6 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	//
 	frameData->minDistance = std::numeric_limits<float>::max();
 	frameData->maxDistance = -std::numeric_limits<float>::max();
-
 	int xMulti = dumpPrimitives	(	inData,
 									frameData,
 									component,
@@ -458,6 +457,7 @@ node_parameters
 // we read the UI parameters into their global vars
 procedural_init
 {
+    std::cerr << "INIT_START" << std::endl;
 	// create nodeData
 	AIProcNodeData *nodeData = new AIProcNodeData();
 
@@ -570,7 +570,9 @@ procedural_init
 		return false;
 	} else {
 		// now do creation of nodes
-		return ProcSubdivide( nodeData, inData );
+        bool success = ProcSubdivide( nodeData, inData );
+        std::cerr << "INIT ENDS" << std::endl;
+        return success;
 	}
 }
 
@@ -583,6 +585,7 @@ procedural_num_nodes
 	if ( inData->diagnostics.DEBUG > 1 ) {
 		printf( "%d nodes created\n", (int) nodeData->createdNodes.size() );
 	}
+    std::cerr << "NUM NODES = " << ((int) nodeData->createdNodes.size()) << std::endl;
 	return (int) nodeData->createdNodes.size();
 }
 
@@ -590,6 +593,7 @@ procedural_num_nodes
 // that this procedural creates.
 procedural_get_node
 {
+    std::cerr << "GET NODE " << i << std::endl;
 	AIProcNodeData *nodeData = (AIProcNodeData *) user_ptr;
 	PrimitivesInputData *inData = (PrimitivesInputData *) nodeData->inData;
 
@@ -609,6 +613,7 @@ procedural_get_node
 
 procedural_cleanup
 {
+    std::cerr << "CLEANUP START" << std::endl;
 	AIProcNodeData *nodeData = (AIProcNodeData *) user_ptr;
 
 	// free mem
@@ -644,6 +649,9 @@ procedural_cleanup
 
         delete nodeData;
 	}
+    std::cerr << "CLEANUP ENDS" << std::endl;
 
 	return 1;
 }
+
+//*/

@@ -20,7 +20,17 @@
 #include <bifrostrendercore/bifrostrender_objectuserdata.h>
 #include "BifrostTranslator.h"
 
+#define EXPORT_BOOL(name) AiNodeSetBool(shape, name, bifrostDesc.findPlug(name).asBool())
+#define EXPORT_INT(name) AiNodeSetInt(shape, name, bifrostDesc.findPlug(name).asInt())
+#define EXPORT_FLT(name) AiNodeSetFlt(shape, name, bifrostDesc.findPlug(name).asFloat())
+#define EXPORT_FLT2(name) AiNodeSetVec2(shape, name, bifrostDesc.findPlug(name "X").asFloat(), bifrostDesc.findPlug(name "Y").asFloat())
+#define EXPORT_FLT3(name) AiNodeSetVec(shape, name, bifrostDesc.findPlug(name "X").asFloat(), bifrostDesc.findPlug(name "Y").asFloat(), bifrostDesc.findPlug(name "Z").asFloat())
+#define EXPORT_STR(name) AiNodeSetStr(shape, name, bifrostDesc.findPlug(name).asString().asChar())
 
+#define EXPORT2_INT(aiName, name) AiNodeSetInt(shape, aiName, bifrostDesc.findPlug(name).asInt())
+#define EXPORT2_FLT(aiName, name) AiNodeSetFlt(shape, aiName, bifrostDesc.findPlug(name).asFloat())
+#define EXPORT2_FLT3(aiName, name) AiNodeSetVec(shape, aiName, bifrostDesc.findPlug(name "X").asFloat(), bifrostDesc.findPlug(name "Y").asFloat(), bifrostDesc.findPlug(name "Z").asFloat())
+#define EXPORT2_STR(aiName, name) AiNodeSetStr(shape, aiName, bifrostDesc.findPlug(name).asString().asChar())
 
 using namespace Bifrost::RenderCore;
 
@@ -106,6 +116,7 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
 	MString objStr = objectPlug.asString();
    
 	c_object = std::string( objStr.asChar() );
+    std::cerr << "OBJECT = " << c_object.c_str() << std::endl;
 
 	MFnDependencyNode bfContainer(objectPlug.source().node());
 
@@ -175,7 +186,7 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
 		case POINT:
             return AddArnoldNode( "bifrostPrimitives" );
 		default:
-			AiMsgError( "[Bifrost AI Converter]: Type not implemented yet : %s", c_object.c_str() );
+            AiMsgError( "[BIFROST TRANSLATOR]: Type not implemented yet : %s", c_object.c_str() );
 			break;
 	}
 
@@ -208,9 +219,6 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
 	bool hotData = objectRef.objectExists();
 
-
-
-
 	if ( hotData ) {
 		AiNodeSetBool( shape, "hotData", 1 );
 	} else {
@@ -221,7 +229,7 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 		const bool cacheExist = objectRef.checkCacheFileExist(frame);
 
 		if ( !cacheExist ) {
-			AiMsgError("[BIFROST AI TRANSLATOR]: Point data %s not found", c_object.c_str());
+            AiMsgError("[BIFROST TRANSLATOR]: Point data %s not found", c_object.c_str());
 			return;
 		}
 
@@ -392,7 +400,7 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 	AiNodeSetFlt( shape, "mpDisplacementNoiseFrequency", attrVal );
 
 
-	intAttrVal = bifrostDesc.findPlug( "pointDebug" ).asInt();
+    intAttrVal = bifrostDesc.findPlug( "debug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 
@@ -512,11 +520,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 
 	AiNodeSetFlt( shape, "spaceScale", 1 );
 
-	// smooth params
-
-	bool boolAttrVal = bifrostDesc.findPlug( "aeroSmoothOn" ).asBool();
-	AiNodeSetBool( shape, "smoothOn", boolAttrVal );
-
+    // smooth params
 
 	int intAttrVal = bifrostDesc.findPlug( "aeroSmoothMode" ).asInt();
 	AiNodeSetInt( shape, "smoothMode", intAttrVal );
@@ -542,7 +546,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 	AiNodeSetFlt( shape, "smoothRemapMax", attrVal );
 
 
-	boolAttrVal = bifrostDesc.findPlug( "aeroSmoothRemapInvert" ).asBool();
+    bool boolAttrVal = bifrostDesc.findPlug( "aeroSmoothRemapInvert" ).asBool();
 	AiNodeSetBool( shape, "smoothRemapInvert", boolAttrVal );
 
 
@@ -624,7 +628,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 
 	// diagnotics params
 
-	intAttrVal = bifrostDesc.findPlug( "aeroDebug" ).asInt();
+    intAttrVal = bifrostDesc.findPlug( "debug" ).asInt();
 	AiNodeSetInt( shape, "debug", intAttrVal );
 
 
@@ -674,369 +678,132 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 	ExportLightLinking( shape );
 }
 
-void BifrostTranslator::getLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *shape )
+void BifrostTranslator::ExportLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode *shape )
 {
 	AiNodeSetBool( shape, "opaque", false );
 	AiNodeSetBool( shape, "matte", false );
 	AiNodeSetByte( shape, "visibility", AI_RAY_ALL );
 
-	float spaceScale = bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat();
-	ExportMatrixWithSpaceScale( shape, spaceScale );
-
+    ExportMatrixWithSpaceScale(shape, bifrostDesc.findPlug( "liquidSpaceScale" ).asFloat());
 	// setup motion blur stuff
-
-	AiNodeSetBool( shape, "motionBlur", IsMotionBlurEnabled() );
-
+    AiNodeSetBool(shape, "motionBlur", IsMotionBlurEnabled());
 	double shutterStart, shutterEnd;
 	shutterStart = shutterEnd = 0.0;
 	if (  IsMotionBlurEnabled() ) {
 		GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
 	}
-
-
-	AiNodeSetFlt( shape, "shutterStart", (float) shutterStart );
-
-
-	AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
+    AiNodeSetFlt(shape, "shutterStart", (float) shutterStart);
+    AiNodeSetFlt(shape, "shutterEnd", (float) shutterEnd);
 
 	// culling params
-
-	bool boolAttrVal = bifrostDesc.findPlug( "cullSidesOn" ).asBool();
-	AiNodeSetBool( shape, "cullSidesOn", boolAttrVal );
-
-
-	float attrVal = bifrostDesc.findPlug( "cullSidesStart" ).asFloat();
-	AiNodeSetFlt( shape, "cullSidesStart", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "cullSidesEnd" ).asFloat();
-	AiNodeSetFlt( shape, "cullSidesEnd", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "cullDepthAtStartInVoxels" ).asFloat();
-	AiNodeSetFlt( shape, "cullDepthAtStartInVoxels", attrVal );
+    EXPORT_BOOL("cullSidesOn");
+    EXPORT_FLT2("cullSidesRange");
+    EXPORT_INT("cullDepthAtStartInVoxels");
+    EXPORT_FLT("cullDepthAtStartInVoxels");
 
 	// common attributes
-
-	attrVal = bifrostDesc.findPlug( "liquidVelocityScale" ).asFloat();
-	AiNodeSetFlt( shape, "velocityScale", attrVal );
-
+    EXPORT2_FLT("velocityScale", "liquidVelocityScale");
 	const MTime sec(1.0, MTime::kSeconds);
 	float fps = (float) sec.as(MTime::uiUnit());
-
-	AiNodeSetFlt(shape, "fps", fps);
-
-	// set space scale to 1 as it is incorporated into matrix attribute
-
-	AiNodeSetFlt( shape, "spaceScale", 1 );
-
+    AiNodeSetFlt(shape, "fps", fps); // Why?
 
 	// post process params
-
-	attrVal = bifrostDesc.findPlug( "dilateAmount" ).asFloat();
-	AiNodeSetFlt( shape, "dilateAmount", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "erodeAmount" ).asFloat();
-	AiNodeSetFlt( shape, "erodeAmount", attrVal );
-
-
-	boolAttrVal = bifrostDesc.findPlug( "smoothOn" ).asBool();
-	AiNodeSetBool( shape, "smoothOn", boolAttrVal );
-
-
-	int intAttrVal = bifrostDesc.findPlug( "smoothMode" ).asInt();
-	AiNodeSetInt( shape, "smoothMode", intAttrVal );
-
-
-	intAttrVal = bifrostDesc.findPlug( "smoothAmount" ).asInt();
-	AiNodeSetInt( shape, "smoothAmount", intAttrVal );
-
-
-	intAttrVal = bifrostDesc.findPlug( "smoothIterations" ).asInt();
-	AiNodeSetInt( shape, "smoothIterations", intAttrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "smoothWeight" ).asFloat();
-	AiNodeSetFlt( shape, "smoothWeight", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "smoothRemapMin" ).asFloat();
-	AiNodeSetFlt( shape, "smoothRemapMin", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "smoothRemapMax" ).asFloat();
-	AiNodeSetFlt( shape, "smoothRemapMax", attrVal );
-
-
-	boolAttrVal = bifrostDesc.findPlug( "smoothRemapInvert" ).asBool();
-	AiNodeSetBool( shape, "smoothRemapInvert", boolAttrVal );
-
+    EXPORT_FLT("dilateAmount");
+    EXPORT_FLT("erodeAmount");
+    EXPORT_INT("smoothMode");
+    EXPORT_INT("smoothAmount");
+    EXPORT_INT("smoothIterations");
+    EXPORT_FLT("smoothWeight");
+    EXPORT_FLT2("smoothRemapRange");
+    EXPORT_BOOL("smoothRemapInvert");
 
 	// clip params
-
-	boolAttrVal = bifrostDesc.findPlug( "liquidClipOn" ).asBool();
-	AiNodeSetBool( shape, "clipOn", boolAttrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidClipMinX" ).asFloat();
-	AiNodeSetFlt( shape, "clipMinX", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidClipMaxX" ).asFloat();
-	AiNodeSetFlt( shape, "clipMaxX", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidClipMinY" ).asFloat();
-	AiNodeSetFlt( shape, "clipMinY", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidClipMaxY" ).asFloat();
-	AiNodeSetFlt( shape, "clipMaxY", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidClipMinZ" ).asFloat();
-	AiNodeSetFlt( shape, "clipMinZ", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidClipMaxZ" ).asFloat();
-	AiNodeSetFlt( shape, "clipMaxZ", attrVal );
-
+    EXPORT_BOOL("clipOn");
+    EXPORT2_FLT3("clipMin", "liquidClipMin");
+    EXPORT2_FLT3("clipMin", "liquidClipMax");
 
 	// infcube blending params
+    EXPORT_BOOL("infCubeBlendingOn");
+    EXPORT_INT("infCubeOutputType");
+    EXPORT_FLT("simWaterLevel");
+    EXPORT_FLT3("infCubeTopCenter");
+    EXPORT_FLT3("infCubeDim");
+    EXPORT_INT("blendType");
+    EXPORT_FLT2("infCubeBlendRange");
+    EXPORT_FLT2("blendingChannelRemapRange");
+    EXPORT_BOOL("blendingChannelRemapInvert");
 
-	boolAttrVal = bifrostDesc.findPlug( "infCubeBlendingOn" ).asBool();
-	AiNodeSetBool( shape, "infCubeBlendingOn", boolAttrVal );
-
-
-	intAttrVal = bifrostDesc.findPlug( "infCubeOutputType" ).asInt();
-	AiNodeSetInt( shape, "infCubeOutputType", intAttrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "simWaterLevel" ).asFloat();
-	AiNodeSetFlt( shape, "simWaterLevel", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeTopCenterX" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeTopCenterX", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeTopCenterY" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeTopCenterY", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeTopCenterZ" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeTopCenterZ", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeDimX" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeDimX", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeDimY" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeDimY", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeDimZ" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeDimZ", attrVal );
-
-
-	intAttrVal = bifrostDesc.findPlug( "blendType" ).asInt();
-	AiNodeSetInt( shape, "blendType", intAttrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeBlendStart" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeBlendStart", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "infCubeBlendEnd" ).asFloat();
-	AiNodeSetFlt( shape, "infCubeBlendEnd", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "blendingChannelRemapMin" ).asFloat();
-	AiNodeSetFlt( shape, "blendingChannelRemapMin", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "blendingChannelRemapMax" ).asFloat();
-	AiNodeSetFlt( shape, "blendingChannelRemapMax", attrVal );
-
-
-	boolAttrVal = bifrostDesc.findPlug( "blendingChannelRemapInvert" ).asBool();
-	AiNodeSetBool( shape, "blendingChannelRemapInvert", boolAttrVal );
-
-
+    // TODO: These param should be hidden in voxel mode
 	// particle to voxel conversion params
-
-	attrVal = bifrostDesc.findPlug( "implicitResolutionFactor" ).asFloat();
-	AiNodeSetFlt( shape, "implicitResolutionFactor", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "implicitDropletRevealFactor" ).asFloat();
-	AiNodeSetFlt( shape, "implicitDropletRevealFactor", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "implicitSurfaceRadius" ).asFloat();
-	AiNodeSetFlt( shape, "implicitSurfaceRadius", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "implicitDropletRadius" ).asFloat();
-	AiNodeSetFlt( shape, "implicitDropletRadius", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "implicitMaxVolumeOfHolesToClose" ).asFloat();
-	AiNodeSetFlt( shape, "implicitMaxVolumeOfHolesToClose", attrVal );
-
-
-	boolAttrVal = bifrostDesc.findPlug( "doMorphologicalDilation" ).asBool();
-	AiNodeSetBool( shape, "doMorphologicalDilation", boolAttrVal );
-
-
-	boolAttrVal = bifrostDesc.findPlug( "doErodeSheetsAndDroplets" ).asBool();
-	AiNodeSetBool( shape, "doErodeSheetsAndDroplets", boolAttrVal );
-
+    EXPORT_FLT("implicitResolutionFactor");
+    EXPORT_FLT("implicitDropletRevealFactor");
+    EXPORT_FLT("implicitSurfaceRadius");
+    EXPORT_FLT("implicitDropletRadius");
+    EXPORT_FLT("implicitMaxVolumeOfHolesToClose");
+    EXPORT_BOOL("doMorphologicalDilation");
+    EXPORT_BOOL("doErodeSheetsAndDroplets");
 
 	// diagnostics params
+    EXPORT_INT("debug");
+    EXPORT_INT("silent");
+    // TODO: remove
+    AiNodeSetInt(shape, "debug", 1);
+    AiNodeSetInt(shape, "silent", 0);
 
-	intAttrVal = bifrostDesc.findPlug( "liquidDebug" ).asInt();
-	AiNodeSetInt( shape, "debug", intAttrVal );
-
-
-	intAttrVal = bifrostDesc.findPlug( "silent" ).asInt();
-	AiNodeSetInt( shape, "silent", intAttrVal );
-
+    // TODO: should either use file or in memory, do not export both
 	// Determine the final BIF file name
-	const float frame = (float)MAnimControl::currentTime().value();
+    const int frame  = (int)floorf((float)MAnimControl::currentTime().value());
+    std::string path = c_file+".#.bif";
+    AiNodeSetStr(shape, "bifFilename", Bifrost::API::File::resolveFramePadding(path.c_str(), frame).c_str());
 
-	std::string particleFilename;
-	{
-		const int frameNumber  = (int)floorf(frame);
+    CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
+    if(objectRef.objectExists()){
+        AiNodeSetStr(shape, "bifrostObjectName", c_object.c_str());
+    }else{
+        // The specified object doesn't exist in the current state server.
+        // Try to load the object from the cache file.
+        const float frame = (float)MAnimControl::currentTime().value();
+        if(!objectRef.checkCacheFileExist(frame)){
+            AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str()); return;
+        }
+        AiNodeSetStr(shape, "bifrostObjectName", "");
+    }
 
-		std::string path = c_file + ".#.bif";
-		particleFilename = Bifrost::API::File::resolveFramePadding( path.c_str(), frameNumber ).c_str();
-	}
-
-
-	AiNodeSetStr( shape, "bifFilename", particleFilename.c_str() );
-
-
-	MString strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
-	AiNodeSetStr( shape, "distanceChannel", strAttrVal.asChar() );
-    std::cerr << "EXPORT distanceChannel = " << strAttrVal << std::endl;
-
-
-	strAttrVal = bifrostDesc.findPlug( "filterBlendingChannel" ).asString();
-	AiNodeSetStr( shape, "filterBlendingChannel", strAttrVal.asChar() );
-
-
-	strAttrVal = bifrostDesc.findPlug( "infiniteSurfaceBlendingChannel" ).asString();
-	AiNodeSetStr( shape, "infiniteSurfaceBlendingChannel", strAttrVal.asChar() );
-
-
-	strAttrVal = bifrostDesc.findPlug( "liquidPrimVars" ).asString();
-	AiNodeSetStr( shape, "primVarNames", strAttrVal.asChar() );
+    EXPORT_STR("distanceChannel");
+    EXPORT_STR("filterBlendingChannel");
+    EXPORT_STR("infiniteSurfaceBlendingChannel");
+    EXPORT2_STR("primVarNames", "liquidPrimVars");
 }
 
 void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
 {
-    std::cerr << "EXPORT LIQUID POLY" << std::endl;
-	MFnDagNode  bifrostDesc;
-	bifrostDesc.setObject( m_dagPath.node() );
-	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
+    MFnDagNode  bifrostDesc(m_dagPath.node());
+    ExportLiquidAttributes(bifrostDesc, shape);
 
-	bool hotData = objectRef.objectExists();
-
-
-	if ( hotData ) {
-		AiNodeSetBool( shape, "hotData", 1 );
-	} else {
-		// The specified object doesn't exist in the current state server.
-		// Try to load the object from the cache file.
-
-		const float frame = (float)MAnimControl::currentTime().value();
-		const bool cacheExist = objectRef.checkCacheFileExist( frame );
-
-		if ( !cacheExist ) {
-			AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str());
-			return;
-		}
-
-		AiNodeSetBool( shape, "hotData", 0 );
-	}
-
-	// we have some data
-
-	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
-
-	// set user params
-
-	int intAttrVal = bifrostDesc.findPlug( "mesherAlgo" ).asInt();
-	AiNodeSetInt( shape, "mesherAlgo", intAttrVal );
-
-
-	intAttrVal = bifrostDesc.findPlug( "sampleRate" ).asInt();
-	AiNodeSetInt( shape, "sampleRate", intAttrVal );
-
-	getLiquidAttributes( bifrostDesc, shape );
+    // export mesh specific attributes
+    EXPORT_INT("sampleRate");
 
 	// export shaders
-	if ( RequiresShaderExport() ) {
+    if(RequiresShaderExport()){
 		ExportBifrostShader();
 	}
-
-	// export lighting
 	ExportLightLinking( shape );
 }
 
 void BifrostTranslator::ExportLiquidImplicit(AtNode *shape)
 {
-	MFnDagNode  bifrostDesc;
-	bifrostDesc.setObject( m_dagPath.node() );
-	CoreObjectUserData objectRef( c_object.c_str(), c_file.c_str() );
-
-	bool hotData = objectRef.objectExists();
-
-
-	if ( hotData ) {
-		AiNodeSetBool( shape, "hotData", 1 );
-	} else {
-		// The specified object doesn't exist in the current state server.
-		// Try to load the object from the cache file.
-
-		const float frame = (float)MAnimControl::currentTime().value();
-		const bool cacheExist = objectRef.checkCacheFileExist( frame );
-
-		if ( !cacheExist ) {
-			AiMsgError("[BIFROST AI TRANSLATOR]: Liquid data %s not found", c_object.c_str());
-			return;
-		}
-
-		AiNodeSetBool( shape, "hotData", 0 );
-	}
+    MFnDagNode  bifrostDesc(m_dagPath.node());
+    ExportLiquidAttributes( bifrostDesc, shape );
 
 	// we have some data
-
-	AiNodeSetStr( shape, "bifrostObjectName", c_object.c_str() );
-
 	AiNodeSetStr( shape, "solver", "levelset" );
 	AiNodeSetFlt( shape, "threshold", 0.0f );
 
 	// add implicit specific attributes
-
-	float attrVal = bifrostDesc.findPlug( "narrowBandThicknessInVoxels" ).asFloat();
-	AiNodeSetFlt( shape, "narrowBandThicknessInVoxels", attrVal );
-
-
-	attrVal = bifrostDesc.findPlug( "liquidStepSize" ).asFloat();
-	AiNodeSetFlt( shape, "liquidStepSize", attrVal );
-
-	MString strAttrVal = bifrostDesc.findPlug( "distanceChannel" ).asString();
-	AiNodeSetStr(shape, "field_channel", strAttrVal.asChar() );
-
-	int intAttrVal = bifrostDesc.findPlug( "sampleRate" ).asInt();
-	AiNodeSetUInt( shape, "samples", (unsigned int) intAttrVal );
-
-	// set user params
-	getLiquidAttributes( bifrostDesc, shape );
+    EXPORT_FLT("narrowBandThicknessInVoxels");
+    EXPORT_FLT("liquidStepSize");
+    EXPORT2_INT("samples", "sampleRate");
+    EXPORT2_STR("field_channel", "distanceChannel");
 
 	// export shaders
 	if ( RequiresShaderExport() ) {
@@ -1049,7 +816,6 @@ void BifrostTranslator::ExportLiquidImplicit(AtNode *shape)
 			AiNodeSetPtr(shape, "shader", shad);
 		}
 	}
-
 	ExportLightLinking(shape);
 }
 
@@ -1073,7 +839,7 @@ void BifrostTranslator::ExportBifrostShader()
 		AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
 		if (rootShader != NULL) {
 	       // Push the shader in the vector to be assigned later to mtoa_shading_groups
-		   AiNodeSetPtr(node, "shader", rootShader);
+           AiNodeSetPtr(node, "shader", rootShader);
 		}
 	}
 }
@@ -1122,6 +888,11 @@ void BifrostTranslator::RequestUpdate()
     data.defaultValue.VEC() = AtVector(x,y,z);\
     helper.MakeInputVector(data);
 
+#define ADD_DFLT2(longName, x, y) \
+    data.name = data.shortName = longName;\
+    data.defaultValue.VEC2() = AtVector2(x,y);\
+    helper.MakeInputVector2(data);
+
 #define ADD_DSMOOTH_ENUM(longName) \
     data.name = data.shortName = longName;\
     {\
@@ -1157,161 +928,160 @@ void BifrostTranslator::RequestUpdate()
     }\
     helper.MakeInputEnum(data);
 
+namespace{
+    void AddAeroAttributes(CExtensionAttrHelper& helper, CAttrData& data){
+        ADD_DDATA_ENUM("aeroRenderData");
+        ADD_DFLT("aeroChannelScale", 1.f);
+        ADD_DFLT("aeroVelocityScale", 1.f);
+        ADD_DFLT("aeroSpaceScale", 1.f);
+        ADD_DINT("aeroSilent", 0);
+
+        ADD_DSTR("aeroPrimVars", "temperature");
+        ADD_DSTR("aeroChannel", "smoke");
+        ADD_DSTR("aeroSmoothChannel", "");
+
+        ADD_DSMOOTH_ENUM("aeroSmoothMode");
+        ADD_DINT("aeroSmoothAmount", 1);
+        ADD_DINT("aeroSmoothIterations", 1);
+        ADD_DFLT("aeroSmoothWeight", 1.f);
+        ADD_DFLT("aeroSmoothRemapMin", 0.f);
+        ADD_DFLT("aeroSmoothRemapMax", 1.f);
+        ADD_DBOOL("aeroSmoothRemapInvert", false);
+
+        ADD_DBOOL("aeroClipOn", false);
+        ADD_DFLT3("aeroClipMin", 0.f, 0.f, 0.f);
+        ADD_DFLT3("aeroClipMax", 1.f, 1.f, 1.f);
+
+        ADD_DFLT("splatResolutionFactor", 1.f);
+        ADD_DINT("aeroSkip", 1);
+        ADD_DINT("splatSamples", 1);
+        ADD_DFLT("splatMinRadius", 1.f);
+        ADD_DFLT("splatMaxRadius", 1.f);
+        ADD_DFLT("splatSurfaceAttract", 1.f);
+        ADD_DFALLOFF_ENUM("splatFalloffType");
+        ADD_DFLT("splatFalloffStart", 1.2f);
+        ADD_DFLT("splatFalloffEnd", 1.2f);
+        ADD_DFLT("splatDisplacement", 8.f);
+        ADD_DFLT("splatNoiseFreq", 1);
+    }
+
+    void AddLiquidAttributes(CExtensionAttrHelper& helper, CAttrData& data){
+        data.name = data.shortName = "renderMethod";
+        {\
+            MStringArray enums;\
+            enums.append("Mesh");\
+            enums.append("Implicit");\
+            data.enums = enums;\
+        }\
+        helper.MakeInputEnum(data);
+        ADD_DDATA_ENUM("renderData");
+        ADD_DINT("sampleRate", 2);
+
+        ADD_DFLT("liquidVelocityScale", 1.f);
+        ADD_DFLT("liquidSpaceScale", 1.f);
+
+        ADD_DSTR("liquidPrimVars", "vorticity");
+        ADD_DSTR("distanceChannel", "distance");
+        ADD_DSTR("filterBlendingChannel", "");
+        ADD_DSTR("infiniteSurfaceBlendingChannel", "");
+
+        ADD_DFLT("narrowBandThicknessInVoxels", 1.5f);
+        ADD_DFLT("liquidStepSize", 0.05f);
+        ADD_DBOOL("cullSidesOn", false);
+        ADD_DFLT2("cullSidesRange", 0.75f, 0.95f);
+        ADD_DFLT("cullDepthAtStartInVoxels", 10.0f);
+
+        ADD_DFLT("dilateAmount", 0.f);
+        ADD_DFLT("erodeAmount", 0.f);
+        ADD_DSMOOTH_ENUM("smoothMode");
+        ADD_DINT("smoothAmount", 1);
+        ADD_DINT("smoothIterations", 1);
+        ADD_DFLT("smoothWeight", 0.f);
+        ADD_DFLT2("smoothRemapRange", 0.f, 1.f);
+        ADD_DBOOL("smoothRemapInvert", false);
+
+        ADD_DBOOL("liquidClipOn", false);
+        ADD_DFLT3("liquidClipMin", 0.f, 0.f, 0.f);
+        ADD_DFLT3("liquidClipMax", 1.f, 1.f, 1.f);
+
+        ADD_DBOOL("infCubeBlendingOn", false);
+        data.name = data.shortName = "infCubeOutputType";
+        {\
+            MStringArray enums;\
+            enums.append("SimOnly");\
+            enums.append("All");\
+            data.enums = enums;\
+        }\
+        helper.MakeInputEnum(data);
+        ADD_DFLT("simWaterLevel", 0.f);
+        ADD_DFLT3("infCubeTopCenter", 0.f, 0.f, 0.f);
+        ADD_DFLT3("infCubeDim", 100.f, 100.f, 100.f);
+        ADD_DFALLOFF_ENUM("blendType");
+        ADD_DFLT2("infCubeBlendRange", 0.5f, .99f);
+        ADD_DFLT2("blendingChannelRemapRange", 0.f, 1.f);
+        ADD_DBOOL("blendingChannelRemapInvert", false);
+
+        ADD_DFLT("implicitResolutionFactor", 1.f);
+        ADD_DFLT("implicitDropletRevealFactor", 3.0f);
+        ADD_DFLT("implicitSurfaceRadius", 1.2f);
+        ADD_DFLT("implicitDropletRadius", 1.2f);
+        ADD_DFLT("implicitMaxVolumeOfHolesToClose", 8.f);
+        ADD_DBOOL("doMorphologicalDilation", true);
+        ADD_DBOOL("doErodeSheetsAndDroplets", true);
+    }
+
+    void AddFoamAttributes(CExtensionAttrHelper& helper, CAttrData& data){
+        data.name = data.shortName = "renderPrimitiveType";
+        {\
+            MStringArray enums;\
+            enums.append("Point");\
+            enums.append("Sphere");\
+            data.enums = enums;\
+        }\
+        helper.MakeInputEnum(data);
+        ADD_DFLT("pointVelocityScale", 1.f);
+        ADD_DFLT("pointSpaceScale", 1.f);
+        ADD_DINT("pointSkip", 1);
+        ADD_DINT("chunkSize", 100000);
+
+        ADD_DSTR("pointPrimVars", "");
+
+        ADD_DSTR("pointChannel", "density");
+        ADD_DFLT("pointChannelScale", 1.f);
+        ADD_DBOOL("exportNormalAsPrimvar", false);
+
+        ADD_DFLT("pointClipOn", false);
+        ADD_DFLT3("pointClipMin", 0.f, 0.f, 0.f);
+        ADD_DFLT3("pointClipMax", 1.f, 1.f, 1.f);
+        ADD_DFLT("pointRadius", 1.f);
+        ADD_DBOOL("useChannelToModulateRadius", true);
+        ADD_DBOOL("camRadiusOn", false);
+        ADD_DFLT("camRadiusStartDistance", 0.f);
+        ADD_DFLT("camRadiusEndDistance", 100.0f);
+        ADD_DFLT("camRadiusStartFactor", 1.f);
+        ADD_DFLT("camRadiusEndFactor", 2.0f);
+        ADD_DFLT("camRadiusFactorExponent", 1.f);
+        ADD_DINT("mpSamples", 1);
+        ADD_DFLT("mpMinRadius", 0.f);
+        ADD_DFLT("mpMaxRadius", 1.f);
+        ADD_DFLT("mpSurfaceAttract", 0.f);
+        ADD_DSMOOTH_ENUM("mpFalloffType");
+        ADD_DFLT("mpFalloffStart", 0.8f);
+        ADD_DFLT("mpFalloffEnd", 1.f);
+        ADD_DFLT("mpDisplacementValue", 0.f);
+        ADD_DFLT("mpDisplacementNoiseFrequency", 1.f);
+    }
+}
+
 void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
     CExtensionAttrHelper helper(context.maya, "standard");
     CAttrData data;
 
-    // AERO
-    ADD_DDATA_ENUM("aeroRenderData");
-    ADD_DFLT("aeroChannelScale", 1.f);
-    ADD_DFLT("aeroVelocityScale", 1.f);
-    ADD_DFLT("aeroSpaceScale", 1.f);
-    ADD_DINT("aeroSilent", 0);
+    AddAeroAttributes(helper, data);
+    AddLiquidAttributes(helper, data);
+    AddFoamAttributes(helper, data);
 
-    ADD_DSTR("aeroPrimVars", "");
-    ADD_DSTR("aeroChannel", "smoke");
-    ADD_DSTR("aeroSmoothChannel", "");
-
-    ADD_DBOOL("aeroSmoothOn", false);
-    ADD_DSMOOTH_ENUM("aeroSmoothMode");
-    ADD_DINT("aeroSmoothAmount", 1);
-    ADD_DINT("aeroSmoothIterations", 1);
-    ADD_DFLT("aeroSmoothWeight", 1.f);
-    ADD_DFLT("aeroSmoothRemapMin", 0.f);
-    ADD_DFLT("aeroSmoothRemapMax", 1.f);
-    ADD_DBOOL("aeroSmoothRemapInvert", false);
-
-    ADD_DBOOL("aeroClipOn", false);
-    ADD_DFLT3("aeroClipMin", 0.f, 0.f, 0.f);
-    ADD_DFLT3("aeroClipMax", 1.f, 1.f, 1.f);
-
-    ADD_DFLT("splatResolutionFactor", 1.f);
-    ADD_DINT("aeroSkip", 1);
-    ADD_DINT("splatSamples", 1);
-    ADD_DFLT("splatMinRadius", 1.f);
-    ADD_DFLT("splatMaxRadius", 1.f);
-    ADD_DFLT("splatSurfaceAttract", 1.f);
-    ADD_DFALLOFF_ENUM("splatFalloffType");
-    ADD_DFLT("splatFalloffStart", 1.2f);
-    ADD_DFLT("splatFalloffEnd", 1.2f);
-    ADD_DFLT("splatDisplacement", 8.f);
-    ADD_DFLT("splatNoiseFreq", 1);
-
-    // LIQUID
-    data.name = data.shortName = "renderMethod";
-    {\
-        MStringArray enums;\
-        enums.append("BifrostMesher");\
-        enums.append("Implicit");\
-        data.enums = enums;\
-    }\
-    helper.MakeInputEnum(data);
-    ADD_DDATA_ENUM("renderData");
-    data.name = data.shortName = "mesherAlgo";
-    {\
-        MStringArray enums;\
-        enums.append("Marching Cubes");\
-        data.enums = enums;\
-    }\
-    helper.MakeInputEnum(data);
-    ADD_DINT("sampleRate", 1);
-
-    ADD_DFLT("liquidVelocityScale", 1.f);
-    ADD_DFLT("liquidSpaceScale", 1.f);
-    ADD_DINT("liquidDebug", 1);
-
-    ADD_DSTR("liquidPrimVars", "vorticity");
-    ADD_DSTR("distanceChannel", "distance");
-    ADD_DSTR("filterBlendingChannel", "");
-    ADD_DSTR("infiniteSurfaceBlendingChannel", "");
-
-    ADD_DFLT("narrowBandThicknessInVoxels", 1.5f);
-    ADD_DFLT("liquidStepSize", 0.05f);
-    ADD_DBOOL("cullSidesOn", false);
-    ADD_DFLT("cullSidesStart", 0.75f);
-    ADD_DFLT("cullSidesEnd", 0.95f);
-    ADD_DFLT("cullDepthAtStartInVoxels", 10.0f);
-
-    ADD_DFLT("dilateAmount", 0.f);
-    ADD_DFLT("erodeAmount", 0.f);
-    ADD_DBOOL("smoothOn", false);
-    ADD_DSMOOTH_ENUM("smoothMode");
-    ADD_DINT("smoothAmount", 1);
-    ADD_DINT("smoothIterations", 1);
-    ADD_DFLT("smoothRemapMin", 0.f);
-    ADD_DFLT("smoothRemapMax", 1.f);
-    ADD_DBOOL("smoothRemapInvert", false);
-
-    ADD_DBOOL("liquidClipOn", false);
-    ADD_DFLT3("liquidClipMin", 0.f, 0.f, 0.f);
-    ADD_DFLT3("liquidClipMax", 1.f, 1.f, 1.f);
-
-    ADD_DBOOL("infCubeBlendingOn", false);
-    data.name = data.shortName = "infCubeOutputType";
-    {\
-        MStringArray enums;\
-        enums.append("SimOnly");\
-        enums.append("All");\
-        data.enums = enums;\
-    }\
-    helper.MakeInputEnum(data);
-    ADD_DFLT("simWaterLevel", 0.f);
-    ADD_DFLT3("infCubeTopCenter", 0.f, 0.f, 0.f);
-    ADD_DFLT3("infCubeDim", 100.f, 100.f, 100.f);
-    ADD_DFALLOFF_ENUM("blendType");
-    ADD_DFLT("infCubeBlendStart", 0.5f);
-    ADD_DFLT("infCubeBlendEnd", 0.99f);
-    ADD_DFLT("blendingChannelRemapMin", 0.f);
-    ADD_DFLT("blendingChannelRemapMax", 1.f);
-    ADD_DBOOL("blendingChannelRemapInvert", false);
-
-    ADD_DFLT("implicitResolutionFactor", 1.f);
-    ADD_DFLT("implicitDropletRevealFactor", 3.0f);
-    ADD_DFLT("implicitSurfaceRadius", 1.2f);
-    ADD_DFLT("implicitDropletRadius", 1.2f);
-    ADD_DFLT("implicitMaxVolumeOfHolesToClose", 8.f);
-    ADD_DBOOL("doMorphologicalDilation", true);
-    ADD_DBOOL("doErodeSheetsAndDroplets", true);
-
-    // FOAM
-    data.name = data.shortName = "renderPrimitiveType";
-    {\
-        MStringArray enums;\
-        enums.append("Point");\
-        enums.append("Sphere");\
-        data.enums = enums;\
-    }\
-    helper.MakeInputEnum(data);
-    ADD_DFLT("pointVelocityScale", 1.f);
-    ADD_DFLT("pointSpaceScale", 1.f);
-    ADD_DINT("pointSkip", 1);
-    ADD_DINT("chunkSize", 100000);
-
-    ADD_DSTR("pointPrimVars", "");
-
-    ADD_DSTR("pointChannel", "density");
-    ADD_DFLT("pointChannelScale", 1.f);
-    ADD_DBOOL("exportNormalAsPrimvar", false);
-
-    ADD_DFLT("pointClipOn", false);
-    ADD_DFLT3("pointClipMin", 0.f, 0.f, 0.f);
-    ADD_DFLT3("pointClipMax", 1.f, 1.f, 1.f);
-    ADD_DFLT("pointRadius", 1.f);
-    ADD_DBOOL("useChannelToModulateRadius", true);
-    ADD_DBOOL("camRadiusOn", false);
-    ADD_DFLT("camRadiusStartDistance", 0.f);
-    ADD_DFLT("camRadiusEndDistance", 100.0f);
-    ADD_DFLT("camRadiusStartFactor", 1.f);
-    ADD_DFLT("camRadiusEndFactor", 2.0f);
-    ADD_DFLT("camRadiusFactorExponent", 1.f);
-    ADD_DINT("mpSamples", 1);
-    ADD_DFLT("mpMinRadius", 0.f);
-    ADD_DFLT("mpMaxRadius", 1.f);
-    ADD_DFLT("mpSurfaceAttract", 0.f);
-    ADD_DSMOOTH_ENUM("mpFalloffType");
-    ADD_DFLT("mpFalloffStart", 0.8f);
-    ADD_DFLT("mpFalloffEnd", 1.f);
-    ADD_DFLT("mpDisplacementValue", 0.f);
-    ADD_DFLT("mpDisplacementNoiseFrequency", 1.f);
+    ADD_DINT("debug", 1);
+    ADD_DINT("silent", 0);
 }
