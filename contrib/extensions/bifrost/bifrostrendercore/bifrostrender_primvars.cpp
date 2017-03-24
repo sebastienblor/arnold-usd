@@ -275,7 +275,6 @@ void initPVarInfo( T *frameData )
 	}
 }
 
-template void BIFROSTRENDERAPI_DECL initPVarInfo<PolyMeshFrameData>( PolyMeshFrameData *frameData );
 template void BIFROSTRENDERAPI_DECL initPVarInfo<PrimitivesFrameData>( PrimitivesFrameData *frameData );
 template void BIFROSTRENDERAPI_DECL initPVarInfo<FrameData>( FrameData *frameData );
 
