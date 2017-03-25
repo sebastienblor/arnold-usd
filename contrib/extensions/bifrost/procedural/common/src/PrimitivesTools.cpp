@@ -2,6 +2,9 @@
 
 using namespace Bifrost::RenderCore;
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 //
 //
 // EXPORT STUFF
@@ -63,7 +66,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		}
 
 		// pull stuff from arrays
-        float meanWidth = 0;
+        float meanWidth = 0, totalExportedInverse = 1./totalExported;
 		for ( int i = 0; i < totalExported; i++ ) {
 			// set position data
 			int index = i * 3;
@@ -72,7 +75,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 
 			// set radius
             AiArraySetFlt(radiusArray, i, inData->renderType == PRIM_POINT? widthData[ i ] : widthData[ i ] * 2.0f);
-            meanWidth += widthData[i];
+            meanWidth += widthData[i] * totalExportedInverse;
 	
 			// set transparency
 			if ( frameData->transparencyNeeded ) {
@@ -92,11 +95,15 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 				}
 			}
 		}
-        meanWidth /= totalExported;
+        //meanWidth *= 1000;
 
 		AiNodeSetArray( newNode, "points", pointArray );
 		AiNodeSetArray( newNode, "radius", radiusArray );
+        //AiNodeSetFlt( newNode, "motion_start", 0 );
+        //AiNodeSetFlt( newNode, "motion_end", 0 );
+
         AiNodeSetFlt(newNode, "step_size", meanWidth);
+        //AiMsgError("sdlkjfhkdsjh");
 
 		// export transparency if needed
 		if ( frameData->transparencyNeeded ) {
