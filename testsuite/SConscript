@@ -270,7 +270,9 @@ class MayaTestRunner(object):
         return True  # The test has been prepared and can be run
 
     def create_job(self):
-        job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'index.html')),
+        # we used to have index.html instead of dummy.html. But we don't actually want previous index.html 
+        # files to be removed (which happens when you fix independent tests after running a whole testsuite)
+        job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'dummy.html')),
                                 MTOA + MTOA_SHADERS + self.install_files, # + SHADERS,
                                 PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
                                 chdir = 1
