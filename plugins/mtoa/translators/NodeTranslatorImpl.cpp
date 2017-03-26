@@ -288,8 +288,6 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
                                                       int arnoldParamType)
 {
 
-   // FIXME Arnold5 what should we do with closures ?
-
    const MStringArray componentNames = GetComponentNames(arnoldParamType);
    unsigned int compConnected = 0;
    unsigned int numComponents = componentNames.length();
@@ -892,30 +890,29 @@ void CNodeTranslatorImpl::ProcessArrayParameterElement(AtNode* arnoldNode, AtArr
    if (arnoldParamType != AI_TYPE_NODE)
    {
       MString elemName = MString(arnoldParamName) + "[" + pos + "]";
-      AtNode* connected = ProcessParameterInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
-      // FIXME: should we always evaluate components even if something was connected at the parent level?
-      if (connected == NULL)
+
+      // Since Arnold 5, the arrays aren't initialized anymore, so even if it's connected 
+      // we want to process it anyway
+      switch(arnoldParamType)
       {
-         // component connections
-         switch(arnoldParamType)
+      case AI_TYPE_RGB:
+      case AI_TYPE_RGBA:
+      case AI_TYPE_VECTOR2:
+      case AI_TYPE_VECTOR:
          {
-         case AI_TYPE_RGB:
-         case AI_TYPE_RGBA:
-         case AI_TYPE_VECTOR2:
-         case AI_TYPE_VECTOR:
+            if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
             {
-               if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
-               {
-                  // constant value
-                  ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
-               }
+               // constant value
+               ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
             }
-            break;
-         default:
-            // constant value
-            ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
          }
+         break;
+      default:
+         // constant value
+         ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
       }
+      // now check if there is a connection to another node
+      ProcessParameterInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
    }
    else
    {
