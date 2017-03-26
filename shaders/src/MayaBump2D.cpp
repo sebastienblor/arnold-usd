@@ -171,6 +171,8 @@ shader_evaluate
       AtVector normalMapV(normalMap.r, normalMap.g, normalMap.b);
       result = AiM4VectorByMatrixMult(sg->M, normalMapV);
    }
-   
+   if (AiV3Dot(sg->Ng, sg->Rd) > 0.0f)
+      result = -result;
+
    sg->out.VEC() = result;
 }
