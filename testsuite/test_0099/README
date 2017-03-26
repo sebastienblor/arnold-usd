@@ -1,5 +1,3 @@
-skin_sss shader incorrectly render textures with raytraced SSS
-
-skin_sss shader incorrectly render textures with raytraced SSS (Ticket #1102)
+SSS with textured color / radius
 
 author: pedro.gomez
