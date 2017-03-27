@@ -671,6 +671,12 @@ def createArnoldImageFormatControl():
 
 
     if int(float(maya_version)) >= 2016:
+
+        pm.scriptJob(
+          parent=parent,
+          attributeChange=("defaultArnoldDriver.aiTranslator",
+                           updateArnoldColorSpace))
+
         pm.scriptJob(
             parent=parent,
             attributeChange=("defaultArnoldDriver.tiffFormat",
@@ -713,8 +719,7 @@ def updateArnoldImageFormatControl(*args):
     curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
-
-    updateArnoldColorSpace()
+    
 
 def extendToShape(dag):
     'Return the camera shape from this dag object'
