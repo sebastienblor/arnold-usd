@@ -1,0 +1,25 @@
+file -f -o "test.ma";
+arnoldRender -cam persp;
+pause -sec 5;
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "WaitRender"  "1";
+
+string $imgOut = `pwd`;
+$imgOut += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $imgOut;
+
+arnoldRender -cam persp;
+pause -sec 3;
+arnoldRenderView;
+pause -sec 3;
+arnoldRenderView -option "WaitRender"  "1";
+
+$imgOut = `pwd`;
+$imgOut += "/testrender_2.tif";
+arnoldRenderView -option "Save Image" $imgOut;
+
+
+
+
+quit -force -abort;
