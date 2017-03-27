@@ -2678,6 +2678,16 @@ desc STRING "Apply a gamma correction to the color."
     maya.classification     STRING  "utility/shader"
 
 
+[node triplanar]
+    maya.name               STRING  "aiTriplanar"
+    maya.id                 INT     0x00115D8A
+    maya.classification     STRING  "texture"
+    [attr blend]
+        min                 FLOAT   0
+        softmax             FLOAT   1
+
+
+
 
 
 

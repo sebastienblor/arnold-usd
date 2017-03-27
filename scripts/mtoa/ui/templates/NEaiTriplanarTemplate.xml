@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiTriplanar'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outTransparency' type='maya.float3'>
+			<label>Out Transparency</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='scale' type='maya.float3'>
+			<label>Scale</label>
+		</attribute>
+		<attribute name='offset' type='maya.float3'>
+			<label>Offset</label>
+		</attribute>
+		<attribute name='rotate' type='maya.float3'>
+			<label>Rotate</label>
+		</attribute>
+		<attribute name='P' type='maya.float3'>
+			<label>P</label>
+		</attribute>
+		<attribute name='blend' type='maya.float'>
+			<label>Blend</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiTriplanar'>
+		<property name='outColor'/>
+		<property name='outTransparency'/>
+		<property name='input'/>
+		<property name='P'/>
+		<property name='blend'/>
+	</view>
+</templates>
