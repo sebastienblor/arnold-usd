@@ -1,0 +1,26 @@
+<fragment_graph name="imageShader" ref="imageShader" class="FragmentGraph" version="1.0" feature_level="0">
+    <fragments>
+        <fragment_ref name="textureMapping" ref="textureMapping" />
+    </fragments>
+    <connections>
+    </connections>
+    <properties>
+        <float2 name="uvcoords" ref="textureMapping.uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
+        <texture2 name="map" ref="textureMapping.map" />
+        <sampler name="textureSampler" ref="textureMapping.textureSampler" />
+        <float3 name="multiply" ref="textureMapping.multiply" />
+        <float3 name="offset" ref="textureMapping.offset" />
+        <float name="soffset" ref="textureMapping.soffset" />
+        <float name="toffset" ref="textureMapping.toffset" />
+        <float name="sscale" ref="textureMapping.sscale" />
+        <float name="tscale" ref="textureMapping.tscale" />
+        <bool name="sflip" ref="textureMapping.sflip" />
+        <bool name="tflip" ref="textureMapping.tflip" />
+        <bool name="swapSt" ref="textureMapping.swapSt" />
+    </properties>
+    <values>
+    </values>
+    <outputs>
+        <float3 name="outColor" ref="textureMapping.outColor" />
+    </outputs>
+</fragment_graph>
