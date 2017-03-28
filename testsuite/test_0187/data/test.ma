@@ -1,6 +1,6 @@
 //Maya ASCII 2017 scene
 //Name: test.ma
-//Last modified: Mon, Mar 27, 2017 05:38:24 PM
+//Last modified: Tue, Mar 28, 2017 12:08:49 PM
 //Codeset: 1252
 requires maya "2017";
 requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
@@ -101,19 +101,19 @@ createNode aiSkyDomeLight -n "aiSkyDomeLightShape1" -p "aiSkyDomeLight1";
 	setAttr ".camera" 0;
 	setAttr ".aal" -type "attributeAlias" {"exposure","aiExposure"} ;
 createNode lightLinker -s -n "lightLinker1";
-	rename -uid "C716B779-4041-B48F-384C-E8B454F9D84A";
+	rename -uid "8DDA8859-4FE7-13FD-B02B-C8A63D497C72";
 	setAttr -s 4 ".lnk";
 	setAttr -s 4 ".slnk";
 createNode shapeEditorManager -n "shapeEditorManager";
-	rename -uid "CB4CFD54-4106-02BE-D1A0-C9BF281AA91E";
+	rename -uid "854DCFB9-445E-5555-365C-35AE9F133DA7";
 createNode poseInterpolatorManager -n "poseInterpolatorManager";
-	rename -uid "45773A85-41ED-71A9-BD27-79A6C82EBC44";
+	rename -uid "E73AF0E8-401F-BCEE-1C1D-5B91185F6A6C";
 createNode displayLayerManager -n "layerManager";
-	rename -uid "B2088E30-40B9-BE2A-FB78-A8B11B778CB3";
+	rename -uid "D89842EF-4775-34E4-9C2F-E1ACCF7CD3B2";
 createNode displayLayer -n "defaultLayer";
 	rename -uid "7098EBF3-4F52-CFD9-A349-AD85FE1D6F3C";
 createNode renderLayerManager -n "renderLayerManager";
-	rename -uid "BD72345A-4C51-794D-A8CB-64A0FF96365D";
+	rename -uid "8D75E58F-47BA-DA89-7031-86B439AED27F";
 createNode renderLayer -n "defaultRenderLayer";
 	rename -uid "A1181F09-47CA-0F4F-CE8C-438E42CCAC92";
 	setAttr ".g" yes;
@@ -244,7 +244,7 @@ createNode ramp -n "ramp1";
 	setAttr ".cel[0].ep" 0;
 	setAttr ".cel[0].ec" -type "float3" 1 0 0 ;
 	setAttr ".cel[1].ep" 1;
-	setAttr ".cel[1].ec" -type "float3" 0 0.9868421 0 ;
+	setAttr ".cel[1].ec" -type "float3" 0 1 0 ;
 createNode place2dTexture -n "place2dTexture3";
 	rename -uid "98642AA2-42CD-3026-5947-BF9C9A0A18B0";
 select -ne :time1;
