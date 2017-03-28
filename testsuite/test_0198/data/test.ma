@@ -338,7 +338,7 @@ createNode bifrostContainer -n "bifrostLiquidPropertiesContainer1" -p "bifrostLi
 	setAttr -k on ".interiorParticleDensity" 1;
 	setAttr ".liquidCacheControl" 1;
 	setAttr ".liquidCacheFileName" -type "string" "bifrostLiquidContainer1";
-	setAttr ".liquidCachePath" -type "string" "D:/arnold/mtoa/testsuite/test_0198/data/cache/bifrost/test/";
+	setAttr ".liquidCachePath" -type "string" "./cache/bifrost/test/";
 	setAttr -k on ".masterVoxelSize" 0.5;
 	setAttr -k on ".maxSteps" 1000;
 	setAttr -k on ".maxTimeSteps" 2;
@@ -346,7 +346,7 @@ createNode bifrostContainer -n "bifrostLiquidPropertiesContainer1" -p "bifrostLi
 	setAttr -k on ".minTimeSteps" 1;
 	setAttr ".solidCacheControl" 1;
 	setAttr ".solidCacheFileName" -type "string" "bifrostLiquidContainer1";
-	setAttr ".solidCachePath" -type "string" "D:/arnold/mtoa/testsuite/test_0198/data/cache/bifrost/test/";
+	setAttr ".solidCachePath" -type "string" "./data/cache/bifrost/test/";
 	setAttr -k on ".surfaceBandWidth" 1;
 	setAttr -k on ".surfaceParticleDensity" 2;
 	setAttr ".surfaceTension" 0.071999996900558472;
@@ -404,7 +404,7 @@ createNode bifrostContainer -n "bifrostGuidePropertiesContainer1" -p "bifrostGui
 	setAttr ".evaluationType" 1;
 	setAttr -k on ".computeGuideFromHighResLiquid" yes;
 	setAttr -k on ".guideCacheFileName" -type "string" "bifrostLiquidContainer1";
-	setAttr -k on ".guideCachePath" -type "string" "D:/arnold/mtoa/testsuite/test_0198/data/cache/bifrost/test/";
+	setAttr -k on ".guideCachePath" -type "string" "./cache/bifrost/test/";
 	setAttr -k on ".guideVoxelScale" 2;
 	setAttr -k on ".minReseedAirDistance" 1;
 	setAttr -k on ".minSimulationDepth" 3;
