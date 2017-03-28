@@ -1,5 +1,5 @@
 <fragment uiName="textureMapping" name="textureMapping" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
-    <description><![CDATA[Combines inputs for the skin shader.]]></description>
+    <description><![CDATA[texture sampling for aiImage.]]></description>
     <properties>
         <float2 name="uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
         <texture2 name="map" />
