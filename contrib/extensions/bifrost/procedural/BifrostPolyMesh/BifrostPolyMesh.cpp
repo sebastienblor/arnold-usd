@@ -217,6 +217,8 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
 
 procedural_init
 {
+    *user_ptr = NULL;
+
     ImplicitsInputData inData;
     FrameData frameData;
     AtBBox bounds; // dummy
@@ -227,6 +229,7 @@ procedural_init
     getNodeParameters(&inData, node);
 
     if(!InitializeImplicit(&inData, &frameData, &bounds)){
+        if(frameData.empty){ return true; } // ok to have empty sim, but don't translate
         AiMsgError("Failed to initialize implicit data on node '%s'", AiNodeGetName(node));
         return false;
     }
@@ -242,7 +245,7 @@ procedural_init
 
 procedural_num_nodes
 {
-	return 1;
+    return user_ptr? 1 : 0;
 }
 procedural_get_node
 {

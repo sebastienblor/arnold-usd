@@ -492,19 +492,12 @@ void initAndGetPrimitivesFrameData(	PrimitivesFrameData *frameData, PrimitivesIn
 		return;
 	}
 
-	// check number of tiles and elements
-	if ( channelExists != frameData->inputChannelNames.npos ) {
-		if ( fio.channelInfo( channelExists ).tileCount == 0 ) {
-			printf( "No tiles in file Diego! Please check!\n" );
-			frameData->error = true;
-			return;
-		} else {
-			if ( fio.channelInfo( channelExists ).elementCount == 0 ) {
-				printf( "No elements in file Diego! Please check!\n" );
-				frameData->error = true;
-				return;
-			}
-		}
+    // check number of tiles and elements
+    if(channelExists != frameData->inputChannelNames.npos &&
+            (fio.channelInfo( channelExists ).tileCount == 0 ||
+             fio.channelInfo( channelExists ).elementCount == 0)) {
+        frameData->empty = true;
+        return;
 	}
 
 	// so we have the channel for lookup

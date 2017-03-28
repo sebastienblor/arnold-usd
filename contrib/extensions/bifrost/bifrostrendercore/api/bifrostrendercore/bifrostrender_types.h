@@ -284,6 +284,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
     std::string idString;
 
 	bool error;
+    bool empty;
     Bifrost::API::String tmpFolder;
 	bool isPointCache;
 	bool idExists;
@@ -626,6 +627,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 	int finalChunkSize;
 
 	bool error;
+    bool empty;
 	Bifrost::API::String tmpFolder;
 
 	PluginType pluginType;

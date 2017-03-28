@@ -321,6 +321,12 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
         return false;
     }
 
+    if ( frameData->empty ){
+        printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
+        AiMsgWarning("[bifrost liquid] Ignoring empty liquid data...");
+        return false;
+    }
+
     Bifrost::API::StateServer inSS = Bifrost::API::ObjectModel().stateServer(inData->inMemoryRef->bifrostObject().stateID());
     frameData->inSS = inSS;
 

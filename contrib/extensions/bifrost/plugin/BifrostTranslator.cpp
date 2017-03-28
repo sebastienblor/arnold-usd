@@ -117,7 +117,6 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
     MString objStr = objectPlug.asString();
    
     c_object = std::string( objStr.asChar() );
-    std::cerr << "OBJECT = " << c_object.c_str() << std::endl;
 
     MFnDependencyNode bfContainer(objectPlug.source().node());
 
@@ -311,7 +310,6 @@ void BifrostTranslator::ExportAero(AtNode *shape)
     const MTime sec(1.0, MTime::kSeconds);
     float fps = (float) sec.as(MTime::uiUnit());
     AiNodeSetFlt(shape, "fps", fps);
-
 
     // get params from the node
     MFnDagNode  bifrostDesc(m_dagPath.node());

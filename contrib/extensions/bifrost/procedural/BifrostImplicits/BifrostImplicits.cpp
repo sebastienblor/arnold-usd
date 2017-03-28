@@ -88,6 +88,11 @@ volume_create
     getNodeParameters(&inData, node);
 
     if(!InitializeImplicit(&inData, &frameData, &data->bbox)){
+        if(frameData.empty){
+            data->bbox.min.x = data->bbox.min.y = data->bbox.min.z = 0;
+            data->bbox.max.x = data->bbox.max.y = data->bbox.max.z = 0;
+            return true;
+        }
         AiMsgError("[BIFROST] Failed to initialize implicit data on node '%s'", AiNodeGetName(node));
         return false;
     }
@@ -136,7 +141,7 @@ volume_update
 
 volume_cleanup
 {
-    delete ((UserData*) data->private_info);
+    if(data->private_info) delete ((UserData*) data->private_info);
     data->private_info = NULL;
     return true;
 }
