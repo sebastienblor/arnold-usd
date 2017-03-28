@@ -1,11 +1,11 @@
 //Maya ASCII 2017 scene
 //Name: test.ma
-//Last modified: Tue, Mar 28, 2017 03:00:12 PM
+//Last modified: Tue, Mar 28, 2017 05:09:19 PM
 //Codeset: 1252
 requires maya "2017";
 requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
-		 -nodeType "aiCurveCollector" -nodeType "aiStandardHair" -nodeType "aiNoise" -nodeType "aiUserDataInt"
-		 -nodeType "aiShuffle" "mtoa" "2.0.0.0";
+		 -nodeType "aiCurveCollector" -nodeType "aiStandardHair" -nodeType "aiNoise" -nodeType "aiUtility"
+		 -nodeType "aiUserDataInt" -nodeType "aiShuffle" "mtoa" "2.0.0.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2017";
@@ -83,7 +83,6 @@ createNode aiCurveCollector -n "aiCurveCollectorShape1" -p "aiCurveCollector1";
 	rename -uid "FD1E9EA4-41A0-0E46-FB1D-18BA75C6D6D2";
 	setAttr -k off ".v";
 	setAttr ".aiCurveWidth" 3;
-	setAttr ".ai_export_hair_ids" yes;
 	setAttr -s 2 ".wdthP[0:1]"  0 1 3 1 1 3;
 createNode transform -n "curve1" -p "aiCurveCollector1";
 	rename -uid "EDC70FA0-45CC-4D55-4457-059FD28BE32F";
@@ -151,19 +150,19 @@ createNode aiSkyDomeLight -n "aiSkyDomeLightShape1" -p "aiSkyDomeLight1";
 	setAttr ".rcsh" no;
 	setAttr ".aal" -type "attributeAlias" {"exposure","aiExposure"} ;
 createNode lightLinker -s -n "lightLinker1";
-	rename -uid "F73486AB-4767-B15D-E1FD-949C95272307";
-	setAttr -s 3 ".lnk";
-	setAttr -s 3 ".slnk";
+	rename -uid "947C4D89-4B85-A84B-5766-21AC0978F1F2";
+	setAttr -s 4 ".lnk";
+	setAttr -s 4 ".slnk";
 createNode shapeEditorManager -n "shapeEditorManager";
-	rename -uid "72F962BB-4D05-D112-9938-51977C23C179";
+	rename -uid "FA416D8B-4F2A-8465-494C-2EA7B79341E5";
 createNode poseInterpolatorManager -n "poseInterpolatorManager";
-	rename -uid "557E4808-4BB3-897F-3C81-9A82224A6B6C";
+	rename -uid "88160649-49CF-0203-96AD-64BCF6D14DDC";
 createNode displayLayerManager -n "layerManager";
-	rename -uid "EB8C3B69-41D3-9977-5D63-8884BD898121";
+	rename -uid "55AC09FE-4C4E-12B8-0DFC-08992268AAB8";
 createNode displayLayer -n "defaultLayer";
 	rename -uid "7DFA73BA-4CFC-4C80-DB1D-1DB8F79B073D";
 createNode renderLayerManager -n "renderLayerManager";
-	rename -uid "361A876F-49D2-27C5-CFAB-F0B83F8392DA";
+	rename -uid "9FA4F592-4E2C-F0BA-9218-529F63E8E305";
 createNode renderLayer -n "defaultRenderLayer";
 	rename -uid "BD2C663A-4364-0861-9385-22AD71C9C73A";
 	setAttr ".g" yes;
@@ -276,7 +275,7 @@ createNode aiStandardHair -n "aiStandardHair1";
 	rename -uid "20F1550F-4312-410F-E4C5-50890D90E931";
 	setAttr ".base" 0;
 	setAttr ".base_color" -type "float3" 0 0 0 ;
-	setAttr ".emission_color" -type "float3" 0.49700001 0.20078799 0.20078799 ;
+	setAttr ".emission" 1;
 createNode shadingEngine -n "aiStandardHair1SG";
 	rename -uid "15AABE6F-4878-B1F7-13E9-73AF04A8AFF1";
 	setAttr ".ihi" 0;
@@ -290,24 +289,31 @@ createNode aiNoise -n "aiNoise1";
 	rename -uid "31A1DCD0-4D9F-CBE3-0BEE-AEAFDF28E51E";
 createNode aiShuffle -n "aiShuffle1";
 	rename -uid "249FD498-43B8-7DFA-2657-4F888D8F2559";
+createNode aiUtility -n "aiUtility1";
+	rename -uid "36B4CEE8-4559-1DDB-17DC-C684DB6B4BEA";
+	setAttr ".color_mode" 12;
+	setAttr ".shade_mode" 2;
 createNode nodeGraphEditorInfo -n "hyperShadePrimaryNodeEditorSavedTabsInfo";
-	rename -uid "41F322A6-46E5-B781-8D1C-D2A8938A7B48";
+	rename -uid "3C65C586-44F2-4542-74A3-8BAED056D99A";
 	setAttr ".tgi[0].tn" -type "string" "Untitled_1";
-	setAttr ".tgi[0].vl" -type "double2" -369.04760438298479 -277.22863501152534 ;
-	setAttr ".tgi[0].vh" -type "double2" 190.18244923755674 248.6572075754234 ;
-	setAttr -s 4 ".tgi[0].ni";
-	setAttr ".tgi[0].ni[0].x" -123.81822967529297;
-	setAttr ".tgi[0].ni[0].y" 65.218826293945313;
+	setAttr ".tgi[0].vl" -type "double2" -369.04760438298479 -300.93850577789294 ;
+	setAttr ".tgi[0].vh" -type "double2" 424.86575197572694 271.17660219862 ;
+	setAttr -s 5 ".tgi[0].ni";
+	setAttr ".tgi[0].ni[0].x" 195.79196166992187;
+	setAttr ".tgi[0].ni[0].y" 186.64129638671875;
 	setAttr ".tgi[0].ni[0].nvs" 1923;
-	setAttr ".tgi[0].ni[1].x" -341.42855834960937;
-	setAttr ".tgi[0].ni[1].y" -47.142856597900391;
+	setAttr ".tgi[0].ni[1].x" -356.22372436523437;
+	setAttr ".tgi[0].ni[1].y" 117.62805938720703;
 	setAttr ".tgi[0].ni[1].nvs" 1923;
-	setAttr ".tgi[0].ni[2].x" -356.22372436523437;
-	setAttr ".tgi[0].ni[2].y" 117.62805938720703;
+	setAttr ".tgi[0].ni[2].x" -123.81822967529297;
+	setAttr ".tgi[0].ni[2].y" 65.218826293945313;
 	setAttr ".tgi[0].ni[2].nvs" 1923;
-	setAttr ".tgi[0].ni[3].x" 112.87672424316406;
-	setAttr ".tgi[0].ni[3].y" 192.85993957519531;
+	setAttr ".tgi[0].ni[3].x" -341.42855834960937;
+	setAttr ".tgi[0].ni[3].y" -47.142856597900391;
 	setAttr ".tgi[0].ni[3].nvs" 1923;
+	setAttr ".tgi[0].ni[4].x" -67.643257141113281;
+	setAttr ".tgi[0].ni[4].y" 210.28385925292969;
+	setAttr ".tgi[0].ni[4].nvs" 1923;
 select -ne :time1;
 	setAttr ".o" 1;
 	setAttr ".unw" 1;
@@ -321,7 +327,7 @@ select -ne :renderPartition;
 	setAttr -s 3 ".st";
 select -ne :renderGlobalsList1;
 select -ne :defaultShaderList1;
-	setAttr -s 5 ".s";
+	setAttr -s 6 ".s";
 select -ne :postProcessList1;
 	setAttr -s 2 ".p";
 select -ne :defaultRenderUtilityList1;
@@ -362,22 +368,25 @@ connectAttr ":defaultArnoldDisplayDriver.msg" ":defaultArnoldRenderOptions.drive
 		 -na;
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
 connectAttr ":defaultArnoldDriver.msg" ":defaultArnoldRenderOptions.drvr";
-connectAttr "aiUserDataInt1.out" "aiStandardHair1.emission";
+connectAttr "aiUtility1.out" "aiStandardHair1.emission_color";
 connectAttr "aiStandardHair1.out" "aiStandardHair1SG.ss";
 connectAttr "aiStandardHair1SG.msg" "materialInfo1.sg";
 connectAttr "aiStandardHair1.msg" "materialInfo1.m";
 connectAttr "aiStandardHair1.msg" "materialInfo1.t" -na;
 connectAttr "aiUserDataInt1.out" "aiNoise1.time";
-connectAttr "aiNoise1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[0].dn"
+connectAttr "aiStandardHair1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[0].dn"
 		;
-connectAttr "aiShuffle1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[1].dn"
+connectAttr "aiUserDataInt1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[1].dn"
 		;
-connectAttr "aiUserDataInt1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[2].dn"
+connectAttr "aiNoise1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[2].dn"
 		;
-connectAttr "aiStandardHair1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[3].dn"
+connectAttr "aiShuffle1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[3].dn"
+		;
+connectAttr "aiUtility1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[4].dn"
 		;
 connectAttr "aiStandardHair1SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandardHair1.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiUtility1.msg" ":defaultShaderList1.s" -na;
 connectAttr "aiUserDataInt1.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "aiShuffle1.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;

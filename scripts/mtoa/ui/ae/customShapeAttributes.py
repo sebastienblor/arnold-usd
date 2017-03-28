@@ -95,7 +95,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiStepSize', label='Step Size')
         self.endLayout()
         
-        #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()
 #       ui.addControl("enableProcedural")
@@ -165,7 +164,6 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.commonShapeAttributes()
         self.addSeparator()
-        self.addControl("aiExportHairIDs", label="Export Hair IDs")
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair", label="Override Hair")
