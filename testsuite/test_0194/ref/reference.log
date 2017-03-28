@@ -22,18 +22,18 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   484MB         | log started Tue Mar 28 21:39:58 2017
-00:00:00   484MB         | Arnold 5.0.0.0.wip [99103722] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/28 04:50:02
-00:00:00   484MB         | running on REM8WCK8D2, pid=8724
-00:00:00   484MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   484MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   484MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   484MB         |  
-00:00:00   484MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   488MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+00:00:00   496MB         | log started Tue Mar 28 21:57:00 2017
+00:00:00   497MB         | Arnold 5.0.0.0.wip [99103722] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/28 04:50:02
+00:00:00   497MB         | running on REM8WCK8D2, pid=11324
+00:00:00   497MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   497MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   497MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   497MB         |  
+00:00:00   497MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   501MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-File read in  0.23 seconds.
+File read in  0.22 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0194/test.ma
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0194\test.ma completed.
