@@ -115,7 +115,7 @@ shader_evaluate
    
    unsigned int seed = 0;
    if (enableHSVRand)
-      seed =  AiShaderGlobalsGetPrimitiveID();
+      seed =  AiShaderGlobalsGetUniformID(sg);
    // when needed, so no need for an extra check   
    
    const float diffuseRand = AiShaderEvalParamFlt(p_diffuse_rand);
