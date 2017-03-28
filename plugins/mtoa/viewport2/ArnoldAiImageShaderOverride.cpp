@@ -97,22 +97,23 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
                 plugT.getValue(wrapMode[1]);
 
 				std::transform(std::begin(wrapMode), std::end(wrapMode), std::begin(wrapMode), [](int mode)->int {
+                    // translate arnold wrap mode to maya
 					switch(mode)
 					{
 					case 0:
-						return 1;
+						return MHWRender::MSamplerState::TextureAddress::kTexWrap; // arnold periodic
 
 					case 1:
-						return 4;
+						return MHWRender::MSamplerState::TextureAddress::kTexBorder; // arnold black
 
 					case 2:
-						return 3;
+						return MHWRender::MSamplerState::TextureAddress::kTexClamp; // arnold clamp
 
 					case 3:
-						return 2;
+						return MHWRender::MSamplerState::TextureAddress::kTexMirror; // arnold mirror
 					};
 
-					return 1;
+					return MHWRender::MSamplerState::TextureAddress::kTexWrap; // default mode is wrap
 				});
 
 				MHWRender::MSamplerStateDesc desc;
