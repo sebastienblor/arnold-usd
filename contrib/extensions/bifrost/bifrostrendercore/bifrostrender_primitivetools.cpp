@@ -503,7 +503,7 @@ void initAndGetPrimitivesFrameData(	PrimitivesFrameData *frameData, PrimitivesIn
 	// so we have the channel for lookup
 	// now check all the required channels and assemble a frameData->loadChannelNames list
 	Bifrost::API::String inputPrimVars ( inData->primVarNames );
-	frameData->primVarNames = inputPrimVars.split(",");
+    frameData->primVarNames = inputPrimVars.split(" ");
 
 	if( checkSpeed( inData, frameData, fInfo ) ) {
 		// if we get here that means speed is avaliable

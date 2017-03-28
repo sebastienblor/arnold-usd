@@ -860,7 +860,7 @@ void initAndGetFrameData(	FrameData *frameData,
 	// so we have the channel for lookup
 	// now check all the required channels and assemble a loadChannelNames list
 	Bifrost::API::String inputPrimVars ( primVarNames );
-	frameData->primVarNames = inputPrimVars.split(",");
+    frameData->primVarNames = inputPrimVars.split(" ");
 
 	// first lets check whether we have speed specified anywhere
 	// if yes check existence of velocity and if it is there add corresponding channels to the loadChannelNames
