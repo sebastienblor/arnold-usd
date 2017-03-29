@@ -19,15 +19,25 @@ namespace
 struct Samplers {
     Bifrost::API::VoxelChannel channel;
     std::vector<Bifrost::API::VoxelSampler*> samplers;
+    const unsigned int size;
+    AtCritSec lock;
 
-    Samplers(Bifrost::API::VoxelChannel channel, unsigned int size) : channel(channel) {
-        samplers.resize(size, NULL);
+    Samplers(Bifrost::API::VoxelChannel channel, unsigned int size) : channel(channel), size(size) {
+        AiCritSecInit(&lock);
     }
     virtual ~Samplers(){
         for(unsigned int i = 0; i < samplers.size(); ++i)
             if(samplers[i]) delete samplers[i];
+        AiCritSecClose(&lock);
     }
     Bifrost::API::VoxelSampler* operator[](unsigned int tid){
+        if(samplers.empty())
+        { // first time this channel is queried, allocate array for thread safe queries
+            AiCritSecEnter(&lock);
+            if(samplers.empty())
+                samplers.resize(size, NULL);
+            AiCritSecLeave(&lock);
+        }
         if(!samplers[tid])
             samplers[tid] = new Bifrost::API::VoxelSampler(channel.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::WorldSpace));
         return samplers[tid];
@@ -39,10 +49,14 @@ struct UserData{
     std::map<std::string, Samplers*> samplers; // channel name => samplers/thread
     AtCritSec lock;
     Bifrost::API::String tmpFolder;
+    float spf; // seconds per frame
 
-    UserData(const Bifrost::API::VoxelComponent& component, const Bifrost::API::String& tmpFolder)
-        : component(component), tmpFolder(tmpFolder) {
-        AiCritSecInit(&lock);
+    UserData(const Bifrost::API::VoxelComponent& component, const Bifrost::API::StringArray& channelNames, const Bifrost::API::String& tmpFolder, float spf)
+        : component(component), tmpFolder(tmpFolder), spf(spf) {
+        for(unsigned int i = 0; i < channelNames.count(); ++i){
+            Bifrost::API::Ref ref = component.findChannel(channelNames[i].c_str());
+            samplers[channelNames[i].c_str()] = ref.valid()? new Samplers(Bifrost::API::VoxelChannel(ref), AI_MAX_THREADS) : NULL;
+        }
     }
     ~UserData(){
         for(auto it = samplers.begin(); it != samplers.end(); ++it)
@@ -51,21 +65,12 @@ struct UserData{
         if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
     }
     Samplers* operator[](const std::string& channel) {
-        if(samplers.find(channel) == samplers.end())
-        { // first time this channel is queried
-            AiCritSecEnter(&lock);
-            if(samplers.find(channel) == samplers.end()){
-                Bifrost::API::Ref ref = component.findChannel(channel.c_str());
-                samplers[channel] = ref.valid()? new Samplers(Bifrost::API::VoxelChannel(ref), AI_MAX_THREADS) : NULL;
-            }
-            AiCritSecLeave(&lock);
-        }
         return samplers[channel];
     }
 };
 
-inline Bifrost::API::VoxelSampler* GetThreadSampler(const AtVolumeData* data, const AtString& channel, uint16_t tid, int interp){
-    Samplers* samplers = (*((UserData*) data->private_info))[channel.c_str()];
+inline Bifrost::API::VoxelSampler* GetThreadSampler(const AtVolumeData* data, const char* channel, uint16_t tid, int interp){
+    Samplers* samplers = (*((UserData*) data->private_info))[channel];
     return samplers? (*samplers)[tid] : NULL;
 }
 
@@ -104,11 +109,33 @@ volume_create
        return false;
     }
 
-    UserData* userData = new UserData(frameData.inSS.components()[0], frameData.tmpFolder);
+    UserData* userData = new UserData(frameData.inSS.components()[0], frameData.loadChannelNames, frameData.tmpFolder, inData.motionBlur? 1./inData.fps : 0);
     data->private_info = userData;
     data->auto_step_size = inData.stepSize;
+
+    if(inData.motionBlur){
+        // make sure velocity samplers are available, disable motion blur otherwise
+        if(!GetThreadSampler(data, "velocity_u", 0, 0) || !GetThreadSampler(data, "velocity_v", 0, 0) || !GetThreadSampler(data, "velocity_w", 0, 0)){
+            AiMsgWarning("[bifrost implicit liquid] Could not find the velocity channels (velocity_u, velocity_v, velocity_z). Disabling motion blur...");
+            userData->spf = 0;
+        }
+    }
     return true;
 }
+
+inline AtVector GetPosition(AtVector in, const AtVolumeData* data, uint16_t tid, int interp, float time, float maxstep){
+    while(time > 0){
+        amino::Math::vec3f position(in.x, in.y, in.z);
+        float dt = time < maxstep? time : maxstep;
+        in.x -= GetThreadSampler(data, "velocity_u", tid, interp)->sample<float>(position)*dt;
+        in.y -= GetThreadSampler(data, "velocity_v", tid, interp)->sample<float>(position)*dt;
+        in.z -= GetThreadSampler(data, "velocity_w", tid, interp)->sample<float>(position)*dt;
+        time -= dt;
+    }
+    return in;
+}
+
+#define MS 1.f
 
 volume_sample
 {
@@ -116,7 +143,10 @@ volume_sample
     Bifrost::API::VoxelSampler* sampler = GetThreadSampler(data, channel, sg->tid, interp);
     if(!sampler) return false;
     *type = AI_TYPE_FLOAT;
-    value->FLT() = sampler->sample<float>(amino::Math::vec3f(sg->P.x,sg->P.y,sg->P.z));
+
+    const float spf = ((UserData*) data->private_info)->spf;
+    AtVector p = GetPosition(sg->P, data, sg->tid, interp, sg->time*spf, MS*spf);
+    value->FLT() = sampler->sample<float>(amino::Math::vec3f(p.x, p.y, p.z));
 	return true;
 }
 
@@ -125,8 +155,11 @@ volume_gradient
     if(!data->private_info) return false;
     Bifrost::API::VoxelSampler* sampler = GetThreadSampler(data, channel, sg->tid, interp);
     if(!sampler) return false;
+
+    const float spf = ((UserData*) data->private_info)->spf;
+    AtVector p = GetPosition(sg->P, data, sg->tid, interp, sg->time*spf, MS*spf);
     amino::Math::vec3f normal;
-    sampler->sampleGradient<float>(amino::Math::vec3f(sg->P.x,sg->P.y,sg->P.z), normal);
+    sampler->sampleGradient<float>(amino::Math::vec3f(p.x,p.y,p.z), normal);
     for(unsigned int i = 0; i < 3; ++i)
         (*gradient)[i] = normal[i];
 	return true;
