@@ -31,7 +31,6 @@ private:
 
    MObject          m_hairInfo;
    bool             m_export_curve_uvs;
-   bool             m_export_curve_id;
    MMeshIntersector m_meshInt;
    MFnMesh          m_mesh;
    bool             m_hasConnectedShapes;

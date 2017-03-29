@@ -23,7 +23,6 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl('aiMinPixelWidth', label='Min Pixel Width')
         self.addSeparator()
         
-        self.addControl("aiExportHairIDs", label="Export Hair IDs")
         self.addControl("aiUserOptions", label="User Options")
         self.addSeparator()
 

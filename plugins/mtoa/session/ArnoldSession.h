@@ -80,6 +80,7 @@ public:
    CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
                       bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
+   AtNode* ExportColorManager();
 
    CNodeTranslator *GetActiveTranslator(const CNodeAttrHandle &handle);
    bool IsRenderablePath(MDagPath dagPath);
