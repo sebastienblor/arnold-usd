@@ -38,14 +38,17 @@ struct UserData{
     Bifrost::API::VoxelComponent component;
     std::map<std::string, Samplers*> samplers; // channel name => samplers/thread
     AtCritSec lock;
+    Bifrost::API::String tmpFolder;
 
-    UserData(const Bifrost::API::VoxelComponent& component) : component(component) {
+    UserData(const Bifrost::API::VoxelComponent& component, const Bifrost::API::String& tmpFolder)
+        : component(component), tmpFolder(tmpFolder) {
         AiCritSecInit(&lock);
     }
     ~UserData(){
         for(auto it = samplers.begin(); it != samplers.end(); ++it)
             if(it->second) delete it->second;
         samplers.clear();
+        if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
     }
     Samplers* operator[](const std::string& channel) {
         if(samplers.find(channel) == samplers.end())
@@ -101,7 +104,7 @@ volume_create
        return false;
     }
 
-    UserData* userData = new UserData(frameData.inSS.components()[0]);
+    UserData* userData = new UserData(frameData.inSS.components()[0], frameData.tmpFolder);
     data->private_info = userData;
     data->auto_step_size = inData.stepSize;
     return true;
@@ -136,7 +139,7 @@ volume_ray_extents
 
 volume_update
 {
-	return true;
+    return true;
 }
 
 volume_cleanup

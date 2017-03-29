@@ -240,6 +240,10 @@ procedural_init
     AtNode* polymesh = inData.error? NULL : ProcSubdivide(&inData, &frameData);
     *user_ptr = polymesh;
 
+    if(!frameData.tmpFolder.empty()){
+        Bifrost::API::File::deleteFolder(frameData.tmpFolder);
+    }
+
     return polymesh != NULL;
 }
 

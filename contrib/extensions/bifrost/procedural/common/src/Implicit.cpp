@@ -83,7 +83,7 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterStr("bifrostObjectName", "");
 
     // arnold specific parameters // WTF
-    AiParameterBool("motionBlur", false);
+    AiParameterBool("motionBlur", true);
     AiParameterFlt("shutterStart" , 0);
     AiParameterFlt("shutterEnd", 1);
 }
@@ -229,11 +229,11 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
     }
 }
 
-CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename, const ClipParams& clip){
-    CoreObjectUserData* out = NULL;
 
-    Bifrost::API::String tmpFolder;
+CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename, const ClipParams& clip, Bifrost::API::String& tmpFolder){
+    CoreObjectUserData* out = NULL;
     CoreObjectUserData tmpObj(json, filename);
+
     if(tmpObj.objectExists()){
         // write in memory data to a temp file
         // TODO: get component in a more robust way....
@@ -270,7 +270,6 @@ CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost
     }else{
         AiMsgWarning("[BIFROST] Failed to load bif file '%s'.", filename.c_str());
     }
-    if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
 
     return out;
 }
@@ -285,10 +284,10 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     // log start
     printEndOutput( "[BIFROST POLYMESH] START OUTPUT", inData->diagnostics );
 
-
+    Bifrost::API::String tmpFolder;
     { // init in memory class
         Bifrost::API::String obj = inData->bifrostObjectName, file = inData->bifFilename;
-        inData->inMemoryRef = createCoreObjectUserData(obj, file, inData->clip);
+        inData->inMemoryRef = createCoreObjectUserData(obj, file, inData->clip, tmpFolder);
         ERROR_ASSERT(inData->inMemoryRef != NULL);
 
         // realloc for the new name
@@ -315,6 +314,8 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
                             IMPLICITSURFACE,
                             inData->diagnostics,
                             getASSData );
+
+    frameData->tmpFolder = tmpFolder;
 
     if ( frameData->error ) {
         printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
