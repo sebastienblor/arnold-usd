@@ -21,27 +21,45 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   520MB         | log started Thu Mar 30 17:04:39 2017
-00:00:00   520MB         | Arnold 5.0.0.0.wip [b5bef2d5] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/29 13:15:29
-00:00:00   520MB         | running on REM8WCK8D2, pid=10176
-00:00:00   520MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   520MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   520MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   520MB         |  
-00:00:00   520MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   524MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, mayaCharacterization, fbxmaya
+00:00:00   478MB         | log started Thu Mar 30 21:22:43 2017
+00:00:00   478MB         | Arnold 5.0.0.0.wip [b5bef2d5] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/29 13:15:29
+00:00:00   478MB         | running on REM8WCK8D2, pid=12044
+00:00:00   478MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   478MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   478MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   478MB         |  
+00:00:00   478MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   485MB WARNING | [mtoa] [bifrostTranslator] [node bifrostFoamMaterial] Assigning temporary node id 1138176 to associated Maya type name bifrostFoamMaterial.
+00:00:00   485MB WARNING | [mtoa] [bifrostTranslator] [node bifrostAeroMaterial] Assigning temporary node id 1138177 to associated Maya type name bifrostAeroMaterial.
+00:00:00   485MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+00:00:00   490MB WARNING | [mtoa] Extension bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll) requires Maya plugin bifrostvisplugin, registering will be deferred until plugin is loaded.
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma line 8: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma line 5: Unknown Maya file version: 2017ff04.
+00:00:00   536MB         | log started Thu Mar 30 21:22:47 2017
+00:00:00   536MB         | Arnold 5.0.0.0.wip [b5bef2d5] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/29 13:15:29
+00:00:00   536MB         | running on REM8WCK8D2, pid=12044
+00:00:00   536MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   536MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   536MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   536MB         |  
+00:00:00   536MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   536MB         | loaded 122 plugins from 11 lib(s) in 0:00.00
+00:00:00   536MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00 WARNING |  node "MayaClamp" is already installed
+00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00 WARNING |  node "MayaCondition" is already installed
+00:00:00 WARNING |  node "MayaReverse" is already installed
+00:00:00 ERROR   | [mtoa] Cannot register already existing Maya node bifrostFoamMaterial, provided by bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll).
+00:00:00 ERROR   | [mtoa] Cannot register already existing Maya node bifrostAeroMaterial, provided by bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll).
+00:00:00 WARNING | [mtoa] [bifrostTranslator] Only managed to register 0 out of 2 new Maya nodes it declares in C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll.
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma line 9: line 1: Cannot find procedure "nodeEdRefreshVnnNodeTreeListers".
-File read in  0.88 seconds.
+Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
+File read in  0.47 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma
-OBJECT = {"QueryVersion":"1.0","ActiveGraph":"_bifrostLiquid1_bifrostLiquidContainer1__liquid","EvaluationID":53,"ResourceID":"bifrost_sim","filters":[{"operator":"&","clauses":["name =voxel_liquid","type=voxel_liquid"]}]}
 		narrowBandThickness can not be smaller than a voxel!
 		This will be reset to default 1.5 voxels!
 
@@ -51,15 +69,34 @@ OBJECT = {"QueryVersion":"1.0","ActiveGraph":"_bifrostLiquid1_bifrostLiquidConta
 
 
 Avaliable channels:
+	airDistance, 1
+	density, 1
+	distance, 1
+	expansionRate, 1
+	stictionBandwidth, 1
+	stictionStrength, 1
+	uv, 2
+	velocity_u, 1
+	velocity_v, 1
+	velocity_w, 1
+	vorticity, 1
 
 Processing PRIMVARS List...
-	Can not find primVar vorticity in file, skipping!
 
 	Final list of Primvars to Export:
+		vorticity, 1
 		presence, 1
 
 	MaxElementCount: 1
 
+
+	Final list of channels to load:
+		vorticity
+		distance
+		airDistance
+		velocity_u
+		velocity_v
+		velocity_w
 
 Parameters for the Plugin:
 	distanceChannel: distance
@@ -88,14 +125,6 @@ Parameters for the Plugin:
 
 	infCubeBlending: OFF
 
-	resolutionFactor: 1.000000
-	dropletRevealFactor: 3.000000
-	surfaceRadius: 1.200000
-	dropletRadius: 1.200000
-	maxVolumeOfHolesToClose: 8.000000
-	doMorphologicalDilation: ON
-	doErodeSheetsAndDroplets: ON
-
 	DEBUG: 1
 
 
@@ -105,14 +134,17 @@ File Info:
 		VoxelScale: 0.5
 		MaxDepth: 7
 		Total TileCount: 876
-			TileCount 0: 1->0
-			TileCount 1: 19->0
-			TileCount 2: 19->0
-			TileCount 3: 19->0
-			TileCount 4: 19->0
-			TileCount 5: 24->0
-			TileCount 6: 73->0
-			TileCount 7: 702->0
+			TileCount 0: 1
+			TileCount 1: 19
+			TileCount 2: 19
+			TileCount 3: 19
+			TileCount 4: 19
+			TileCount 5: 24
+			TileCount 6: 73
+			TileCount 7: 702
+
+ADAPTIVE SIM: ON
+	dropletThreshold: 0.970000
 
 
 THIS IS A VOXEL CACHE!
@@ -121,9 +153,11 @@ Rendering Channel is: voxel_liquid.voxel_liquid-volume.distance...
 
 Processing PRIMVARS List...
 	Final list of Primvars to Export:
+		vorticity
 		presence
 
-MotionBlur: OFF
+MotionBlur: ON
+	Shutter: -1.00 1.00
 
 
 Post Processing distance channel...
@@ -137,12 +171,28 @@ Post Processing distance channel...
 	Eroding...
 
 
+Channel Min-Max Values:
+	Channel: vorticity
+	Min:1.56, Max: 222.88
+
+	Channel: velocity_u
+	Min:-6.97, Max: 6.88
+
+	Channel: velocity_v
+	Min:-25.33, Max: 0.24
+
+	Channel: velocity_w
+	Min:-7.64, Max: 7.09
+
+
 Creating the mesh...
-	Mesh Merging took 0.01 seconds to run.
-	Mesh Sampling took 0.003 seconds to run.
+	Mesh Merging took 0.009 seconds to run.
+	Mesh Sampling took 0.014 seconds to run.
 	83620 polygons and 42369 vertices are received from the mesher!
 	Preparing triangles...
 	Preparing positions...
+	Preparing PrimVar: vorticity...
+		Done...
 	Preparing PrimVar: presence...
 		Done...
 	Done
@@ -151,6 +201,9 @@ Creating the mesh...
 
 
 Min-Max ranges for float primvars after voxelization:
+	vorticity:
+		Min: 1.628489
+		Max: 204.114700
 	presence:
 		Min: -0.888354
 		Max: 0.171752
