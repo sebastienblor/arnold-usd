@@ -21,22 +21,29 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   485MB         | log started Wed Mar 29 00:33:03 2017
-00:00:00   485MB         | Arnold 5.0.0.0.wip [99103722] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/28 04:50:02
-00:00:00   485MB         | running on REM8WCK8D2, pid=888
-00:00:00   485MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   485MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   485MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   485MB         |  
-00:00:00   485MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   489MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   520MB         | log started Thu Mar 30 17:04:39 2017
+00:00:00   520MB         | Arnold 5.0.0.0.wip [b5bef2d5] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/29 13:15:29
+00:00:00   520MB         | running on REM8WCK8D2, pid=10176
+00:00:00   520MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   520MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   520MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   520MB         |  
+00:00:00   520MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   524MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-File read in  0.26 seconds.
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma line 8: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma line 9: line 1: Cannot find procedure "nodeEdRefreshVnnNodeTreeListers".
+File read in  0.88 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0198/test.ma
 OBJECT = {"QueryVersion":"1.0","ActiveGraph":"_bifrostLiquid1_bifrostLiquidContainer1__liquid","EvaluationID":53,"ResourceID":"bifrost_sim","filters":[{"operator":"&","clauses":["name =voxel_liquid","type=voxel_liquid"]}]}
+		narrowBandThickness can not be smaller than a voxel!
+		This will be reset to default 1.5 voxels!
 
 ---------------------------------------
 [BIFROST POLYMESH] START OUTPUT
@@ -58,7 +65,7 @@ Parameters for the Plugin:
 	distanceChannel: distance
 	primVarNames: vorticity
 
-	narrowBandThicknessInVoxels: 1.096154
+	narrowBandThicknessInVoxels: 1.500000
 
 	velocityScale: 0.041667 fps: 24.000000
 
@@ -128,5 +135,28 @@ Post Processing distance channel...
 	Smoothing...
 
 	Eroding...
+
+
+Creating the mesh...
+	Mesh Merging took 0.01 seconds to run.
+	Mesh Sampling took 0.003 seconds to run.
+	83620 polygons and 42369 vertices are received from the mesher!
+	Preparing triangles...
+	Preparing positions...
+	Preparing PrimVar: presence...
+		Done...
+	Done
+	Exporting Polygons...
+		Finished exporting
+
+
+Min-Max ranges for float primvars after voxelization:
+	presence:
+		Min: -0.888354
+		Max: 0.171752
+
+---------------------------------------
+END OUTPUT FOR BIFROSTPOLYMESH
+---------------------------------------
 
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0198\test.ma completed.
