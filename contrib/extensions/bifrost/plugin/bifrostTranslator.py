@@ -187,6 +187,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Radius", collapse=False)
         self.addControl("pointRadius", label="Radius")
+        self.addControl("stepSize")
         self.addControl("useChannelToModulateRadius")
 
         self.beginLayout("Camera Dependent Radius", collapse=True)

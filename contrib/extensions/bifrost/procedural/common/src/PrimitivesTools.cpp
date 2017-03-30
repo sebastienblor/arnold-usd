@@ -66,7 +66,6 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		}
 
 		// pull stuff from arrays
-        float meanWidth = 0, totalExportedInverse = 1./totalExported;
 		for ( int i = 0; i < totalExported; i++ ) {
 			// set position data
 			int index = i * 3;
@@ -75,7 +74,6 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 
 			// set radius
             AiArraySetFlt(radiusArray, i, inData->renderType == PRIM_POINT? widthData[ i ] : widthData[ i ] * 2.0f);
-            meanWidth += widthData[i] * totalExportedInverse;
 	
 			// set transparency
 			if ( frameData->transparencyNeeded ) {
@@ -95,15 +93,13 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 				}
 			}
 		}
-        //meanWidth *= 1000;
 
 		AiNodeSetArray( newNode, "points", pointArray );
 		AiNodeSetArray( newNode, "radius", radiusArray );
         //AiNodeSetFlt( newNode, "motion_start", 0 );
         //AiNodeSetFlt( newNode, "motion_end", 0 );
 
-        AiNodeSetFlt(newNode, "step_size", meanWidth);
-        //AiMsgError("sdlkjfhkdsjh");
+        AiNodeSetFlt(newNode, "step_size", inData->stepSize);
 
 		// export transparency if needed
 		if ( frameData->transparencyNeeded ) {

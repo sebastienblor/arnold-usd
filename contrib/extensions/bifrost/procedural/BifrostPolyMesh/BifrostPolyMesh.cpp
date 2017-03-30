@@ -172,6 +172,7 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
 
             // get the data and populate arnold array
             float *primVarData = (float *)ptr[ currentArrayIndex ];
+            // TODO: handle other channel types than float
             AtArray *primVarArray = AiArrayAllocate( (uint32_t) vertexCount, 1, AI_TYPE_FLOAT );
 
             for ( unsigned int i = 0; i < vertexCount; i++ ) {

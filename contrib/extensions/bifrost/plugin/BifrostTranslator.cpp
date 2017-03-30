@@ -20,6 +20,10 @@
 #include <bifrostrendercore/bifrostrender_objectuserdata.h>
 #include "BifrostTranslator.h"
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
+#define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
+
 #define EXPORT_BOOL(name) AiNodeSetBool(shape, name, bifrostDesc.findPlug(name).asBool())
 #define EXPORT_INT(name) AiNodeSetInt(shape, name, bifrostDesc.findPlug(name).asInt())
 #define EXPORT_FLT(name) AiNodeSetFlt(shape, name, bifrostDesc.findPlug(name).asFloat())
@@ -251,6 +255,7 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
 
     // radius params
     EXPORT_FLT("pointRadius");
+    EXPORT_FLT("stepSize");
     EXPORT_BOOL("useChannelToModulateRadius");
     EXPORT_BOOL("camRadiusOn");
     // TODO: Replace by ranges
@@ -274,6 +279,27 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
     EXPORT_INT("silent");
     EXPORT2_STR("primVarNames", "pointPrimVars");
     EXPORT2_STR("inputChannelName", "pointChannel");
+
+    // Handle invalid node type / shader assignment
+    //   sphere + step_size > 0 + surface => ignoring non relevant step_size
+    //   point + volume => exporting as sphere since step_size doesn't make sense on point primitive
+    bool isSurface = false;
+    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
+    if(!shadingGroupPlug.isNull()){
+        MPlug surfacePlug = MFnDependencyNode(shadingGroupPlug.node()).findPlug("surfaceShader");
+        isSurface = !surfacePlug.isNull() && surfacePlug.isDestination();
+    }
+    if(isSurface){
+        if(bifrostDesc.findPlug("renderPrimitiveType").asInt() == 1 && bifrostDesc.findPlug("stepSize").asFloat() != 0){ // SPHERE
+            AiMsgWarning("[bifrost translator] Ignoring stepSize for rendering bifrost foam '%s' since using surface shader...", bifrostDesc.name().asChar());
+            AiNodeSetFlt(shape, "stepSize", 0);
+        }
+    }else{
+        if(bifrostDesc.findPlug("renderPrimitiveType").asInt() == 0){ // POINT
+            AiMsgWarning("[bifrost translator] Bifrost foam with 'Point' render type cannot be shaded with a volume shader. Translating node '%s' in 'Sphere' mode...", bifrostDesc.name().asChar());
+            AiNodeSetInt(shape, "renderType", 1);
+        }
+    }
 
     ExportMatrix( shape );
     if ( RequiresShaderExport() ) {
@@ -746,7 +772,8 @@ namespace{
         ADD_DBOOL("pointClipOn", false);
         ADD_DFLT3("pointClipMin", 0.f, 0.f, 0.f);
         ADD_DFLT3("pointClipMax", 1.f, 1.f, 1.f);
-        ADD_DFLT("pointRadius", .05f);
+        ADD_DFLT("pointRadius", .02f);
+        ADD_DFLT("stepSize", .005f);
         ADD_DBOOL("useChannelToModulateRadius", true);
         ADD_DBOOL("camRadiusOn", false);
         ADD_DFLT("camRadiusStartDistance", 0.f);

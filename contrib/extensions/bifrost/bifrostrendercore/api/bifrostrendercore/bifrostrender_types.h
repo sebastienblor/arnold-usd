@@ -494,6 +494,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesInputData {
 	ClipParams clip;
 
 	float radius;
+    float stepSize;
 	bool useChannelToModulateRadius;
 	bool camRadius;
 	float camRadiusStartDistance;
