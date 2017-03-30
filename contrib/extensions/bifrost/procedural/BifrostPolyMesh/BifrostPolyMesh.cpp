@@ -225,7 +225,7 @@ procedural_init
 
     // polymesh specific inputs
     inData.mesherAlgo = MESH_MARCHINGCUBES; // the only one available
-    inData.sampleRate = AiNodeGetInt(node, "sampleRate");
+    inData.sampleRate = AiNodeGetInt(node, "tesselation");
     getNodeParameters(&inData, node);
 
     if(!InitializeImplicit(&inData, &frameData, &bounds)){
@@ -261,6 +261,6 @@ procedural_cleanup
 }
 node_parameters
 {
-    AiParameterInt("sampleRate", 2);
+    AiParameterInt("tesselation", 2);
     ImplicitNodeDeclareParameters(params, nentry);
 }

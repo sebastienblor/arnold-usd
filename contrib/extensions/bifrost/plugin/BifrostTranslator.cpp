@@ -325,7 +325,7 @@ void BifrostTranslator::ExportAero(AtNode *shape)
 
     // smooth params
     EXPORT2_INT("smoothMode", "aeroSmoothMode");
-    EXPORT2_INT("smoothAmount", "aeroSmoothAmount");
+    EXPORT2_INT("smoothKernelSize", "aeroSmoothKernelSize");
     EXPORT2_INT("smoothIterations", "aeroSmoothIterations");
     EXPORT2_FLT("smoothWeight", "aeroSmoothWeight");
     EXPORT2_FLT("smoothRemapMin", "aeroSmoothRemapMin");
@@ -410,7 +410,7 @@ void BifrostTranslator::ExportLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode
     EXPORT_FLT("dilateAmount");
     EXPORT_FLT("erodeAmount");
     EXPORT_INT("smoothMode");
-    EXPORT_INT("smoothAmount");
+    EXPORT_INT("smoothKernelSize");
     EXPORT_INT("smoothIterations");
     EXPORT_FLT("smoothWeight");
     EXPORT_FLT2("smoothRemapRange");
@@ -480,7 +480,7 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
     ExportLiquidAttributes(bifrostDesc, shape);
 
     // export mesh specific attributes
-    EXPORT_INT("sampleRate");
+    EXPORT_INT("tesselation");
 
     // export shaders
     if(RequiresShaderExport()){
@@ -501,7 +501,7 @@ void BifrostTranslator::ExportLiquidImplicit(AtNode *shape)
     // add implicit specific attributes
     EXPORT_FLT("narrowBandThicknessInVoxels");
     EXPORT_FLT("liquidStepSize");
-    EXPORT2_INT("samples", "sampleRate");
+    EXPORT_INT("samples");
     EXPORT2_STR("field_channel", "distanceChannel");
 
     // export shaders
@@ -633,7 +633,7 @@ namespace{
         ADD_DSTR("aeroSmoothChannel", "");
 
         ADD_DSMOOTH_ENUM("aeroSmoothMode");
-        ADD_DINT("aeroSmoothAmount", 0);
+        ADD_DINT("aeroSmoothKernelSize", 0);
         ADD_DINT("aeroSmoothIterations", 1);
         ADD_DFLT("aeroSmoothWeight", 1.f);
         ADD_DFLT("aeroSmoothRemapMin", 0.f);
@@ -667,7 +667,8 @@ namespace{
         }\
         helper.MakeInputEnum(data);
         ADD_DDATA_ENUM("renderData");
-        ADD_DINT("sampleRate", 2);
+        ADD_DINT("samples", 2);
+        ADD_DINT("tesselation", 2);
 
         ADD_DFLT("liquidVelocityScale", 1.f);
         ADD_DFLT("liquidSpaceScale", 1.f);
@@ -686,7 +687,7 @@ namespace{
         ADD_DFLT("dilateAmount", 0.f);
         ADD_DFLT("erodeAmount", 0.f);
         ADD_DSMOOTH_ENUM("smoothMode");
-        ADD_DINT("smoothAmount", 1);
+        ADD_DINT("smoothKernelSize", 1);
         ADD_DINT("smoothIterations", 1);
         ADD_DFLT("smoothWeight", 0.f);
         ADD_DFLT2("smoothRemapRange", 0.f, 1.f);
