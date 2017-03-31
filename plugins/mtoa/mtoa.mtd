@@ -1261,6 +1261,7 @@
     [attr base]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+        default             FLOAT   0.5
     [attr diffuse_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
