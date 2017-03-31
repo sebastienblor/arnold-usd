@@ -71,9 +71,9 @@ try:
                         if self._isAOVDefaultValue(name, plg):
                             connectedPlgs = plg.plug.connectedTo(True, False)
                             if len(connectedPlgs) > 0:
-                                attrs[plg.name] = plg.plug.connectedTo(True, False)[0].name()
+                                attrs[plg.name] = connectedPlgs[0].name()
                             else:
-                                attrs[plg.name] = None
+                                attrs[plg.name] = ""
                         elif plg.type is not plug.Plug.kInvalid and plg.name not in self._plugsToIgnore:
                             attrs[plg.name] = plg.value
             return attrs
