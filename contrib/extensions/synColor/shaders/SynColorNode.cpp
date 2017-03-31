@@ -649,9 +649,12 @@ color_manager_transform
 
 color_manager_get_defaults
 {
+   static AtString sRgb_str = AtString("sRGB gamma");
    // This is creating problems with arnold color management (see #2893)
-   // I'm removing this, but as a consequence kick won't manage to display the image as expected
-   //sRGB = AiNodeGetStr(node, DataStr::view_transform_space);
+   AtString ocioPath = AiNodeGetStr(node, DataStr::ocioconfig_path);
+   if (ocioPath.empty())
+      sRGB = sRgb_str;
+   
    linear = AiNodeGetStr (node, DataStr::rendering_color_space);
 }
 
