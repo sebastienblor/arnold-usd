@@ -1,6 +1,7 @@
 #include "OptionsTranslator.h"
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
+#include "translators/driver/DriverTranslator.h"
 
 #include "utils/MayaUtils.h"
 
@@ -125,7 +126,7 @@ void COptionsTranslator::ExportAOVs()
       {
          // add default driver
          CAOVOutput output;
-         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer, output.raw);
+         ExportDriver(FindMayaPlug("driver"), output);
          output.filter = ExportFilter(FindMayaPlug("filter"));
          aovData.outputs.push_back(output);
 
@@ -307,9 +308,13 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
                unordered_map<std::string, AtNode*>::iterator it;
+
                it = m_multiDriverMap.find(filename.asChar());
+
+               std::string driverNodeToken = "";
+
                if (it == m_multiDriverMap.end())
-               {
+               {                  
                   // The filename has not been encountered yet.
                   m_imageFilenames.append(filename);
 
@@ -328,20 +333,40 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                         break;
                      }
                   }
-                  MString driverName = AiNodeGetName(output.driver);
+                  MString driverName = (output.driverTranslator) ? output.driverTranslator->GetBaseName() : AiNodeGetName(output.driver);
 
                   if (found && stereo && eye  > 0)
                   {
                      // For Stereo we don't want to add the aov name to the driver's name (we could, but names would become confusing), 
                      // so we're just adding th suffix ".Right"
                      // we could also add it for the left eye (without testing eye > 0), but I'm trying to minimize the possible issues
-                     driverName += "."+eyeToken;
-                  } else  driverName += "." + aovData.name;
+                     static AtString s_rgbaStr("RGBA");
+                     if (aovData.name != s_rgbaStr)
+                     {
+                        driverNodeToken = aovData.name.asChar();
+                        driverNodeToken += ".";
+                     }
+                     driverNodeToken += eyeToken.asChar();
+                     
+                  } else
+                     driverNodeToken = aovData.name.asChar();
+                  
+                  driverName += ".";
+                  driverName += driverNodeToken.c_str();
                   
                   if (found)
-                     output.driver = AiNodeClone(output.driver);
+                  {
+                     if (output.driverTranslator)
+                        output.driver = output.driverTranslator->GetChildDriver(driverNodeToken);
+                     else
+                        output.driver = AiNodeClone(output.driver);
+
+                  }
+
+
 
                   AiNodeSetStr(output.driver, "name", driverName.asChar());
+
                   m_multiDriverMap[filename.asChar()] = output.driver;
 
                   std::string typeAOV = AiParamGetTypeName(aovData.type);
@@ -459,8 +484,9 @@ void COptionsTranslator::CreateFileDirectory(const MString &filename) const
    }
 }
 
-AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer, bool& raw)
+AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, CAOVOutput &output)
 {
+
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
 
@@ -468,23 +494,28 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
       return NULL;
 
    // this generates a unique node every export
-   AtNode* driver = ExportConnectedNode(conn[0]);
-   if (driver == NULL)
+
+   CNodeTranslator *translator = NULL;
+   output.driver = m_impl->ExportConnectedNode(conn[0], true, &translator);
+   
+   if (output.driver == NULL)
       return NULL;
 
-   const AtNodeEntry* entry = AiNodeGetNodeEntry(driver);
+   output.driverTranslator = dynamic_cast<CDriverTranslator*>(translator);
+
+   const AtNodeEntry* entry = AiNodeGetNodeEntry(output.driver);
 
    MFnDependencyNode fnNode(conn[0].node());
-   singleLayer = false;
-   AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
-   if (!singleLayer)
-      mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
+   output.singleLayer = false;
+   AiMetaDataGetBool(entry, NULL, "single_layer_driver", &output.singleLayer);
+   if (!output.singleLayer)
+      output.mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
    else
-      mergeAOVs = false;
-   raw = false;
-   AiMetaDataGetBool(entry, NULL, "raw_driver", &raw);
-   prefix = fnNode.findPlug("prefix").asString();
-   return driver;
+      output.mergeAOVs = false;
+   output.raw = false;
+   AiMetaDataGetBool(entry, NULL, "raw_driver", &output.raw);
+   output.prefix = fnNode.findPlug("prefix").asString();
+   return output.driver;
 }
 
 AtNode* COptionsTranslator::ExportFilter(const MPlug& filterPlug)
@@ -530,11 +561,7 @@ bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
       return false;
 
    // Driver
-   output.driver = ExportDriver(driverPlug,
-                                output.prefix,
-                                output.mergeAOVs,
-                                output.singleLayer,
-                                output.raw);
+   ExportDriver(driverPlug, output);
    if (output.driver == NULL)
       return false;
    return true;
