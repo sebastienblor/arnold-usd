@@ -1,7 +1,9 @@
 import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
+import mtoa.convertShaders as convertShaders
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import maya.cmds as cmds
 
 
 class AEaiStandardTemplate(ShaderAETemplate):
@@ -41,11 +43,28 @@ class AEaiStandardTemplate(ShaderAETemplate):
         dim = (refFresValue is False) or (fresIorValue is True)
         pm.editorTemplate(dimControl=(nodeName, "Krn", dim))
 
+    def convertToStandardSurface(self, nodeName):
+        convertShaders.doMapping(nodeName)
+    
+
+    def convertShaderNew(self, nodeName):
+        tokens = nodeName.split('.')
+        nodeName = tokens[0]        
+        #cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
+        cmds.button('aiStandardConvertShaderButton',  label='Convert To Standard Surface', command=pm.Callback(self.convertToStandardSurface, nodeName))
+        #cmds.setParent( '..' )
+   
+    def convertShaderReplace(self, nodeName):
+        tokens = nodeName.split('.')
+        nodeName = tokens[0]
+        cmds.button('aiStandardConvertShaderButton',  edit=True, command=pm.Callback(self.convertToStandardSurface, nodeName))
+        
     def setup(self):
         self.addSwatch()
 
         self.beginScrollLayout()
-
+        self.addCustom('convert_shader', self.convertShaderNew, self.convertShaderReplace)
+        
         #self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
         self.beginLayout("Matte", collapse=True)
