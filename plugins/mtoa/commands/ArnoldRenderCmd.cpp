@@ -200,10 +200,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             {
                if (!progressiveRefinement)
                   kickRenderFlags += " -dp";
-               MString gammaFlags = "-g ";
-               gammaFlags += displayGamma;
-               gammaFlags += " ";
-               kickRenderFlags = gammaFlags + kickRenderFlags;
+               
 #ifdef _WIN32
                kickCmd = "Start kick " + kickRenderFlags + " \"" + assFileNames[0] + "\"";
 #else
