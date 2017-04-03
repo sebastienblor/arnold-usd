@@ -859,10 +859,10 @@
     [attr rotate]
         min                 FLOAT   0.0
         max                 FLOAT   360.0
-    [attr scale_s]
+    [attr sscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
-    [attr scale_t]
+    [attr tscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
 
