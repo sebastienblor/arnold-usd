@@ -76,7 +76,8 @@ CExtension* CExtensionsManager::GetBuiltin(MStatus *returnStatus)
 /// @return       A pointer to the extension if loading was successful, else NULL
 CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
                                                  const MString &path,
-                                                 MStatus *returnStatus)
+                                                 MStatus *returnStatus,
+                                                 bool registerOnly)
 {
    MStatus status;
    // Create a CExtension to handle plugin loading and generate corresponding Maya nodes
@@ -85,8 +86,13 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
    if (NULL != pluginExtension)
    {
       // Extension loads the Arnold Plugin and will register new Maya nodes
-      MString resolved;
-      resolved = pluginExtension->LoadArnoldPlugin(file, path, &status);
+      MString resolved = file;
+
+      if (registerOnly)
+         status = pluginExtension->RegisterPluginNodesAndTranslators(file);
+      else
+         resolved = pluginExtension->LoadArnoldPlugin(file, path, &status);
+
       if (MStatus::kSuccess == status)
       {
          status = pluginExtension->m_impl->setFile(resolved);
@@ -112,23 +118,22 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
 {
    MStatus status = MStatus::kNotFound;
 
-   MStringArray plugins;
-   plugins = CExtensionImpl::FindLibraries(path, &status);
-   for (unsigned int i=0; i<plugins.length(); ++i)
+   // Let Arnold search for plugins in path
+   AiLoadPlugins(path.expandEnvironmentVariablesAndTilde().asChar());
+
+   // Register any new node entries
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+   while (!AiNodeEntryIteratorFinished(nodeIter))
    {
-      MString resolved = plugins[i];
-      if (resolved.numChars() > 0)
+      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+      const char* filename = AiNodeEntryGetFilename(nentry);
+
+      // skip builtins and already registered
+      if (filename && !CExtension::IsArnoldPluginLoaded(filename))
       {
-         if (!CExtension::IsArnoldPluginLoaded(resolved))
-         {
-            MStatus plugStatus;
-            LoadArnoldPlugin(resolved, "", &plugStatus);
-            if (MStatus::kSuccess != plugStatus) status = plugStatus;
-         }
-         else
-         {
-            AiMsgDebug("[mtoa.ext]  Arnold plugin %s already loaded, ignored.", resolved.asChar());
-         }
+         MStatus pluginStatus;
+         LoadArnoldPlugin(filename, path, &pluginStatus, true);
+         if (MStatus::kSuccess != pluginStatus) status = pluginStatus;
       }
    }
 
