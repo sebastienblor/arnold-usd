@@ -51,7 +51,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         tokens = nodeName.split('.')
         nodeName = tokens[0]        
         #cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
-        cmds.button('aiStandardConvertShaderButton',  label='Convert To Standard Surface', command=pm.Callback(self.convertToStandardSurface, nodeName))
+        cmds.button('aiStandardConvertShaderButton',  label='Convert To New Shader', command=pm.Callback(self.convertToStandardSurface, nodeName))
         #cmds.setParent( '..' )
    
     def convertShaderReplace(self, nodeName):

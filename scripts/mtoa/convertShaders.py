@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard']
+targetShaders = ['aiStandard', 'aiHair']
 
     
 def convertUi():
@@ -41,10 +41,10 @@ def convertAllShaders():
             for x in shaderColl:
                 # query the objects assigned to the shader
                 # only convert things with members
-                shdGroup = cmds.listConnections(x, type="shadingEngine")
-                setMem = cmds.sets( shdGroup, query=True )
-                if setMem:
-                    ret = doMapping(x)
+                #shdGroup = cmds.listConnections(x, type="shadingEngine")
+                #setMem = cmds.sets( shdGroup, query=True )
+                #if setMem:
+                doMapping(x)
         
 
 
@@ -61,14 +61,11 @@ def doMapping(inShd):
     if 'aiStandard' in shaderType :
         ret = convertAiStandard(inShd)
     elif 'aiHair' in shaderType :
-        ret = shaderToAiHair(inShd, 'aiStandard', mappingLambert)
-        convertLambert(inShd, ret)
+        ret = convertAiHair(inShd)
         
     if ret:
         # assign objects to the new shader
         assignToNewShader(inShd, ret)
-
-
 
 def assignToNewShader(oldShd, newShd):
 
@@ -95,16 +92,16 @@ def assignToNewShader(oldShd, newShd):
     
     retVal = False
     
-    shdGroup = cmds.listConnections(oldShd, type="shadingEngine")
+    shdGroups = cmds.listConnections(oldShd + '.outColor', plugs=True)
     
     #print 'shdGroup:', shdGroup
     
-    if shdGroup:
+    for shdGroup in  shdGroups:
         if replaceShaders:
-            cmds.connectAttr(newShd + '.outColor', shdGroup[0] + '.surfaceShader', force=True)
+            cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
             cmds.delete(oldShd)
         else:
-            cmds.connectAttr(newShd + '.outColor', shdGroup[0] + '.aiSurfaceShader', force=True)
+            cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
         retVal =True
         
     return retVal
@@ -121,19 +118,6 @@ def setupConnections(inShd, fromAttr, outShd, toAttr):
             
 
 def convertAiStandard(inShd):
-    """
-    'Converts' a shader to arnold, using a mapping table.
-    
-    @param inShd: Shader to convert
-    @type inShd: String
-    @param nodeType: Arnold shader type to create
-    @type nodeType: String
-    @param mapping: List of attributes to map from old to new
-    @type mapping: List
-    """
-    
-    #print 'Converting material:', inShd
-
     if ':' in inShd:
         aiName = inShd.rsplit(':')[-1] + '_new'
     else:
@@ -168,10 +152,6 @@ def convertAiStandard(inShd):
         else:
             convertAttr(inShd, 'Ksn', outNode, 'coat_IOR', krnToIorRemap)
 
-        
-
-
-
     convertAttr(inShd, 'specular_anisotropy', outNode, 'specular_anisotropy', anisotropyRemap)
 
     convertAttr(inShd, 'specular_rotation', outNode, 'specular_rotation', rotationRemap)
@@ -205,6 +185,31 @@ def convertAiStandard(inShd):
 
     print "Converted %s to aiStandardSurface" % inShd
     return outNode
+
+
+def convertAiHair(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiStandardHair', name=aiName, asShader=True)
+    convertAttr(inShd, 'tipcolor', outNode, 'base_color') #not converting root_color here
+    convertAttr(inShd, 'Kd_ind', outNode, 'indirect_diffuse')
+    #convertAttr(inShd, 'spec', outNode, 'specular')
+    convertAttr(inShd, 'spec_color', outNode, 'specular_tint')
+    #convertAttr(inShd, 'spec2', outNode, 'specular2')
+    convertAttr(inShd, 'spec2_color', outNode, 'specular2_tint')
+    convertAttr(inShd, 'spec_gloss', outNode, 'roughness', glossRemap)
+    convertAttr(inShd, 'spec_shift', outNode, 'shift', shiftRemap)
+    convertAttr(inShd, 'transmission_color', outNode, 'transmission_tint')
+    convertAttr(inShd, 'opacity', outNode, 'opacity')
+
+    cmds.setAttr(outNode + '.melanin', 0)
+
+    print "Converted %s to aiStandardHair" % inShd
+    return outNode
+
         
 def anisotropyRemap(val):
     return 2 * abs(val -0.5)
@@ -224,6 +229,17 @@ def krnToIorRemap(val):
     val_A = math.sqrt(ior)
     return (val_A + 1.0) / (1.0 - val_A)
 
+def glossRemap(val):
+    val =math.pow(float(val), float(-0.355))
+    val *=  0.9928 
+    
+    if (val > 1):
+        return 1
+
+    return val
+
+def shiftRemap(val):
+    return 0.5 - (val/180.0)
 
 def convertAttr(inNode, inAttr, outNode, outAttr, functionPtr = None, secondaryAttrs = []):
 
@@ -283,11 +299,6 @@ def setValue(attr, value):
                         value = [(value, value, value)]
                         
                 cmds.setAttr(attr, *value[0], type=attrType)
-
-                
-            #else:
-            #    print 'cannot yet handle that data type!!'
-
 
         if isLocked:
             # restore the lock on the attr
