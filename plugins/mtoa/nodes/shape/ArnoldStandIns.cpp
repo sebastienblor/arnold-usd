@@ -56,6 +56,7 @@ MObject CArnoldStandInShape::s_frameNumber;
 MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
+MObject CArnoldStandInShape::s_overrideNodes;
 //MObject CArnoldStandInShape::s_deferStandinLoad;
 //MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
@@ -820,6 +821,13 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(s_data);
+
+   s_overrideNodes = nAttr.create("overrideNodes", "override_nodes",
+         MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_overrideNodes);
+
 
    /*s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
