@@ -95,15 +95,13 @@ def assignToNewShader(oldShd, newShd):
     shdGroups = cmds.listConnections(oldShd + '.outColor', plugs=True)
     
     #print 'shdGroup:', shdGroup
-    
-    for shdGroup in  shdGroups:
-        if replaceShaders:
+    if shdGroups != None:    
+        for shdGroup in  shdGroups:
             cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
-            cmds.delete(oldShd)
-        else:
-            cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
-        retVal =True
-        
+            retVal =True
+
+    if replaceShaders:
+        cmds.delete(oldShd)        
     return retVal
 
 
