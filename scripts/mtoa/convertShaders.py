@@ -183,6 +183,7 @@ def convertAiStandard(inShd):
     convertAttr(inShd, 'indirect_specular', outNode, 'indirect_specular')
     # exit_to_background => reflection_exit_use_environment || refraction_exit_use_environment
 
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera') # not multiplying by transmittance
     print "Converted %s to aiStandardSurface" % inShd
     return outNode
 
