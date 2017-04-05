@@ -451,9 +451,7 @@ def createArnoldMenu():
                     c=lambda *args: arnoldUpdateTx())                    
         pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     c=lambda *args: arnoldLightManager())
-
-
-        pm.menuItem('ArnoldConvertShaders', label='Convert Deprecated', parent='ArnoldMenu',
+        pm.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
                     c=lambda *args: arnoldConvertDeprecated())
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 

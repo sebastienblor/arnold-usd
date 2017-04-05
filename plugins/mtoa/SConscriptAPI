@@ -23,6 +23,7 @@ for subdir in ['attributes', 'common', 'extension', 'platform', 'utils', 'sessio
 
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
+                    os.path.join('nodes', 'shape', 'ArnoldProceduralNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardSurfaceNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardHairNode.cpp'),

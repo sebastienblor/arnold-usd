@@ -402,10 +402,19 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    unsigned int prevTrsNodes = TranslatedNodesCount();
    unsigned int prevTrsCount = TranslatorCount();
 
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL & ~AI_NODE_SHAPE);
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL /*& ~AI_NODE_SHAPE*/);
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+      if (AI_NODE_SHAPE == AiNodeEntryGetType(nentry))
+      { 
+         if (plugin.numChars() == 0) // builtin
+            continue; 
+         bool createProcedural;
+         if (!(AiMetaDataGetBool(nentry, NULL, "maya.procedural", &createProcedural) && createProcedural))
+            continue;
+
+      }
       MString nodeName = AiNodeEntryGetName(nentry);
       /*if (nodeName == "driver_deepexr")
          continue;*/
@@ -577,7 +586,10 @@ MStatus CExtensionImpl::RegisterNode(CPxMayaNode &mayaNode,
       // we're creating (and mapping)
       status = NewMappedMayaNode(mayaNode, arnoldNode);
    }
-   else
+   else if (mayaNode.name == "defaultColorMgtGlobals")
+   {
+      return MS::kSuccess;
+   } else
    {
       // No error or warning message, because there are many Arnold nodes that are not meant to be associated
       status = MStatus::kNotImplemented;

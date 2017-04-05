@@ -6,6 +6,7 @@
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
+#include "nodes/shape/ArnoldProceduralNode.h"
 #include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
@@ -224,6 +225,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "shape")
       {
+         bool createProcedural = false;
+         if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.procedural", &createProcedural) && createProcedural)
+         {
+            creator    = CArnoldProceduralNode::creator;
+            initialize = CArnoldProceduralNode::initialize;
+            abstract   = &CArnoldProceduralNode::s_abstract;
+         }
+
          // TODO : can be expanded to allow base custom shape too
          // can easily add this to CPxMayaNode
          // MCreatorFunction     uiCreatorFunction,
