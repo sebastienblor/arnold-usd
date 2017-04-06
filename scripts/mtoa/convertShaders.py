@@ -108,6 +108,7 @@ def assignToNewShader(oldShd, newShd):
 def setupConnections(inShd, fromAttr, outShd, toAttr):
     conns = cmds.listConnections( inShd + '.' + fromAttr, d=False, s=True, plugs=True )
     if conns:
+        print 'has connections'
         cmds.connectAttr(conns[0], outShd + '.' + toAttr, force=True)
         return True
 
@@ -127,12 +128,12 @@ def convertAiStandard(inShd):
     
 
     convertAttr(inShd, 'Kd', outNode, 'base')
-    convertAttr(inShd, 'Kd_color', outNode, 'base_color')
-    convertAttr(inShd, 'diffuse_roughness', outNode, 'diffuse_roughness')
+    convertAttr(inShd, 'color', outNode, 'baseColor')
+    convertAttr(inShd, 'diffuseRoughness', outNode, 'diffuseRoughness')
 
     convertAttr(inShd, 'Ks', outNode, 'specular')
-    convertAttr(inShd, 'Ks_color', outNode, 'specular_color')
-    convertAttr(inShd, 'specular_roughness', outNode, 'specular_roughness')
+    convertAttr(inShd, 'KsColor', outNode, 'specularColor')
+    convertAttr(inShd, 'specularRoughness', outNode, 'specularRoughness')
 
     fresnel = cmds.getAttr(inShd + '.Fresnel')
     fresnel_use_ior = cmds.getAttr(inShd + '.Fresnel_use_IOR')
@@ -150,29 +151,29 @@ def convertAiStandard(inShd):
         else:
             convertAttr(inShd, 'Ksn', outNode, 'coat_IOR', krnToIorRemap)
 
-    convertAttr(inShd, 'specular_anisotropy', outNode, 'specular_anisotropy', anisotropyRemap)
+    convertAttr(inShd, 'specularAnisotropy', outNode, 'specularAnisotropy', anisotropyRemap)
 
-    convertAttr(inShd, 'specular_rotation', outNode, 'specular_rotation', rotationRemap)
+    convertAttr(inShd, 'specularRotation', outNode, 'specularRotation', rotationRemap)
     convertAttr(inShd, 'Kt', outNode, 'transmission')
 
-    convertAttr(inShd, 'Kt_color', outNode, 'transmission_color') # not multiplying by transmittance
+    convertAttr(inShd, 'KtColor', outNode, 'transmissionColor') # not multiplying by transmittance
 
     # transmission_depth => (transmittance == AI_RGB_WHITE) ? 0.0 : 1.0
-    convertAttr(inShd, 'dispersion_abbe', outNode, 'transmission_dispersion') # not multiplying by transmittance    
+    convertAttr(inShd, 'dispersionAbbe', outNode, 'transmissionDispersion') # not multiplying by transmittance    
 
     # transmission_extra_roughness => refraction_roughness - specular_roughness    
 
     convertAttr(inShd, 'Ksss', outNode, 'subsurface')
-    convertAttr(inShd, 'Ksss_color', outNode, 'subsurface_color')
-    convertAttr(inShd, 'sss_radius', outNode, 'subsurface_radius')
+    convertAttr(inShd, 'KsssColor', outNode, 'subsurfaceColor')
+    convertAttr(inShd, 'sssRadius', outNode, 'subsurfaceRadius')
 
     convertAttr(inShd, 'Kr', outNode, 'coat')
-    convertAttr(inShd, 'Kr_color', outNode, 'coat_color')
+    convertAttr(inShd, 'KrColor', outNode, 'coatColor')
     cmds.setAttr(outNode + '.coat_roughness', 0)
 
 
     convertAttr(inShd, 'emission', outNode, 'emission')
-    convertAttr(inShd, 'emission_color', outNode, 'emission_color')
+    convertAttr(inShd, 'emissionColor', outNode, 'emissionColor')
     convertAttr(inShd, 'opacity', outNode, 'opacity')
 
     # caustics => enable_glossy_caustics || enable_reflective_caustics || enable_refractive_caustics
@@ -194,13 +195,13 @@ def convertAiHair(inShd):
     
     outNode = cmds.shadingNode('aiStandardHair', name=aiName, asShader=True)
     convertAttr(inShd, 'tipcolor', outNode, 'base_color') #not converting root_color here
-    convertAttr(inShd, 'Kd_ind', outNode, 'indirect_diffuse')
+    convertAttr(inShd, 'KdInd', outNode, 'indirect_diffuse')
     #convertAttr(inShd, 'spec', outNode, 'specular')
-    convertAttr(inShd, 'spec_color', outNode, 'specular_tint')
+    convertAttr(inShd, 'specColor', outNode, 'specular_tint')
     #convertAttr(inShd, 'spec2', outNode, 'specular2')
-    convertAttr(inShd, 'spec2_color', outNode, 'specular2_tint')
-    convertAttr(inShd, 'spec_gloss', outNode, 'roughness', glossRemap)
-    convertAttr(inShd, 'spec_shift', outNode, 'shift', shiftRemap)
+    convertAttr(inShd, 'spec2Color', outNode, 'specular2_tint')
+    convertAttr(inShd, 'specGloss', outNode, 'roughness', glossRemap)
+    convertAttr(inShd, 'specShift', outNode, 'shift', shiftRemap)
     convertAttr(inShd, 'transmission_color', outNode, 'transmission_tint')
     convertAttr(inShd, 'opacity', outNode, 'opacity')
 
@@ -240,7 +241,7 @@ def glossRemap(val):
 def shiftRemap(val):
     return 0.5 - (val/180.0)
 
-def convertAttr(inNode, inAttr, outNode, outAttr, functionPtr = None, secondaryAttrs = []):
+def convertAttr(inNode, inAttr, outNode, outAttr, functionPtr = None):
 
     if cmds.objExists(inNode + '.' + inAttr):
         #print '\t', inAttr, ' -> ', outAttr
@@ -249,16 +250,36 @@ def convertAttr(inNode, inAttr, outNode, outAttr, functionPtr = None, secondaryA
             # copy the values
             val = cmds.getAttr(inNode + '.' + inAttr)
             if functionPtr:
-                if len(secondaryAttrs) == 0:
-                    val = functionPtr(val)
-                else:
-                    secondaryVals = []
-                    for secondaryAttr in secondaryAttrs:
-                        secondaryVal = cmds.getAttr(inNode + '.' + secondaryAttr)
-                        val.append
-                
+                val = functionPtr(val)
                 
             setValue(outNode + '.' + outAttr, val)
+
+            attrType = cmds.getAttr(inNode + '.' + inAttr, type=True)
+            if attrType in ['float3']:
+                subAttr = inAttr + '.' + inAttr + 'R'
+                if cmds.objExists(inNode + '.' + subAttr):
+                    setupConnections(inNode, subAttr, outNode, outAttr + '.' + outAttr + 'R')
+
+                subAttr = inAttr + '.' + inAttr + 'G'
+                if cmds.objExists(inNode + '.' + subAttr):
+                    setupConnections(inNode, subAttr, outNode, outAttr + '.' + outAttr + 'G')
+
+                subAttr = inAttr + '.' + inAttr + 'B'
+                if cmds.objExists(inNode + '.' + subAttr):
+                    setupConnections(inNode, subAttr, outNode, outAttr + '.' + outAttr + 'B')
+
+                subAttr = inAttr + 'X'
+                if cmds.objExists(inNode + '.' + subAttr):
+                    setupConnections(inNode, subAttr, outNode, outAttr + 'X')
+
+                subAttr = inAttr + 'Y'
+                if cmds.objExists(inNode + '.' + subAttr):
+                    setupConnections(inNode, subAttr, outNode, outAttr + 'Y')
+
+                subAttr = inAttr + 'Z'
+                if cmds.objExists(inNode + '.' + subAttr):
+                    setupConnections(inNode, subAttr, outNode, outAttr + 'Z')
+
 
 
 def setValue(attr, value):
@@ -269,8 +290,9 @@ def setValue(attr, value):
     """
 
     aType = None
-
+    
     if cmds.objExists(attr):
+        attrType = cmds.getAttr(attr, type=True)
         # temporarily unlock the attribute
         isLocked = cmds.getAttr(attr, lock=True)
         if isLocked:
