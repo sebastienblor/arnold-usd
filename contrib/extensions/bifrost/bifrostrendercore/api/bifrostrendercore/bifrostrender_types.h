@@ -425,6 +425,7 @@ struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
 	float velocityScale;
 	float fps;
 	float spaceScale;  // 4 params
+    bool exportUVs;
 
 	CullSidesParams cullSides; // 8 params
 
