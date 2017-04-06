@@ -1446,6 +1446,8 @@
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
     maya.classification     STRING  "texture"
+    [attr filename]
+        maya.usedAsFilename BOOL    true     
     [attr multiply]
         linkable            BOOL    true
         maya.channelbox     BOOL    true

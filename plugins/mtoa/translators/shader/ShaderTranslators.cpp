@@ -1686,6 +1686,9 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.name = "ignoreColorSpaceFileRules";
    data.shortName = "ifr";
    helper.MakeInputBoolean(data);
+
+   // This registers the flename attribute so that it appears in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
 }
 
 

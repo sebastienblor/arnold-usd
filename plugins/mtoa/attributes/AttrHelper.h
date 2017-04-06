@@ -65,6 +65,8 @@ struct CAttrData
    MStringArray enums;
    bool         linkable;
    bool         channelBox;
+   bool         usedAsFilename;
+
    CAttrData() :  name(""),
                   shortName(""),
                   stringDefault(""),
@@ -76,7 +78,8 @@ struct CAttrData
                   hasSoftMax(false),
                   keyable(true),
                   linkable(true),
-                  channelBox(false)
+                  channelBox(false),
+                  usedAsFilename(false)
    {
       memset(&defaultValue, 0, sizeof(AtParamValue));
    }
