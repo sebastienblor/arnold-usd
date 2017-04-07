@@ -44,6 +44,8 @@ try:
     from maya.app.renderSetup.model.selection import Selection
     import maya.app.renderSetup.model.undo as undo
     import maya.app.renderSetup.model.utils as renderSetupUtils
+    import maya.app.renderSetup.model.sceneObservable as sceneObservable
+
     from mtoa.aovs import AOVInterface
     import mtoa.core as core
     import mtoa.ui.aoveditor as aoveditor
@@ -79,6 +81,7 @@ try:
             return attrs
 
         def decode(self, encodedData):
+            self.AOVDefaultValuesNotImported = []
             nodes = {} # Avoid creating several time the same node
             for (key, value) in encodedData.items():
                 (nodeName, attrName) = plug.Plug.getNames(key)
@@ -103,6 +106,8 @@ try:
                     else:
                         if self._isAOVDefaultValue(nodeName, plg):
                             renderSetupUtils.connect(plug.Plug(value).plug, plg.plug)
+                            if not plg.plug.isConnected:
+                                self.AOVDefaultValuesNotImported.append((value, plg.plug.name()))
                         else:
                             plg.value = value
 
@@ -212,6 +217,11 @@ try:
         DEFAULT_ARNOLD_DRIVER_NAME = "defaultArnoldDriver"
         DEFAULT_ARNOLD_FILTER_NAME = "defaultArnoldFilter"
     
+        def __init__(self):
+            super(rendererCallbacks.AOVCallbacks, self).__init__()
+            self.AOVDefaultValuesNotImported = []
+            self.sceneObservableRegistered = False
+
         def encode(self):
             aovsJSON = {}
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
@@ -268,7 +278,25 @@ try:
             aovsJSON["drivers"] = drivers
             aovsJSON["outputs"] = outputs
             return aovsJSON
-         
+
+        def _nodeAddedCB(self, obj):
+            if renderSetupUtils.isShadingNode(obj):
+                indexToDelete = -1
+                for i, (src, dst) in enumerate(self.AOVDefaultValuesNotImported):
+                    fn = OpenMaya.MFnDependencyNode(obj)
+                    srcComponents = src.split('.')
+                    if srcComponents[0] == fn.name() and fn.hasAttribute(srcComponents[1]):
+                        dstPlug = plug.Plug(dst).plug
+                        renderSetupUtils.connect(plug.Plug(src).plug, dstPlug)
+                        if dstPlug.isConnected:
+                            indexToDelete = i
+                            break
+                if indexToDelete >= 0:
+                    self.AOVDefaultValuesNotImported.pop(indexToDelete)
+                if len(self.AOVDefaultValuesNotImported) == 0:
+                    sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
+                    self.sceneObservableRegistered = False
+
         def decode(self, aovsJSON, decodeType):
             
             core.createOptions()
@@ -325,6 +353,11 @@ try:
             for aov in aovs:
                 for aovName, aovJSON in aov.iteritems():
                     arnoldNodeExporter.decode(aovJSON)
+                    self.AOVDefaultValuesNotImported.extend(arnoldNodeExporter.AOVDefaultValuesNotImported)
+            # Should we start listening on node creation?
+            if len(self.AOVDefaultValuesNotImported) > 0 and not self.sceneObservableRegistered:
+                sceneObservable.instance().register(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
+                self.sceneObservableRegistered = True
 
             # Iterate over our filters/drivers and decode them
             for outputType, outputNewNameMap in ["filters", filterNewNameMap], ["drivers", driverNewNameMap]:
