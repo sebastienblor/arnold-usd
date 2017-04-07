@@ -1974,26 +1974,23 @@ void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& , const B
 			for (int ii = 0; ii < dim.tileWidth * c_frameData->sampleRate; ii++) {
 				float gridVals[8];
 
-				// calc the corner pos of this subvoxel in tile space
-				amino::Math::vec3f voxelCornerPos ( (float) coord.i + (float) ii / sampleRate,
-													(float) coord.j + (float) jj / sampleRate,
-													(float) coord.k + (float) kk / sampleRate );
+                // corner in scaled tile space
+                amino::Math::vec3i cornerPos(coord.i*sampleRate + ii, coord.j*sampleRate + jj, coord.k*sampleRate + kk);
 
 				// get grid values at the corners of this voxel
 				for ( size_t i = 0; i < 8; i++ ) {
-					// operate in tile space here
-					amino::Math::vec3f corner(	c_mesher->c_cubeVertsSampleRate[i][0],
-												c_mesher->c_cubeVertsSampleRate[i][1],
-												c_mesher->c_cubeVertsSampleRate[i][2] );
+                    // operate in scaled tile space here
+                    amino::Math::vec3i corner(c_mesher->c_cubeVerts[i][0], c_mesher->c_cubeVerts[i][1], c_mesher->c_cubeVerts[i][2] );
 
-					// calc sampling position
-					amino::Math::vec3f voxelPos = voxelCornerPos + corner + c_mesher->c_voxelOffset;
-							
-					gridVals[i] = c_mesher->getFieldValue( voxelPos );
+                    // calc voxel pos in scaled tile space
+                    amino::Math::vec3i voxelPos = cornerPos + corner;
+                    amino::Math::vec3f tileSpacePos((float)voxelPos[0]/sampleRate, (float)voxelPos[1]/sampleRate, (float)voxelPos[2]/sampleRate);
+
+                    gridVals[i] = c_mesher->getFieldValue( tileSpacePos );
 				}
 
 				// run voxel mesher
-				vertexCount += c_mesher->calcVoxel( gridVals, voxelCornerPos );
+                vertexCount += c_mesher->calcVoxel( gridVals, cornerPos );
 			}
 		}
 	}
