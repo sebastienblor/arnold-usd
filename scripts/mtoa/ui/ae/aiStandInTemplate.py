@@ -911,6 +911,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
+        self.addControl('overrideNodes')
         
 #        self.addSeparator()
         #self.addControl('deferStandinLoad', label='Defer StandIn Load', changeCommand=deferStandinLoadChange)

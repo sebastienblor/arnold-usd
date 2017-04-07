@@ -35,7 +35,8 @@ public:
 
    static CExtension* LoadArnoldPlugin(const MString &file,
                                        const MString &path=PLUGIN_SEARCH,
-                                       MStatus *returnStatus=NULL);
+                                       MStatus *returnStatus=NULL,
+                                       bool registerOnly=false);
    static MStatus LoadArnoldPlugins(const MString &path=PLUGIN_SEARCH);
    static CExtension* LoadExtension(const MString &file,
                                     const MString &path=EXTENSION_SEARCH,

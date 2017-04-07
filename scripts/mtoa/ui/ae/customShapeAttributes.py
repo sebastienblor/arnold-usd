@@ -107,7 +107,7 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl('dso', label='Path')
         self.addControl('data', label='Data')
-        self.addControl('deferStandinLoad', label='Defer Procedural Load')
+#        self.addControl('deferStandinLoad', label='Defer Procedural Load')
         self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")

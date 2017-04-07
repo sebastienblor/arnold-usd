@@ -312,6 +312,10 @@ def createArnoldRenderSettings():
                         label='Expand Procedurals',
                         attribute='defaultArnoldRenderOptions.expandProcedurals')
 
+    pm.attrControlGrp('os_exportAllShadingGroups',
+                        label='Export All Shading Groups',
+                        attribute='defaultArnoldRenderOptions.exportAllShadingGroups')
+
     pm.separator()
 
     enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2

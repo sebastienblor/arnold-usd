@@ -101,6 +101,8 @@ private:
    static MObject s_useSubFrame;
    static MObject s_frameOffset;
    static MObject s_data;
+   static MObject s_overrideNodes;
+   
    //static MObject s_deferStandinLoad;
    static MObject s_scale;
    static MObject s_boundingBoxMin;

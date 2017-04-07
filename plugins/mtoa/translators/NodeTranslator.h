@@ -98,6 +98,8 @@ protected:
    */
    virtual void ExportMotion(AtNode* node) {};
 
+   virtual void PostExport(AtNode *node) {}
+
 public:
    /** Determine if this node requires motion data
 

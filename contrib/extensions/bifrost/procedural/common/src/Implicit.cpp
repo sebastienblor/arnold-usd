@@ -86,6 +86,13 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterBool("motionBlur", true);
     AiParameterFlt("shutterStart" , 0);
     AiParameterFlt("shutterEnd", 1);
+
+    AiParameterBool("exportUVs", 0);
+    AiParameterArray("disp_map", AiArrayAllocate(0, 1, AI_TYPE_NODE));
+    AiParameterFlt("disp_padding", 0);
+    AiParameterFlt("disp_height", 1);
+    AiParameterFlt("disp_zero_value", 0);
+    AiParameterBool("disp_autobump", false);
 }
 
 bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
@@ -157,6 +164,7 @@ bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
     inData->infCube.channelName = StringToChar(AiNodeGetStr(node, "infiniteSurfaceBlendingChannel"));
     inData->primVarNames = StringToChar(AiNodeGetStr(node, "primVarNames"));
     inData->bifrostObjectName = StringToChar(AiNodeGetStr(node, "bifrostObjectName"));
+    inData->exportUVs = AiNodeGetBool( node, "exportUVs" );
 
     // arnold specific parameters
     inData->motionBlur = AiNodeGetBool( node, "motionBlur" );
@@ -314,6 +322,12 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
                             IMPLICITSURFACE,
                             inData->diagnostics,
                             getASSData );
+
+    if(inData->exportUVs){
+        frameData->uvNeeded = true;
+        frameData->loadChannelNames.addUnique("uv");
+        frameData->primVarNames.addUnique("uv");
+    }
 
     frameData->tmpFolder = tmpFolder;
 

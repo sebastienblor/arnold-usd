@@ -755,6 +755,26 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       AiMsgError("[mtoa] Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
+
+   // Eventually export all shading groups
+   if (m_sessionOptions.GetExportAllShadingGroups())
+   {
+      MStringArray shadingGroups;
+      if (exportSelected)
+         MGlobal::executeCommand("ls -sl -typ shadingEngine", shadingGroups); // get selected shading groups and export them
+      else
+         MGlobal::executeCommand("ls -typ shadingEngine", shadingGroups); // get all shading groups in the scene and export them
+      
+      for (unsigned int shg = 0; shg < shadingGroups.length(); ++shg)
+      {
+         MSelectionList shgElem;
+         shgElem.add(shadingGroups[shg]);
+         MPlug shgPlug;
+         shgElem.getPlug(0, shgPlug);
+         ExportNode(shgPlug);
+      }
+   }
+
    // The list of processedTranslators can grow while we call doExport a few lines below.
    // So we can't call doExport while iterating over them.
    // Thus we first store the list of translators to process.
@@ -787,7 +807,13 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    std::vector<CNodeTranslator*>::iterator trIt = translatorsToExport.begin();
    std::vector<CNodeTranslator*>::iterator trItEnd = translatorsToExport.end();
    for ( ; trIt != trItEnd; ++trIt)
+   {
+      // actual export
       (*trIt)->m_impl->DoExport();
+      
+      if (!mb)
+         (*trIt)->PostExport((*trIt)->m_impl->m_atNode); // post export if no motion blur
+   }
    
    if (mb)
    {
@@ -825,6 +851,13 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
             (*trIt)->m_impl->DoExport();
    
       }
+
+      // invoke post export callback. 
+      // FIXME should we set anim_arrays here too ? (as in DoUpdate)
+      for (trIt = translatorsToExport.begin(); trIt != trItEnd; ++trIt)
+         (*trIt)->PostExport((*trIt)->m_impl->m_atNode);
+
+
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
       // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSession::End() 
       // (see tickets #418 and #444)
@@ -1693,7 +1726,13 @@ UPDATE_BEGIN:
          iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->m_impl->DoUpdate();
+         if (translator == NULL)
+            continue;
+
+         translator->m_impl->DoUpdate();
+         if (!exportMotion)
+            translator->PostExport(translator->m_impl->m_atNode);
+
       }
    }
 
@@ -1773,8 +1812,8 @@ UPDATE_BEGIN:
          }
       }      
 
-      // one last loop over the modified translators to verify if their motion arrays are actually
-      // animated or not
+      // one last loop over the modified translators to call post-export callback. Also verify if their 
+      // motion arrays are actually animated or not
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
              iter != translatorsToUpdate.end(); ++iter)
       {
@@ -1782,6 +1821,10 @@ UPDATE_BEGIN:
          if (translator == NULL)
             continue;
 
+         // invoke post export callback
+         translator->PostExport(translator->m_impl->m_atNode);
+
+         // check if it has animated arrays
          translator->m_impl->m_animArrays = translator->m_impl->HasAnimatedArrays();
       }
 

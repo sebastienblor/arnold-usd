@@ -163,6 +163,7 @@
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
+        default             INT     8
         linkable            BOOL    false
         maya.orig_shortname STRING  "GI_rrd"
     [attr GI_volume_depth]
@@ -858,10 +859,10 @@
     [attr rotate]
         min                 FLOAT   0.0
         max                 FLOAT   360.0
-    [attr scale_s]
+    [attr sscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
-    [attr scale_t]
+    [attr tscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
 
@@ -1444,6 +1445,8 @@
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
     maya.classification     STRING  "texture"
+    [attr filename]
+        maya.usedAsFilename BOOL    true     
     [attr multiply]
         linkable            BOOL    true
         maya.channelbox     BOOL    true

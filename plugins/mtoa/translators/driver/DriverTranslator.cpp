@@ -45,6 +45,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
    name += driverType;
    AiNodeSetStr(created, "name", name.c_str());
 
+   m_baseName = name;
    return created;
 }
 
@@ -149,3 +150,90 @@ void CDriverTranslator::AddUpdateCallbacks()
 {
 }
 
+AtNode *CDriverTranslator::GetChildDriver(const std::string &token)
+{
+   AtNode *parentDriver = GetArnoldNode();
+   AtNode *childDriver = GetArnoldNode(token.c_str());
+   if(childDriver == NULL)
+   {
+      const char* driverType = m_impl->m_abstract.arnold.asChar();
+      childDriver = AddArnoldNode(driverType, token.c_str());
+   }
+
+   const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(childDriver);
+
+   static AtString s_filenameStr("filename");
+   // Now need to copy all parameters
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      AtString paramName(AiParamGetName(paramEntry));
+      if (paramName == s_filenameStr)
+         continue;
+
+      switch(AiParamGetType(paramEntry))
+      {
+         case AI_TYPE_BYTE:
+            AiNodeSetByte(childDriver, paramName, AiNodeGetByte(parentDriver, paramName));
+            break;
+         case AI_TYPE_ENUM:
+         case AI_TYPE_INT:
+            AiNodeSetInt(childDriver, paramName, AiNodeGetInt(parentDriver, paramName));
+            break;
+         case AI_TYPE_UINT:
+            AiNodeSetUInt(childDriver, paramName, AiNodeGetUInt(parentDriver, paramName));
+            break;
+         case AI_TYPE_BOOLEAN:
+            AiNodeSetBool(childDriver, paramName, AiNodeGetBool(parentDriver, paramName));
+            break;
+         case AI_TYPE_FLOAT:
+            AiNodeSetFlt(childDriver, paramName, AiNodeGetFlt(parentDriver, paramName));
+            break;
+         {
+         case AI_TYPE_RGB:
+            AtRGB col = AiNodeGetRGB(parentDriver, paramName);
+            AiNodeSetRGB(childDriver, paramName, col.r, col.g, col.b);
+            break;
+         }
+         {
+         case AI_TYPE_RGBA:
+            AtRGBA col = AiNodeGetRGBA(parentDriver, paramName);
+            AiNodeSetRGBA(childDriver, paramName, col.r, col.g, col.b, col.a);
+            break;
+         }
+         {
+         case AI_TYPE_VECTOR:
+            AtVector vec = AiNodeGetVec(parentDriver, paramName);
+            AiNodeSetVec(childDriver, paramName, vec.x, vec.y, vec.z);
+            break;
+         }
+         {
+         case AI_TYPE_VECTOR2:
+            AtVector2 vec = AiNodeGetVec2(parentDriver, paramName);
+            AiNodeSetVec2(childDriver, paramName, vec.x, vec.y);
+            break;
+         }
+         case AI_TYPE_STRING:
+            AiNodeSetStr(childDriver, paramName, AiNodeGetStr(parentDriver, paramName));
+            break;
+         case AI_TYPE_MATRIX:
+            AiNodeSetMatrix(childDriver, paramName, AiNodeGetMatrix(parentDriver, paramName));
+            break;
+         case AI_TYPE_POINTER:
+         case AI_TYPE_NODE:
+            AiNodeSetPtr(childDriver, paramName, AiNodeGetPtr(parentDriver, paramName));
+            break;         
+         case AI_TYPE_ARRAY:
+            AiNodeSetArray(childDriver, paramName, AiArrayCopy(AiNodeGetArray(parentDriver, paramName)));
+            break;
+         default:
+            break;
+
+
+
+      }     
+   }
+   AiParamIteratorDestroy(nodeParam);
+   return childDriver;
+}

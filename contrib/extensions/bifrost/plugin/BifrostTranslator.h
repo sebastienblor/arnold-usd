@@ -42,6 +42,7 @@ class BifrostTranslator : public CShapeTranslator
 	private:
 
 		virtual void ExportBifrostShader();
+        virtual void ExportDisplacement();
    
 		RenderType c_renderType;
 		BIFType c_bifType;

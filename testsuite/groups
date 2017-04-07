@@ -35,7 +35,7 @@ ignore_windows:
 ignore_linux: test_0008 test_0028 test_0030 test_0064 test_0080 test_0081 test_0083 test_0084 test_0133 test_0137 test_0158
 ignore_darwin:
 
-gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160 test_0189
+gui: test_0143 test_0153 test_0154 test_0155 test_0156 test_0157 test_0160 test_0189 test_0199
 # ignored because they produce no image
 
 ############################

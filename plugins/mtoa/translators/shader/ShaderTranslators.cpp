@@ -1686,6 +1686,9 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.name = "ignoreColorSpaceFileRules";
    data.shortName = "ifr";
    helper.MakeInputBoolean(data);
+
+   // This registers the flename attribute so that it appears in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
 }
 
 
@@ -1943,7 +1946,7 @@ AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
    MFnDependencyNode dnode(GetMayaObject());
    MPlug inputPlug = dnode.findPlug("beauty");
 
-   bool isRGBA = false;
+   bool isClosure = false;
    if (!inputPlug.isNull())
    {
       MPlugArray conns;
@@ -1952,16 +1955,16 @@ AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
       {
          // export the connected node
          AtNode *node = ExportConnectedNode(conns[0]);
-         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) != AI_TYPE_CLOSURE)
-            isRGBA = true;
+         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) == AI_TYPE_CLOSURE)
+            isClosure = true;
             
       }
    }
 
-   if (isRGBA)
-      return AddArnoldNode("writeColor");
-   
-   return AddArnoldNode("aov_write_rgb");
+   if (isClosure)
+      return AddArnoldNode("aov_write_rgb");
+
+   return AddArnoldNode("writeColor");
 }
 
 void CAiAovWriteColorTranslator::Export(AtNode* shader)

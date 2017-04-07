@@ -105,10 +105,26 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
     AtArray *vertexArray = AiArrayAllocate( (uint32_t) polyCount * 3, 1, AI_TYPE_UINT );
 
     AtArray *normalArray = NULL;
-    AtArray *vertexNormalArray = NULL;
     if ( frameData->exportNormals ) {
         normalArray = AiArrayAllocate( (uint32_t) vertexCount, frameData->motionBlur ? 2 : 1, AI_TYPE_VECTOR );
-        vertexNormalArray = AiArrayAllocate( (uint32_t) polyCount * 3, 1, AI_TYPE_UINT );
+    }
+
+    AtArray *uvArray = NULL;
+    float *uData = NULL, *vData = NULL;
+    if ( frameData->uvNeeded ){
+        // export primvars too
+        for ( unsigned int i = 0 ; i < frameData->primVars.size(); i++ ) { // TODO: shouldn't need to do linear search
+            const primVarInfo& info = frameData->primVars[i];
+            if ( !info.exportToRIB ) continue;
+            if ( info.name == "u1" ) uData = (float*)ptr[info.exportArraysIndex];
+            if ( info.name == "v1" ) vData = (float*)ptr[info.exportArraysIndex];
+        }
+        if(uData != NULL && vData != NULL){
+            uvArray = AiArrayAllocate( (uint32_t) vertexCount, 1, AI_TYPE_VECTOR2 );
+        }else{
+            AiMsgWarning("[bifrost polymesh] Failed UV export (could not find channels...)");
+            frameData->uvNeeded = false;
+        }
     }
 
     // get vertex data and convert to Arnold - BAD
@@ -121,6 +137,9 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
         if ( frameData->exportNormals ) {
             AtVector tmpNormal = AtVector ( normal[index], normal[index + 1], normal[index + 2] );
             AiArraySetVec( normalArray, i, tmpNormal );
+        }
+        if( frameData->uvNeeded ){
+            AiArraySetVec2( uvArray, i, AtVector2( uData[i], vData[i] ) );
         }
 
         if ( frameData->motionBlur ) {
@@ -142,22 +161,19 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
         AiArraySetUInt( vertexArray, index, vertices[index] );
         AiArraySetUInt( vertexArray, index + 1, vertices[index + 1] );
         AiArraySetUInt( vertexArray, index + 2, vertices[index + 2] );
-
-        if ( frameData->exportNormals ) {
-            AiArraySetUInt( vertexNormalArray, index, vertices[index] );
-            AiArraySetUInt( vertexNormalArray, index + 1, vertices[index + 1] );
-            AiArraySetUInt( vertexNormalArray, index + 2, vertices[index + 2] );
-        }
     }
 
     AiNodeSetArray( polymesh, "vlist", posArray );
-    if ( frameData->exportNormals ) {
-        AiNodeSetArray( polymesh, "nlist", normalArray );
-    }
     AiNodeSetArray( polymesh, "nsides", nSidesArray );
     AiNodeSetArray( polymesh, "vidxs", vertexArray );
+
     if ( frameData->exportNormals ) {
-        AiNodeSetArray( polymesh, "nidxs", vertexNormalArray );
+        AiNodeSetArray( polymesh, "nlist", normalArray );
+        AiNodeSetArray( polymesh, "nidxs", AiArrayCopy(vertexArray) );
+    }
+    if ( frameData->uvNeeded ){
+        AiNodeSetArray( polymesh, "uvlist", uvArray );
+        AiNodeSetArray( polymesh, "uvidxs", AiArrayCopy(vertexArray) );
     }
 
     // export primvars too
@@ -228,6 +244,8 @@ procedural_init
     inData.mesherAlgo = MESH_MARCHINGCUBES; // the only one available
     inData.sampleRate = AiNodeGetInt(node, "tesselation");
     getNodeParameters(&inData, node);
+    AtArray* displacements = AiNodeGetArray(node, "disp_map");
+    inData.exportUVs = inData.exportUVs || AiArrayGetNumElements(displacements) > 0;
 
     if(!InitializeImplicit(&inData, &frameData, &bounds)){
         if(frameData.empty){ return true; } // ok to have empty sim, but don't translate
@@ -239,6 +257,13 @@ procedural_init
        return false;
     }
     AtNode* polymesh = inData.error? NULL : ProcSubdivide(&inData, &frameData);
+    if(polymesh){ // transfer diplacement attributes
+        AiNodeSetArray(polymesh, "disp_map", AiArrayCopy(displacements));
+        AiNodeSetFlt(polymesh, "disp_padding", AiNodeGetFlt(node, "disp_padding"));
+        AiNodeSetFlt(polymesh, "disp_height", AiNodeGetFlt(node, "disp_height"));
+        AiNodeSetFlt(polymesh, "disp_zero_value", AiNodeGetFlt(node, "disp_zero_value"));
+        AiNodeSetBool(polymesh, "disp_autobump", AiNodeGetBool(node, "disp_autobump"));
+    }
     *user_ptr = polymesh;
 
     if(!frameData.tmpFolder.empty()){

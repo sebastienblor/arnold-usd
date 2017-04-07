@@ -267,6 +267,9 @@ node_parameters
    AiParameterInt("grid_size", 16);
    AiParameterFlt("u_offset", 0.0f);
    AiParameterFlt("v_offset", 0.0f);
+
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "cameraUvMapper");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiCameraUvMapper");
 }
 
 struct CameraUvMapperData{

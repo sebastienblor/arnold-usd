@@ -16,6 +16,7 @@ enum UserDataVec2Params
 
 node_parameters
 {
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataVec2");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataVec2");
    AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USER_DATA_VEC2);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");

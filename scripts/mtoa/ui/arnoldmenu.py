@@ -9,6 +9,7 @@ import mtoa.lightManager
 import mtoa.renderToTexture
 import arnold as ai
 import pymel.versions as versions
+import mtoa.convertShaders
 
 from uuid import getnode as get_mac
 import os
@@ -330,6 +331,9 @@ def arnoldUpdateTx():
     core.createOptions()
     cmds.arnoldUpdateTx()
     
+def arnoldConvertDeprecated():
+    mtoa.convertShaders.convertArnoldShaders()
+
     
 def arnoldLightManager():
     win = mtoa.lightManager.MtoALightManager()
@@ -447,6 +451,8 @@ def createArnoldMenu():
                     c=lambda *args: arnoldUpdateTx())                    
         pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     c=lambda *args: arnoldLightManager())
+        pm.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldConvertDeprecated())
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)

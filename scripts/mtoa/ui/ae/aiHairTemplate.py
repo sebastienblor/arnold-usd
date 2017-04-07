@@ -1,10 +1,31 @@
 import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import maya.cmds as cmds
+import mtoa.convertShaders as convertShaders
 
 class AEaiHairTemplate(ShaderAETemplate):
+
+    def convertToStandardHair(self, nodeName):
+        convertShaders.doMapping(nodeName)
+    
+
+    def convertShaderNew(self, nodeName):
+        tokens = nodeName.split('.')
+        nodeName = tokens[0]        
+        #cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
+        cmds.button('aiHairConvertShaderButton',  label='Convert To New Shader', command=pm.Callback(self.convertToStandardHair, nodeName))
+        #cmds.setParent( '..' )
+   
+    def convertShaderReplace(self, nodeName):
+        tokens = nodeName.split('.')
+        nodeName = tokens[0]
+        cmds.button('aiHairConvertShaderButton',  edit=True, command=pm.Callback(self.convertToStandardHair, nodeName))
+        
+
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
+        self.addCustom('convert_shader', self.convertShaderNew, self.convertShaderReplace)
         
         #self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 

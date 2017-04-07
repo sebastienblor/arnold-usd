@@ -33,6 +33,8 @@ node_parameters
    AiParameterVec2("input", 0, 0);
    AiParameterEnum("component", CH_X, enum_component);
 
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "point2ToFloat");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiPoint2ToFloat");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 

@@ -97,6 +97,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("renderData", label="Render Components")
         self.addControl("distanceChannel")
         self.addControl("liquidPrimVars", label="Export Channels")
+        self.addControl("exportUVs", label="Export UVs");
         self.addControl("liquidVelocityScale", label="Velocity Scale")
         self.addControl("liquidSpaceScale", label="Space Scale") # why????
         self.endLayout() # LiquidGlobals

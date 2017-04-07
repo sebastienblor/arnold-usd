@@ -279,7 +279,7 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
 
-    if env['MODE'] != 'debug' :    
+    if system.os() == 'linux' or env['MODE'] != 'debug' :    
         env['ENABLE_BIFROST'] = 1
 
     bifrost_ext = 'bifrost_2016'

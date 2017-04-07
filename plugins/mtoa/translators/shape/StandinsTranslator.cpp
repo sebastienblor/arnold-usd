@@ -485,6 +485,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
+      AiNodeSetBool(procedural, "override_nodes", m_DagNode.findPlug("overrideNodes").asBool());
    }
    return procedural;
 }

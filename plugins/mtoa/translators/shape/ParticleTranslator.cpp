@@ -931,6 +931,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
          // Because we are dealing with a new particle, we need to create all its past step data, so we loop thru steps
          // here  and fill in the gaps with the current frame's  data and only compute its  position from current velocity
+
+         // FIXME we could use Post Export callback now
          for (size_t k = 0; k < m_exportedSteps.size(); k++)
          {
             if (!m_exportedSteps[k])
