@@ -1,0 +1,192 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201740\msvc_opt\testsuite\test_0203\test_0203.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.71.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   487MB         | log started Sat Apr  8 00:02:11 2017
+00:00:00   487MB         | Arnold 5.0.0.0 [0151ab24] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/04/06 13:54:36
+00:00:00   487MB         | running on REM8WCK8D2, pid=10368
+00:00:00   487MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   487MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   487MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   487MB         |  
+00:00:00   487MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   491MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+00:00:00   492MB WARNING |  node "bifrostPolymesh" is already installed
+00:00:00   492MB WARNING |  node "bifrostPrimitives" is already installed
+00:00:00   492MB WARNING |  node "bifrostVolume" is already installed
+00:00:00   492MB WARNING |  node "bifrostImplicits" is already installed
+00:00:00   492MB WARNING |  node "bifrostFoamMaterial" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
+
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 580
+: (kFailure): Unexpected Internal Failure
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 580
+: (kFailure): Unexpected Internal Failure
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201740/msvc_opt/testsuite/test_0203/test.ma line 9: line 1: Cannot find procedure "nodeEdRefreshVnnNodeTreeListers".
+File read in  0.33 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201740/msvc_opt/testsuite/test_0203/test.ma
+		narrowBandThickness can not be smaller than a voxel!
+		This will be reset to default 1.5 voxels!
+
+---------------------------------------
+[BIFROST POLYMESH] START OUTPUT
+---------------------------------------
+
+
+Avaliable channels:
+	airDistance, 1
+	density, 1
+	distance, 1
+	expansionRate, 1
+	stictionBandwidth, 1
+	stictionStrength, 1
+	uv, 2
+	velocity_u, 1
+	velocity_v, 1
+	velocity_w, 1
+	vorticity, 1
+
+Processing PRIMVARS List...
+
+	Final list of Primvars to Export:
+		vorticity, 1
+
+	MaxElementCount: 1
+
+
+	Final list of channels to load:
+		vorticity
+		distance
+		airDistance
+
+Parameters for the Plugin:
+	distanceChannel: distance
+	primVarNames: vorticity
+
+	narrowBandThicknessInVoxels: 1.500000
+
+	velocityScale: 0.041667 fps: 24.000000
+
+	cullSides: OFF
+
+	dilateAmount: 0.000000
+	erodeAmount: 0.000000
+	smoothKernelSize: 1
+	smoothMode: Mean Value
+	smoothIterations: 1
+	smoothWeight: 0.000000
+	smoothBlendChannel: 
+	smoothRemapMin: 0.000000
+	smoothRemapMax: 1.000000
+	smoothRemapInvert: OFF
+
+	clipBox: OFF
+
+	infCubeBlending: OFF
+
+	DEBUG: 1
+
+
+File Info:
+	Component 1: voxel_liquid-volume
+	Layout: voxel_liquid-volumeLayout
+		VoxelScale: 0.5
+		MaxDepth: 7
+		Total TileCount: 228
+			TileCount 0: 1
+			TileCount 1: 19
+			TileCount 2: 19
+			TileCount 3: 19
+			TileCount 4: 19
+			TileCount 5: 19
+			TileCount 6: 33
+			TileCount 7: 99
+
+ADAPTIVE SIM: ON
+	dropletThreshold: 0.970000
+
+
+THIS IS A VOXEL CACHE!
+
+Rendering Channel is: voxel_liquid.voxel_liquid-volume.distance...
+
+Creating primvar: 
+	u
+	v
+
+Processing PRIMVARS List...
+	Final list of Primvars to Export:
+		vorticity
+		u1
+		v1
+
+MotionBlur: OFF
+
+
+Channel Min-Max Values:
+	Channel: vorticity
+	Min:0.00, Max: 0.00
+
+	Channel: u1
+	Min:-0.43, Max: 1.38
+
+	Channel: v1
+	Min:-0.39, Max: 1.39
+
+
+Creating the mesh...
+	Mesh Merging took 0 seconds to run.
+	Mesh Sampling took 0.001 seconds to run.
+	1160 polygons and 582 vertices are received from the mesher!
+	Preparing triangles...
+	Preparing positions...
+	Preparing PrimVar: vorticity...
+		Done...
+	Preparing PrimVar: u1...
+		Done...
+	Preparing PrimVar: v1...
+		Done...
+	Done
+	Exporting Polygons...
+		Finished exporting
+
+
+Min-Max ranges for float primvars after voxelization:
+	vorticity:
+		Min: 0.000000
+		Max: 0.000000
+	u1:
+		Min: -0.392704
+		Max: 1.313685
+	v1:
+		Min: -0.382240
+		Max: 1.381251
+
+---------------------------------------
+END OUTPUT FOR BIFROSTPOLYMESH
+---------------------------------------
+
+Scene D:\arnold\mtoa\build\windows_x86_64\201740\msvc_opt\testsuite\test_0203\test.ma completed.
