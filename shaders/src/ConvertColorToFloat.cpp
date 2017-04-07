@@ -39,6 +39,8 @@ node_parameters
    AiParameterRGBA("input", 0, 0, 0, 1);
    AiParameterEnum("component", CH_LUMINANCE, enum_component);
 
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "colorToFloat");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiColorToFloat_rgba");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 

@@ -490,56 +490,56 @@ node_loader
    case SHADER_COLORTOFLOAT:
       node->methods     = ColorToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "colorToFloat";
+      node->name        = "MtoaColorToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_VECTORTOFLOAT:
       node->methods     = VectorToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "vectorToFloat";
+      node->name        = "MtoaVectorToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_POINTTOFLOAT:
       node->methods     = PointToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "pointToFloat";
+      node->name        = "MtoaPointToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_POINT2TOFLOAT:
       node->methods     = Point2ToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "point2ToFloat";
+      node->name        = "MtoaPoint2ToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITECOLOR:
       node->methods     = WriteColorMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "writeColor";
+      node->name        = "MtoaWriteColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITECOLORINLINE:
       node->methods     = WriteColorInlineMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "aovWriteColor";
+      node->name        = "MtoaAovWriteColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITEFLOAT:
       node->methods     = WriteFloatMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "writeFloat";
+      node->name        = "MtoaWriteFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITEFLOATINLINE:
       node->methods     = WriteFloatInlineMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "aovWriteFloat";
+      node->name        = "MtoaAovWriteFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
@@ -553,47 +553,47 @@ node_loader
    case SHADER_ANIMFLOAT:
       node->methods     = AnimFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "anim_float";
+      node->name        = "MtoaAnimFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_ANIMPOINT:
       node->methods     = AnimPointMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "anim_point";
+      node->name        = "MtoaAnimPoint";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_ANIMVECTOR:
       node->methods     = AnimVectorMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "anim_vector";
+      node->name        = "MtoaAnimVector";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_ANIMCOLOR:
       node->methods     = AnimColorMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "anim_color";
+      node->name        = "MtoaAnimColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_ANIMMATRIX:
       node->methods     = AnimMatrixMtd;
       node->output_type = AI_TYPE_MATRIX;
-      node->name        = "anim_matrix";
+      node->name        = "MtoaAnimMatrix";
       node->node_type   = AI_NODE_SHADER;
    break;
    case SHADER_USERDATAVECTOR:
       node->methods     = UserDataVectorMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "userDataVector";
+      node->name        = "MtoaUserDataVector";
       node->node_type   = AI_NODE_SHADER;
       break;
    case SHADER_USERDATACOLOR:
       node->methods     = UserDataColorMtd;
       node->output_type = AI_TYPE_RGB;
-      node->name        = "userDataColor";
+      node->name        = "MtoaUserDataColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
@@ -615,14 +615,14 @@ node_loader
    case SHADER_WRITEVECTORINLINE:
       node->methods     = WriteVectorInlineMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "aovWriteVector";
+      node->name        = "MtoaAovWriteVector";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITEVECTOR2INLINE:
       node->methods     = WriteVector2InlineMtd;
       node->output_type = AI_TYPE_VECTOR2;
-      node->name        = "aovWriteVector2";
+      node->name        = "MtoaAovWriteVector2";
       node->node_type   = AI_NODE_SHADER;
       break;
       
@@ -643,7 +643,7 @@ node_loader
    case SHADER_USERDATABOOL:
       node->methods     = UserDataBoolMtd;
       node->output_type = AI_TYPE_BOOLEAN;
-      node->name        = "userDataBool";
+      node->name        = "MtoaUserDataBool";
       node->node_type   = AI_NODE_SHADER;
       break;
      
@@ -658,14 +658,14 @@ node_loader
    case SHADER_LIGHTMATERIAL:
       node->methods     = MeshLightMaterialMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "meshLightMaterial";
+      node->name        = "MtoaMeshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_USERDATAVEC2:
       node->methods     = UserDataVec2Mtd;
       node->output_type = AI_TYPE_VECTOR2;
-      node->name        = "userDataVec2";
+      node->name        = "MtoaUserDataVec2";
       node->node_type   = AI_NODE_SHADER;
       break;
       
@@ -784,7 +784,7 @@ node_loader
    case SHADER_CAMERAUVMAPPER:
       node->methods     = CameraUvMapperMtd;
       node->output_type = AI_TYPE_UNDEFINED;
-      node->name        = "cameraUvMapper";
+      node->name        = "MtoaCameraUvMapper";
       node->node_type   = AI_NODE_CAMERA;
       break;
 

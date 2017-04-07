@@ -17,6 +17,8 @@ node_parameters
 {
    AiParameterArray("values", AiArray(0, 0, AI_TYPE_RGBA));
 
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "anim_color");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAnimColor");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 

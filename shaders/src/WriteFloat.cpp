@@ -21,6 +21,7 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteFloatMtd);
 node_parameters
 {
    // Node metadata
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "writeFloat");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteFloat_rgba");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
