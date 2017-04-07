@@ -31,15 +31,15 @@ namespace std {
 		class hash<amino::Math::vec3f> {
 			public :
 				size_t operator() (const amino::Math::vec3f &position ) const
-				{
+                {
 					const size_t *x = (const size_t *) &( position[0] );
 					const size_t *y = (const size_t *) &( position[1] );
 					const size_t *z = (const size_t *) &( position[2] );
 					size_t f = ( *x + *y * 11 - *z * 17 ) & 0x7fffffff;     // avoid problems with +-0
-					return ( f >> 22 ) ^ ( f >> 12 ) ^ ( f );
+                    return ( f >> 22 ) ^ ( f >> 12 ) ^ ( f );
 				}
 		};
-};
+}
 
 namespace Bifrost{
 namespace RenderCore{
@@ -51,7 +51,7 @@ class BIFROSTRENDERAPI_DECL CoreMesherInterface {
 		{
 			//c_sampler = new Bifrost::API::VoxelSampler( inChannel.createSampler( Bifrost::API::VoxelSamplerLinearType, Bifrost::API::SamplerSpace::TileSpace ) );
 			c_sampler = new Bifrost::API::VoxelSampler( c_frameData->srcChannel.createSampler( Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::TileSpace ) );
-			c_voxelOffset = c_frameData->srcChannel.offsetValue() / (float) c_frameData->sampleRate;
+            c_voxelOffset = c_frameData->srcChannel.offsetValue() / (float) c_frameData->sampleRate;
 			c_exportVertexCount = 0;
 		}
 
@@ -104,7 +104,7 @@ class BIFROSTRENDERAPI_DECL CoreMesherInterface {
 		size_t c_exportVertexCount;
 		FrameData *c_frameData;
 
-		amino::Math::vec3f c_voxelOffset;
+        amino::Math::vec3f c_voxelOffset;
 
 	private:
 		std::vector<amino::Math::vec3f> c_positions;
@@ -119,19 +119,16 @@ class BIFROSTRENDERAPI_DECL CoreMesherInterface {
 class BIFROSTRENDERAPI_DECL MarchingCubes : public CoreMesherInterface
 {
 	public:
-		MarchingCubes( FrameData *frameData );
+        MarchingCubes( FrameData *frameData );
 
 		~MarchingCubes() {}
 
-		size_t calcVoxel( float *gridVals, amino::Math::vec3f& voxelCornerPos );
+        // voxelCornerPos is in scaled tile space (never use floats!)
+        size_t calcVoxel(float *gridVals, amino::Math::vec3i &voxelCornerPos );
 
 		static int c_edgeTable[256];
 		static int c_triTable[256][16];
-
-		static int c_cubeVerts[8][3];
-		// this is same as c_CubeVerts but taking into account the sampleRate. Just for speeding things up.
-		float c_cubeVertsSampleRate[8][3];
-
+        static int c_cubeVerts[8][3];
 		static int c_edgeIndex[12][2];
 };
 
