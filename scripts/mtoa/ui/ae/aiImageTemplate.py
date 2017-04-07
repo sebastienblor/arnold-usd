@@ -10,7 +10,11 @@ class AEaiImageTemplate(ShaderAETemplate):
         attr = self.nodeAttr('filename')
         cmds.setAttr(attr, newFilename, type="string")
         attr = self.nodeAttr('colorSpace')
-        cmds.setAttr(attr, cmds.colorManagementFileRules(evaluate=newFilename), type="string")
+        ignoreFileRules =  cmds.getAttr(self.nodeAttr('ignoreColorSpaceFileRules'))
+
+        # if ignoreFileRules is enabled, we don't want to update the color space (#2843)
+        if ignoreFileRules == 0:
+            cmds.setAttr(attr, cmds.colorManagementFileRules(evaluate=newFilename), type="string")
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'All Files (*.*)'

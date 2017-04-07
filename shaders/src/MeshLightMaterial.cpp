@@ -19,6 +19,7 @@ node_parameters
    AiParameterRGB("color_multiplier", 0.0f, 0.0f, 0.0f);
    
    AiMetaDataSetBool(nentry, "color", "always_linear", true); // no gamma correction
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "meshLightMaterial");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMeshLightMaterial");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1B);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);

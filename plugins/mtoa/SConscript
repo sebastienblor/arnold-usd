@@ -25,6 +25,7 @@ for subdir in subdirs:
 
 #Remove files to be exported by the API from 'nodes' and 'translators' folder
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
+                    os.path.join('nodes', 'shape', 'ArnoldProceduralNode.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),

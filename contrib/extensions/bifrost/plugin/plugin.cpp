@@ -40,9 +40,10 @@ extern "C"
                 if(renderType == 0){ // Aero => set density channel to smoke
                     command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
                 }
-                if(isVolume)
-                {
+                if(isVolume){
                     command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+                }else{
+                    command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/aiStandardSurface/Deep_Water.mel\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
                 }
                 command += "select $sel;undoInfo -closeChunk;";
                 MGlobal::executeCommandOnIdle(command);

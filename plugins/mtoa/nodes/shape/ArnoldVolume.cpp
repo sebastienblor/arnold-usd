@@ -204,8 +204,12 @@ MStatus CArnoldVolumeShape::initialize()
    s_filename = tAttr.create("filename", "filename", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
+   tAttr.setUsedAsFilename(true);
    addAttribute(s_filename);
    
+   // Need to register this attribute to appear in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiVolume.filename -typeLabel \"VDB\"");
+
    s_grids = tAttr.create("grids", "grids", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);

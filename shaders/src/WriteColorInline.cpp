@@ -19,6 +19,8 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteColorInlineMtd);
 node_parameters
 {
    // Node metadata
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteColor");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteColor");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
    AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);

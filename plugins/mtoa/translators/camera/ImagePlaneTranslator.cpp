@@ -392,6 +392,8 @@ void CImagePlaneTranslator::ExportImagePlane()
             if (colorSpace != m_colorSpace) requestUpdateTx = true;
             m_colorSpace = colorSpace;
 
+            AiNodeSetStr(imagePlaneShader, "color_space", colorSpace.asChar());
+
             if (requestUpdateTx)
             {
                AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());

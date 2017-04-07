@@ -15,6 +15,7 @@ namespace {
 enum ImagePlaneParams {
     p_filename,
     p_color,
+    p_color_space,
     p_display_mode,
     p_colorGain,
     p_colorOffset,
@@ -27,6 +28,7 @@ enum ImagePlaneParams {
 typedef struct AtImageData
 {
    AtTextureHandle* texture_handle;
+   AtString color_space;
 } AtImageData;
 
 inline float mod(float n, float d)
@@ -60,6 +62,7 @@ node_parameters
 {
    AiParameterStr("filename", "");
    AiParameterRGB("color", 1.0f, 0.0f, 0.0f);
+   AiParameterStr("color_space", "");
    AiParameterEnum("displayMode", 1, display_mode_enum);
    AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
@@ -105,7 +108,9 @@ node_update
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
    AiTextureHandleDestroy(idata->texture_handle);
-   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));
+   idata->color_space = AiNodeGetStr(node, "color_space");
+   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"), idata->color_space);
+
 }
 
 node_finish

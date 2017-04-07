@@ -124,6 +124,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('lightLinks', cmds.getAttr('%s.lightLinking' % optionsNode))
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
         settings.setdefault('expandProcedurals', cmds.getAttr('%s.expandProcedurals' % optionsNode))
+        settings.setdefault('exportAllShadingGroups', cmds.getAttr('%s.exportAllShadingGroups' % optionsNode))
         settings.setdefault('forceTranslateShadingEngines', cmds.getAttr('%s.forceTranslateShadingEngines' % optionsNode))
         
     return settings

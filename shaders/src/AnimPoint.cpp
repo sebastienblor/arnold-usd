@@ -17,6 +17,8 @@ node_parameters
 {
    AiParameterArray("values", AiArray(0, 0, AI_TYPE_VECTOR));
 
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "anim_point");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAnimPoint");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 

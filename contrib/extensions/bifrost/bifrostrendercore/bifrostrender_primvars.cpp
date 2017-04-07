@@ -347,7 +347,7 @@ void getFinalPrimVars(	Bifrost::API::String bifFilename,
 	// so we have the channel for lookup
 	// now check all the required channels and assemble a loadChannelNames list
 	Bifrost::API::String inputPrimVars ( primVarNames );
-	Bifrost::API::StringArray orgPrimVarNames = inputPrimVars.split(",");
+    Bifrost::API::StringArray orgPrimVarNames = inputPrimVars.split(" ");
 
 	// check primVars for matches
 	for ( size_t i = 0; i < orgPrimVarNames.count(); i++) {

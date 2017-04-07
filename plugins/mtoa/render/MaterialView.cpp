@@ -573,6 +573,10 @@ void CMaterialView::InitOptions()
       AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth")).asInt());
       AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth")).asInt());
    }
+   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
+   if (arnoldSession)
+      arnoldSession->ExportColorManager();
+
 }
 
 void CMaterialView::InterruptRender(bool waitFinished)

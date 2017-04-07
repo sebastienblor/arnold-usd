@@ -29,11 +29,7 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL() = true;
-   data.name = "aiExportHairIDs";
-   data.shortName = "ai_export_hair_ids";
-   helper.MakeInputBoolean(data);
-
+   
    data.defaultValue.BOOL() = false;
    data.name = "aiExportHairUVs";
    data.shortName = "ai_export_hair_uvs";
@@ -91,13 +87,6 @@ void CHairTranslator::Export( AtNode *curve )
    ExportMatrix(curve);
 
    MPlug plug;  
-   
-   plug = fnDepNodeHair.findPlug("aiExportHairIDs");
-   m_export_curve_id = true;
-   if (!plug.isNull())
-   {
-      m_export_curve_id = plug.asBool();
-   }
    
    MStatus status;
    
@@ -191,17 +180,7 @@ void CHairTranslator::Export( AtNode *curve )
          const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
          const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
 
-         // if any of the random parameters are not zero, we need to export the ids
-         // for the hashing functions
-         // export when either diffuseRand or specularRand is enabled
-         // AND when at least one of the components are randomized
-         // otherwise we won`t need the curve id data
-         if ((diffuseRandConnected || (AiNodeGetFlt(shader, "diffuseRand") > AI_EPSILON) ||
-             specularRandConnected || (AiNodeGetFlt(shader, "specularRand") > AI_EPSILON)) &&
-             (hueRandConnected || (AiNodeGetFlt(shader, "hueRand") > AI_EPSILON) ||
-             satRandConnected || (AiNodeGetFlt(shader, "satRand") > AI_EPSILON) ||
-             valRandConnected || (AiNodeGetFlt(shader, "valRand") > AI_EPSILON)))
-            m_export_curve_id = true;
+         
 
          MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale"), &status);
          if (status)
@@ -280,15 +259,6 @@ void CHairTranslator::Export( AtNode *curve )
       }
    }
 
-   if (m_export_curve_id)
-   {
-      AtArray* curveID = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
-      for (unsigned int i = 0; i < numLines; ++i)
-         AiArraySetUInt(curveID, i, i);
-      AiNodeDeclare(curve, "curve_id", "uniform UINT");
-      AiNodeSetArray(curve, "curve_id", curveID);
-   }
-   
    plug = fnDepNodeHair.findPlug("aiExportHairColors");
    const bool exportCurveColors = plug.isNull() ? false : plug.asBool();
    

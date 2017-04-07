@@ -117,7 +117,6 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
     MString objStr = objectPlug.asString();
    
     c_object = std::string( objStr.asChar() );
-    std::cerr << "OBJECT = " << c_object.c_str() << std::endl;
 
     MFnDependencyNode bfContainer(objectPlug.source().node());
 
@@ -312,7 +311,6 @@ void BifrostTranslator::ExportAero(AtNode *shape)
     float fps = (float) sec.as(MTime::uiUnit());
     AiNodeSetFlt(shape, "fps", fps);
 
-
     // get params from the node
     MFnDagNode  bifrostDesc(m_dagPath.node());
 
@@ -474,6 +472,7 @@ void BifrostTranslator::ExportLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode
     EXPORT_STR("filterBlendingChannel");
     EXPORT_STR("infiniteSurfaceBlendingChannel");
     EXPORT2_STR("primVarNames", "liquidPrimVars");
+    EXPORT_BOOL("exportUVs");
 }
 
 void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
@@ -489,6 +488,7 @@ void BifrostTranslator::ExportLiquidPolyMesh(AtNode *shape)
         ExportBifrostShader();
     }
     ExportLightLinking( shape );
+    ExportDisplacement();
 }
 
 void BifrostTranslator::ExportLiquidImplicit(AtNode *shape)
@@ -527,6 +527,17 @@ void BifrostTranslator::ExportMotion( AtNode* shape )
     }
 }
 
+namespace{
+
+void GetDisplacement(MObject& obj, float& dispPadding) {
+    MFnDependencyNode dNode(obj);
+    MPlug plug = dNode.findPlug("aiDisplacementPadding");
+    if (!plug.isNull())
+        dispPadding = plug.asFloat();
+}
+
+}
+
 void BifrostTranslator::ExportBifrostShader()
 {
     MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
@@ -536,6 +547,32 @@ void BifrostTranslator::ExportBifrostShader()
             // Push the shader in the vector to be assigned later to mtoa_shading_groups
             AiNodeSetPtr(GetArnoldNode(), "shader", rootShader);
         }
+    }
+}
+
+void BifrostTranslator::ExportDisplacement(){
+    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
+    if(shadingGroupPlug.isNull()) return;
+
+    MPlugArray        connections;
+    MFnDependencyNode fnDGShadingGroup(shadingGroupPlug.node());
+    MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+    shaderPlug.connectedTo(connections, true, false);
+
+    // are there any connections to displacementShader?
+    if (connections.length() > 0)
+    {
+        MObject dispNode = connections[0].node();
+        float padding = 0;
+        GetDisplacement(dispNode, padding);
+
+        AtNode* dispImage(ExportConnectedNode(connections[0]));
+        AtNode* node = GetArnoldNode();
+        AiNodeSetPtr(node, "disp_map", dispImage);
+        AiNodeSetFlt(node, "disp_padding", padding);
+        AiNodeSetBool(node, "disp_autobump", true);
+        AiNodeSetFlt(node, "disp_height", 1);
+        AiNodeSetFlt(node, "disp_zero_value", 0);
     }
 }
 
@@ -722,6 +759,8 @@ namespace{
         ADD_DFLT("implicitMaxVolumeOfHolesToClose", 8.f);
         ADD_DBOOL("doMorphologicalDilation", true);
         ADD_DBOOL("doErodeSheetsAndDroplets", true);
+
+        ADD_DBOOL("exportUVs", false);
     }
 
     void AddFoamAttributes(CExtensionAttrHelper& helper, CAttrData& data){

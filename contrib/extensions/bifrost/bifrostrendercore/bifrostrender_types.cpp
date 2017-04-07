@@ -199,11 +199,15 @@ void FrameData::init()
 	this->presenceNeeded = false;
 
 	this->doNotRender = false;
+
+    this->error = false;
+    this->empty = false;
 }
 
 void PrimitivesFrameData::init()
 {
 	this->error = false;
+    this->empty = false;
 }
 
 //

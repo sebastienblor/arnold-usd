@@ -849,25 +849,18 @@ void initAndGetFrameData(	FrameData *frameData,
 		return;
 	}
 
-	// check number of tiles and elements
-	if ( channelExists != inputChannelNames.npos ) {
-		if ( fio.channelInfo( channelExists ).tileCount == 0 ) {
-			printf( "No tiles in file Diego! Please check!\n" );
-			frameData->error = true;
-			return;
-		} else {
-			if ( fio.channelInfo( channelExists ).elementCount == 0 ) {
-				printf( "No elements in file Diego! Please check!\n" );
-				frameData->error = true;
-				return;
-			}
-		}
+    // check number of tiles and elements
+    if (channelExists != inputChannelNames.npos &&
+            (fio.channelInfo( channelExists ).tileCount == 0 ||
+             fio.channelInfo( channelExists ).elementCount == 0)) {
+        frameData->empty = true;
+        return;
 	}
 
 	// so we have the channel for lookup
 	// now check all the required channels and assemble a loadChannelNames list
 	Bifrost::API::String inputPrimVars ( primVarNames );
-	frameData->primVarNames = inputPrimVars.split(",");
+    frameData->primVarNames = inputPrimVars.split(" ");
 
 	// first lets check whether we have speed specified anywhere
 	// if yes check existence of velocity and if it is there add corresponding channels to the loadChannelNames

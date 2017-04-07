@@ -17,6 +17,7 @@ enum UserDataColorParams
 
 node_parameters
 {
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataColor");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataColor");
    AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATACOLOR);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");

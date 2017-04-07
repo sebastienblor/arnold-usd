@@ -304,6 +304,10 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       case AI_TYPE_STRING:
       {
          data.stringDefault = data.defaultValue.STR();
+         bool usedAsFilename = false;
+         if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.usedAsFilename", &usedAsFilename))
+            data.usedAsFilename = usedAsFilename;       
+
       }
    }
    return true;
@@ -682,6 +686,7 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    tAttr.setStorable(true);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
+   tAttr.setUsedAsFilename(data.usedAsFilename);
    tAttr.setChannelBox(data.channelBox);
 }
 

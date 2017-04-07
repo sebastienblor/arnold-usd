@@ -80,6 +80,7 @@ public:
    CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
                       bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
+   AtNode* ExportColorManager();
 
    CNodeTranslator *GetActiveTranslator(const CNodeAttrHandle &handle);
    bool IsRenderablePath(MDagPath dagPath);
@@ -115,7 +116,9 @@ public:
    inline void SetExportFullPath(bool b) {m_sessionOptions.SetExportFullPath(b);}
    inline void SetExportPrefix(const MString &prefix) {m_sessionOptions.SetExportPrefix(prefix);}
 
-
+   inline bool GetExportAllShadingGroups() const {return m_sessionOptions.GetExportAllShadingGroups();}
+   inline void SetExportAllShadingGroups(bool b) {m_sessionOptions.SetExportAllShadingGroups(b);}
+   
 
    // Export options
    inline const CSessionOptions& GetSessionOptions() const { return m_sessionOptions; }

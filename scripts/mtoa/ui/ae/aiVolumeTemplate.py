@@ -58,12 +58,10 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         if not os.path.isfile(mPath):
             return
 
-        gridsList = ai.AiVolumeFileGetChannels(mPath);
-        numGrids = ai.AiArrayGetNumElements(gridsList)
-        for i in range(0, numGrids):
-            cmds.textScrollList(self.gridsListPath, edit=True, append=str(ai.AiArrayGetStr(gridsList, i)))
-        if numGrids > 0:
-            cmds.textScrollList(self.gridsListPath, edit=True, selectIndexedItem=1)
+        attrName = nodeName.replace('.filename', '.grids')
+        self.genericGridsReplace(attrName, False)
+        attrName = nodeName.replace('.filename', '.velocityGrids')
+        self.genericGridsReplace(attrName, True)
 
     def filenameButtonPush(self, nodeName):
         basicFilter = 'OpenVDB File(*.vdb)'
