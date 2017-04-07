@@ -106,6 +106,9 @@ try:
                     else:
                         if self._isAOVDefaultValue(nodeName, plg):
                             renderSetupUtils.connect(plug.Plug(value).plug, plg.plug)
+                            # Did we fail to make a connection? If so, keep
+                            # track of the aiAOV default value attribute as
+                            # well as what we tried to connect
                             if not plg.plug.isConnected:
                                 self.AOVDefaultValuesNotImported.append((value, plg.plug.name()))
                         else:
@@ -280,8 +283,12 @@ try:
             return aovsJSON
 
         def _nodeAddedCB(self, obj):
+            # If the current node is a shading node
             if renderSetupUtils.isShadingNode(obj):
-                indexToDelete = -1
+                # Does our created shading node match any of our previously
+                # imported default shader values which weren't successfully
+                # connected as the shading node didn't exist yet?
+                indexToDelete = -1                
                 for i, (src, dst) in enumerate(self.AOVDefaultValuesNotImported):
                     fn = OpenMaya.MFnDependencyNode(obj)
                     srcComponents = src.split('.')
@@ -291,8 +298,11 @@ try:
                         if dstPlug.isConnected:
                             indexToDelete = i
                             break
+                # If we found a match, delete the index
                 if indexToDelete >= 0:
                     self.AOVDefaultValuesNotImported.pop(indexToDelete)
+                # If there are no more missing connections, then we should stop
+                # observing node addition.
                 if len(self.AOVDefaultValuesNotImported) == 0:
                     sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
                     self.sceneObservableRegistered = False
