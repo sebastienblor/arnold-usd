@@ -1140,11 +1140,11 @@ if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
 print '////-----------------'
 print env['ENABLE_COLOR_MANAGEMENT']
-test_syncolor = os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColor_shaders%s' % get_library_extension())
+test_syncolor = os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension())
 print test_syncolor
 print os.path.exists(test_syncolor)
 
