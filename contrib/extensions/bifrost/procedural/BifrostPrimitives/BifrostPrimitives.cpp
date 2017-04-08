@@ -426,6 +426,7 @@ node_parameters
     AiParameterFlt("clipMaxZ",1);
 
     AiParameterFlt("pointRadius", 0.05);
+    AiParameterFlt("stepSize", 0.016);
     AiParameterBool("useChannelToModulateRadius", 0);
 
     AiParameterBool("camRadiusOn", false);
@@ -515,6 +516,7 @@ procedural_init
     inData->clip.maxZ = AiNodeGetFlt(node, "clipMaxZ");
 
     inData->radius = AiNodeGetFlt(node, "pointRadius");
+    inData->stepSize = AiNodeGetFlt(node, "stepSize");
     inData->useChannelToModulateRadius = AiNodeGetBool(node, "useChannelToModulateRadius");
 
     inData->camRadius = AiNodeGetBool(node, "camRadiusOn");

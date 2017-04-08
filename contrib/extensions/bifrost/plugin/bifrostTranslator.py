@@ -52,7 +52,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Smoothing", collapse=False)
         self.addControl("aeroSmoothMode", "Mode")
-        self.addControl("aeroSmoothAmount", "Smoothing")
+        self.addControl("aeroSmoothKernelSize", "Smoothing")
         self.addControl("aeroSmoothWeight", "Weight")
         self.addControl("aeroSmoothIterations", "Iterations")
 
@@ -109,7 +109,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Smoothing", collapse=True)
         self.addControl("smoothMode", label="Mode")
-        self.addControl("smoothAmount", label="Amount")
+        self.addControl("smoothKernelSize", label="Kernel Size")
         self.addControl("smoothIterations", label="Iterations")
         self.endLayout() # Smoothing
 
@@ -152,9 +152,10 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.beginLayout("Implicit Controls", collapse=True)
         self.addControl("narrowBandThicknessInVoxels", label="Narow Band Thickness")
         self.addControl("liquidStepSize", label="Step size")
+        self.addControl("samples", label="Samples")
         self.endLayout() # Implicit
         self.beginLayout("Mesh Controls", collapse=True)
-        self.addControl("sampleRate", label="Tesselation")
+        self.addControl("tesselation", label="Tesselation")
         self.endLayout() # Mesh
         self.beginLayout("Particles To Voxels Controls", collapse=True)
         self.addControl("implicitResolutionFactor", label="Resolution Factor")
@@ -187,6 +188,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Radius", collapse=False)
         self.addControl("pointRadius", label="Radius")
+        self.addControl("stepSize")
         self.addControl("useChannelToModulateRadius")
 
         self.beginLayout("Camera Dependent Radius", collapse=True)

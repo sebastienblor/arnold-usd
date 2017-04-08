@@ -44,7 +44,7 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterFlt("dilateAmount", 0);
     AiParameterFlt("erodeAmount", 0);
     AiParameterInt("smoothMode" , 0);
-    AiParameterInt("smoothAmount" , 0);
+    AiParameterInt("smoothKernelSize" , 0);
     AiParameterInt("smoothIterations" , 0);
     AiParameterFlt("smoothWeight" , 0); // ???
     AiParameterVec2("smoothRemapRange", 0, 1);
@@ -110,7 +110,7 @@ bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
     inData->dilateAmount = AiNodeGetFlt(node, "dilateAmount");
     inData->erodeAmount = AiNodeGetFlt(node, "erodeAmount");
     inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( node, "smoothMode" );
-    inData->smooth.amount = AiNodeGetInt( node, "smoothAmount" );
+    inData->smooth.kernelSize = AiNodeGetInt( node, "smoothKernelSize" );
     inData->smooth.iterations = AiNodeGetInt( node, "smoothIterations" );
     inData->smooth.weight = AiNodeGetFlt( node, "smoothWeight" );
     AtVector2 smoothRemapRange = AiNodeGetVec2(node, "smoothRemapRange");
@@ -182,7 +182,7 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
     //
     // POST PROCESSING CHANNEL DATA
     //
-    if (inData->dilateAmount != 0.0f || inData->erodeAmount != 0.0f || ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 )) {
+    if (inData->dilateAmount != 0.0f || inData->erodeAmount != 0.0f || ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 )) {
         IFNOTSILENT {
             printf("\nPost Processing %s channel...\n", inData->inputChannelName);
             printf("\tPost processing parameters:\n");
@@ -202,9 +202,9 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
         }
 
         IFNOTSILENT {
-            if ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+            if ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
                 printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d Weight: %f FilterChannel: %s\n",
-                       filterType.c_str(), inData->smooth.amount, inData->smooth.iterations, inData->smooth.weight, inData->smooth.channelName );
+                       filterType.c_str(), inData->smooth.kernelSize, inData->smooth.iterations, inData->smooth.weight, inData->smooth.channelName );
             }
             if ( inData->erodeAmount != 0.0f ) {
                 printf("\t\tErode by: %.3f...\n", inData->erodeAmount);
@@ -218,7 +218,7 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
         }
 
         // Run the smoothing filter
-        if ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+        if ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
             IFNOTSILENT { printf("\tSmoothing...\n"); }
 
             // Run the smoothing filter
