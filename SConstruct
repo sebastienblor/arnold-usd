@@ -1142,6 +1142,15 @@ if env['ENABLE_RENDERSETUP'] == 1:
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
+print '////-----------------'
+print env['ENABLE_COLOR_MANAGEMENT']
+test_syncolor = os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColor_shaders%s' % get_library_extension())
+print test_syncolor
+print os.path.exists(test_syncolor)
+
+
+
+
 
 
 for p in MTOA_PROCS:
@@ -1193,6 +1202,8 @@ if not env['MTOA_DISABLE_RV']:
     if OCIO_DYLIBPATH != "":
         PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
 
+print '/////////////////////////////////////////////////////'
+print PACKAGE_FILES
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
