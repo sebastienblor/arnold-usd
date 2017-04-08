@@ -338,10 +338,10 @@ class MayaTestRunner(object):
             for test_name in self.tests:
                 test_dir       = os.path.join(self.build_dir, test_name)
                 test_script = self.script
-                if test_script[:7] == 'Render ':
-                    test_script = 'Render" ' + test_script[7:]
 
-                test_script = '"'+test_env['MAYA_ROOT'] +'/bin/' + test_script
+
+                if not ' ' in test_env['MAYA_ROOT']:
+                    test_script = test_env['MAYA_ROOT'] +'/bin/' + test_script
 
 
                 # if a file test.mel is found, we want to run mayabatch with this script
