@@ -183,11 +183,6 @@ MStatus CArnoldStandardSurfaceNode::initialize()
             {
                s_emission_color = attr;
             }
-            /*else if (strcmp(paramName, "transparency") == 0)
-            {
-               s_Kt = attr;
-               attributeAffects(attr, s_OUT_transparency);
-            }*/
             else if (strcmp(paramName, "opacity") == 0)
             {
                s_opacity = attr;
