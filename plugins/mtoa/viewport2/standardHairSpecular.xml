@@ -1,0 +1,368 @@
+<fragment  uiName="standardHairSpecular" name="standardHairSpecular" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0" >
+  <description>
+    <![CDATA[
+Computes Physical Hair Specular Component]]>
+  </description>
+  <properties>
+    <float3  name="specularI" />
+    <float3  name="SLw" />
+    <float3  name="Vw" flags="varyingInputParam" />
+    <float3  name="mayaTangentIn" semantic="tangent" flags="varyingInputParam" />
+    <float3  name="mayaBitangentIn" semantic="bitangent" flags="varyingInputParam" />
+    <float3  name="Nw" flags="varyingInputParam" />
+    <float4x4  name="worldInverseTranspose" semantic="worldinversetranspose" />
+    <float3  name="colorR" />
+    <float  name="intensityR" />
+    <float  name="longitudinalShiftR" />
+    <float  name="longitudinalWidthR" />
+    <float3  name="colorTT" />
+    <float  name="intensityTT" />
+    <float  name="longitudinalShiftTT" />
+    <float  name="longitudinalWidthTT" />
+    <float  name="azimuthalWidthTT" />
+    <float3  name="colorTRT" />
+    <float  name="intensityTRT" />
+    <float  name="longitudinalShiftTRT" />
+    <float  name="longitudinalWidthTRT" />
+    <float3  name="colorG" />
+    <float  name="intensityG" />
+    <float  name="azimuthalShiftG" />
+    <float  name="azimuthalWidthG" />
+  </properties>
+  <values>
+    <float3 name="specularI" value="0.000000,0.000000,0.000000"  />
+    <float3 name="SLw" value="0.000000,0.000000,0.000000"  />
+    <float3 name="colorR" value="0.500000,0.500000,0.500000"  />
+    <float name="intensityR" value="1.000000"  />
+    <float name="longitudinalShiftR" value="-7.500000"  />
+    <float name="longitudinalWidthR" value="7.500000"  />
+    <float3 name="colorTT" value="0.500000,0.500000,0.500000"  />
+    <float name="intensityTT" value="1.000000"  />
+    <float name="longitudinalShiftTT" value="3.750000"  />
+    <float name="longitudinalWidthTT" value="3.750000"  />
+    <float name="azimuthalWidthTT" value="3.000000"  />
+    <float3 name="colorTRT" value="0.500000,0.500000,0.500000"  />
+    <float name="intensityTRT" value="1.000000"  />
+    <float name="longitudinalShiftTRT" value="11.250000"  />
+    <float name="longitudinalWidthTRT" value="15.000000"  />
+    <float3 name="colorG" value="0.500000,0.500000,0.500000"  />
+    <float name="intensityG" value="1.000000"  />
+    <float name="azimuthalShiftG" value="35.000000"  />
+    <float name="azimuthalWidthG" value="15.000000"  />
+  </values>
+  <outputs>
+    <float3  name="hairPhysicalSpecular" />
+  </outputs>
+  <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+      <function_name val="hairPhysicalSpecular" />
+      <source>
+        <![CDATA[
+float UnitGaussian(                                            
+                   float x,                                    
+                   float mu,                                   
+                   float sigma )                               
+{                                                              
+   return exp(- pow(x - mu, 2.0) * 0.5 / pow(sigma, 2.0));     
+}                                                              
+float3 LocalSpherical (float3 L, float3 B, float3 N, float3 T) 
+{                                                              
+	const float M_PI = 3.1415926535897931f;                     
+   float a = dot(L, B);                                        
+   float b = dot(L, N);                                        
+   float c = dot(L, T);                                        
+   return float3(atan(b, a), M_PI * 0.5 - acos(c), 0);         
+}                                                              
+float3 R( float3 colorR, float intensityR, float thetaH, float longitudinalShiftR, float longitudinalWidthR, float phi)    
+{                                                                                                                          
+    float M_R = UnitGaussian(thetaH, longitudinalShiftR, longitudinalWidthR);                                              
+    float N_R = cos(phi * 0.5);                                                                                            
+    return intensityR * colorR * M_R * N_R;                                                                                
+}                                                                                                                          
+float3 TT( float3 colorTT, float intensityTT, float thetaH, float longitudinalShiftTT, float longitudinalWidthTT, float phi, float azimuthalWidthTT)   
+{                                                                                                                                                      
+	const float M_PI = 3.1415926535897931f;                                                                                                             
+    float M_TT = UnitGaussian(thetaH, longitudinalShiftTT, longitudinalWidthTT);                                                                       
+    float N_TT = UnitGaussian(M_PI, phi, radians(azimuthalWidthTT));                                                                                   
+    return intensityTT * colorTT * M_TT * N_TT;                                                                                                        
+}                                                                                                                                                      
+float3 TRT( float3 colorTRT, float3 colorG, float intensityTRT, float intensityG, float thetaH, float longitudinalShiftTRT, float longitudinalWidthTRT, float phi, float azimuthalShiftG, float azimuthalWidthG) 
+{                                                                                      
+    float M_TRT = UnitGaussian(thetaH, longitudinalShiftTRT, longitudinalWidthTRT);    
+    float N_TRGNG = cos(phi * 0.5);                                                    
+    float N_G = intensityG * UnitGaussian(azimuthalShiftG, phi, azimuthalWidthG);      
+    float N_TRT = N_TRGNG + N_G;                                                       
+    return intensityTRT * colorTRT * M_TRT * N_TRGNG + colorG * M_TRT * N_G;           
+}                                                                                      
+float3 hairPhysicalSpecular(           	
+	float3 specularI,                       
+	float3 SLw,                             
+	float3 Vw,                              
+	float3 Tw,                              
+	float3 Bw,                              
+	float3 Nw,                              
+	float4x4 worldInverseTranspose,         
+   float3 colorR,                          
+   float intensityR,                       
+   float longitudinalShiftR,               
+   float longitudinalWidthR,               
+   float3 colorTT,                         
+   float intensityTT,                      
+   float longitudinalShiftTT,              
+   float longitudinalWidthTT,              
+   float azimuthalWidthTT,                 
+   float3 colorTRT,                        
+   float intensityTRT,                     
+   float longitudinalShiftTRT,             
+   float longitudinalWidthTRT,             
+   float3 colorG,                          
+   float intensityG,                       
+   float azimuthalShiftG,                  
+   float azimuthalWidthG )                 
+{                                                                                      
+   float3 MULT_MATRIX1 = (mul(worldInverseTranspose, float4(Tw.xyz, 0.0f))).xyz;       
+   float3 MULT_MATRIX2 = (mul(worldInverseTranspose, float4(Bw.xyz, 0.0f))).xyz;       
+   float3 MULT_MATRIX3 = (mul(worldInverseTranspose, float4(Nw.xyz, 0.0f))).xyz;       
+   float3 b = normalize(MULT_MATRIX1);                                                 
+   float3 t = normalize(MULT_MATRIX2);                                                 
+   float3 n = normalize(MULT_MATRIX3);                                                 
+	float3 tVw = normalize(-Vw);                                        				
+   float3 omegaO = LocalSpherical(tVw, b, n, t);                       				
+   float _longitudinalShiftR   = radians(longitudinalShiftR);          				
+   float _longitudinalWidthR   = radians(longitudinalWidthR);          				
+   float _longitudinalShiftTT  = radians(longitudinalShiftTT);         				
+   float _longitudinalWidthTT  = radians(longitudinalWidthTT);         				
+   float _azimuthalWidthTT     = azimuthalWidthTT;                     				
+   float _longitudinalShiftTRT = radians(longitudinalShiftTRT);        				
+   float _longitudinalWidthTRT = radians(longitudinalWidthTRT);        				
+   float _azimuthalShiftG      = radians(azimuthalShiftG);             				
+   float _azimuthalWidthG      = radians(azimuthalWidthG);             				
+   float3 tL = normalize(-SLw);                                        				
+   float3 omegaI = LocalSpherical(tL, b, n, t);                        				
+	const float M_PI = 3.1415926535897931f;                             				
+   float phi = abs(omegaO.x - omegaI.x);                               				
+   if ( phi > M_PI ) {                                                 				
+       phi -= 2 * M_PI;                                                				
+   }                                                                   				
+   phi = abs(phi);                                                     				
+   float thetaH = (omegaO.y + omegaI.y) * 0.5;                         				
+	float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				        				
+	float cosThetaD2 = cos(thetaD)*cos(thetaD);					        				
+   float3 singleScatteringResult = float3(0.0f, 0.0f, 0.0f);           				
+   singleScatteringResult += specularI * R(colorR, intensityR, thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);                                                                     
+   singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
+   singleScatteringResult += specularI * TRT(colorTRT, colorG, intensityTRT, intensityG, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);   
+   return max(float3(0.0, 0.0, 0.0), singleScatteringResult/max(0.0001, cosThetaD2));         																																		
+} 
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+      <function_name val="hairPhysicalSpecular" />
+      <source>
+        <![CDATA[
+float UnitGaussian(                                            
+                   float x,                                    
+                   float mu,                                   
+                   float sigma )                               
+{                                                              
+   return exp(- pow(x - mu, 2.0) * 0.5 / pow(sigma, 2.0));     
+}                                                              
+vec3 LocalSpherical (vec3 L, vec3 B, vec3 N, vec3 T)           
+{                                                              
+	const float M_PI = 3.1415926535897931f;                     
+   float a = dot(L, B);                                        
+   float b = dot(L, N);                                        
+   float c = dot(L, T);                                        
+   return vec3(atan(b, a), M_PI * 0.5 - acos(c), 0);           
+}                                                              
+vec3 R( vec3 colorR, float intensityR, float thetaH, float longitudinalShiftR, float longitudinalWidthR, float phi) 	
+{                                                                              										
+    float M_R = UnitGaussian(thetaH, longitudinalShiftR, longitudinalWidthR);  										
+    float N_R = cos(phi * 0.5);                                                										
+    return intensityR * colorR * M_R * N_R;                                    										
+}                                                                              										
+vec3 TT( vec3 colorTT, float intensityTT, float thetaH, float longitudinalShiftTT, float longitudinalWidthTT, float phi, float azimuthalWidthTT) 	
+{                                                                                      															
+	const float M_PI = 3.1415926535897931f;                                             															
+    float M_TT = UnitGaussian(thetaH, longitudinalShiftTT, longitudinalWidthTT);       															
+    float N_TT = UnitGaussian(M_PI, phi, radians(azimuthalWidthTT));                   															
+    return intensityTT * colorTT * M_TT * N_TT;                                        															
+}                                                                                      															
+vec3 TRT( vec3 colorTRT, vec3 colorG, float intensityTRT, float intensityG, float thetaH, float longitudinalShiftTRT, float longitudinalWidthTRT, float phi, float azimuthalShiftG, float azimuthalWidthG) 
+{                                                                                      																													
+    float M_TRT = UnitGaussian(thetaH, longitudinalShiftTRT, longitudinalWidthTRT);    																													
+    float N_TRGNG = cos(phi * 0.5);                                                    																													
+    float N_G = intensityG * UnitGaussian(azimuthalShiftG, phi, azimuthalWidthG);      																													
+    float N_TRT = N_TRGNG + N_G;                                                       																													
+    return intensityTRT * colorTRT * M_TRT * N_TRGNG + colorG * M_TRT * N_G;           																													
+}                                                                                      																													
+vec3 hairPhysicalSpecular(                 
+	vec3 specularI,                         
+	vec3 SLw,                               
+   vec3 Vw,                                
+	vec3 Tw,                                
+	vec3 Bw,                                
+	vec3 Nw,                                
+	mat4 worldInverseTranspose,             
+   vec3 colorR,                            
+   float intensityR,                       
+   float longitudinalShiftR,               
+   float longitudinalWidthR,               
+   vec3 colorTT,                           
+   float intensityTT,                      
+   float longitudinalShiftTT,              
+   float longitudinalWidthTT,              
+   float azimuthalWidthTT,                 
+   vec3 colorTRT,                          
+   float intensityTRT,                     
+   float longitudinalShiftTRT,             
+   float longitudinalWidthTRT,             
+   vec3 colorG,                            
+   float intensityG,                       
+   float azimuthalShiftG,                  
+   float azimuthalWidthG )                 
+{                                                                                      
+   vec3 MULT_MATRIX1 = ( worldInverseTranspose * vec4(Tw, 0.0f) ).xyz;                 
+   vec3 MULT_MATRIX2 = ( worldInverseTranspose * vec4(Bw, 0.0f) ).xyz;                 
+   vec3 MULT_MATRIX3 = ( worldInverseTranspose * vec4(Nw, 0.0f) ).xyz;                 
+   vec3 b = normalize(MULT_MATRIX1);                                                   
+   vec3 t = normalize(MULT_MATRIX2);                                                   
+   vec3 n = normalize(MULT_MATRIX3);                                                   
+	vec3 tVw = normalize( -Vw );                                                        
+   vec3 omegaO = LocalSpherical(tVw, b, n, t);                                         
+   float _longitudinalShiftR   = radians(longitudinalShiftR);                          
+   float _longitudinalWidthR   = radians(longitudinalWidthR);                          
+   float _longitudinalShiftTT  = radians(longitudinalShiftTT);                         
+   float _longitudinalWidthTT  = radians(longitudinalWidthTT);                         
+   float _azimuthalWidthTT     = azimuthalWidthTT;        								
+   float _longitudinalShiftTRT = radians(longitudinalShiftTRT);                        
+   float _longitudinalWidthTRT = radians(longitudinalWidthTRT);                        
+   float _azimuthalShiftG      = radians(azimuthalShiftG);                             
+   float _azimuthalWidthG      = radians(azimuthalWidthG);                             
+   vec3 tL = normalize( -SLw );                                                        
+   vec3 omegaI = LocalSpherical(tL, b, n, t);                                          
+	const float M_PI = 3.1415926535897931f;                                             
+   float phi = abs(omegaO.x - omegaI.x);                                               
+   if ( phi > M_PI ) {                                                                 
+       phi -= 2 * M_PI;                                                                
+   }                                                                                   
+   phi = abs(phi);                                                                     
+   float thetaH = (omegaO.y + omegaI.y) * 0.5;                                         
+	float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				                        
+	float cosThetaD2 = cos(thetaD)*cos(thetaD);					                        
+   vec3 singleScatteringResult = vec3(0.0f, 0.0f, 0.0f);   							
+   singleScatteringResult += specularI * R(colorR, intensityR, thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);                                                                     
+   singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
+   singleScatteringResult += specularI * TRT(colorTRT, colorG, intensityTRT, intensityG, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);   
+   return max(vec3(0.0, 0.0, 0.0), singleScatteringResult/max(0.0001, cosThetaD2));         																																		
+} 
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
+      <function_name val="hairPhysicalSpecular" />
+      <source>
+        <![CDATA[
+float UnitGaussian(                                            
+                   float x,                                    
+                   float mu,                                   
+                   float sigma )                               
+{                                                              
+   return exp(- pow(x - mu, 2.0) * 0.5 / pow(sigma, 2.0));     
+}                                                              
+float3 LocalSpherical (float3 L, float3 B, float3 N, float3 T) 
+{                                                              
+	const float M_PI = 3.1415926535897931f;                     
+   float a = dot(L, B);                                        
+   float b = dot(L, N);                                        
+   float c = dot(L, T);                                        
+   return float3(atan2(a, b), M_PI * 0.5 - acos(c), 0);        
+}                                                              
+float3 R( float3 colorR, float intensityR, float thetaH, float longitudinalShiftR, float longitudinalWidthR, float phi) 	
+{                                                                              											
+    float M_R = UnitGaussian(thetaH, longitudinalShiftR, longitudinalWidthR);  											
+    float N_R = cos(phi * 0.5);                                                											
+    return intensityR * colorR * M_R * N_R;                                    											
+}                                                                              											
+float3 TT( float3 colorTT, float intensityTT, float thetaH, float longitudinalShiftTT, float longitudinalWidthTT, float phi, float azimuthalWidthTT) 	
+{                                                                                      																
+	const float M_PI = 3.1415926535897931f;                                             																
+    float M_TT = UnitGaussian(thetaH, longitudinalShiftTT, longitudinalWidthTT);       																
+    float N_TT = UnitGaussian(M_PI, phi, radians(azimuthalWidthTT));                   																
+    return intensityTT * colorTT * M_TT * N_TT;                                        																
+}                                                                                      																
+float3 TRT( float3 colorTRT, float3 colorG, float intensityTRT, float intensityG, float thetaH, float longitudinalShiftTRT, float longitudinalWidthTRT, float phi, float azimuthalShiftG, float azimuthalWidthG) 	
+{                                                                                      																															
+    float M_TRT = UnitGaussian(thetaH, longitudinalShiftTRT, longitudinalWidthTRT);    																															
+    float N_TRGNG = cos(phi * 0.5);                                                    																															
+    float N_G = intensityG * UnitGaussian(azimuthalShiftG, phi, azimuthalWidthG);      																															
+    float N_TRT = N_TRGNG + N_G;                                                       																															
+    return intensityTRT * colorTRT * M_TRT * N_TRGNG + colorG * M_TRT * N_G;           																															
+}  																																																				
+float3 hairPhysicalSpecular(           	
+	float3 specularI,                       
+	float3 SLw,                             
+	float3 Vw,                              
+	float3 Tw,                              
+	float3 Bw,                              
+	float3 Nw,                              
+	float4x4 worldInverseTranspose,         
+   float3 colorR,                          
+   float intensityR,                       
+   float longitudinalShiftR,               
+   float longitudinalWidthR,               
+   float3 colorTT,                         
+   float intensityTT,                      
+   float longitudinalShiftTT,              
+   float longitudinalWidthTT,              
+   float azimuthalWidthTT,                 
+   float3 colorTRT,                        
+   float intensityTRT,                     
+   float longitudinalShiftTRT,             
+   float longitudinalWidthTRT,             
+   float3 colorG,                          
+   float intensityG,                       
+   float azimuthalShiftG,                  
+   float azimuthalWidthG )                 
+{                                                                                  
+   float3 MULT_MATRIX1 = mul(float4(Tw.xyz, 0.0f), worldInverseTranspose).xyz;     
+   float3 MULT_MATRIX2 = mul(float4(Bw.xyz, 0.0f), worldInverseTranspose).xyz;     
+   float3 MULT_MATRIX3 = mul(float4(Nw.xyz, 0.0f), worldInverseTranspose).xyz;     
+   float3 b = normalize(MULT_MATRIX1);                                             
+   float3 t = normalize(MULT_MATRIX2);                                             
+   float3 n = normalize(MULT_MATRIX3);                                             
+	float3 tVw = normalize(-Vw);                                                    
+   float3 omegaO = LocalSpherical(tVw, b, n, t);                                   
+   float _longitudinalShiftR   = radians(longitudinalShiftR);                      
+   float _longitudinalWidthR   = radians(longitudinalWidthR);                      
+   float _longitudinalShiftTT  = radians(longitudinalShiftTT);                     
+   float _longitudinalWidthTT  = radians(longitudinalWidthTT);                     
+   float _azimuthalWidthTT     = azimuthalWidthTT;                                 
+   float _longitudinalShiftTRT = radians(longitudinalShiftTRT);                    
+   float _longitudinalWidthTRT = radians(longitudinalWidthTRT);                    
+   float _azimuthalShiftG      = radians(azimuthalShiftG);                         
+   float _azimuthalWidthG      = radians(azimuthalWidthG);                         
+   float3 tL = normalize(-SLw);                                                    
+   float3 omegaI = LocalSpherical(tL, b, n, t);                                    
+	const float M_PI = 3.1415926535897931f;                                         
+   float phi = abs(omegaO.x - omegaI.x);                                           
+   if ( phi > M_PI ) {                                                             
+       phi -= 2 * M_PI;                                                            
+   }                                                                               
+   phi = abs(phi);                                                                 
+   float thetaH = (omegaO.y + omegaI.y) * 0.5;                                     
+	float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				                    
+	float cosThetaD2 = cos(thetaD)*cos(thetaD);					                    
+   float3 singleScatteringResult = float3(0.0f, 0.0f, 0.0f);   					
+   singleScatteringResult += specularI * R(colorR, intensityR, thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);                                                                     
+   singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
+   singleScatteringResult += specularI * TRT(colorTRT, colorG, intensityTRT, intensityG, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);   
+   return max(float3(0.0, 0.0, 0.0), singleScatteringResult/max(0.0001, cosThetaD2));                                                                                                                                              
+} 
+            ]]>
+      </source>
+    </implementation>
+  </implementation>
+</fragment>
+

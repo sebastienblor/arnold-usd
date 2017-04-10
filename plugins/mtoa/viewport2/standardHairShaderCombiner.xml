@@ -122,7 +122,7 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     }
 
     float fresnelCurve = clamp(pow(melC*2, 2.0), 0.5, 1.0);
-    fresnelCurve = pow(fresnel, fresnelCurve);
+    fresnelCurve = max(0.5, pow(fresnel, fresnelCurve));
     
     // Calculate the melanin contribution using hue, saturation, and value.
     // All values are tweaked using melanin based exponent curves.
@@ -152,9 +152,14 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     // include the non-physically based diffuse
     color += irrad * D;
     
-    // calculate and add the specular color.  The base specular color is 15% brighter than the diffuse.
-    float3 specular = (1.0f - diffuse) * (specularInput + SpecularEnv) * (B+0.15) * specularTint;
-    specular *= fresnel;
+    // calculate and add the specular color
+    // we tone down the specular to simulate absorption.
+    float3 specular = 0.5 * (1.0f - diffuse) * (specularInput*(1.0-0.85*roughness) + SpecularEnv*specularTint);
+    
+    // add the affects of IOR to brighten and wash-out the specular.
+    specular *= lerp(saturate(B+0.25), B, fresnel);
+    specular = lerp(specular, specular*IOR, fresnel);
+
     color += specular;
     
     // add the emission input
@@ -241,7 +246,7 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     }
 
     float fresnelCurve = clamp(pow(melC*2, 2.0), 0.5, 1.0);
-    fresnelCurve = pow(fresnel, fresnelCurve);
+    fresnelCurve = max(0.5, pow(fresnel, fresnelCurve));
     
     // Calculate the melanin contribution using hue, saturation, and value.
     // All values are tweaked using melanin based exponent curves.
@@ -271,9 +276,14 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     // include the non-physically based diffuse
     color += irrad * D;
     
-    // calculate and add the specular color.  The base specular color is 15% brighter than the diffuse.
-    float3 specular = (1.0f - diffuse) * (specularInput + SpecularEnv) * (B+0.15) * specularTint;
-    specular *= fresnel;
+    // calculate and add the specular color
+    // we tone down the specular to simulate absorption.
+    float3 specular = 0.5 * (1.0f - diffuse) * (specularInput*(1.0-0.85*roughness) + SpecularEnv*specularTint);
+    
+    // add the affects of IOR to brighten and wash-out the specular.
+    specular *= lerp(saturate(B+0.25), B, fresnel);
+    specular = lerp(specular, specular*IOR, fresnel);
+
     color += specular;
     
     // add the emission input
@@ -358,7 +368,7 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     }
 
     float fresnelCurve = clamp(pow(melC*2, 2.0), 0.5, 1.0);
-    fresnelCurve = pow(fresnel, fresnelCurve);
+    fresnelCurve = max(0.5, pow(fresnel, fresnelCurve));
     
     // Calculate the melanin contribution using hue, saturation, and value.
     // All values are tweaked using melanin based exponent curves.
@@ -389,8 +399,13 @@ mayaSurfaceShaderOutput hairShaderCombiner(
     color += irrad * D;
     
     // calculate and add the specular color
-    vec3 specular = (1.0f - diffuse) * (specularInput + SpecularEnv) * (B+0.15) * specularTint;
-    specular *= fresnel;
+    // we tone down the specular to simulate absorption.
+    vec3 specular = 0.5 * (1.0f - diffuse) * (specularInput*(1.0-0.85*roughness) + SpecularEnv*specularTint);
+    
+    // add the effects of IOR to brighten and wash-out the specular.
+    specular *= lerp(saturate(B+0.25), B, fresnel);
+    specular = lerp(specular, specular*IOR, fresnel);
+        
     color += specular;
     
     // add the emission input
