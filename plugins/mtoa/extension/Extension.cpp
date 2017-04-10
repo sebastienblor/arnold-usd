@@ -474,8 +474,10 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          {
             status = nodeStatus;
          }
-         // Warning for Arnold nodes that are from plugins and not translated
-         if (m_impl->m_extensionName != BUILTIN && MStatus::kNotImplemented == translatorStatus)
+         static MString synColorTranslatorName("synColorTranslator");
+
+         // Warning for Arnold nodes that are from plugins and not translated. (Ignoring syncolor)
+         if (m_impl->m_extensionName != BUILTIN && m_impl->m_extensionName != synColorTranslatorName && MStatus::kNotImplemented == translatorStatus)
          {
             AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
                m_impl->m_extensionName.asChar(), arnoldNode.name.asChar());
@@ -586,10 +588,7 @@ MStatus CExtensionImpl::RegisterNode(CPxMayaNode &mayaNode,
       // we're creating (and mapping)
       status = NewMappedMayaNode(mayaNode, arnoldNode);
    }
-   else if (mayaNode.name == "defaultColorMgtGlobals")
-   {
-      return MS::kSuccess;
-   } else
+   else
    {
       // No error or warning message, because there are many Arnold nodes that are not meant to be associated
       status = MStatus::kNotImplemented;
