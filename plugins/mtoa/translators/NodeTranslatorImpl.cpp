@@ -805,7 +805,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             // create an interpolation node for matrices
             AtNode* animNode = m_tr.GetArnoldNode(arnoldParamName);
             if (animNode == NULL)
-               animNode = m_tr.AddArnoldNode("anim_matrix", arnoldParamName);
+               animNode = m_tr.AddArnoldNode("MtoaAnimMatrix", arnoldParamName);
 
             AtArray* matrices = AiArrayAllocate(1, m_tr.GetNumMotionSteps(), AI_TYPE_MATRIX);
 
