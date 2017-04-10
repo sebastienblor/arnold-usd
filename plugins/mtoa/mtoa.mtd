@@ -2356,7 +2356,7 @@ maya.swatch             BOOL    false
 [node skin]
     maya.id                 INT     0x00115D16
     maya.name               STRING  "aiSkin"
-    maya.classification     BOOL    "legacy"
+    maya.classification     STRING  "legacy"
 
 [node space_transform]
     maya.id                 INT     0x00115D78
@@ -2526,7 +2526,7 @@ c4d.step FLOAT 0.01
 [node volume_collector]
     maya.id                 INT     0x00115D1F
     maya.name               STRING  "aiVolumeCollector"
-    maya.classification     BOOL    "legacy"
+    maya.classification     STRING   "legacy"
 
 
 # enable volume_sample_float
