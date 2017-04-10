@@ -1,0 +1,50 @@
+<fragment  uiName="standardfloatPassThrough" name="standardfloatPassThrough" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0" >
+    <description>
+<![CDATA[
+Pass through fragment for float type.]]>
+</description>
+    <properties>
+        <float  name="input" />
+    </properties>
+    <values>
+    </values>
+    <outputs>
+        <float  name="output" />
+    </outputs>
+    <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+        <function_name val="standardfloatPassThrough" />
+        <source>
+            <![CDATA[
+float standardfloatPassThrough(float input) 
+{ 
+	return input; 
+} 
+            ]]>
+        </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="10.000000" >
+        <function_name val="standardfloatPassThrough" />
+        <source>
+            <![CDATA[
+float standardfloatPassThrough(float input) 
+{ 
+	return input; 
+} 
+            ]]>
+        </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+        <function_name val="standardfloatPassThrough" />
+        <source>
+            <![CDATA[
+float standardfloatPassThrough(float input) 
+{ 
+	return input; 
+} 
+            ]]>
+        </source>
+    </implementation>
+    </implementation>
+</fragment>
+
