@@ -8,7 +8,7 @@
         <fragment_ref name="standardShaderLightingCombiner" ref="standardShaderLightingCombiner" />
         <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
       
-        <fragment_ref name="roughnessPassThrough" ref="mayafloatPassThrough" />
+        <fragment_ref name="roughnessPassThrough" ref="standardfloatPassThrough" />
         <fragment_ref name="standardShaderCombiner" ref="standardSurfaceShaderCombiner" />
         <fragment_ref name="standardShaderDiffuse" ref="standardShaderDiffuse" />
         <fragment_ref name="standardShaderSpecular" ref="standardShaderSpecular" />
@@ -20,8 +20,8 @@
       <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaComputeSurfaceFinal.input" name="input" />
       <connect from="maya_FogDepthSurface.maya_FogDepthSurface" to="mayaComputeSurfaceFinal.maya_FogDepthSurface" name="maya_FogDepthSurface" />
 
-      <connect from="roughnessPassThrough.mayafloatPassThrough" to="standardShaderCombiner.specularRoughness" name="roughness" />
-      <connect from="roughnessPassThrough.mayafloatPassThrough" to="standardShaderSpecular.roughness" />
+      <connect from="roughnessPassThrough.output" to="standardShaderCombiner.specularRoughness" />
+      <connect from="roughnessPassThrough.output" to="standardShaderSpecular.roughness" />
       
       <connect from="maya16LightAccum.scaledDiffuse" to="standardShaderCombiner.diffuseInput" />
       <connect from="maya16LightAccum.scaledSpecular" to="standardShaderCombiner.specularInput" />

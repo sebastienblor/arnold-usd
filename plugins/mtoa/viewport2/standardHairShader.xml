@@ -8,9 +8,8 @@
     <fragment_ref name="mayaShaderGeom" ref="mayaShaderGeom" />
     <fragment_ref name="mayaHVector" ref="mayaHVector" />
     <fragment_ref name="standardShaderEmission" ref="standardShaderEmission" />
-    <fragment_ref name="iorPassThrough" ref="mayafloatPassThrough" />
-    <fragment_ref name="roughnessPassThrough" ref="mayafloatPassThrough" />
-    <fragment_ref name="specularTintPassThrough" ref="mayafloat3PassThrough" />
+    <fragment_ref name="roughnessPassThrough" ref="standardfloatPassThrough" />
+    <fragment_ref name="specularTintPassThrough" ref="standardfloat3PassThrough" />
     <fragment_ref name="standardHairSpecular" ref="standardHairSpecular" />
     <fragment_ref name="rougnessToScatter" ref="lerpFloat1" />
     <fragment_ref name="scatterConverter" ref="multiplyFloat" />    
@@ -25,21 +24,20 @@
     <connect from="maya16LightAccum.scaledSpecular" to="hairShaderCombiner.specularInput" name="specularInput" />
     <connect from="standardShaderEmission.outColor" to="hairShaderCombiner.emissionInput" />
     <connect from="mayaLambertDiffuse.mayaLambertDiffuse" to="maya16LightAccum.scaledDiffuse" name="scaledDiffuse" />
-    <connect from="standardHairSpecular.hairPhysicalSpecular" to="maya16LightAccum.scaledSpecular" name="scaledSpecular" />
+    <connect from="standardHairSpecular.standardHairSpecular" to="maya16LightAccum.scaledSpecular" name="scaledSpecular" />
     <connect from="mayaShaderGeom.mayaShaderGeom" to="hairShaderCombiner.shaderGeomInput" name="shaderGeomInput" />
     <connect from="mayaShaderGeom.mayaShaderGeom" to="mayaLambertDiffuse.shaderGeomInput" name="shaderGeomInput" />
     <connect from="mayaHVector.mayaHVector" to="mayaShaderGeom.Hw" name="Hw" />
-    <connect from="iorPassThrough.mayafloatPassThrough" to="hairShaderCombiner.IOR" name="IOR" />
-    <connect from="roughnessPassThrough.mayafloatPassThrough" to="hairShaderCombiner.roughness" name="roughness" />
+    <connect from="roughnessPassThrough.output" to="hairShaderCombiner.roughness" name="roughness" />
 
     <connect from="rougnessToScatter.lerpFloat1" to="standardHairSpecular.longitudinalWidthR" name="longitudinalWidthR" />
     <connect from="rougnessToScatter.lerpFloat1" to="scatterConverter.in0" />
     <connect from="scatterConverter.multiplyFloat" to="standardHairSpecular.longitudinalWidthTRT" />
     
-    <connect from="roughnessPassThrough.mayafloatPassThrough" to="rougnessToScatter.factor" name="factor" />
+    <connect from="roughnessPassThrough.output" to="rougnessToScatter.factor" name="factor" />
 
-    <connect from="specularTintPassThrough.mayafloat3PassThrough" to="standardHairSpecular.colorR" name="specularTint" />
-    <connect from="specularTintPassThrough.mayafloat3PassThrough" to="hairShaderCombiner.specularTint" name="specularTint" />
+    <connect from="specularTintPassThrough.output" to="standardHairSpecular.colorR" name="specularTint" />
+    <connect from="specularTintPassThrough.output" to="hairShaderCombiner.specularTint" name="specularTint" />
 
     <connect from="shiftConverter.multiplyFloat" to="standardHairSpecular.longitudinalShiftR" />
     <connect from="shiftConverter.multiplyFloat" to="standardHairSpecular.longitudinalShiftTRT" />
@@ -79,7 +77,7 @@
     <float  name="fogMultiplier" ref="mayaComputeSurfaceFinal.fogMultiplier" />
 
     <float  name="roughness" ref="roughnessPassThrough.input" />
-    <float  name="ior" ref="iorPassThrough.input" />
+    <float  name="ior" ref="hairShaderCombiner.IOR" />
     <string  name="selector" ref="maya16LightAccum.selector" />
 
     <float3  name="Nw" ref="mayaShaderGeom.Nw" flags="varyingInputParam" />
