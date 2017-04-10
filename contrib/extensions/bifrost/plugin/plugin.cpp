@@ -72,9 +72,7 @@ extern "C"
 #else
         extension.Requires ( "bifrostvisplugin" );
 #endif
-        extension.LoadArnoldPlugin("bifrost_shaders");
-        extension.LoadArnoldPlugin("bifrost_procedurals");
-
+     
         status = extension.RegisterTranslator ( "bifrostShape", "",
                                                 BifrostTranslator::creator,
                                                 BifrostTranslator::NodeInitializer );
