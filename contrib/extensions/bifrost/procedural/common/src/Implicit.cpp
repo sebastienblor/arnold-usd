@@ -56,7 +56,6 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
 
     AiParameterBool("infCubeBlendingOn", false);
     AiParameterInt("infCubeOutputType", OUTPUT_SIMONLY);
-    AiParameterFlt("simWaterLevel", 0);
     AiParameterVec("infCubeTopCenter", 0, 0, 0);
     AiParameterVec("infCubeDim", 100, 100, 100);
     AiParameterInt("blendType", kLinear);
@@ -129,7 +128,6 @@ bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
 
     inData->infCube.on = AiNodeGetBool( node, "infCubeBlendingOn" );
     inData->infCube.outputType = (InfCubeOutputType) AiNodeGetInt( node, "infCubeOutputType" );
-    inData->infCube.simWaterLevel = AiNodeGetFlt(node, "simWaterLevel");
     AtVector infCubeTopCenter = AiNodeGetVec(node, "infCubeTopCenter");
     inData->infCube.topCenterX = infCubeTopCenter.x;
     inData->infCube.topCenterY = infCubeTopCenter.y;
@@ -276,7 +274,7 @@ CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost
             AiMsgWarning("[BIFROST] Can't find bif object in file '%s' (%d objects exist).", filename.c_str(), objects.count());
         }
     }else{
-        AiMsgWarning("[BIFROST] Failed to load bif file '%s'.", filename.c_str());
+        AiMsgError("[BIFROST] Failed to load bif file '%s'.", filename.c_str());
     }
 
     return out;
