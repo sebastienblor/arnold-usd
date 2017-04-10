@@ -19,14 +19,7 @@ namespace RenderCore{
 MarchingCubes::MarchingCubes( FrameData *frameData )
 	: CoreMesherInterface( frameData )
 {
-	c_ids.rehash ( 12 * 125 * frameData->sampleRate * frameData->sampleRate * frameData->sampleRate );
-
-	// for optimization
-	for ( int i = 0; i < 8; i++ ) {
-		for ( int j = 0; j < 3; j++ ) {
-			c_cubeVertsSampleRate[i][j] = (float) c_cubeVerts[i][j] / (float) frameData->sampleRate;
-		}
-	}
+    c_ids.rehash ( 12 * 125 * frameData->sampleRate * frameData->sampleRate * frameData->sampleRate );
 }
 
 float CoreMesherInterface::getFieldValue( amino::Math::vec3f position )
@@ -34,7 +27,7 @@ float CoreMesherInterface::getFieldValue( amino::Math::vec3f position )
 	return c_sampler->sample<float>( position );
 }
 
-size_t MarchingCubes::calcVoxel( float *gridVals, amino::Math::vec3f& voxelCornerPos )
+size_t MarchingCubes::calcVoxel( float *gridVals, amino::Math::vec3i& voxelCornerPos )
 {
 	// define vars
 	int edges[ 12 ];
@@ -59,8 +52,8 @@ size_t MarchingCubes::calcVoxel( float *gridVals, amino::Math::vec3f& voxelCorne
 		amino::Math::vec3f newVertex (0, 0, 0);
 		amino::Math::vec2i e ( c_edgeIndex[count][0], c_edgeIndex[count][1] );
 
-		amino::Math::vec3f p0 ( c_cubeVertsSampleRate[e[0]] );
-		amino::Math::vec3f p1 ( c_cubeVertsSampleRate[e[1]] );
+        amino::Math::vec3i p0 ( c_cubeVerts[e[0]] );
+        amino::Math::vec3i p1 ( c_cubeVerts[e[1]] );
 
 		float a = gridVals[ e[0] ];
 		float b = gridVals[ e[1] ];
@@ -73,12 +66,13 @@ size_t MarchingCubes::calcVoxel( float *gridVals, amino::Math::vec3f& voxelCorne
 
 		for ( int coord = 0; coord < 3; coord++ ) {
 			// calc interpolated vertex position in tile space
-			newVertex[ coord ] = voxelCornerPos[coord] + p0[coord] + t * ( p1[coord] - p0[coord] );
+            newVertex[ coord ] = (voxelCornerPos[coord] + p0[coord]) + t * ( p1[coord] - p0[coord] );
+            newVertex[ coord ] /= c_frameData->sampleRate;
 		}
 
 		// check whether this point is generated before
 		auto positionInserted = c_ids.find( newVertex );
-		if ( positionInserted != c_ids.end() ) {
+        if ( positionInserted != c_ids.end() ) {
 			edges[count] = (int) positionInserted->second;
 		} else {
 			size_t vertexID = getVertexCount();
