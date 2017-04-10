@@ -334,7 +334,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 
 struct BIFROSTRENDERAPI_DECL SmoothFilterParams {
     SmoothFilterType mode;
-	int amount;
+    int kernelSize;
 	int iterations;
 	float weight;
 	CvString channelName;
@@ -495,6 +495,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesInputData {
 	ClipParams clip;
 
 	float radius;
+    float stepSize;
 	bool useChannelToModulateRadius;
 	bool camRadius;
 	float camRadiusStartDistance;

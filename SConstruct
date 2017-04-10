@@ -756,7 +756,7 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         if 'maketx' in dylibElem:
             dylibs.remove(dylibElem)
         
-    if int(maya_version) >= 201800:
+    if system.os() == 'windows' and int(maya_version) >= 201800:
         syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
         if os.path.exists(syncolor_library_path):
             env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/synColor*.dll"))
@@ -1140,9 +1140,8 @@ if env['ENABLE_RENDERSETUP'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'syncolor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
-
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
 
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'shaders']]

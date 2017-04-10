@@ -188,6 +188,7 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
 
             // get the data and populate arnold array
             float *primVarData = (float *)ptr[ currentArrayIndex ];
+            // TODO: handle other channel types than float
             AtArray *primVarArray = AiArrayAllocate( (uint32_t) vertexCount, 1, AI_TYPE_FLOAT );
 
             for ( unsigned int i = 0; i < vertexCount; i++ ) {
@@ -241,7 +242,7 @@ procedural_init
 
     // polymesh specific inputs
     inData.mesherAlgo = MESH_MARCHINGCUBES; // the only one available
-    inData.sampleRate = AiNodeGetInt(node, "sampleRate");
+    inData.sampleRate = AiNodeGetInt(node, "tesselation");
     getNodeParameters(&inData, node);
     AtArray* displacements = AiNodeGetArray(node, "disp_map");
     inData.exportUVs = inData.exportUVs || AiArrayGetNumElements(displacements) > 0;
@@ -286,6 +287,6 @@ procedural_cleanup
 }
 node_parameters
 {
-    AiParameterInt("sampleRate", 2);
+    AiParameterInt("tesselation", 2);
     ImplicitNodeDeclareParameters(params, nentry);
 }

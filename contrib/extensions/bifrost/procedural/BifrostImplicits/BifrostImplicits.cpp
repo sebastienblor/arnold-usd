@@ -93,6 +93,7 @@ volume_create
     // Implicit specific inputs
     inData.narrowBandThicknessInVoxels = AiNodeGetFlt(node, "narrowBandThicknessInVoxels");
     inData.stepSize = AiNodeGetFlt(node, "liquidStepSize");
+    inData.sampleRate = AiNodeGetFlt(node, "samples");
     getNodeParameters(&inData, node);
 
     if(!InitializeImplicit(&inData, &frameData, &data->bbox)){

@@ -237,8 +237,8 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 
 	printf("\tdilateAmount: %f\n", this->dilateAmount);
 	printf("\terodeAmount: %f\n", this->erodeAmount);
-    if ( this->smooth.amount > 0 ) {
-		printf("\tsmoothKernelSize: %d\n", this->smooth.amount);
+    if ( this->smooth.kernelSize > 0 ) {
+        printf("\tsmoothKernelSizeSize: %d\n", this->smooth.kernelSize);
 	
 		switch (this->smooth.mode ) {
 			case kMeanValue:
@@ -352,8 +352,8 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	printf("\tvelocityScale: %f fps: %f\n", this->velocityScale, this->fps);
 	printf("\tspaceScale: %f\n", this->spaceScale);
 
-    if ( this->smooth.amount > 0 ) {
-		printf("\n\tsmoothKernelSize: %d\n", this->smooth.amount);
+    if ( this->smooth.kernelSize > 0 ) {
+        printf("\n\tsmoothKernelSizeSize: %d\n", this->smooth.kernelSize);
 	
 		switch (this->smooth.mode ) {
 			case kMeanValue:
@@ -541,6 +541,11 @@ void PrimitivesInputData::checkParameters()
 		// if not calc correct velocity scale
 		this->velocityScale = this->velocityScale / this->fps;
 	}
+
+    if(this->spaceScale == 0){
+        printf("Invalid space scale.\n");
+        this->error = true;
+    }
 }
 
 void ImplicitsInputData::checkParameters()
