@@ -269,6 +269,14 @@ try:
             aovsJSON["outputs"] = outputs
             return aovsJSON
          
+        def _getAOVNameFromJSON(self, aovsJSON, aiAOVName):
+            aovs = aovsJSON["aovs"]
+            for aov in aovs:
+                for key, value in aov.iteritems():
+                    if key == aiAOVName:
+                        return value[aiAOVName + ".name"]
+            return None
+
         def decode(self, aovsJSON, decodeType):
             
             core.createOptions()
@@ -287,13 +295,15 @@ try:
                 for key, value in output.iteritems():
 
                     # If we're doing a merge, we need to delete the nodes that overlap with the nodes we are importing.
-                    aovName = key[len('aiAOV_'):] # Remove aiAOV_ from the start of the string
+                    aovName = self._getAOVNameFromJSON(aovsJSON, key)
                     if decodeType == self.DECODE_TYPE_MERGE and AOVInterface().getAOVNode(aovName) != None:
                         AOVInterface().removeAOV(aovName)
 
                     # Create a new aov node with the given aov name
                     aovNode = AOVInterface().addAOV(aovName)
-                    
+                    if ("aiAOV_" + aovName) != key:
+                        cmds.rename(("aiAOV_" + aovName), key)
+
                     # Iterate over the output's value indexes
                     for outputIndex in range(0, len(value)):
                         filterName = value[outputIndex]["filter"]
@@ -319,7 +329,6 @@ try:
                         for outputType, outputName, newOutputName in ["filter", filterName, newFilterName], ["driver", driverName, newDriverName]:
                             if outputIndex > 0 or cmds.listConnections(key + ".outputs[" + str(outputIndex) + "]." + outputType)[0] != outputName:
                                 cmds.connectAttr(newOutputName + ".message", key + ".outputs[" + str(outputIndex) + "]." + outputType, force=True)
-
             # Iterate over our AOVs and decode them
             aovs = aovsJSON["aovs"]
             for aov in aovs:
