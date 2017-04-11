@@ -12,7 +12,7 @@ extern "C"
         MStatus status;
 
         extension.Requires ( "xgenToolkit" );
-        extension.LoadArnoldPlugin("xgenSpline_shaders");
+//        extension.LoadArnoldPlugin("xgenSpline_shaders");
 
         status = extension.RegisterTranslator ( "xgmSplineDescription",
                                                 "",

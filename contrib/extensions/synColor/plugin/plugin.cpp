@@ -6,7 +6,7 @@ extern "C"
 {
     DLLEXPORT void initializeExtension(CExtension& extension)
     {
-        extension.LoadArnoldPlugin("synColor_shaders");
+//        extension.LoadArnoldPlugin("synColor_shaders");
         extension.RegisterPluginNodesAndTranslators("synColor");
         extension.RegisterTranslator("colorManagementGlobals",
                                      "",
