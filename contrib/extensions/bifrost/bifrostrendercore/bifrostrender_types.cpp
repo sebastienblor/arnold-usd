@@ -295,12 +295,11 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 			printf("\tinfCubeOutputType: SIMONLY\n");
 		}
 
-		printf("\tsimWaterLevel: %f\n", this->infCube.simWaterLevel);
-
 		printf("\tinfCubeTopCenterX: %f\n", this->infCube.topCenterX);
 		printf("\tinfCubeTopCenterY: %f\n", this->infCube.topCenterY);
 		printf("\tinfCubeTopCenterZ: %f\n", this->infCube.topCenterZ);
 		printf("\tinfCubeDimX: %f\n", this->infCube.dimX);
+        printf("\tinfCubeDimY: %f\n", this->infCube.dimY);
 		printf("\tinfCubeDimZ: %f\n", this->infCube.dimZ);
 		printf("\tblendType: %d\n", this->infCube.blendType);
 		printf("\tinfCubeBlendStart: %f\n", this->infCube.blendStart);

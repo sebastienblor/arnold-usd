@@ -118,8 +118,11 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
    MPlug inputPointsPlug = depNodeInstancer.findPlug("inputPoints");
    inputPointsPlug.connectedTo(conn, true, false);
-
+   
    MObject inputPointsData = inputPointsPlug.asMObject();
+
+   if (conn.length() == 0)
+	   return;
 
    // inputPoints is not an array, so position [0] is the particleShape node
    MObject particleShape = conn[0].node();

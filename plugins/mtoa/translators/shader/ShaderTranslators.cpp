@@ -521,7 +521,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "incandescense"
       )
    {
-      return AddArnoldNode("userDataColor");
+      return AddArnoldNode("MtoaUserDataColor");
    }
 
    else if(
@@ -540,7 +540,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userVector5PP"
          )
    {
-      return AddArnoldNode("userDataVector");
+      return AddArnoldNode("MtoaUserDataVector");
    }
    else if (
          outputAttr == "ageNormalized" ||
@@ -567,7 +567,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userScalar5PP"
          )
    {
-      return AddArnoldNode("userDataFloat");
+      return AddArnoldNode("MtoaUserDataFloat");
    }
    else
       return NULL;
@@ -1115,7 +1115,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("anim_float");
+   return AddArnoldNode("MtoaAnimFloat");
 }
 
 void CAnimCurveTranslator::Export(AtNode* shader)
@@ -1964,7 +1964,7 @@ AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
    if (isClosure)
       return AddArnoldNode("aov_write_rgb");
 
-   return AddArnoldNode("writeColor");
+   return AddArnoldNode("MtoaWriteColor");
 }
 
 void CAiAovWriteColorTranslator::Export(AtNode* shader)
@@ -2009,7 +2009,7 @@ AtNode* CAiAovWriteFloatTranslator::CreateArnoldNodes()
    }
 
    if (isRGBA)
-      return AddArnoldNode("writeFloat");
+      return AddArnoldNode("MtoaWriteFloat");
 
    
    return AddArnoldNode("aov_write_float");

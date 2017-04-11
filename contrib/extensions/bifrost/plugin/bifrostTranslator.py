@@ -35,6 +35,36 @@ def CheckRenderType( nodeName ):
         bifrostRenderExportShowBlock("PointExportHideThis", True)
     bifrostRenderExportShowBlock("HiddenHideThis", False);
 
+
+# ****** LIQUID AE CALLBACKS ******
+
+def CheckLiquidRenderComponents( nodeName ):
+    usingVoxels = cmds.getAttr(nodeName+".renderData") != 1
+    for attr in ("implicitResolutionFactor", "implicitDropletRevealFactor", "implicitSurfaceRadius", "implicitDropletRadius",
+                 "implicitMaxVolumeOfHolesToClose", "doMorphologicalDilation", "doErodeSheetsAndDroplets"):
+        cmds.editorTemplate(dimControl=(nodeName, attr, usingVoxels))
+
+def CheckSmoothWeight( nodeName ):
+    smoothOff = cmds.getAttr(nodeName+".smoothWeight") <= 0
+    for attr in ("smoothMode", "smoothKernelSize", "smoothIterations", "filterBlendingChannel", "smoothRemapRange", "smoothRemapInvert"):
+        cmds.editorTemplate(dimControl=(nodeName, attr, smoothOff))
+
+def CheckLiquidClipping( nodeName ):
+    clipOff = not cmds.getAttr(nodeName+".liquidClipOn")
+    for attr in ("liquidClipMin", "liquidClipMax", "infCubeBlendingOn"):
+        cmds.editorTemplate(dimControl=(nodeName, attr, clipOff))
+
+    infBlendingOff = clipOff or not cmds.getAttr(nodeName+".infCubeBlendingOn")
+    for attr in ("infCubeOutputType", "infCubeTopCenter", "infCubeDim", "blendType", "infCubeBlendRange",
+                 "infiniteSurfaceBlendingChannel", "blendingChannelRemapRange", "blendingChannelRemapInvert"):
+        cmds.editorTemplate(dimControl=(nodeName, attr, infBlendingOff))
+
+def CheckCullSides( nodeName ):
+    cullOff = not cmds.getAttr(nodeName+".cullSidesOn")
+    for attr in ("cullSidesRange", "cullDepthAtStartInVoxels"):
+        cmds.editorTemplate(dimControl=(nodeName, attr, cullOff))
+
+
 class BifrostTemplate(ShapeTranslatorTemplate):
     def setupAero(self):
         # this is for aero
@@ -93,71 +123,14 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addCustom("LiquidExportHideThis", Hide, Hide)
 
         self.beginLayout("Globals", collapse=False)
-        self.addControl("renderMethod")
-        self.addControl("renderData", label="Render Components")
+        self.addControl("renderData", label="Render Components", changeCommand=CheckLiquidRenderComponents)
         self.addControl("distanceChannel")
         self.addControl("liquidPrimVars", label="Export Channels")
         self.addControl("exportUVs", label="Export UVs");
         self.addControl("liquidVelocityScale", label="Velocity Scale")
         self.addControl("liquidSpaceScale", label="Space Scale") # why????
-        self.endLayout() # LiquidGlobals
-
-        self.beginLayout("Filtering", collapse=False)
-        self.addControl("dilateAmount", label="Dilate")
-        self.addControl("smoothWeight", label="Smooth")
-        self.addControl("erodeAmount", label="Erode")
-
-        self.beginLayout("Smoothing", collapse=True)
-        self.addControl("smoothMode", label="Mode")
-        self.addControl("smoothKernelSize", label="Kernel Size")
-        self.addControl("smoothIterations", label="Iterations")
-        self.endLayout() # Smoothing
-
-        self.beginLayout("Blend Raw And Smooth Liquid", collapse=True)
-        self.addControl("filterBlendingChannel")
-        self.addControl("smoothRemapRange")
-        self.addControl("smoothRemapInvert", label="Invert")
-        self.endLayout() # BlendRawAndSmoothLiquid
-        self.endLayout() # Filtering
-
-        self.beginLayout("Clipping", collapse=True)
-        self.addControl("liquidClipOn", label="Enable")
-        self.addControl("liquidClipMin", label="Min")
-        self.addControl("liquidClipMax", label="Max")
-        self.endLayout() # LiquidClipping
-
-        self.beginLayout("Cull Sides", collapse=True)
-        self.addControl("cullSidesOn", label="Enable")
-        self.addControl("cullSidesRange", label="Range")
-        self.addControl("cullDepthAtStartInVoxels", label="Depth At Start In Voxels")
-        self.endLayout() # CullSides
-
-        self.beginLayout("Extend Surface", collapse=True)
-        self.addControl("infCubeBlendingOn")
-        self.addControl("infCubeOutputType")
-        self.addControl("simWaterLevel")
-        self.addControl("infCubeTopCenter")
-        self.addControl("infCubeDim")
-        self.addControl("blendType")
-        self.addControl("infCubeBlendRange")
-
-        self.beginLayout("Blend Using Channel", collapse=False)
-        self.addControl("infiniteSurfaceBlendingChannel")
-        self.addControl("blendingChannelRemapRange")
-        self.addControl("blendingChannelRemapInvert", label="Invert")
-        self.endLayout() # BlendUsingChannel
-        self.endLayout() # ExtendSurface
-
-        self.beginLayout("Advanced", collapse=True)
-        self.beginLayout("Implicit Controls", collapse=True)
-        self.addControl("narrowBandThicknessInVoxels", label="Narow Band Thickness")
-        self.addControl("liquidStepSize", label="Step size")
-        self.addControl("samples", label="Samples")
-        self.endLayout() # Implicit
-        self.beginLayout("Mesh Controls", collapse=True)
-        self.addControl("tesselation", label="Tesselation")
-        self.endLayout() # Mesh
-        self.beginLayout("Particles To Voxels Controls", collapse=True)
+        self.addControl("tesselation", label="Subdivisions (per voxel)")
+        self.beginLayout("Particles Rendering", collapse=True)
         self.addControl("implicitResolutionFactor", label="Resolution Factor")
         self.addControl("implicitDropletRevealFactor", label="Droplet Reveal Factor")
         self.addControl("implicitSurfaceRadius", label="Surface Radius")
@@ -166,8 +139,53 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("doMorphologicalDilation")
         self.addControl("doErodeSheetsAndDroplets")
         self.endLayout() # Particles
-        self.endLayout() # Advanced
-        self.endLayout() # LiquidExportAttributes
+        self.endLayout() # Globals
+
+        self.beginLayout("Filtering", collapse=False)
+        self.addControl("dilateAmount", label="Dilate")
+        self.addControl("erodeAmount", label="Erode")
+        self.addSeparator()
+        self.addControl("smoothWeight", label="Smoothing", changeCommand=CheckSmoothWeight)
+        self.addControl("smoothMode", label="Mode")
+        self.addControl("smoothKernelSize", label="Kernel Size (voxels)")
+        self.addControl("smoothIterations", label="Iterations")
+        self.beginLayout("Blend Raw And Smooth Liquid", collapse=True)
+        self.addControl("filterBlendingChannel")
+        self.addControl("smoothRemapRange")
+        self.addControl("smoothRemapInvert", label="Invert")
+        self.endLayout() # BlendRawAndSmoothLiquid
+        self.endLayout() # Filtering
+
+        self.beginLayout("Clip And Extend", collapse=True)
+        self.addControl("liquidClipOn", label="Enable", changeCommand=CheckLiquidClipping)
+        self.addControl("liquidClipMin", label="Min")
+        self.addControl("liquidClipMax", label="Max")
+        self.beginLayout("Infinite Surface Blending", collapse=True)
+        self.addControl("infCubeBlendingOn", label="Enable", changeCommand=CheckLiquidClipping)
+        self.addControl("infCubeOutputType", label="Output Type")
+        self.addControl("infCubeTopCenter", label="Top Center")
+        self.addControl("infCubeDim", label="Dimension")
+        self.addControl("blendType")
+        self.addControl("infCubeBlendRange", label="Blend Range")
+        self.addSeparator()
+        self.addControl("infiniteSurfaceBlendingChannel", label="Blend Using Channel")
+        self.addControl("blendingChannelRemapRange", label="Remap Range")
+        self.addControl("blendingChannelRemapInvert", label="Invert")
+        self.endLayout() # Infinite Blending
+        self.endLayout() # LiquidClipping
+
+        self.beginLayout("Cull Sides", collapse=True)
+        self.addControl("cullSidesOn", label="Enable", changeCommand=CheckCullSides)
+        self.addControl("cullSidesRange", label="Range")
+        self.addControl("cullDepthAtStartInVoxels", label="Depth At Start (voxels)")
+        self.endLayout() # CullSides
+
+        self.endLayout() # Liquid Attributes
+
+        self.suppress("renderMethod") # only meshing available for now
+        self.suppress("narrowBandThicknessInVoxels")
+        self.suppress("liquidStepSize")
+        self.suppress("samples")
 
     def setupFoam(self):
         # this is for foam
@@ -234,9 +252,9 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.setupLiquid()
         self.setupFoam()
 
-        self.beginLayout("Hidden")#, visible=False)
+        self.beginLayout("Hidden")
         self.addCustom("HiddenHideThis", Hide, Hide)
-        self.addControl("bifrostRenderType", changeCommand=CheckRenderType);
+        self.addControl("bifrostRenderType", changeCommand=CheckRenderType)
         self.endLayout()
 
         self.suppress("aiDebug")

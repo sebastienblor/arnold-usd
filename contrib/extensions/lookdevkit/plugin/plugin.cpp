@@ -6,7 +6,7 @@ extern "C"
 
 DLLEXPORT void initializeExtension(CExtension& extension)
 {
-   extension.LoadArnoldPlugin("lookdevkit_shaders");
+//   extension.LoadArnoldPlugin("lookdevkit_shaders");
    extension.RegisterPluginNodesAndTranslators("lookdevkit");
 }
 

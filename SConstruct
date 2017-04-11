@@ -1098,8 +1098,10 @@ else:
     if (int(maya_version) >= 201800):
         if system.os() == 'windows':    
             syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
-            PACKAGE_FILES.append([glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll')), 'bin'])
-        
+            syncolor_2018_files = glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll'))
+
+            for syncolor_file in syncolor_2018_files:
+                PACKAGE_FILES.append([syncolor_file, 'bin'])
             
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])

@@ -1,0 +1,155 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201740\msvc_opt\testsuite\test_0204\test_0204.log', using stdout instead
+
+Starting "D:\arnold\installers\Maya2017-Update3\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.71.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+===================================00:00:00   491MB WARNING |  node "bifrostPolymesh" is already installed
+===== mtoa_shaders====================
+00:00:00   491MB WARNING |  node "bifrostPrimitives" is already installed
+00:00:00   491MB WARNING |  node "bifrostVolume" is already installed
+00:00:00   491MB WARNING |  node "bifrostImplicits" is already installed
+00:00:00   491MB WARNING |  node "bifrostFoamMaterial" is already installed
+======================================== C:/solidangle/mtoadeploy/2017/shaders\mtoa_ParticleInstancer_proc.dll====================
+======================================== C:/solidangle/mtoadeploy/2017/shaders\xgenSpline_procedural.dll====================
+======================================== C:/solidangle/mtoadeploy/2017/shaders\xgen_procedural.dll====================
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
+
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 582
+: (kFailure): Unexpected Internal Failure
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 582
+: (kFailure): Unexpected Internal Failure
+Maya 2017 importing module pymel 1.0.9 (D:\arnold\installers\Maya2017-Update3\Python\lib\site-packages\pymel\__init__.pyc)
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.59 seconds.
+Warning: Bifrost: to use the new Maya 2017 Update 3 Bifrost features, graph |bifrostLiquid1|bifrostLiquidContainer1 needs to be updated to the latest version, call mel script: replaceBifrostFXGraphsWithFactoryGraphs |bifrostLiquid1|bifrostLiquidContainer1 ; 
+Result: D:/arnold/mtoa/build/windows_x86_64/201740/msvc_opt/testsuite/test_0204/test.ma
+INIT_START
+
+
+---------------------------------------
+[BIFROST PRIMITIVES] START OUTPUT
+---------------------------------------
+
+
+Input Parameters:
+	renderType: SPHERE
+
+	renderChannelName: density
+	renderChannelScale: 1.000000
+	exportNormalAsPrimvar: OFF
+
+	velocityScale: 1.000000 fps: 24.000000
+	spaceScale: 1.000000
+
+	skip: 1
+	chunkSize: 100000
+
+	clipBox: OFF
+
+	radius: 0.100000
+	useChannelToModulateRadius: OFF
+	camRadius: OFF
+
+	mpSamples: 1
+
+	primVarNames: 
+
+	DEBUG: ON
+
+
+Avaliable channels:
+	density
+	id64
+	position
+	velocity
+
+Pruning PRIMVARS List...
+
+MotionBlur: ON
+	Shutter: -2.00 0.00
+
+No primvars found to export!
+
+	Final list of channels to load:
+		density
+		position
+		velocity
+	Component count: 1
+	Component: Foam-particle
+		ElementCount: 13480
+	Layout: Foam-volumelayout
+		Depth: 7
+		VoxelScale: 0.5
+		TileCount: 349
+		depth 0: 1->0
+		depth 1: 1->0
+		depth 2: 1->0
+		depth 3: 1->0
+		depth 4: 1->0
+		depth 5: 2->0
+		depth 6: 21->0
+		depth 7: 321->13480
+	Channel count: 3
+		Channel: density
+		Channel: position
+		Channel: velocity
+
+This is a FOAM cache...
+
+density Range Min: 0.0500094 Max: 0.999528
+
+The cache file has 13480 elements...
+	Will export 13480 elements...
+
+Processing PRIMVARS List...
+	No primvars found to export!
+
+Starting Sphere export...
+
+Report Freq: 1497
+
+	Exporting 13480 items...
+		Exporting for item: 1497...
+		Exporting for item: 2994...
+		Exporting for item: 4491...
+		Exporting for item: 5988...
+		Exporting for item: 7485...
+		Exporting for item: 8982...
+		Exporting for item: 10479...
+		Exporting for item: 11976...
+		Exporting for item: 13473...
+		Finished exporting 13480 items!
+BBox Sim World: 	-17.50 -57.50 -20.00   18.00 -7.00 15.50
+BBox Sim World Dim: 	35.50 50.50 35.50
+
+BBox Sim Tile: 		-35.00 -115.00 -40.00   36.00 -14.00 31.00
+BBox Sim Tile Dim: 	71.00 101.00 71.00
+
+
+
+---------------------------------------
+[BIFROST PRIMITIVES] END OUTPUT
+---------------------------------------
+
+Scene D:\arnold\mtoa\build\windows_x86_64\201740\msvc_opt\testsuite\test_0204\test.ma completed.

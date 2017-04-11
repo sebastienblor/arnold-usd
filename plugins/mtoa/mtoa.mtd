@@ -1262,6 +1262,8 @@
     [attr base]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+    [attr base_color]
+        maya.shortname      STRING  "color"
     [attr diffuse_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
@@ -2354,7 +2356,9 @@ maya.swatch             BOOL    false
 
 
 [node skin]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D16
+    maya.name               STRING  "aiSkin"
+    maya.classification     STRING  "legacy"
 
 [node space_transform]
     maya.id                 INT     0x00115D78
@@ -2522,7 +2526,10 @@ c4d.step FLOAT 0.01
     maya.hide               BOOL    true
 
 [node volume_collector]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D1F
+    maya.name               STRING  "aiVolumeCollector"
+    maya.classification     STRING   "legacy"
+
 
 # enable volume_sample_float
 # enable volume_sample_rgb

@@ -80,13 +80,24 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
                                                  bool registerOnly)
 {
    MStatus status;
+
+   if (file == "mtoa")
+   { // nodes created by MtoA have this file name
+      if(returnStatus)
+         *returnStatus = MS::kSuccess;
+      return NULL;
+   }
+
    // Create a CExtension to handle plugin loading and generate corresponding Maya nodes
    CExtension* pluginExtension = NULL;
    pluginExtension = NewExtension(file);
    if (NULL != pluginExtension)
    {
+      std::string fileStr(file.asChar());
+      std::replace(fileStr.begin(), fileStr.end(), '\\', '/');
+
       // Extension loads the Arnold Plugin and will register new Maya nodes
-      MString resolved = file;
+      MString resolved(fileStr.c_str());
 
       if (registerOnly)
          status = pluginExtension->RegisterPluginNodesAndTranslators(file);

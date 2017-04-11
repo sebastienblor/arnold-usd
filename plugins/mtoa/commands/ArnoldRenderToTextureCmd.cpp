@@ -464,7 +464,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             // comment for mayabatch
             std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
-            AtNode *camera = AiNode("cameraUvMapper");
+            AtNode *camera = AiNode("MtoaCameraUvMapper");
             if (camera == 0)
             {
                AiEnd();
@@ -493,7 +493,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // render without udims
       else
       {
-         AtNode *camera = AiNode("cameraUvMapper");
+         AtNode *camera = AiNode("MtoaCameraUvMapper");
          if (camera == 0)
          {
             AiEnd();

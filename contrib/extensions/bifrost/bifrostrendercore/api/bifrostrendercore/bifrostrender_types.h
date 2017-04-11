@@ -356,7 +356,6 @@ struct BIFROSTRENDERAPI_DECL ClipParams {
 struct BIFROSTRENDERAPI_DECL InfCubeParams {
 	bool on;
 	InfCubeOutputType outputType;
-	float simWaterLevel;
 	float topCenterX;
 	float topCenterY;
 	float topCenterZ;

@@ -443,14 +443,13 @@ void BifrostTranslator::ExportLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode
     EXPORT_BOOL("smoothRemapInvert");
 
     // clip params
-    EXPORT_BOOL("clipOn");
+    EXPORT2_BOOL("clipOn", "liquidClipOn");
     EXPORT2_FLT3("clipMin", "liquidClipMin");
-    EXPORT2_FLT3("clipMin", "liquidClipMax");
+    EXPORT2_FLT3("clipMax", "liquidClipMax");
 
     // infcube blending params
     EXPORT_BOOL("infCubeBlendingOn");
     EXPORT_INT("infCubeOutputType");
-    EXPORT_FLT("simWaterLevel");
     EXPORT_FLT3("infCubeTopCenter");
     EXPORT_FLT3("infCubeDim");
     EXPORT_INT("blendType");
@@ -636,6 +635,16 @@ void BifrostTranslator::RequestUpdate()
     data.defaultValue.INT() = value;\
     helper.MakeInputInt(data);
 
+#define ADD_DINT_HARDMIN(longName, value, minValue) \
+    data.name = data.shortName = longName; \
+    data.hasSoftMin = data.hasSoftMax = data.hasMin = true;\
+    data.hasMax = false;\
+    data.min.INT() = minValue; \
+    data.softMin.INT() = minValue; \
+    data.softMax.INT() = 2*value-minValue;\
+    data.defaultValue.INT() = value;\
+    helper.MakeInputInt(data);
+
 #define ADD_DBOOL(longName, value) \
     data.name = data.shortName = longName;\
     data.defaultValue.BOOL() = value;\
@@ -724,16 +733,16 @@ namespace{
 
     void AddLiquidAttributes(CExtensionAttrHelper& helper, CAttrData& data){
         data.name = data.shortName = "renderMethod";
-        {\
-            MStringArray enums;\
-            enums.append("Mesh");\
-            enums.append("Implicit");\
-            data.enums = enums;\
-        }\
+        {
+            MStringArray enums;
+            enums.append("Mesh");
+            //enums.append("Implicit"); Only meshing available for now...
+            data.enums = enums;
+        }
         helper.MakeInputEnum(data);
         ADD_DDATA_ENUM("renderData");
         ADD_DINT("samples", 2);
-        ADD_DINT("tesselation", 2);
+        ADD_DINT_HARDMIN("tesselation", 2, 1);
 
         ADD_DFLT("liquidVelocityScale", 1.f);
         ADD_DFLT("liquidSpaceScale", 1.f);
@@ -752,8 +761,8 @@ namespace{
         ADD_DFLT("dilateAmount", 0.f);
         ADD_DFLT("erodeAmount", 0.f);
         ADD_DSMOOTH_ENUM("smoothMode");
-        ADD_DINT("smoothKernelSize", 1);
-        ADD_DINT("smoothIterations", 1);
+        ADD_DINT_HARDMIN("smoothKernelSize", 1, 1);
+        ADD_DINT_HARDMIN("smoothIterations", 1, 1);
         ADD_DFLT("smoothWeight", 0.f);
         ADD_DFLT2("smoothRemapRange", 0.f, 1.f);
         ADD_DBOOL("smoothRemapInvert", false);
@@ -770,8 +779,8 @@ namespace{
             enums.append("All");\
             data.enums = enums;\
         }\
+        data.defaultValue.BYTE() = 1;
         helper.MakeInputEnum(data);
-        ADD_DFLT("simWaterLevel", 0.f);
         ADD_DFLT3("infCubeTopCenter", 0.f, 0.f, 0.f);
         ADD_DFLT3("infCubeDim", 100.f, 100.f, 100.f);
         ADD_DFALLOFF_ENUM("blendType");
