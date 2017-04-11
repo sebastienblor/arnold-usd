@@ -368,7 +368,6 @@ void BifrostTranslator::ExportAero(AtNode *shape)
     EXPORT2_FLT("clipMaxZ","aeroClipMaxZ");
 
     // splat params
-    EXPORT_FLT("splatResolutionFactor");
     EXPORT2_INT("skip", "aeroSkip");
     EXPORT_INT("splatSamples");
     EXPORT_FLT("splatMinRadius");
@@ -709,7 +708,7 @@ namespace{
         ADD_DSMOOTH_ENUM("aeroSmoothMode");
         ADD_DINT("aeroSmoothKernelSize", 0);
         ADD_DINT("aeroSmoothIterations", 1);
-        ADD_DFLT("aeroSmoothWeight", 1.f);
+        ADD_DFLT("aeroSmoothWeight", 0.f);
         ADD_DFLT("aeroSmoothRemapMin", 0.f);
         ADD_DFLT("aeroSmoothRemapMax", 1.f);
         ADD_DBOOL("aeroSmoothRemapInvert", false);
@@ -718,7 +717,6 @@ namespace{
         ADD_DFLT3("aeroClipMin", 0.f, 0.f, 0.f);
         ADD_DFLT3("aeroClipMax", 1.f, 1.f, 1.f);
 
-        ADD_DFLT("splatResolutionFactor", 1.f);
         ADD_DINT("aeroSkip", 1);
         ADD_DINT("splatSamples", 1);
         ADD_DFLT("splatMinRadius", 1.f);

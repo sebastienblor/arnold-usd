@@ -35,35 +35,64 @@ def CheckRenderType( nodeName ):
         bifrostRenderExportShowBlock("PointExportHideThis", True)
     bifrostRenderExportShowBlock("HiddenHideThis", False);
 
+def dimControls(nodeName, attrs, dim):
+    for attr in attrs:
+        cmds.editorTemplate(dimControl=(nodeName, attr, dim))
+
+
+# ****** AERO AE CALLBACKS ******
+
+def CheckAeroRenderComponents( nodeName ):
+    attrs = ("aeroSkip", "splatSamples", "splatMinRadius", "splatMaxRadius", "splatSurfaceAttract", "splatFalloffType",
+             "splatFalloffStart", "splatFalloffEnd", "splatDisplacement", "splatNoiseFreq")
+    dimControls(nodeName, attrs, cmds.getAttr(nodeName+".aeroRenderData") != 1)
+
+def CheckAeroSmoothing( nodeName ):
+    attrs = ("aeroSmoothMode", "aeroSmoothKernelSize", "aeroSmoothIterations", "aeroSmoothChannel", "aeroSmoothRemapMin",
+             "aeroSmoothRemapMax", "aeroSmoothRemapInvert")
+    dimControls(nodeName, attrs, cmds.getAttr(nodeName+".aeroSmoothWeight") <= 0)
+
+def CheckAeroClipping( nodeName ):
+    dimControls(nodeName, ("aeroClipMin", "aeroClipMax"), not cmds.getAttr(nodeName+".aeroClipOn"))
 
 # ****** LIQUID AE CALLBACKS ******
 
 def CheckLiquidRenderComponents( nodeName ):
-    usingVoxels = cmds.getAttr(nodeName+".renderData") != 1
-    for attr in ("implicitResolutionFactor", "implicitDropletRevealFactor", "implicitSurfaceRadius", "implicitDropletRadius",
-                 "implicitMaxVolumeOfHolesToClose", "doMorphologicalDilation", "doErodeSheetsAndDroplets"):
-        cmds.editorTemplate(dimControl=(nodeName, attr, usingVoxels))
+    attrs = ("implicitResolutionFactor", "implicitDropletRevealFactor", "implicitSurfaceRadius", "implicitDropletRadius",
+                "implicitMaxVolumeOfHolesToClose", "doMorphologicalDilation", "doErodeSheetsAndDroplets")
+    dimControls(nodeName, attrs, cmds.getAttr(nodeName+".renderData") != 1)
 
 def CheckSmoothWeight( nodeName ):
-    smoothOff = cmds.getAttr(nodeName+".smoothWeight") <= 0
-    for attr in ("smoothMode", "smoothKernelSize", "smoothIterations", "filterBlendingChannel", "smoothRemapRange", "smoothRemapInvert"):
-        cmds.editorTemplate(dimControl=(nodeName, attr, smoothOff))
+    attrs = ("smoothMode", "smoothKernelSize", "smoothIterations", "filterBlendingChannel", "smoothRemapRange", "smoothRemapInvert")
+    dimControls(nodeName, attrs, cmds.getAttr(nodeName+".smoothWeight") <= 0)
 
 def CheckLiquidClipping( nodeName ):
     clipOff = not cmds.getAttr(nodeName+".liquidClipOn")
-    for attr in ("liquidClipMin", "liquidClipMax", "infCubeBlendingOn"):
-        cmds.editorTemplate(dimControl=(nodeName, attr, clipOff))
+    dimControls(nodeName, ("liquidClipMin", "liquidClipMax", "infCubeBlendingOn"), clipOff)
 
     infBlendingOff = clipOff or not cmds.getAttr(nodeName+".infCubeBlendingOn")
-    for attr in ("infCubeOutputType", "infCubeTopCenter", "infCubeDim", "blendType", "infCubeBlendRange",
-                 "infiniteSurfaceBlendingChannel", "blendingChannelRemapRange", "blendingChannelRemapInvert"):
-        cmds.editorTemplate(dimControl=(nodeName, attr, infBlendingOff))
+    dimControls(nodeName,
+                ("infCubeOutputType", "infCubeTopCenter", "infCubeDim", "blendType", "infCubeBlendRange", "infiniteSurfaceBlendingChannel", "blendingChannelRemapRange", "blendingChannelRemapInvert"),
+                infBlendingOff)
 
 def CheckCullSides( nodeName ):
-    cullOff = not cmds.getAttr(nodeName+".cullSidesOn")
-    for attr in ("cullSidesRange", "cullDepthAtStartInVoxels"):
-        cmds.editorTemplate(dimControl=(nodeName, attr, cullOff))
+    dimControls(nodeName, ("cullSidesRange", "cullDepthAtStartInVoxels"), not cmds.getAttr(nodeName+".cullSidesOn"))
 
+
+# ******** FOAM AE CALLBACKS ********
+
+def CheckFoamCameraEnabled( nodeName ):
+    dimControls(nodeName,
+                ("camRadiusStartDistance", "camRadiusEndDistance", "camRadiusStartFactor", "camRadiusEndFactor", "camRadiusFactorExponent"),
+                not cmds.getAttr(nodeName+".camRadiusOn"))
+
+def CheckPointClipping( nodeName ):
+    dimControls(nodeName, ("pointClipMin", "pointClipMax"), not cmds.getAttr(nodeName+".pointClipOn"))
+
+def CheckMpSamples( nodeName ):
+    dimControls(nodeName,
+                ("mpMinRadius", "mpMaxRadius", "mpSurfaceAttract", "mpFalloffType", "mpFalloffStart", "mpFalloffEnd", "mpDisplacementValue", "mpDisplacementNoiseFrequency"),
+                cmds.getAttr(nodeName+".mpSamples") <= 1)
 
 class BifrostTemplate(ShapeTranslatorTemplate):
     def setupAero(self):
@@ -72,37 +101,13 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addCustom("AeroExportHideThis", Hide, Hide)
 
         self.beginLayout("Globals", collapse=False)
-        self.addControl("aeroRenderData", label="Render Components")
+        self.addControl("aeroRenderData", label="Render Components", changeCommand=CheckAeroRenderComponents)
         self.addControl("aeroChannel", label="Density Channel")
         self.addControl("aeroChannelScale", label="Channel Scale")
         self.addControl("aeroVelocityScale", label="Velocity Scale")
         self.addControl("aeroSpaceScale", label="Space Scale")
         self.addControl("aeroPrimVars", label="Export Channels")
-        self.endLayout() # Globals
-
-        self.beginLayout("Smoothing", collapse=False)
-        self.addControl("aeroSmoothMode", "Mode")
-        self.addControl("aeroSmoothKernelSize", "Smoothing")
-        self.addControl("aeroSmoothWeight", "Weight")
-        self.addControl("aeroSmoothIterations", "Iterations")
-
-        self.beginLayout("Blend Raw And Smooth", collapse=True)
-        self.addControl("aeroSmoothChannel", label="Smooth Channel")
-        self.addControl("aeroSmoothRemapMin")
-        self.addControl("aeroSmoothRemapMax")
-        self.addControl("aeroSmoothRemapInvert", label="Invert")
-        self.endLayout() # Blend Raw And Smooth
-        self.endLayout() # Smoothing
-
-        self.beginLayout("Clipping", collapse=True)
-        self.addControl("aeroClipOn", label="Enable")
-        self.addControl("aeroClipMin", label="Min")
-        self.addControl("aeroClipMax", label="Max")
-        self.endLayout() # Clipping
-
-        self.beginLayout("Advanced", collapse=True)
-        self.beginLayout("Particle Splatting", collapse=False)
-        self.addControl("splatResolutionFactor")
+        self.beginLayout("Particle Splatting", collapse=True)
         self.addControl("aeroSkip")
         self.addControl("splatSamples")
         self.addControl("splatMinRadius")
@@ -114,7 +119,28 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("splatDisplacement")
         self.addControl("splatNoiseFreq")
         self.endLayout() # Splat Particles to Voxels
-        self.endLayout() # Advanced
+        self.endLayout() # Globals
+
+        self.beginLayout("Smoothing", collapse=False)
+        self.addControl("aeroSmoothWeight", "Smoothing", changeCommand=CheckAeroSmoothing)
+        self.addControl("aeroSmoothMode", "Mode")
+        self.addControl("aeroSmoothKernelSize", "Kernel Size (voxels)")
+        self.addControl("aeroSmoothIterations", "Iterations")
+
+        self.beginLayout("Blend Raw And Smooth", collapse=True)
+        self.addControl("aeroSmoothChannel", label="Smooth Channel")
+        self.addControl("aeroSmoothRemapMin")
+        self.addControl("aeroSmoothRemapMax")
+        self.addControl("aeroSmoothRemapInvert", label="Invert")
+        self.endLayout() # Blend Raw And Smooth
+        self.endLayout() # Smoothing
+
+        self.beginLayout("Clipping", collapse=True)
+        self.addControl("aeroClipOn", label="Enable", changeCommand=CheckAeroClipping)
+        self.addControl("aeroClipMin", label="Min")
+        self.addControl("aeroClipMax", label="Max")
+        self.endLayout() # Clipping
+
         self.endLayout() # Aero Attributes
 
     def setupLiquid(self):
@@ -194,6 +220,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Globals", collapse=False)
         self.addControl("renderPrimitiveType", label="Primitive Type")
+        self.addControl("exportNormalAsPrimvar", label="Export Normals")
         self.addControl("pointVelocityScale", label="Velocity Scale")
         self.addControl("pointSpaceScale", label="Space Scale")
         self.addControl("pointPrimVars", label="Export Channels")
@@ -210,7 +237,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("useChannelToModulateRadius")
 
         self.beginLayout("Camera Dependent Radius", collapse=True)
-        self.addControl("camRadiusOn")
+        self.addControl("camRadiusOn", label="Enable", changeCommand=CheckFoamCameraEnabled)
         self.addControl("camRadiusStartDistance")
         self.addControl("camRadiusEndDistance")
         self.addControl("camRadiusStartFactor")
@@ -220,13 +247,13 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.endLayout() # Radius
 
         self.beginLayout("Clipping", collapse=True)
-        self.addControl("pointClipOn", label="Enable")
+        self.addControl("pointClipOn", label="Enable", changeCommand=CheckPointClipping)
         self.addControl("pointClipMin", label="Min")
         self.addControl("pointClipMax", label="Max")
         self.endLayout() # Clipping
 
         self.beginLayout("Multi Pointing", collapse=True)
-        self.addControl("mpSamples")
+        self.addControl("mpSamples", changeCommand=CheckMpSamples)
         self.addControl("mpMinRadius")
         self.addControl("mpMaxRadius")
         self.addControl("mpSurfaceAttract")
@@ -241,7 +268,6 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("pointSkip")
         self.addControl("chunkSize")
         self.addControl("useChannelGradientAsNormal")
-        self.addControl("exportNormalAsPrimvar")
         self.endLayout()
 
         self.endLayout() # Foam Attributes

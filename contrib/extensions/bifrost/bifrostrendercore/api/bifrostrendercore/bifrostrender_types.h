@@ -558,17 +558,16 @@ struct BIFROSTRENDERAPI_DECL VolumeInputData {
 	ClipParams clip; // 19 params
 
 	// parameters for particle splating
-	float splatResolutionFactor;
 	int skip;
-	int splatSamples;
-	float splatMinRadius;
+    int splatSamples;
+    float splatMinRadius;
 	float splatMaxRadius;
-	float splatSurfaceAttract;
-	FalloffType splatFalloffType;
-	float splatFalloffStart;
+    float splatSurfaceAttract;
+    FalloffType splatFalloffType;
+    float splatFalloffStart;
 	float splatFalloffEnd;
-	float splatDisplacement;
-	float splatNoiseFreq; // 30 params
+    float splatDisplacement;
+    float splatNoiseFreq; // 30 params
 
 	// state parameters
 	DiagnosticsParams diagnostics; // 31 params
@@ -620,7 +619,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 
 	CvInt nofElements;
 	CvInt nofBaseElements;
-	bool isMultiPointing;
+    bool isMultiPointing;
 	bool isPointCache;
 	float voxelScale;
 	float minDistance;

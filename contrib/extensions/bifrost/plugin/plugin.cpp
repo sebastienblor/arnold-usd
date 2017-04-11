@@ -42,9 +42,18 @@ extern "C"
                 }
                 if(isVolume){
                     command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
-                }else{
-                    command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/aiStandardSurface/Deep_Water.mel\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
                 }
+                MString preset;
+                if(renderType==0) { // aero
+                    preset = "aiStandardVolume/Smoke.mel";
+                }else if(renderType==1 || renderType==2){ // liquid
+                    preset = "aiStandardSurface/Deep_Water.mel";
+                }else{ // foam
+                    preset = "aiStandardVolume/Foam.mel";
+                }
+
+                command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
+
                 command += "select $sel;undoInfo -closeChunk;";
                 MGlobal::executeCommandOnIdle(command);
                 removeCallback(connectionCbId);

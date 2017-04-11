@@ -1,5 +1,6 @@
 // requires maya "2018ff05";
 startAttrPreset( "aiStandardSurface" );
+blendAttrStr "notes" "The look of the material depends on the actual thickness of geometry. If render does not look right, try change \'Depth\' parameter in \"Transmission\' section. Try values: 0, 1, 10, 50, 100"; 
 blendAttr "frozen" 0; 
 blendAttr "aiEnableMatte" 0; 
 blendAttr "aiMatteColorR" 0; 

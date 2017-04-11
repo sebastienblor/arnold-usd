@@ -116,7 +116,6 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *node )
     inData->clip.minZ = AiNodeGetFlt(node, "clipMinZ");
     inData->clip.maxZ = AiNodeGetFlt(node, "clipMaxZ");
 
-    inData->splatResolutionFactor = AiNodeGetFlt(node, "splatResolutionFactor");
     inData->skip = std::max(1, AiNodeGetInt( node, "skip" ) );
     inData->splatSamples = AiNodeGetInt( node, "splatSamples" );
     inData->splatMinRadius = AiNodeGetFlt(node, "splatMinRadius");
@@ -198,7 +197,6 @@ node_parameters
     AiParameterFlt("clipMinZ", 0);
     AiParameterFlt("clipMaxZ", 0);
 
-    AiParameterFlt("splatResolutionFactor", 0);
     AiParameterInt( "skip" , 0);
     AiParameterInt( "splatSamples" , 0);
     AiParameterFlt("splatMinRadius", 0);

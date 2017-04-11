@@ -400,7 +400,6 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	}
 
 	if ( isParticleCache ) {
-		printf("\tsplatResolutionFactor: %f\n", this->splatResolutionFactor);
 		printf("\tskip: %d\n", this->skip);
 		printf("\tsplatSamples: %d\n", this->splatSamples);	
 		printf("\tsplatMinRadius: %f\n", this->splatMinRadius);
