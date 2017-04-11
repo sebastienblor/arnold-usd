@@ -11,6 +11,7 @@ Computes Physical Hair Specular Component]]>
     <float3  name="mayaBitangentIn" semantic="bitangent" flags="varyingInputParam" />
     <float3  name="Nw" flags="varyingInputParam" />
     <float4x4  name="worldInverseTranspose" semantic="worldinversetranspose" />
+    <float3  name="baseColor" />
     <float3  name="colorR" />
     <float  name="intensityR" />
     <float  name="longitudinalShiftR" />
@@ -25,13 +26,15 @@ Computes Physical Hair Specular Component]]>
     <float  name="longitudinalShiftTRT" />
     <float  name="longitudinalWidthTRT" />
     <float3  name="colorG" />
-    <float  name="intensityG" />
+    <float  name="fresnel" />
     <float  name="azimuthalShiftG" />
     <float  name="azimuthalWidthG" />
+    <bool  name="bFaceCamera" />
   </properties>
   <values>
     <float3 name="specularI" value="0.000000,0.000000,0.000000"  />
     <float3 name="SLw" value="0.000000,0.000000,0.000000"  />
+    <float3 name="baseColor" value="0.500000,0.500000,0.500000"  />
     <float3 name="colorR" value="0.500000,0.500000,0.500000"  />
     <float name="intensityR" value="1.000000"  />
     <float name="longitudinalShiftR" value="-7.500000"  />
@@ -45,10 +48,11 @@ Computes Physical Hair Specular Component]]>
     <float name="intensityTRT" value="1.000000"  />
     <float name="longitudinalShiftTRT" value="11.250000"  />
     <float name="longitudinalWidthTRT" value="15.000000"  />
-    <float3 name="colorG" value="0.500000,0.500000,0.500000"  />
-    <float name="intensityG" value="1.000000"  />
+    <float3 name="colorG" value="1.00000,1.00000,1.00000"  />
+    <float name="fresnel" value="1.000000"  />
     <float name="azimuthalShiftG" value="35.000000"  />
     <float name="azimuthalWidthG" value="15.000000"  />
+    <bool name="bFaceCamera" value="false"  />
   </values>
   <outputs>
     <float3  name="standardHairSpecular" />
@@ -101,7 +105,8 @@ float3 standardHairSpecular(
 	float3 Tw,                              
 	float3 Bw,                              
 	float3 Nw,                              
-	float4x4 worldInverseTranspose,         
+	float4x4 worldInverseTranspose,
+   float3 baseColor,
    float3 colorR,                          
    float intensityR,                       
    float longitudinalShiftR,               
@@ -116,9 +121,10 @@ float3 standardHairSpecular(
    float longitudinalShiftTRT,             
    float longitudinalWidthTRT,             
    float3 colorG,                          
-   float intensityG,                       
+   float fresnel,                       
    float azimuthalShiftG,                  
-   float azimuthalWidthG )                 
+   float azimuthalWidthG,
+   bool bFaceCamera )                 
 {                                                                                      
    float3 MULT_MATRIX1 = (mul(worldInverseTranspose, float4(Tw.xyz, 0.0f))).xyz;       
    float3 MULT_MATRIX2 = (mul(worldInverseTranspose, float4(Bw.xyz, 0.0f))).xyz;       
@@ -146,12 +152,18 @@ float3 standardHairSpecular(
    }                                                                   				
    phi = abs(phi);                                                     				
    float thetaH = (omegaO.y + omegaI.y) * 0.5;                         				
-	float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				        				
-	float cosThetaD2 = cos(thetaD)*cos(thetaD);					        				
-   float3 singleScatteringResult = float3(0.0f, 0.0f, 0.0f);           				
-   singleScatteringResult += specularI * R(colorR, intensityR, thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);                                                                     
-   singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
-   singleScatteringResult += specularI * TRT(colorTRT, colorG, intensityTRT, intensityG, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);   
+	 float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				        				
+	 float cosThetaD2 = cos(thetaD)*cos(thetaD);	
+   
+   float amount = bFaceCamera ? fresnel*1.5 : fresnel*0.5;
+   float3 gammaCorrectedLighting = pow(specularI, vec3(0.45, 0.45, 0.45));
+   float3 resR =  gammaCorrectedLighting * R(colorR, saturate(amount*2.0), thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);
+   float3 resTRT = gammaCorrectedLighting * TRT(lerp(colorTRT, colorTRT*baseColor, intensityTRT), colorG, saturate(amount), 0.0, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);    
+   
+   float3 singleScatteringResult = resR;
+   singleScatteringResult += resTRT * (1.0 - min(resR, float3(1.0, 1.0, 1.0)));
+   
+   //singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);
    return max(float3(0.0, 0.0, 0.0), singleScatteringResult/max(0.0001, cosThetaD2));         																																		
 } 
             ]]>
@@ -197,14 +209,15 @@ vec3 TRT( vec3 colorTRT, vec3 colorG, float intensityTRT, float intensityG, floa
     float N_TRT = N_TRGNG + N_G;                                                       																													
     return intensityTRT * colorTRT * M_TRT * N_TRGNG + colorG * M_TRT * N_G;           																													
 }                                                                                      																													
-vec3 hairPhysicalSpecular(                 
+vec3 standardHairSpecular(                 
 	vec3 specularI,                         
 	vec3 SLw,                               
    vec3 Vw,                                
 	vec3 Tw,                                
 	vec3 Bw,                                
 	vec3 Nw,                                
-	mat4 worldInverseTranspose,             
+	mat4 worldInverseTranspose,          
+   vec3 baseColor,
    vec3 colorR,                            
    float intensityR,                       
    float longitudinalShiftR,               
@@ -219,9 +232,10 @@ vec3 hairPhysicalSpecular(
    float longitudinalShiftTRT,             
    float longitudinalWidthTRT,             
    vec3 colorG,                            
-   float intensityG,                       
+   float fresnel,                       
    float azimuthalShiftG,                  
-   float azimuthalWidthG )                 
+   float azimuthalWidthG,
+   bool bFaceCamera )                 
 {                                                                                      
    vec3 MULT_MATRIX1 = ( worldInverseTranspose * vec4(Tw, 0.0f) ).xyz;                 
    vec3 MULT_MATRIX2 = ( worldInverseTranspose * vec4(Bw, 0.0f) ).xyz;                 
@@ -229,7 +243,7 @@ vec3 hairPhysicalSpecular(
    vec3 b = normalize(MULT_MATRIX1);                                                   
    vec3 t = normalize(MULT_MATRIX2);                                                   
    vec3 n = normalize(MULT_MATRIX3);                                                   
-	vec3 tVw = normalize( -Vw );                                                        
+	 vec3 tVw = normalize( -Vw );                                                        
    vec3 omegaO = LocalSpherical(tVw, b, n, t);                                         
    float _longitudinalShiftR   = radians(longitudinalShiftR);                          
    float _longitudinalWidthR   = radians(longitudinalWidthR);                          
@@ -249,12 +263,18 @@ vec3 hairPhysicalSpecular(
    }                                                                                   
    phi = abs(phi);                                                                     
    float thetaH = (omegaO.y + omegaI.y) * 0.5;                                         
-	float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				                        
-	float cosThetaD2 = cos(thetaD)*cos(thetaD);					                        
-   vec3 singleScatteringResult = vec3(0.0f, 0.0f, 0.0f);   							
-   singleScatteringResult += specularI * R(colorR, intensityR, thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);                                                                     
-   singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
-   singleScatteringResult += specularI * TRT(colorTRT, colorG, intensityTRT, intensityG, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);   
+	 float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				                        
+	 float cosThetaD2 = cos(thetaD)*cos(thetaD);			
+  
+   float amount = bFaceCamera ? fresnel*1.5 : fresnel*0.5;
+   vec3 gammaCorrectedLighting = pow(specularI, vec3(0.45, 0.45, 0.45));
+   vec3 resR =  gammaCorrectedLighting * R(colorR, saturate(amount*2.0), thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);
+   vec3 resTRT = gammaCorrectedLighting * TRT(lerp(colorTRT, colorTRT*baseColor, intensityTRT), colorG, saturate(amount), 0.0, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);    
+   
+   vec3 singleScatteringResult = resR;
+   singleScatteringResult += resTRT * (vec3(1.0, 1.0, 1.0) - min(resR, vec3(1.0, 1.0, 1.0)));
+   
+   //singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);
    return max(vec3(0.0, 0.0, 0.0), singleScatteringResult/max(0.0001, cosThetaD2));         																																		
 } 
             ]]>
@@ -307,7 +327,8 @@ float3 standardHairSpecular(
 	float3 Tw,                              
 	float3 Bw,                              
 	float3 Nw,                              
-	float4x4 worldInverseTranspose,         
+	float4x4 worldInverseTranspose,    
+   float3 baseColor,
    float3 colorR,                          
    float intensityR,                       
    float longitudinalShiftR,               
@@ -322,9 +343,10 @@ float3 standardHairSpecular(
    float longitudinalShiftTRT,             
    float longitudinalWidthTRT,             
    float3 colorG,                          
-   float intensityG,                       
+   float fresnel,                       
    float azimuthalShiftG,                  
-   float azimuthalWidthG )                 
+   float azimuthalWidthG,
+   bool bFaceCamera)                 
 {                                                                                  
    float3 MULT_MATRIX1 = mul(float4(Tw.xyz, 0.0f), worldInverseTranspose).xyz;     
    float3 MULT_MATRIX2 = mul(float4(Bw.xyz, 0.0f), worldInverseTranspose).xyz;     
@@ -352,12 +374,18 @@ float3 standardHairSpecular(
    }                                                                               
    phi = abs(phi);                                                                 
    float thetaH = (omegaO.y + omegaI.y) * 0.5;                                     
-	float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				                    
-	float cosThetaD2 = cos(thetaD)*cos(thetaD);					                    
-   float3 singleScatteringResult = float3(0.0f, 0.0f, 0.0f);   					
-   singleScatteringResult += specularI * R(colorR, intensityR, thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);                                                                     
-   singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
-   singleScatteringResult += specularI * TRT(colorTRT, colorG, intensityTRT, intensityG, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);   
+	 float thetaD = abs(omegaO.y - omegaI.y) * 0.5;				                    
+	 float cosThetaD2 = cos(thetaD)*cos(thetaD);					                    
+  
+   float amount = bFaceCamera ? fresnel*1.5 : fresnel*0.5;
+   float3 gammaCorrectedLighting = pow(specularI, vec3(0.45, 0.45, 0.45));
+   float3 resR =  gammaCorrectedLighting * R(colorR, saturate(amount*2.0), thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);
+   float3 resTRT = gammaCorrectedLighting * TRT(lerp(colorTRT, colorTRT*baseColor, intensityTRT), colorG, saturate(amount), 0.0, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);    
+   
+   float3 singleScatteringResult = resR;
+   singleScatteringResult += resTRT * (1.0 - min(resR, float3(1.0, 1.0, 1.0)));
+   
+   //singleScatteringResult += specularI * TT(colorTT, intensityTT, thetaH, _longitudinalShiftTT, _longitudinalWidthTT, phi, _azimuthalWidthTT);                                             
    return max(float3(0.0, 0.0, 0.0), singleScatteringResult/max(0.0001, cosThetaD2));                                                                                                                                              
 } 
             ]]>
