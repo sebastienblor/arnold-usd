@@ -474,10 +474,10 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          {
             status = nodeStatus;
          }
-         static MString synColorTranslatorName("synColorTranslator");
+         static MString synColorNodeName("color_manager_syncolor");
 
          // Warning for Arnold nodes that are from plugins and not translated. (Ignoring syncolor)
-         if (m_impl->m_extensionName != BUILTIN && m_impl->m_extensionName != synColorTranslatorName && MStatus::kNotImplemented == translatorStatus)
+         if (m_impl->m_extensionName != BUILTIN && arnoldNode.name != synColorNodeName && MStatus::kNotImplemented == translatorStatus)
          {
             AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
                m_impl->m_extensionName.asChar(), arnoldNode.name.asChar());
