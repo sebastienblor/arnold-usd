@@ -125,7 +125,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         
 
         self.beginLayout("Hardware Texturing", collapse=True)
-        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("base_color emission_color ")')
+        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("baseColor emissionColor ")')
         self.endLayout()
         
         # include/call base class/node attributes
