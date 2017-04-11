@@ -265,8 +265,6 @@ namespace // <anonymous>
          "arnoldStandardShaderOverride",
          ArnoldStandardShaderOverride::creator
        } ,
-// FIXME #2840 temporarily disabling new shaders viewport code 
-#if MAYA_API_VERSION > 201700
        {
            "drawdb/shader/surface/arnold/standard_surface",
            "arnoldStandardSurfaceShaderOverride",
@@ -277,7 +275,6 @@ namespace // <anonymous>
 		  "arnoldStandardHairShaderOverride",
 		  ArnoldStandardHairShaderOverride::creator
 	     } ,
-#endif
         {
          "drawdb/shader/surface/arnold/skin",
          "arnoldSkinShaderOverride",
