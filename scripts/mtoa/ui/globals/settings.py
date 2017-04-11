@@ -233,6 +233,64 @@ def buildAtmosphereMenu(popup, field, select):
     pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
     pm.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
     
+def getSubdivDicingCameraShader(*args):
+    conns = pm.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False, p=True)
+    if conns:
+        return conns[0].split('.')[0]
+    return ""
+
+def selectSubdivDicingCamera(*args):
+    node = getSubdivDicingCameraShader()
+    if node:
+        pm.select(node, r=True)
+
+def changeSubdivDicingCamera(node, field, select):
+    connection = pm.listConnections('defaultArnoldRenderOptions.subdivDicingCamera')
+    if connection:
+        if pm.nodeType(connection[0]) == 'transform':
+            connection = pm.listRelatives(connection[0], s=True)
+        if str(connection[0]) == str(node):
+            selectSubdivDicingCamera()
+            return 0
+    pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.subdivDicingCamera', force=True)
+    if field is not None:
+        pm.textField(field, edit=True, text=node)
+        pm.symbolButton(select, edit=True, enable=True)
+    selectSubdivDicingCamera()
+
+def createSubdivDicingCamera(type, field, select):
+    bg = getSubdivDicingCameraShader()
+    node = pm.camera()
+    changeSubdivDicingCamera(node[1], field, select)
+
+def removeSubdivDicingCamera(field, doDelete, select):
+    node = getSubdivDicingCameraShader()
+    if node:
+        pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.subdivDicingCamera')
+        pm.textField(field, edit=True, text="")
+        pm.symbolButton(select, edit=True, enable=False)
+        if doDelete:
+            parent = cmds.listRelatives( 'cameraShape1', parent=True )
+            pm.delete(parent)
+    
+def buildSubdivDicingCameraMenu(popup, field, select):
+
+    pm.popupMenu(popup, edit=True, deleteAllItems=True)
+
+    cameras = cmds.ls(type="camera")
+    for item in cameras:
+        pm.menuItem(parent=popup, label=item, command=Callback(changeSubdivDicingCamera, item, field, select))
+    
+    pm.menuItem(parent=popup, divider=True)
+    
+    menuLabel = "Create camera"
+    pm.menuItem(parent=popup, label=menuLabel, command=Callback(createSubdivDicingCamera, "camera", field, select))
+        
+    pm.menuItem(parent=popup, divider=True)
+
+    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeSubdivDicingCamera, field, False, select))
+    pm.menuItem(parent=popup, label="Delete", command=Callback(removeSubdivDicingCamera, field, True, select))
+
 def changeRenderType():
     try:
         enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2
@@ -790,6 +848,22 @@ def createArnoldSubdivSettings():
                         label="Max. Subdivisions",
                         attribute='defaultArnoldRenderOptions.maxSubdivisions')
 
+    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    pm.text('es_subdiv_dicing_camera_text', label="Dicing Camera")
+    pm.connectControl('es_subdiv_dicing_camera_text', 'defaultArnoldRenderOptions.subdivDicingCamera')
+    subdivDicingCameraTextField = pm.textField("defaultArnoldRenderOptionsSubdivDicingCameraTextField",editable=False)
+    subdivDicingCameraButton = pm.symbolButton(image="navButtonUnconnected.png")
+    subdivDicingCameraSelectButton = pm.symbolButton("defaultArnoldRenderOptionsSubdivDicingCameraSelectButton", image="navButtonConnected.png", command=selectSubdivDicingCamera, enable=False)
+    sdcpopup = pm.popupMenu(parent=subdivDicingCameraButton, button=1)
+    pm.popupMenu(sdcpopup, edit=True, postMenuCommand=Callback(buildSubdivDicingCameraMenu, sdcpopup, subdivDicingCameraTextField, subdivDicingCameraSelectButton))
+    
+    pm.setParent('..')
+
+    conns = cmds.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False)
+    if conns:
+        pm.textField(subdivDicingCameraTextField, edit=True, text=conns[0])
+        pm.symbolButton(subdivDicingCameraSelectButton, edit=True, enable=True)
+
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -1167,12 +1241,7 @@ def createArnoldRendererDiagnosticsTab():
     pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
     createArnoldOverrideSettings()
     pm.setParent('..')
-    
-    # Subdivision Surfaces
-    #
-    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=0)
-    createArnoldSubdivSettings()
-    pm.setParent('..')
+
 
     pm.formLayout(parentForm,
                     edit=True,
@@ -1294,6 +1363,13 @@ def createArnoldRendererGlobalsTab():
     #
     pm.frameLayout('arnoldTextureSettings', label="Textures", cll=True, cl=1)
     createArnoldTextureSettings()
+    pm.setParent('..')
+
+    
+    # Subdivision Surfaces
+    #
+    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
+    createArnoldSubdivSettings()
     pm.setParent('..')
 
 

@@ -842,6 +842,19 @@ void COptionsTranslator::Export(AtNode *options)
 
    ExportAtmosphere(options);   
 
+   // subdivision dicing camera
+   //
+   pBG = FindMayaPlug("subdivDicingCamera");
+   pBG.connectedTo(conns, true, false);
+   if (conns.length() == 1)
+   {
+      AiNodeSetPtr(options, "subdiv_dicing_camera", ExportConnectedNode(conns[0]));
+   }
+   else
+   {
+      AiNodeSetPtr(options, "subdiv_dicing_camera", NULL);
+   }
+
    // frame number. We're now updating it at every Update (#2319)
    if (AiNodeLookUpUserParameter(options, "frame") == NULL)
       AiNodeDeclare(options, "frame", "constant FLOAT");

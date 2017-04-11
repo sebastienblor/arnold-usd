@@ -392,6 +392,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
+   s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
 #if MAYA_API_VERSION < 201600

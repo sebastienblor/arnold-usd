@@ -224,6 +224,8 @@
         linkable            BOOL    false
     [attr atmosphere]
         linkable            BOOL    false
+    [attr subdiv_dicing_camera]
+        linkable            BOOL    false
 
 
 # lights
