@@ -225,6 +225,9 @@ try:
             self.AOVDefaultValuesNotImported = []
             self.sceneObservableRegistered = False
 
+        def __del__(self):
+            self._unregister()
+
         def encode(self):
             aovsJSON = {}
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
@@ -282,13 +285,37 @@ try:
             aovsJSON["outputs"] = outputs
             return aovsJSON
 
-        def _nodeAddedCB(self, obj):
+        def _register(self):
+            sceneObservable.instance().register(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
+            sceneObservable.instance().register(sceneObservable.SceneObservable.NODE_RENAMED, self._nodeRenamedCB)
+            self._beforeFileNewId = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kBeforeNew, self._beforeFileNewCB)
+            self.sceneObservableRegistered = True
+
+        def _unregister(self):
+            self.AOVDefaultValuesNotImported = []
+            sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
+            sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_RENAMED, self._nodeRenamedCB)
+            OpenMaya.MMessage.removeCallback(self._beforeFileNewId)
+            self.sceneObservableRegistered = False
+
+        def _beforeFileNewCB(self, clientData):
+            self._unregister()
+
+        def _connectShadersIfMissingShaderNodeSupplied(self, obj):
             # If the current node is a shading node
             if renderSetupUtils.isShadingNode(obj):
                 # Does our created shading node match any of our previously
                 # imported default shader values which weren't successfully
                 # connected as the shading node didn't exist yet?
-                indexToDelete = -1                
+                #
+                # Note: this search is linear, avoiding this with the use of a
+                # dictionary of lists was considered to improve efficiency, but
+                # in the end the linear workflow was selected as it is more
+                # simplistic and because realistically a user will not have
+                # more than 20 AOVs at a time that failed to load default
+                # shader values, so a linear workflow should still have nominal
+                # overhead.
+                indexesToDelete = []
                 for i, (src, dst) in enumerate(self.AOVDefaultValuesNotImported):
                     fn = OpenMaya.MFnDependencyNode(obj)
                     srcComponents = src.split('.')
@@ -296,19 +323,24 @@ try:
                         dstPlug = plug.Plug(dst).plug
                         renderSetupUtils.connect(plug.Plug(src).plug, dstPlug)
                         if dstPlug.isConnected:
-                            indexToDelete = i
-                            break
+                            indexesToDelete.append(i)
+
                 # If we found a match, delete the index
-                if indexToDelete >= 0:
-                    self.AOVDefaultValuesNotImported.pop(indexToDelete)
+                self.AOVDefaultValuesNotImported = [i for j, i in enumerate(self.AOVDefaultValuesNotImported) if j not in indexesToDelete]
+
                 # If there are no more missing connections, then we should stop
-                # observing node addition.
+                # observing node addition and file->new.
                 if len(self.AOVDefaultValuesNotImported) == 0:
-                    sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
-                    self.sceneObservableRegistered = False
+                    self._unregister()
+
+        def _nodeAddedCB(self, obj):
+            self._connectShadersIfMissingShaderNodeSupplied(obj)
+
+        def _nodeRenamedCB(self, obj, oldName):
+            self._connectShadersIfMissingShaderNodeSupplied(obj)
 
         def decode(self, aovsJSON, decodeType):
-            
+
             core.createOptions()
 
             # We're doing a replace, so remove all previous AOVs
@@ -366,8 +398,7 @@ try:
                     self.AOVDefaultValuesNotImported.extend(arnoldNodeExporter.AOVDefaultValuesNotImported)
             # Should we start listening on node creation?
             if len(self.AOVDefaultValuesNotImported) > 0 and not self.sceneObservableRegistered:
-                sceneObservable.instance().register(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
-                self.sceneObservableRegistered = True
+                self._register()
 
             # Iterate over our filters/drivers and decode them
             for outputType, outputNewNameMap in ["filters", filterNewNameMap], ["drivers", driverNewNameMap]:
