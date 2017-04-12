@@ -194,7 +194,7 @@ def convertAiHair(inShd):
         aiName = inShd + '_new'    
     
     outNode = cmds.shadingNode('aiStandardHair', name=aiName, asShader=True)
-    convertAttr(inShd, 'tipcolor', outNode, 'baseColor') #not converting root_color here
+    convertAttr(inShd, 'tipcolor', outNode, 'base_color') #not converting root_color here
     convertAttr(inShd, 'KdInd', outNode, 'indirect_diffuse')
     #convertAttr(inShd, 'spec', outNode, 'specular')
     convertAttr(inShd, 'specColor', outNode, 'specular_tint')
