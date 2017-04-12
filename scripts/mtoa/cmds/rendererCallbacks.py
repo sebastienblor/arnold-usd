@@ -348,7 +348,12 @@ try:
             mel.eval('unifiedRenderGlobalsWindow')
             mel.eval('setCurrentTabInRenderGlobalsWindow(\"AOVs\")')
             mel.eval('fillSelectedTabForCurrentRenderer')
-            
+
+        @staticmethod
+        def aovNodeTypes():
+            '''Return the AOV node types supported by this renderer.'''
+            return ['aiAOV', 'aiAOVDriver', 'aiAOVFilter']
+
         # Given an aovNode (aiAOV, aiAOVFilter, or aiAOVDriver type node), returns the aovName.
         def getAOVName(self, aovNode):
             try:
