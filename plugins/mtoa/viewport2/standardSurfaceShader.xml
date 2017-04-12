@@ -39,7 +39,7 @@
         <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
         <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />
       
-        <float3 name="base_color" ref="standardShaderCombiner.color" />
+        <float3 name="baseColor" ref="standardShaderCombiner.color" />
         <float name="diffuse_roughness" ref="standardShaderCombiner.diffuseRoughness" />
         <float3 name="specular_color" ref="standardShaderCombiner.specularColor" />
         <float name="base" ref="standardShaderCombiner.Kd" />

@@ -156,7 +156,7 @@ float3 standardHairSpecular(
 	 float cosThetaD2 = cos(thetaD)*cos(thetaD);	
    
    float amount = bFaceCamera ? fresnel*1.5 : fresnel*0.5;
-   float3 gammaCorrectedLighting = pow(specularI, vec3(0.45, 0.45, 0.45));
+   float3 gammaCorrectedLighting = pow(specularI, float3(0.45, 0.45, 0.45));
    float3 resR =  gammaCorrectedLighting * R(colorR, saturate(amount*2.0), thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);
    float3 resTRT = gammaCorrectedLighting * TRT(lerp(colorTRT, colorTRT*baseColor, intensityTRT), colorG, saturate(amount), 0.0, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);    
    
@@ -378,7 +378,7 @@ float3 standardHairSpecular(
 	 float cosThetaD2 = cos(thetaD)*cos(thetaD);					                    
   
    float amount = bFaceCamera ? fresnel*1.5 : fresnel*0.5;
-   float3 gammaCorrectedLighting = pow(specularI, vec3(0.45, 0.45, 0.45));
+   float3 gammaCorrectedLighting = pow(specularI, float3(0.45, 0.45, 0.45));
    float3 resR =  gammaCorrectedLighting * R(colorR, saturate(amount*2.0), thetaH, _longitudinalShiftR, _longitudinalWidthR, phi);
    float3 resTRT = gammaCorrectedLighting * TRT(lerp(colorTRT, colorTRT*baseColor, intensityTRT), colorG, saturate(amount), 0.0, thetaH, _longitudinalShiftTRT, _longitudinalWidthTRT, phi, _azimuthalShiftG, _azimuthalWidthG);    
    
