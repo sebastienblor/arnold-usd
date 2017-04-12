@@ -61,7 +61,7 @@
     <undefined  name="GPUStage" ref="mayaComputeSurfaceFinal.GPUStage" semantic="GPUStage" />
     <float name="base" ref="hairShaderBase.base" />
     <float3 name="baseColor" ref="hairShaderBase.baseColor" />
-    <float name="melanin" ref="melaninPassThrough.input" />
+    <float name="melanin" ref="melaninPassThrough.inValue" />
     <float name="melaninRedness" ref="hairShaderBase.melaninRedness" />
     <float name="melaninRandomize" ref="hairShaderBase.melaninRandomize" />
     <float name="diffuse" ref="hairShaderCombiner.diffuse" />
@@ -90,8 +90,8 @@
     <float4  name="fogColor" ref="mayaComputeSurfaceFinal.fogColor" />
     <float  name="fogMultiplier" ref="mayaComputeSurfaceFinal.fogMultiplier" />
 
-    <float  name="roughness" ref="roughnessPassThrough.input" />
-    <float  name="ior" ref="iorPassThrough.input" />
+    <float  name="roughness" ref="roughnessPassThrough.inValue" />
+    <float  name="ior" ref="iorPassThrough.inValue" />
     <string  name="selector" ref="maya16LightAccum.selector" />
 
     <float3  name="Nw" ref="mayaShaderGeom.Nw" flags="varyingInputParam" />
@@ -105,7 +105,7 @@
     <float3  name="diffuseI" ref="mayaLambertDiffuse.diffuseI" />
 
 
-    <float3  name="specular2Tint" ref="specularTintPassThrough.input" />
+    <float3  name="specular2Tint" ref="specularTintPassThrough.inValue" />
     <float3  name="specularTint" ref="standardHairSpecular.colorR" />
     <float  name="shift" ref="shiftConverter.in0" />
     <float  name="shiftConvert" ref="shiftConverter.in1" />

@@ -4,7 +4,7 @@
 Pass through fragment for float type.]]>
 </description>
     <properties>
-        <float  name="input" />
+        <float  name="inValue" />
     </properties>
     <values>
     </values>
@@ -16,9 +16,9 @@ Pass through fragment for float type.]]>
         <function_name val="standardfloatPassThrough" />
         <source>
             <![CDATA[
-float standardfloatPassThrough(float input) 
+float standardfloatPassThrough(float inValue) 
 { 
-	return input; 
+	return inValue; 
 } 
             ]]>
         </source>
@@ -27,9 +27,9 @@ float standardfloatPassThrough(float input)
         <function_name val="standardfloatPassThrough" />
         <source>
             <![CDATA[
-float standardfloatPassThrough(float input) 
+float standardfloatPassThrough(float inValue) 
 { 
-	return input; 
+	return inValue; 
 } 
             ]]>
         </source>
@@ -38,9 +38,9 @@ float standardfloatPassThrough(float input)
         <function_name val="standardfloatPassThrough" />
         <source>
             <![CDATA[
-float standardfloatPassThrough(float input) 
+float standardfloatPassThrough(float inValue) 
 { 
-	return input; 
+	return inValue; 
 } 
             ]]>
         </source>
