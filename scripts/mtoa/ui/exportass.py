@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.callbacks import *
 import mtoa.core as core
+import pymel.versions as versions
 
 def pushOptionsUITemplate():
     if (not cmds.uiTemplate('oa_optionsTemplate', exists=True)):
@@ -45,6 +46,11 @@ def getMaskValues():
         mask += 64
     if cmds.checkBoxGrp('oa_export_filters', q=True, value1=True):
         mask += 128
+
+    maya_version = versions.shortName()
+    if int(float(maya_version)) >= 2016:
+        # color manager
+        mask += 2048
 
     return mask
 
@@ -118,6 +124,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('lightLinks', cmds.getAttr('%s.lightLinking' % optionsNode))
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
         settings.setdefault('expandProcedurals', cmds.getAttr('%s.expandProcedurals' % optionsNode))
+        settings.setdefault('exportAllShadingGroups', cmds.getAttr('%s.exportAllShadingGroups' % optionsNode))
         settings.setdefault('forceTranslateShadingEngines', cmds.getAttr('%s.forceTranslateShadingEngines' % optionsNode))
         
     return settings

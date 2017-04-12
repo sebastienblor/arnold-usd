@@ -6,7 +6,7 @@ namespace
 {
 
 enum ParametersShaderParams { p_int, p_uint, p_bool, p_float,
-                              p_RGB, p_vector, p_point, p_point2,
+                              p_RGB, p_vector, p_vector2,
                               p_string, p_matrix, p_enum };
 
 const char* enum_list[] =
@@ -30,8 +30,7 @@ node_parameters
    AiParameterFlt("FltParam", 0.0f);
    AiParameterRGB("RGBParam", 1.0f, 0.0f, 0.0f);
    AiParameterVec("VecParam", 1.0f, 1.0f, 1.0f);
-   AiParameterPnt("PntParam", 0.5f, 0.5f, 0.5f);
-   AiParameterPnt2("Pnt2Param", 0.7f, 0.7f);
+   AiParameterVec2("Vec2Param", 0.7f, 0.7f);
    AiParameterStr("StrParam", "");
    AiParameterMtx("MtxParam", id);
    AiParameterEnum("EnumParam", 0, enum_list);

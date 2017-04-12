@@ -10,11 +10,11 @@ class AEaiWireframeTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout('Wireframe Attributes', collapse=False)
-        self.addControl('edge_type', label='Edge Type')
-        self.addControl('fill_color', label='Fill Color')
-        self.addControl('line_color', label='Line Color')
-        self.addControl('line_width', label='Line Width')
-        self.addControl('raster_space', label='Raster Space')
+        self.addControl('edgeType', label='Edge Type')
+        self.addControl('fillColor', label='Fill Color')
+        self.addControl('lineColor', label='Line Color')
+        self.addControl('lineWidth', label='Line Width')
+        self.addControl('rasterSpace', label='Raster Space')
         self.endLayout()
 
         pm.mel.AEdependNodeTemplate(self.nodeName)

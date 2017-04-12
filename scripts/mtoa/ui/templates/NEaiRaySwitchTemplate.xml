@@ -1,4 +1,3 @@
-
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
@@ -6,35 +5,40 @@
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
 		<attribute name='camera' type='maya.float3'>
 			<label>Camera</label>
 		</attribute>
 		<attribute name='shadow' type='maya.float3'>
 			<label>Shadow</label>
 		</attribute>
-		<attribute name='reflection' type='maya.float3'>
-			<label>Reflection</label>
+		<attribute name='diffuseReflection' type='maya.float3'>
+			<label>Diffuse Reflection</label>
 		</attribute>
-		<attribute name='refraction' type='maya.float3'>
-			<label>Refraction</label>
+		<attribute name='specularReflection' type='maya.float3'>
+			<label>Specular Reflection</label>
 		</attribute>
-		<attribute name='diffuse' type='maya.float3'>
-			<label>Diffuse</label>
+		<attribute name='diffuseTransmission' type='maya.float3'>
+			<label>Diffuse Transmission</label>
 		</attribute>
-		<attribute name='glossy' type='maya.float3'>
-			<label>Glossy</label>
+		<attribute name='specularTransmission' type='maya.float3'>
+			<label>Specular Transmission</label>
+		</attribute>
+		<attribute name='volume' type='maya.float3'>
+			<label>Volume</label>
 		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiRaySwitch'>
 		<property name='outColor'/>
+		<property name='outAlpha'/>
 		<property name='camera'/>
 		<property name='shadow'/>
-		<property name='reflection'/>
-		<property name='refraction'/>
-		<property name='diffuse'/>
-		<property name='glossy'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiRaySwitch'>
-		<property name='outColor'/>
+		<property name='diffuseReflection'/>
+		<property name='specularReflection'/>
+		<property name='diffuseTransmission'/>
+		<property name='specularTransmission'/>
+		<property name='volume'/>
 	</view>
 </templates>

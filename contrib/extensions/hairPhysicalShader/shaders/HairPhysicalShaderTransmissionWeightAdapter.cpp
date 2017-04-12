@@ -11,12 +11,12 @@ enum HairPhysicalShaderTransmissionWeightAdapterParams
 
 node_parameters
 {
-    AiParameterFLT("intensityTT", 0.15f);
-    AiParameterFLT("longitudinalWidthTT", 10.0f);
-    AiParameterFLT("azimuthalWidthTT", 10.0f);
+    AiParameterFlt("intensityTT", 0.15f);
+    AiParameterFlt("longitudinalWidthTT", 10.0f);
+    AiParameterFlt("azimuthalWidthTT", 10.0f);
 
-    AiMetaDataSetBool(mds, "azimuthalWidthTT", "linkable", false);
-    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, "azimuthalWidthTT", "linkable", false);
+    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -41,5 +41,5 @@ shader_evaluate
     const float longitudinalWidthTT = AiShaderEvalParamFlt(p_longitudinalWidthTT);
     const float azimuthalWidthTT    = AiShaderEvalParamFlt(p_azimuthalWidthTT);
     const float spread              = (longitudinalWidthTT * 5.0f + azimuthalWidthTT * 2.0f) / 40.0f;
-    sg->out.FLT = intensityTT * spread * 0.1f;
+    sg->out.FLT() = intensityTT * spread * 0.1f;
 }

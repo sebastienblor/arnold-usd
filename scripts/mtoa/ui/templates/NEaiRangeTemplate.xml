@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiRange'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='input' type='maya.float3'>
+			<label>Input</label>
+		</attribute>
+		<attribute name='inputMin' type='maya.float'>
+			<label>Input Min</label>
+		</attribute>
+		<attribute name='inputMax' type='maya.float'>
+			<label>Input Max</label>
+		</attribute>
+		<attribute name='outputMin' type='maya.float'>
+			<label>Output Min</label>
+		</attribute>
+		<attribute name='outputMax' type='maya.float'>
+			<label>Output Max</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiRange'>
+		<property name='outColor'/>
+		<property name='input'/>
+		<property name='inputMin'/>
+		<property name='inputMax'/>
+		<property name='outputMin'/>
+		<property name='outputMax'/>
+	</view>
+</templates>

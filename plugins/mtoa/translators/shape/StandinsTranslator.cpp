@@ -21,12 +21,12 @@ void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
    CShapeTranslator::MakeCommonAttributes(helper);
 
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "overrideLightLinking";
    data.shortName = "oll";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "overrideShaders";
    data.shortName = "osh";
    helper.MakeInputBoolean(data);
@@ -67,6 +67,13 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
+/**
+*   Standins visibility override is a bit special  :
+*   The procedural visibility will determine which rays make it to the procedural node. Then, the child node 
+*   keeps its own visibility value (i.e. it doesn't inherit from the procedural parent as for other attributes).
+*   This means that the resulting visibility value for the nested objects is the "intersection" of their own value
+*   and the procedural's one. So the only thing we can do here is to remove bits of the visibility value.
+**/
 AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
@@ -97,46 +104,54 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       }
    }
    
-   plug = FindMayaPlug("overrideVisibleInReflections");
+   plug = FindMayaPlug("overrideVisibleInDiffuseReflection");
    if (plug.isNull() || plug.asBool())
    {
-      plug = FindMayaPlug("visibleInReflections");
+      plug = FindMayaPlug("aiVisibleInDiffuseReflection");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_REFLECTED;
+         visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
       }
    }
    
-   plug = FindMayaPlug("overrideVisibleInRefractions");
-   if (plug.isNull() || plug.asBool())
-      {
-      plug = FindMayaPlug("visibleInRefractions");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_REFRACTED;
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInDiffuse");
+   plug = FindMayaPlug("overrideVisibleInSpecularReflection");
    if (plug.isNull() || plug.asBool())
    {
-      plug = FindMayaPlug("aiVisibleInDiffuse");
+      plug = FindMayaPlug("aiVisibleInSpecularReflection");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_DIFFUSE;
+         visibility &= ~(AI_RAY_SPECULAR_REFLECT);
       }
    }
-   
-   plug = FindMayaPlug("overrideVisibleInGlossy");
+
+   plug = FindMayaPlug("overrideVisibleInDiffuseTransmission");
    if (plug.isNull() || plug.asBool())
    {
-      plug = FindMayaPlug("aiVisibleInGlossy");
+      plug = FindMayaPlug("aiVisibleInDiffuseTransmission");
       if (!plug.isNull() && !plug.asBool())
       {
-         visibility &= ~AI_RAY_GLOSSY;
+         visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
       }
    }
    
+   plug = FindMayaPlug("overrideVisibleInSpecularTransmission");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInSpecularTransmission");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_SPECULAR_TRANSMIT);
+      }
+   }
+   plug = FindMayaPlug("overrideVisibleInVolume");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInVolume");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~(AI_RAY_VOLUME);
+      }
+   }
    return visibility;
 }
 
@@ -285,7 +300,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
       }
    }
 }
-
+/*
 void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
 {
    int drawOverride = m_DagNode.findPlug("standin_draw_override").asShort(); 
@@ -322,10 +337,10 @@ void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   AiNodeSetPnt(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
-   AiNodeSetPnt(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
+   //AiNodeSetVec(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
+   //AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
-
+*/
 
 AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool update)
 {
@@ -455,13 +470,14 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       }
       
       GetSessionOptions().FormatProceduralPath(resolvedName);
-      AiNodeSetStr(procedural, "dso", resolvedName.asChar());
-
+      AiNodeSetStr(procedural, "filename", resolvedName.asChar());
+/*
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");
       if (!deferStandinLoad.asBool())
          AiNodeSetBool(procedural, "load_at_init", true);
       else
          ExportBoundingBox(procedural);
+*/
 
       MPlug data = m_DagNode.findPlug("data");
       int sizeData = strlen(data.asString().asChar());
@@ -469,6 +485,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
+      AiNodeSetBool(procedural, "override_nodes", m_DagNode.findPlug("overrideNodes").asBool());
    }
    return procedural;
 }

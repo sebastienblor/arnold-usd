@@ -10,7 +10,7 @@
 
 # standard                    0x00115D01
 # utility                     0x00115D03
-# ray_switch                  0x00115D04
+# ray_switch_rgba             0x00115D04
 # ambient_occlusion           0x00115D07
 # wireframe                   0x00115D08
 # fog                         0x00115D0A
@@ -21,7 +21,23 @@
 # motion_vector               0x00115D0F
 # image                       0x00115D17
 # physical_sky                0x00115D1E
-# density                     0x00115D21
+
+# Arnold 5 nodes
+# standard_surface            0x00115D51
+# standard_hair               0x00115D52
+# standard_volume             0x00115D53
+# shader_mix                  0x00115D54
+# ray_switch_shader           0x00115D55
+# osl_shader                  0x00115D56
+
+# Common Shaders
+# blackbody                   0x00115D57
+# flakes                      0x00115D58
+# two_sided                   0x00115D59
+
+
+# For the Maya IDs, please refer to nodes/ArnoldNodeIDs.h where each of them is listed
+
 
 # options
 
@@ -29,200 +45,187 @@
     maya.name               STRING  "aiOptions"
     maya.id                 INT     0x00115C00
     [attr AA_samples]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     -10
         max                 INT     100
         softmin             INT     1
         softmax             INT     10
         default             INT     3
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "AAsmpls"
     [attr bucket_size]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     16
         softmin             INT     16
         softmax             INT     256
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "bktsz"
     [attr abort_on_error]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
         maya.orig_shortname STRING  "abort"
     [attr abort_on_license_fail]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
         maya.orig_shortname STRING  "abortlic"
     [attr AA_sample_clamp]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         softmin             FLOAT   0.001
         softmax             FLOAT   100.0
         default             FLOAT   10.0
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "smpclamp"
     [attr AA_sample_clamp_affects_aovs]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False    
+        maya.keyable        BOOL    false
+        linkable            BOOL    false    
         maya.name           STRING  "use_sample_clamp_AOVs"
     [attr ignore_textures]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_shaders]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_lights]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_shadows]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_subdivision]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_displacement]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_motion_blur]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_smoothing]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_sss]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_bump]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr auto_transparency_depth]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "at_d"
-    [attr auto_transparency_threshold]
-        maya.keyable        BOOL    False
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-        linkable            BOOL    False
-        maya.orig_shortname STRING  "at_t"
     [attr show_samples]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False   
+        maya.keyable        BOOL    false
+        linkable            BOOL    false   
         maya.orig_shortname STRING  "sssshs"
     [attr max_subdivisions]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         max                 INT     999
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
         maya.orig_shortname STRING  "tx_am"
     [attr texture_autotile]
-        maya.keyable        BOOL    False
-        linkable            BOOL    False
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
         maya.orig_shortname STRING  "tx_at"
-    [attr texture_glossy_blur]
-        maya.keyable        BOOL    False
+    [attr texture_specular_blur]
+        maya.keyable        BOOL    false
         default             FLOAT   0
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr GI_diffuse_depth]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
         default             INT     1
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "GI_dd"
-    [attr GI_glossy_depth]
-        maya.keyable        BOOL    False
+    [attr GI_specular_depth]
+        maya.keyable        BOOL    false
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
         default             INT     1
-        linkable            BOOL    False
+        linkable            BOOL    false
         maya.orig_shortname STRING  "GI_gd"
-    [attr GI_reflection_depth]
-        maya.keyable        BOOL    False
+    [attr GI_transmission_depth]
+        maya.keyable        BOOL    false
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
-        linkable            BOOL    False
-        maya.orig_shortname STRING  "GI_rld"
-    [attr GI_refraction_depth]
-        maya.keyable        BOOL    False
-        min                 INT     0
-        softmin             INT     0
-        softmax             INT     16
-        linkable            BOOL    False
+        default             INT     8
+        linkable            BOOL    false
         maya.orig_shortname STRING  "GI_rrd"
     [attr GI_volume_depth]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
         maya.orig_shortname STRING  "GI_vd"
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr GI_total_depth]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
         maya.orig_shortname STRING  "GI_td"
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr GI_diffuse_samples]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
         maya.orig_shortname STRING  "GIdiffsmpls"
-        linkable            BOOL    False
-    [attr GI_glossy_samples]
-        maya.keyable        BOOL    False
+        linkable            BOOL    false
+    [attr GI_specular_samples]
+        maya.keyable        BOOL    false
         min                 INT     0
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
         maya.orig_shortname STRING  "GIglossmpls"
-        linkable            BOOL    False
-    [attr GI_refraction_samples]
-        maya.keyable        BOOL    False
+        linkable            BOOL    false
+    [attr GI_transmission_samples]
+        maya.keyable        BOOL    false
         min                 INT     0
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr GI_sss_samples]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         max                 INT     100
         softmin             INT     0
         softmax             INT     10        
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr GI_volume_samples]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 INT     0
         softmax             INT     10
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr low_light_threshold]
-        maya.keyable        BOOL    False
+        maya.keyable        BOOL    false
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
-        linkable            BOOL    False
-    [attr enable_fast_opacity]
-        default             BOOL    True
-        linkable            BOOL    False        
+        linkable            BOOL    false
     [attr background]
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr atmosphere]
-        linkable            BOOL    False
+        linkable            BOOL    false
+    [attr subdiv_dicing_camera]
+        linkable            BOOL    false
 
 
 # lights
@@ -234,63 +237,61 @@
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr angle]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
         max                 FLOAT   180.0
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr color]
-        linkable            BOOL    False
+        linkable            BOOL    false
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -299,64 +300,62 @@
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr radius]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr normalize]
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr color]
-        linkable            BOOL    False
+        linkable            BOOL    false
 
 
 [node spot_light]
@@ -366,78 +365,80 @@
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr radius]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr lens_radius]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr aspect_ratio]
         min                 FLOAT   0.0
         max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr lens_radius]
         min                 FLOAT   0.0
         max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
+    [attr roundness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr normalize]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr color]
-        linkable            BOOL    False
+        linkable            BOOL    false
 
 
 [node skydome_light]
@@ -445,126 +446,122 @@
     maya.id                 INT     0x00115C85
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr color]
-        linkable            BOOL    True
+        linkable            BOOL    true
+    [attr camera]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
+    [attr transmission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
         
 [node photometric_light]
     maya.name               STRING  "aiPhotometricLight"
     maya.id                 INT     0x00115C87
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr radius]
         min                 FLOAT   0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr color]
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -574,195 +571,191 @@
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr spread]
         min                 FLOAT   0
         max                 FLOAT   1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
+    [attr roundness]
+        min                 FLOAT   0
+        max                 FLOAT   1
+        maya.channelbox     BOOL    true
+    [attr soft_edge]
+        min                 FLOAT   0
+        max                 FLOAT   1
+        maya.channelbox     BOOL    true
+
+
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr color]
-        linkable            BOOL    True
-        maya.channelbox     BOOL    False
+        linkable            BOOL    true
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr normalize]
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
 
 [node cylinder_light]
     maya.name               STRING  "aiAreaLight"
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr normalize]
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
 
 [node disk_light]
     maya.name               STRING  "aiAreaLight"
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-    [attr affect_diffuse]
-        maya.name           STRING  "emitDiffuse"
-    [attr affect_specular]
-        maya.name           STRING  "emitSpecular"
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr spread]
         min                 FLOAT   0
         max                 FLOAT   1
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr normalize]
-        maya.channelbox     BOOL    False
-    [attr affect_volumetrics]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr cast_volumetric_shadows]
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
 
 
 [node mesh_light]
@@ -771,41 +764,41 @@
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
     [attr color]
-        linkable            BOOL    True
+        linkable            BOOL    true
     [attr intensity]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr diffuse]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr specular]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr sss]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr indirect]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
     [attr volume]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        maya.channelbox     BOOL    False
+        maya.channelbox     BOOL    false
 
 # light filters
 
@@ -816,7 +809,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
-    maya.swatch             BOOL    False
+    maya.swatch             BOOL    false
     [attr barndoor_bottom_edge]
         min                 FLOAT   0
         max                 FLOAT   1.0
@@ -861,17 +854,17 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
-    maya.swatch             BOOL    False
+    maya.swatch             BOOL    false
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
     [attr rotate]
         min                 FLOAT   0.0
         max                 FLOAT   360.0
-    [attr scale_s]
+    [attr sscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
-    [attr scale_t]
+    [attr tscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
 
@@ -882,7 +875,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight aiMeshLight mesh"
     maya.output             INT     0x05
-    maya.swatch             BOOL    False
+    maya.swatch             BOOL    false
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -908,7 +901,7 @@
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight aiMeshLight mesh"
-    maya.swatch             BOOL    False
+    maya.swatch             BOOL    false
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -940,14 +933,14 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   200.0
         default             FLOAT   5.0
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr aperture_size]
         min                 FLOAT   0.0
         max                 FLOAT   20.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         # default           FLOAT   0.2
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr aperture_blades]
         min                 INT     0
         max                 INT     40
@@ -1012,21 +1005,21 @@
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
         softmax             FLOAT   360.0
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr focus_distance]
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
         softmin             FLOAT   0.0
         softmax             FLOAT   200.0
         # default           FLOAT   5.0
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr aperture_size]
         min                 FLOAT   0.0
         max                 FLOAT   20.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         # default           FLOAT   0.2
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr aperture_blades]
         min                 INT     0
         max                 INT     40
@@ -1070,12 +1063,12 @@
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
         softmax             FLOAT   360.0
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr vertical_fov]
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
         softmax             FLOAT   180.0
-        animatable          BOOL    True
+        animatable          BOOL    true
     [attr exposure]
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
@@ -1113,14 +1106,79 @@
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
         max                 FLOAT     1.0
+
+[node vr_camera]
+    maya.name               STRING  "camera"
+    maya.id                 INT     0x4443414d
+    maya.translator         STRING  "vr_camera"
+    [attr mode]
+        maya.name           STRING  "aiMode"
+        default             INT     0
+     
+    [attr projection]
+        maya.name           STRING  "aiProjection"
+        default             INT     0
+
+    [attr eye_separation]
+        maya.name           STRING  "aiEyeSeparation"
+        softmin             FLOAT   0
+        softmax             FLOAT   1
+        default             FLOAT   0.65
+
+    [attr eye_to_neck]
+        maya.name           STRING  "aiEyeToNeck"
+        softmin             FLOAT   0
+        softmax             FLOAT   1
+        default             FLOAT   0.0
+
+    [attr top_merge_mode]
+        maya.name           STRING  "aiTopMergeMode"
+        default             INT     1
+     
+    [attr top_merge_angle]
+        maya.name           STRING  "aiTopMergeAngle"
+        softmin             FLOAT   0
+        softmax             FLOAT   90
+        default             FLOAT   90
         
+    [attr bottom_merge_mode]
+        maya.name           STRING  "aiBottomMergeMode"
+        default             INT     1
+     
+    [attr bottom_merge_angle]
+        maya.name           STRING  "aiBottomMergeAngle"
+        softmin             FLOAT   0
+        softmax             FLOAT   90
+        default             FLOAT   90
+
+    [attr merge_shader]
+        maya.name           STRING  "aiMergeShader"
+        linkable            BOOL    true
+
+    [attr exposure]
+        min                 FLOAT   -100.0
+        max                 FLOAT   100.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
+    [attr rolling_shutter_duration]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+
 # shaders
 
 [node standard]
     desc                    STRING  "Base all purpose Arnold shader."
     maya.name               STRING  "aiStandard"
     maya.id                 INT     0x00115D01
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "legacy"
     maya.output_name        STRING  "outColor"
     maya.output_shortname   STRING  "out"
     [attr IOR]
@@ -1194,29 +1252,93 @@
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
    
-    # AOVs
-    [attr aov_emission]
-    aov.type                INT     0x05
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_specular]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
-    [attr aov_indirect_specular]
-    aov.type                INT     0x05
-    [attr aov_reflection]
-    aov.type                INT     0x05
-    [attr aov_refraction]
-    aov.type                INT     0x05
-    [attr aov_refraction_opacity]
-    aov.type                INT     0x05
-    [attr aov_sss]
-    aov.type                INT     0x05
-    [attr aov_direct_sss]
-    aov.type                INT     0x05
-    [attr aov_indirect_sss]
-    aov.type                INT     0x05
+
+
+[node standard_surface]
+    desc                    STRING  "Basic Surface shader."
+    maya.name               STRING  "aiStandardSurface"
+    maya.id                 INT     0x00115D51
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    [attr base]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr base_color]
+        maya.shortname      STRING  "color"
+    [attr diffuse_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular_IOR]
+        min                 FLOAT   0.0
+        softmax             FLOAT   3.0
+    [attr specular_anisotropy]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular_rotation]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr metalness]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr transmission]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr transmission_depth]
+        min             FLOAT   0.0
+        softmax         FLOAT   100.0
+        linkable        BOOL    false
+        keyable         BOOL    false
+    [attr transmission_scatter_anisotropy]
+        min             FLOAT   -1.0
+        max             FLOAT   1.0
+    [attr transmission_dispersion]
+        min             FLOAT   0.0
+        softmax         FLOAT   100.0
+    [attr transmission_extra_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr subsurface]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr subsurface_scale]
+        min             FLOAT   0.0
+        softmax         FLOAT   10.0
+    [attr coat]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_roughness]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_IOR]
+        min             FLOAT   0.0
+        softmax         FLOAT   5.0
+    [attr coat_affect_color]
+        maya.hide       BOOL    true
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_affect_roughness]
+        maya.hide       BOOL    true
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr emission]
+        min             FLOAT   0.0
+        softmax         FLOAT   1.0
+    [attr indirect_diffuse]
+        min             FLOAT   0.0
+        softmax         FLOAT   1.0
+    [attr indirect_specular]
+        min             FLOAT   0.0
+        softmax         FLOAT   1.0
+    [attr normal]
+        maya.hide       BOOL    true
+        softmax         FLOAT   1.0
 
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."
@@ -1231,12 +1353,10 @@
         min                 FLOAT 0.0
         softmax             FLOAT 200.0
 
-
-[node ray_switch]
-    desc                    STRING  "Switch input depending on ray type."
-    maya.name               STRING  "aiRaySwitch"
-    maya.id                 INT     0x00115D04  
-    maya.classification     STRING  "shader/surface"
+[node ray_switch_rgba]
+    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D84
+    
 
 [node ambient_occlusion]
     desc                    STRING  "This shader can be used to display ambient occlusion on a geometry."
@@ -1278,16 +1398,19 @@
         desc                STRING  "Base geometry element used for edge display."
 
 [node flat]
-    maya.hide               BOOL    True
+    maya.id                 INT     0x00115D85
+    maya.name               STRING  "aiFlat"
+    maya.classification     STRING  "shader/surface"
+
+[node color_jitter]
+    maya.id                 INT     0x00115D89
+    maya.name               STRING  "aiColorJitter"
+    maya.classification     STRING  "utility/shader"
 
 [node lambert]
-    maya.hide               BOOL    True
-    
-    # AOVs
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
+    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D86
+
 
 [node noise]
     desc                    STRING  "2D procedural noise"
@@ -1313,7 +1436,7 @@
     desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump2d"
     maya.id                 INT     0x00115D0C
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "utility/shader"
     [attr bump_height]
         desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
@@ -1326,18 +1449,20 @@
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
     maya.classification     STRING  "texture"
+    [attr filename]
+        maya.usedAsFilename BOOL    true     
     [attr multiply]
-        linkable            BOOL    True
-        maya.channelbox     BOOL    True
+        linkable            BOOL    true
+        maya.channelbox     BOOL    true
     [attr offset]
-        linkable            BOOL    True
-        maya.channelbox     BOOL    True
+        linkable            BOOL    true
+        maya.channelbox     BOOL    true
 
 [node motion_vector]
     desc                    STRING  "Motion vectors"
     maya.name               STRING  "aiMotionVector"
     maya.id                 INT     0x00115D0F
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "utility/shader"
     [attr time0]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
@@ -1355,7 +1480,7 @@
     desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump3d"
     maya.id                 INT     0x00115D0E
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "utility/shader"
     [attr bump_height]
         desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
@@ -1374,7 +1499,7 @@
     desc                    STRING  "Shader for Arnold hair tubes."
     maya.name               STRING  "aiHair"
     maya.id                 INT     0x00115D09  
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "legacy"
     [attr ambdiff]
         desc                STRING  "Ambient diffuse value."
         label               STRING  "Ambient Diffuse"
@@ -1439,29 +1564,113 @@
         softmin             FLOAT   0.5
         softmax             FLOAT   5.0
         default             FLOAT   1.0
-    [attr uparam]
-        desc                STRING  "Name of the U param coordinates "
-        label               STRING  "U Param"
-    [attr vparam]
-        desc                STRING  "Name of the V param coordinates "
-        label               STRING  "V Param"
-        
-    # AOVs
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_specular]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
-    aov.type                INT     0x05
-    [attr aov_direct_transmission]
-    aov.type                INT     0x05
+
+
+[node standard_hair]
+    desc                    STRING  "Basic Arnold Hair Shader"
+    maya.name               STRING  "aiStandardHair"
+    maya.id                 INT    0x00115D52  
+    maya.classification     STRING  "shader/surface"
+    [attr base]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr diffuse]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr specular2]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr transmission]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr ior]
+        min                 FLOAT   0.0
+        softmax             FLOAT   5.0
+    [attr shift]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   20
+        min                 FLOAT   -90
+        max                 FLOAT   90
+    [attr melanin]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr melanin_redness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr melanin_randomize]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr emission]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect_diffuse]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect_specular]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+   
+   
+[node standard_volume]
+    desc                    STRING  "Basic Volume Shader"
+    maya.name               STRING  "aiStandardVolume"
+    maya.id                 INT     0x00115D53  
+    maya.classification     STRING  "shader/volume"
+    [attr density]
+        min                 FLOAT   0.0
+        softmax             FLOAT   5.0
+    [attr scatter]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr scatter_anisotropy]
+        min                 FLOAT   -1.0
+        max                 FLOAT   1.0
+    [attr emission]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr blackbody_kelvin]
+        min                 FLOAT   0.0
+        softmax             FLOAT   20000.0
+    [attr blackbody_intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+
+[node mix_shader]
+    desc                    STRING  "Mix between two Arnold Shaders"
+    maya.name               STRING  "aiMixShader"
+    maya.id                 INT     0x00115D54  
+    maya.classification     STRING  "shader/surface"
+    [attr mix]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+
+[node ray_switch_shader]
+    desc                    STRING  "Ray Switch for Arnold Surface Shaders"
+    maya.name               STRING  "aiRaySwitch"
+    maya.id                 INT     0x00115D55  
+    maya.classification     STRING  "shader/surface"
+
+[node osl]
+    desc                    STRING  "OSL-based shader"
+    maya.name               STRING  "aiOslShader"
+    maya.id                 INT     0x00115D56  
+    maya.classification     STRING  "shader/surface"
+    maya.hide               BOOL    true
+
+
 
 [node sky]
     desc                    STRING  "Sky environment texture."
     maya.name               STRING  "aiSky"
     maya.id                 INT     0x00115C84
     maya.type               STRING  "kLocatorNode"  
-    maya.classification     STRING  "texture/environment"   
+    maya.classification     STRING  "legacy"
     [attr intensity]
         desc                STRING  "Intensity of sky illumination."
         min                 FLOAT   0.0
@@ -1472,29 +1681,29 @@
     desc                    STRING  "Volume fog atmosphere shader."
     maya.name               STRING  "aiFog"
     maya.id                 INT     0x00115D0A  
-    maya.classification     STRING  "shader/volume/atmosphere"
+    maya.classification     STRING  "light/volume"
     [attr distance]
         desc                STRING  "Fog full opacity distance."
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr height]
         desc                STRING  "Fog full height."
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr color]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr ground_point]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
     [attr ground_normal]
-        maya.channelbox     BOOL    True
+        maya.channelbox     BOOL    true
 
-[node volume_scattering]
+[node atmosphere_volume]
     desc                    STRING  "Volume scattering atmosphere shader."
-    maya.name               STRING  "aiVolumeScattering"
+    maya.name               STRING  "aiAtmosphereVolume"
     maya.id                 INT     0x00115D0B  
-    maya.classification     STRING  "shader/volume/atmosphere"
+    maya.classification     STRING  "light/volume"
     [attr affect_camera]
         desc                STRING  "Scattering effect on camera rays."
         min                 FLOAT   0.0
@@ -1503,8 +1712,8 @@
         desc                STRING  "Scattering effect on diffuse rays."
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr affect_reflection]
-        desc                STRING  "Scattering effect on reflection rays."
+    [attr affect_specular]
+        desc                STRING  "Scattering effect on specular rays."
         min                 FLOAT   0.0
         max                 FLOAT   1.0
     [attr attenuation]
@@ -1533,47 +1742,38 @@
     [attr turbidity]
         softmin             FLOAT   1
         softmax             FLOAT   10
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr elevation]
         softmin             FLOAT   0.0
         softmax             FLOAT   90.0
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr use_degrees]
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr azimuth]
         softmin             FLOAT   0.0
         softmax             FLOAT   360.0
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr sun_direction]
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr enable_sun]
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr sun_size]
         softmin             FLOAT   0.1
         softmax             FLOAT   5.0
-        linkable            BOOL    False
+        linkable            BOOL    false
     [attr sun_tint]
-        linkable            BOOL    False
-        maya.channelbox     BOOL    False
+        linkable            BOOL    false
+        maya.channelbox     BOOL    false
     [attr sky_tint]
-        linkable            BOOL    False
-        maya.channelbox     BOOL    False
+        linkable            BOOL    false
+        maya.channelbox     BOOL    false
     [attr ground_albedo]
-        linkable            BOOL    False
-        maya.channelbox     BOOL    False
-        
-[node density]
-    desc                    STRING  "Density"
-    maya.name               STRING  "aiDensity"
-    maya.id                 INT     0x00115D21
-    maya.classification     STRING  "shader/volume"
-    [attr scatter_g]
-        min                 FLOAT   -1.0
-        max                 FLOAT   1.0
+        linkable            BOOL    false
+        maya.channelbox     BOOL    false
         
 # dag nodes
 
@@ -1609,12 +1809,11 @@
 
 # drivers
 
-[node driver_display]
-    maya.hide               BOOL    true
-
 [node driver_deepexr]
     maya.translator         STRING  "deepexr"
     [attr filename]
+        maya.hide           BOOL    true
+    [attr color_space]
         maya.hide           BOOL    true
     
 [node driver_exr]
@@ -1624,6 +1823,8 @@
     [attr compression]
         maya.name           STRING  "exrCompression"
         maya.shortname      STRING  "exr_compression"
+    [attr color_space]
+        maya.hide           BOOL    true
 
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
@@ -1636,6 +1837,8 @@
     [attr quality]
         min                 INT     0
         max                 INT     100
+    [attr color_space]
+        maya.hide           BOOL    true
 
 [node driver_png]
     maya.translator         STRING  "png"
@@ -1648,6 +1851,8 @@
     [attr format]
         maya.name           STRING  "pngFormat"
         maya.shortname      STRING  "png_format"
+    [attr color_space]
+        maya.hide           BOOL    true
 
 [node driver_tiff]
     maya.translator         STRING  "tif"
@@ -1663,6 +1868,8 @@
     [attr format]
         maya.name           STRING  "tiffFormat"
         maya.shortname      STRING  "tiff_format"
+    [attr color_space]
+        maya.hide           BOOL    true
 
 # filters
 
@@ -1679,10 +1886,6 @@
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "box"
 
-[node catrom2d_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "catrom2d"
-
 [node catrom_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "catrom"
@@ -1690,22 +1893,6 @@
 [node closest_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "closest"
-
-[node cone_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "cone"
-
-[node cook_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "cook"
-
-[node cubic_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "cubic"
-
-[node disk_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "disk"
 
 [node farthest_filter]
     maya.attr_prefix        STRING  ""
@@ -1737,13 +1924,831 @@
     [attr width]
         default             FLOAT   2.0
 
-[node video_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "video"
-
 [node gaussian_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "gaussian"
     [attr width]
         default             FLOAT   2.0
+
+
+# COMMON SHADERS
+
+[node abs]
+    maya.id                 INT     0x00115D5A
+    maya.name               STRING  "aiAbs"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node add]
+    maya.id                 INT     0x00115D5B
+    maya.name               STRING  "aiAdd"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+
+[node aov_write_float]
+    maya.name               STRING  "aiWriteFloat"
+    maya.id                 INT     0x00115D11
+    maya.classification     STRING  "utility/aov"
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    
+
+[node aov_write_int]
+    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D87
+
+[node aov_write_rgb]
+    maya.name               STRING  "aiWriteColor"
+    maya.id                 INT     0x00115D10
+    maya.classification     STRING  "utility/aov"
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    [attr blend_opacity]
+        maya.name           STRING  "blend"
+    
+
+[node atan]
+    maya.id                 INT     0x00115D5C
+    maya.name               STRING  "aiAtan"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node blackbody]
+    maya.id                 INT     0x00115D57
+    maya.name               STRING  "aiBlackbody"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+    [attr temperature]
+        min                 FLOAT   0.0
+        softmax             FLOAT   20000.0
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+
+[node cache]
+    maya.id                 INT     0x00115D5D
+    maya.name               STRING  "aiCache"
+    maya.classification     STRING  "utility/volume"
+    maya.swatch             BOOL    true
+
+
+[node camera_projection]
+    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D88
+
+[node checkerboard]
+    maya.hide               BOOL    true
+
+[node clamp]
+    maya.id                 INT     0x00115D5E
+    maya.name               STRING  "aiClamp"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+[node color_convert]
+    maya.id                 INT     0x00115D5F
+    maya.name               STRING  "aiColorConvert"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+[node color_correct]
+    maya.id                 INT     0x00115D60
+    maya.name               STRING  "aiColorCorrect"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+[node compare]
+    maya.id                 INT     0x00115D7E
+    maya.name               STRING  "aiCompare"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+# enable complex_ior
+[node complex_ior]
+maya.id                 INT     0x00118F93
+maya.name               STRING  "aiComplexIor"
+maya.classification     STRING  "utility/shader"
+maya.swatch             BOOL    true
+
+[attr material]
+desc STRING "Presets of different materials. The custom mode allows you to define a material with Reflectivity and Edgetint, or n and k parameters."
+
+[attr mode]
+desc STRING "Select between the artist friendly (Reflectivity and Edgetint colors) and physical (n and k) controls."
+
+[attr reflectivity]
+desc STRING "The reflectance at normal incidence."
+
+[attr edgetint]
+desc STRING "Controls the color bias as the viewing direction becomes parallel to the surface."
+
+[attr eta]
+desc STRING "The refractive index value for the red/green/blue wavelengths (e.g. 650, 550 and 450 nm)."
+
+[node complement]
+    maya.id                 INT     0x00115D7F
+    maya.name               STRING  "aiComplement"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+    
+
+
+[node composite]
+    maya.id                 INT     0x00115D61
+    maya.name               STRING  "aiComposite"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+
+[node cross]
+    maya.id                 INT     0x00115D64
+    maya.name               STRING  "aiCross"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+# enable curvature
+[node curvature]
+maya.id                 INT     0x00118F91
+maya.name               STRING  "aiCurvature"
+maya.classification     STRING  "texture"
+maya.swatch             BOOL    true
+
+[attr output]
+desc STRING "Whether to output the convex (positive) curvature or concave (negative) curvature only as grayscale,"
+ "or output both with the convex curvature in the red channel and concave curvature in the green channel."
+
+[attr samples]
+desc STRING "Controls the number of rays that will be fired to compute the curvature. Increasing the number of samples "
+ "will reduce noise and give a better quality result. The actual number of rays is the square of this value."
+softmin INT 1
+softmin INT 10
+linkable BOOL true
+
+[attr radius]
+desc STRING "The radius of the sphere around the shading point within which the curvature will be estimated. "
+  "Smaller values show finer details, while larger values give a smoother result."
+softmin FLOAT 0
+softmax FLOAT 5
+linkable BOOL true
+
+[attr spread]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 1
+min     FLOAT 0
+max     FLOAT 1
+desc STRING "Lower values of spread will shoot rays more vertically with respect to the surface, "
+"and the default value of 1 means that rays are shot in all directions."
+
+[attr threshold]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 1
+min FLOAT 0
+max FLOAT 1
+
+[attr bias]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 1
+desc STRING "The bias will affect the falloff of the curvature. With the default of 0.5, the curvature sample "
+"importance decreases linearly with the distance to the shading point."
+
+[attr multiply]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 10
+desc STRING "Multiplies the curvature by this factor."
+
+[node divide]
+    maya.id                 INT     0x00115D62
+    maya.name               STRING  "aiDivide"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node dot]
+    maya.id                 INT     0x00115D63
+    maya.name               STRING  "aiDot"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node exp]
+    maya.id                 INT     0x00115D65
+    maya.name               STRING  "aiExp"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node facing_ratio]
+    maya.id                 INT     0x00115D66
+    maya.name               STRING  "aiFacingRatio"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+    [attr bias]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr gain]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+
+
+# enable flakes
+[node flakes]
+    maya.id                 INT     0x00115D58
+    maya.name               STRING  "aiFlakes"
+    maya.classification     STRING  "texture"
+    maya.swatch             BOOL    true
+    [attr scale]
+        min                 FLOAT   0.0
+        softmax             FLOAT   100.0
+    [attr size]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr normal_randomize]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    
+
+
+
+
+[node float_to_int]
+    maya.id                 INT     0x00115D67
+    maya.name               STRING  "aiFloatToInt"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    true
+
+[node float_to_matrix]
+    maya.hide               BOOL    true
+[node float_to_rgb]
+    maya.hide               BOOL    true
+[node float_to_rgba]
+    maya.hide               BOOL    true
+
+[node fraction]
+    maya.id                 INT     0x00115D68
+    maya.name               STRING  "aiFraction"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node is_finite]
+    maya.id                 INT     0x00115D69
+    maya.name               STRING  "aiIsFinite"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node length]
+    maya.id                 INT     0x00115D6A
+    maya.name               STRING  "aiLength"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node log]
+    maya.id                 INT     0x00115D6B
+    maya.name               STRING  "aiLog"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node matte]
+    maya.hide               BOOL    true
+
+[node max]
+    maya.id                 INT     0x00115D6C
+    maya.name               STRING  "aiMax"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node min]
+    maya.id                 INT     0x00115D6D
+    maya.name               STRING  "aiMin"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node mix_rgba]
+    maya.hide               BOOL    true
+
+[node modulo]
+    maya.id                 INT     0x00115D6E
+    maya.name               STRING  "aiModulo"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node motion_vector]
+    maya.id                 INT     0x00115D6F
+    maya.name               STRING  "aiMotionVector"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+[node multiply]
+    maya.id                 INT     0x00115D70
+    maya.name               STRING  "aiMultiply"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node negate]
+    maya.id                 INT     0x00115D71
+    maya.name               STRING  "aiNegate"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node normalize]
+    maya.id                 INT     0x00115D72
+    maya.name               STRING  "aiNormalize"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node passthrough]
+    maya.hide               BOOL    true
+
+[node pow]
+    maya.id                 INT     0x00115D73
+    maya.name               STRING  "aiPow"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node ramp_float]
+    maya.hide               BOOL    true
+
+[node ramp_rgb]
+    maya.hide               BOOL    true
+
+[node random]
+    maya.id                 INT     0x00115D74
+    maya.name               STRING  "aiRandom"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node range]
+    maya.id                 INT     0x00115D75
+    maya.name               STRING  "aiRange"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+
+[node reciprocal]
+    maya.id                 INT     0x00115D82
+    maya.name               STRING  "aiReciprocal"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node rgb_to_float]
+    maya.id                 INT     0x00115D76
+    maya.name               STRING  "aiColorToFloat"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    true
+
+
+[node shuffle]
+    maya.id                 INT     0x00115D83
+    maya.name               STRING  "aiShuffle"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+
+[node rgb_to_vector]
+    maya.hide               BOOL    true
+
+[node rgba_to_float]
+    maya.hide               BOOL    true
+
+# enable shadow matte
+[node shadow_matte]
+maya.id                 INT     0x00115D19
+maya.name               STRING  "aiShadowMatte"
+maya.classification     STRING  "shader/surface"
+maya.swatch             BOOL    false
+
+    [attr backlighting]
+        min                 FLOAT   0.0    
+        max                 FLOAT   1.0
+        softmin                 FLOAT   0.0    
+        softmax                 FLOAT   1.0
+
+    [attr aov_shadow]
+        aov.type                INT     0x05
+    [attr aov_shadow_matte]
+        aov.type                INT     0x05
+    [attr aov_shadow_diff]
+        aov.type                INT     0x05
+    [attr aov_shadow_mask]
+        aov.type                INT     0x05
+    [attr aov_indirect_diffuse]
+        aov.type                INT     0x05
+    [attr aov_reflection]
+        aov.type                INT     0x05
+
+[node sign]
+    maya.id                 INT     0x00115D77
+    maya.name               STRING  "aiSign"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node skin]
+    maya.id                 INT     0x00115D16
+    maya.name               STRING  "aiSkin"
+    maya.classification     STRING  "legacy"
+
+[node space_transform]
+    maya.id                 INT     0x00115D78
+    maya.name               STRING  "aiSpaceTransform"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+
+[node sqrt]
+    maya.id                 INT     0x00115D79
+    maya.name               STRING  "aiSqrt"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+[node state_float]
+    maya.hide               BOOL    true
+
+[node state_int]
+    maya.hide               BOOL    true
+
+[node state_vector]
+    maya.hide               BOOL    true
+
+[node subtract]
+    maya.id                 INT     0x00115D7A
+    maya.name               STRING  "aiSubstract"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+[node switch_rgba]
+    maya.hide               BOOL   true
+
+[node switch_shader]
+    maya.id                 INT     0x00115D7B
+    maya.name               STRING  "aiSwitch"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true
+
+    [attr index]
+    min INT 0
+    max INT 19
+    
+#enable thin_film
+[node thin_film]
+maya.id                 INT     0x00118F92
+maya.name               STRING  "aiThinFilm"
+maya.classification     STRING  "texture"
+maya.swatch             BOOL    true
+
+[attr thickness_min]
+desc STRING "The minimum thickness of the thin film, in nanometers."
+houdini.label STRING "Min. Thickness (nm)"
+min FLOAT 0.0
+softmax FLOAT 1000.0
+c4d.step FLOAT 1.0
+
+[attr thickness_max]
+desc STRING "The maximum thickness of the thin film, in nanometers."
+houdini.label STRING "Max. Thickness (nm)"
+min FLOAT 0.0
+softmax FLOAT 1000.0
+c4d.step FLOAT 1.0
+
+[attr thickness]
+desc STRING "Defines the actual thickness of the film between the specified min and max thickness values. Normally this would be something like a noise map to give some variation to the interference effect."
+min FLOAT 0.0
+max FLOAT 1.0
+c4d.step FLOAT 0.01
+
+[attr ior_medium]
+desc STRING "The refractive index of the medium surrounding the material. Normally this is set to 1.0 for air."
+houdini.label STRING "Medium IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[attr ior_film]
+desc STRING "The refractive index of the medium that the thin film is made of."
+houdini.label STRING "Film IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[attr ior_internal]
+desc STRING "The refractive index of the medium below the thin film."
+houdini.label STRING "Internal IOR"
+min FLOAT 0.0
+softmax FLOAT 3.0
+c4d.step FLOAT 0.01
+
+[node trace_set]
+    maya.hide               BOOL    true
+
+
+[node trigo]
+    maya.id                 INT     0x00115D7C
+    maya.name               STRING  "aiTrigo"
+    maya.classification     STRING  "utility/math"
+    maya.swatch             BOOL    true
+
+
+#enable two_sided
+[node two_sided]
+    maya.id                 INT     0x00115D59
+    maya.name               STRING  "aiTwoSided"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true
+    [attr front]
+    linkable BOOL true
+    [attr back]
+    linkable BOOL true
+
+[node user_data_float]
+    maya.id                 INT      0x00115D12
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    false
+    maya.name               STRING  "aiUserDataFloat"
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "floatAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
+
+
+[node user_data_int]
+    maya.id                 INT      0x00115D1D
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    false
+    maya.name               STRING  "aiUserDataInt"
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "intAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
+
+[node user_data_rgb]
+    maya.hide               BOOL    true
+[node user_data_rgba]
+    maya.hide               BOOL    true
+
+[node user_data_string]
+    maya.id                 INT      0x00115D15
+    maya.classification     STRING  "utility/user data"
+    maya.swatch             BOOL    false
+    maya.name               STRING  "aiUserDataString"
+    [attr attribute]
+        maya.name           STRING  "attribute"
+        maya.shortname      STRING  "stringAttrName"
+    [attr default]
+        maya.name           STRING  "default"
+        maya.shortname      STRING  "defaultValue" 
+
+
+[node uv_transform]
+    maya.id                 INT     0x00115D7D
+    maya.name               STRING  "aiUvTransform"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+
+
+[node vector_to_rgb]
+    maya.hide               BOOL    true
+
+[node volume_collector]
+    maya.id                 INT     0x00115D1F
+    maya.name               STRING  "aiVolumeCollector"
+    maya.classification     STRING   "legacy"
+
+
+# enable volume_sample_float
+# enable volume_sample_rgb
+[node volume_sample_float]
+
+    maya.id    INT     0x00115E51
+    maya.classification     STRING  "utility/volume"
+    maya.swatch             BOOL    false
+
+    [attr channel]
+    desc STRING "The volume channel to sample."
+
+    [attr position_offset]
+    desc STRING "An offset added to the sampling position, in order to displace or "
+    "add noise to the volume. Remember to pad the volume bounds_slack accordingly."
+
+    [attr interpolation]
+    desc STRING "The voxel interpolation used when sampling the channel."
+
+    [attr input_min]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The minimum value of the input range."
+
+    [attr input_max]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The maximum value of the input range."
+
+    [attr contrast]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "Scale values around the contrast pivot."
+
+    [attr contrast_pivot]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 1
+    desc STRING "The origin of the contrast scaling."
+
+    [attr bias]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 1
+    desc STRING "Push or pull values by altering the slope at the beginning of the "
+    "range. Bias values below 0.5 decrease the slope and lower values overall. "
+    "Above 0.5, the slope is higher and value grow more quickly. A value of 0.5 has "
+    "no effect."
+
+    [attr gain]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 1
+    desc STRING "Increase or decrease the slope of the mid range values. Gain values "
+    "below 0.5 increase the contrast whereas values above 0.5 flatten the mid range "
+    "values. A value of 0.5 has no effect."
+
+    [attr output_min]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The minimum value of the output range, input_min will be mapped to this value."
+
+    [attr output_max]
+    linkable BOOL true
+    softmin FLOAT 0
+    softmax FLOAT 2
+    desc STRING "The maximum value of the input range, input_max will be mapped to this value."
+
+    [attr clamp_min]
+    linkable BOOL true
+    desc STRING "Clamp the result to the min_output value."
+
+    [attr clamp_max]
+    linkable BOOL true
+    desc STRING "Clamp the result to the max_output value."
+
+[node volume_sample_rgb]
+maya.id                 INT     0x00115E52
+maya.classification     STRING  "utility/volume"
+maya.swatch             BOOL    false
+
+[attr channel]
+desc STRING "The volume channel to sample."
+
+[attr position_offset]
+desc STRING "An offset added to the sampling position, in order to displace or "
+"add noise to the volume. Remember to pad the volume bounds_slack accordingly."
+
+[attr interpolation]
+desc STRING "The voxel interpolation used when sampling the channel."
+
+[attr hue_shift]
+linkable BOOL true
+softmin FLOAT -1
+softmax FLOAT 1
+desc STRING "Rotate the color hue, a value of 1 means a full rotation."
+
+[attr saturation]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 2
+desc STRING "Scale the saturation by this factor."
+
+[attr add]
+linkable BOOL true
+softmin FLOAT -1
+softmax FLOAT 1
+desc STRING "Add this value to the color."
+
+[attr contrast]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 2
+desc STRING "Scale values around the contrast pivot."
+
+[attr contrast_pivot]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 1
+desc STRING "The origin of the contrast scaling."
+
+[attr exposure]
+linkable BOOL true
+softmin FLOAT -10
+softmax FLOAT 10
+desc STRING "Multiply the color using a photo f-stop scale, where an increment of 1 doubles the luminosity."
+
+[attr multiply]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 2
+desc STRING "Multiply the color by this factor."
+
+[attr gamma]
+linkable BOOL true
+softmin FLOAT 0
+softmax FLOAT 3
+desc STRING "Apply a gamma correction to the color."
+
+
+
+
+
+[node normal_map]
+    maya.name               STRING  "aiNormalMap"
+    maya.id                 INT     0x00115D80
+    maya.classification     STRING  "utility/shader"
+
+[node vector_map]
+    maya.name               STRING  "aiVectorMap"
+    maya.id                 INT     0x00115D81
+    maya.classification     STRING  "utility/shader"
+
+
+[node triplanar]
+    maya.name               STRING  "aiTriplanar"
+    maya.id                 INT     0x00115D8A
+    maya.classification     STRING  "texture"
+    [attr blend]
+        min                 FLOAT   0
+        softmax             FLOAT   1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

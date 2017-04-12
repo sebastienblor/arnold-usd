@@ -197,20 +197,25 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     def validFilters(self):
         return getLightFilterClassification(self.nodeType())
 
-    def commonLightAttributes(self, addUserOptions = True):        
-        self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")        
+    def commonLightAttributes(self, addUserOptions = True, addVisibility = False):        
         self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
         
         self.addControl("aiVolumeSamples", label="Volume Samples")
         
         self.addSeparator()
     
+        self.beginLayout("Visibility" , collapse = False)
+        # for now only Skydome supports it, but area lights will also have it soon
+        if addVisibility:
+            self.addControl("camera", label="Camera")
+            self.addControl("transmission", label="Transmission")    
         self.addControl("aiDiffuse", label="Diffuse")
         self.addControl("aiSpecular", label="Specular")
         self.addControl("aiSss", label="SSS")
         self.addControl("aiIndirect", label="Indirect")
         self.addControl("aiVolume", label="Volume")
         self.addControl("aiMaxBounces", label="Max Bounces")
+        self.endLayout()
 
         self.addSeparator()
         self.addControl("aiAov", label="AOV Light Group")

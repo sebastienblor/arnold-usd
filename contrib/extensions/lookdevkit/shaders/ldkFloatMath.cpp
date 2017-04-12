@@ -39,12 +39,12 @@ const char* enum_operation[] =
 
 node_parameters
 {
-   AiParameterFLT("floatA", 1.0f);
-   AiParameterFLT("floatB", 1.0f);
-   AiParameterENUM("operation", OP_ADD, enum_operation);
+   AiParameterFlt("floatA", 1.0f);
+   AiParameterFlt("floatB", 1.0f);
+   AiParameterEnum("operation", OP_ADD, enum_operation);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatMath");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x816840);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatMath");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x816840);
 }
 
 node_initialize
@@ -67,28 +67,28 @@ shader_evaluate
    switch (op)
    {
    case OP_ADD:
-      sg->out.FLT = floatA + floatB;
+      sg->out.FLT() = floatA + floatB;
       break;
    case OP_SUBTRACT:
-      sg->out.FLT = floatA - floatB;
+      sg->out.FLT() = floatA - floatB;
       break;
    case OP_MULTIPLY:
-      sg->out.FLT = floatA * floatB;
+      sg->out.FLT() = floatA * floatB;
       break;
    case OP_DIVIDE:
-      sg->out.FLT = floatB != 0.0f ? floatA / floatB : 0.0f;
+      sg->out.FLT() = floatB != 0.0f ? floatA / floatB : 0.0f;
       break;
    case OP_MIN:
-      sg->out.FLT = floatA < floatB ? floatA : floatB;
+      sg->out.FLT()= floatA < floatB ? floatA : floatB;
       break;
    case OP_MAX:
-      sg->out.FLT = floatA > floatB ? floatA : floatB;
+      sg->out.FLT() = floatA > floatB ? floatA : floatB;
       break;
    case OP_POW:
-      sg->out.FLT = pow(floatA, floatB);
+      sg->out.FLT() = pow(floatA, floatB);
       break;
    default:
-      sg->out.FLT = 0.0f;
+      sg->out.FLT() = 0.0f;
       break;
    }
 }

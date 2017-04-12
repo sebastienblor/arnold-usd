@@ -485,7 +485,7 @@ def convertVrayMtl(inShd, outShd):
 
 
 def convertOptions():
-    cmds.setAttr("defaultArnoldRenderOptions.GIRefractionDepth", 10)
+    cmds.setAttr("defaultArnoldRenderOptions.GITransmissionDepth", 10)
     
 
 def isOpaque (shapeName):

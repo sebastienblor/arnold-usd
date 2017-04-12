@@ -765,9 +765,9 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
          const float theta = (float)AI_PI * (float)y / (float)divisions[1];
          dir = SphereVertex(phi, theta);            
 
-         AiMappingMirroredBall(&dir, &u, &v);	// Mirrored Ball
-         AiMappingAngularMap(&dir, &u2, &v2);	// Angular
-         AiMappingLatLong(&dir, &u3, &v3);		// Lat-long
+         AiMappingMirroredBall(dir, u, v);	// Mirrored Ball
+         AiMappingAngularMap(dir, u2, v2);	// Angular
+         AiMappingLatLong(dir, u3, v3);		// Lat-long
 
 
          const int id = x + y * divisionsX1;

@@ -11,9 +11,9 @@ enum HairPhysicalShaderDiffuseColorAdapterParams
 node_parameters
 {
     AiParameterRGB("colorD", 0.207f, 0.138f, 0.069f);
-    AiParameterFLT("intensityD", 1.0f);
+    AiParameterFlt("intensityD", 1.0f);
 
-    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -44,5 +44,5 @@ shader_evaluate
     //
     const AtRGB colorD     = AiShaderEvalParamRGB(p_colorD);
     const float intensityD = AiShaderEvalParamFlt(p_intensityD);
-    sg->out.RGB = colorD * intensityD;
+    sg->out.RGB() = colorD * intensityD;
 }

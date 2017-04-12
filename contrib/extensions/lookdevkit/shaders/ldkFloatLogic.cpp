@@ -37,12 +37,12 @@ const char* OperationStrings[] =
 
 node_parameters
 {
-   AiParameterFLT("floatA", 1.0f);
-   AiParameterFLT("floatB", 1.0f);
-   AiParameterENUM("operation", OP_EQUAL, OperationStrings);
+   AiParameterFlt("floatA", 1.0f);
+   AiParameterFlt("floatB", 1.0f);
+   AiParameterEnum("operation", OP_EQUAL, OperationStrings);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatLogic");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81636);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatLogic");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81636);
 }
 
 node_initialize
@@ -65,25 +65,25 @@ shader_evaluate
    switch (op)
    {
    case OP_EQUAL:
-      sg->out.BOOL = floatA == floatB;
+      sg->out.BOOL() = floatA == floatB;
       break;
    case OP_NOT_EQUAL:
-      sg->out.BOOL = floatA != floatB;
+      sg->out.BOOL() = floatA != floatB;
       break;
    case OP_LESS:
-      sg->out.BOOL = floatA < floatB;
+      sg->out.BOOL() = floatA < floatB;
       break;
    case OP_GREATER:
-      sg->out.BOOL = floatA > floatB;
+      sg->out.BOOL() = floatA > floatB;
       break;
    case OP_LESS_OR_EQUAL:
-      sg->out.BOOL = floatA <= floatB;
+      sg->out.BOOL() = floatA <= floatB;
       break;
    case OP_GREATER_OR_EQUAL:
-      sg->out.BOOL = floatA >= floatB;
+      sg->out.BOOL() = floatA >= floatB;
       break;
    default:
-      sg->out.BOOL = false;
+      sg->out.BOOL() = false;
       break;
    }
 }

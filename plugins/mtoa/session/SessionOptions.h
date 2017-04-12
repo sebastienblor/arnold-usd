@@ -8,6 +8,11 @@
 #include <maya/MString.h>
 #include <maya/MVector.h>
 
+// FIXME Arnold5  to be removed and replaced in the whole code once the Arnold-5.0 branch is merged
+typedef uint8_t AtByte;
+typedef unsigned AtUInt32;
+typedef size_t AtUInt64;
+
 /// Specify the Session mode for current export
 enum ArnoldSessionMode
 {
@@ -112,6 +117,7 @@ struct CSessionOptions
    const MStringArray &GetProceduralSearchPaths() const {return m_proceduralSearchPaths;}
    inline bool GetExportFullPath() const {return m_exportFullPath;}
    inline const MString &GetExportPrefix() const {return m_exportPrefix;}
+   inline bool GetExportAllShadingGroups() const {return m_exportAllShadingGroups;}
 
    // if I don't inline this here, some contrib libs fail at linking
    inline void GetMotionRange(double &motion_start, double &motion_end) const {
@@ -197,7 +203,8 @@ private:
                         m_progressiveRendering(false),
                         m_absoluteTexturePaths(true),
                         m_absoluteProceduralPaths(true),
-                        m_exportFullPath(false)
+                        m_exportFullPath(false),
+                        m_exportAllShadingGroups(false)
                         
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
@@ -216,6 +223,8 @@ private:
 
    inline void SetExportFullPath(bool b) {m_exportFullPath = b;}
    inline void SetExportPrefix(const MString &prefix) {m_exportPrefix = prefix;}
+   inline void SetExportAllShadingGroups(bool b) {m_exportAllShadingGroups = b;}
+
 
    MStatus GetFromMaya();
 
@@ -264,4 +273,5 @@ private:
    bool                 m_absoluteTexturePaths;
    bool                 m_absoluteProceduralPaths;
    bool                 m_exportFullPath;
+   bool                 m_exportAllShadingGroups;
 };

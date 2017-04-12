@@ -116,7 +116,7 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
       if (MStatus::kSuccess == status)
       {
          // TODO: add error handling when solid angle adds a status result
-         AiLoadPlugin(resolved.asChar());
+         AiLoadPlugins(resolved.asChar());
          // Register plugin nodes and translators
          status = RegisterPluginNodesAndTranslators(resolved);
       }
@@ -402,10 +402,19 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    unsigned int prevTrsNodes = TranslatedNodesCount();
    unsigned int prevTrsCount = TranslatorCount();
 
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL & ~AI_NODE_SHAPE);
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL /*& ~AI_NODE_SHAPE*/);
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+      if (AI_NODE_SHAPE == AiNodeEntryGetType(nentry))
+      { 
+         if (plugin.numChars() == 0) // builtin
+            continue; 
+         bool createProcedural;
+         if (!(AiMetaDataGetBool(nentry, NULL, "maya.procedural", &createProcedural) && createProcedural))
+            continue;
+
+      }
       MString nodeName = AiNodeEntryGetName(nentry);
       /*if (nodeName == "driver_deepexr")
          continue;*/
@@ -465,8 +474,10 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          {
             status = nodeStatus;
          }
-         // Warning for Arnold nodes that are from plugins and not translated
-         if (m_impl->m_extensionName != BUILTIN && MStatus::kNotImplemented == translatorStatus)
+         static MString synColorNodeName("color_manager_syncolor");
+
+         // Warning for Arnold nodes that are from plugins and not translated. (Ignoring syncolor)
+         if (m_impl->m_extensionName != BUILTIN && arnoldNode.name != synColorNodeName && MStatus::kNotImplemented == translatorStatus)
          {
             AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
                m_impl->m_extensionName.asChar(), arnoldNode.name.asChar());

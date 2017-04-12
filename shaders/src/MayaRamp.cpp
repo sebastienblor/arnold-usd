@@ -9,6 +9,11 @@
 #include <string>
 #include <algorithm>
 
+namespace MSTR
+{
+   static const AtString maya_ramp_uv_override("maya_ramp_uv_override");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaRampMtd);
 
 struct MayaRampData {
@@ -51,6 +56,7 @@ enum MayaRampParams
    p_hue_noise_freq,
    p_sat_noise_freq,
    p_val_noise_freq,
+   p_curve_implicit_uvs,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -83,7 +89,7 @@ const char* RampTypeNames[] =
 
 static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, float sa, float sf, float va, float vf)
 {
-   AtPoint2 p;
+   AtVector2 p;
 
    AtVector hsv = RGBtoHSV(in);
    hsv.x /= 360.0f;
@@ -101,7 +107,7 @@ static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, flo
       p.x = (16 * sf * u + 0.75f);
       p.y = (16 * sf * v + 0.75f);
       hsv.y += sa * AiPerlin2(p);
-      hsv.y = CLAMP(hsv.y, 0.0f, 1.0f);
+      hsv.y = AiClamp(hsv.y, 0.0f, 1.0f);
    }
 
    if (va > 0.0f)
@@ -109,7 +115,7 @@ static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, flo
       p.x = (16 * vf * u + 0.75f);
       p.y = (16 * vf * v + 0.75f);
       hsv.z += va * AiPerlin2(p);
-      hsv.z = CLAMP(hsv.z, 0.0f, 1.0f);
+      hsv.z = AiClamp(hsv.z, 0.0f, 1.0f);
    }
 
    hsv.x *= 360.0f;
@@ -121,28 +127,29 @@ static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, flo
 
 node_parameters
 {
-   AiParameterENUM("type", 1, RampTypeNames);
-   AiParameterENUM("interpolation", 1, RampInterpolationNames);
-   AiParameterFLT("uWave", 0.0f);
-   AiParameterFLT("vWave", 0.0f);
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AiParameterFLT("noise", 0.0f);
-   AiParameterFLT("noiseFreq", 0.5f);
+   AiParameterEnum("type", 1, RampTypeNames);
+   AiParameterEnum("interpolation", 1, RampInterpolationNames);
+   AiParameterFlt("uWave", 0.0f);
+   AiParameterFlt("vWave", 0.0f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
+   AiParameterFlt("noise", 0.0f);
+   AiParameterFlt("noiseFreq", 0.5f);
 
-   AiParameterARRAY("position", AiArray(0, 0, AI_TYPE_FLOAT));
+   AiParameterArray("position", AiArray(0, 0, AI_TYPE_FLOAT));
 
-   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGB));
+   AiParameterArray("color", AiArray(0, 0, AI_TYPE_RGB));
    
-   AiParameterFLT("hueNoise", 0.0f);
-   AiParameterFLT("satNoise", 0.0f);
-   AiParameterFLT("valNoise", 0.0f);
-   AiParameterFLT("hueNoiseFreq", 0.5f);
-   AiParameterFLT("satNoiseFreq", 0.5f);
-   AiParameterFLT("valNoiseFreq", 0.5f);
+   AiParameterFlt("hueNoise", 0.0f);
+   AiParameterFlt("satNoise", 0.0f);
+   AiParameterFlt("valNoise", 0.0f);
+   AiParameterFlt("hueNoiseFreq", 0.5f);
+   AiParameterFlt("satNoiseFreq", 0.5f);
+   AiParameterFlt("valNoiseFreq", 0.5f);
+   AiParameterBool("curveImplicitUvs", true);
 
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -157,18 +164,18 @@ node_update
    // should use globals as following Maya's behavior
    if (!AiNodeGetLink(node, "uvCoord"))
    {
-      AtPoint2 uv = AI_P2_ZERO;
+      AtVector2 uv = AI_P2_ZERO;
       if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
       if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-      AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+      AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
    }
 
    AtArray *positions = AiNodeGetArray(node, "position");
    AtArray *colors = AiNodeGetArray(node, "color");
 
-   unsigned int pElements = (positions) ? positions->nelements : 0;
-   unsigned int cElements = (colors) ? colors->nelements : 0;
-   data->nelements = MIN(pElements, cElements);
+   unsigned int pElements = (positions) ? AiArrayGetNumElements(positions) : 0;
+   unsigned int cElements = (colors) ? AiArrayGetNumElements(colors) : 0;
+   data->nelements = AiMin(pElements, cElements);
    data->isLinked = AiNodeIsLinked(node, "position");
 
    if (data->shuffle)
@@ -188,7 +195,6 @@ node_finish
    delete reinterpret_cast<MayaRampData*>(AiNodeGetLocalData(node));
 }
 
-
 shader_evaluate
 {
    AtRGB result = AI_RGB_BLACK;
@@ -203,19 +209,26 @@ shader_evaluate
    float vNoiseFreq = AiShaderEvalParamFlt(p_val_noise_freq);
    bool applyHsvNoise = (hNoiseAmp > 0.0f || sNoiseAmp > 0.0f || vNoiseAmp > 0.0f);
 
-   AtPoint2 uv = {0.0f, 0.0f};
-   if (!AiStateGetMsgPnt2("maya_ramp_uv_override", &uv))
+   AtVector2 uv = AiShaderEvalParamVec2(p_uvCoord);
+   // Will be set to GLOBALS by update if unconnected
+   if (uv.x == UV_GLOBALS) uv.x = sg->u;
+   if (uv.y == UV_GLOBALS) uv.y = sg->v;
+
+   static const AtString curves("curves");
+   // for curves shapes, we check if "curveImplicitUvs" is enabled. If so, we want to use
+   // implicit (barycentric) coordinates (root-to-tip)
+   bool implicitUvs = (AiShaderEvalParamBool(p_curve_implicit_uvs) && sg->Op && AiNodeEntryGetNameAtString(AiNodeGetNodeEntry(sg->Op)) == curves);
+
+   if (implicitUvs)
    {
-      uv = AiShaderEvalParamPnt2(p_uvCoord);
-      // Will be set to GLOBALS by update if unconnected
-      if (uv.x == UV_GLOBALS) uv.x = sg->u;
-      if (uv.y == UV_GLOBALS) uv.y = sg->v;
+      uv.x = sg->bu;
+      uv.y = sg->bv;
    }
 
    if (!IsValidUV(uv))
    {
       // early out
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       return;
    }
    
@@ -229,7 +242,7 @@ shader_evaluate
 
    if (noiseAmp > 0.0f)
    {
-      AtPoint2 puv;
+      AtVector2 puv;
       puv.x = u * 16 * noiseFreq + 0.75f;
       puv.y = v * 16 * noiseFreq + 0.75f;
       float n = noiseAmp * AiPerlin2(puv);
@@ -274,7 +287,7 @@ shader_evaluate
 
          if (data->isLinked)
          {
-            shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, positions->nelements * sizeof(unsigned int));
+            shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, AiArrayGetNumElements(positions) * sizeof(unsigned int));
             SortFloatIndexArray(positions, shuffle);
          } else
             shuffle = data->shuffle;
@@ -318,7 +331,7 @@ shader_evaluate
             break;
          case RT_BOX:
             {
-               float t = 2.0f * MAX(fabs(u-0.5f), fabs(v-0.5f));
+               float t = 2.0f * AiMax(fabs(u-0.5f), fabs(v-0.5f));
                Ramp(positions, colors, t, interp, result, shuffle);
             }
             break;
@@ -334,7 +347,7 @@ shader_evaluate
             break;
          case RT_4CORNER:
             {
-               if (positions->nelements < 1)
+               if (AiArrayGetNumElements(positions) < 1)
                {
                   result.r = 0.0f;
                   result.g = 0.0f;
@@ -344,15 +357,15 @@ shader_evaluate
                {
                   // Maya do not use the ordered colors but the created order
                   result = (1.0f - u) * (1.0f - v) * AiArrayGetRGB(colors, 0);
-                  if (positions->nelements > 1)
+                  if (AiArrayGetNumElements(positions) > 1)
                   {
                      result = result + (u * (1.0f - v) * AiArrayGetRGB(colors, 1));
                   }
-                  if (positions->nelements > 2)
+                  if (AiArrayGetNumElements(positions) > 2)
                   {
                      result = result + ((1.0f - u) * v * AiArrayGetRGB(colors, 2));
                   }
-                  if (positions->nelements > 3)
+                  if (AiArrayGetNumElements(positions) > 3)
                   {
                      result = result + (u * v * AiArrayGetRGB(colors, 3));
                   }
@@ -378,16 +391,16 @@ shader_evaluate
 
    if (applyHsvNoise)
    {
-      AiRGBtoRGBA(hsvNoise(result, nu, nv, hNoiseAmp, hNoiseFreq, sNoiseAmp, sNoiseFreq, vNoiseAmp, vNoiseFreq), sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(hsvNoise(result, nu, nv, hNoiseAmp, hNoiseFreq, sNoiseAmp, sNoiseFreq, vNoiseAmp, vNoiseFreq));
    }
    else
    {
-      AiRGBtoRGBA(result, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(result);
    }
 
    // Alpha output is always the luminance
    // so translator should always set alphaIsLuminance = true;
-   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 
 
 }

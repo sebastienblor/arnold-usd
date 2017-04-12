@@ -23,8 +23,8 @@ node_parameters
    AiParameterEnum("operation", COP_ADD, CompositeOperationNames);
    AiParameterFlt("factor", 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "floatComposite");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81628);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "floatComposite");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81628);
 }
 
 node_initialize
@@ -46,7 +46,7 @@ shader_evaluate
 
    if (factor <= 0.0f)
    {
-      sg->out.FLT = floatA;
+      sg->out.FLT() = floatA;
    }
    else
    {
@@ -55,34 +55,34 @@ shader_evaluate
       switch (op)
       {
       case COP_ADD:
-         sg->out.FLT = CompositeAdd(floatA, floatB, factor);
+         sg->out.FLT() = CompositeAdd(floatA, floatB, factor);
          break;
       case COP_SUBTRACT:
-         sg->out.FLT = CompositeSubtract(floatA, floatB, factor);
+         sg->out.FLT() = CompositeSubtract(floatA, floatB, factor);
          break;
       case COP_MIX:
-         sg->out.FLT = CompositeMix(floatA, floatB, factor);
+         sg->out.FLT() = CompositeMix(floatA, floatB, factor);
          break;
       case COP_MULTIPLY:
-         sg->out.FLT = CompositeMultiply(floatA, floatB, factor);
+         sg->out.FLT() = CompositeMultiply(floatA, floatB, factor);
          break;
       case COP_SCREEN:
-         sg->out.FLT = CompositeScreen(floatA, floatB, factor);
+         sg->out.FLT() = CompositeScreen(floatA, floatB, factor);
          break;
       case COP_OVERLAY:
-         sg->out.FLT = CompositeOverlay(floatA, floatB, factor);
+         sg->out.FLT() = CompositeOverlay(floatA, floatB, factor);
          break;
       case COP_DIFFERENCE:
-         sg->out.FLT = CompositeDifference(floatA, floatB, factor);
+         sg->out.FLT() = CompositeDifference(floatA, floatB, factor);
          break;
       case COP_DODGE:
-         sg->out.FLT = CompositeDodge(floatA, floatB, factor);
+         sg->out.FLT() = CompositeDodge(floatA, floatB, factor);
          break;
       case COP_BURN:
-         sg->out.FLT = CompositeBurn(floatA, floatB, factor);
+         sg->out.FLT() = CompositeBurn(floatA, floatB, factor);
          break;
       default:
-         sg->out.FLT = 0.0f;
+         sg->out.FLT() = 0.0f;
          break;
       }
    }

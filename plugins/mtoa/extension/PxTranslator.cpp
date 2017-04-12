@@ -30,7 +30,7 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
    // If no name was specified, use metadata, or by default the extension name
    if (name.numChars() == 0)
    {
-      const char* translatorName;
+      AtString translatorName;
       if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.translator", &translatorName))
       {
          SetName(MString(translatorName));

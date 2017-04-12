@@ -37,9 +37,11 @@ const char* enum_component[] =
 node_parameters
 {
    AiParameterRGBA("input", 0, 0, 0, 1);
-   AiParameterENUM("component", CH_LUMINANCE, enum_component);
+   AiParameterEnum("component", CH_LUMINANCE, enum_component);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "colorToFloat");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiColorToFloat_rgba");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -61,20 +63,20 @@ shader_evaluate
    switch (component)
    {
    case CH_RED:
-      sg->out.FLT = color.r;
+      sg->out.FLT() = color.r;
       break;
    case CH_GREEN:
-      sg->out.FLT = color.g;
+      sg->out.FLT() = color.g;
       break;
    case CH_BLUE:
-      sg->out.FLT = color.b;
+      sg->out.FLT() = color.b;
       break;
    case CH_ALPHA:
-      sg->out.FLT = color.a;
+      sg->out.FLT() = color.a;
       break;
    case CH_LUMINANCE:
    default:
-      sg->out.FLT = Luminance(color);
+      sg->out.FLT() = Luminance(color);
       break;
    }
 }

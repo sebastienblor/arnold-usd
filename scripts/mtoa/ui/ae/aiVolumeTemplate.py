@@ -1,74 +1,50 @@
 import re
 import maya.cmds as cmds
+import arnold as ai
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 import pymel.core as pm
 import os
-import mtoa.volume_vdb
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 def ArnoldVolumeAutoStepChange(nodeName):
     autoStep = cmds.getAttr(nodeName+'.autoStepSize')
-    type = cmds.getAttr(nodeName+'.type')
-    if type == 0:
-        # custom volume
-        dimStepSize = False
-        dimStepScale = True
-    else:
-        # vdb
-        dimStepSize = autoStep
-        dimStepScale = not autoStep
+    dimStepSize = autoStep
+    dimStepScale = not autoStep
 
     pm.editorTemplate(dimControl=(nodeName, "stepSize",  dimStepSize))
     pm.editorTemplate(dimControl=(nodeName, "stepScale", dimStepScale))
-    
-        
+
 def ArnoldVolumeTypeChange(nodeName):
-    type = cmds.getAttr(nodeName+'.type')
-    dim = (type == 0) # "Custom"
-    pm.editorTemplate(dimControl=(nodeName, "filename", dim))
-    pm.editorTemplate(dimControl=(nodeName, "grids", dim))
-    pm.editorTemplate(dimControl=(nodeName, "frame", dim))
-    pm.editorTemplate(dimControl=(nodeName, "padding", dim))
-    pm.editorTemplate(dimControl=(nodeName, "autoStepSize", dim))
-    
-    pm.editorTemplate(dimControl=(nodeName, "velocityGrids", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityScale", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityFps", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityShutterStart", dim))
-    pm.editorTemplate(dimControl=(nodeName, "velocityShutterEnd", dim))
+    volumeType = cmds.getAttr(nodeName + '.type')
+    dimImplicitAttrs = True
+    if (volumeType == 1):
+        dimImplicitAttrs = False
 
-    pm.editorTemplate(dimControl=(nodeName, "velocityThreshold", dim))
-    pm.editorTemplate(dimControl=(nodeName, "dso", not dim))
-    pm.editorTemplate(dimControl=(nodeName, "data", not dim))
+    pm.editorTemplate(dimControl=(nodeName, "field",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "solver",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "fieldChannel",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "samples",  dimImplicitAttrs))
+    pm.editorTemplate(dimControl=(nodeName, "threshold",  dimImplicitAttrs))
 
-    ArnoldVolumeAutoStepChange(nodeName)
+def aiVolumeFieldReplace(plugName):
+    nodeAndAttrs = plugName.split(".")
+    node = nodeAndAttrs[0]
+    ctrlName = "aiVolumeImplicit"
+    ctrlName += nodeAndAttrs[1]
+    cmds.attrNavigationControlGrp(ctrlName, edit=True, attribute=(plugName),  cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
 
-def ArnoldVolumeDsoEdit(nodeName, mPath) :
-    cmds.setAttr(nodeName,mPath,type='string')
+def aiVolumeFieldNew(plugName):
+    pm.setUITemplate('attributeEditorTemplate', pst=True)
 
-def LoadVolumeDsoButtonPush(nodeName):
-    basicFilter = 'Volume Plugin(*.so *.dll *.dylib)'
-    projectDir = cmds.workspace(query=True, directory=True)     
-    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load Volume Plugin',okc='Load',fm=1, startingDirectory=projectDir)
-    if ret is not None and len(ret):
-        ArnoldVolumeDsoEdit(nodeName, ret[0])
-        cmds.textField('arnoldVolumeDsoPath', edit=True, text=ret[0])
-    
-def ArnoldVolumeTemplateDsoNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
-    cmds.text(label='DSO ')
-    path = cmds.textField('arnoldVolumeDsoPath',changeCommand=lambda *args: ArnoldVolumeDsoEdit(nodeName, *args))
-    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
-    cmds.symbolButton('arnoldVolumeDsoPathButton', height=20, image='navButtonBrowse.png', command=lambda *args: LoadVolumeDsoButtonPush(nodeName))
-    
-def ArnoldVolumeTemplateDsoReplace(plugName) :
-    cmds.textField( 'arnoldVolumeDsoPath', edit=True, changeCommand=lambda *args: ArnoldVolumeDsoEdit(plugName, *args))
-    cmds.textField( 'arnoldVolumeDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.symbolButton('arnoldVolumeDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadVolumeDsoButtonPush(plugName))
-    
+    nodeAndAttrs = plugName.split(".")
+    ctrlName = "aiVolumeImplicit"
+    ctrlName += nodeAndAttrs[1]
 
+    cmds.attrNavigationControlGrp(ctrlName, label=nodeAndAttrs[1], cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
+    pm.setUITemplate(ppt=True)
+    aiVolumeFieldReplace(plugName)
 
 class AEaiVolumeTemplate(ShaderAETemplate):
 
@@ -81,14 +57,11 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         if not os.path.isfile(mPath):
             return
-        gridsList = mtoa.volume_vdb.GetChannelNames(mPath)
-        for grid in gridsList:
-            cmds.textScrollList(self.gridsListPath, edit=True, append=grid)
 
-        if len(gridsList) > 0:
-            cmds.textScrollList(self.gridsListPath, edit=True, selectIndexedItem=1)
-
-
+        attrName = nodeName.replace('.filename', '.grids')
+        self.genericGridsReplace(attrName, False)
+        attrName = nodeName.replace('.filename', '.velocityGrids')
+        self.genericGridsReplace(attrName, True)
 
     def filenameButtonPush(self, nodeName):
         basicFilter = 'OpenVDB File(*.vdb)'
@@ -220,37 +193,34 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         
 
         filename = cmds.getAttr(attrName)
-        
         if filename is not None and os.path.isfile(filename):
-            gridsList = mtoa.volume_vdb.GetChannelNames(filename)
-            for grid in gridsList:
-                cmds.textScrollList(gridListField, edit=True, append=grid)
+            gridsList = ai.AiVolumeFileGetChannels(filename);
+            
+            numGrids = ai.AiArrayGetNumElements(gridsList)
+            for i in range(0, numGrids):
+                cmds.textScrollList(gridListField, edit=True, append=str(ai.AiArrayGetStr(gridsList, i)))
 
             # if parameter 'grids' wasn't previously set, choose the first in the file list
             # FIXME do we really want to do that, or do we want to have a hardcoded default ?
             # note that nothing will happen until the node is shown in AE
             if not gridsParam:
-                if len(gridsList) > 0:
+                if numGrids > 0:
                     if not isVelocity:
                         cmds.textScrollList(gridListField, edit=True, selectIndexedItem=1)
-                        cmds.setAttr(nodeName, gridsList[0], type='string')
+                        cmds.setAttr(nodeName, str(ai.AiArrayGetStr(gridsList,0)), type='string')
             else:
                 self.updateList(gridsParam, isVelocity)
 
         cmds.textField(gridTextField, edit=True, text=cmds.getAttr(nodeName))
-
+        
 
 
     def setup(self):
         self.beginScrollLayout()
         
         self.beginLayout('Volume Attributes', collapse=False)        
-        self.addControl('type', changeCommand=ArnoldVolumeTypeChange)
         
         self.addSeparator()
-        
-        self.addCustom('dso', ArnoldVolumeTemplateDsoNew, ArnoldVolumeTemplateDsoReplace)
-        self.addControl('data')
         
         self.addCustom('filename', self.filenameNew, self.filenameReplace)
 
@@ -260,6 +230,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.velocityGridsListPath = ''
 
         self.addCustom('grids', self.gridsParamNew, self.gridsParamReplace)
+
         self.addControl('frame')
         
         self.addControl('padding')
@@ -268,34 +239,44 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('autoStepSize', label = "Automatic Step Size", changeCommand=ArnoldVolumeAutoStepChange)
         self.addControl('stepSize')
         self.addControl('stepScale')
-        self.addControl('loadAtInit')
+#        self.addControl('loadAtInit')
+        self.addSeparator()
+        self.addControl('disableRayExtents')
+        self.addControl('boundsSlack')
+        self.addControl('compress')
         
         self.addSeparator()
         
         self.addCustom('velocityGrids', self.velocityGridsParamNew, self.velocityGridsParamReplace)
         self.addControl('velocityScale')
         self.addControl('velocityFps')
-        self.addControl('velocityShutterStart')
-        self.addControl('velocityShutterEnd')
+        self.addControl('motionStart')
+        self.addControl('motionEnd')
         self.addControl('velocityThreshold')
         self.addSeparator()
-        
+
+        self.addControl('type', changeCommand=ArnoldVolumeTypeChange)
+        self.addControl('solver')
+        self.addControl('threshold')
+        self.addControl('samples')
+        self.addControl('fieldChannel')
+        self.addCustom("field", aiVolumeFieldNew, aiVolumeFieldReplace)
+        #self.addControl('field')
+
         self.endLayout()
-        
-        
+                
         self.beginLayout('Render Stats', collapse=True)
         self.beginNoOptimize()
         self.addControl("castsShadows")
         self.addControl("receiveShadows")
         self.addControl("primaryVisibility")
-        self.addControl("visibleInReflections")
-        self.addControl("visibleInRefractions")
-
-        self.addSeparator()
-    
+        self.addControl("aiVisibleInDiffuseReflection", label="Visible In Diffuse Reflection")
+        self.addControl("aiVisibleInSpecularReflection", label="Visible In Specular Reflection")
+        self.addControl("aiVisibleInDiffuseTransmission", label="Visible In Diffuse Transmission")
+        self.addControl("aiVisibleInSpecularTransmission", label="Visible In Specular Transmission")
+        
         self.addControl("aiSelfShadows", label="Self Shadows")
-        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
-        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        
         self.addControl("aiMatte", label="Matte")
         self.addControl("aiTraceSets", label="Trace Sets")
         
@@ -303,7 +284,6 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         
         self.endLayout()
     
-
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
         

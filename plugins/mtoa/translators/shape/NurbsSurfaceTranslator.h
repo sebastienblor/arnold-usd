@@ -1,10 +1,9 @@
 #pragma once
 
 #include "GeometryTranslator.h"
-
-class MFnMeshData;
-class MTesselationParams;
-class MFnNurbsSurface;
+#include <maya/MFnMeshData.h>
+#include <maya/MTesselationParams.h>
+#include <maya/MFnNurbsSurface.h>
 
 class CNurbsSurfaceTranslator : public CPolygonGeometryTranslator
 {

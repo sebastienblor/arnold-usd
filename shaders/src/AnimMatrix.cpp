@@ -15,15 +15,19 @@ AI_SHADER_NODE_EXPORT_METHODS(AnimMatrixMtd);
 
 node_parameters
 {
-   AiParameterARRAY("values", AiArray(0, 0, AI_TYPE_MATRIX));
+   AiParameterArray("values", AiArray(0, 0, AI_TYPE_MATRIX));
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "anim_matrix");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAnimMatrix");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 shader_evaluate
 {
-   sg->out.pMTX = (AtMatrix*)AiShaderGlobalsQuickAlloc(sg, sizeof(AtMatrix));
-   AiArrayInterpolateMtx(AiShaderEvalParamArray(p_values), sg->time, 0, *sg->out.pMTX);
+   //AtMatrix *mtx = (AtMatrix*)AiShaderGlobalsQuickAlloc(sg, sizeof(AtMatrix));
+   
+   AtMatrix mtx = AiArrayInterpolateMtx(AiShaderEvalParamArray(p_values), sg->time, 0);
+   sg->out.pMTX() = new AtMatrix(mtx);
 }
 
 node_initialize

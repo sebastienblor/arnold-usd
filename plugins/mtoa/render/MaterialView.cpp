@@ -38,7 +38,7 @@ void SleepMS(unsigned int ms)
 
 }
 
-extern AtNodeMethods* materialview_driver_mtd;
+extern const AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
 CMaterialView::CMaterialView()
@@ -353,9 +353,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    {
       // Shader found among our translatated shaders
       CNodeTranslator* shaderTranslator = it->second;
-      if (shaderTranslator->m_impl->m_sourceTranslator)
-         shaderTranslator = shaderTranslator->m_impl->m_sourceTranslator;
-
+      if (shaderTranslator)
          shaderNode = shaderTranslator->GetArnoldNode();
    }
    else
@@ -566,16 +564,19 @@ void CMaterialView::InitOptions()
       MObject renderOptions;
       list.getDependNode(0, renderOptions);
       MFnDependencyNode fnArnoldRenderOptions(renderOptions);
-      AiNodeSetInt(options, "GI_diffuse_samples",    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples")).asInt());
-      AiNodeSetInt(options, "GI_glossy_samples",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_glossy_samples")).asInt());
-      AiNodeSetInt(options, "GI_refraction_samples", fnArnoldRenderOptions.findPlug(toMayaStyle("GI_refraction_samples")).asInt());
-      AiNodeSetInt(options, "GI_sss_samples",        fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples")).asInt());
-      AiNodeSetInt(options, "GI_total_depth",        fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth")).asInt());
-      AiNodeSetInt(options, "GI_diffuse_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth")).asInt());
-      AiNodeSetInt(options, "GI_glossy_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_glossy_depth")).asInt());
-      AiNodeSetInt(options, "GI_reflection_depth",   fnArnoldRenderOptions.findPlug(toMayaStyle("GI_reflection_depth")).asInt());
-      AiNodeSetInt(options, "GI_refraction_depth",   fnArnoldRenderOptions.findPlug(toMayaStyle("GI_refraction_depth")).asInt());
+      AiNodeSetInt(options, "GI_diffuse_samples",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples")).asInt());
+      AiNodeSetInt(options, "GI_specular_samples",    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_samples")).asInt());
+      AiNodeSetInt(options, "GI_transmission_samples",fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_samples")).asInt());
+      AiNodeSetInt(options, "GI_sss_samples",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples")).asInt());
+      AiNodeSetInt(options, "GI_total_depth",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth")).asInt());
+      AiNodeSetInt(options, "GI_diffuse_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth")).asInt());
+      AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth")).asInt());
+      AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth")).asInt());
    }
+   CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
+   if (arnoldSession)
+      arnoldSession->ExportColorManager();
+
 }
 
 void CMaterialView::InterruptRender(bool waitFinished)
@@ -681,10 +682,6 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    {
       CNodeTranslator* translator = it->second;
       arnoldNode = UpdateNode(translator, updateMode);
-
-      if(translator->m_impl->m_sourceTranslator)
-         UpdateNode(translator->m_impl->m_sourceTranslator, updateMode);
-      
    }
 
    if (arnoldNode)

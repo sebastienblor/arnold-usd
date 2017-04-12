@@ -10,7 +10,7 @@
 #include "utils/Universe.h"
 
 #include "nodes/ArnoldNodeIDs.h"
-
+#include "nodes/shape/ArnoldProceduralNode.h"
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -37,6 +37,8 @@ DefaultTranslatorMap CExtensionsManager::s_defaultTranslators;
 MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
+
+static unordered_set<std::string>  s_deferredExtensions;
 
 /// The Maya plugin it's used in (MtoA)
 void CExtensionsManager::SetMayaPlugin(const MObject& plugin)
@@ -74,17 +76,34 @@ CExtension* CExtensionsManager::GetBuiltin(MStatus *returnStatus)
 /// @return       A pointer to the extension if loading was successful, else NULL
 CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
                                                  const MString &path,
-                                                 MStatus *returnStatus)
+                                                 MStatus *returnStatus,
+                                                 bool registerOnly)
 {
    MStatus status;
+
+   if (file == "mtoa")
+   { // nodes created by MtoA have this file name
+      if(returnStatus)
+         *returnStatus = MS::kSuccess;
+      return NULL;
+   }
+
    // Create a CExtension to handle plugin loading and generate corresponding Maya nodes
    CExtension* pluginExtension = NULL;
    pluginExtension = NewExtension(file);
    if (NULL != pluginExtension)
    {
+      std::string fileStr(file.asChar());
+      std::replace(fileStr.begin(), fileStr.end(), '\\', '/');
+
       // Extension loads the Arnold Plugin and will register new Maya nodes
-      MString resolved;
-      resolved = pluginExtension->LoadArnoldPlugin(file, path, &status);
+      MString resolved(fileStr.c_str());
+
+      if (registerOnly)
+         status = pluginExtension->RegisterPluginNodesAndTranslators(file);
+      else
+         resolved = pluginExtension->LoadArnoldPlugin(file, path, &status);
+
       if (MStatus::kSuccess == status)
       {
          status = pluginExtension->m_impl->setFile(resolved);
@@ -110,23 +129,22 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
 {
    MStatus status = MStatus::kNotFound;
 
-   MStringArray plugins;
-   plugins = CExtensionImpl::FindLibraries(path, &status);
-   for (unsigned int i=0; i<plugins.length(); ++i)
+   // Let Arnold search for plugins in path
+   AiLoadPlugins(path.expandEnvironmentVariablesAndTilde().asChar());
+
+   // Register any new node entries
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+   while (!AiNodeEntryIteratorFinished(nodeIter))
    {
-      MString resolved = plugins[i];
-      if (resolved.numChars() > 0)
+      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+      const char* filename = AiNodeEntryGetFilename(nentry);
+
+      // skip builtins and already registered
+      if (filename && !CExtension::IsArnoldPluginLoaded(filename))
       {
-         if (!CExtension::IsArnoldPluginLoaded(resolved))
-         {
-            MStatus plugStatus;
-            LoadArnoldPlugin(resolved, "", &plugStatus);
-            if (MStatus::kSuccess != plugStatus) status = plugStatus;
-         }
-         else
-         {
-            AiMsgDebug("[mtoa.ext]  Arnold plugin %s already loaded, ignored.", resolved.asChar());
-         }
+         MStatus pluginStatus;
+         LoadArnoldPlugin(filename, path, &pluginStatus, true);
+         if (MStatus::kSuccess != pluginStatus) status = pluginStatus;
       }
    }
 
@@ -968,8 +986,43 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
    MString pluginName = strs[1];
    std::string plugin_str(pluginName.asChar());
    // start up the arnold universe so that attribute helpers can query arnold nodes
-   bool AiUniverseCreated = ArnoldUniverseBegin();
+
    ExtensionsList::iterator extIt;
+   
+   if (plugin_str == "mtoa")
+   {
+      // we're first called when MtoA finished loading.
+      // Let's loop over the the extensions, and keep the deferred ones
+      // in a list
+      for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+      {         
+         if (!extIt->IsDeferred())
+            continue;
+
+         const unordered_set<std::string> &extensionPlugins = extIt->m_impl->m_requiredMayaPlugins;
+         for (unordered_set<std::string>::const_iterator plIt = extensionPlugins.begin(); plIt != extensionPlugins.end(); ++plIt)
+         {
+            s_deferredExtensions.insert(*plIt);
+         }
+         
+      }
+      return;
+   }
+
+   if (s_deferredExtensions.empty())
+      return;
+
+   // a new plugin has been loaded, we must check if it is in the list 
+   // of deferred extensions
+   if (s_deferredExtensions.find(plugin_str) == s_deferredExtensions.end())
+      return;
+
+   // the plugin that was just loaded is in our list, we need to loop over all our 
+   // extensions and see which one needs to be registered
+
+   bool universeCreated = false;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
          extIt++)
@@ -978,10 +1031,16 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
             && extIt->m_impl->m_requiredMayaPlugins.find(plugin_str)
             != extIt->m_impl->m_requiredMayaPlugins.end())
       {
+         if (!universeCreated)
+            universeCreated = ArnoldUniverseBegin();
+
          RegisterExtension(&(*extIt));
       }
    }
-   if (AiUniverseCreated) ArnoldUniverseEnd();
+   if (universeCreated) ArnoldUniverseEnd();
+
+   // remove this plugin from our list now that it was registered
+   s_deferredExtensions.erase(plugin_str);
 }
 
 /// Installs the plugin-loaded callback
@@ -1078,10 +1137,21 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
 
    if (NULL != mayaNode.abstract) *mayaNode.abstract = abstract;
    const MString *classificationPtr = (mayaNode.classification == "") ? NULL : &mayaNode.classification;
-   status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerNode(
-         mayaNode.name, mayaNode.id,
-         mayaNode.creator, mayaNode.initialize,
-         mayaNode.type, classificationPtr );
+
+   // FIXME find a better way to do this (add flag in mayaNode ?)
+   if (mayaNode.creator == CArnoldProceduralNode::creator)
+   {
+      status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerShape(mayaNode.name, mayaNode.id,
+            mayaNode.creator, mayaNode.initialize, CArnoldProceduralNodeUI::creator,
+            classificationPtr );
+      
+   } else
+   {
+      status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerNode(
+            mayaNode.name, mayaNode.id,
+            mayaNode.creator, mayaNode.initialize,
+            mayaNode.type, classificationPtr );
+   }
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {

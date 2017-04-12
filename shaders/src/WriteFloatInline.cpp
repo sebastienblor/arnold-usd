@@ -19,18 +19,20 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteFloatInlineMtd);
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteFloat");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteFloat");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
-   AiParameterFLT("input", 0.0f);
-   AiParameterSTR("aov_name", "");
-   AiParameterARRAY("sets", AiArray(0, 0, AI_TYPE_STRING));
+   AiParameterFlt("input", 0.0f);
+   AiParameterStr("aov_name", "");
+   AiParameterArray("sets", AiArray(0, 0, AI_TYPE_STRING));
 }
 
 shader_evaluate
 {
-   sg->out.FLT = AiShaderEvalParamFlt(p_input);
+   sg->out.FLT() = AiShaderEvalParamFlt(p_input);
    if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup((AtArray*)AiNodeGetLocalData(node), sg))
-      AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), sg->out.FLT);
+      AiAOVSetFlt(sg, AtString(AiShaderEvalParamStr(p_name)), sg->out.FLT());
 }
 
 node_initialize

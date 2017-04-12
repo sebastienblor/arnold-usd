@@ -92,7 +92,8 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
 // is triggered.
 DLLEXPORT void MtoaSetupLogging(int logFlags)
 {
-   AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
+   if (getenv("MTOA_LOG_PATH") != 0)
+      AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
 
    AiMsgSetConsoleFlags(logFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(logFlags);

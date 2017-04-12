@@ -201,18 +201,18 @@ void CFileTranslator::Export(AtNode* shader)
          // until multiple outputs are supporte, place2d outputs are added to
          // inputs on the file node itself
          // FIXME do this with a translator
-         ProcessParameter(shader, "coverage", AI_TYPE_POINT2, srcNodeFn.findPlug("coverage"));
+         ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
          ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
-         ProcessParameter(shader, "translateFrame", AI_TYPE_POINT2, srcNodeFn.findPlug("translateFrame"));
+         ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
          ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
          ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
          ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapU"));
          ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapV"));
          ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
-         ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2, srcNodeFn.findPlug("repeatUV"));
+         ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
          ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateUV"));
-         ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, srcNodeFn.findPlug("offset"));
-         ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2, srcNodeFn.findPlug("noiseUV"));
+         ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
+         ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
          srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
          if (connections.length() > 0)
          {
@@ -222,7 +222,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
    }
-   MString prevFilename = AiNodeGetStr(shader, "filename");
+   MString prevFilename = AiNodeGetStr(shader, "filename").c_str();
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
@@ -320,6 +320,17 @@ void CFileTranslator::Export(AtNode* shader)
       }
 
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
+
+      // only set the color_space if the texture isn't a TX
+      AiNodeSetStr(shader, "color_space", "");
+      if (resolvedFilename.length() > 4)
+      {
+         MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
+
+         if (extension != ".tx" && extension !=  ".TX")
+            AiNodeSetStr(shader, "color_space", colorSpace.asChar());
+      }
+
       if (requestUpdateTx) RequestTxUpdate();
    } 
 
@@ -352,7 +363,7 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("useDefaultColor");
 
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
@@ -365,7 +376,7 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "bump2d");
    
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiFlipR";
    data.shortName = "flip_r";
    helper.MakeInputBoolean(data);
@@ -374,21 +385,16 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "flip_g";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiSwapTangents";
    data.shortName = "swap_tangents";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiUseDerivatives";
    data.shortName = "use_derivatives";
    helper.MakeInputBoolean(data);
    
-#ifdef MTOA_ENABLE_GAMMA
-   data.name = "aiGammaCorrect";
-   data.shortName = "gamma_correct";
-   helper.MakeInputBoolean(data);
-#endif
 }
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
@@ -417,11 +423,7 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
-#ifdef MTOA_ENABLE_GAMMA
-   ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
-#else
-   AiNodeSetBool(shader, "gamma_correct", false);
-#endif
+
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");
 
@@ -519,7 +521,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "incandescense"
       )
    {
-      return AddArnoldNode("userDataColor");
+      return AddArnoldNode("MtoaUserDataColor");
    }
 
    else if(
@@ -538,7 +540,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userVector5PP"
          )
    {
-      return AddArnoldNode("userDataVector");
+      return AddArnoldNode("MtoaUserDataVector");
    }
    else if (
          outputAttr == "ageNormalized" ||
@@ -565,7 +567,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userScalar5PP"
          )
    {
-      return AddArnoldNode("userDataFloat");
+      return AddArnoldNode("MtoaUserDataFloat");
    }
    else
       return NULL;
@@ -849,7 +851,7 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
    
    CAttrData data;
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiUseReferenceObject";
    data.shortName = "ai_use_reference_object";
    helper.MakeInputBoolean(data);
@@ -883,7 +885,8 @@ void CRampTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
    AiNodeSetBool(shader, "alphaIsLuminance", true);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "uvCoord", AI_TYPE_POINT2);
+   ProcessParameter(shader, "uvCoord", AI_TYPE_VECTOR2);
+   ProcessParameter(shader, "curveImplicitUvs", AI_TYPE_BOOLEAN, "aiCurveImplicitUvs");
 
    MPlug plug, elem, pos, col;
 
@@ -896,6 +899,19 @@ void CRampTranslator::Export(AtNode* shader)
 
    MObject ocol = fnNode.attribute("color");
    ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);   
+
+}
+
+void CRampTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("ramp");
+   
+   CAttrData data;
+   
+   data.defaultValue.BOOL() = true;
+   data.name = "aiCurveImplicitUvs";
+   data.shortName = "ai_curve_implicit_uvs";
+   helper.MakeInputBoolean(data);
 }
 
 // Place2DTexture
@@ -907,18 +923,18 @@ AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "coverage", AI_TYPE_POINT2);
+   ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2);
    ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "translateFrame", AI_TYPE_POINT2);
+   ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2);
    ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2);
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, "offset");
-   ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, "offset");
+   ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2);
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
@@ -1080,7 +1096,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 
       // sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
       sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
+      ProcessParameter(shader, aiAttr, AI_TYPE_CLOSURE, color);
 
       sprintf(aiAttr, "useTransparency%u", i);
       AiNodeSetBool(shader, aiAttr, useTransparency ? true : false);
@@ -1099,7 +1115,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("anim_float");
+   return AddArnoldNode("MtoaAnimFloat");
 }
 
 void CAnimCurveTranslator::Export(AtNode* shader)
@@ -1158,7 +1174,8 @@ void CDisplacementTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
    ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
    ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
-   if (AiNodeIs(shader, "MayaNormalDisplacement"))
+   static const AtString MayaNormalDisplacement_str("MayaNormalDisplacement");
+   if (AiNodeIs(shader, MayaNormalDisplacement_str))
       ProcessParameter(shader, "zeroValue", AI_TYPE_FLOAT, "aiDisplacementZeroValue");
 }
 void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
@@ -1250,17 +1267,17 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    
    CAttrData data;
    
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiDisplacementPadding";
    data.shortName = "ai_displacement_padding";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiDisplacementZeroValue";
    data.shortName = "ai_displacement_zero_value";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
@@ -1476,27 +1493,58 @@ void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 
    data.name = "aiEnableMatte";
    data.shortName = "ai_enable_matte";
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    helper.MakeInputBoolean(data);
 
    data.name = "aiMatteColor";
    data.shortName = "ai_matte_color";
-   data.defaultValue.RGB = AI_RGB_BLACK;
+   data.defaultValue.RGB() = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
    
    data.name = "aiMatteColorA";
    data.shortName = "ai_matte_color_a";
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasMax = true;
-   data.max.FLT = 1.0;
-   data.defaultValue.FLT = 0.0f;
+   data.max.FLT() = 1.0;
+   data.defaultValue.FLT() = 0.0f;
    helper.MakeInputFloat(data);   
 }
 
 AtNode* CAiHairTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("hair");
+}
+
+void CAiStandardHairTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiStandardHair");
+   
+   CAttrData data;
+
+   data.name = "aiEnableMatte";
+   data.shortName = "ai_enable_matte";
+   data.defaultValue.BOOL() = false;
+   helper.MakeInputBoolean(data);
+
+   data.name = "aiMatteColor";
+   data.shortName = "ai_matte_color";
+   data.defaultValue.RGB() = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
+   
+   data.name = "aiMatteColorA";
+   data.shortName = "ai_matte_color_a";
+   data.hasMin = true;
+   data.min.FLT() = 0.f;
+   data.hasMax = true;
+   data.max.FLT() = 1.0;
+   data.defaultValue.FLT() = 0.0f;
+   helper.MakeInputFloat(data);   
+}
+
+AtNode* CAiStandardHairTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("standard_hair");
 }
 
 AtNode* CAiImageTranslator::CreateArnoldNodes()
@@ -1509,7 +1557,7 @@ void CAiImageTranslator::Export(AtNode* image)
    const CSessionOptions &options = GetSessionOptions();
 
    // keep the previous filename
-   MString prevFilename = AiNodeGetStr(image, "filename");
+   MString prevFilename = AiNodeGetStr(image, "filename").c_str();
 
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)
@@ -1571,6 +1619,16 @@ void CAiImageTranslator::Export(AtNode* image)
 
       AiNodeSetStr(image, "filename", filename.asChar());
 
+      // only set the color_space if the texture isn't a TX
+      AiNodeSetStr(image, "color_space", "");
+      if (filename.length() > 4)
+      {
+         MString extension = filename.substring(filename.length() - 3, filename.length() - 1);
+         // set the color space only if texture isn't a TX
+         if (extension != ".tx" && extension !=  ".TX")
+            AiNodeSetStr(image, "color_space", colorSpace.asChar());         
+      }
+
       // let Arnold Session know that image files have changed and it's necessary to update them
       if (requestUpdateTx) RequestTxUpdate();
    }
@@ -1580,37 +1638,37 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "image");
    CAttrData data;
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "autoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "colorManagementConfigFileEnabled";
    data.shortName = "cmcf";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "colorManagementConfigFilePath";
    data.shortName = "cmcp";
    helper.MakeInputString(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "colorManagementEnabled";
    data.shortName = "cme";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "colorProfile";
    data.shortName = "cp";
    helper.MakeInputInt(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "colorSpace";
    data.shortName = "cs";
    helper.MakeInputString(data);
 
-   data.defaultValue.STR = "";
+   data.defaultValue.STR() = AtString("");
    data.name = "workingSpace";
    data.shortName = "ws";
    helper.MakeInputString(data);
@@ -1624,12 +1682,359 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "in";
    helper.MakeInputString(data);
 */
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "ignoreColorSpaceFileRules";
    data.shortName = "ifr";
    helper.MakeInputBoolean(data);
+
+   // This registers the flename attribute so that it appears in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
 }
 
+
+
+AtNode* CAiRaySwitchTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlugArray conns;
+   static MStringArray attributeNames;
+
+   if (attributeNames.length() == 0)
+   {
+      attributeNames.append("camera");
+      attributeNames.append("shadows");
+      attributeNames.append("diffuse_reflection");
+      attributeNames.append("specular_reflection");
+      attributeNames.append("diffuse_transmission");
+      attributeNames.append("specular_transmission");
+      attributeNames.append("volume");
+   }
+
+   bool hasClosures = false;
+   for (unsigned int i = 0; i < attributeNames.length(); ++i)
+   {
+
+      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      if (inputPlug.isNull())
+         continue;
+
+      // check if this attribute is connected
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+
+      // export the connected node
+      AtNode *camNode = ExportConnectedNode(conns[0]);
+      if (camNode == NULL)
+         continue;
+
+      // check if the output type of the arnold node is closure or not
+      if (AiNodeEntryGetOutputType(AiNodeGetNodeEntry(camNode)) == AI_TYPE_CLOSURE)
+      {
+         hasClosures = true;
+         break;
+      }
+   }
+
+   if (hasClosures)
+      return AddArnoldNode("ray_switch_shader");
+
+   
+   return AddArnoldNode("ray_switch_rgba");
+}
+
+void CAiRaySwitchTranslator::Export(AtNode* shader)
+{
+   static const AtString raySwitchShaderStr("ray_switch_shader");
+
+   // attribute types is either RGBA or CLOSURE, same as the shader output
+   int attrType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(shader));
+
+   ProcessParameter(shader, "camera", attrType, "camera");
+   ProcessParameter(shader, "shadow", attrType, "shadow");
+   ProcessParameter(shader, "diffuse_reflection", attrType, "diffuseReflection");
+   ProcessParameter(shader, "diffuse_transmission", attrType, "diffuseTransmission");
+   ProcessParameter(shader, "specular_reflection", attrType, "specularReflection");
+   ProcessParameter(shader, "specular_transmission", attrType,"specularTransmission");
+   ProcessParameter(shader, "volume", attrType,  "volume");
+}
+
+void CAiRaySwitchTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "ray_switch_shader");
+   CAttrData data;
+
+   data.defaultValue.RGBA() = AI_RGBA_ZERO;
+   data.keyable = true;
+   data.linkable = true;
+   data.name = "camera";
+   data.shortName = "camera";
+   helper.MakeInputRGBA(data);
+
+   data.name = "shadow";
+   data.shortName = "shadow";
+   helper.MakeInputRGBA(data);
+
+   data.name = "diffuseReflection";
+   data.shortName = "diffuse_reflection";
+   helper.MakeInputRGBA(data);
+
+   data.name = "diffuseTransmission";
+   data.shortName = "diffuse_transmission";
+   helper.MakeInputRGBA(data);
+
+   data.name = "specularReflection";
+   data.shortName = "specular_reflection";
+   helper.MakeInputRGBA(data);
+
+   data.name = "specularTransmission";
+   data.shortName = "specular_transmission";
+   helper.MakeInputRGBA(data);
+
+   data.name = "volume";
+   data.shortName = "volume";
+   helper.MakeInputRGBA(data);
+}
+
+// MIX SHADER : presented as the "closure" version.
+// But if someone uses it in the middle of the shading tree to mix between different shaders, 
+// we switch to the "rgba" version
+AtNode* CAiMixShaderTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlugArray conns;
+   static MStringArray attributeNames;
+
+   if (attributeNames.length() == 0)
+   {
+      attributeNames.append("shader1");
+      attributeNames.append("shader2");
+   }
+
+   bool hasRGB = false;
+   for (unsigned int i = 0; i < attributeNames.length(); ++i)
+   {
+      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      if (inputPlug.isNull())
+         continue;
+
+      // check if this attribute is connected
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+
+      // export the connected node
+      AtNode *camNode = ExportConnectedNode(conns[0]);
+      if (camNode == NULL)
+         continue;
+
+      // check if the output type of the arnold node is closure or not
+      if (AiNodeEntryGetOutputType(AiNodeGetNodeEntry(camNode)) != AI_TYPE_CLOSURE)
+      {
+         hasRGB = true;
+         break;
+      }
+   }
+
+   if (hasRGB)
+      return AddArnoldNode("mix_rgba");
+   
+   return AddArnoldNode("mix_shader");
+}
+
+void CAiMixShaderTranslator::Export(AtNode* shader)
+{
+   static const AtString mixShaderStr("mix_shader");
+
+   if (AiNodeIs(shader, mixShaderStr))
+   {
+      ProcessParameter(shader, "shader1", AI_TYPE_CLOSURE, "shader1");
+      ProcessParameter(shader, "shader2", AI_TYPE_CLOSURE, "shader2");
+      ProcessParameter(shader, "mode", AI_TYPE_INT, "mode");
+   } else
+   {
+      ProcessParameter(shader, "input1", AI_TYPE_RGBA, "shader1");
+      ProcessParameter(shader, "input2", AI_TYPE_RGBA, "shader2");
+   }   
+   ProcessParameter(shader, "mix", AI_TYPE_FLOAT, "mix");
+}
+
+void CAiMixShaderTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+
+// SWITCH SHADER
+
+AtNode* CAiSwitchShaderTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlugArray conns;
+   static MStringArray attributeNames;
+
+   if (attributeNames.length() == 0)
+   {
+      for (unsigned int i = 0; i < 20; ++i)
+      {
+         MString attrName = "input";
+         attrName += (int)i;
+         attributeNames.append(attrName);
+      }
+   }
+
+   bool hasRGB = false;
+   for (unsigned int i = 0; i < attributeNames.length(); ++i)
+   {
+      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      if (inputPlug.isNull())
+         continue;
+
+      // check if this attribute is connected
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+
+      // export the connected node
+      AtNode *camNode = ExportConnectedNode(conns[0]);
+      if (camNode == NULL)
+         continue;
+
+      // check if the output type of the arnold node is closure or not
+      if (AiNodeEntryGetOutputType(AiNodeGetNodeEntry(camNode)) != AI_TYPE_CLOSURE)
+      {
+         hasRGB = true;
+         break;
+      }
+   }
+
+   if (hasRGB)
+      return AddArnoldNode("switch_rgba");
+   
+   return AddArnoldNode("switch_shader");
+}
+
+void CAiSwitchShaderTranslator::Export(AtNode* shader)
+{
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlugArray conns;
+
+
+   for (unsigned int i = 0; i < 20; ++i)
+   {
+      MString attrName = "input";
+      attrName += (int)i;
+
+      MPlug inputPlug = dnode.findPlug(attrName);
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+         ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
+      else
+         AiNodeResetParameter(shader, AtString(attrName.asChar()));
+   }
+}
+
+void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+//////////////////////////////////////////////////////
+AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlug inputPlug = dnode.findPlug("beauty");
+
+   bool isClosure = false;
+   if (!inputPlug.isNull())
+   {
+      MPlugArray conns;
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+      {
+         // export the connected node
+         AtNode *node = ExportConnectedNode(conns[0]);
+         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) == AI_TYPE_CLOSURE)
+            isClosure = true;
+            
+      }
+   }
+
+   if (isClosure)
+      return AddArnoldNode("aov_write_rgb");
+
+   return AddArnoldNode("MtoaWriteColor");
+}
+
+void CAiAovWriteColorTranslator::Export(AtNode* shader)
+{
+   static const AtString writeColorShader("aov_write_rgb");
+
+   if (AiNodeIs(shader, writeColorShader))
+      ProcessParameter(shader, "passthrough", AI_TYPE_CLOSURE, "beauty"); // Closure version of the shader
+   else
+      ProcessParameter(shader, "passthrough", AI_TYPE_RGBA, "beauty"); // RGBA version of the shader
+
+   ProcessParameter(shader, "blend_opacity", AI_TYPE_BOOLEAN, "blend");
+   ProcessParameter(shader, "aov_name", AI_TYPE_STRING,  "aov_name");
+   ProcessParameter(shader, "aov_input", AI_TYPE_RGB, "input");
+
+}
+
+void CAiAovWriteColorTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+//////////////////////////////////////////////////////
+AtNode* CAiAovWriteFloatTranslator::CreateArnoldNodes()
+{
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlug inputPlug = dnode.findPlug("beauty");
+
+   bool isRGBA = false;
+   if (!inputPlug.isNull())
+   {
+      MPlugArray conns;
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+      {
+
+         // export the connected node
+         AtNode *node = ExportConnectedNode(conns[0]);
+         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) != AI_TYPE_CLOSURE)
+            isRGBA = true;
+            
+      }
+   }
+
+   if (isRGBA)
+      return AddArnoldNode("MtoaWriteFloat");
+
+   
+   return AddArnoldNode("aov_write_float");
+}
+
+void CAiAovWriteFloatTranslator::Export(AtNode* shader)
+{
+   static const AtString writeFloatShader("aov_write_float");
+
+   if (AiNodeIs(shader, writeFloatShader))
+      ProcessParameter(shader, "passthrough", AI_TYPE_CLOSURE, "beauty"); // Closure version of the shader
+   else
+      ProcessParameter(shader, "passthrough", AI_TYPE_RGBA, "beauty"); // RGBA version of the shader
+
+   ProcessParameter(shader, "blend_opacity", AI_TYPE_BOOLEAN, "blend");
+   ProcessParameter(shader, "aov_name", AI_TYPE_STRING,  "aov_name");
+   ProcessParameter(shader, "aov_input", AI_TYPE_FLOAT, "input");
+
+}
+
+void CAiAovWriteFloatTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+/////////////////
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
 {
 
@@ -1689,7 +2094,7 @@ void* CreateSingleShadingSwitchTranslator()
 
 void* CreateDoubleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_POINT2);
+   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_VECTOR2);
 }
 
 void* CreateTripleShadingSwitchTranslator()
@@ -1701,3 +2106,4 @@ void* CreateQuadShadingSwitchTranslator()
 {
    return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }
+

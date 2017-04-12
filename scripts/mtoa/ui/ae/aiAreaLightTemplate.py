@@ -31,9 +31,6 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()        
         self.setupColorTemperature("ArnoldArea")
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
-        self.addControl("emitDiffuse")
-        self.addControl("emitSpecular")
-        self.addControl("aiDecayType")
         
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
         
@@ -90,6 +87,8 @@ class QuadAreaLightTemplate(BaseAreaLightTemplate):
     def setup(self):
         self.addControl("aiSpread")
         self.addControl("aiResolution")
+        self.addControl("aiRoundness")
+        self.addControl("aiSoftEdge")
         #self.addControl("aiPortal")  hiding it as we now have a dedicated light portal node
         self.addSeparator()
         self.addCommonParameters()
@@ -107,10 +106,7 @@ class MeshLightTemplate(BaseAreaLightTemplate):
         self.addControl("aiExposure", label = "Exposure")
         self.addSeparator()        
         self.setupColorTemperature("ArnoldArea")
-        self.addControl("emitDiffuse")
-        self.addControl("emitSpecular")
-        self.addControl("aiDecayType")
-
+        
         self.addSeparator()
         self.addControl("lightVisible")
         
@@ -129,7 +125,7 @@ class MeshLightTemplate(BaseAreaLightTemplate):
         self.addControl("aiSubdivPixelError", label="Adaptative Error")
         self.addControl("aiSubdivAdaptiveSpace", label="Adaptative Space")
         # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
+        #self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
         self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()

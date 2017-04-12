@@ -2,11 +2,11 @@
 
 #include <cstdio>
 
-extern AtNodeMethods* HairPhysicalShaderDiffuseColorAdapterMtd;
-extern AtNodeMethods* HairPhysicalShaderSpecularWeightAdapterMtd;
-extern AtNodeMethods* HairPhysicalShaderSpecularGlossAdapterMtd;
-extern AtNodeMethods* HairPhysicalShaderTransmissionWeightAdapterMtd;
-extern AtNodeMethods* HairPhysicalShaderTransmissionSpreadAdapterMtd;
+extern const AtNodeMethods* HairPhysicalShaderDiffuseColorAdapterMtd;
+extern const AtNodeMethods* HairPhysicalShaderSpecularWeightAdapterMtd;
+extern const AtNodeMethods* HairPhysicalShaderSpecularGlossAdapterMtd;
+extern const AtNodeMethods* HairPhysicalShaderTransmissionWeightAdapterMtd;
+extern const AtNodeMethods* HairPhysicalShaderTransmissionSpreadAdapterMtd;
 
 enum {
     SHADER_HAIRPHYSICALSHADER_DIFFUSECOLORADAPTER = 0,

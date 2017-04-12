@@ -16,8 +16,8 @@ node_parameters
 {
    AiParameterRGB("input", 0, 0, 0);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "reverse");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52525653);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "reverse");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52525653);
 }
 
 node_initialize
@@ -34,7 +34,7 @@ node_finish
 
 shader_evaluate
 {
-   AtColor input = AiShaderEvalParamRGB(p_input);
+   AtRGB input = AiShaderEvalParamRGB(p_input);
 
-   AiColorSub(sg->out.RGB, AI_RGB_WHITE, input);
+   sg->out.RGB() = AI_RGB_WHITE - input;
 }

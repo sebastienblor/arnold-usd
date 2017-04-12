@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiLightBlocker'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='density' type='maya.float'>
+			<label>Density</label>
+		</attribute>
+		<attribute name='shader' type='maya.float3'>
+			<label>Shader</label>
+		</attribute>
+		<attribute name='ramp' type='maya.float'>
+			<label>Ramp</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiLightBlocker'>
+		<property name='message'/>
+		<property name='density'/>
+		<property name='shader'/>
+		<property name='ramp'/>
+	</view>
+</templates>

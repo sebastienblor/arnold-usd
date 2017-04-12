@@ -44,8 +44,8 @@ const char* NoiseTypeNames[] =
 
 node_parameters
 {
-   AiParameterPnt2("uvCoord", 0.0f, 0.0f);
-   AiParameterPnt2("uvFilterSize", 0.0f, 0.0f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
+   AiParameterVec2("uvFilterSize", 0.0f, 0.0f);
    AiParameterFlt("scale", 6.0f);
    AiParameterFlt("amplitude", 1.0f);
    AiParameterFlt("threshold", 0.0f);
@@ -59,8 +59,8 @@ node_parameters
    AiParameterFlt("gamma", 1.0f);
    AiParameterEnum("noiseType", NT_FRACTAL, NoiseTypeNames);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "simplexNoise");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81654);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "simplexNoise");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81654);
 }
 
 node_initialize
@@ -86,7 +86,7 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
+   AtVector2 uv = AiShaderEvalParamVec2(p_uvCoord);
    //AtPoint2 uvFilterSize = AiShaderEvalParamPnt2(p_uvFilterSize);  NOT USED ?
    const float scale = AiShaderEvalParamFlt(p_scale);
    const float amplitude = AiShaderEvalParamFlt(p_amplitude);
@@ -141,8 +141,5 @@ shader_evaluate
    if (result < 0.0f)
       result = 0.0f;
 
-   sg->out.RGBA.r = result;
-   sg->out.RGBA.g = result;
-   sg->out.RGBA.b = result;
-   sg->out.RGBA.a = result;
+   sg->out.RGBA() = AtRGBA(result, result, result, result);
 }

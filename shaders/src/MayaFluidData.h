@@ -172,14 +172,14 @@ void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<
 
    if (cm == CSM_GRID)
    {
-      if ((int)array->nelements == numVoxels)
+      if ((int)AiArrayGetNumElements(array) == numVoxels)
       {
          arrayDesc.single = false;
          arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
          for (int i = 0; i < numVoxels; ++i)
             arrayDesc.data[i] = ReadFromArray<T>(array, i);
       }
-      else if (array->nelements == 1) // only one value
+      else if (AiArrayGetNumElements(array) == 1) // only one value
       {
          arrayDesc.single = true;
          arrayDesc.data = (T*)AiMalloc(sizeof(T));
@@ -290,14 +290,14 @@ inline T ConvertFloat(float f)
 template<>
 inline AtRGB ConvertFloat<AtRGB>(float f)
 {
-   AtRGB ret = {f, f, f};
+   AtRGB ret(f, f, f);
    return ret;
 }
 
 template<>
 inline AtVector ConvertFloat<AtVector>(float f)
 {
-   AtVector ret = {f, f, f};
+   AtVector ret(f, f, f);
    return ret;
 }
 
@@ -337,28 +337,24 @@ template <> // specialize this later, maybe the compiler can use SSE better that
 inline AtRGB MonotonicCubicInterpolant(const AtRGB& f1, const AtRGB& f2, const AtRGB& f3, const AtRGB& f4,
                                        float t)
 {
-   AtRGB ret = {MonotonicCubicInterpolant(f1.r, f2.r, f3.r, f4.r, t),
-      MonotonicCubicInterpolant(f1.g, f2.g, f3.g, f4.g, t),
-      MonotonicCubicInterpolant(f1.b, f2.b, f3.b, f4.b, t)
-   };
-   return ret;
+   return AtRGB(MonotonicCubicInterpolant(f1.r, f2.r, f3.r, f4.r, t),
+                MonotonicCubicInterpolant(f1.g, f2.g, f3.g, f4.g, t),
+                MonotonicCubicInterpolant(f1.b, f2.b, f3.b, f4.b, t));
 }
 
 template <>
 inline AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const AtVector& f3, const AtVector& f4,
                                           float t)
 {
-   AtVector ret = {MonotonicCubicInterpolant(f1.x, f2.x, f3.x, f4.x, t),
-      MonotonicCubicInterpolant(f1.y, f2.y, f3.y, f4.y, t),
-      MonotonicCubicInterpolant(f1.z, f2.z, f3.z, f4.z, t)
-   };
-   return ret;
+   return AtVector(MonotonicCubicInterpolant(f1.x, f2.x, f3.x, f4.x, t),
+                   MonotonicCubicInterpolant(f1.y, f2.y, f3.y, f4.y, t),
+                   MonotonicCubicInterpolant(f1.z, f2.z, f3.z, f4.z, t));
 }
 
 template <typename T>
 inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int filterType, int xres, int yres, int zres)
 {
-   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
+   static const AtVector middlePoint(0.5f, 0.5f, 0.5f);
    if (arrayDesc.isGradient)
    {
       switch(arrayDesc.gradientType)
@@ -390,32 +386,32 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    if (filterType == FT_CLOSEST)
    {      
       // position in the voxel grid
-      const AtVector fc = {lPt.x * (float)xres, lPt.y * (float)yres, lPt.z * (float)zres};
+      const AtVector fc(lPt.x * (float)xres, lPt.y * (float)yres, lPt.z * (float)zres);
       // voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
-      const int lcz = CLAMP((int)fc.z, 0, zres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
+      const int lcz = AiClamp((int)fc.z, 0, zres - 1);
       return arrayDesc.data[lcx + lcy * xres + lcz * xres * yres];
    }
    else if (filterType == FT_LINEAR)
    {
       // position in the voxel grid
-      const AtVector fc = {lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f};
+      const AtVector fc(lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f);
 
       // lower voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
-      const int lcz = CLAMP((int)fc.z, 0, zres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
+      const int lcz = AiClamp((int)fc.z, 0, zres - 1);
 
       // higher voxel coordinates
-      const int hcx = MIN(lcx + 1, xres - 1);
-      const int hcy = MIN(lcy + 1, yres - 1);
-      const int hcz = MIN(lcz + 1, zres - 1);
+      const int hcx = AiMin(lcx + 1, xres - 1);
+      const int hcy = AiMin(lcy + 1, yres - 1);
+      const int hcz = AiMin(lcz + 1, zres - 1);
 
       // weight for the lower coordinates
-      const AtVector pc = {fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz};
+      const AtVector pc(fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz);
       // weight for the upper coordinates
-      const AtVector npc = {1.f - pc.x, 1.f - pc.y, 1.f - pc.z};
+      const AtVector npc(1.f - pc.x, 1.f - pc.y, 1.f - pc.z);
       const int xyres = xres * yres;
       // sample coordinates
       const int c000 = lcx + lcy * xres + lcz * xyres;
@@ -435,25 +431,25 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    else
    {
       // position in the voxel grid
-      const AtVector fc = {lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f};
+      const AtVector fc(lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f);
       // lower voxel coordiantes
-      const int t2x = CLAMP((int)fc.x, 0, xres - 1);
-      const int t2y = CLAMP((int)fc.y, 0, yres - 1);
-      const int t2z = CLAMP((int)fc.z, 0, zres - 1);
+      const int t2x = AiClamp((int)fc.x, 0, xres - 1);
+      const int t2y = AiClamp((int)fc.y, 0, yres - 1);
+      const int t2z = AiClamp((int)fc.z, 0, zres - 1);
       
-      const AtVector t = {fc.x - (float)t2x, fc.y - (float)t2y, fc.z - (float)t2z};
+      const AtVector t(fc.x - (float)t2x, fc.y - (float)t2y, fc.z - (float)t2z);
       
-      const int t1x = MAX(t2x - 1, 0);
-      const int t1y = MAX(t2y - 1, 0);
-      const int t1z = MAX(t2z - 1, 0);
+      const int t1x = AiMax(t2x - 1, 0);
+      const int t1y = AiMax(t2y - 1, 0);
+      const int t1z = AiMax(t2z - 1, 0);
       
-      const int t3x = MIN(t2x + 1, xres - 1);
-      const int t3y = MIN(t2y + 1, yres - 1);
-      const int t3z = MIN(t2z + 1, zres - 1);
+      const int t3x = AiMin(t2x + 1, xres - 1);
+      const int t3y = AiMin(t2y + 1, yres - 1);
+      const int t3z = AiMin(t2z + 1, zres - 1);
       
-      const int t4x = MIN(t3x + 1, xres - 1);
-      const int t4y = MIN(t3y + 1, yres - 1);
-      const int t4z = MIN(t3z + 1, zres - 1);
+      const int t4x = AiMin(t3x + 1, xres - 1);
+      const int t4y = AiMin(t3y + 1, yres - 1);
+      const int t4z = AiMin(t3z + 1, zres - 1);
       const int xyres = xres * yres;
       
       const T z11 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t1y * xres + t1z * xyres],
@@ -548,7 +544,7 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
 template <typename T>
 inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int filterType, int xres, int yres) // maybe add a simpler filter in the future
 {
-   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
+   static const AtVector middlePoint(0.5f, 0.5f, 0.5f);
    if (arrayDesc.isGradient)
    {
       switch(arrayDesc.gradientType)
@@ -580,26 +576,26 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    if (filterType == FT_CLOSEST)
    {
       // position in the voxel grid
-      const AtPoint2 fc = {lPt.x * (float)xres, lPt.y * (float)yres};
+      const AtVector2 fc(lPt.x * (float)xres, lPt.y * (float)yres);
       // voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
       return arrayDesc.data[lcx + lcy * xres];
    }
    else
    {      
       // position in the voxel grid
-      const AtPoint2 fc = {lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f};
+      const AtVector2 fc(lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f);
 
-      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
+      const int lcx = AiClamp((int)fc.x, 0, xres - 1);
+      const int lcy = AiClamp((int)fc.y, 0, yres - 1);
 
-      const int hcx = MIN(lcx + 1, xres - 1);
-      const int hcy = MIN(lcy + 1, yres - 1);
+      const int hcx = AiMin(lcx + 1, xres - 1);
+      const int hcy = AiMin(lcy + 1, yres - 1);
 
-      const AtPoint2 pc = {fc.x - (float)lcx, fc.y - (float)lcy};
+      const AtVector2 pc(fc.x - (float)lcx, fc.y - (float)lcy);
 
-      const AtPoint2 npc = {1.f - pc.x, 1.f - pc.y};
+      const AtVector2 npc(1.f - pc.x, 1.f - pc.y);
 
       const int c00 = lcx + lcy * xres;
       const int c01 = lcx + hcy * xres;

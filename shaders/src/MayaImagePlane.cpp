@@ -10,10 +10,12 @@
 #include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaImagePlaneMtd);
+namespace {
 
 enum ImagePlaneParams {
     p_filename,
     p_color,
+    p_color_space,
     p_display_mode,
     p_colorGain,
     p_colorOffset,
@@ -26,6 +28,7 @@ enum ImagePlaneParams {
 typedef struct AtImageData
 {
    AtTextureHandle* texture_handle;
+   AtString color_space;
 } AtImageData;
 
 inline float mod(float n, float d)
@@ -53,24 +56,26 @@ const char* display_mode_enum[] =
    "alpha",
    NULL
 };
+}
 
 node_parameters
 {
-   AiParameterSTR("filename", "");
+   AiParameterStr("filename", "");
    AiParameterRGB("color", 1.0f, 0.0f, 0.0f);
-   AiParameterENUM("displayMode", 1, display_mode_enum);
+   AiParameterStr("color_space", "");
+   AiParameterEnum("displayMode", 1, display_mode_enum);
    AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaGain", 1.0f);
-   AiParameterPNT2("coverage", 1.0f, 1.0f);
-   AiParameterPNT2("translate", 0.0f, 0.0f);
+   AiParameterFlt("alphaGain", 1.0f);
+   AiParameterVec2("coverage", 1.0f, 1.0f);
+   AiParameterVec2("translate", 0.0f, 0.0f);
 
-   AiParameterNODE("camera", NULL); 
+   AiParameterNode("camera", NULL); 
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -103,7 +108,9 @@ node_update
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
    AiTextureHandleDestroy(idata->texture_handle);
-   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));
+   idata->color_space = AiNodeGetStr(node, "color_space");
+   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"), idata->color_space);
+
 }
 
 node_finish
@@ -121,8 +128,8 @@ shader_evaluate
    AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);
    AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);
    float alphaGain = AiShaderEvalParamFlt(p_alphaGain);
-   AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
-   AtPoint2 translate = AiShaderEvalParamPnt2(p_translate);
+   AtVector2 coverage = AiShaderEvalParamVec2(p_coverage);
+   AtVector2 translate = AiShaderEvalParamVec2(p_translate);
    int displayMode = AiShaderEvalParamInt(p_display_mode);
    
    AtRGBA result; 
@@ -178,12 +185,12 @@ shader_evaluate
 
        // do texture lookup
        AtTextureParams texparams;
-       AiTextureParamsSetDefaults(&texparams);
+       AiTextureParamsSetDefaults(texparams);
        // setup filter?
        texparams.wrap_s = AI_WRAP_BLACK;
        texparams.wrap_t = AI_WRAP_BLACK;
 
-       result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
+       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
        //AtRGBA result = color;
        sg->u = inU;
        sg->v = inV;
@@ -192,12 +199,12 @@ shader_evaluate
    {   
        // do texture lookup
        AtTextureParams texparams;
-       AiTextureParamsSetDefaults(&texparams);
+       AiTextureParamsSetDefaults(texparams);
        // setup filter?
        texparams.wrap_s = AI_WRAP_BLACK;
        texparams.wrap_t = AI_WRAP_BLACK;
 
-       result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
+       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
    }
    if (displayMode == 2)
    {
@@ -205,7 +212,8 @@ shader_evaluate
    }
    if (displayMode > 2)
    {
-      sg->out_opacity = result.a;
+      sg->out.RGBA().a = result.a;
+      //sg->out_opacity = result.a;
    }
    if (displayMode == 4)
    {
@@ -219,7 +227,7 @@ shader_evaluate
        result.g = result.a;
        result.b = result.a;
        result.a = 1.0f;
-       sg->out.RGBA = result;
+       sg->out.RGBA() = result;
        return;
    }
   
@@ -227,6 +235,7 @@ shader_evaluate
    result.g = (result.g * colorGain.g) + colorOffset.g;
    result.b = (result.b * colorGain.b) + colorOffset.b;
    result.a = (result.a * alphaGain);
-   sg->out.RGBA = result;
-   sg->out_opacity *= alphaGain;
+   sg->out.RGBA() = result;
+
+   //sg->out_opacity *= alphaGain;
 }

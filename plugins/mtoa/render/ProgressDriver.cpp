@@ -23,7 +23,7 @@ node_parameters
 
 node_initialize
 {
-   AiDriverInitialize(node, false, NULL);
+   AiDriverInitialize(node, false);
    
 }
 

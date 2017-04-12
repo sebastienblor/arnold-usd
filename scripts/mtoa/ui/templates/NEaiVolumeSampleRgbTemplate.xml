@@ -1,4 +1,3 @@
-
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
@@ -9,12 +8,21 @@
 		<attribute name='positionOffset' type='maya.float3'>
 			<label>Position Offset</label>
 		</attribute>
+		<attribute name='contrast' type='maya.float'>
+			<label>Contrast</label>
+		</attribute>
+		<attribute name='exposure' type='maya.float'>
+			<label>Exposure</label>
+		</attribute>
+		<attribute name='multiply' type='maya.float'>
+			<label>Multiply</label>
+		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiVolumeSampleRgb'>
 		<property name='outColor'/>
 		<property name='positionOffset'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiVolumeSampleRgb'>
-		<property name='outColor'/>
+		<property name='contrast'/>
+		<property name='exposure'/>
+		<property name='multiply'/>
 	</view>
 </templates>

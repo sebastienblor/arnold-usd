@@ -3,8 +3,6 @@
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
 
-#include <ai_types.h>
-
 #include <maya/MPlugArray.h>
 #include <maya/MDGModifier.h>
 #include <maya/MGlobal.h>

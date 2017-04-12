@@ -650,6 +650,12 @@ def createArnoldImageFormatControl():
                          default='exr',
                          optionMenuName='imageMenuMayaSW')
 
+
+    maya_version = versions.shortName()
+    if int(float(maya_version)) >= 2016:
+        cmds.attrEnumOptionMenuGrp( l='Color Space',
+                            at='defaultArnoldDriver.colorManagement' )
+    
     # We need to create controls that we don't need to avoid
     # Maya errors because of the harcoded code. keep them hidden
     pm.columnLayout('cl_output_compression', vis=0, rowSpacing=0)
@@ -663,15 +669,57 @@ def createArnoldImageFormatControl():
         attributeChange=("defaultArnoldDriver.aiTranslator",
                          updateArnoldImageFormatControl))
 
+
+    if int(float(maya_version)) >= 2016:
+
+        pm.scriptJob(
+          parent=parent,
+          attributeChange=("defaultArnoldDriver.aiTranslator",
+                           updateArnoldColorSpace))
+
+        pm.scriptJob(
+            parent=parent,
+            attributeChange=("defaultArnoldDriver.tiffFormat",
+                             updateArnoldColorSpace))
+
 #    changeArnoldImageFormat()
     return "imageMenuMayaSW"
 
 
+def updateArnoldColorSpace(*args):
+    maya_version = versions.shortName()
+    if int(float(maya_version)) < 2016:
+        return
+
+    curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
+    if curr == "jpeg" or curr == "png":
+        pm.setAttr('defaultArnoldDriver.colorManagement', 1)
+        return
+    
+    if curr == "exr":
+        pm.setAttr('defaultArnoldDriver.colorManagement', 2)
+        return
+
+    if curr == "deepexr":
+        pm.setAttr('defaultArnoldDriver.colorManagement', 0)
+        return
+
+    if curr == "tif":
+        tiffFormat = pm.getAttr('defaultArnoldDriver.tiffFormat')
+        if tiffFormat == 0:
+            pm.setAttr('defaultArnoldDriver.colorManagement', 1)
+        else:
+            pm.setAttr('defaultArnoldDriver.colorManagement', 2)
+
+
+
 def updateArnoldImageFormatControl(*args):
+
     core.createOptions()
     curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
+    
 
 def extendToShape(dag):
     'Return the camera shape from this dag object'
@@ -1018,6 +1066,9 @@ def updateArnoldFrameNumberControls(*args):
     pm.attrControlGrp('byFrameStepCtrl',
                         edit=True,
                         enable=useAnim)
+    pm.attrControlGrp('skipExistingFramesCtrl',
+                        edit=True,
+                        enable=useAnim)
     pm.attrControlGrp('extensionPaddingCtrl',
                         edit=True,
                         enable=(useAnim and not multiframe))
@@ -1191,6 +1242,11 @@ def createArnoldCommonFrameRange():
     pm.attrControlGrp('byFrameStepCtrl',
                         attribute='defaultRenderGlobals.byFrameStep',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kByFrame"),
+                        hideMapButton=True)
+
+    pm.attrControlGrp('skipExistingFramesCtrl',
+                        attribute='defaultRenderGlobals.skipExistingFrames',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSkipExistingFrames"),
                         hideMapButton=True)
 
     pm.separator()

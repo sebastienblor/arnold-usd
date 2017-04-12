@@ -46,10 +46,8 @@ private:
 
    // Attributes
    static CStaticAttrHelper s_attributes;
-   static MObject s_type;
-   static MObject s_dso;
-   static MObject s_data;
-   static MObject s_loadAtInit;
+//   static MObject s_loadAtInit;
+   
    static MObject s_stepSize;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
@@ -57,6 +55,17 @@ private:
    static MObject s_stepScale;
    
    static MObject s_filename;
+   static MObject s_filedata;
+   static MObject s_disable_ray_extents;
+   static MObject s_bounds_slack;
+   
+   static MObject s_step_scale;
+   static MObject s_step_size;
+   static MObject s_compress;
+   
+   static MObject s_min;
+   static MObject s_max;
+   
    static MObject s_grids;
    static MObject s_frame;
    static MObject s_padding;
@@ -64,14 +73,17 @@ private:
    static MObject s_velocity_grids;
    static MObject s_velocity_scale;
    static MObject s_velocity_fps;
-   static MObject s_velocity_shutter_start;
-   static MObject s_velocity_shutter_end;
+   static MObject s_motion_start;
+   static MObject s_motion_end;
    static MObject s_velocity_threshold;
-
    
-   int m_type;
-   MString m_dso;
-   MString m_data;
+   static MObject s_type;
+   static MObject s_threshold;
+   static MObject s_samples;
+   static MObject s_solver;
+   static MObject s_field_channel;
+   static MObject s_field;
+
    MString m_filename;
    MString m_grids;
    float m_padding;

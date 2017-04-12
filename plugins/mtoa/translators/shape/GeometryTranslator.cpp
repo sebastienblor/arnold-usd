@@ -12,35 +12,14 @@
 namespace
 {
    
-   void SetKeyData(AtArray* arr, unsigned int step, const float* data, unsigned int size)
+   void SetKeyData(AtArray* arr, unsigned int key, const float* data)
    {
-      unsigned int index = 0;
+      if (AiArrayGetType(arr) != AI_TYPE_VECTOR)
+         return;
 
-      switch(arr->type)
-      {
-         case AI_TYPE_POINT:
-         {
-            AtPoint pnt;
-            for(unsigned int J = 0; (J < size); ++J)
-            {
-               AiV3Create(pnt, data[index+0], data[index+1], data[index+2]);
-               index += 3;
-               AiArraySetPnt(arr, J + (size * step), pnt);
-            }
-         }
-         break;
-
-         case AI_TYPE_VECTOR:
-         {
-            AtVector vec;
-            for(unsigned int J = 0; (J < size); ++J)
-            {
-               AiV3Create(vec, data[index+0], data[index+1], data[index+2]);
-               index += 3;
-               AiArraySetVec(arr, J + (size * step), vec);
-            }
-         }
-      }
+      AtVector *vectorList = (AtVector*)AiArrayMapKey(arr, key);
+      memcpy(vectorList, data, AiArrayGetKeySize(arr));
+      AiArrayUnmap(arr);      
    }
 }
 
@@ -289,7 +268,8 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
                                     AtArray*& refNormals,
                                     AtArray*& rnidxs,
                                     AtArray*& refTangents,
-                                    AtArray*& refBitangents)
+                                    AtArray*& refBitangents,
+                                    const std::vector<unsigned int> &polyVtxRemap)
 {
    MFnMesh fnMesh(m_dagPath);
    MDagPath dagPathRef = GetMeshRefObj();
@@ -322,8 +302,10 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
          // normal_ids should have the same length as the amount of polygon vertices
          rnidxs = AiArrayAllocate((int)normal_ids.length(), 1, AI_TYPE_UINT);
          
-         for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, n, normal_ids[n]);
-         
+         if (polyVtxRemap.empty())
+            for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, n, normal_ids[n]);
+         else
+            for(unsigned int n = 0; n < normal_ids.length(); ++n) AiArraySetUInt(rnidxs, polyVtxRemap[n], normal_ids[n]);
       }
 
       MPlug pExportRefTangents = fnMesh.findPlug("aiExportRefTangents", false,
@@ -365,17 +347,17 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
       int numUVs = fnMesh.numUVs(uvName);
       if (numUVs < 1)
          continue;
-      AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
+      AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_VECTOR2);
       
       MFloatArray uArray, vArray;
       fnMesh.getUVs(uArray, vArray, &uvName);
       
       for (int j = 0; j < numUVs; ++j)
       {
-         AtPoint2 atv;
+         AtVector2 atv;
          atv.x = uArray[j];
          atv.y = vArray[j];
-         AiArraySetPnt2(uv, j, atv);
+         AiArraySetVec2(uv, j, atv);
       }
       uvs.push_back(uv);
       uvNames.push_back(uvName);
@@ -384,7 +366,8 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
 }
 
 bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
-                                          unordered_map<std::string, std::vector<float> > &vcolors)
+                                          unordered_map<std::string, std::vector<float> > &vcolors,
+                                          const std::vector<unsigned int> &polyVtxRemap)
 {
    MFnMesh fnMesh(geometry);
 
@@ -485,11 +468,23 @@ bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
             // So we can get -1 values when no color was painted for a given vertex. Do we want to keep that feature ?
             MColor unsetColor(0.f, 0.f, 0.f, 0.f);
             MStatus status = fnMesh.getFaceVertexColors(face_vtx_colors, &names[j], &unsetColor);
+
             if (status == MS::kSuccess)
             {
                colors.assign(numFaceVertices * dim, 0.f);
-               // FIXME the memcpy seems to work, make sure it is safe to assume this
-               memcpy(&colors[0], &face_vtx_colors[0], numFaceVertices * sizeof(MColor));
+
+               if (polyVtxRemap.empty())
+                  memcpy(&colors[0], &face_vtx_colors[0], numFaceVertices * sizeof(MColor));
+               else
+               {
+                  int colorId = 0;
+                  for (unsigned int f = 0; f < numFaceVertices; ++f)
+                  {
+                     colors[colorId++] = face_vtx_colors[f][0];
+                     colors[colorId++] = face_vtx_colors[f][1];
+                     colors[colorId++] = face_vtx_colors[f][2];
+                  }
+               }
             }
          }
       }
@@ -504,8 +499,10 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
       std::vector<AtArray*>& uvidxs,
       const std::vector<MString>& uvNames,
       bool exportNormals,
-      bool exportUVs)
-{
+      bool exportUVs, 
+      std::vector<unsigned int> &polyVtxRemap,
+      std::vector<unsigned int> &arnoldPolygonHoles)
+{   
 
    MFnMesh fnMesh(geometry);
 
@@ -518,60 +515,213 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
    // means "no polygons in this mesh"
    if (np == 0) return false;
 
-   nsides = AiArrayAllocate(np, 1, AI_TYPE_UINT);
+   
+   std::vector<unsigned int> nsides_list;
+   nsides_list.resize(np, 0u);
+
+   bool hasHoles = false;
+   int numHoles = 0;
+   MIntArray holeInfoArray, holeVertexArray;
+   std::vector<unsigned int> polygonHoleVertices;
+
+   int holeIndex, faceIndex, holeFaceIndex, h, numPolygonVertexCount;
    unsigned int polygonVertexCount = 0; // for counting the number of ids
-   for (unsigned int p(0); p < np; ++p)
+   
+   // Loop over mesh polygons in order to get the amount of vertices per polygon
+   MItMeshPolygon pit(geometry);
+   while(!pit.isDone())
    {
-      int numPolygonVertexCount = fnMesh.polygonVertexCount(p);
-      polygonVertexCount += numPolygonVertexCount;
-      // Num points/sides to the poly.
-      AiArraySetUInt(nsides, p, (unsigned int)numPolygonVertexCount);
+      faceIndex = pit.index(); // polygon index
+
+      // amount of vertices in this polygon
+      numPolygonVertexCount = pit.polygonVertexCount();
+
+      // check if this polygon has a hole
+      if (numPolygonVertexCount >= 6 && pit.isHoled()) 
+      {
+         if (!hasHoles)
+         {  
+            // first time we find a hole in this mesh, let's
+            // initialize the holes data
+            hasHoles = true;
+            MStatus status;
+            numHoles = fnMesh.getHoles(holeInfoArray, holeVertexArray, &status);
+            if (status != MS::kSuccess)
+               numHoles = 0;  
+
+            holeIndex = 0;
+            for (h = 0; h < numHoles; ++h, holeIndex += 3)
+            {
+               // polygon on which this hole lies
+               holeFaceIndex = holeInfoArray[holeIndex];
+               if (holeFaceIndex >= polygonHoleVertices.size())
+               {
+                  // resize dynamically the polygonHoleVertices table
+                  polygonHoleVertices.resize(holeFaceIndex + 1, 0);
+               }
+               // add the amount of hole vertices to the list for each polygon
+               polygonHoleVertices[holeFaceIndex] += holeInfoArray[holeIndex + 1];
+            }
+         }         
+
+         if (faceIndex < polygonHoleVertices.size())
+         {
+            // substracting the amount of hole-vertices in this face
+            numPolygonVertexCount -= polygonHoleVertices[faceIndex];
+         }
+      }
+
+      polygonVertexCount += numPolygonVertexCount; // increment the total amount of polygon vertices
+      nsides_list[faceIndex] = ((unsigned int)numPolygonVertexCount); // store the amount of vertices for this polygon
+
+      pit.next(); // next polygon
    }
-   vidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+
+   // store the amount of polyVertex without holes
+   unsigned int holesOffset = polygonVertexCount;
+
+   if (hasHoles)
+   {
+      holeIndex = 0;
+
+      nsides_list.resize(nsides_list.size() + numHoles, 0u);
+      arnoldPolygonHoles.reserve(numHoles * 2);
+
+      for (int h = 0; h < numHoles; ++h, holeIndex += 3)
+      {
+         int numPolygonVertexCount = holeInfoArray[holeIndex + 1];
+         nsides_list[np+h] = (unsigned int)numPolygonVertexCount;
+         polygonVertexCount += numPolygonVertexCount;
+         arnoldPolygonHoles.push_back(np+h);
+         arnoldPolygonHoles.push_back(holeInfoArray[holeIndex]);
+      }
+      polyVtxRemap.resize(polygonVertexCount, 0u);
+
+   }
+
+   nsides = AiArrayConvert(nsides_list.size(), 1, AI_TYPE_UINT, &nsides_list[0]);
+   
+   std::vector<unsigned int> vidxsVec(polygonVertexCount, 0u);
+   
    if (exportUVs)
    {
       uvidxs.resize(numUVSets);
       for (size_t i = 0; i < numUVSets; ++i)
          uvidxs[i] = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
    }
-   // Vertex indicies.
+
    MIntArray p_vidxs;
+   unsigned int arnoldPolyVtxId = 0;
+   unsigned int mayaPolyVtxId = 0;
    unsigned int id = 0;
-   for (unsigned int p(0); p < np; ++p)
+   unsigned int holePolyVtxId = 0;
+   unsigned int v, i;
+
+   pit.reset();
+   while(!pit.isDone())
    {
-      fnMesh.getPolygonVertices(p, p_vidxs);
-      for(uint v(0); v < p_vidxs.length(); ++v, ++id)
+      pit.getVertices(p_vidxs);
+      faceIndex = pit.index();
+
+      // loop over real poly vertices
+      for(v = 0; v < nsides_list[faceIndex]; ++v)
       {
-         AiArraySetUInt(vidxs, id, p_vidxs[v]);
+         id = arnoldPolyVtxId++;
+         vidxsVec[id] = p_vidxs[v];
          // UVs
          if (exportUVs)
          {
-            for (size_t i = 0; i < numUVSets; ++i)
+            for (i = 0; i < numUVSets; ++i)
             {
-               if (fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]) != MS::kSuccess)
+               if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
                {
                   uv_id = 0;
                   AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
-                               uvNames[i].asChar(), p, v, fnMesh.name().asChar());
+                               uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
                }
                AiArraySetUInt(uvidxs[i], id, uv_id);
             }
          }
+         if (hasHoles)
+            polyVtxRemap[mayaPolyVtxId + v] = id; // maya-to-arnold polyVtx index remapping
       }
-   }
 
-   MIntArray vertex_counts, normal_ids;
+      if (p_vidxs.length() <= nsides_list[faceIndex])      
+      {
+         // No holes in this face
+         pit.next();
+         mayaPolyVtxId += p_vidxs.length();
+         continue; 
+      }
+
+      // This face has holes, we need to loop over each hole now
+      holeIndex = 0;
+      for (int h = 0; h < numHoles; ++h, holeIndex += 3)
+      {
+         if (holeInfoArray[holeIndex] != faceIndex)
+            continue; // not a hole in this current face
+
+         int holeVtxCount = holeInfoArray[holeIndex + 1]; // how many vertices in this hole
+         int startHoleIndex = holeInfoArray[holeIndex + 2]; // starting index for this hole in holeVertexArray
+
+         // loop over hole vertices in inverted order
+         for (int hv = holeVtxCount - 1; hv >= 0; --hv)
+         {
+            int vtxIndex = holeVertexArray[hv + startHoleIndex]; // index of this vertex
+
+            // simple linear search over the "hole-vertices" for this face
+            for (uint v = nsides_list[faceIndex]; v < p_vidxs.length(); ++v)
+            {
+               if (p_vidxs[v] != vtxIndex)
+                  continue;
+
+               // found the good vertex
+               
+               id = holesOffset + holePolyVtxId++; // arnold polyVtx index
+               vidxsVec[id] = p_vidxs[v];
+               // UVs
+               if (exportUVs)
+               {
+                  for (size_t i = 0; i < numUVSets; ++i)
+                  {
+                     // FIXME : I have a problem here, the index doesn't seem to be correct for holes
+                     if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
+                     {
+                        uv_id = 0;
+                        AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
+                                     uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
+                     }
+                     AiArraySetUInt(uvidxs[i], id, uv_id);
+                  }
+               }
+               polyVtxRemap[mayaPolyVtxId + v] = id;
+               break;
+            }
+         }
+      }
+
+      mayaPolyVtxId += p_vidxs.length();
+      pit.next();
+   }
+   // now convert the array
+   vidxs =  AiArrayConvert(polygonVertexCount, 1, AI_TYPE_UINT, &vidxsVec[0]);
+   
    // Normals.
    if (exportNormals)
    {
-      nidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
-      id = 0;
+      std::vector<unsigned int> nidxsVec(polygonVertexCount, 0u);
+      MIntArray vertex_counts, normal_ids;
+   
       fnMesh.getNormalIds(vertex_counts, normal_ids);
-      for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(nidxs, id, normal_ids[n]);
+      if (polyVtxRemap.empty())
+         for(uint n(0); n < normal_ids.length(); ++n) nidxsVec[n] = normal_ids[n];
+      else
+         for(uint n(0); n < normal_ids.length(); ++n) nidxsVec[polyVtxRemap[n]] = normal_ids[n];
+
+      nidxs =  AiArrayConvert(polygonVertexCount, 1, AI_TYPE_UINT, &nidxsVec[0]);
    }
 
    return true;
-
 }
 
 void CPolygonGeometryTranslator::ExportShaders()
@@ -586,7 +736,7 @@ void CPolygonGeometryTranslator::GetDisplacement(MObject& obj,
    MFnDependencyNode dNode(obj);
    MPlug plug = dNode.findPlug("aiDisplacementPadding");
    if (!plug.isNull())
-      dispPadding = MAX(dispPadding, plug.asFloat());
+      dispPadding = AiMax(dispPadding, plug.asFloat());
    if (!enableAutoBump)
    {
       plug = dNode.findPlug("aiDisplacementAutoBump");
@@ -784,7 +934,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
       // it only influences the computation of the displacement bounds
       AiNodeSetFlt(polymesh, "disp_height",  FindMayaPlug("aiDispHeight").asFloat());
-      AiNodeSetFlt(polymesh, "disp_padding", MAX(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
+      AiNodeSetFlt(polymesh, "disp_padding", AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
       AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
       AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
    }
@@ -831,28 +981,31 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       AtArray* refNormals = 0; AtArray* rnidxs = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
+      std::vector<unsigned int> polyVtxRemap;
+      std::vector<unsigned int> arnoldPolygonHoles;
+
       // Get UVs
       bool exportUVs = GetUVs(geometry, uvs, uvNames);
 
-      // Get reference objects
-      bool exportReferenceObjects = GetRefObj(refVertices, refNormals, rnidxs,
-                                              refTangents, refBitangents);
-      bool exportRefVerts = refVertices != 0;
-      bool exportRefNorms = refNormals != 0;
-      bool exportRefTangents = refTangents != 0;
-
       // Get Component IDs
-      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
+      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, 
+         exportUVs, polyVtxRemap, arnoldPolygonHoles);
       // if GetComponentIDs returned false, it means that no polygons were found in the mesh. 
       // In that case uvidxs is empty, so we must not try to export the UVs
       if (!exportCompIDs) exportUVs = false;
 
+      // Get reference objects
+      bool exportReferenceObjects = GetRefObj(refVertices, refNormals, rnidxs,
+                                              refTangents, refBitangents, polyVtxRemap);
+      bool exportRefVerts = refVertices != 0;
+      bool exportRefNorms = refNormals != 0;
+      bool exportRefTangents = refTangents != 0;
 
       // Get Vertex Colors
       MPlug plug = FindMayaPlug("aiMotionVectorSource");
       if (!plug.isNull())
          m_motionVectorSource = plug.asString();
-      bool exportColors = GetVertexColors(geometry, vcolors);
+      bool exportColors = GetVertexColors(geometry, vcolors, polyVtxRemap);
 
       // Get all tangents, bitangents
       AtArray* tangents; AtArray* bitangents;
@@ -868,7 +1021,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       if (exportReferenceObjects)
       {
          if (exportRefVerts)
-            AiNodeDeclare(polymesh, "Pref", "varying POINT");
+            AiNodeDeclare(polymesh, "Pref", "varying VECTOR");
          if (exportRefNorms)
             AiNodeDeclare(polymesh, "Nref", "indexed VECTOR");
             AiNodeDeclare(polymesh, "Nrefidxs", "indexed UINT");
@@ -920,7 +1073,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                const short motionVectorUnit = FindMayaPlug("aiMotionVectorUnit").asShort();
                std::vector<float>& motionVectors = vcolors[m_motionVectorSource.asChar()];
                const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
-               AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
+               AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_VECTOR);
                const float* vert = vertices;
                float motionRange = float(GetMotionByFrame()) * motionVectorScale;
                if (motionVectorUnit == 1)
@@ -935,12 +1088,12 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                   vec.x = *(vert++);
                   vec.y = *(vert++);
                   vec.z = *(vert++);
-                  AiArraySetPnt(verticesArray, i, vec);
+                  AiArraySetVec(verticesArray, i, vec);
                   const AtRGBA* motionVector = motionVectorColors + i;
                   vec.x += motionVector->r * motionRange;
                   vec.y += motionVector->g * motionRange;
                   vec.z += motionVector->b * motionRange;
-                  AiArraySetPnt(verticesArray, i + numVerts, vec);
+                  AiArraySetVec(verticesArray, i + numVerts, vec);
                }
                AiNodeSetArray(polymesh, "vlist", verticesArray);
             }
@@ -964,14 +1117,14 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          {
             if (exportVertices)
             {
-               AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_POINT);
-               SetKeyData(vlist_array, step, vertices, numVerts);
+               AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
+               SetKeyData(vlist_array, step, vertices);
                AiNodeSetArray(polymesh, "vlist", vlist_array);
             }
             if (exportNormals)
             {
                AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
-               SetKeyData(nlist_array, step, normals, numNorms);
+               SetKeyData(nlist_array, step, normals);
                AiNodeSetArray(polymesh, "nlist", nlist_array);
             }
          }
@@ -983,6 +1136,12 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          AiNodeSetArray(polymesh, "vidxs", vidxs);
          if (exportNormals)
             AiNodeSetArray(polymesh, "nidxs", nidxs);
+
+         if (!arnoldPolygonHoles.empty())
+         {
+            AtArray *polygonHoles = AiArrayConvert(arnoldPolygonHoles.size(), 1, AI_TYPE_UINT, &arnoldPolygonHoles[0]);
+            AiNodeSetArray(polymesh, "polygon_holes", polygonHoles);
+         }
       }
       
       if (exportReferenceObjects) // TODO : use local space for this and manually transform that later, 
@@ -992,12 +1151,11 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          {
             AtMatrix worldMatrix;
             ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
-            AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
+            AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_VECTOR);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)
             {
-               AtVector v;
-               AiM4PointByMatrixMult(&v, worldMatrix, vRefVertices + i);
+               AtVector v = AiM4PointByMatrixMult(worldMatrix, *(vRefVertices + i));
                AiArraySetVec(aRefVertices, i, v);
             }
             AiNodeSetArray(polymesh, "Pref", aRefVertices);
@@ -1022,7 +1180,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                if (uvNames.size() > i && uvidxs.size() > i)
                {
                   MString idxsName = uvNames[i] + MString("idxs");
-                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
+                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed VECTOR2");
                   AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
                   AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
                }
@@ -1119,22 +1277,22 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
          if (vlist_array == NULL)
             return;
-         if (vlist_array->nelements != numVerts)
+         if (AiArrayGetNumElements(vlist_array) != numVerts)
             AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
-                       GetMayaNodeName().asChar(), vlist_array->nelements, numVerts);
+                       GetMayaNodeName().asChar(), AiArrayGetNumElements(vlist_array), numVerts);
          else
-            SetKeyData(vlist_array, step, vertices, numVerts);
+            SetKeyData(vlist_array, step, vertices);
 
       }
       // Normals
       if (exportNormals)
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
-         if (nlist_array->nelements != numNorms)
+         if (AiArrayGetNumElements(nlist_array) != numNorms)
             AiMsgError("[mtoa.translator]  %-30s | Number of normals changed between motion steps: %d -> %d",
-                       GetMayaNodeName().asChar(), nlist_array->nelements, numNorms);
+                       GetMayaNodeName().asChar(), AiArrayGetNumElements(nlist_array), numNorms);
          else
-            SetKeyData(nlist_array, step, normals, numNorms);
+            SetKeyData(nlist_array, step, normals);
       }
    }
 }
@@ -1178,8 +1336,6 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetInt(polymesh, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
-
-      ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
    }
 }
 
@@ -1204,8 +1360,8 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
 
    MFnMesh fnMesh(m_geometry);
    MBoundingBox bbox = fnMesh.boundingBox();
-   AiNodeSetPnt(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-   AiNodeSetPnt(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
+   AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
+   AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
    AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
@@ -1365,7 +1521,6 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("subdiv_adaptive_metric");
    helper.MakeInput("subdiv_adaptive_error");
    helper.MakeInput("subdiv_adaptive_space");
-   helper.MakeInput("subdiv_dicing_camera");
    helper.MakeInput("subdiv_uv_smoothing");
    helper.MakeInput("subdiv_smooth_derivs");
 
@@ -1376,49 +1531,49 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportTangents";
    data.shortName = "ai_exptan";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportColors";
    data.shortName = "ai_expcol";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiExportRefPoints";
    data.shortName = "ai_exprpt";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportRefNormals";
    data.shortName = "ai_exprnrm";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportRefTangents";
    data.shortName = "ai_exprtan";
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
       
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT() = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    data.channelBox = false;
    data.hasMin = true;
-   data.min.FLT = 0.f;
+   data.min.FLT() = 0.f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 1.f;
+   data.softMax.FLT() = 1.f;
    helper.MakeInputFloat(data);
 
    data.stringDefault = "velocityPV";
@@ -1427,7 +1582,7 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.channelBox = false;
    helper.MakeInputString(data);
 
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
    data.name = "aiMotionVectorUnit";
    data.shortName = "ai_motion_vector_unit";
    data.channelBox = false;
@@ -1436,15 +1591,15 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.enums.append("Per Second");
    helper.MakeInputEnum(data);
 
-   data.defaultValue.FLT = 1.f;
+   data.defaultValue.FLT() = 1.f;
    data.name = "aiMotionVectorScale";
    data.shortName = "ai_motion_vector_scale";
    data.hasMin = false;
    data.hasMax = false;
    data.hasSoftMin = true;
    data.hasSoftMax = true;
-   data.softMin.FLT = 0.f;
-   data.softMax.FLT = 2.f;
+   data.softMin.FLT() = 0.f;
+   data.softMax.FLT() = 2.f;
    data.channelBox = false;
    helper.MakeInputFloat(data);
 }

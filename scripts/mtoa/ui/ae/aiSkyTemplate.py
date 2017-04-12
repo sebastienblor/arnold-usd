@@ -16,10 +16,12 @@ class AEaiSkyTemplate(ShaderAETemplate):
         self.beginNoOptimize()
         self.addControl('castsShadows', label='Casts Shadows')
         self.addControl('primaryVisibility', label='Primary Visibility')
-        self.addControl('aiVisibleInDiffuse', label='Visible in Diffuse')
-        self.addControl('aiVisibleInGlossy', label='Visible in Glossy')
-        self.addControl('visibleInReflections', label='Visible in Reflections')
-        self.addControl('visibleInRefractions', label='Visible in Refractions')
+        self.addControl('aiVisibleInDiffuseReflection', label='Visible in Diffuse Reflection')
+        self.addControl('aiVisibleInSpecularReflection', label='Visible in Specular Reflection')
+        self.addControl('aiVisibleInDiffuseTransmission', label='Visible in Diffuse Transmission')
+        self.addControl('aiVisibleInSpecularTransmission', label='Visible in Specular Transmission')
+        self.addControl('aiVisibleInVolume', label='Visible in Volume')
+
         self.endNoOptimize()
         self.endLayout()
         

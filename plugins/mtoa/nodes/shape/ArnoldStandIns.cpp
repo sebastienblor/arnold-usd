@@ -56,8 +56,9 @@ MObject CArnoldStandInShape::s_frameNumber;
 MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
-MObject CArnoldStandInShape::s_deferStandinLoad;
-MObject CArnoldStandInShape::s_scale;
+MObject CArnoldStandInShape::s_overrideNodes;
+//MObject CArnoldStandInShape::s_deferStandinLoad;
+//MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
@@ -78,7 +79,7 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    data = "";
    mode = 0;
    geomLoaded = "";
-   scale = 1.0f;
+   //scale = 1.0f;
    BBmin = MPoint(-1.0f, -1.0f, -1.0f);
    BBmax = MPoint(1.0f, 1.0f, 1.0f);
    bbox = MBoundingBox(BBmin, BBmax);
@@ -353,14 +354,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else
       {         
          procedural = AiNode("procedural");
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
-         AiNodeSetBool(procedural, "load_at_init", true);
-         if (fGeometry.drawOverride == 3) 
-            AiNodeSetBool(procedural, "load_at_init", false); 
+         AiNodeSetStr(procedural, "filename", assfile.asChar());
+//         AiNodeSetBool(procedural, "load_at_init", true);
+//         if (fGeometry.drawOverride == 3) 
+//            AiNodeSetBool(procedural, "load_at_init", false); 
 
-         AtMatrix mtx;
-         AiM4Identity(mtx);
-         AiNodeSetMatrix(procedural, "matrix", mtx);
+         AiNodeSetMatrix(procedural, "matrix", AiM4Identity());
          
          if (fGeometry.drawOverride != 3)
          {
@@ -396,6 +395,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          // first load all the shapes
          // then resolve all the instances
 
+         static const AtString polymesh_str("polymesh");
+         static const AtString points_str("points");
+         static const AtString procedural_str("procedural");
+         static const AtString box_str("box");
+         static const AtString ginstance_str("ginstance");
+
          AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
 
          while (!AiNodeIteratorFinished(iter))
@@ -406,13 +411,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (node)
             {  
                CArnoldStandInGeometry* g = 0;
-               if (AiNodeIs(node, "polymesh"))
+               if (AiNodeIs(node, polymesh_str))
                   g = new CArnoldPolymeshGeometry(node);
-               else if (AiNodeIs(node, "points"))
+               else if (AiNodeIs(node, points_str))
                   g = new CArnoldPointsGeometry(node);
-               else if(AiNodeIs(node, "procedural"))
+               else if(AiNodeIs(node, procedural_str))
                   g = new CArnoldProceduralGeometry(node);
-               else if(AiNodeIs(node, "box"))
+               else if(AiNodeIs(node, box_str))
                   g = new CArnoldBoxGeometry(node);
                else
                   continue;
@@ -440,25 +445,23 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             {
                if (AiNodeGetByte(node, "visibility") == 0)
                   continue;
-               AtMatrix total_matrix;
-               AiM4Identity(total_matrix);
+               AtMatrix total_matrix = AiM4Identity();
                bool inherit_xform = true;
                bool isInstance = false;
-               while(AiNodeIs(node, "ginstance"))
+               while(AiNodeIs(node, ginstance_str))
                {                  
                   isInstance = true;
-                  AtMatrix current_matrix;
-                  AiNodeGetMatrix(node, "matrix", current_matrix);
+                  AtMatrix current_matrix = AiNodeGetMatrix(node, "matrix");
                   if (inherit_xform)
                   {
-                     AiM4Mult(total_matrix, total_matrix, current_matrix);
+                     total_matrix = AiM4Mult(total_matrix, current_matrix);
                   }
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
                if (!isInstance)
                   continue;
-               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points") || AiNodeIs(node, "procedural"))
+               if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
                   CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
                   if (iter != geom->m_geometryList.end())
@@ -533,11 +536,11 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
       datahandle.set(fGeometry.frameOffset);
       isOk = true;
    }
-   else if (plug == s_scale)
+   /*else if (plug == s_scale)
    {
       datahandle.set(fGeometry.scale);
       isOk = true;
-   }
+   }*/
    else if (plug == s_boundingBoxMin)
    {
       float3 value;
@@ -592,10 +595,10 @@ bool CArnoldStandInShape::setInternalValueInContext(const MPlug& plug,
    {
       isOk = true;
    }
-   else if (plug == s_scale)
+   /*else if (plug == s_scale)
    {
       isOk = true;
-   }
+   }*/
    else if (plug == s_boundingBoxMax)
    {
       isOk = true;
@@ -722,7 +725,7 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   if(geom->deferStandinLoad)
+   /*if(geom->deferStandinLoad)
    {
       // Calculate scaled BBox dimensions
       float halfSize[3] =
@@ -742,7 +745,7 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
       maxCoords[1] =  halfSize[1]*geom->scale + center[1];
       maxCoords[2] =  halfSize[2]*geom->scale + center[2];
    }
-   
+   */
    return MBoundingBox (minCoords, maxCoords);
 
 }
@@ -779,7 +782,11 @@ MStatus CArnoldStandInShape::initialize()
    s_dso = tAttr.create("dso", "dso", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
+   tAttr.setUsedAsFilename(true);
    addAttribute(s_dso);
+
+   // Need to register this attribute to appear in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiStandIn.dso -typeLabel \"Standin\"");
 
    s_mode = eAttr.create("mode", "mode", 0);
    eAttr.addField("Bounding Box", DM_BOUNDING_BOX);
@@ -819,18 +826,25 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_data);
 
-   s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 1);
+   s_overrideNodes = nAttr.create("overrideNodes", "override_nodes",
+         MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_overrideNodes);
+
+
+   /*s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_deferStandinLoad);
-
-   s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
+*/
+   /*s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    nAttr.setAffectsAppearance(true);
-   addAttribute(s_scale);
+   addAttribute(s_scale);*/
 
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
@@ -858,75 +872,72 @@ MStatus CArnoldStandInShape::initialize()
    // atributes that are used only by translation
    CAttrData data;
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideCastsShadows";
    data.shortName = "overrideCastsShadows";
    s_attributes.MakeInputBoolean(data);
    
    //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideReceiveShadows";
    data.shortName = "overrideReceiveShadows";
    s_attributes.MakeInputBoolean(data);
    
    //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overridePrimaryVisibility";
    data.shortName = "overridePrimaryVisibility";
    s_attributes.MakeInputBoolean(data);
    
    //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInReflections";
-   data.shortName = "overrideVisibleInReflections";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'visibleInReflections' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInRefractions";
-   data.shortName = "overrideVisibleInRefractions";
-   s_attributes.MakeInputBoolean(data);
-   
-   //The 'visibleInRefractions' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
-   
-   data.defaultValue.BOOL = false;
+      data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
    data.shortName = "overrideDoubleSided";
    s_attributes.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideSelfShadows";
    data.shortName = "overrideSelfShadows";
    s_attributes.MakeInputBoolean(data);
    
    //The 'self_shadows' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideOpaque";
    data.shortName = "overrideOpaque";
    s_attributes.MakeInputBoolean(data);
 
    //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
    
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInDiffuse";
-   data.shortName = "overrideVisibleInDiffuse";
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInDiffuseReflection";
+   data.shortName = "overrideVisibleInDiffuseReflection";
    s_attributes.MakeInputBoolean(data);
 
-   //The 'aiVisibleInDiffuse' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
-   
-   data.defaultValue.BOOL = false;
-   data.name = "overrideVisibleInGlossy";
-   data.shortName = "overrideVisibleInGlossy";
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInSpecularReflection";
+   data.shortName = "overrideVisibleInSpecularReflection";
    s_attributes.MakeInputBoolean(data);
 
-   //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInDiffuseTransmission";
+   data.shortName = "overrideVisibleInDiffuseTransmission";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInSpecularTransmission";
+   data.shortName = "overrideVisibleInSpecularTransmission";
+   s_attributes.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideVisibleInVolume";
+   data.shortName = "overrideVisibleInVolume";
+   s_attributes.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideMatte";
    data.shortName = "overrideMatte";
    s_attributes.MakeInputBoolean(data);
@@ -947,6 +958,7 @@ int CArnoldStandInShape::drawMode()
     return mode;
 }
 
+/*
 //
 // This function returns true if loading the standin should be deferred.
 //
@@ -956,7 +968,7 @@ bool CArnoldStandInShape::deferStandinLoad()
     plug.getValue(fGeometry.deferStandinLoad);
     return fGeometry.deferStandinLoad;
 }
-
+*/
 //
 // This function gets the values of all the attributes and
 // assigns them to the fGeometry. Calling MPlug::getValue
@@ -969,8 +981,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    MString tmpFilename = fGeometry.filename;
    MString tmpDso = fGeometry.dso;
    MString tmpData = fGeometry.data;
-   bool tmpDeferStandinLoad =  fGeometry.deferStandinLoad;
-   float tmpScale =  fGeometry.scale;
+   //bool tmpDeferStandinLoad =  fGeometry.deferStandinLoad;
+   //float tmpScale =  fGeometry.scale;
    bool tmpUseFrameExtension = fGeometry.useFrameExtension;
    float tmpFrameStep = fGeometry.frame + fGeometry.frameOffset;
 
@@ -996,11 +1008,11 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry.frameOffset);
 
-   plug.setAttribute(s_deferStandinLoad);
-   plug.getValue(fGeometry.deferStandinLoad);
+   //plug.setAttribute(s_deferStandinLoad);
+   //plug.getValue(fGeometry.deferStandinLoad);
    
-   plug.setAttribute(s_scale);
-   plug.getValue(fGeometry.scale);
+   //plug.setAttribute(s_scale);
+   //plug.getValue(fGeometry.scale);
    
    plug.setAttribute(s_drawOverride); 
    plug.getValue(fGeometry.drawOverride);
@@ -1113,11 +1125,11 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.filename = fGeometry.dso;
       }
    }
-   
+   /*
    if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale )
    {
       fGeometry.updateBBox = true;
-   }
+   }*/
 
    if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData))
    {
@@ -1338,6 +1350,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          geom->dList = glGenLists(2);
 
       // Only show scaled BBox in this case
+      /*
       if(geom->deferStandinLoad)
       {
          float minPt[4];
@@ -1392,7 +1405,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glVertex3fv(stopRightFront);
          glEnd();
          glEndList();
-      }
+      }*/
       geom->updateBBox = false;
    }
    
@@ -1591,8 +1604,8 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    {      
       glCallList(geom->dList);
       // Draw scaled BBox
-      if(geom->deferStandinLoad)
-         glCallList(geom->dList+1);
+      //if(geom->deferStandinLoad)
+      //   glCallList(geom->dList+1);
    }
    glPopAttrib();
    view.endGL();

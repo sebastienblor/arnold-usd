@@ -41,8 +41,8 @@ node_parameters
    AiParameterRGB("colorB", 1.0f, 0.0f, 0.5f);
    AiParameterEnum("operation", OP_EQUAL, OperationStrings);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorLogic");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81638);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorLogic");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81638);
 }
 
 node_initialize
@@ -67,25 +67,25 @@ shader_evaluate
    switch (op)
    {
    case OP_EQUAL:
-      sg->out.BOOL = floatA == floatB;
+      sg->out.BOOL() = floatA == floatB;
       break;
    case OP_NOT_EQUAL:
-      sg->out.BOOL = floatA != floatB;
+      sg->out.BOOL() = floatA != floatB;
       break;
    case OP_LESS:
-      sg->out.BOOL = floatA < floatB;
+      sg->out.BOOL() = floatA < floatB;
       break;
    case OP_GREATER:
-      sg->out.BOOL = floatA > floatB;
+      sg->out.BOOL() = floatA > floatB;
       break;
    case OP_LESS_OR_EQUAL:
-      sg->out.BOOL = floatA <= floatB;
+      sg->out.BOOL() = floatA <= floatB;
       break;
    case OP_GREATER_OR_EQUAL:
-      sg->out.BOOL = floatA >= floatB;
+      sg->out.BOOL() = floatA >= floatB;
       break;
    default:
-      sg->out.BOOL = false;
+      sg->out.BOOL() = false;
       break;
    }
 }

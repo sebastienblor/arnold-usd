@@ -19,19 +19,21 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteColorInlineMtd);
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteColor");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteColor");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
    AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterSTR("aov_name", "");
-   AiParameterARRAY("sets", AiArray(0, 0, AI_TYPE_STRING));
+   AiParameterStr("aov_name", "");
+   AiParameterArray("sets", AiArray(0, 0, AI_TYPE_STRING));
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_input);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_input);
 
    if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup((AtArray*)AiNodeGetLocalData(node), sg))
-      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), sg->out.RGBA);
+      AiAOVSetRGBA(sg, AtString(AiShaderEvalParamStr(p_name)), sg->out.RGBA());
 }
 
 node_initialize

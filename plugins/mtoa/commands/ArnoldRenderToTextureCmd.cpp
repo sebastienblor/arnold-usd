@@ -298,6 +298,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AiRenderAbort();
 
    std::vector<AtNode*> nodes;
+   static const AtString polymesh_str("polymesh");
    // convert list of Maya selection to list of AtNodes selection
    for (unsigned int i = 0; i < selected.length(); ++i)
    {
@@ -353,14 +354,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             // test if the root parent node is the one I'm treating
             if (rootNode != node) continue;
             
-            if (AiNodeIs(loopNode, "polymesh") )
+            if (AiNodeIs(loopNode, polymesh_str) )
             {
                nodes.push_back(loopNode);
             }
          }
          AiNodeIteratorDestroy(nodeIter);
 
-      } else if (AiNodeIs(node, "polymesh"))
+      } else if (AiNodeIs(node, polymesh_str))
       {
          nodes.push_back(node);
       } else
@@ -445,9 +446,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          /// find all affected udims
          if (allUdims)
          {
-            for (size_t j = 0; j < uv_list->nelements; ++j)
+            for (size_t j = 0; j < AiArrayGetNumElements(uv_list); ++j)
             {
-               AtPoint2 uv = AiArrayGetPnt2(uv_list, j);
+               AtVector2 uv = AiArrayGetVec2(uv_list, j);
                if (uv.x>AI_EPSILON && uv.y > AI_EPSILON&&
                   uv.x < 10 - AI_EPSILON && uv.y < 10 - AI_EPSILON)
                   udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON)));
@@ -463,7 +464,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             // comment for mayabatch
             std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
-            AtNode *camera = AiNode("cameraUvMapper");
+            AtNode *camera = AiNode("MtoaCameraUvMapper");
             if (camera == 0)
             {
                AiEnd();
@@ -492,7 +493,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // render without udims
       else
       {
-         AtNode *camera = AiNode("cameraUvMapper");
+         AtNode *camera = AiNode("MtoaCameraUvMapper");
          if (camera == 0)
          {
             AiEnd();

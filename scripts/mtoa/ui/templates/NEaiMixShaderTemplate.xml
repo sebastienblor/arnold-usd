@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiMixShader'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='mix' type='maya.float'>
+			<label>Mix</label>
+		</attribute>
+		<attribute name='shader1' type='maya.float3'>
+			<label>Shader 1</label>
+		</attribute>
+		<attribute name='shader2' type='maya.float3'>
+			<label>Shader 2</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiMixShader'>
+		<property name='outColor'/>
+		<property name='mix'/>
+		<property name='shader1'/>
+		<property name='shader2'/>
+	</view>
+</templates>

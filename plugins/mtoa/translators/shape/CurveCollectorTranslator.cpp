@@ -178,6 +178,7 @@ struct CCurvesData
    std::vector<int> numPoints;
    std::vector<AtVector> points;
    std::vector<AtVector> referencePoints;
+   std::vector<AtVector> orientations;
    std::vector<CurveWidths *> curveWidthsPerResolution; 
    std::vector<CurveWidths *> widthProfilePerResolution; 
 };
@@ -187,7 +188,7 @@ struct CCurvesData
 // would need to apply the conversion matrix
 
 static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData, 
-      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, bool motion)
+      int sampleRate, MPlug *widthPlug, MRampAttribute *rampAttr, bool exportReference, bool motion, bool orientations)
 {
    MObject curve(curvePath.node());
    MFnDependencyNode fnDepNodeCurve(curve);
@@ -241,40 +242,86 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
          incPerSample = (end - start) / (double)numcvs;
          for(unsigned int i = 0; i < numcvs - 1; i++)
          {
-            referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kObject);
-            curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+            referenceCurve.getPointAtParam(AiMin(start + incPerSample * (double)i, end), point, MSpace::kObject);
+            curvesData.referencePoints.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
          }
          referenceCurve.getPointAtParam(end, point, MSpace::kObject);
-         curvesData.referencePoints.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+         curvesData.referencePoints.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
       } 
    }
-
+   MVector curveNormal;
+   double normalLength;
+   double param;
    for(unsigned int i = 0; i < (numcvs - 1); i++)
    {
-      nurbsCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kObject);
+      param = AiMin(start + incPerSample * (double)i, end);
+      nurbsCurve.getPointAtParam(param, point, MSpace::kObject);
 
       if (hasMatrix)
          point *= curveMtx;
-      
-      curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+
+      curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
+      if (orientations)
+      {
+         // when param = start, this function returns a null vector
+         if (i == 0)
+            param += 0.001;
+         curveNormal = nurbsCurve.normal(param, MSpace::kObject);
+         if (hasMatrix)
+            curveNormal *= curveMtx;
+
+         normalLength = curveNormal.length();
+         if (normalLength > AI_EPSILON)
+            curveNormal /= normalLength;
+         else
+            curveNormal = MVector(1., 0., 0.); // just to avoid crashes in arnold side
+
+         curvesData.orientations.push_back(AtVector((float)curveNormal.x, (float)curveNormal.y, (float)curveNormal.z));
+      }   
 
       // this extra point is only stored for motion since in ExportMotion the array is just copied. 
       // Otherwise it's better to let Export() duplicate the necessary vertices, this way we keep more information
       if (motion == true && i == 0)
-         curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+      {
+         curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
+         if (orientations)
+            curvesData.orientations.push_back(AtVector((float)curveNormal.x, (float)curveNormal.y, (float)curveNormal.z));  
+      }
 
    }
    nurbsCurve.getPointAtParam(end, point, MSpace::kObject);
    if (hasMatrix)
       point *= curveMtx;
 
-   curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
+   curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
+
+   if (orientations)
+   {  // when param = end, this function returns a null vector
+      curveNormal = nurbsCurve.normal(end - 0.001, MSpace::kObject);
+      if (hasMatrix)
+         curveNormal *= curveMtx;
+
+      normalLength = curveNormal.length();
+      if (normalLength > AI_EPSILON)
+         curveNormal /= normalLength;
+      else
+         curveNormal = MVector(1., 0., 0.); // just to avoid crashes on arnold side
+
+
+      curvesData.orientations.push_back(AtVector((float)curveNormal.x, (float)curveNormal.y, (float)curveNormal.z));
+   }   
 
    // this extra point is only stored for motion since in ExportMotion the array is just copied. 
    // Otherwise it's better to let Export() duplicate the necessary vertices, this way we keep more information
    if (motion)
-      curvesData.points.push_back(AiPoint((float)point.x, (float)point.y, (float)point.z));
-
+   {
+      curvesData.points.push_back(AtVector((float)point.x, (float)point.y, (float)point.z));
+      if (orientations)
+      {
+         // curveNormals was set just above         
+         curvesData.orientations.push_back(AtVector((float)curveNormal.x, (float)curveNormal.y, (float)curveNormal.z));
+      }   
+   }
    
    if (widthPlug)
    {
@@ -388,11 +435,11 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
          // check if the internal root shader was already created in a previous export
          shader = GetArnoldNode("hairShader");
          if (shader == NULL)
-            shader = AddArnoldNode("hair", "hairShader");
+            shader = AddArnoldNode("standard_hair", "hairShader");
          
          // Add shader uparam and vparam names
-         AiNodeSetStr(shader, "uparam", "uparamcoord");
-         AiNodeSetStr(shader, "vparam", "vparamcoord");
+         //AiNodeSetStr(shader, "uparam", "uparamcoord");
+         //AiNodeSetStr(shader, "vparam", "vparamcoord");
       }
       SetRootShader(shader);      
    }   
@@ -410,7 +457,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    plug = FindMayaPlug("aiMinPixelWidth");
    if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
-   // Mode is an enum, 0 == ribbon, 1 == tubes.
+   // Mode is an enum, 0 == ribbon, 1 == tubes, 2 == oriented
    plug = FindMayaPlug("aiMode");
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
@@ -450,6 +497,9 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    if (!widthConnected && !hasWidthProfile)
       AiNodeSetFlt(curve, "radius", globalWidth / 2.f);
 
+   // if curves mode is "oriented" we need to output the orientations
+   bool needOrientation = (AiNodeGetInt(curve, "mode") == 2);
+
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
@@ -459,7 +509,7 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
       // Get curve lines
       stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, 
             (widthConnected) ? &widthPlug : NULL, (hasWidthProfile) ? &widthProfileAttr : NULL, exportReferenceObject, 
-            false);
+            false, needOrientation);
       if (stat != MStatus::kSuccess) 
          continue;
    }
@@ -486,10 +536,11 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    // FIXME verify the first call to IsMotionBlurEnabled() is not necessary
    bool deformedPoints = IsMotionBlurEnabled() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && RequiresMotionData();
 
-   AtArray* curvePoints     = AiArrayAllocate(totalNumPointsInterp, (deformedPoints) ? GetNumMotionSteps() : 1, AI_TYPE_POINT);
+   AtArray* curvePoints     = AiArrayAllocate(totalNumPointsInterp, (deformedPoints) ? GetNumMotionSteps() : 1, AI_TYPE_VECTOR);
    AtArray* curveWidths     = (widthConnected || hasWidthProfile) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_FLOAT) : NULL;
-   AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_POINT) : NULL;
+   AtArray* referenceCurvePoints = (!curvesData.referencePoints.empty()) ? AiArrayAllocate(totalNumPoints, 1, AI_TYPE_VECTOR) : NULL;
 
+   AtArray* orientVectors   = (needOrientation) ? AiArrayAllocate(totalNumPointsInterp, (deformedPoints) ? GetNumMotionSteps() : 1, AI_TYPE_VECTOR) : NULL;
    int pointIndex = 0;
 
    // if the motion doesn't start on frame, there can be an offset here
@@ -498,15 +549,18 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    // loop over each curve
    for (size_t i = 0; i < curvesData.numPoints.size(); ++i)
    {
-      // duplicating first point for this curve
-      AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex]);
 
+      if (needOrientation)
+         AiArraySetVec(orientVectors, pointArrayIndex, curvesData.orientations[pointIndex]);         
+
+      // duplicating first point for this curve
+      AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex]);
 
       // fill each CV
       for (int j = 0; j < curvesData.numPoints[i]; ++j)
       {
          if (referenceCurvePoints)
-            AiArraySetPnt(referenceCurvePoints, pointIndex, curvesData.referencePoints[pointIndex]);
+            AiArraySetVec(referenceCurvePoints, pointIndex, curvesData.referencePoints[pointIndex]);
 
 
          if (curveWidths)
@@ -518,14 +572,22 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
              
             AiArraySetFlt(curveWidths, pointIndex, pointWidth/2.f);
          }
+         if (needOrientation)
+            AiArraySetVec(orientVectors, pointArrayIndex, curvesData.orientations[pointIndex]);         
 
-         AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
+         AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex++]);
       }
 
+      if (needOrientation)
+         AiArraySetVec(orientVectors, pointArrayIndex, curvesData.orientations[pointIndex - 1]);         
+
       // duplicate last CV for this curve
-      AiArraySetPnt(curvePoints, pointArrayIndex++, curvesData.points[pointIndex - 1]);
+      AiArraySetVec(curvePoints, pointArrayIndex++, curvesData.points[pointIndex - 1]);
    }
    AiNodeSetArray(curve, "points", curvePoints);
+
+   if (needOrientation)
+      AiNodeSetArray(curve, "orientations", orientVectors);
 
    if (referenceCurvePoints)
    {
@@ -543,21 +605,6 @@ void CCurveCollectorTranslator::Export( AtNode *curve )
    for (size_t i = 0; i < curvesData.widthProfilePerResolution.size(); ++i)
       delete curvesData.widthProfilePerResolution[i];
 
-
-   plug = FindMayaPlug("aiExportHairIDs");
-   bool export_curve_id = false;
-   if (!plug.isNull())
-      export_curve_id = plug.asBool();
-
-
-   if (export_curve_id)
-   {
-      AtArray* curveID = AiArrayAllocate(curvesData.numPoints.size(), 1, AI_TYPE_UINT);
-      for (unsigned int i = 0; i < curvesData.numPoints.size(); ++i)
-         AiArraySetUInt(curveID, i, i);
-      AiNodeDeclare(curve, "curve_id", "uniform UINT");
-      AiNodeSetArray(curve, "curve_id", curveID);
-   }
 }
 
 void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
@@ -573,26 +620,36 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
    CCurvesData curvesData;
    MStatus stat;
 
+      // if curves mode is "oriented" we need to output the orientations
+   bool needOrientation = (AiNodeGetInt(curve, "mode") == 2);
+
    // now loop over the curve childs
    for (unsigned int i = 0; i < m_curveDagPaths.length(); ++i)
    {
       // Get curve lines
-      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, NULL, NULL, false, true);
+      stat = GetCurveSegments(m_curveDagPaths[i], curvesData, m_sampleRate, NULL, NULL, false, true, needOrientation);
       if (stat != MStatus::kSuccess) 
          continue;
    }
 
    // just export the points for motion steps
    AtArray *curvePoints = AiNodeGetArray(curve, "points");
-   unsigned int totalNumPointsInterp = curvePoints->nelements;
+   AtArray *orientVectors = (needOrientation) ? AiNodeGetArray(curve, "orientations") : NULL;
+
+   unsigned int totalNumPointsInterp = AiArrayGetNumElements(curvePoints);
 
    int stepOffset = GetMotionStep() * totalNumPointsInterp;
    
 
-   totalNumPointsInterp = MIN(totalNumPointsInterp, (unsigned int)curvesData.points.size());
+   totalNumPointsInterp = AiMin(totalNumPointsInterp, (unsigned int)curvesData.points.size());
 
    for (unsigned int i = 0; i < totalNumPointsInterp; ++i)
-      AiArraySetPnt(curvePoints, i + stepOffset, curvesData.points[i]);
+   {
+      if (needOrientation)
+         AiArraySetVec(orientVectors, i + stepOffset, curvesData.orientations[i]);
+
+      AiArraySetVec(curvePoints, i + stepOffset, curvesData.points[i]);
+   }
 
 
 }

@@ -24,8 +24,8 @@ node_parameters
    AiParameterFlt("alphaB", 1.0f);
    AiParameterBool("condition", false);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "colorCondition");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x81634);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "colorCondition");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81634);
 }
 
 node_initialize
@@ -44,12 +44,12 @@ shader_evaluate
 {
    if (AiShaderEvalParamBool(p_condition))
    {
-      sg->out.RGB = AiShaderEvalParamRGB(p_colorA);
-      sg->out.RGBA.a = AiShaderEvalParamFlt(p_alphaA);
+      sg->out.RGB() = AiShaderEvalParamRGB(p_colorA);
+      sg->out.RGBA().a = AiShaderEvalParamFlt(p_alphaA);
    }
    else
    {
-      sg->out.RGB = AiShaderEvalParamRGB(p_colorB);
-      sg->out.RGBA.a = AiShaderEvalParamFlt(p_alphaB);
+      sg->out.RGB() = AiShaderEvalParamRGB(p_colorB);
+      sg->out.RGBA().a = AiShaderEvalParamFlt(p_alphaB);
    }
 }

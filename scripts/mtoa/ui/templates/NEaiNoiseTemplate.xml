@@ -1,10 +1,12 @@
-
 <?xml version='1.0' encoding='UTF-8'?>
 <templates>
 	<using package='maya'/>
 	<template name='NEaiNoise'>
-		<attribute name='outValue' type='maya.float'>
-			<label>Out Value</label>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outTransparency' type='maya.float3'>
+			<label>Out Transparency</label>
 		</attribute>
 		<attribute name='amplitude' type='maya.float'>
 			<label>Amplitude</label>
@@ -15,14 +17,28 @@
 		<attribute name='offset' type='maya.float3'>
 			<label>Offset</label>
 		</attribute>
+		<attribute name='P' type='maya.float3'>
+			<label>P</label>
+		</attribute>
+		<attribute name='time' type='maya.float'>
+			<label>Time</label>
+		</attribute>
+		<attribute name='color1' type='maya.float3'>
+			<label>Color 1</label>
+		</attribute>
+		<attribute name='color2' type='maya.float3'>
+			<label>Color 2</label>
+		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiNoise'>
-		<property name='outValue'/>
+		<property name='outColor'/>
+		<property name='outTransparency'/>
 		<property name='amplitude'/>
 		<property name='scale'/>
 		<property name='offset'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiNoise'>
-		<property name='outValue'/>
+		<property name='P'/>
+		<property name='time'/>
+		<property name='color1'/>
+		<property name='color2'/>
 	</view>
 </templates>

@@ -45,7 +45,7 @@ void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
    data.enums.append("Use Global Settings");
    data.enums.append("On");
    data.enums.append("Off");
-   data.defaultValue.INT = 0;
+   data.defaultValue.INT() = 0;
 
    helper.MakeInputEnum(data);
    helper2.MakeInputEnum(data);

@@ -14,10 +14,15 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
    m_BBMax.x = -AI_BIG;
    m_BBMax.y = -AI_BIG;
    m_BBMax.z = -AI_BIG;
-   AiM4Identity(m_matrix);
-
+   
    p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
+
+   if(!AiArrayGetNumElements(p_matrices)){
+	  AiArrayResize(p_matrices, 1, 1);
+	  AiArraySetMtx(p_matrices, 0, AiM4Identity());
+   }
+
+   m_matrix = AiArrayGetMtx(p_matrices, 0);
    m_visible = AiNodeGetByte(node, "visibility") != 0;
    m_invalid = false;
 }
@@ -106,13 +111,22 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed) const
    if (transformed)
    {   
       MBoundingBox bboxRet;
-      for (unsigned int i = 0; i < p_matrices->nkeys; ++i)
+      for (unsigned int i = 0; i < AiArrayGetNumKeys(p_matrices); ++i)
       {
-         AtMatrix mtx;
-         AiM4Identity(mtx);
-         AiArrayGetMtx(p_matrices, i, mtx);
-         MBoundingBox bbox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
-         bbox.transformUsing(MMatrix(mtx));
+         AtMatrix mtx = AiArrayGetMtx(p_matrices, i);
+         MBoundingBox bbox(MVector(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+
+         // FIXME Arnold5 is this correct?
+         //
+         // this might be correct now, but it could break in the future.  To
+         // make maintenance easier, I'd create a function that does this so
+         // that if it does break, you only need to fix it in one place.  Something like:
+         // MMatrix mmtx = MMatrixToAtMatrix(mtx);
+         // where
+         // AtMatrix& MMatrixToAtMatrix(MMatrix& mtx) { return reinterpret_cast<MMatrix&>(mtx); }
+         MMatrix mmtx;
+         memcpy(&mmtx, &(mtx[0][0]), sizeof(mtx));
+         bbox.transformUsing(mmtx);
          bboxRet.expand(bbox);
       }
       return bboxRet;
@@ -140,37 +154,39 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
     mTriangulator(NULL)
 {  
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
-   
-   if ((vlist != 0) && vlist->nelements)
+   unsigned nelements = AiArrayGetNumElements(vlist);
+   if ( nelements )
    {
-      m_vlist.resize(vlist->nelements);
-      for (AtUInt32 i = 0; i < vlist->nelements; ++i)
+      m_vlist.resize(nelements);
+      for (unsigned i = 0; i < nelements; ++i)
       {
-         AtPoint pnt = AiArrayGetPnt(vlist, i);
+         AtVector pnt = AiArrayGetVec(vlist, i);
          if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
             pnt = AI_V3_ZERO;
-         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         m_BBMin.x = AiMin(m_BBMin.x, pnt.x);
+         m_BBMin.y = AiMin(m_BBMin.y, pnt.y);
+         m_BBMin.z = AiMin(m_BBMin.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+         m_BBMax.x = AiMax(m_BBMax.x, pnt.x);
+         m_BBMax.y = AiMax(m_BBMax.y, pnt.y);
+         m_BBMax.z = AiMax(m_BBMax.z, pnt.z);
          
          m_vlist[i] = pnt;
       }
-      for (AtUInt32 i = vlist->nelements; i < (vlist->nelements * vlist->nkeys); ++i)
+      unsigned nelements = AiArrayGetNumElements(vlist);
+      uint8_t nkeys = AiArrayGetNumKeys(vlist);
+      for (unsigned i = nelements; i < (nelements * nkeys); ++i)
       {
-         AtPoint pnt = AiArrayGetPnt(vlist, i);
+         AtVector pnt = AiArrayGetVec(vlist, i);
          if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
             continue;
-         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         m_BBMin.x = AiMin(m_BBMin.x, pnt.x);
+         m_BBMin.y = AiMin(m_BBMin.y, pnt.y);
+         m_BBMin.z = AiMin(m_BBMin.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+         m_BBMax.x = AiMax(m_BBMax.x, pnt.x);
+         m_BBMax.y = AiMax(m_BBMax.y, pnt.y);
+         m_BBMax.z = AiMax(m_BBMax.z, pnt.z);
       }
    }
    else
@@ -180,11 +196,11 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    }
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
-   
-   if ((vidxs != 0) && vidxs->nelements)
+   unsigned vidxElements = AiArrayGetNumElements(vidxs);
+   if (vidxElements)
    {
-      m_vidxs.resize(vidxs->nelements);
-      for (AtUInt32 i = 0; i < vidxs->nelements; ++i)
+      m_vidxs.resize(vidxElements);
+      for (unsigned i = 0; i < vidxElements; ++i)
          m_vidxs[i] = AiArrayGetUInt(vidxs, i);
    }
    else
@@ -194,11 +210,11 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    }
 
    AtArray* nsides = AiNodeGetArray(node, "nsides");
-   
-   if ((nsides != 0) && nsides->nelements)
+   unsigned nsidesElements = AiArrayGetNumElements(nsides);
+   if (nsidesElements)
    {
-      m_nsides.resize(nsides->nelements);
-      for (AtUInt32 i = 0; i < nsides->nelements; ++i)
+      m_nsides.resize(nsidesElements);
+      for (unsigned i = 0; i < nsidesElements; ++i)
          m_nsides[i] = AiArrayGetUInt(nsides, i);
    }
    else
@@ -209,16 +225,16 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* nlist = AiNodeGetArray(node, "nlist");
    AtArray* nidxs = AiNodeGetArray(node, "nidxs");
-   
-   if ((nlist != 0) && nlist->nelements &&
-       (nidxs != 0) && nidxs->nelements)
+   unsigned nlistElements = AiArrayGetNumElements(nlist);
+   unsigned nidxsElements = AiArrayGetNumElements(nidxs);
+   if (nlistElements > 0 && nidxsElements > 0)
    {
-      m_nlist.resize(nlist->nelements);
-      for (AtUInt32 i = 0; i < nlist->nelements; ++i)
+      m_nlist.resize(nlistElements);
+      for (unsigned i = 0; i < nlistElements; ++i)
          m_nlist[i] = AiArrayGetVec(nlist, i);     
    
-      m_nidxs.resize(nidxs->nelements);
-         for (AtUInt32 i = 0; i < nidxs->nelements; ++i)
+      m_nidxs.resize(nidxsElements);
+         for (unsigned i = 0; i < nidxsElements; ++i)
             m_nidxs[i] = AiArrayGetUInt(nidxs, i);
    }
    else // generate normals
@@ -440,8 +456,8 @@ void CArnoldPolymeshGeometry::GetPoints(float* vertices, const AtMatrix* matrix)
     {
         for (unsigned int i = 0; i < m_vlist.size(); ++i)
         {
-            AtPoint* to = reinterpret_cast<AtPoint*>(&vertices[i*3]);
-            AiM4PointByMatrixMult(to, *matrix, &m_vlist[i]);
+            AtVector* to = reinterpret_cast<AtVector*>(&vertices[i*3]);
+            *to = AiM4PointByMatrixMult( *matrix, m_vlist[i]);
         }
     }
     else
@@ -456,9 +472,9 @@ void CArnoldPolymeshGeometry::GetSharedNormals(float* outNormals, const AtMatrix
         //transform each normal by the matrix.
         for (size_t i = 0, size = SharedVertexCount(); i < size; ++i)
         {
-            AtPoint* to = reinterpret_cast<AtPoint*>(&outNormals[i*3]);
-            AtPoint* from = reinterpret_cast<AtPoint*>(&triangulator().fMappedNormals[i*3]);        
-            AiM4VectorByMatrixMult(to, *matrix, from);
+            AtVector* to = reinterpret_cast<AtVector*>(&outNormals[i*3]);
+            AtVector* from = reinterpret_cast<AtVector*>(&triangulator().fMappedNormals[i*3]);        
+            *to = AiM4VectorByMatrixMult(*matrix, *from);
         }
     }
     else
@@ -472,9 +488,9 @@ void CArnoldPolymeshGeometry::GetSharedVertices(float* outVertices, const AtMatr
         // transform each vertex by the matrix.
         for (size_t i = 0, size = SharedVertexCount(); i < size; ++i)
         {
-            AtPoint* to = reinterpret_cast<AtPoint*>(&outVertices[i*3]);
-            AtPoint* from = reinterpret_cast<AtPoint*>(&triangulator().fMappedPositions[i*3]);
-            AiM4PointByMatrixMult(to, *matrix, from);
+            AtVector* to = reinterpret_cast<AtVector*>(&outVertices[i*3]);
+            AtVector* from = reinterpret_cast<AtVector*>(&triangulator().fMappedPositions[i*3]);
+            *to = AiM4PointByMatrixMult( *matrix, *from);
         }
     }
     else
@@ -489,21 +505,21 @@ size_t CArnoldPolymeshGeometry::SharedVertexCount() const
 CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {   
    AtArray* points = AiNodeGetArray(node, "points");
-   
-   if ((points != 0) && points->nelements > 0)
+   unsigned nelements = (points != 0) ? AiArrayGetNumElements(points) : 0;
+   if (nelements > 0)
    {
-      m_points.resize(points->nelements);
-      for (AtUInt32 i = 0; i < points->nelements; ++i)
+      m_points.resize(nelements);
+      for (unsigned i = 0; i < nelements; ++i)
       {
          AtVector pnt = AiArrayGetVec(points, i);
          
-         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         m_BBMin.x = AiMin(m_BBMin.x, pnt.x);
+         m_BBMin.y = AiMin(m_BBMin.y, pnt.y);
+         m_BBMin.z = AiMin(m_BBMin.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+         m_BBMax.x = AiMax(m_BBMax.x, pnt.x);
+         m_BBMax.y = AiMax(m_BBMax.y, pnt.y);
+         m_BBMax.z = AiMax(m_BBMax.z, pnt.z);
          
          m_points[i] = pnt;
       }
@@ -550,19 +566,17 @@ void CArnoldPointsGeometry::GetPoints(float* vertices, const AtMatrix* matrix) c
     {
         for (unsigned int i = 0; i < m_points.size(); ++i)
         {
-            AtPoint* vertex = reinterpret_cast<AtPoint*>(&vertices[i*3]);
-            AiM4PointByMatrixMult(vertex, *matrix, &m_points[i]);   
+            AtVector* vertex = reinterpret_cast<AtVector*>(&vertices[i*3]);
+            *vertex = AiM4PointByMatrixMult(*matrix, m_points[i]);   
         }
     }
     else
         memcpy(&vertices[0], &m_points[0][0], m_points.size()*3*sizeof(float));
 }
 
-CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMatrix m, bool i) :
-   p_geom(g), m_inheritXForm(i)
-{
-   AiM4Copy(m_matrix, m);
-}
+CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, const AtMatrix &m, bool i) :
+   p_geom(g), m_matrix(m), m_inheritXForm(i)
+{}
 
 CArnoldStandInGInstance::~CArnoldStandInGInstance()
 {
@@ -579,16 +593,20 @@ void CArnoldStandInGInstance::Draw(int DrawMode)
 
 MBoundingBox CArnoldStandInGInstance::GetBBox() const
 {
+   MMatrix mmtx;
+   // FIXME Arnold5 make sure this is the right thing
+   memcpy(&mmtx, &(m_matrix[0][0]), 16 * sizeof(float));
+
    if (m_inheritXForm)
    {
       MBoundingBox bbox = p_geom->GetBBox();
-      bbox.transformUsing(MMatrix(m_matrix));
+      bbox.transformUsing(mmtx);
       return bbox;
    }
    else
    {
       MBoundingBox bbox = p_geom->GetBBox(false);
-      bbox.transformUsing(MMatrix(m_matrix));
+      bbox.transformUsing(mmtx);
       return bbox;
    }
 }
@@ -605,8 +623,8 @@ const CArnoldStandInGeometry& CArnoldStandInGInstance::GetGeometry() const
 
 CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {
-   m_BBMin = AiNodeGetPnt(node, "min");
-   m_BBMax = AiNodeGetPnt(node, "max");
+   m_BBMin = AiNodeGetVec(node, "min");
+   m_BBMax = AiNodeGetVec(node, "max");
 }
 
 CArnoldProceduralGeometry::~CArnoldProceduralGeometry()
@@ -636,8 +654,8 @@ void CArnoldProceduralGeometry::DrawNormalAndPolygons() const
 
 CArnoldBoxGeometry::CArnoldBoxGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {
-   m_BBMin = AiNodeGetPnt(node, "min");
-   m_BBMax = AiNodeGetPnt(node, "max");
+   m_BBMin = AiNodeGetVec(node, "min");
+   m_BBMax = AiNodeGetVec(node, "max");
 }
 
 CArnoldBoxGeometry::~CArnoldBoxGeometry()

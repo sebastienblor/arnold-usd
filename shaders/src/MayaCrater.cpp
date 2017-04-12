@@ -35,29 +35,30 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
-   AiParameterFLT("shaker", 1.5f);
+   AiParameterFlt("shaker", 1.5f);
    AiParameterRGB("channel1", 1.0f, 0.0f, 0.0f);
    AiParameterRGB("channel2", 0.0f, 1.0f, 0.0f);
    AiParameterRGB("channel3", 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("melt", 0.0f);
-   AiParameterFLT("balance", 0.0f);
-   AiParameterFLT("frequency", 1.5f);
+   AiParameterFlt("melt", 0.0f);
+   AiParameterFlt("balance", 0.0f);
+   AiParameterFlt("frequency", 1.5f);
 
-   AiParameterFLT("normDepth", 5.0f);
-   AiParameterFLT("normMelt", 0.0f);
-   AiParameterFLT("normBalance", 1.0f);
-   AiParameterFLT("normFrequency", 1.0f);
+   AiParameterFlt("normDepth", 5.0f);
+   AiParameterFlt("normMelt", 0.0f);
+   AiParameterFlt("normBalance", 1.0f);
+   AiParameterFlt("normFrequency", 1.0f);
    
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "crater");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "crater");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaCrater");
+
 }
 
 node_initialize
@@ -78,12 +79,12 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
    
-   AtPoint P;
+   AtVector P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
    
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -167,8 +168,8 @@ shader_evaluate
                   outColor.b = 0.0f;
           }
 
-      AiRGBtoRGBA(outColor, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(outColor);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 
       melt = 2.0f * AiShaderEvalParamFlt(p_normMelt);
 
@@ -207,17 +208,17 @@ shader_evaluate
       sg->N = AiShaderGlobalsTransformPoint(sg, sg->N, 0);
       AiV3Normalize(sg->N); 
 
-      if (!AiV3Exists(sg->N))
+      if (!AiV3IsFinite(sg->N))
           sg->N = inNormal;
       else
       {
           sg->Nf = sg->N;
-          AiFaceViewer(sg, sg->Nf);
+          AiFaceViewer(sg);
       }
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

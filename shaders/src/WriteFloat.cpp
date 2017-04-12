@@ -9,7 +9,8 @@ enum WriteFloatParams
 {
    p_beauty,
    p_input,
-   p_name
+   p_name,
+   p_blend
 };
 
 
@@ -20,21 +21,22 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteFloatMtd);
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteFloat");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_WRITEFLOAT);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "writeFloat");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteFloat_rgba");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
-   AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("input", 0.0f);
-   AiParameterSTR("aov_name", "");
+   AiParameterRGBA("passthrough", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterFlt("aov_input", 0.0f);
+   AiParameterStr("aov_name", "");
+   AiParameterBool("blend_opacity", false);
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_beauty);
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamFlt(p_input));
+      AiAOVSetFlt(sg, AtString(AiShaderEvalParamStr(p_name)), AiShaderEvalParamFlt(p_input));
 }
 
 node_initialize
@@ -43,6 +45,9 @@ node_initialize
 
 node_update
 {
+   if (AiNodeGetBool(node, "blend_opacity"))
+      AiAOVRegister(AiNodeGetStr(node, "aov_name"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+
 }
 
 node_finish

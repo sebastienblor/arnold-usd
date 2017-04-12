@@ -31,7 +31,7 @@ using namespace XGenRenderAPI;
 
 // Forward Decl
 struct AtNode;
-struct AtArray;
+
 struct XgMergedData;
 class XgMutex;
 
@@ -104,6 +104,10 @@ namespace XGenArnold
 
       std::vector<AtNode*> m_nodes;
       XgMergedData *m_merged_data;
+
+#ifdef XGEN_RENDER_API_PARALLEL
+      ParallelRenderer* m_parallel;
+#endif
 
       mutable std::map<std::string, bbox> m_bboxes;
       

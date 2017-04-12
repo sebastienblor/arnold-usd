@@ -20,8 +20,8 @@ AtVector RGBtoHSV(const AtRGB& inRgb)
    const float g = inRgb.g;
    const float b = inRgb.b;
 
-   const float min = MIN3(r, g, b);
-   const float max = MAX3(r, g, b);
+   const float min = AiMin(r, g, b);
+   const float max = AiMax(r, g, b);
    float delta = max - min;
 
    float h = 0.0f;
@@ -55,7 +55,7 @@ AtVector RGBtoHSV(const AtRGB& inRgb)
       }
    }
 
-   return AiVector(h,s,v);
+   return AtVector(h,s,v);
 }
 
 AtRGB HSVtoRGB(const AtVector& inHsv)
@@ -66,7 +66,7 @@ AtRGB HSVtoRGB(const AtVector& inHsv)
 
    if ( s == 0.0f )
    {
-      return AiColor(v);
+      return AtRGB(v);
    }
    else
    {
@@ -84,18 +84,18 @@ AtRGB HSVtoRGB(const AtVector& inHsv)
       switch(i)
       {
          case 0:
-            return AiColor(v, t, p);
+            return AtRGB(v, t, p);
          case 1:
-            return AiColor(q, v, p);
+            return AtRGB(q, v, p);
          case 2:
-            return AiColor(p, v, t);
+            return AtRGB(p, v, t);
          case 3:
-            return AiColor(p, q, v);
+            return AtRGB(p, q, v);
          case 4:
-            return AiColor(t, p, v);
+            return AtRGB(t, p, v);
          case 5:
          default:
-            return AiColor(v, p, q);
+            return AtRGB(v, p, q);
       }
    }
 }

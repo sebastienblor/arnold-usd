@@ -22,13 +22,13 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaShadingEngineMtd);
 node_parameters
 {
    // Node metadata
-   //AiMetaDataSetStr(mds, NULL, "maya.name", "shadingEngine");
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "shadingEngine");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
-   AiParameterRGBA("beauty", 0.f, 0.f, 0.f, 0.f);
-   AiParameterRGB("volume", 0.f, 0.f, 0.f);
-   AiParameterARRAY("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
-   AiParameterARRAY("aov_names", AiArray(0, 0, AI_TYPE_STRING));
+   AiParameterClosure("beauty");
+   AiParameterClosure("volume");
+   AiParameterArray("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
+   AiParameterArray("aov_names", AiArray(0, 0, AI_TYPE_STRING));
    AiParameterBool("enable_matte", false);
    AiParameterRGBA("matte_color", 0.f, 0.f, 0.f, 0.f);
 }
@@ -37,17 +37,21 @@ shader_evaluate
 {
    if (sg->sc & AI_CONTEXT_VOLUME)
    {
-      sg->out.RGB = AiShaderEvalParamRGB(p_volume);
+      sg->out.CLOSURE() = AiShaderEvalParamClosure(p_volume);
       return;
    }
    if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))
    {
-      sg->out.RGBA = AiShaderEvalParamRGBA(p_matte_color);
+      AtRGBA matte_color = AiShaderEvalParamRGBA(p_matte_color);
+      AtClosureList closures;
+      closures.add(AiClosureEmission(sg, matte_color.rgb()));
+      closures.add(AiClosureMatte(sg, AtRGB(1 - matte_color.a)));
+      sg->out.CLOSURE() = closures;
       return;
    }
    AtArray *inputs = AiShaderEvalParamArray(p_aov_inputs);
 //   AtArray *names = AiShaderEvalParamArray(p_aov_names);
-//   if (inputs->nelements != names->nelements)
+//   if (AiArrayGetNumElements(inputs) != names->getNumElements())
 //   {
 //      AiMsgWarning("inputs and names are not the same length");
 //      return;
@@ -58,7 +62,7 @@ shader_evaluate
    }
    else if (sg->Rt & AI_RAY_CAMERA)
    {
-      for (unsigned int i = 0; (i < inputs->nelements); ++i)
+      for (unsigned int i = 0; (i < AiArrayGetNumElements(inputs)); ++i)
       {
          AtNode *input = MAiArrayGetNode(inputs, i);
          if (input != NULL)
@@ -78,31 +82,31 @@ shader_evaluate
             switch (type)
             {
                case AI_TYPE_BOOLEAN:
-                  AiAOVSetBool(sg, name, sg->out.BOOL);
+                  AiAOVSetBool(sg, name, sg->out.BOOL());
                   break;
                case AI_TYPE_INT:
-                  AiAOVSetInt(sg, name, sg->out.UINT);
+                  AiAOVSetInt(sg, name, sg->out.UINT());
                   break;
                case AI_TYPE_UINT:
-                  AiAOVSetInt(sg, name, sg->out.INT);
+                  AiAOVSetInt(sg, name, sg->out.INT());
                   break;
                case AI_TYPE_FLOAT:
-                  AiAOVSetFlt(sg, name, sg->out.FLT);
+                  AiAOVSetFlt(sg, name, sg->out.FLT());
                   break;
                case AI_TYPE_RGB:
-                  AiAOVSetRGB(sg, name, sg->out.RGB);
+                  AiAOVSetRGB(sg, name, sg->out.RGB());
                   break;
                case AI_TYPE_RGBA:
-                  AiAOVSetRGBA(sg, name, sg->out.RGBA);
+                  AiAOVSetRGBA(sg, name, sg->out.RGBA());
                   break;
                case AI_TYPE_VECTOR:
-                  AiAOVSetVec(sg, name, sg->out.VEC);
+                  AiAOVSetVec(sg, name, sg->out.VEC());
                   break;
-               case AI_TYPE_POINT:
-                  AiAOVSetPnt(sg, name, sg->out.PNT);
+               case AI_TYPE_VECTOR:
+                  AiAOVSetVec(sg, name, sg->out.VEC());
                   break;
-               case AI_TYPE_POINT2:
-                  AiAOVSetPnt2(sg, name, sg->out.PNT2);
+               case AI_TYPE_VECTOR2:
+                  AiAOVSetVec2(sg, name, sg->out.VEC2());
                   break;
                case AI_TYPE_NODE:
                case AI_TYPE_POINTER:
@@ -113,7 +117,7 @@ shader_evaluate
       }
    }
    // This must occur last because AiShaderEvaluate fills sg->out
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.CLOSURE() = AiShaderEvalParamClosure(p_beauty);
 }
 
 node_initialize

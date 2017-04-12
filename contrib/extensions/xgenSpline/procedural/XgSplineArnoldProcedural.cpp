@@ -24,9 +24,7 @@ public:
         , _numPoints(NULL)
         , _points(NULL)
         , _radius(NULL)
-        , _uCoord(NULL)
-        , _vCoord(NULL)
-        , _wCoord(NULL)
+        , _uvCoord(NULL)
         , _shader(NULL)
         , _aiMinPixelWidth(0.0f)
         , _aiMode(0)
@@ -74,7 +72,7 @@ private:
     {
         // Get the sample times
         AtArray* sampleTimes = AiNodeGetArray(procedural, "sampleTimes");
-        if (!sampleTimes || sampleTimes->nelements == 0)
+        if (!sampleTimes || AiArrayGetNumElements(sampleTimes) == 0)
         {
             AiMsgError("Invalid number of samples.");
             return false;
@@ -87,7 +85,8 @@ private:
         // Load samples
         // No motion blur : one sample at current frame
         // Motion blur    : one sample for each motion step
-        for (unsigned int i = 0; i < sampleTimes->nelements; i++)
+        unsigned nelements = AiArrayGetNumElements(sampleTimes);
+        for (unsigned int i = 0; i < nelements; i++)
         {
             // Get the time of the sample
             const float sampleTime = AiArrayGetFlt(sampleTimes, i);
@@ -103,18 +102,23 @@ private:
 
             // Get the spline data for i-th motion step
             AtArray* sampleData = AiNodeGetArray(procedural, dataParam.c_str());
-            if (!sampleData || sampleData->type != AI_TYPE_UINT) continue;
-            assert(sampleData->nkeys == 1); // The size may change so we don't use keys.
+            if (!sampleData || AiArrayGetType(sampleData) != AI_TYPE_UINT) continue;
 
             // Get the number of padding bytes
             const unsigned int padding = AiNodeGetUInt(procedural, paddingParam.c_str());
-            const size_t sampleSize = size_t(sampleData->nelements) * sizeof(unsigned int) - padding;
+            const size_t sampleSize = size_t(AiArrayGetNumElements(sampleData)) * sizeof(unsigned int) - padding;
 
             // Wrap the spline data as an input stream
             std::stringstream opaqueStrm;
-            opaqueStrm.write(reinterpret_cast<const char*>(sampleData->data), sampleSize);
-            opaqueStrm.flush();
-            opaqueStrm.seekp(0);
+            
+            void *arrayData = AiArrayMap(sampleData);
+            if (arrayData)
+            {
+                opaqueStrm.write(reinterpret_cast<const char*>(arrayData), sampleSize);
+                opaqueStrm.flush();
+                opaqueStrm.seekp(0);
+            }
+            AiArrayUnmap(sampleData);
 
             // Load the sample for i-th motion step
             if (!_splines.load(opaqueStrm, sampleSize, sampleTime))
@@ -156,12 +160,6 @@ private:
         // Curves mode ("thick", "ribbon", or "oriented")
         AiNodeSetStr(_curves, "mode", (_aiMode == 1) ? "thick" : "ribbon");
 
-        // (u, v) on patch
-        AiNodeDeclare(_curves, "uparamcoord", "uniform FLOAT");
-        AiNodeDeclare(_curves, "vparamcoord", "uniform FLOAT");
-
-        // (w) from root to tip
-        AiNodeDeclare(_curves, "wparamcoord", "varying FLOAT");
     }
 
     void fillCurves(AtNode* procedural)
@@ -183,19 +181,17 @@ private:
 
         // Allocate buffers for the curves
         _numPoints  = AiArrayAllocate(curveCount, 1, AI_TYPE_UINT);
-        _points     = AiArrayAllocate(pointInterpoCount, steps, AI_TYPE_POINT);
+        _points     = AiArrayAllocate(pointInterpoCount, steps, AI_TYPE_VECTOR);
         _radius     = AiArrayAllocate(pointCount, 1, AI_TYPE_FLOAT);
-        _uCoord     = AiArrayAllocate(curveCount, 1, AI_TYPE_FLOAT);
-        _vCoord     = AiArrayAllocate(curveCount, 1, AI_TYPE_FLOAT);
-        _wCoord     = AiArrayAllocate(pointInterpoCount, 1, AI_TYPE_FLOAT);
-
-        unsigned int*   numPoints   = reinterpret_cast<unsigned int*>(_numPoints->data);
-        SgVec3f*        points      = reinterpret_cast<SgVec3f*>(_points->data);
-        float*          radius      = reinterpret_cast<float*>(_radius->data);
-        float*          uCoord      = reinterpret_cast<float*>(_uCoord->data);
-        float*          vCoord      = reinterpret_cast<float*>(_vCoord->data);
-        float*          wCoord      = reinterpret_cast<float*>(_wCoord->data);
-
+        _uvCoord     = AiArrayAllocate(curveCount, 1, AI_TYPE_VECTOR2);
+        
+        // FIXME Arnold 5
+        // here we're doing AiNodeSetArray below, so we won't need to unMap the arrays
+        unsigned int*   numPoints   = reinterpret_cast<unsigned int*>(AiArrayMap(_numPoints));
+        SgVec3f*        points      = reinterpret_cast<SgVec3f*>(AiArrayMap(_points));
+        float*          radius      = reinterpret_cast<float*>(AiArrayMap(_radius));
+        SgVec2f*        uvCoord      = reinterpret_cast<SgVec2f*>(AiArrayMap(_uvCoord));
+        
         // Fill the array buffers for motion step 0
         for (XgItSpline splineIt = _splines.iterator(); !splineIt.isDone(); splineIt.next())
         {
@@ -216,24 +212,24 @@ private:
                 *numPoints++ = length + 2;
 
                 // Texcoord using the patch UV from the root point
-                *uCoord++ = patchUVs[offset][0];
-                *vCoord++ = patchUVs[offset][1];
+                *uvCoord++ = patchUVs[offset];
+                
 
                 // Add phantom points at the beginning
                 *points++ = phantomFirst(&positions[offset], length);
-                *wCoord++ = phantomFirst(&texcoords[offset], length)[1];
+                //*wCoord++ = phantomFirst(&texcoords[offset], length)[1];
 
                 // Copy varying data
                 for (unsigned int i = 0; i < length; i++)
                 {
                     *points++ = positions[offset + i];
                     *radius++ = width[offset + i] * 0.5f;
-                    *wCoord++ = texcoords[offset + i][1];
+                    //*wCoord++ = texcoords[offset + i][1];
                 }
 
                 // Add phantom points at the end
                 *points++ = phantomLast(&positions[offset], length);
-                *wCoord++ = phantomLast(&texcoords[offset], length)[1];
+                //*wCoord++ = phantomLast(&texcoords[offset], length)[1];
 
             } // for each primitive
         } // for each primitive batch
@@ -273,9 +269,7 @@ private:
         AiNodeSetArray(_curves, "num_points", _numPoints);
         AiNodeSetArray(_curves, "points", _points);
         AiNodeSetArray(_curves, "radius", _radius);
-        AiNodeSetArray(_curves, "uparamcoord", _uCoord);
-        AiNodeSetArray(_curves, "vparamcoord", _vCoord);
-        AiNodeSetArray(_curves, "wparamcoord", _wCoord);
+        AiNodeSetArray(_curves, "uvs", _uvCoord);
     }
 
     template<typename T>
@@ -302,10 +296,8 @@ private:
     AtArray*    _numPoints;
     AtArray*    _points;
     AtArray*    _radius;
-    AtArray*    _uCoord;
-    AtArray*    _vCoord;
-    AtArray*    _wCoord;
-
+    AtArray*    _uvCoord;
+    
     // Material
     AtNode*     _shader;
 
@@ -313,10 +305,17 @@ private:
     float       _aiMinPixelWidth;
     int         _aiMode;
 };
-
 // ============================================================================
 
-int Init(AtNode* node, void** user_ptr)
+
+AI_PROCEDURAL_NODE_EXPORT_METHODS(XgSplineProceduralMtd);
+
+
+node_parameters
+{
+}
+
+procedural_init
 {
     XgSplineProcedural* proc = new XgSplineProcedural();
     if (!proc->init(node))
@@ -328,32 +327,35 @@ int Init(AtNode* node, void** user_ptr)
     return proc ? 1 : 0;
 }
 
-int Cleanup(void* user_ptr)
+procedural_cleanup
 {
     delete reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return 1;
 }
-
-int NumNodes(void* user_ptr)
+procedural_num_nodes
 {
     XgSplineProcedural* proc = reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return proc ? proc->numNodes() : 0;
 }
 
-AtNode* GetNode(void* user_ptr, int i)
+procedural_get_node
 {
     XgSplineProcedural* proc = reinterpret_cast<XgSplineProcedural*>(user_ptr);
     return proc ? proc->getNode(i) : NULL;
 }
 
-} // namespace XgArnoldInternal
 
-proc_loader
+node_loader
 {
-    vtable->Init        = XgArnoldInternal::Init;
-    vtable->Cleanup     = XgArnoldInternal::Cleanup;
-    vtable->NumNodes    = XgArnoldInternal::NumNodes;
-    vtable->GetNode     = XgArnoldInternal::GetNode;
-    strcpy(vtable->version, AI_VERSION);
-    return 1;
+   if (i>0)
+      return false;
+
+   node->methods      = XgSplineProceduralMtd;
+   node->output_type  = AI_TYPE_NONE;
+   node->name         = "xgenProcedural";
+   node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
+   strcpy(node->version, AI_VERSION);
+   return true;
 }
+
+};

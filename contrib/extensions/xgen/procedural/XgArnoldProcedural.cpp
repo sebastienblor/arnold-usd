@@ -12,8 +12,14 @@
 
 using namespace XGenArnold;
 
-// Redirect Init/Cleanup/NumNodes/GetNode to our XGenArnoldProcedural class wrapped in the user data.
-static int Init( AtNode* node, void** user_ptr )
+AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
+
+node_parameters
+{
+	AiParameterStr("data", "");
+}
+
+procedural_init
 {
    //AiMsgInfo("[xgArnoldProcedural] Init()");
 
@@ -40,7 +46,7 @@ static int Init( AtNode* node, void** user_ptr )
 }
 
 // Cleanup
-static int Cleanup( void* user_ptr )
+procedural_cleanup
 {
    //AiMsgInfo("[xgArnoldProcedural] Cleanup()");
 
@@ -53,7 +59,7 @@ static int Cleanup( void* user_ptr )
 }
 
 // Get number of nodes
-static int NumNodes( void* user_ptr )
+procedural_num_nodes
 {
    //AiMsgInfo("[xgArnoldProcedural] NumNodes()");
 
@@ -64,7 +70,7 @@ static int NumNodes( void* user_ptr )
 }
 
 // Get the i_th node
-static AtNode* GetNode( void* user_ptr, int i )
+procedural_get_node
 {
    //AiMsgInfo("[xgArnoldProcedural] GetNode()");
 
@@ -80,16 +86,19 @@ extern "C"
 {
 #endif
 
-AI_EXPORT_LIB int ProcLoader(AtProcVtable *vtable)
-{
-   vtable->Init = Init;
-   vtable->Cleanup = Cleanup;
-   vtable->NumNodes = NumNodes;
-   vtable->GetNode = GetNode;
 
-   s_bCleanDescriptionCache = true;
-   sprintf(vtable->version, AI_VERSION);
-   return 1;
+node_loader
+{
+   if (i>0)
+      return false;
+
+   node->methods      = XgArnoldProceduralMtd;
+   node->output_type  = AI_TYPE_NONE;
+   node->name         = "xgen_procedural";
+   node->node_type    = AI_NODE_SHAPE_PROCEDURAL;
+   strcpy(node->version, AI_VERSION);
+
+   return true;
 }
 
 #ifdef __cplusplus

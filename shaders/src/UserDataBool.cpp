@@ -15,13 +15,14 @@ namespace
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataBool");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATA_BOOL);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataBool");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataBool");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATA_BOOL);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
-   AiParameterSTR("boolAttrName", "");
-   AiParameterBOOL("defaultValue", false);
+   AiParameterStr("boolAttrName", "");
+   AiParameterBool("defaultValue", false);
 }
 
 node_initialize
@@ -38,8 +39,7 @@ node_finish
 
 shader_evaluate
 {
-   const char* name = 0;
-   name = AiShaderEvalParamStr(p_boolAttrName);
+   AtString name = AtString(AiShaderEvalParamStr(p_boolAttrName));
    AtParamValue val;
    bool valid = false;
    
@@ -52,10 +52,10 @@ shader_evaluate
    // 1) we try to get the value of the CORRECT type
    // 2) if it doesn't succeed, then get the type and the value
 
-   if (AiUDataGetBool(name, &val.BOOL))
+   if (AiUDataGetBool(name, val.BOOL()))
    {
       valid = true;
-      sg->out.BOOL = val.BOOL;
+      sg->out.BOOL() = val.BOOL();
    } else
    {   
       const AtUserParamEntry* pentry = AiUserGetParameterFunc(name, sg);
@@ -64,77 +64,77 @@ shader_evaluate
       switch (valueType)
       {
          case AI_TYPE_FLOAT:
-         if (AiUDataGetFlt(name, &val.FLT))
+         if (AiUDataGetFlt(name, val.FLT()))
          {
             valid = true;
-            sg->out.BOOL = (fabs(val.FLT) < AI_EPSILON);
+            sg->out.BOOL() = (fabs(val.FLT()) < AI_EPSILON);
          }
          break;
          case AI_TYPE_RGB:
-         if (AiUDataGetRGB(name, &val.RGB))
+         if (AiUDataGetRGB(name, val.RGB()))
          {
             valid = true;
-            sg->out.BOOL =
-               ((fabs(val.RGB.r) > AI_EPSILON) || 
-               (fabs(val.RGB.g) > AI_EPSILON) ||
-               (fabs(val.RGB.b) > AI_EPSILON));
+            sg->out.BOOL() =
+               ((fabs(val.RGB().r) > AI_EPSILON) || 
+               (fabs(val.RGB().g) > AI_EPSILON) ||
+               (fabs(val.RGB().b) > AI_EPSILON));
          }
          break;
          case AI_TYPE_RGBA:
-         if (AiUDataGetRGBA(name, &val.RGBA))
+         if (AiUDataGetRGBA(name, val.RGBA()))
          {
             valid = true;
-            sg->out.BOOL =
-               ((fabs(val.RGBA.r) > AI_EPSILON) ||
-               (fabs(val.RGBA.g) > AI_EPSILON) ||
-               (fabs(val.RGBA.b) > AI_EPSILON));
+            sg->out.BOOL() =
+               ((fabs(val.RGBA().r) > AI_EPSILON) ||
+               (fabs(val.RGBA().g) > AI_EPSILON) ||
+               (fabs(val.RGBA().b) > AI_EPSILON));
          }
          break;
          case AI_TYPE_BYTE:
-         if (AiUDataGetByte(name, &val.BYTE))
+         if (AiUDataGetByte(name, val.BYTE()))
          {
             valid = true;
-            sg->out.BOOL = (val.BYTE != 0);			
+            sg->out.BOOL() = (val.BYTE() != 0);			
          }
          break;
          case AI_TYPE_INT:
-         if (AiUDataGetInt(name, &val.INT))
+         if (AiUDataGetInt(name, val.INT()))
          {
             valid = true;
-            sg->out.BOOL = (val.INT != 0);			
+            sg->out.BOOL() = (val.INT() != 0);			
          }		 
          break;
          case AI_TYPE_UINT:
-         if (AiUDataGetUInt(name, &val.UINT))
+         if (AiUDataGetUInt(name, val.UINT()))
          {
             valid = true;
-            sg->out.BOOL = (val.UINT != 0);
+            sg->out.BOOL() = (val.UINT() != 0);
          }
          break;
          case AI_TYPE_BOOLEAN:
-         if (AiUDataGetBool(name, &val.BOOL))
+         if (AiUDataGetBool(name, val.BOOL()))
          {
             valid = true;
-            sg->out.BOOL = val.BOOL;			
+            sg->out.BOOL() = val.BOOL();			
          }
          break;
-         case AI_TYPE_POINT:
-         if (AiUDataGetPnt(name, &val.PNT))
+         case AI_TYPE_VECTOR:
+         if (AiUDataGetVec(name, val.VEC()))
          {
             valid = true;
-            sg->out.BOOL = 
-               ((fabs(val.PNT.x) > AI_EPSILON) || 
-               (fabs(val.PNT.y) > AI_EPSILON) ||
-               (fabs(val.PNT.z) > AI_EPSILON));
+            sg->out.BOOL() = 
+               ((fabs(val.VEC().x) > AI_EPSILON) || 
+               (fabs(val.VEC().y) > AI_EPSILON) ||
+               (fabs(val.VEC().z) > AI_EPSILON));
          }
          break;
-         case AI_TYPE_POINT2:
-         if (AiUDataGetPnt2(name, &val.PNT2))
+         case AI_TYPE_VECTOR2:
+         if (AiUDataGetVec2(name, val.VEC2()))
          {
             valid = true;
-            sg->out.BOOL = 
-               ((fabs(val.PNT2.x) > AI_EPSILON) || 
-               (fabs(val.PNT2.y) > AI_EPSILON));
+            sg->out.BOOL() = 
+               ((fabs(val.VEC2().x) > AI_EPSILON) || 
+               (fabs(val.VEC2().y) > AI_EPSILON));
          }
          break;
          default:
@@ -143,7 +143,7 @@ shader_evaluate
    }
    if (!valid)
    {
-      sg->out.BOOL = AiShaderEvalParamBool(p_defaultValue);
+      sg->out.BOOL() = AiShaderEvalParamBool(p_defaultValue);
    }
 }
 

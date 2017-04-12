@@ -7,17 +7,17 @@ class AEaiVolumeSampleRgbTemplate(ShaderAETemplate):
         
         self.beginLayout('Volume Sample RGB Attributes', collapse=False)
         self.addControl('channel')
-        self.addControl('position_offset')
+        self.addControl('positionOffset')
         self.addControl('interpolation')
         self.endLayout()
         
         self.beginLayout('Color Correction Attributes', collapse=False)
         
         self.addControl('gamma')
-        self.addControl('hue_shift')
+        self.addControl('hueShift')
         self.addControl('saturation')
         self.addControl('contrast')
-        self.addControl('contrast_pivot')
+        self.addControl('contrastPivot')
         self.addControl('exposure')
         self.addControl('multiply')
         self.addControl('add')

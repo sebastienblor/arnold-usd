@@ -3,14 +3,21 @@
 #include "translators/NodeTranslator.h"
 #include "render/AOV.h"
 
+class CDriverTranslator;
+
 struct CAOVOutput
 {
+   CAOVOutput() : driver(NULL), filter(NULL), mergeAOVs(false), 
+      singleLayer(false), raw(false),  lightGroups(false), driverTranslator(NULL) {}
    AtNode* driver;
    AtNode* filter;
    bool mergeAOVs; // whether or not to split AOVs
    bool singleLayer;
    bool raw;
    MString prefix;
+   MString lpe;
+   bool lightGroups;
+   CDriverTranslator *driverTranslator;
 };
 
 struct CAOVOutputArray
@@ -68,10 +75,7 @@ protected:
                   const MPlug& filterPlug,
                   CAOVOutput& output);
    AtNode* ExportDriver(const MPlug& driverPlug,
-                        MString& prefix,
-                        bool& mergeAOVs,
-                        bool& singleLayer,
-                        bool& raw);
+                        CAOVOutput &output);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
    virtual void NodeChanged(MObject& node, MPlug& plug);

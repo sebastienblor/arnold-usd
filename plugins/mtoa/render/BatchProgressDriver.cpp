@@ -38,7 +38,7 @@ node_parameters
 
 node_initialize
 {
-   AiDriverInitialize(node, false, NULL);
+   AiDriverInitialize(node, false);
 }
 
 node_update
@@ -47,7 +47,6 @@ node_update
 
 node_finish
 {
-   AiDriverDestroy(node);
 }
 
 driver_supports_pixel_type

@@ -12,18 +12,16 @@ class AEaiThinFilmTemplate(ShaderAETemplate):
        
         self.beginScrollLayout()
         
-        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
-
         self.beginLayout('Thickness', collapse=False)
-        self.addControl('thickness_min', label='Min Thickness (nm)')
-        self.addControl('thickness_max', label='Max Thickness (nm)')
+        self.addControl('thicknessMin', label='Min Thickness (nm)')
+        self.addControl('thicknessMax', label='Max Thickness (nm)')
         self.addControl('thickness', label='Thickness')
         self.endLayout()
 
         self.beginLayout('IOR', collapse=False)
-        self.addControl('ior_medium', label='Medium IOR')
-        self.addControl('ior_film', label='Film IOR')
-        self.addControl('ior_internal', label='Internal IOR')       
+        self.addControl('iorMedium', label='Medium IOR')
+        self.addControl('iorFilm', label='Film IOR')
+        self.addControl('iorInternal', label='Internal IOR')       
         self.endLayout()
 
         # include/call base class/node attributes

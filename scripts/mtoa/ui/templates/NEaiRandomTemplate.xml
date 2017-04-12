@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiRandom'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='inputColor' type='maya.float3'>
+			<label>Input Color</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiRandom'>
+		<property name='outColor'/>
+		<property name='inputColor'/>
+	</view>
+</templates>

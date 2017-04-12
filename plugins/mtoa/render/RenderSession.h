@@ -12,8 +12,8 @@
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MThreadAsync.h>
 #include <maya/MComputation.h>
+#include <maya/MImage.h>
 
-class MImage;
 
 /** CRenderSession handles the management of Arnold and rendering.
  * 

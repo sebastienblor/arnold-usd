@@ -9,7 +9,7 @@ import pymel.versions as versions
 import maya.mel as mel
 
 BUILTIN_AOVS = (
-                ('P',                   'point'),
+                ('P',                   'vector'),
                 ('Z',                   'float'),
                 ('N',                   'vector'),
                 ('opacity',             'rgb'),
@@ -17,31 +17,47 @@ BUILTIN_AOVS = (
                 ('Pref',                'rgb'),
                 ('raycount',            'float'),
                 ('cputime',             'float'),
-                ('beauty',              'rgba'),
-                ('ID',                  'int'),
-                ('mesh_light_beauty',   'rgb'),
+                ('ID',                  'uint'),
+                ('RGBA',                'rgba'),
+                ('direct',              'rgb'),
+                ('indirect',            'rgb'),
+                ('emission',            'rgb'),
+                ('background',          'rgb'),
+                ('diffuse',             'rgb'),
+                ('specular',            'rgb'),
+                ('transmission',        'rgb'),
+                ('sss',                 'rgb'),
                 ('volume',              'rgb'),
-                ('volume_opacity',      'rgb'),
+                ('albedo',              'rgb'),
+                ('diffuse_direct',      'rgb'),
+                ('diffuse_indirect',    'rgb'),
+                ('diffuse_albedo',      'rgb'),
+                ('specular_direct',     'rgb'),
+                ('specular_indirect',   'rgb'),
+                ('specular_albedo',     'rgb'),
+                ('transmission_direct', 'rgb'),
+                ('transmission_indirect','rgb'),
+                ('transmission_albedo', 'rgb'),
+                ('sss_direct',          'rgb'),
+                ('sss_indirect',        'rgb'),
+                ('sss_albedo',          'rgb'),
                 ('volume_direct',       'rgb'),
                 ('volume_indirect',     'rgb'),
-                ('diffuse_albedo',      'rgb'),
-                ('shadow_matte',        'rgb')
+                ('volume_albedo',       'rgb'),
+                ('volume_opacity',      'rgb'),
+                ('shadow_matte',        'rgba')
 
-
-#                ('A',       'float'),
-#                ('OBJECT',  'node'),
-#                ('SHADER',  'node'),
                 )
 
 TYPES = (
     ("int",    arnold.ai_params.AI_TYPE_INT),
+    ("uint",    arnold.ai_params.AI_TYPE_UINT),
     ("bool",   arnold.ai_params.AI_TYPE_BOOLEAN),
     ("float",  arnold.ai_params.AI_TYPE_FLOAT),
     ("rgb",    arnold.ai_params.AI_TYPE_RGB),
     ("rgba",   arnold.ai_params.AI_TYPE_RGBA),
     ("vector", arnold.ai_params.AI_TYPE_VECTOR),
-    ("point",  arnold.ai_params.AI_TYPE_POINT),
-    ("point2", arnold.ai_params.AI_TYPE_POINT2),
+    ("vector2", arnold.ai_params.AI_TYPE_VECTOR2),
     ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
 defaultFiltersByName = {'Z' : 'closest', 'motion_vector' : 'closest', 'P' : 'closest', 'N' : 'closest', 'Pref' : 'closest', 'ID' : 'closest'}

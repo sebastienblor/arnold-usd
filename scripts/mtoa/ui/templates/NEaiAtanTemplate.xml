@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiAtan'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='x' type='maya.float3'>
+			<label>X</label>
+		</attribute>
+		<attribute name='y' type='maya.float3'>
+			<label>Y</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiAtan'>
+		<property name='outColor'/>
+		<property name='x'/>
+		<property name='y'/>
+	</view>
+</templates>

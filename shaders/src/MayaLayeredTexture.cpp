@@ -139,7 +139,7 @@ namespace
 
 AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
 {
-   AtRGBA result = AI_RGBA_BLACK;
+   AtRGBA result = AI_RGBA_ZERO;
    bool finished = false;
 
    for (int i = start; i < end && !finished; ++i)
@@ -147,7 +147,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
       if (AiShaderEvalParamBool(p_visible0+i) == false)   // Disabled, skip
          continue;
 
-      AtRGBA color = AI_RGBA_BLACK;
+      AtRGBA color = AI_RGBA_ZERO;
       float alpha = 0.0f;
       int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
 
@@ -247,7 +247,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
@@ -275,7 +275,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
@@ -303,16 +303,16 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
                {
                   color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r += (MAX(color.r, bottom.r)) * alpha * (1.0f - tmpa);
-                  result.g += (MAX(color.g, bottom.g)) * alpha * (1.0f - tmpa);
-                  result.b += (MAX(color.b, bottom.b)) * alpha * (1.0f - tmpa);
-                  result.a += (MAX(alpha, bottom.a)) * alpha * (1.0f - tmpa);
+                  result.r += (AiMax(color.r, bottom.r)) * alpha * (1.0f - tmpa);
+                  result.g += (AiMax(color.g, bottom.g)) * alpha * (1.0f - tmpa);
+                  result.b += (AiMax(color.b, bottom.b)) * alpha * (1.0f - tmpa);
+                  result.a += (AiMax(alpha, bottom.a)) * alpha * (1.0f - tmpa);
                }
                if (alpha < 1.0f)
                {
@@ -331,16 +331,16 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
                {
                   color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r += (MIN(color.r, bottom.r)) * alpha * (1.0f - tmpa);
-                  result.g += (MIN(color.g, bottom.g)) * alpha * (1.0f - tmpa);
-                  result.b += (MIN(color.b, bottom.b)) * alpha * (1.0f - tmpa);
-                  result.a += (MIN(alpha, bottom.a)) * alpha * (1.0f - tmpa);
+                  result.r += (AiMin(color.r, bottom.r)) * alpha * (1.0f - tmpa);
+                  result.g += (AiMin(color.g, bottom.g)) * alpha * (1.0f - tmpa);
+                  result.b += (AiMin(color.b, bottom.b)) * alpha * (1.0f - tmpa);
+                  result.a += (AiMin(alpha, bottom.a)) * alpha * (1.0f - tmpa);
                }
                if (alpha < 1.0f)
                {
@@ -359,7 +359,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
@@ -385,7 +385,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
@@ -411,7 +411,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
             if (result.a < 1.0f)
             {
                alpha = AiShaderEvalParamFlt(p_alpha0+i);
-               AtRGBA bottom = AI_RGBA_BLACK;
+               AtRGBA bottom = AI_RGBA_ZERO;
                bottom = process_layers(sg, node, i+1, end);
                float tmpa = result.a;
                if (alpha > 0.0f)
@@ -441,8 +441,8 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
 
 node_parameters
 {
-   AiParameterUINT("numInputs", 0);
-   AiParameterBOOL("alphaIsLuminance", false);
+   AiParameterUInt("numInputs", 0);
+   AiParameterBool("alphaIsLuminance", false);
    AiParameterRGBA("color0", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color1", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color2", 0.0f, 0.0f, 0.0f, 1.0f);
@@ -459,72 +459,72 @@ node_parameters
    AiParameterRGBA("color13", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color14", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color15", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("alpha0", 1.0f);
-   AiParameterFLT("alpha1", 1.0f);
-   AiParameterFLT("alpha2", 1.0f);
-   AiParameterFLT("alpha3", 1.0f); 
-   AiParameterFLT("alpha4", 1.0f);
-   AiParameterFLT("alpha5", 1.0f);
-   AiParameterFLT("alpha6", 1.0f);
-   AiParameterFLT("alpha7", 1.0f);
-   AiParameterFLT("alpha8", 1.0f);
-   AiParameterFLT("alpha9", 1.0f);
-   AiParameterFLT("alpha10", 1.0f);
-   AiParameterFLT("alpha11", 1.0f); 
-   AiParameterFLT("alpha12", 1.0f);
-   AiParameterFLT("alpha13", 1.0f);
-   AiParameterFLT("alpha14", 1.0f);
-   AiParameterFLT("alpha15", 1.0f);
-   AiParameterBOOL("colorConnectedToAlpha0", false);
-   AiParameterBOOL("colorConnectedToAlpha1", false);
-   AiParameterBOOL("colorConnectedToAlpha2", false);
-   AiParameterBOOL("colorConnectedToAlpha3", false);
-   AiParameterBOOL("colorConnectedToAlpha4", false);
-   AiParameterBOOL("colorConnectedToAlpha5", false);
-   AiParameterBOOL("colorConnectedToAlpha6", false);
-   AiParameterBOOL("colorConnectedToAlpha7", false);
-   AiParameterBOOL("colorConnectedToAlpha8", false);
-   AiParameterBOOL("colorConnectedToAlpha9", false);
-   AiParameterBOOL("colorConnectedToAlpha10", false);
-   AiParameterBOOL("colorConnectedToAlpha11", false);
-   AiParameterBOOL("colorConnectedToAlpha12", false);
-   AiParameterBOOL("colorConnectedToAlpha13", false);
-   AiParameterBOOL("colorConnectedToAlpha14", false);
-   AiParameterBOOL("colorConnectedToAlpha15", false);
-   AiParameterENUM("blendMode0", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode1", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode2", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode3", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode4", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode5", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode6", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode7", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode8", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode9", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode10", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode11", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode12", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode13", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode14", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode15", 0, gs_BlendModeNames);
-   AiParameterBOOL("visible0", false);
-   AiParameterBOOL("visible1", false);
-   AiParameterBOOL("visible2", false);
-   AiParameterBOOL("visible3", false);
-   AiParameterBOOL("visible4", false);
-   AiParameterBOOL("visible5", false);
-   AiParameterBOOL("visible6", false);
-   AiParameterBOOL("visible7", false);
-   AiParameterBOOL("visible8", false);
-   AiParameterBOOL("visible9", false);
-   AiParameterBOOL("visible10", false);
-   AiParameterBOOL("visible11", false);
-   AiParameterBOOL("visible12", false);
-   AiParameterBOOL("visible13", false);
-   AiParameterBOOL("visible14", false);
-   AiParameterBOOL("visible15", false);
+   AiParameterFlt("alpha0", 1.0f);
+   AiParameterFlt("alpha1", 1.0f);
+   AiParameterFlt("alpha2", 1.0f);
+   AiParameterFlt("alpha3", 1.0f); 
+   AiParameterFlt("alpha4", 1.0f);
+   AiParameterFlt("alpha5", 1.0f);
+   AiParameterFlt("alpha6", 1.0f);
+   AiParameterFlt("alpha7", 1.0f);
+   AiParameterFlt("alpha8", 1.0f);
+   AiParameterFlt("alpha9", 1.0f);
+   AiParameterFlt("alpha10", 1.0f);
+   AiParameterFlt("alpha11", 1.0f); 
+   AiParameterFlt("alpha12", 1.0f);
+   AiParameterFlt("alpha13", 1.0f);
+   AiParameterFlt("alpha14", 1.0f);
+   AiParameterFlt("alpha15", 1.0f);
+   AiParameterBool("colorConnectedToAlpha0", false);
+   AiParameterBool("colorConnectedToAlpha1", false);
+   AiParameterBool("colorConnectedToAlpha2", false);
+   AiParameterBool("colorConnectedToAlpha3", false);
+   AiParameterBool("colorConnectedToAlpha4", false);
+   AiParameterBool("colorConnectedToAlpha5", false);
+   AiParameterBool("colorConnectedToAlpha6", false);
+   AiParameterBool("colorConnectedToAlpha7", false);
+   AiParameterBool("colorConnectedToAlpha8", false);
+   AiParameterBool("colorConnectedToAlpha9", false);
+   AiParameterBool("colorConnectedToAlpha10", false);
+   AiParameterBool("colorConnectedToAlpha11", false);
+   AiParameterBool("colorConnectedToAlpha12", false);
+   AiParameterBool("colorConnectedToAlpha13", false);
+   AiParameterBool("colorConnectedToAlpha14", false);
+   AiParameterBool("colorConnectedToAlpha15", false);
+   AiParameterEnum("blendMode0", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode1", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode2", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode3", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode4", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode5", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode6", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode7", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode8", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode9", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode10", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode11", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode12", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode13", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode14", 0, gs_BlendModeNames);
+   AiParameterEnum("blendMode15", 0, gs_BlendModeNames);
+   AiParameterBool("visible0", false);
+   AiParameterBool("visible1", false);
+   AiParameterBool("visible2", false);
+   AiParameterBool("visible3", false);
+   AiParameterBool("visible4", false);
+   AiParameterBool("visible5", false);
+   AiParameterBool("visible6", false);
+   AiParameterBool("visible7", false);
+   AiParameterBool("visible8", false);
+   AiParameterBool("visible9", false);
+   AiParameterBool("visible10", false);
+   AiParameterBool("visible11", false);
+   AiParameterBool("visible12", false);
+   AiParameterBool("visible13", false);
+   AiParameterBool("visible14", false);
+   AiParameterBool("visible15", false);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -543,7 +543,7 @@ shader_evaluate
 {
    unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
 
-   AtRGBA result = AI_RGBA_BLACK;
+   AtRGBA result = AI_RGBA_ZERO;
 
    if (numInputs > 0)
    {
@@ -554,5 +554,5 @@ shader_evaluate
    {
       result.a = Luminance(result); // NTSC luminance
    }
-   sg->out.RGBA = result;
+   sg->out.RGBA() = result;
 }

@@ -36,12 +36,15 @@
     <attrString n="im" s="defaultRenderGlobals.imageFilePrefix" t="filename" h="Image file output name"/>
     <attr n="rt" s="defaultArnoldRenderOptions.renderType" t="int" h="Render type (0 = render, 1 = export ass, 2 = export and kick)"/>
     <mel n="lic" p="1" s="setAttr defaultArnoldRenderOptions.skipLicenseCheck (!(int(%1)))" t="boolean" h="Turn licensing on or off"/>
+    <attrString n="of" s="defaultArnoldDriver.aiTranslator" t="format" h="Output image file format. See the Render Settings window to\n\tfind available formats"/>
+    <mel n="fnc" s='setMayaSoftwareFrameExt("%1", 1)' p="1" t="int" h="File Name Convention: any of name, name.ext, ... See the\n\tRender Settings window to find available options. Use namec and\n\tnamec.ext for Multi Frame Concatenated formats. As a shortcut,\n\tnumbers 1, 2, ... can also be used"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Frame numbering options"/>
     <mel n="s" p="1" t="float" s="removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.animation; setAttr defaultRenderGlobals.animation 1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.startFrame; setAttr defaultRenderGlobals.startFrame %1" h="Starting frame for an animation sequence"/>
     <mel n="e" p="1" t="float" s="removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.animation; setAttr defaultRenderGlobals.animation 1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.endFrame; setAttr defaultRenderGlobals.endFrame %1" h="End frame for an animation sequence"/>
     <attr n="b" s="defaultRenderGlobals.byFrameStep" t="float" h="By frame (or step) for an animation sequence"/>
+    <attr n="skipExistingFrames" s="defaultRenderGlobals.skipExistingFrames" t="boolean" h="Skip frames that are already rendered (if true) or force rendering all frames (if false)"/>
     <attr n="pad" s="defaultRenderGlobals.extensionPadding" t="int" h="Number of digits in the output image frame file name\n\t\t    extension"/>
     <sep/>
     <!-- ______________________________________________________________ -->
@@ -71,8 +74,8 @@
     <sep desc="Samples options"/>
     <attr n="ai:as" s="defaultArnoldRenderOptions.AASamples" t="int" h="Set anti-aliasing samples"/>
     <attr n="ai:hs" s="defaultArnoldRenderOptions.GIDiffuseSamples" t="int" h="Set indirect diffuse samples"/>
-    <attr n="ai:gs" s="defaultArnoldRenderOptions.GIGlossySamples" t="int" h="Set indirect specular samples"/>
-    <attr n="ai:rs" s="defaultArnoldRenderOptions.GIRefractionSamples" t="int" h="Set refraction samples"/>
+    <attr n="ai:gs" s="defaultArnoldRenderOptions.GISpecularSamples" t="int" h="Set indirect specular samples"/>
+    <attr n="ai:rs" s="defaultArnoldRenderOptions.GITransmissionSamples" t="int" h="Set transmission samples"/>
     <attr n="ai:bssrdfs" s="defaultArnoldRenderOptions.sssBssrdfSamples" t="int" h="Number of SSS Samples."/>
     <sep/>
     <!-- ______________________________________________________________ -->
@@ -85,12 +88,10 @@
     <sep desc="Depth options"/>
     <attr n="ai:td" s="defaultArnoldRenderOptions.GITotalDepth" t="int" h="Set total depth."/>
     <attr n="ai:dif" s="defaultArnoldRenderOptions.GIDiffuseDepth" t="int" h="Set indirect diffuse depth."/>
-    <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set indirect specular depth."/>
-    <attr n="ai:rfl" s="defaultArnoldRenderOptions.GIReflectionDepth" t="int" h="Set reflection depth."/>
-    <attr n="ai:rfr" s="defaultArnoldRenderOptions.GIRefractionDepth" t="int" h="Set refraction depth."/>
+    <attr n="ai:glo" s="defaultArnoldRenderOptions.GISpecularDepth" t="int" h="Set indirect specular depth."/>
+    <attr n="ai:rfr" s="defaultArnoldRenderOptions.GITransmissionDepth" t="int" h="Set transmission depth."/>
     <attr n="ai:vol" s="defaultArnoldRenderOptions.GIVolumeDepth" t="int" h="Set volume GI depth."/>
     <attr n="ai:atd" s="defaultArnoldRenderOptions.autoTransparencyDepth" t="int" h="Set auto-transparency depth."/>
-    <attr n="ai:att" s="defaultArnoldRenderOptions.autoTransparencyThreshold" t="float" h="Set auto-transparency threshold."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Motion blur"/>
@@ -140,7 +141,7 @@
     <attr n="ai:txmof" s="defaultArnoldRenderOptions.textureMaxOpenFiles" t="int" h="Maximum number of opened textures."/>
     <attr n="ai:txpfs" s="defaultArnoldRenderOptions.texturePerFileStats" t="boolean" h="Per file texture stats."/>
     <attr n="ai:txdb" s="defaultArnoldRenderOptions.textureDiffuseBlur" t="float" h="Texture blur in diffuse rays."/>
-    <attr n="ai:txgb" s="defaultArnoldRenderOptioins.textureGlossyBlur" t="float" h="Texture blur in glossy rays."/>
+    <attr n="ai:txgb" s="defaultArnoldRenderOptions.textureSpecularBlur" t="float" h="Texture blur in specular rays."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Feature Overrides"/>
@@ -161,7 +162,7 @@
     <sep desc="Search Path"/>
     <attrString n="ai:sppg" s="defaultArnoldRenderOptions.plugins_path" t="string" h="Plugins search path."/>
     <attrString n="ai:sppr" s="defaultArnoldRenderOptions.procedural_searchpath" t="string" h="Procedurals search path."/>
-    <attrString n="ai:spsh" s="defaultArnoldRenderOptions.shader_searchpath" t="string" h="Shaders search path."/>
+    <attrString n="ai:spsh" s="defaultArnoldRenderOptions.plugin_searchpath" t="string" h="Plugin search path."/>
     <attrString n="ai:sptx" s="defaultArnoldRenderOptions.texture_searchpath" t="string" h="Textures search path."/>    
     <sep/>
     <!-- ______________________________________________________________ -->

@@ -7,22 +7,29 @@ class AEaiVolumeSampleFloatTemplate(ShaderAETemplate):
         
         self.beginLayout('Volume Sample Float Attributes', collapse=False)
         self.addControl('channel')
-        self.addControl('position_offset')
+        self.addControl('positionOffset')
         self.addControl('interpolation')
+        self.addControl('volumeType')
         self.endLayout()
+
+        self.beginLayout('Signed Distance Function', collapse=False)
+        self.addControl('sdfOffset', label='Offset')
+        self.addControl('sdfBlend', label='Blend')
+        self.addControl('sdfInvert', label='Invert')
+        self.endLayout()
+
         
         self.beginLayout('Remap Attributes', collapse=False)
-        
-        self.addControl('input_min')
-        self.addControl('input_max')
+        self.addControl('inputMin')
+        self.addControl('inputMax')
         self.addControl('contrast')
-        self.addControl('contrast_pivot')
+        self.addControl('contrastPivot')
         self.addControl('bias')
         self.addControl('gain')
-        self.addControl('output_min')
-        self.addControl('output_max')
-        self.addControl('clamp_min')
-        self.addControl('clamp_max')
+        self.addControl('outputMin')
+        self.addControl('outputMax')
+        self.addControl('clampMin')
+        self.addControl('clampMax')
         self.endLayout()
         
         pm.mel.AEdependNodeTemplate(self.nodeName)

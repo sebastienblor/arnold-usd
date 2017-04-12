@@ -82,10 +82,7 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
       AiNodeLink (ramp, "strand_opacity", shader);
    }
 
-   // Add shader uparam and vparam names.
-   AiNodeSetStr(shader, "uparam",   "uparamcoord");
-   AiNodeSetStr(shader, "vparam",   "vparamcoord");
-
+   
    // Add root and tip color.
    AiNodeSetStr(shader, "rootcolor","rootcolorparam");
    AiNodeSetStr(shader, "tipcolor", "tipcolorparam");
@@ -95,7 +92,6 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    ProcessParameter(shader, "gloss", AI_TYPE_FLOAT, "gloss");
    ProcessParameter(shader, "spec_color", AI_TYPE_RGB, "specularTint");
    ProcessParameter(shader, "ambdiff", AI_TYPE_FLOAT, "amb/diff");
-   ProcessParameter(shader, "diffuse_cache", AI_TYPE_BOOLEAN, "aiDiffuseCache");
    ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, "aiIndirect");
    ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, "aiDirectDiffuse");
    ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, "aiAovDirectDiffuse");
@@ -187,8 +183,8 @@ void CShaveTranslator::Export(AtNode* curve)
    
 
    // The U and V paramcoords array
-   AtArray* curveUParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_FLOAT);
-   AtArray* curveVParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_FLOAT);
+   AtArray* curveParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_VECTOR2);
+   
 
    for (int i = 0; i < m_hairInfo.numHairs; ++i)
    {
@@ -199,9 +195,8 @@ void CShaveTranslator::Export(AtNode* curve)
       AiArraySetInt(curveNumPoints, i, (numRenderLineCVs+2));
 
       // Set UV
-      AiArraySetFlt(curveUParamCoord, i, m_hairInfo.uvws[hairRootIndex].x);
-      AiArraySetFlt(curveVParamCoord, i, m_hairInfo.uvws[hairRootIndex].y);
-
+      AiArraySetVec2(curveParamCoord, i, m_hairInfo.uvws[hairRootIndex]);
+      
       // Root and tip colours for the ShaveHair shader.
       // TODO: Make exporting all the info for the ShaveHair shader an option.
       if (export_curve_color)
@@ -260,12 +255,8 @@ void CShaveTranslator::Export(AtNode* curve)
    AiNodeSetArray(curve, "points",                 curvePoints);
    AiNodeSetArray(curve, "radius",                 curveWidths);
 
-   // Add our extra attributes
-   AiNodeDeclare(curve, "uparamcoord",             "uniform FLOAT");
-   AiNodeDeclare(curve, "vparamcoord",             "uniform FLOAT");
-   AiNodeSetArray(curve, "uparamcoord",            curveUParamCoord);
-   AiNodeSetArray(curve, "vparamcoord",            curveVParamCoord);
-
+   AiNodeSetArray(curve, "uvs",            curveParamCoord);
+   
    // Finally add and set the hair color arrays as needed.
    if(export_curve_color)
    {
@@ -393,7 +384,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
          // a deeper rewriting of this code
          for (int j = 0; j < m_hairInfo.hairEndIndices[strand] - m_hairInfo.hairStartIndices[strand] + 2; ++j)
          {
-            AiArraySetPnt(curvePoints,
+            AiArraySetVec(curvePoints,
                     (curveLineInterpStartsIdx + j  + (step * numPointsPerStep)),
                     previousPoint);
 
@@ -412,7 +403,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       }
       
 
-      AtPoint arnoldCurvePoint;
+      AtVector arnoldCurvePoint;
       AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
      
 
@@ -506,7 +497,6 @@ void CShaveTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputNode(data);
 
    CExtensionAttrHelper helper2(context.maya, "ShaveHair");
-   helper2.MakeInput("diffuse_cache");
 
    helper2.MakeInput("direct_diffuse");
 

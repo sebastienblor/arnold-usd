@@ -20,25 +20,25 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteColorMtd);
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteColor");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_WRITECOLOR);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "writeColor");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteColor_rgba");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
-   AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterSTR("aov_name", "");
-   AiParameterBOOL("blend", false);
+   AiParameterRGBA("passthrough", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGB("aov_input", 0.0f, 0.0f, 0.0f);
+   AiParameterStr("aov_name", "");
+   AiParameterBool("blend_opacity", false);
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_beauty);
 
    if (sg->Rt & AI_RAY_CAMERA)
    {
-      const AtRGBA input = AiShaderEvalParamRGBA(p_input);
-      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), input);
+      const AtRGB input = AiShaderEvalParamRGB(p_input);
+      AiAOVSetRGB(sg, AtString(AiShaderEvalParamStr(p_name)), input);
    }
 }
 
@@ -48,7 +48,7 @@ node_initialize
 
 node_update
 {
-   if (AiNodeGetBool(node, "blend"))
+   if (AiNodeGetBool(node, "blend_opacity"))
       AiAOVRegister(AiNodeGetStr(node, "aov_name"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 

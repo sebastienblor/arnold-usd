@@ -124,8 +124,8 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       m_renderOptions.SetupLog();
       ArnoldUniverseLoadPluginsAndMetadata();
 
-      // load plugins from the render options' shader_searchpath (#1391)
-      AiLoadPlugins(m_renderOptions.GetShaderSearchPath().asChar());
+      // load plugins from the render options' plugin_searchpath (#1391)
+      AiLoadPlugins(m_renderOptions.GetPluginSearchPath().asChar());
    }
    
    m_is_active = AiUniverseIsActive() ? true : false;
@@ -397,7 +397,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    if (num_aa_samples == 0)
       num_aa_samples = 1;
    const int progressive_start = renderSession->m_renderOptions.isProgressive() ? 
-                                 MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
+                                 AiMin(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
                                  : num_aa_samples;
    int ai_status(AI_SUCCESS);
    CMayaScene::ExecuteScript(IPRRefinementStarted, false, true);
@@ -770,11 +770,10 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
 #ifdef MTOA_ENABLE_GAMMA
    float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
-#else
-   float gamma = 1.f;
+   AiNodeSetFlt(render_view, "gamma", gamma);
 #endif
 
-   AiNodeSetFlt(render_view, "gamma", gamma);
+   
 
    AtNode* filter = AiNode("gaussian_filter");
    AiNodeSetStr(filter, "name", "swatch_renderview_filter");

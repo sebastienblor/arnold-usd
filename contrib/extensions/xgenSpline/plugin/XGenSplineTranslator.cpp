@@ -19,7 +19,7 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
     CAttrData data;
 
-    data.defaultValue.FLT = 0.0f;
+    data.defaultValue.FLT() = 0.0f;
     data.name = "aiMinPixelWidth";
     data.shortName = "ai_min_pixel_width";
     helper.MakeInputFloat(data);
@@ -27,7 +27,7 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
     MStringArray curveTypeEnum;
     curveTypeEnum.append("Ribbon");
     curveTypeEnum.append("Thick");
-    data.defaultValue.INT = 0;
+    data.defaultValue.INT() = 0;
     data.name = "aiMode";
     data.shortName = "ai_mode";
     data.enums= curveTypeEnum;
@@ -36,12 +36,11 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CXgSplineDescriptionTranslator::CreateArnoldNodes()
 {
-    return AddArnoldNode("procedural");
+    return AddArnoldNode("xgenProcedural");
 }
 
 void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
 {  
-    static const std::string sDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgenSpline_procedural.so");
     MStatus status;
 
     MFnDagNode fnDagNode(m_dagPath);
@@ -73,9 +72,8 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
     // Set procedural parameters
     {
         AiNodeSetBool(procedural, "load_at_init", true);
-        AiNodeSetPnt(procedural, "min", -1.0f, -1.0f, -1.0f);
-        AiNodeSetPnt(procedural, "max",  1.0f,  1.0f,  1.0f);
-        AiNodeSetStr(procedural, "dso", sDSO.c_str());
+        AiNodeSetVec(procedural, "min", -1.0f, -1.0f, -1.0f);
+        AiNodeSetVec(procedural, "max",  1.0f,  1.0f,  1.0f);
     }
 
     // Export the sample frames

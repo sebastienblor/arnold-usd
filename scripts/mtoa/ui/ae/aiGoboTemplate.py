@@ -7,7 +7,7 @@ class AEaiGoboTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         
         self.beginLayout('Gobo Attributes', collapse=False)
-        self.addControl('filter_mode', label='Filter Mode')
+        self.addControl('filterMode', label='Filter Mode')
         self.addControl('slidemap', label='Slide Map')
         self.addControl('density', label='Density')
         self.endLayout()
@@ -15,10 +15,10 @@ class AEaiGoboTemplate(ShaderAETemplate):
         self.beginLayout('Placement Attributes', collapse=False)
         self.addControl('offset', label='Offset')
         self.addControl('rotate', label='Rotate')
-        self.addControl('scale_s', label='Scale S')
-        self.addControl('scale_t', label='Scale T')
-        self.addControl('wrap_s', label='Wrap S')
-        self.addControl('wrap_t', label='Wrap T')
+        self.addControl('sscale', label='Scale S')
+        self.addControl('tscale', label='Scale T')
+        self.addControl('swrap', label='Wrap S')
+        self.addControl('twrap', label='Wrap T')
         self.endLayout()
         
         pm.mel.AEdependNodeTemplate(self.nodeName)

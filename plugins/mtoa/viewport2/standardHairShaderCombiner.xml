@@ -1,0 +1,222 @@
+<fragment uiName="standardHairShaderCombiner" name="standardHairShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[Combines inputs for the hair shader.]]></description>
+    <properties>
+        <float3 name="diffuseInput" />
+        <float3 name="specularInput" />
+        <float3 name="emissionInput" />
+        <float3 name="B" />
+        <float name="diffuse" />
+        <float3 name="diffuseColor" />
+        <float name="roughness" />     
+        <float name="IOR" />
+        <float name="shift" />
+        <float3 name="specularTint" />
+        <float3 name="specularTint2" />
+        <float3 name="transmissionTint" />
+        <float3 name="transparency" />
+        <float name="indirectDiffuse" />
+        <float name="indirectSpecular" />
+        <float3 name="IrradianceEnv" />
+        <float3 name="SpecularEnv" />
+        <float3 name="matteColor" />
+        <float name="matteOpacity" />
+        <float name="fresnel" />
+    </properties>
+    <values>
+        <float3 name="B" value="1.0 1.0 1.0" />
+        <float name="diffuse" value="0.0" />
+        <float3 name="diffuseColor" value="0.0 0.0 0.0" />
+        <float name="IOR" value="1.5" />
+        <float name="fresnel" value="1.0" />
+        <float name="shift" value="2.2" />
+        <float3 name="specularTint" value="1.0 1.0 1.0" />
+        <float3 name="specularTint2" value="1.0 1.0 1.0" />
+        <float3 name="transmissionTint" value="1.0 1.0 1.0" />
+        <float3 name="transparency" value="0.0 0.0 0.0" />
+        <float name="indirectDiffuse" value="1.0" />
+        <float name="indirectSpecular" value="1.0" />
+        <float3 name="IrradianceEnv" value="0.0 0.0 0.0" />
+        <float3 name="SpecularEnv" value="0.0 0.0 0.0" />
+        <float3 name="matteColor" value="0.0 0.0 0.0" />
+        <float name="matteOpacity" value="1.0" />
+    </values>
+    <outputs>
+        <struct name="output" struct_name="mayaSurfaceShaderOutput" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="hairShaderCombiner" />
+            <source>
+                <![CDATA[     
+mayaSurfaceShaderOutput hairShaderCombiner(
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput,
+                float3 B,
+                float diffuse,
+                float3 diffuseColor,
+                float roughness,
+                float IOR,
+                float shift,
+                float3 specularTint,
+                float3 specular2Tint,
+                float3 transmissionTint,
+                float3 transparency,
+                float indirectDiffuse,
+                float indirectSpecular,
+                float3 IrradianceEnv,
+                float3 SpecularEnv,
+                float3 matteColor,
+                float matteOpacity,
+                float fresnel)
+{
+    mayaSurfaceShaderOutput result;
+
+    // calculate the total amount of irradiance
+    float3 irrad = diffuseInput + IrradianceEnv;
+    
+    float3 D = diffuse * diffuseColor;
+    
+    // combine the base color, the melanin contribution, and the transmission tint.
+    float3 color =  irrad * (1.0f - diffuse) * (B * transmissionTint);
+    
+    // include the non-physically based diffuse
+    color += irrad * D;
+    
+    // calculate and add the specular color
+    // we tone down the specular environment to simulate absorption.
+    float3 specular = (1.0f - diffuse) * (specularInput*(1.0-0.85*roughness) + SpecularEnv * .1); 
+
+    color += specular;
+    
+    // add the emission input
+    color += emissionInput;
+    
+    result.outColor = color;
+    result.outTransparency = transparency;
+    result.outGlowColor = float3(0.0,0.0,0.0);
+    result.outMatteOpacity = matteOpacity * matteColor;
+ 	  result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="hairShaderCombiner" />
+            <source>
+                 <![CDATA[
+mayaSurfaceShaderOutput hairShaderCombiner(
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput,
+                float3 B,
+                float diffuse,
+                float3 diffuseColor,
+                float roughness,
+                float IOR,
+                float shift,
+                float3 specularTint,
+                float3 specular2Tint,
+                float3 transmissionTint,
+                float3 transparency,
+                float indirectDiffuse,
+                float indirectSpecular,
+                float3 IrradianceEnv,
+                float3 SpecularEnv,
+                float3 matteColor,
+                float matteOpacity,
+                float fresnel)
+{
+    mayaSurfaceShaderOutput result;
+
+    // calculate the total amount of irradiance
+    float3 irrad = diffuseInput + IrradianceEnv;
+    
+    float3 D = diffuse * diffuseColor;
+    
+    // combine the base color, the melanin contribution, and the transmission tint.
+    float3 color =  irrad * (1.0f - diffuse) * (B * transmissionTint);
+    
+    // include the non-physically based diffuse
+    color += irrad * D;
+    
+    // calculate and add the specular color
+    // we tone down the specular environment to simulate absorption.
+    float3 specular = (1.0f - diffuse) * (specularInput*(1.0-0.85*roughness) + SpecularEnv * .1); 
+
+    color += specular;
+    
+    // add the emission input
+    color += emissionInput;
+    
+    result.outColor = color;
+    result.outTransparency = transparency;
+    result.outGlowColor = float3(0.0,0.0,0.0);
+    result.outMatteOpacity = matteOpacity * matteColor;
+ 	  result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
+            <function_name val="hairShaderCombiner" />
+            <source>
+                 <![CDATA[      
+mayaSurfaceShaderOutput hairShaderCombiner(
+                vec3 diffuseInput,
+                vec3 specularInput,
+                vec3 emissionInput,
+                vec3 B,
+                float diffuse,
+                vec3 diffuseColor,
+                float roughness,
+                float IOR,
+                float shift,
+                vec3 specularTint,
+                vec3 specular2Tint,
+                vec3 transmissionTint,
+                vec3 transparency,
+                float indirectDiffuse,
+                float indirectSpecular,
+                vec3 IrradianceEnv,
+                vec3 SpecularEnv,
+                vec3 matteColor,
+                float matteOpacity,
+                float fresnel)
+{
+    mayaSurfaceShaderOutput result;
+
+    // calculate the total amount of irradiance
+    vec3 irrad = diffuseInput + IrradianceEnv;
+    
+    vec3 D = diffuse * diffuseColor;
+    
+    // combine the base color, the melanin contribution, and the transmission tint.
+    vec3 color =  irrad * (1.0f - diffuse) * (B * transmissionTint);
+    
+    // include the non-physically based diffuse
+    color += irrad * D;
+    
+    // calculate and add the specular color
+    // we tone down the specular environment to simulate absorption.
+    vec3 specular = (1.0f - diffuse) * (specularInput*(1.0-0.85*roughness) + SpecularEnv * .1); 
+
+    color += specular;
+    
+    // add the emission input
+    color += emissionInput;
+    
+    result.outColor = color;
+    result.outTransparency = transparency;
+    result.outGlowColor = vec3(0.0,0.0,0.0);
+    result.outMatteOpacity = matteOpacity * matteColor;
+ 	  result.outSurfaceFinal = vec4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

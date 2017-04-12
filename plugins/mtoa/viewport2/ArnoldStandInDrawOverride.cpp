@@ -123,17 +123,17 @@ struct SArnoldStandInUserData : public MUserData{
         m_wireframeColor[3] = color.a;
 
         MFnDependencyNode depNode(objPath.node());
-        AtVector mn = {
+        AtVector mn (
             depNode.findPlug("MinBoundingBox0").asFloat(),
             depNode.findPlug("MinBoundingBox1").asFloat(),
             depNode.findPlug("MinBoundingBox2").asFloat()
-        };
+        );
 
-        AtVector mx = {
+        AtVector mx (
             depNode.findPlug("MaxBoundingBox0").asFloat(),
             depNode.findPlug("MaxBoundingBox1").asFloat(),
             depNode.findPlug("MaxBoundingBox2").asFloat()
-        };
+        );
 
         m_scale[0] = mx.x - mn.x;
         m_scale[1] = mx.y - mn.y;

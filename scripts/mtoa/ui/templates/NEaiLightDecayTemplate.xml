@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiLightDecay'>
+		<attribute name='outValue' type='maya.float'>
+			<label>Out Value</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiLightDecay'>
+		<property name='outValue'/>
+	</view>
+</templates>

@@ -31,16 +31,16 @@ node_parameters
 {
    AiParameterRGB("lineColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("fillerColor", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("uWidth", 0.1f);
-   AiParameterFLT("vWidth", 0.1f);
-   AiParameterFLT("contrast", 1.0);
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
-   AiParameterFLT("filter", 1.0f);
-   AiParameterFLT("filterOffset", 0.0f);
+   AiParameterFlt("uWidth", 0.1f);
+   AiParameterFlt("vWidth", 0.1f);
+   AiParameterFlt("contrast", 1.0);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
+   AddMayaColorBalanceParams(params, nentry);
+   AiParameterFlt("filter", 1.0f);
+   AiParameterFlt("filterOffset", 0.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "grid");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544744);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "grid");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544744);
 }
 
 node_initialize
@@ -53,10 +53,10 @@ node_update
    // should use globals as following Maya's behavior
    if (!AiNodeGetLink(node, "uvCoord"))
    {
-      AtPoint2 uv = AI_P2_ZERO;
+      AtVector2 uv = AI_P2_ZERO;
       if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
       if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-      AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+      AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
    }
 }
 
@@ -66,15 +66,15 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 uv;
-   uv = AiShaderEvalParamPnt2(p_uvCoord);
+   AtVector2 uv;
+   uv = AiShaderEvalParamVec2(p_uvCoord);
    // Will be set to GLOBALS by update if unconnected
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
    if (!IsValidUV(uv))
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       return;
    }
 
@@ -104,7 +104,7 @@ shader_evaluate
    AtRGB lc = Contrast(lineColor, fillerColor, cont);
    AtRGB fc = Contrast(fillerColor, lineColor, cont);
 
-   AiRGBtoRGBA(Mix(lc, fc, f), sg->out.RGBA);
-   sg->out.RGBA.a = 1.0f - f;
-   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+   sg->out.RGBA() = AtRGBA(Mix(lc, fc, f));
+   sg->out.RGBA().a = 1.0f - f;
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 }

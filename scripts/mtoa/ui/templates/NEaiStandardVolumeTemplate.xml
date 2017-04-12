@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiStandardVolume'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outAlpha' type='maya.float'>
+			<label>Out Alpha</label>
+		</attribute>
+		<attribute name='density' type='maya.float'>
+			<label>Density</label>
+		</attribute>
+		<attribute name='scatter' type='maya.float'>
+			<label>Scatter</label>
+		</attribute>
+		<attribute name='scatterColor' type='maya.float3'>
+			<label>Scatter Color</label>
+		</attribute>
+		<attribute name='transparent' type='maya.float3'>
+			<label>Transparent</label>
+		</attribute>
+		<attribute name='transparentDepth' type='maya.float'>
+			<label>Transparent Depth</label>
+		</attribute>
+		<attribute name='emission' type='maya.float'>
+			<label>Emission</label>
+		</attribute>
+		<attribute name='emissionColor' type='maya.float3'>
+			<label>Emission Color</label>
+		</attribute>
+		<attribute name='temperature' type='maya.float'>
+			<label>Temperature</label>
+		</attribute>
+		<attribute name='blackbodyKelvin' type='maya.float'>
+			<label>Blackbody Kelvin</label>
+		</attribute>
+		<attribute name='blackbodyIntensity' type='maya.float'>
+			<label>Blackbody Intensity</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiStandardVolume'>
+		<property name='outColor'/>
+		<property name='outAlpha'/>
+		<property name='density'/>
+		<property name='scatter'/>
+		<property name='scatterColor'/>
+		<property name='transparent'/>
+		<property name='transparentDepth'/>
+		<property name='emission'/>
+		<property name='emissionColor'/>
+		<property name='temperature'/>
+		<property name='blackbodyKelvin'/>
+		<property name='blackbodyIntensity'/>
+	</view>
+</templates>

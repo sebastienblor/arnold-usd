@@ -171,10 +171,15 @@ class MayaTestRunner(object):
     def fill_blacklist(self):
         # blacklist
         self.black_list = find_test_group('ignore')
+
         # Add tests intended for other platforms to the black list
         for o in system.get_valid_oses():
             if o != system.os():
                 self.black_list.extend(find_test_group(o))
+
+        ignore_os = 'ignore_' + system.os()
+
+        self.black_list.extend(find_test_group(ignore_os))
 
     def add_test(self, test_dir):
         test_name = os.path.basename(test_dir)
@@ -265,7 +270,9 @@ class MayaTestRunner(object):
         return True  # The test has been prepared and can be run
 
     def create_job(self):
-        job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'index.html')),
+        # we used to have index.html instead of dummy.html. But we don't actually want previous index.html 
+        # files to be removed (which happens when you fix independent tests after running a whole testsuite)
+        job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'dummy.html')),
                                 MTOA + MTOA_SHADERS + self.install_files, # + SHADERS,
                                 PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
                                 chdir = 1
@@ -332,6 +339,11 @@ class MayaTestRunner(object):
                 test_dir       = os.path.join(self.build_dir, test_name)
                 test_script = self.script
 
+
+                if not ' ' in test_env['MAYA_ROOT']:
+                    test_script = test_env['MAYA_ROOT'] +'/bin/' + test_script
+
+
                 # if a file test.mel is found, we want to run mayabatch with this script
                 # Note that we won't be loading the scene because it seems that the script is called before scene load.
                 # So it's the script itself that loads whatebver scene it wants
@@ -367,13 +379,18 @@ class MayaTestRunner(object):
             args = []
             for test_name in self.tests:
                 test_dir       = os.path.join(self.build_dir, test_name)
+                test_script = test_env['MAYA_ROOT']
+                test_script += '/bin/'
+                test_script += self.script
+
                 args.append((test_name,
                             lock,
                             test_dir,
-                            self.script,
+                            test_script,
                             self.output_image,
                             os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                             self.force_result,
+                            oiiotool_path,
                             test_env['UPDATE_REFERENCE'],
                             show_test_output,
                             test_env['COLOR_CMDS']) )
@@ -669,11 +686,12 @@ if __name__ == 'SCons.Script':
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
                 SRC = []
                 GUI_LIST = find_test_group('gui')
-                
-                for name in testlist:
+
+                for fullName in testlist:
+                    name = os.path.basename(fullName)
                     if name in GUI_LIST:
                         continue
-                    SRC += [os.path.join(os.path.basename(name), 'README')]
+                    SRC += [os.path.join(name, 'README')]
             else:
                 tags = r.split(',')
                 SRC = []
@@ -705,10 +723,11 @@ if __name__ == 'SCons.Script':
                 PATTERNS += [env['TEST_PATTERN']]
                 testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
                 GUI_LIST = find_test_group('gui')
-                for name in testlist:
+                for fullName in testlist:
+                    name = os.path.basename(fullName)
                     if name in GUI_LIST:
+                        print "Skipping GUI test \"%s\"" % name
                         continue
-                    name = os.path.basename(name)
                     testRunner.add_test(name)
             else:
                 # Target "testsuite:tag[,tag...]", runs all tests related to the given tag(s)

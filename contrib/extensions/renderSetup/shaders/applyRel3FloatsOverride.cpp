@@ -9,7 +9,7 @@ node_parameters
    AiParameterRGB("multiply", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("offset", 0.0f, 0.0f, 0.0f);
    AiParameterBool("enabled", false);
-   AiMetaDataSetStr(mds, NULL, "maya.name", "applyRel3FloatsOverride");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "applyRel3FloatsOverride");
 }
 
 IMPLEMENT_APPLY_REL_OVERRIDE_SHADER(RGB, AiShaderEvalParamRGB)

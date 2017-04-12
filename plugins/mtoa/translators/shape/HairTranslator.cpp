@@ -19,42 +19,38 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "primaryVisibility";
    data.shortName = "vis";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "castsShadows";
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = true;
-   data.name = "aiExportHairIDs";
-   data.shortName = "ai_export_hair_ids";
-   helper.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL = false;
+   
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportHairUVs";
    data.shortName = "ai_export_hair_uvs";
    helper.MakeInputBoolean(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiExportHairColors";
    data.shortName = "ai_export_hair_colors";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiOverrideHair";
    data.shortName = "ai_override_hair";
    helper.MakeInputBoolean(data);
 
    data.name = "aiHairShader";
    data.shortName = "ai_hair_shader";
-   data.defaultValue.RGB = AI_RGB_BLACK;
+   data.defaultValue.RGB() = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
 
-   data.defaultValue.FLT = 1.0f;
+   data.defaultValue.FLT() = 1.0f;
    data.name = "aiIndirectDiffuse";
    data.shortName = "aiIndirectDiffuse";
    helper.MakeInputFloat(data);
@@ -92,13 +88,6 @@ void CHairTranslator::Export( AtNode *curve )
 
    MPlug plug;  
    
-   plug = fnDepNodeHair.findPlug("aiExportHairIDs");
-   m_export_curve_id = true;
-   if (!plug.isNull())
-   {
-      m_export_curve_id = plug.asBool();
-   }
-   
    MStatus status;
    
    //ProcessRenderFlags(curve);
@@ -111,18 +100,23 @@ void CHairTranslator::Export( AtNode *curve )
    plug = fnDepNodeHair.findPlug("primaryVisibility");
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_CAMERA;
-   plug = fnDepNodeHair.findPlug("visibleInReflections");
+
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuseReflection");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_REFLECTED;
-   plug = fnDepNodeHair.findPlug("visibleInRefractions");
+      visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
+   plug = fnDepNodeHair.findPlug("aiVisibleInSpecularReflection");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_REFRACTED;
-   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuse");
+      visibility &= ~AI_RAY_SPECULAR_REFLECT;   
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuseTransmission");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_DIFFUSE;
-   plug = fnDepNodeHair.findPlug("aiVisibleInGlossy");
+      visibility &= ~AI_RAY_DIFFUSE_TRANSMIT;
+   plug = fnDepNodeHair.findPlug("aiVisibleInSpecularTransmission");
    if (!plug.isNull() && !plug.asBool())
-      visibility &= ~AI_RAY_GLOSSY;   
+      visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
+   plug = fnDepNodeHair.findPlug("aiVisibleInVolume");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_VOLUME;
+
    
    if (RequiresShaderExport())
    {
@@ -186,17 +180,7 @@ void CHairTranslator::Export( AtNode *curve )
          const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
          const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
 
-         // if any of the random parameters are not zero, we need to export the ids
-         // for the hashing functions
-         // export when either diffuseRand or specularRand is enabled
-         // AND when at least one of the components are randomized
-         // otherwise we won`t need the curve id data
-         if ((diffuseRandConnected || (AiNodeGetFlt(shader, "diffuseRand") > AI_EPSILON) ||
-             specularRandConnected || (AiNodeGetFlt(shader, "specularRand") > AI_EPSILON)) &&
-             (hueRandConnected || (AiNodeGetFlt(shader, "hueRand") > AI_EPSILON) ||
-             satRandConnected || (AiNodeGetFlt(shader, "satRand") > AI_EPSILON) ||
-             valRandConnected || (AiNodeGetFlt(shader, "valRand") > AI_EPSILON)))
-            m_export_curve_id = true;
+         
 
          MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale"), &status);
          if (status)
@@ -212,7 +196,7 @@ void CHairTranslator::Export( AtNode *curve )
             {
                MColor color(1.0, 1.0, 1.0, 1.0);
                rampAttr.getColorAtPosition((float)i * sampleFrequencyDiv, color);
-               AtRGB aColor = {(float)color.r , (float)color.g, (float)color.b};
+               AtRGB aColor ((float)color.r , (float)color.g, (float)color.b);
                AiArraySetRGB(rampArr, i, aColor);
             }
             AiNodeSetArray(shader, "hairColorScale", rampArr);
@@ -253,14 +237,12 @@ void CHairTranslator::Export( AtNode *curve )
    // until it returns a closest face as well as a closest point
    m_hasConnectedShapes = false;
    // The U and V param coords arrays
-   AtArray* curveUParamCoord = NULL;
-   AtArray* curveVParamCoord = NULL;
+   AtArray* curveParamCoord = NULL;
    MMatrix shapeTransform;
    if (m_export_curve_uvs)
    {
-      curveUParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_FLOAT);
-      curveVParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_FLOAT);
-
+      curveParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_VECTOR2);
+      
       // Get connected shapes
       MDagPathArray connectedShapes;
       GetHairShapeMeshes(hairSystemObject, connectedShapes);
@@ -277,15 +259,6 @@ void CHairTranslator::Export( AtNode *curve )
       }
    }
 
-   if (m_export_curve_id)
-   {
-      AtArray* curveID = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
-      for (unsigned int i = 0; i < numLines; ++i)
-         AiArraySetUInt(curveID, i, i);
-      AiNodeDeclare(curve, "curve_id", "uniform UINT");
-      AiNodeSetArray(curve, "curve_id", curveID);
-   }
-   
    plug = fnDepNodeHair.findPlug("aiExportHairColors");
    const bool exportCurveColors = plug.isNull() ? false : plug.asBool();
    
@@ -308,7 +281,7 @@ void CHairTranslator::Export( AtNode *curve )
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur
    // Is not enabled
-   AtArray* curvePoints = AiArrayAllocate(m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);   
+   AtArray* curvePoints = AiArrayAllocate(m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_VECTOR);   
    AtArray* curveNumPoints = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints, 1, AI_TYPE_FLOAT);
    
@@ -346,7 +319,7 @@ void CHairTranslator::Export( AtNode *curve )
          if (exportCurveColors)
          {
             MVector color = colors[j];
-            AtRGB aColor = {(float)color.x, (float)color.y, (float)color.z};
+            AtRGB aColor ((float)color.x, (float)color.y, (float)color.z);
             AiArraySetRGB(curveColors, id, aColor);
          }
          AiArraySetFlt(curveWidths, id, (float)widths[j] / 2.0f);
@@ -365,8 +338,8 @@ void CHairTranslator::Export( AtNode *curve )
          // TODO : leave an option to use exact but slow method?
          if (m_hasConnectedShapes)
             uvparam = GetHairRootUVs(line[0], m_mesh, shapeTransform);
-         AiArraySetFlt(curveUParamCoord, i, uvparam.x);
-         AiArraySetFlt(curveVParamCoord, i, uvparam.y);
+         AiArraySetVec2(curveParamCoord, i, uvparam);
+
       }
    }
    
@@ -381,10 +354,7 @@ void CHairTranslator::Export( AtNode *curve )
    
    if (m_export_curve_uvs)
    {
-      AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
-      AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
-      AiNodeSetArray(curve, "uparamcoord", curveUParamCoord);
-      AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
+      AiNodeSetArray(curve, "uvs", curveParamCoord);
    }
 
    // Hair specific Arnold render settings.

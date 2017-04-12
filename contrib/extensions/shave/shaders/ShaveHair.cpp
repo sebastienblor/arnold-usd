@@ -20,11 +20,8 @@ enum ShaveHairParams
    p_spec_color,
    p_spec,
    p_kd_ind,
-   p_uparam,
-   p_vparam,
    p_direct_diffuse,
    p_indirect_diffuse,
-   p_diffuse_cache,
    p_aov_direct_diffuse,
    p_aov_direct_specular,
    p_aov_indirect_diffuse
@@ -43,14 +40,11 @@ node_parameters
    AiParameterFLT(       "kd_ind"           , 1.0f);
    AiMetaDataSetFlt(mds, "kd_ind"           , "softmax", 10.0f);
    AiMetaDataSetFlt(mds, "kd_ind"           , "min",     0.0f);
-   AiParameterSTR(       "uparam"           , NULL);
-   AiParameterSTR(       "vparam"           , NULL);
    AiParameterFLT(       "direct_diffuse"   , 1.0f);
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "softmax", 1.0f);
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "min",     0.0f);
    AiParameterFLT(       "indirect_diffuse" , 1.0f);
-   AiParameterBOOL(      "diffuse_cache"    , true);
-
+   
    AiParameterSTR ( "aov_direct_diffuse"             , "direct_diffuse"    );
    AiMetaDataSetInt(mds, "aov_direct_diffuse"        , "aov.type", AI_TYPE_RGB);
    AiParameterSTR ( "aov_direct_specular"            , "direct_specular"   );
@@ -63,7 +57,6 @@ node_parameters
 
 typedef struct
 {
-   float              gamma;
    int                max_diffuse_depth;
 }
 ShaderData;
@@ -79,7 +72,7 @@ node_update
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    AtNode *options = AiUniverseGetOptions();
    data->max_diffuse_depth = AiNodeGetInt(options, "GI_diffuse_depth");
-   data->gamma = 1.0f / AiNodeGetFlt(options, "shader_gamma");
+
 }
 
 node_finish
@@ -112,15 +105,8 @@ shader_evaluate
    AtColor Cdiff = AI_RGB_BLACK;
    AtColor Cspec = AI_RGB_BLACK;
 
-   // change the current (u,v) position according to the specified userdata channels
-   float oldU = sg->u;
-   float oldV = sg->v;
 
    AtParamValue *params = AiNodeGetParams(node);
-
-   AiUDataGetFlt(params[p_uparam].STR, &(sg->u));
-   AiUDataGetFlt(params[p_vparam].STR, &(sg->v));
-   //float getGamma   = AiShaderEvalParamFlt(p_gamma);
    float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
    float gloss      = AiShaderEvalParamFlt(p_gloss) * 2000;
    float spec       = AiShaderEvalParamFlt(p_spec);
@@ -134,29 +120,15 @@ shader_evaluate
 
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
-   // FIXME: we need to gamma correct according to global settings
    AiUDataGetRGB(params[p_rootcolor].STR, &root_color);
    AiUDataGetRGB(params[p_tipcolor].STR, &tip_color);
 
-   AiColorGamma(&root_color, data->gamma);
-   AiColorGamma(&tip_color, data->gamma);
-
-   // restore original (u,v)
-   sg->u = oldU;
-   sg->v = oldV;
+   
 
    // mix root and tip colors
    AtColor diff_color;
    AiColorLerp(diff_color, sg->v, root_color, tip_color);
-
-   if (AiShaderEvalParamBool(p_diffuse_cache) && (sg->Rt & AI_RAY_DIFFUSE))
-   {
-      // quick viz
-      Cdiff = AiHairDirectDiffuseCache(sg);
-      sg->out.RGB = Cdiff * diff_color;
-      return;
-   }
-
+   
    // Since the curves are represented as ray-facing ribbons
    // their normal is usually pointing roughly towards the incoming ray
    // - but not always. It can have discontinuities - which then causes

@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiComplexIor'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='reflectivity' type='maya.float3'>
+			<label>Reflectivity</label>
+		</attribute>
+		<attribute name='edgetint' type='maya.float3'>
+			<label>Edgetint</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiComplexIor'>
+		<property name='outColor'/>
+		<property name='reflectivity'/>
+		<property name='edgetint'/>
+	</view>
+</templates>

@@ -34,10 +34,12 @@ const char* enum_component[] =
 
 node_parameters
 {
-   AiParameterVEC("input", 0, 0, 0);
-   AiParameterENUM("component", CH_LENGTH, enum_component);
+   AiParameterVec("input", 0, 0, 0);
+   AiParameterEnum("component", CH_LENGTH, enum_component);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "vectorToFloat");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiVectorToFloat");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
@@ -59,17 +61,17 @@ shader_evaluate
    switch (component)
    {
    case CH_X:
-      sg->out.FLT = vector.x;
+      sg->out.FLT() = vector.x;
       break;
    case CH_Y:
-      sg->out.FLT = vector.y;
+      sg->out.FLT() = vector.y;
       break;
    case CH_Z:
-      sg->out.FLT = vector.z;
+      sg->out.FLT() = vector.z;
       break;
    case CH_LENGTH:
    default:
-      sg->out.FLT = AiV3Length(vector);
+      sg->out.FLT() = AiV3Length(vector);
       break;
    }
 }

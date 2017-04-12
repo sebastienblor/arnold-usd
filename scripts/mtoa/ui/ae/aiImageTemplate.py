@@ -6,9 +6,15 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import maya.mel as mel
 
 class AEaiImageTemplate(ShaderAETemplate):
-    def filenameEdit(self, mData) :
+    def filenameEdit(self, newFilename) :
         attr = self.nodeAttr('filename')
-        cmds.setAttr(attr,mData,type="string")
+        cmds.setAttr(attr, newFilename, type="string")
+        attr = self.nodeAttr('colorSpace')
+        ignoreFileRules =  cmds.getAttr(self.nodeAttr('ignoreColorSpaceFileRules'))
+
+        # if ignoreFileRules is enabled, we don't want to update the color space (#2843)
+        if ignoreFileRules == 0:
+            cmds.setAttr(attr, cmds.colorManagementFileRules(evaluate=newFilename), type="string")
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'All Files (*.*)'
@@ -92,8 +98,8 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("autoTx", label="Auto-generate TX Textures")
         self.addSeparator()
         
-        self.addControl("ignoreMissingTiles", label="Ignore Missing Tiles")
-        self.addControl("missingTileColor", label="Missing Tile Color")
+        self.addControl("ignoreMissingTextures", label="Ignore Missing Textures")
+        self.addControl("missingTextureColor", label="Missing Texture Color")
         self.endLayout()
         
         self.beginLayout("UV Coordinates", collapse=True)

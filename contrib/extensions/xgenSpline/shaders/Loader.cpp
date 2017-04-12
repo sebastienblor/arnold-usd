@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-extern AtNodeMethods* XGenHairMappingMtd;
+extern const AtNodeMethods* XGenHairMappingMtd;
 
 enum {
     SHADER_XGEN_HAIRMAPPING = 0
@@ -14,7 +14,7 @@ node_loader
     {
     case SHADER_XGEN_HAIRMAPPING:
         node->methods      = XGenHairMappingMtd;
-        node->output_type  = AI_TYPE_POINT2;
+        node->output_type  = AI_TYPE_VECTOR2;
         node->name         = "XGenHairMapping";
         node->node_type    = AI_NODE_SHADER;
         break;

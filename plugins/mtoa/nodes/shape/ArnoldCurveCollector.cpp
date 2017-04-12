@@ -122,12 +122,6 @@ MStatus CArnoldCurveCollector::initialize()
    data.type = AI_TYPE_STRING;   
    s_attributes.MakeInput(data);
 
-   data.defaultValue.BOOL = false;
-   data.name = "aiExportHairIDs";
-   data.shortName = "ai_export_hair_ids";
-   s_attributes.MakeInputBoolean(data);
-
-
    MRampAttribute rAttr;
    s_widthProfile = rAttr.createCurveRamp("aiWidthProfile", "wdthP");
    addAttribute(s_widthProfile);

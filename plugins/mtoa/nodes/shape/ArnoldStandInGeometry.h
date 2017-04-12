@@ -135,7 +135,7 @@ private:
    AtMatrix m_matrix;
    bool m_inheritXForm;
 public:
-   CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMatrix m, bool i);
+   CArnoldStandInGInstance(CArnoldStandInGeometry* g, const AtMatrix &m, bool i);
    ~CArnoldStandInGInstance();
 
    void Draw(int drawMode);

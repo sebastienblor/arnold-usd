@@ -20,7 +20,8 @@
 #include <maya/MPointArray.h>
 #include <maya/MFloatVectorArray.h>
 #include <maya/MUintArray.h>
-class MObject;
+#include <maya/MObject.h>
+
 
 class CLinePrimitiveData{
 protected:

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiUserDataRgb'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiUserDataRgb'>
+		<property name='outColor'/>
+	</view>
+</templates>

@@ -53,9 +53,6 @@ MObject CArnoldOptionsNode::s_aa_seed;
 MObject CArnoldOptionsNode::s_filterType;
 MObject CArnoldOptionsNode::s_filter;
 MObject CArnoldOptionsNode::s_driver_gamma;
-MObject CArnoldOptionsNode::s_light_gamma;
-MObject CArnoldOptionsNode::s_shader_gamma;
-MObject CArnoldOptionsNode::s_texture_gamma;
 MObject CArnoldOptionsNode::s_light_linking;
 MObject CArnoldOptionsNode::s_shadow_linking;
 MObject CArnoldOptionsNode::s_motion_blur_enable;
@@ -87,13 +84,14 @@ MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
 MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
-MObject CArnoldOptionsNode::s_shader_searchpath;
+MObject CArnoldOptionsNode::s_plugin_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
 MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
 MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
+MObject CArnoldOptionsNode::s_export_all_shading_groups;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
@@ -105,7 +103,6 @@ MObject CArnoldOptionsNode::s_render_unit;
 MObject CArnoldOptionsNode::s_scene_scale;
 MObject CArnoldOptionsNode::s_offset_origin;
 MObject CArnoldOptionsNode::s_origin;
-MObject CArnoldOptionsNode::s_legacyLightTemperature;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -224,14 +221,12 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_bucket_scanning = eAttr.create("bucketScanning", "bktsc");
    eAttr.addField("top", 0);
-   eAttr.addField("bottom", 1);
-   eAttr.addField("left", 2);
-   eAttr.addField("right", 3);
-   eAttr.addField("random", 4);
-   eAttr.addField("woven", 5);
-   eAttr.addField("spiral", 6);
-   eAttr.addField("hilbert", 7);
-   eAttr.setDefault(6);   
+   eAttr.addField("left", 1);
+   eAttr.addField("random", 2);
+   eAttr.addField("spiral", 3);
+   eAttr.addField("hilbert", 4);
+   eAttr.addField("list", 5);
+   eAttr.setDefault(3);
    eAttr.setKeyable(false);
    addAttribute(s_bucket_scanning);
    
@@ -264,8 +259,8 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("AA_samples");
    s_attributes.MakeInput("GI_diffuse_samples");
-   s_attributes.MakeInput("GI_glossy_samples");
-   s_attributes.MakeInput("GI_refraction_samples");
+   s_attributes.MakeInput("GI_specular_samples");
+   s_attributes.MakeInput("GI_transmission_samples");
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
    
@@ -310,45 +305,16 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_driver_gamma);
 
-   // mtoa has overridden arnold's gamma default of 1.0
-   s_light_gamma = nAttr.create("light_gamma", "lgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_light_gamma);
-
-   // mtoa has overridden arnold's gamma default of 1.0
-   s_shader_gamma = nAttr.create("shader_gamma", "sgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_shader_gamma);
-
-   // mtoa has overridden arnold's gamma default of 1.0
-   s_texture_gamma = nAttr.create("texture_gamma", "tgamma", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(3);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_texture_gamma);
+   
 #endif
 
    s_attributes.MakeInput("GI_diffuse_depth");
-   s_attributes.MakeInput("GI_glossy_depth");
-   s_attributes.MakeInput("GI_reflection_depth");
-   s_attributes.MakeInput("GI_refraction_depth");
+   s_attributes.MakeInput("GI_specular_depth");
+   s_attributes.MakeInput("GI_transmission_depth");
    s_attributes.MakeInput("GI_volume_depth");
    s_attributes.MakeInput("GI_total_depth");
 
-   s_attributes.MakeInput("enable_fast_opacity");
-   
    s_attributes.MakeInput("auto_transparency_depth");
-   s_attributes.MakeInput("auto_transparency_threshold");
 
    s_light_linking = eAttr.create("lightLinking", "llnk", 0);
       eAttr.setKeyable(false);
@@ -426,9 +392,10 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
+   s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
-#if MAYA_API_VERSION < 201700
+#if MAYA_API_VERSION < 201600
    s_attributes.MakeInput("texture_automip");
 #endif
    s_attributes.MakeInput("texture_autotile");
@@ -438,14 +405,14 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
    s_attributes.MakeInput("texture_diffuse_blur");
-   s_attributes.MakeInput("texture_glossy_blur");   
+   s_attributes.MakeInput("texture_specular_blur");   
    
    s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_autotile);
    
    int defaultAutoTx = 0;
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201600
    defaultAutoTx = 1;
 #endif
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, defaultAutoTx); 
@@ -543,10 +510,10 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setDefault(sData.create(""));
    addAttribute(s_procedural_searchpath);
 
-   s_shader_searchpath = tAttr.create("shader_searchpath", "sspath", MFnData::kString);
+   s_plugin_searchpath = tAttr.create("plugin_searchpath", "sspath", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
-   addAttribute(s_shader_searchpath);
+   addAttribute(s_plugin_searchpath);
 
    s_texture_searchpath = tAttr.create("texture_searchpath", "tspath", MFnData::kString);
    tAttr.setKeyable(false);
@@ -597,6 +564,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(false);
    addAttribute(s_force_translate_shading_engines);
+
+   s_export_all_shading_groups = nAttr.create("exportAllShadingGroups", "export_all_shading_groups", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_export_all_shading_groups);
    
    s_version = tAttr.create("version", "version", MFnData::kString);
    tAttr.setKeyable(false);
@@ -661,11 +633,5 @@ MStatus CArnoldOptionsNode::initialize()
    s_origin = mAttr.create("origin", "orig");
    mAttr.setKeyable(false);
    addAttribute(s_origin);
-
-   s_legacyLightTemperature = nAttr.create("legacyLightTemperature", "legacyLightTemperature", MFnNumericData::kBoolean);
-   nAttr.setDefault(false);
-   nAttr.setKeyable(false);
-   addAttribute(s_legacyLightTemperature);
-
    return MS::kSuccess;
 }

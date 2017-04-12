@@ -50,12 +50,6 @@
 #define new DEBUG_NEW
 #endif
 
-// When we're sure these utilities stay, we can expose them
-// as static method on CArnoldSession or a separate helper class
-
-static std::vector<MObjectHandle *> s_typeNodes;
-static MCallbackId s_BeforeSaveCallback = 0;
-static MCallbackId s_AfterSaveCallback = 0;
 
 namespace // <anonymous>
 {
@@ -416,42 +410,7 @@ void CArnoldSession::ProcessAOVs()
 }
 */
    
-void EditTypeTextNode(MObject typeNode, bool deformable )
-{
-   if (typeNode.isNull()) 
-      return;
 
-   int deformableVal = (deformable) ? 1 : 0;
-
-   MFnDependencyNode fnNode(typeNode);
-   MPlug deformablePlug = fnNode.findPlug("deformableType");
-   if (deformablePlug.isNull())
-      return; // parameter doesn't exist, shouldn't happen
-
-   int previousDeformableType = deformablePlug.asInt();
-   if (previousDeformableType == deformableVal)
-      return; // already null, no need to change it
-
-   deformablePlug.setInt(deformableVal);
-   MPlugArray        typeConnections;
-   MPlug messagePlug = fnNode.findPlug("remeshMessage");
-   if (!messagePlug.isNull())
-      messagePlug.connectedTo(typeConnections, false, true);
-
-   if (typeConnections.length() > 0)
-   {
-      MFnDependencyNode remeshNode(typeConnections[0].node());
-      MPlug statePlug = remeshNode.findPlug("nodeState");
-      if (!statePlug.isNull())
-      {
-         if (statePlug.asInt() == 0)
-            statePlug.setInt(1);
-         else
-            statePlug.setInt(0);
-      }
-   }
- 
-}
 MStatus CArnoldSession::Begin(const CSessionOptions &options)
 {
  
@@ -465,8 +424,8 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
    m_requestUpdate = false;
 
    m_scaleFactor = options.GetScaleFactor();
-   AtVector s = {static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor)};
-   AiM4Scaling(m_scaleFactorAtMatrix, &s);
+   AtVector s(static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor));
+   m_scaleFactorAtMatrix = AiM4Scaling(s);
 
    double sc[3] = {m_scaleFactor, m_scaleFactor, m_scaleFactor};
    m_scaleFactorMMatrix.setToIdentity();
@@ -516,24 +475,6 @@ MStatus CArnoldSession::End()
    // Clear motion frames storage
    m_motion_frames.clear();
 
-   if (s_BeforeSaveCallback)
-      MMessage::removeCallback(s_BeforeSaveCallback);
-   if (s_AfterSaveCallback)
-      MMessage::removeCallback(s_AfterSaveCallback);
-   
-   s_BeforeSaveCallback = 0;
-   s_AfterSaveCallback = 0;
-
-   if (!s_typeNodes.empty())
-   {
-      for (size_t i = 0; i < s_typeNodes.size(); ++i)
-      {
-         if (s_typeNodes[i] == NULL || !s_typeNodes[i]->isValid() || !s_typeNodes[i]->isAlive()) continue;
-         EditTypeTextNode(s_typeNodes[i]->object(), false); // restore deformableType to False
-         delete s_typeNodes[i];
-      }
-      s_typeNodes.clear();
-   }
    m_is_active = false;
    return status;
 }
@@ -688,31 +629,35 @@ AtNode* CArnoldSession::ExportOptions()
    MPlug optPlug = fnNode.findPlug("message");
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, false);
 
+   ExportColorManager();
+
    return m_optionsTranslator->GetArnoldNode();
 }
 
-#if MAYA_API_VERSION >= 201700
-// For the type tools hack (#2422) we must be sure to restore the type texts before
-// saving the scene, otherwise it will be saved with the tessellated shape
-static void BeforeSaveCallback(void *data)
+AtNode *CArnoldSession::ExportColorManager()
 {
-   if (s_typeNodes.empty()) return;
-   for (size_t i = 0; i < s_typeNodes.size(); ++i)
-   {
-      if (s_typeNodes[i] == NULL || !s_typeNodes[i]->isValid() || !s_typeNodes[i]->isAlive()) continue;
-      EditTypeTextNode(s_typeNodes[i]->object(), false); // restore deformableType to False
-   }
-}
-static void AfterSaveCallback(void *data)
-{
-   if (s_typeNodes.empty()) return;
-   for (size_t i = 0; i < s_typeNodes.size(); ++i)
-   {
-      if (s_typeNodes[i] == NULL || !s_typeNodes[i]->isValid() || !s_typeNodes[i]->isAlive()) continue;
-      EditTypeTextNode(s_typeNodes[i]->object(), true); // restore deformableType to False
-   }
-}
+// Color Management is only supported for 2016 and higher   
+#ifndef ENABLE_COLOR_MANAGEMENT
+   return NULL;
 #endif
+
+   // get the maya node contraining the color management options         
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   if(activeList.length() > 0)
+   {
+      MObject colorMgtObject;
+      activeList.getDependNode(0,colorMgtObject);
+      MFnDependencyNode fnSNode(colorMgtObject);
+      MPlug mgtPlug = fnSNode.findPlug("message");
+      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, NULL, NULL, false);
+
+      if(syncolorTr)
+         return syncolorTr->GetArnoldNode();
+   }
+   return NULL;
+}
 
 /// Primary entry point for exporting a Maya scene to Arnold
 MStatus CArnoldSession::Export(MSelectionList* selected)
@@ -748,45 +693,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    const bool mb = IsMotionBlurEnabled();
 
    AiMsgDebug("[mtoa.session]     Initializing at frame %f", GetExportFrame());
-
-#if MAYA_API_VERSION >= 201700
-   // Hack for type text (#2422) : 
-   // Since Arnold doesn't support holes yet, we set the attribute "deformableType" to 1 for all 
-   // type texts in the scene before we convert to Arnold.
-   // FIXME : do we want to restore them later on ? This could maybe affect render times since this would be done back and forth ?
-   MStringArray typeNodes;
-
-   // #2798 looks like type nodes aren't native in maya, they don't always exist
-   int typeExists = 0;
-   MGlobal::executeCommand("pluginInfo -query -loaded Type", typeExists);
-   if (typeExists)
-   {
-      MGlobal::executeCommand("ls -typ type", typeNodes);
-      for (unsigned int t = 0; t < typeNodes.length(); ++t)
-      {
-         MSelectionList typeList;
-         typeList.add(typeNodes[t]);
-         MObject typeObject;
-         typeList.getDependNode(0, typeObject);
-         if (typeObject.isNull())
-            continue;
-         EditTypeTextNode(typeObject, true);
-         s_typeNodes.push_back(new MObjectHandle(typeObject));
-      }
-   }
-   if (!s_typeNodes.empty())
-   {
-      // For now we're only getting the callbacks if type nodes exist,
-      // since we're not tracking for newly created nodes anyway (doesn't seem to work properly)
-      if(s_BeforeSaveCallback == 0)
-         s_BeforeSaveCallback = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, BeforeSaveCallback, (void*)this);
-      
-      if (s_AfterSaveCallback == 0)
-         s_AfterSaveCallback = MSceneMessage::addCallback(MSceneMessage::kAfterSave, AfterSaveCallback, (void*)this);
-   }
-
-#endif
-
 
    ExportOptions();  // inside loop so that we're on the proper frame
 
@@ -849,6 +755,26 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       AiMsgError("[mtoa] Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
+
+   // Eventually export all shading groups
+   if (m_sessionOptions.GetExportAllShadingGroups())
+   {
+      MStringArray shadingGroups;
+      if (exportSelected)
+         MGlobal::executeCommand("ls -sl -typ shadingEngine", shadingGroups); // get selected shading groups and export them
+      else
+         MGlobal::executeCommand("ls -typ shadingEngine", shadingGroups); // get all shading groups in the scene and export them
+      
+      for (unsigned int shg = 0; shg < shadingGroups.length(); ++shg)
+      {
+         MSelectionList shgElem;
+         shgElem.add(shadingGroups[shg]);
+         MPlug shgPlug;
+         shgElem.getPlug(0, shgPlug);
+         ExportNode(shgPlug);
+      }
+   }
+
    // The list of processedTranslators can grow while we call doExport a few lines below.
    // So we can't call doExport while iterating over them.
    // Thus we first store the list of translators to process.
@@ -868,7 +794,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    {
       for (size_t i = 0; i < m_motion_frames.size(); ++i)
       {
-         if (ABS(m_motion_frames[i] - m_sessionOptions.m_frame) < 
+         if (std::abs(m_motion_frames[i] - m_sessionOptions.m_frame) < 
             (m_motion_frames[1] - m_motion_frames[0]) /10.)
          {            
             currentFrameIndex = m_motionStep = i;
@@ -881,7 +807,13 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    std::vector<CNodeTranslator*>::iterator trIt = translatorsToExport.begin();
    std::vector<CNodeTranslator*>::iterator trItEnd = translatorsToExport.end();
    for ( ; trIt != trItEnd; ++trIt)
+   {
+      // actual export
       (*trIt)->m_impl->DoExport();
+      
+      if (!mb)
+         (*trIt)->PostExport((*trIt)->m_impl->m_atNode); // post export if no motion blur
+   }
    
    if (mb)
    {
@@ -919,6 +851,13 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
             (*trIt)->m_impl->DoExport();
    
       }
+
+      // invoke post export callback. 
+      // FIXME should we set anim_arrays here too ? (as in DoUpdate)
+      for (trIt = translatorsToExport.begin(); trIt != trItEnd; ++trIt)
+         (*trIt)->PostExport((*trIt)->m_impl->m_atNode);
+
+
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
       // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSession::End() 
       // (see tickets #418 and #444)
@@ -1598,7 +1537,7 @@ UPDATE_BEGIN:
 
       for (size_t i = 0; i < m_motion_frames.size(); ++i)
       {
-         if (ABS(m_motion_frames[i] - m_sessionOptions.m_frame) < 
+         if (std::abs(m_motion_frames[i] - m_sessionOptions.m_frame) < 
             (m_motion_frames[1] - m_motion_frames[0]) /10.)
          {            
             currentFrameIndex = m_motionStep = i;
@@ -1773,8 +1712,9 @@ UPDATE_BEGIN:
       UpdateLightLinks();
    
    // Need something finer to determine if the changes have an influence
-   if (dagFound)
-      AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
+   // FIXME Arnold5 make sure we remove "dagFound" once Arnold-5.0 branch is merged
+   //if (dagFound)
+   //   AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    
    
    // Now update all the translators in our list
@@ -1786,7 +1726,13 @@ UPDATE_BEGIN:
          iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->m_impl->DoUpdate();
+         if (translator == NULL)
+            continue;
+
+         translator->m_impl->DoUpdate();
+         if (!exportMotion)
+            translator->PostExport(translator->m_impl->m_atNode);
+
       }
    }
 
@@ -1866,8 +1812,8 @@ UPDATE_BEGIN:
          }
       }      
 
-      // one last loop over the modified translators to verify if their motion arrays are actually
-      // animated or not
+      // one last loop over the modified translators to call post-export callback. Also verify if their 
+      // motion arrays are actually animated or not
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
              iter != translatorsToUpdate.end(); ++iter)
       {
@@ -1875,6 +1821,10 @@ UPDATE_BEGIN:
          if (translator == NULL)
             continue;
 
+         // invoke post export callback
+         translator->PostExport(translator->m_impl->m_atNode);
+
+         // check if it has animated arrays
          translator->m_impl->m_animArrays = translator->m_impl->HasAnimatedArrays();
       }
 
@@ -1998,7 +1948,7 @@ MMatrix& CArnoldSession::ScaleMatrix(MMatrix& matrix) const
 
 AtMatrix& CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
 {
-   AiM4Mult(matrix, m_scaleFactorAtMatrix, matrix);
+   matrix = AiM4Mult(m_scaleFactorAtMatrix, matrix);
    return matrix;
 }
 
@@ -2210,6 +2160,11 @@ void CArnoldSession::ExportTxFiles()
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+
+   static const AtString MayaFile_str("MayaFile");
+   static const AtString image_str("image");
+   static const AtString MayaImagePlane_str("MayaImagePlane");
+
    for ( ; it != itEnd; ++it)
    {
       CNodeTranslator *translator = it->second;
@@ -2218,12 +2173,62 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
+      if (AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str) || AiNodeIs(node, MayaImagePlane_str)) textureNodes.push_back(translator);
       
    }
 
-   bool progressStarted = false;
+   if (textureNodes.empty())
+      return; // nothing to do regarding textures
+
+
+   // First, let's get Color management configuration files
+
+   // check if color management prefs is enabled
+   // colorManagementPrefs(q=True, inputSpaceNames=True)
+
+   int cmEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+
+   MString renderingSpace = "";
+   //MString colorConfig = "";
+
+   if(cmEnabled)
+   {
+      /*
+      int configFileEnabled = 0;
+      MGlobal::executeCommand("colorManagementPrefs -q -cmConfigFileEnabled", configFileEnabled);
+
+      if (configFileEnabled)
+         MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", colorConfig);
+      else
+         MGlobal::executeCommand("internalVar -userPrefDir", colorConfig);         
+      
+      */
+      MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);      
+   }
+
    unordered_map<std::string, std::string> textureColorSpaces;
+
+   MStringArray expandedFilenames;
+   std::string txArguments;
+   std::vector<std::string> listTextures;
+   std::vector<bool> listConvertTx;
+   std::vector<std::string> listArguments;
+   
+   std::vector<AtNode *> listNodes;
+   MStringArray  listFullPaths;
+
+   MString txFilename;
+
+
+   listNodes.reserve(textureNodes.size());
+   listTextures.reserve(textureNodes.size());
+   listArguments.reserve(textureNodes.size());
+
+//============= Part 1 : get the list of textures that  need to be converted to TX
+// or replaced by the .tx version
+
+
    for (size_t i = 0; i < textureNodes.size(); ++i)
    {
       CNodeTranslator *translator = textureNodes[i];
@@ -2232,155 +2237,276 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
       
-      MString filename = AiNodeGetStr(node, "filename");
+      MString filename = AiNodeGetStr(node, "filename").c_str();
       std::string filenameStr = filename.asChar();
 
-      const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
+      const char *autoTxParam = AiNodeIs(node, image_str) ? "autoTx" : "aiAutoTx";
       bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
-      MString searchPath = "";
-      bool invalidProgressWin = false;
-      if (fileAutoTx)
-      {
-         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
-         std::string colorSpaceStr = colorSpace.asChar();
 
-         unordered_map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
-         if (it == textureColorSpaces.end())
+      MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
+      std::string colorSpaceStr = colorSpace.asChar();
+
+      unordered_map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+      if (it == textureColorSpaces.end())
+      {
+         textureColorSpaces[filenameStr] = colorSpaceStr;
+      } else
+      {
+         // already dealt with this filename, skip the auto-tx
+         if (colorSpaceStr != it->second)
          {
-            textureColorSpaces[filenameStr] = colorSpaceStr;
-         } else
-         {
-            // already dealt with this filename, skip the auto-tx
-            if (colorSpaceStr != it->second)
-            {
-               AiMsgDebug("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
-            }
-            goto USE_TX;
+            AiMsgDebug("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
          }
 
-         if (progressBar)
+         fileAutoTx = false; // => we don't want that texture to be converted to TX   
+      }
+
+      // Xheck texture extension, if .tx => set fileAutoTx = false
+      int filenameLength = filename.numChars();
+
+      // empty filename, nothing to do
+      if (filenameLength == 0)
+         continue;
+
+      if (filenameLength > 4 && filename.substring(filenameLength - 3, filenameLength - 1) == ".tx")
+         fileAutoTx = false;
+      
+
+      // no auto-tx, no use tx, nothing to do here
+      if ((!fileAutoTx) && (!useTx))
+         continue;
+
+      MString searchPath = "";
+      MString searchFilename = filename;
+      
+
+      // First we need to get the path to the expanded filename(s)
+      expandedFilenames = expandFilename(searchFilename);
+
+      // Now expandedFilenames contains the list of files found on disk that could match
+      // the eventual tokens
+
+      // if the file wasn't found on disk, we should check in the search paths
+      if (expandedFilenames.length() == 0)
+      {
+         for (unsigned int t = 0; t < searchPaths.length(); ++t)
          {
-            if (!progressStarted)
-            {
-               MProgressWindow::reserve();
-               MProgressWindow::setProgressRange(0, 100);
-               MProgressWindow::setTitle("Converting Images to TX");
-               MProgressWindow::setInterruptable(true);
+            searchPath = searchPaths[t];
+            searchFilename = searchPath + filename;
+            expandedFilenames = expandFilename(searchFilename);
 
-               // if the progress bar was already cancelled before it started
-               // (it seems that it happens sometimes...), the we simply
-               // don't test for cancel anymore
-               if (MProgressWindow::isCancelled()) invalidProgressWin = true;
-            }
-            if ((!invalidProgressWin) && MProgressWindow::isCancelled()) 
-            {
-               // FIXME show a confirm dialog to mention color management will be wrong
-               //MString cmd;
-               //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
-               //MGlobal::executePythonCommandStringResult(cmd);
+            // found some files, no need to continue
+            if (expandedFilenames.length() > 0)
+               break;
 
-               // if progress was cancelled we consider that auto-Tx is OFF
-               // but we still need to handle "use Tx"
-               MProgressWindow::endProgress();
-               fileAutoTx = false;
+         }
+      }
 
-               goto USE_TX;
-            }
+      // append the AtNode as well as its resolved filename
+      // so that use-tx can verify if the tx file does exist
+      // (even though we're not converting it to TX now)
+      listNodes.push_back(node);
 
-            // FIXME use basename instead
-            MString progressStatus = filename;
-            int basenameIndex = progressStatus.rindexW('/');
-            if (basenameIndex > 0)
-            {
-               progressStatus = progressStatus.substring(basenameIndex + 1, progressStatus.numChars() - 1);
-            }
-            progressStatus += " (";
-            progressStatus += (unsigned int)(i + 1);
-            progressStatus += "/";
-            progressStatus += (unsigned int)textureNodes.size();
-            progressStatus += ")";
+      if (expandedFilenames.length() > 0)
+         listFullPaths.append(searchFilename);
+      else
+         listFullPaths.append("");
 
-            while (progressStatus.length() < 50)
-            {
-               progressStatus += "    ";
-            }
 
-            MProgressWindow::setProgressStatus(progressStatus);
+      if (!fileAutoTx)
+         continue;
 
-            if (!progressStarted)
+      txArguments = "-v -u --unpremult --oiio";
+      if (cmEnabled && colorSpace != renderingSpace && colorSpace.length() > 0)
+      {
+         //txArguments += " --colorengine syncolor --colorconfig ";
+         //txArguments += colorConfig.asChar();
+         txArguments += " --colorconvert \"";
+         txArguments += colorSpace.asChar();
+         txArguments += "\" \"";
+         txArguments += renderingSpace.asChar();
+         txArguments += "\"";
+      }
+
+      // now add the current expanded filenames to the total list of files to process.
+      // We also store the list of files that require to be converted to TX.
+      // Note that the full textures list is necessary for "use tx", since all textures filenames
+      // must be replaced
+      for (unsigned int t = 0; t < expandedFilenames.length(); ++t)
+      {
+         listTextures.push_back(expandedFilenames[t].asChar());
+         txFilename = expandedFilenames[t].substring(0, expandedFilenames[t].rindexW(".")) + MString("tx");
+         // need to invalidate the TX file from the cache otherwise the conversion to TX will faill on windows
+         AiTextureInvalidate(AtString(txFilename.asChar()));
+
+         listArguments.push_back(txArguments);
+      }
+   }
+
+//================= Part 2 : run MakeTX on the necessary textures   
+
+
+   // We now have the full list of textures, let's loop over them
+   for (unsigned int i = 0; i < listTextures.size(); ++i)
+   {      
+      // now call AiMakeTx with the corresponding arguments (including color space)
+      AiMakeTx(listTextures[i].c_str(), listArguments[i].c_str());
+   }
+
+   // we told arnold to run TX conversion for the previous files
+
+   AtMakeTxStatus *status;
+   const char** source_filenames;
+   unsigned num_submitted_textures;
+   
+   bool progressStarted = false;
+   bool invalidProgressWin = false;
+   unsigned int num_jobs_left = listTextures.size();
+   while ( num_jobs_left > 0)
+   {
+      num_jobs_left = AiMakeTxWaitJob(status, source_filenames, num_submitted_textures);
+
+      if (num_jobs_left >= num_submitted_textures)
+         continue; // can this even happen ?
+      
+      
+      int index = num_submitted_textures - num_jobs_left - 1;
+      
+      if (status[index] == AiTxError)
+         AiMsgError("[maketx] Couldn't convert the texture to TX %s", source_filenames[index]);
+      else if (status[index] == AiTxUpdated)
+      {
+         AiMsgInfo("[maketx] Successfully converted texture to TX %s", source_filenames[index]);
+
+
+         if ((progressBar) && (!progressStarted))
+         {
+            // need to start progress bar
+            MProgressWindow::reserve();
+            MProgressWindow::setProgressRange(0, 100);
+            MProgressWindow::setTitle("Converting Images to TX");
+            MProgressWindow::setInterruptable(true);
+
+            progressStarted = true;
+
+            // if the progress bar was already cancelled before it started
+            // (it seems that it happens sometimes...), the we simply
+            // don't test for cancel anymore
+            if (MProgressWindow::isCancelled()) invalidProgressWin = true;
+            else
             {
                MProgressWindow::startProgress();
                // strange, but I need to change the value once so that it is displayed
                MProgressWindow::setProgress(1);
                MProgressWindow::setProgress(0);
             }
-            else
-            {
-               MProgressWindow::setProgress(i * 100 / textureNodes.size());
-            }
-            progressStarted = true;
-         }
-
-
-         // convert TX
-         int createdFiles = 0;
-         int skippedFiles = 0;
-         int errorFiles = 0;
-
-         makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-         
-         if (createdFiles + skippedFiles + errorFiles == 0)
-         {               
-            // no file has been found
-            // let's try with the search paths
-            for (unsigned int t = 0; t < searchPaths.length(); ++t)
-            {
-               searchPath = searchPaths[t];
-               MString searchFilename = searchPath + filename;
-               makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-
-               if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
-            }
          }
       }
-USE_TX:
-      if (useTx)
+      if ((progressBar) && (!invalidProgressWin) && MProgressWindow::isCancelled()) 
+      {
+         // FIXME is there a way to interrupt the conversion ?
+
+         // FIXME show a confirm dialog to mention color management will be wrong
+         //MString cmd;
+         //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
+         //MGlobal::executePythonCommandStringResult(cmd);
+
+         // if progress was cancelled we consider that auto-Tx is OFF
+         // but we still need to handle "use Tx"
+         MProgressWindow::endProgress();
+         AiMakeTxAbort(status, source_filenames, num_submitted_textures); // This tells arnold to abort conversion
+         break;
+      }
+
+      if (progressBar && progressStarted)
       {
 
-         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+         // shouldn't happen, until last texture
+         if (index + 1 >= listTextures.size() )
+            continue;
 
-         MString searchFilename = searchPath + txFilename;
-
-         MStringArray expandedFilenames = expandFilename(searchFilename);
-
-         if(expandedFilenames.length() == 0 && !autoTx)
+         // FIXME use basename instead         
+         MString progressStatus(listTextures[index + 1].c_str());
+         int basenameIndex = progressStatus.rindexW('/');
+         if (basenameIndex > 0)
          {
-            // No file was found for this filename
-            // and mipmap hasn't been generated above (auto-tx = false)
-            // we should check in the search paths
-         
-            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            progressStatus = progressStatus.substring(basenameIndex + 1, progressStatus.numChars() - 1);
+         }
+         progressStatus += " (";
+         progressStatus += (unsigned int)(index + 1);
+         progressStatus += "/";
+         progressStatus += (unsigned int)textureNodes.size();
+         progressStatus += ")";
+
+         while (progressStatus.length() < 50)
+         {
+            progressStatus += "    ";
+         }
+
+         MProgressWindow::setProgressStatus(progressStatus);
+         MProgressWindow::setProgress(index * 100 / textureNodes.size());
+      }      
+   }
+   if (progressBar && progressStarted)
+      MProgressWindow::endProgress();
+    
+   // invalidate these textures so that they're not in the cache anymore
+   for (unsigned int i = 0; i < listTextures.size(); ++i)
+   { 
+      txFilename = MString(listTextures[i].c_str()); 
+      txFilename = txFilename.substring(0, txFilename.rindexW(".")) + MString("tx");
+
+      // need to invalidate the TX files now that conversion was done (otherwise arnold keeps a handle to the file)
+      AiTextureInvalidate(AtString(txFilename.asChar()));     
+
+   }
+//============= Part 3 : Use existing TX. Loop over the list of nodes and eventually replace the extension
+//  by .tx. 
+
+   // FIXME now that we're out of Maya, should we multi-thread this ?
+   if (useTx)
+   {
+      // loop over listNodes
+      // get the previously used search path
+      for (size_t i = 0; i < listNodes.size(); ++i)
+      {
+         AtNode *imgNode = listNodes[i];
+         if (imgNode == NULL)
+            continue;
+
+         MString filename = MString(AiNodeGetStr(imgNode, "filename").c_str());
+
+         MString txFilename = (listFullPaths[i].numChars() > 0) ? listFullPaths[i] : filename;
+         txFilename = txFilename.substring(0, txFilename.rindexW(".")) + MString("tx");
+
+         MStringArray expandedFilenames = expandFilename(txFilename);
+
+         // if no TX file was found, check the search paths,
+         // but only do this if the current search path (listFullPaths[i]) was empty,
+         // which happens if the original texture wasn't found on disk
+         if (expandedFilenames.length() == 0 && listFullPaths[i].numChars() == 0)
+         {            
+            for (unsigned int s = 0; s < searchPaths.length(); ++s)
             {
-               searchFilename = searchPaths[i] + txFilename;
+               MString searchFilename = searchPaths[s] + txFilename;
                expandedFilenames = expandFilename(searchFilename);
                
                // we found the texture, stop searching
                if (expandedFilenames.length() > 0) break;
             }
          }
-         // if expandedFilenames.length >= 1 then we're OK ?
+
+         // TX files were found, we can replace the extension to TX
          if (expandedFilenames.length() > 0)
          {
             filename = txFilename;
             FormatTexturePath(filename);
-            AiNodeSetStr(node, "filename", filename.asChar()); 
-            
-         
+            AiNodeSetStr(imgNode, "filename", filename.asChar()); 
+            // since we replace the filename by TX we need to reset the color space
+            AiNodeSetStr(imgNode, "color_space", AtString(""));
          }
-      }      
+      }
    }
-   if (progressBar && progressStarted) MProgressWindow::endProgress();
-   
 }
 
 void CArnoldSession::RequestUpdateMotion()
@@ -2542,7 +2668,8 @@ void CArnoldSession::UpdateProceduralReferences()
             {
                AtArray *arr = AiNodeGetArray(node, paramName);
                if (arr == NULL) continue; // shouldn't happen since this is linked
-               for (int a = 0; a < (int)arr->nelements; ++a)
+               int numElements = (int)AiArrayGetNumElements(arr);
+               for (int a = 0; a < numElements; ++a)
                {
                   target = AiNodeGetLink(node, paramName, &a);
                   if (target) 
@@ -2557,9 +2684,10 @@ void CArnoldSession::UpdateProceduralReferences()
          } else if (paramType == AI_TYPE_ARRAY)
          {
             AtArray *arr = AiNodeGetArray(node, paramName);
-            if (arr && arr->type == AI_TYPE_NODE)
+            if (arr && AiArrayGetType(arr) == AI_TYPE_NODE)
             {
-               for (int a = 0; a < (int)arr->nelements; ++a)
+               int numElements = AiArrayGetNumElements(arr);
+               for (int a = 0; a < numElements; ++a)
                {
                   target = (AtNode*)AiArrayGetPtr(arr, a);
                   if (target) 

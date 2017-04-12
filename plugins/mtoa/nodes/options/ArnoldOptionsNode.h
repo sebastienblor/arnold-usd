@@ -64,9 +64,6 @@ public:
    static MObject s_filter;
 
    static MObject s_driver_gamma;
-   static MObject s_light_gamma;
-   static MObject s_shader_gamma;
-   static MObject s_texture_gamma;
 
    static MObject s_light_linking;
    static MObject s_shadow_linking;
@@ -107,7 +104,7 @@ public:
    
    static MObject s_texture_searchpath;
    static MObject s_procedural_searchpath;
-   static MObject s_shader_searchpath;
+   static MObject s_plugin_searchpath;
    
    static MObject s_user_options;
    
@@ -116,6 +113,7 @@ public:
    static MObject s_absolute_texture_paths;
    static MObject s_absolute_procedural_paths;
    static MObject s_force_translate_shading_engines;
+   static MObject s_export_all_shading_groups;
    
    static MObject s_version;
    static MObject s_enable_standin_draw;
@@ -133,6 +131,5 @@ public:
 
    static MObject s_offset_origin;
    static MObject s_origin;
-   static MObject s_legacyLightTemperature;
    
 };  // class CArnoldOptionsNode
