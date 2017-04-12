@@ -39,7 +39,7 @@
         <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
         <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />
       
-        <float3 name="base_color" ref="standardShaderCombiner.color" />
+        <float3 name="baseColor" ref="standardShaderCombiner.color" />
         <float name="diffuse_roughness" ref="standardShaderCombiner.diffuseRoughness" />
         <float3 name="specular_color" ref="standardShaderCombiner.specularColor" />
         <float name="base" ref="standardShaderCombiner.Kd" />
@@ -59,8 +59,7 @@
         <float name="directDiffuse" ref="standardShaderCombiner.directDiffuse" />
         <float name="directSpecular" ref="standardShaderCombiner.directSpecular" />
         <float name="specular_IOR" ref="standardShaderCombiner.IOR" />
-        <bool name="specular_fresnel" ref="standardShaderCombiner.specular_fresnel" />      
-        <float name="specularRoughness" ref="roughnessPassThrough.input" />  
+        <float name="specularRoughness" ref="roughnessPassThrough.inValue" />  
         <float3 name="emission_color" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />
 
@@ -86,7 +85,6 @@
         <undefined name="GPUStage" ref="standardShaderCombiner.GPUStage" />
     </properties>
   <values>
-    <bool name="specular_fresnel" value="true" />
     <float name="metalness" value ="0.0" /> 
     <float name="directDiffuse" value ="1.0" /> 
     <float name="directSpecular" value ="1.0" /> 
