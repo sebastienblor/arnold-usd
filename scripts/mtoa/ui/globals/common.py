@@ -96,11 +96,12 @@ def setParentToArnoldCommonTab():
     else:
         renderer = utils.currentRenderer()
 
-    tabLayout = pm.mel.rendererTabLayoutName(renderer)
-    pm.setParent(tabLayout)
-
-    # Now set the parent to the correct column layout
-    pm.setParent('commonTabColumn')
+    if renderer == 'arnold':
+        tabLayout = pm.mel.rendererTabLayoutName(renderer)
+        pm.setParent(tabLayout)
+    
+        # Now set the parent to the correct column layout
+        pm.setParent('commonTabColumn')
 
 def createArnoldTargetFilePreview():
 
