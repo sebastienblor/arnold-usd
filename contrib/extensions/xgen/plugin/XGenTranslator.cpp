@@ -913,7 +913,10 @@ void CXgDescriptionTranslator::ExpandProcedural()
    AtNode *node = GetArnoldNode();
    m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
    m_expandedProcedural->Init( node );
+
+#if MAYA_API_VERSION >= 201600
    MGlobal::executeCommand("xgmCache -clearPtexCache;");
+#endif
 
    // FIXME verify if we need to do something about the procedural matrix ?
 
