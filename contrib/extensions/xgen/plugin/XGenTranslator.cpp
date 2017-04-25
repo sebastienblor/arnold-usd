@@ -473,7 +473,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          // This way it'll be properly cleared or re-used later in the IPR session
          shape = GetArnoldNode(nameKey.asChar());
          if (shape == NULL)
-            shape = AddArnoldNode("procedural", nameKey.asChar());
+            shape = AddArnoldNode("xgen_procedural", nameKey.asChar());
 
          AiNodeDeclare( shape, "xgen_shader", "constant ARRAY NODE" );
          AiNodeSetArray(shape, "xgen_shader", AiArray(1, 1, AI_TYPE_NODE, rootShader));
