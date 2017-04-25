@@ -913,6 +913,7 @@ void CXgDescriptionTranslator::ExpandProcedural()
    AtNode *node = GetArnoldNode();
    m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
    m_expandedProcedural->Init( node );
+   MGlobal::executeCommand("xgmCache -clearPtexCache;");
 
    // FIXME verify if we need to do something about the procedural matrix ?
 
