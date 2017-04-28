@@ -30,16 +30,22 @@ def setup(env, library):
         maya_version = env['MAYA_VERSION']
 
         if int(maya_version) >= 201800:
-            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids', 'bifrostapi')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids', 'bifrostcoretools')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids', 'aminomath')])
         else:
             env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostapi', 'api')])
-        env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostcore', 'api')])
-        env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostcore', 'api')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
 
         if system.os() == 'darwin' and int(maya_version) < 201800:
             env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
         else:
-            env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
+            if system.os() == 'windows':
+                env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'lib')])
+            else:
+                env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
 
         bifrostLib = 'bifrostapi'
         if int(maya_version) >= 201800:
