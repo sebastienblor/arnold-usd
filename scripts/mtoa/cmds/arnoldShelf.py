@@ -68,7 +68,7 @@ def createArnoldShelf():
    cmds.separator(width=12,height=35, style=shelfStyle, hr=False)
    #cmds.shelfButton(label='Light Manager', command='import mtoa.ui.arnoldmenu as arnoldmenu; arnoldmenu.arnoldLightManager()', sourceType='python', annotation='Light Manager', image='LightManagerShelf.png', style='iconOnly')
    cmds.shelfButton(label='Bake Selected Geometry', command='import mtoa.ui.arnoldmenu as arnoldmenu; arnoldmenu.arnoldBakeGeo()', sourceType='python', annotation='Bake Selected Geometry', image='BakeGeometryShelf.png', style='iconOnly')
-   cmds.shelfButton(label='Render Selection to Texture', command='import mtoa.ui.arnoldmenu as arnoldmenu; arnoldmenu.arnoldLightManager()', sourceType='python', annotation='Render Selection to Texture', image='RenderToTextureShelf.png', style='iconOnly')
+   cmds.shelfButton(label='Render Selection to Texture', command='import mtoa.ui.arnoldmenu as arnoldmenu; arnoldmenu.arnoldRenderToTexture()', sourceType='python', annotation='Render Selection to Texture', image='RenderToTextureShelf.png', style='iconOnly')
    cmds.separator(width=12,height=35, style=shelfStyle, hr=False)
    cmds.shelfButton(label='Arnold RenderView', command='import mtoa.ui.arnoldmenu as arnoldmenu; arnoldmenu.arnoldOpenMtoARenderView()', sourceType='python', annotation='Arnold RenderView', image='RenderViewShelf.png', style='iconOnly')
    cmds.shelfButton(label='Render', command='import mtoa.ui.arnoldmenu as arnoldmenu; arnoldmenu.arnoldMtoARenderView()', sourceType='python', annotation='Render', image='RenderShelf.png', style='iconOnly')    
