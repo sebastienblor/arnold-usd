@@ -23,6 +23,7 @@ ArnoldStandardSurfaceShaderOverride::ArnoldStandardSurfaceShaderOverride(const M
    reqs.append("standardShaderEmission");
    reqs.append("standardShaderSpecular");
    reqs.append("standardShaderLightingCombiner");
+   reqs.append("standardfloatPassThrough");
    if (LoadFragmentGraph("standardSurfaceShader", reqs))
       m_fragmentName = "standardSurfaceShader";
 }
