@@ -190,6 +190,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    }
    AtNode* options_node = AiUniverseGetOptions();
    AiNodeSetBool(options_node, "preserve_scene_data", true);
+   AiNodeSetPtr(options_node, "color_manager", NULL);
 
    int resolution = 512; // default value
    if (argDB.isFlagSet("resolution"))
