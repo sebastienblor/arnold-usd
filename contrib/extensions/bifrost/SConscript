@@ -42,7 +42,7 @@ def setup(env, library):
         if system.os() == 'darwin' and int(maya_version) < 201800:
             env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
         else:
-            if system.os() == 'windows':
+            if system.os() == 'windows' and int(maya_version) >= 201800:
                 env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'lib')])
             else:
                 env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
