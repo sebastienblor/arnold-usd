@@ -407,9 +407,12 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     if pathType in [pm.api.MCommonRenderSettingsData.kRelativePath, 'relative']:
         return partialPath
 
-    imageDir = pm.workspace(fileRuleEntry=fileType)
-    imageDir = imageDir if imageDir else 'data'
-    imageDir = pm.workspace(expandName=imageDir);
+    if cmds.optionVar(exists="OverrideFileOutputDirectory"):
+        imageDir = cmds.optionVar(query="OverrideFileOutputDirectory")
+    else:
+        imageDir = pm.workspace(fileRuleEntry=fileType)
+        imageDir = imageDir if imageDir else 'data'
+        imageDir = pm.workspace(expandName=imageDir);
 
     codecs = ['utf-8', 'latin-1']
     for i in codecs:
@@ -425,7 +428,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         except UnicodeDecodeError:
             pass   
 
-    if pathType in [pm.api.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
+    if cmds.optionVar(exists="OverrideFileOutputDirectory"):
+        result = os.path.join(imageDir, partialPath)
+    elif pathType in [pm.api.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
         result = os.path.join(imageDir, 'tmp', partialPath)
     elif pathType in [pm.api.MCommonRenderSettingsData.kFullPathImage, 'full']:
         result = os.path.join(imageDir, partialPath)
