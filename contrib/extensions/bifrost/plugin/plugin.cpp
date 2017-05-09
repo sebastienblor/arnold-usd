@@ -1,6 +1,4 @@
 #include "BifrostTranslator.h"
-#include "BifrostFoamMaterialTranslator.h"
-#include "BifrostAeroMaterialTranslator.h"
 
 #include "extension/Extension.h"
 
@@ -85,14 +83,6 @@ extern "C"
         status = extension.RegisterTranslator ( "bifrostShape", "",
                                                 BifrostTranslator::creator,
                                                 BifrostTranslator::NodeInitializer );
-
-        status = extension.RegisterTranslator ( "bifrostAeroMaterial", "",
-                                                CBfAeroMaterialTranslator::creator,
-                                                CBfAeroMaterialTranslator::NodeInitializer );
-
-        status = extension.RegisterTranslator ( "bifrostFoamMaterial", "",
-                                                CBfFoamMaterialTranslator::creator,
-                                                CBfFoamMaterialTranslator::NodeInitializer );
 
         addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
     }

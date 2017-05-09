@@ -4,48 +4,21 @@
 
 class BifrostTranslator : public CShapeTranslator
 {
-	public:
-		enum RenderType {
-			NONE,
-			AERO,
-			LIQUID_POLYMESH,
-			LIQUID_IMPLICIT,
-			POINT
-		};
+public:
+    AtNode* CreateArnoldNodes();
+    virtual void Export( AtNode *shape );
+    void ExportMotion( AtNode *shape );
 
-		enum BIFType {
-			VOXEL,
-			PARTICLE
-		};
+    void RequestUpdate();
 
+    static void* creator() { return new BifrostTranslator(); }
 
-		AtNode* CreateArnoldNodes();
-		virtual void Export( AtNode *shape );
-		void ExportMotion( AtNode *shape );
+    static void NodeInitializer( CAbTranslator context );
 
-        void ExportLiquidAttributes( MFnDagNode& bifrostDesc, AtNode *shape );
-		void ExportPoint(AtNode *shape);
-		void ExportAero(AtNode *shape);
-		void ExportLiquidPolyMesh(AtNode *shape);
-		void ExportLiquidImplicit(AtNode *shape);
+private:
+    void ExportSurface(MFnDagNode& dagNode, AtNode *shape);
+    void ExportPolymesh(MFnDagNode& dagNode, AtNode *shape);
 
-		void ExportMatrixWithSpaceScale(AtNode *shape, float spaceScale);
-
-		void RequestUpdate();
-
-		static void* creator() {
-            return new BifrostTranslator();
-		}
-
-		static void NodeInitializer( CAbTranslator context );
-
-	private:
-
-		virtual void ExportBifrostShader();
-        virtual void ExportDisplacement();
-   
-		RenderType c_renderType;
-		BIFType c_bifType;
-		std::string c_object;
-		std::string c_file;
+    void ExportBifrostShader();
+    void ExportDisplacement();
 };
