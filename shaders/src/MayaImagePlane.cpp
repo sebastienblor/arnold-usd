@@ -110,7 +110,6 @@ node_update
    AiTextureHandleDestroy(idata->texture_handle);
    idata->color_space = AiNodeGetStr(node, "color_space");
    idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"), idata->color_space);
-
 }
 
 node_finish
@@ -138,73 +137,37 @@ shader_evaluate
    result.b = color.b;
    result.a = 1.0f;
 
-   if (idata->texture_handle != NULL && (coverage.x != 1.0f || coverage.y != 1.0f))
-   {
-       float inU = sg->u;
-       float inV = sg->v;
-
-       float outU = inU;
-       float outV = inV;
-
-       int wrapU = 0;
-       int wrapV = 0;
-       // If coverage.x or coverage.y are <= 1.0f
-       //   check of the wrapped u or v coordinades respectively wraps in a valid range
-       // If wrap is off, check incoming coordinate is in the range [0, 1]
-       if (mod(outU, 1.0f) > coverage.x ||
-           mod(outV, 1.0f) > coverage.y ||
-           (!wrapU && (outU < 0 || outU > 1)) ||
-           (!wrapV && (outV < 0 || outV > 1)))
-       {
-          // we are out of the texture frame, return invalid u,v
-          outU = -1000000.0f;
-          outV = -1000000.0f;
-       }
-       else
-       {
-          if (coverage.x < 1.0f)
-          {
-             outU = mod(outU, 1.0f);
-          }
-
-          if (coverage.y < 1.0f)
-          {
-             outV = mod(outV, 1.0f);
-          }
-
-          outU -= translate.x;
-          outV -= translate.y;
-
-          outU /= coverage.x;
-          outV /= coverage.y;
-
-       }
-
-       sg->u = outU;
-       sg->v = outV;
-
-       // do texture lookup
-       AtTextureParams texparams;
-       AiTextureParamsSetDefaults(texparams);
-       // setup filter?
-       texparams.wrap_s = AI_WRAP_BLACK;
-       texparams.wrap_t = AI_WRAP_BLACK;
-
-       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
-       //AtRGBA result = color;
-       sg->u = inU;
-       sg->v = inV;
-   }
-   else if (idata->texture_handle != NULL)
+   if (idata->texture_handle != NULL)
    {   
-       // do texture lookup
-       AtTextureParams texparams;
-       AiTextureParamsSetDefaults(texparams);
-       // setup filter?
-       texparams.wrap_s = AI_WRAP_BLACK;
-       texparams.wrap_t = AI_WRAP_BLACK;
+      // do texture lookup
+      AtTextureParams texparams;
+      AiTextureParamsSetDefaults(texparams);
+      // setup filter?
+      texparams.wrap_s = AI_WRAP_BLACK;
+      texparams.wrap_t = AI_WRAP_BLACK;
 
-       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
+      float inU = sg->u;
+      float inV = sg->v;
+
+      //std::cerr<<coverage.x<<" "<<coverage.y<<std::endl;
+      float sx = -1 + (sg->x + sg->px) * (2.0f / AiNodeGetInt(AiUniverseGetOptions(), "xres"));
+      float sy =  1 - (sg->y + sg->py) * (2.0f / AiNodeGetInt(AiUniverseGetOptions(), "yres"));
+
+
+      sx *= coverage.x;
+      sy *= coverage.y;
+
+
+      sx = sx * 0.5f + 0.5f;
+      sy = 1.0f - (sy * 0.5f + 0.5f);
+
+      sg->u = (sx - translate.x);
+      sg->v =  (1.0f - ((sy - translate.y)));
+
+      result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
+
+      sg->u = inU;
+      sg->v = inV;
    }
    if (displayMode == 2)
    {
@@ -236,6 +199,4 @@ shader_evaluate
    result.b = (result.b * colorGain.b) + colorOffset.b;
    result.a = (result.a * alphaGain);
    sg->out.RGBA() = result;
-
-   //sg->out_opacity *= alphaGain;
 }

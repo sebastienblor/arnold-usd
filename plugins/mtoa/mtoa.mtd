@@ -220,8 +220,6 @@
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
         linkable            BOOL    false
-    [attr background]
-        linkable            BOOL    false
     [attr atmosphere]
         linkable            BOOL    false
     [attr subdiv_dicing_camera]

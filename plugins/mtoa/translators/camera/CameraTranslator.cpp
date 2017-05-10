@@ -25,30 +25,7 @@ void CCameraTranslator::ExportImagePlanes()
    MPlug      imagePlaneNodePlug;
    MStatus    status;
 
-   // first we get the image planes connected to this camera
-   imagePlanePlug = FindMayaPlug("imagePlane");
-
-   if (imagePlanePlug.numConnectedElements() > 0)
-   {
-      for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
-      {
-         MPlugArray connectedPlugs;
-         imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-         imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-
-         if (status && (connectedPlugs.length() > 0))
-         {
-            CNodeTranslator *imgTranslator = m_impl->m_session->ExportNode(connectedPlugs[0], NULL, NULL, true);
-            CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
-
-            if (imgPlaneTranslator)
-            {
-               if (!IsExportingMotion()) imgPlaneTranslator->SetCamera(GetMayaNodeName());
-               else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
-            }
-         }
-      }
-   }
+   
 }
 void CCameraTranslator::Init()
 {

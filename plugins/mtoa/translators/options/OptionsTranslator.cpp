@@ -2,6 +2,7 @@
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/driver/DriverTranslator.h"
+#include "translators/camera/ImagePlaneTranslator.h"
 
 #include "utils/MayaUtils.h"
 
@@ -631,6 +632,46 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
       overscan = 0.0f;
 }
 
+static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
+{
+   MFnDependencyNode fnNode (camera.node());
+   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
+
+   AtNode *options = AiUniverseGetOptions();
+
+   CNodeTranslator *imgTranslator = NULL;
+   MStatus status;
+
+   if (imagePlanePlug.numConnectedElements() == 0)
+      return;
+
+   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+   {
+      MPlugArray connectedPlugs;
+      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+
+      if (status && (connectedPlugs.length() > 0))
+      {
+         imgTranslator = session->ExportNode(connectedPlugs[0], NULL, NULL, true);
+         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
+
+         if (imgPlaneTranslator)
+         {
+            imgPlaneTranslator->SetCamera(fnNode.name());
+
+            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
+            
+            if (imgPlaneShader)      
+            {
+               AiNodeSetPtr(options, "background", imgPlaneShader);
+               AiNodeSetByte(options, "background_visibility", 1);
+            }
+         }
+      }
+   }
+}
+
 void COptionsTranslator::Export(AtNode *options)
 {
    assert(AiUniverseIsActive());
@@ -775,6 +816,10 @@ void COptionsTranslator::Export(AtNode *options)
    else
    {
       AiNodeSetPtr(options, "background", NULL);
+      // first we get the image planes connected to this camera
+      
+      ExportImagePlane(GetSessionOptions().GetExportCamera(), m_impl->m_session);
+
    }
    if ((GetSessionMode() == MTOA_SESSION_BATCH) || (GetSessionMode() == MTOA_SESSION_ASS))
    {
