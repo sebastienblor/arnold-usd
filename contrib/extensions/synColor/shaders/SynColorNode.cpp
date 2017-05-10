@@ -4,6 +4,7 @@
 
 #include <ai.h>
 
+#include <synColor/config.h>
 #include <synColor/synColorInit.h>
 #include <synColor/synColorPrefs.h>
 #include <synColor/synColor.h>
@@ -86,6 +87,9 @@ public:
 
    // Enforce to initialize the synColor library only once and only when needed
    static bool m_initialization_library_done;
+
+   // The synColor current configuration
+   SYNCOLOR::Config::Ptr m_config;
 
    // The way to correctly initialize the synColor engine
    AtString m_native_catalog_path;
@@ -194,6 +198,12 @@ namespace
          {
             if(useEnvVariable)
             {
+               status 
+                  = SYNCOLOR::Config::get(
+                     envVariableValue, 
+                     colorData->m_ocioconfig_path.c_str(), 
+                     colorData->m_config);
+
                filename = envVariableValue;
             }
             else
@@ -201,32 +211,14 @@ namespace
                char tmpFilename[L_tmpnam];
                tmpnam(tmpFilename);
 
-               std::ofstream ofs(tmpFilename, std::ofstream::out);
-
-               ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                     << "<SynColorConfig version=\"2.0\">\n"
-                     << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
-                     << "   <TransformsHome dir=\"" << (colorData->m_native_catalog_path ? colorData->m_native_catalog_path : AtString("")) << "\" />\n"
-                     << "   <SharedHome dir=\"" << (colorData->m_custom_catalog_path ? colorData->m_custom_catalog_path: AtString("")) << "\" />\n"
-                     << "   <ReferenceTable>\n"
-                     << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   </ReferenceTable>\n"
-                     << "</SynColorConfig>\n";
-
-               ofs.close();
+               status 
+                  = SYNCOLOR::Config::get(
+                     colorData->m_native_catalog_path.c_str(),
+                     colorData->m_custom_catalog_path.c_str(),
+                     colorData->m_ocioconfig_path.c_str(), 
+                     colorData->m_config);
 
                filename = tmpFilename;
-            }
-
-            status = SYNCOLOR::configureAsStandalone(filename.c_str());
-            if(status.getErrorCode()==SYNCOLOR::ERROR_SYN_COLOR_PREFS_ALREADY_LOADED)
-            {
-               // When using the Maya syncolor library, the initialization was already done.
-               status = SYNCOLOR::SynStatus();
             }
 
             if(!status)
@@ -237,7 +229,12 @@ namespace
                // It should never happen within Maya; however it could happen if used 
                // with kick (a tool without its own synColor catalog installation).
                status 
-                  = SYNCOLOR::configurePaths(colorData->m_native_catalog_path, filename.c_str(), colorData->m_custom_catalog_path);
+                  = SYNCOLOR::Config::create(
+                     filename.c_str(),
+                     colorData->m_native_catalog_path.c_str(),
+                     colorData->m_custom_catalog_path.c_str(),
+                     colorData->m_ocioconfig_path.c_str(), 
+                     colorData->m_config);
             }
 
             if(!useEnvVariable)
@@ -275,23 +272,10 @@ namespace
       {
          if(status)
          {
-            if(!colorData->m_ocioconfig_path.empty())
+            colorData->m_config->getTemplate(SYNCOLOR::InputTemplate, colorData->m_input_template);
+            if(status)
             {
-               status = SYNCOLOR::loadOCIOTemplate(
-                  SYNCOLOR::InputTemplate, colorData->m_ocioconfig_path, colorData->m_input_template);
-               if(status)
-               {
-                  status = SYNCOLOR::loadOCIOTemplate(
-                     SYNCOLOR::ViewingTemplate, colorData->m_ocioconfig_path, colorData->m_output_template);
-               }
-            }
-            else
-            {
-               status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::InputTemplate, colorData->m_input_template);
-               if(status)
-               {
-                  status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::ViewingTemplate, colorData->m_output_template);
-               }
+               status = colorData->m_config->getTemplate(SYNCOLOR::ViewingTemplate, colorData->m_output_template);
             }
          }
 
@@ -660,7 +644,30 @@ color_manager_get_defaults
 
 color_manager_get_chromaticities
 {
-   return false;
+   ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
+
+   if(!colorData->m_initialization_done) return false;
+
+   SYNCOLOR::ColorSpace::Ptr pColorSpace;
+   SYNCOLOR::SynStatus status = colorData->m_config->getColorSpace(space.c_str(), pColorSpace);
+   if(status)
+   {
+      SYNCOLOR::Chromaticities c;
+      status = pColorSpace->getChromaticities(c);
+      if(status)
+      {
+         chromaticities[0] = c.red.x;
+         chromaticities[1] = c.red.y;
+         chromaticities[2] = c.green.x;
+         chromaticities[3] = c.green.y;
+         chromaticities[4] = c.blue.x;
+         chromaticities[5] = c.blue.y;
+         chromaticities[6] = c.white.x;
+         chromaticities[7] = c.white.y;
+      }
+   }
+
+   return (bool)status;
 }
 
 color_manager_get_custom_attributes
@@ -670,12 +677,23 @@ color_manager_get_custom_attributes
 
 color_manager_get_num_color_spaces
 {
-   return 0;
+   ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
+
+   if(!colorData->m_initialization_done) return 0;
+
+   return colorData->m_config->getNumColorSpaces();
 }
 
 color_manager_get_color_space_name_by_index
 {
-   return AtString("");
+   ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
+
+   if(!colorData->m_initialization_done)
+   {
+      return AtString("");
+   }
+
+   return AtString(colorData->m_config->getColorSpaceName(i));
 }
 
 node_finish
