@@ -181,6 +181,14 @@ namespace
       return pxlFormat;
    }
 
+   void logger(SYNCOLOR::LogLevel lvl, const char * msg)
+   {
+      if(lvl == SYNCOLOR::LEVEL_USER)
+      {
+         AiMsgWarning(msg);
+      }
+   }
+
    // The method initializes the SynColor library only once.
    void initializeSynColor(ColorManagerData* colorData)
    {
@@ -194,6 +202,12 @@ namespace
          std::string filename;
 
          status = SYNCOLOR::setUp(SYNCOLOR::Maya, SYNCOLOR::LANG_EN);
+
+         if(status)
+         {
+            status = SYNCOLOR::setLoggerFunction(logger);
+         }
+
          if(status)
          {
             if(useEnvVariable)
@@ -251,7 +265,7 @@ namespace
                }
                else
                {
-                  AiMsgInfo("                with the native catolog from %s", colorData->m_native_catalog_path);
+                  AiMsgInfo("                with the native catolog directory from %s", colorData->m_native_catalog_path);
                }
 
                if(!colorData->m_ocioconfig_path.empty())
@@ -261,7 +275,7 @@ namespace
 
                const char* pSharedDirectory = 0x0;
                SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
-               AiMsgInfo("                and the optional custom catalog from %s", pSharedDirectory);
+               AiMsgInfo("                and the optional custom catalog directory from %s", pSharedDirectory);
             }
          }
          ColorManagerData::m_initialization_library_done = (bool)status;
