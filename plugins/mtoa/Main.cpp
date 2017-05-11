@@ -411,7 +411,7 @@ namespace // <anonymous>
                                     CAiMixShaderTranslator::creator,
                                     CAiMixShaderTranslator::NodeInitializer);
 
-      builtin->RegisterTranslator("aiSwitchShader",
+      builtin->RegisterTranslator("aiSwitch",
                                     "",
                                     CAiSwitchShaderTranslator::creator,
                                     CAiSwitchShaderTranslator::NodeInitializer);
