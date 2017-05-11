@@ -107,8 +107,6 @@ void CImagePlaneTranslator::ExportImagePlane()
    double offsetX = fnRes.findPlug("offsetX", &status).asDouble();
    double offsetY = fnRes.findPlug("offsetY", &status).asDouble();
    
-   double ipWidth;
-   double ipHeight;
 
    unsigned int iWidth = 0;
    unsigned int iHeight = 0;
@@ -214,12 +212,11 @@ void CImagePlaneTranslator::ExportImagePlane()
       }
 
       AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
-      AiNodeSetVec2(imagePlaneShader, "fitFactor", scaleX, scaleY);
-      AiNodeSetVec2(imagePlaneShader, "coverage", coverageX / (float)iWidth , coverageY / (float)iHeight);
-      AiNodeSetVec2(imagePlaneShader, "coverageOrigin", coverageOriginX / (float)iWidth , coverageOriginY / (float)iHeight);
-      AiNodeSetVec2(imagePlaneShader, "translate", offsetX, offsetY);
+      AiNodeSetVec2(imagePlaneShader, "fitFactor", (float)scaleX, (float)scaleY);
+      AiNodeSetVec2(imagePlaneShader, "coverage", (float)coverageX / (float)iWidth , (float)coverageY / (float)iHeight);
+      AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
+      AiNodeSetVec2(imagePlaneShader, "translate", (float)offsetX, (float)offsetY);
       
-
       colorPlug  = fnRes.findPlug("colorGain");
       colorPlug.connectedTo(conn, true, false);
       if (!conn.length())
@@ -242,7 +239,7 @@ void CImagePlaneTranslator::ExportImagePlane()
       AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
 
 
-     float rotate = fnRes.findPlug("rotate", &status).asDouble();
+     float rotate = fnRes.findPlug("rotate", &status).asFloat();
      AiNodeSetFlt(imagePlaneShader, "rotate", rotate);
       
    }
