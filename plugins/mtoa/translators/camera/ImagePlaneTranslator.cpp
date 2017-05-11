@@ -103,6 +103,9 @@ void CImagePlaneTranslator::ExportImagePlane()
 
    double coverageOriginX = fnRes.findPlug("coverageOriginX", &status).asDouble();
    double coverageOriginY = fnRes.findPlug("coverageOriginY", &status).asDouble();
+
+   double offsetX = fnRes.findPlug("offsetX", &status).asDouble();
+   double offsetY = fnRes.findPlug("offsetY", &status).asDouble();
    
    double ipWidth;
    double ipHeight;
@@ -214,7 +217,8 @@ void CImagePlaneTranslator::ExportImagePlane()
       AiNodeSetVec2(imagePlaneShader, "fitFactor", scaleX, scaleY);
       AiNodeSetVec2(imagePlaneShader, "coverage", coverageX / (float)iWidth , coverageY / (float)iHeight);
       AiNodeSetVec2(imagePlaneShader, "coverageOrigin", coverageOriginX / (float)iWidth , coverageOriginY / (float)iHeight);
-
+      AiNodeSetVec2(imagePlaneShader, "translate", offsetX, offsetY);
+      
 
       colorPlug  = fnRes.findPlug("colorGain");
       colorPlug.connectedTo(conn, true, false);

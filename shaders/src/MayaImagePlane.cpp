@@ -24,6 +24,7 @@ enum ImagePlaneParams {
     p_coverageOrigin,
     p_fit_factor,
     p_translate,
+    p_rotate,
     p_camera
 };
 
@@ -33,6 +34,11 @@ typedef struct AtImageData
    AtString color_space;
    int xres;
    int yres;
+   double sinAngle;
+   double cosAngle;
+   unsigned int iWidth;
+   unsigned int iHeight;
+
 } AtImageData;
 
 inline float mod(float n, float d)
@@ -75,6 +81,7 @@ node_parameters
    AiParameterVec2("coverageOrigin", 0.0f, 0.0f);
    AiParameterVec2("fitFactor", 1.0f, 1.0f);
    AiParameterVec2("translate", 0.0f, 0.0f);
+   AiParameterFlt("rotate", 0.0f);
 
    AiParameterNode("camera", NULL); 
 
@@ -115,11 +122,16 @@ node_update
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
    AiTextureHandleDestroy(idata->texture_handle);
    idata->color_space = AiNodeGetStr(node, "color_space");
-   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"), idata->color_space);
+   const char *filename = AiNodeGetStr(node, "filename");
+   idata->texture_handle = AiTextureHandleCreate(filename, idata->color_space);
 
+   AiTextureGetResolution(filename, &idata->iWidth, &idata->iHeight);
    idata->xres =  AiNodeGetInt(AiUniverseGetOptions(), "xres");
    idata->yres = AiNodeGetInt(AiUniverseGetOptions(), "yres");
 
+   float angle = AiNodeGetFlt(node, "rotate");
+   idata->sinAngle = sin(angle);
+   idata->cosAngle = cos(angle);
 }
 
 node_finish
@@ -167,6 +179,13 @@ shader_evaluate
    {
       coverage.y = AiMin(1.f, coverage.y/(1.f - coverageOrigin.y));
    }
+   float resolutionInvRatio =  (float)idata->yres / (float)idata->xres;
+   float imgInvRatio =  (float)idata->iHeight / (float)idata->iWidth;
+
+   if (resolutionInvRatio < 1.f)
+      translate.x *= imgInvRatio;
+   else
+      translate.y /= imgInvRatio;
 
    if (idata->texture_handle != NULL)
    {   
@@ -183,9 +202,19 @@ shader_evaluate
       float sx = -1 + (sg->x + sg->px) * (2.0f / idata->xres);
       float sy =  1 - (sg->y + sg->py) * (2.0f /idata->yres);
 
-
       sx *= fit_factor.x;
       sy *= fit_factor.y;
+
+
+      float origSx = sx;
+      float origSy = sy* imgInvRatio;
+
+      
+      sx = idata->cosAngle * origSx - idata->sinAngle * origSy;
+      sy = idata->sinAngle * origSx + idata->cosAngle * origSy;
+
+      sy /= imgInvRatio;
+
 
       sx = sx * 0.5f + 0.5f;
       sy = sy * 0.5f + 0.5f;
@@ -200,7 +229,7 @@ shader_evaluate
 
 
       sg->u = (sx - translate.x);
-      sg->v =  (1.0f - ((sy - translate.y)));
+      sg->v =  (1.0f - ((sy + translate.y)));
 
       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
 
