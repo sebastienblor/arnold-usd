@@ -144,7 +144,14 @@ node_finish
 shader_evaluate
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
-   
+
+   if (sg->bounces > 1)
+   {
+      sg->out.RGBA() = AI_RGBA_ZERO;
+      return;
+   }
+
+
    AtRGB color = AiShaderEvalParamRGB(p_color);
    AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);
    AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);
