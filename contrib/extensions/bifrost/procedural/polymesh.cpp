@@ -12,6 +12,19 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPolymeshMtds)
 
 namespace {
 
+    std::ostream& operator<<(std::ostream& out, const AtMatrix& m){
+        out << "AtMatrix[";
+        for(unsigned int i = 0; i < 4; ++i){
+            out << "[";
+            for(unsigned int j = 0; j < 4; ++j){
+                out << m[i][j];
+            }
+            out << "]";
+        }
+        out << "]";
+        return out;
+    }
+
     template<typename T>
     void exportChannel(AtNode* polymesh, const Bifrost::API::Array<amino::Math::vec3f>& vertices, const Bifrost::API::VoxelChannel& channel);
 
@@ -66,9 +79,13 @@ procedural_init
     if(!Surface::initialize(params, component)){
         return false;
     }
-    DUMP(params.subdivisions);
+    DUMP(params.str());
 
     Bifrost::API::VoxelChannel distance = component.findChannel(params.distance_channel.c_str());
+    if(!distance.valid()){
+        AiMsgError("[BIFROST] Invalid distance channel '%s'.", params.distance_channel.c_str());
+        return false;
+    }
 
     // **** CREATE POLYMESH ****
 
@@ -79,25 +96,41 @@ procedural_init
     AtNode *polymesh = AiNode("polymesh");
     AiNodeSetBool(polymesh, "smoothing", params.smoothing);
     AiNodeSetStr(polymesh, "name", (std::string(AiNodeGetName(node))+"_polymesh").c_str() );
+    DUMP(AiNodeGetMatrix(node,"matrix"));
     AiNodeSetMatrix(polymesh, "matrix", AiM4Scaling(AtVector(params.space_scale, params.space_scale, params.space_scale)));
 
     // compute velocities
     Bifrost::API::Array<amino::Math::vec3f> velocities;
     if(motion || shutter_start != 0){
         float velocity_scale = params.velocity_scale / params.fps;
-        Bifrost::API::VoxelChannel velocity_u = component.findChannel("velocity_u");
-        Bifrost::API::VoxelChannel velocity_v = component.findChannel("velocity_v");
-        Bifrost::API::VoxelChannel velocity_w = component.findChannel("velocity_w");
         velocities.resize(vertices.count());
-        TBB_FOR_ALL(0, vertices.count(), 100, [velocity_scale, vertices, velocity_u, velocity_v, velocity_w, &velocities](size_t start, size_t end){
-            Bifrost::API::VoxelSampler sampler_u = velocity_u.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
-            Bifrost::API::VoxelSampler sampler_v = velocity_v.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
-            Bifrost::API::VoxelSampler sampler_w = velocity_w.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
-            for(size_t i = start; i < end; ++i){
-                const amino::Math::vec3f& p = vertices[i];
-                velocities[i] = velocity_scale * amino::Math::vec3f(sampler_u.sample<float>(p), sampler_v.sample<float>(p), sampler_w.sample<float>(p));
-            }
-        });
+
+        if(params.velocity_channels.size() == 3){ // 3 float velocity channels
+            Bifrost::API::VoxelChannel velocity_u = component.findChannel(params.velocity_channels[0].c_str());
+            Bifrost::API::VoxelChannel velocity_v = component.findChannel(params.velocity_channels[1].c_str());
+            Bifrost::API::VoxelChannel velocity_w = component.findChannel(params.velocity_channels[2].c_str());
+            TBB_FOR_ALL(0, vertices.count(), 100, [velocity_scale, vertices, velocity_u, velocity_v, velocity_w, &velocities](size_t start, size_t end){
+                Bifrost::API::VoxelSampler sampler_u = velocity_u.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
+                Bifrost::API::VoxelSampler sampler_v = velocity_v.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
+                Bifrost::API::VoxelSampler sampler_w = velocity_w.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
+                for(size_t i = start; i < end; ++i){
+                    const amino::Math::vec3f& p = vertices[i];
+                    velocities[i] = velocity_scale * amino::Math::vec3f(sampler_u.sample<float>(p), sampler_v.sample<float>(p), sampler_w.sample<float>(p));
+                }
+            });
+        }else if(params.velocity_channels.size()==1){ // one vec3f velocity channel
+            Bifrost::API::VoxelChannel velocity = component.findChannel(params.velocity_channels[0].c_str());
+            TBB_FOR_ALL(0, vertices.count(), 100, [velocity_scale, vertices, velocity, &velocities](size_t start, size_t end){
+                Bifrost::API::VoxelSampler sampler = velocity.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
+                for(size_t i = start; i < end; ++i){
+                    velocities[i] = velocity_scale * sampler.sample<amino::Math::vec3f>(vertices[i]);
+                }
+            });
+        }else{
+            AiMsgWarning("[BIFROST] Invalid velocity channels count = %d. Need 1 vec3f or 3 float. Disabling motion blur...", (int) params.velocity_channels.size());
+            shutter_start = shutter_end = 0;
+            motion = false;
+        }
         if(motion){
             AiNodeSetFlt(polymesh, "motion_start", shutter_start);
             AiNodeSetFlt(polymesh, "motion_end", shutter_end);
@@ -123,8 +156,8 @@ procedural_init
         AiNodeSetArray(polymesh, "vlist", vlist);
     }
 
+    AtArray *vidxs = AiArrayAllocate( indices.count()*3, 1, AI_TYPE_UINT );
     {// export faces
-        AtArray *vidxs = AiArrayAllocate( indices.count()*3, 1, AI_TYPE_UINT );
         AtArray *nsides = AiArrayAllocate( indices.count(), 1, AI_TYPE_UINT );
         TBB_FOR_ALL(0, indices.count(), 100, [vidxs, nsides,indices](size_t i){
             AiArraySetUInt(nsides, i, 3);
@@ -145,8 +178,32 @@ procedural_init
         exportChannel(polymesh, vertices, channel);
     }
 
-    //AiNodeSetByte(polymesh, "sidedness", 0);
-    //AiNodeSetBool(polymesh, "invert_normals", true);
+    if(!params.uv_channel.empty()){// export principal uvs
+        Bifrost::API::VoxelChannel uvs = component.findChannel(params.uv_channel.c_str());
+        const static std::function<bool(const Bifrost::API::Channel&)> validUVs = [](const Bifrost::API::Channel& c){
+            return c.valid() && c.dataType() == Bifrost::API::DataType::FloatV2Type;
+        };
+        if(validUVs(uvs)){
+            AtArray* uvlist = AiArrayAllocate( vertices.count(), 1, AI_TYPE_VECTOR2 );
+            TBB_FOR_ALL(0, vertices.count(), 100, [vertices, uvs, uvlist](size_t start, size_t end){
+                Bifrost::API::VoxelSampler sampler = uvs.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
+                for(size_t i = start; i < end; ++i){
+                    AiArraySetVec2(uvlist, i, AminoVec2ToAtVector(sampler.sample<amino::Math::vec2f>(vertices[i])));
+                }
+            });
+            AiNodeSetArray( polymesh, "uvlist", uvlist );
+            AiNodeSetArray( polymesh, "uvidxs", AiArrayCopy(vidxs) );
+        }else{
+            AiMsgWarning("[BIFROST] Skipping export invalid uv channel '%s'. Available channels are: \n%s", params.uv_channel.c_str(), availableChannels(component, validUVs).c_str());
+        }
+    }
+
+    // transfer displacement attributes
+    AiNodeSetArray(polymesh, "disp_map", params.disp_map);
+    AiNodeSetFlt(polymesh, "disp_padding", params.disp_padding);
+    AiNodeSetFlt(polymesh, "disp_height", params.disp_height);
+    AiNodeSetFlt(polymesh, "disp_zero_value", params.disp_zero_value);
+    AiNodeSetBool(polymesh, "disp_autobump", params.disp_autobump);
 
     *user_ptr = polymesh;
 

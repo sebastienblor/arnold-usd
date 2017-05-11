@@ -5,11 +5,11 @@
 class BifrostTranslator : public CShapeTranslator
 {
 public:
-    AtNode* CreateArnoldNodes();
-    virtual void Export( AtNode *shape );
-    void ExportMotion( AtNode *shape );
+    AtNode* CreateArnoldNodes() override;
+    void Export( AtNode *shape ) override;
+    void ExportMotion( AtNode *shape ) override;
 
-    void RequestUpdate();
+    void RequestUpdate() override;
 
     static void* creator() { return new BifrostTranslator(); }
 
@@ -18,6 +18,10 @@ public:
 private:
     void ExportSurface(MFnDagNode& dagNode, AtNode *shape);
     void ExportPolymesh(MFnDagNode& dagNode, AtNode *shape);
+    void ExportClipping(const MFnDagNode& dagNode, AtNode *shape);
+    void ExportOceanPlane(const MFnDagNode& dagNode, AtNode *shape);
+
+    MMatrix getRelativeMatrix(const MPlug& src);
 
     void ExportBifrostShader();
     void ExportDisplacement();

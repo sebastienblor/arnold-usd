@@ -111,10 +111,7 @@ size_t MarchingCubesVisitor::calcVoxel(float *gridVals, const amino::Math::vec3i
         float b = gridVals[ e[1] ];
         float d = a - b;
 
-        float t = 0.0f;
-        if ( std::fabs( d ) > FLT_EPSILON ) {
-            t = a / d;
-        }
+        float t = (std::fabs(d)>FLT_EPSILON)? a/d : 0.0f;
 
         for ( int coord = 0; coord < 3; coord++ ) {
             // calc interpolated vertex position in tile space
@@ -147,9 +144,22 @@ size_t MarchingCubesVisitor::calcVoxel(float *gridVals, const amino::Math::vec3i
 void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index)
 {
     // get the tile and its coordinate
-    const Bifrost::API::Tile		tile	= accessor.tile(index);
+    const Bifrost::API::Tile tile	= accessor.tile(index);
+    const Bifrost::API::TileInfo info = tile.info();
+
+    // TODO: remove this
+    if(true){
+        const int n = info.dimInfo.depthWidth;
+        for(int i = -n; i <= n; i+=n){
+            for(int j = -n; j <= n; j+=n){
+                for(int k = -n; k <= n; k+=n){
+                    if(accessor.tile(info.i+i,info.j+j,info.k+k,info.depth).info().depth != info.depth) return;
+                }
+            }
+        }
+    }
+
     const Bifrost::API::TileCoord	coord	= tile.coord();
-    //Bifrost::API::TileData<float> data = sdf.tileData<float>(index);
 
     // now for each voxel in the tile, do marching cube calc
     size_t vertexCount = 0;

@@ -61,7 +61,7 @@ void crawl(Bifrost::API::VoxelChannel &sdf, Bifrost::API::Tile current, int i, i
     int depth = current.info().depth;
 
     if(current.info().depth == layout.maxDepth()){
-        std::cerr << coord << ", " << current.info().depth << std::endl;
+        //std::cerr << coord << ", " << current.info().depth << std::endl;
         Bifrost::API::TileData<float> data = sdf.tileData<float>(current.index());
 
         int j = 0;
@@ -115,6 +115,35 @@ void cullBottom(Bifrost::API::VoxelChannel &sdf, float h){
     DUMP("CULL ENDS");
 }
 
+class ExtendUVVistor : public Bifrost::API::Visitor {
+public:
+    ExtendUVVistor(const amino::Math::vec2f& min, const amino::Math::vec2f& max, Bifrost::API::VoxelChannel& out) : out(out) {
+        float dx = Bifrost::API::Layout(out.layout()).voxelScale();
+        mat =   amino::Math::mat33f(dx,0,0,  0,dx,0,  0,0,1) *
+                amino::Math::mat33f(1,0,-min[0],  0,1,-min[1],  0,0,1) *
+                amino::Math::mat33f(1./(max[0]-min[0]),0,0,  0,1./(max[1]-min[1]),0,  0,0,1);
+    }
+    ExtendUVVistor(const ExtendUVVistor& o)
+        : mat(o.mat), out(o.out) {}
+    Bifrost::API::Visitor* copy() const override{ return new ExtendUVVistor(*this); }
+
+    void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
+        const Bifrost::API::Tile& tile = accessor.tile(index);
+        const Bifrost::API::TileCoord& coord = tile.coord();
+        Bifrost::API::TileData<amino::Math::vec2f> data = out.tileData<amino::Math::vec2f>(index);
+
+        const int w = tile.info().dimInfo.depthWidth;
+        FOR_IJK(i,j,k,w){
+            amino::Math::vec3f uv = mat * amino::Math::vec3f(coord.i+i, coord.k+k, 1);
+            data(i,j,k) = amino::Math::vec2f(uv[0],uv[1]);
+        }
+    }
+
+private:
+    amino::Math::mat33f mat;
+    Bifrost::API::VoxelChannel out;
+};
+
 }
 
 namespace Bifrost {
@@ -148,10 +177,13 @@ void extend(const API::VoxelChannel &sdf, float height, const amino::Math::vec2f
         }
     }
     ExtendBlendVistor visitor(sdf, height, radius, out);
-    layout.traverse(visitor, Bifrost::API::TraversalMode::BreadthFirst, layout.maxDepth(), layout.maxDepth());
-    DUMP(radius);
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
+}
 
-    DUMP(height);
+void extendUVs(const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, API::VoxelChannel &out){
+    Bifrost::API::Layout layout(out.layout());
+    ExtendUVVistor visitor(center-dimensions*.5, center+dimensions*.5, out);
+    layout.traverse(visitor, Bifrost::API::TraversalMode::BreadthFirst, layout.maxDepth(), layout.maxDepth());
 }
 
 }}

@@ -23,6 +23,8 @@ struct SurfaceParams{
     std::string cache_file;
     std::string object;
     std::vector<std::string> channels;
+    std::vector<std::string> velocity_channels;
+    std::string uv_channel;
 
     float velocity_scale;
     float space_scale;
@@ -61,6 +63,7 @@ struct SurfaceParams{
     int debug;
 
     SurfaceParams(const AtNode* node);
+    virtual std::string str() const;
     static void declare(AtList* params, AtNodeEntry* nentry);
 };
 
@@ -68,13 +71,14 @@ struct PolymeshParams : public SurfaceParams{
     unsigned int subdivisions;
     bool smoothing;
 
-    AtNode* disp_map;
+    AtArray* disp_map;
     float disp_padding;
     float disp_height;
     float disp_zero_value;
     bool disp_autobump;
 
     PolymeshParams(const AtNode* node);
+    virtual std::string str() const override;
     static void declare(AtList *params, AtNodeEntry *nentry);
 };
 
@@ -84,3 +88,4 @@ struct ImplicitParams : public SurfaceParams{
 };
 
 }
+

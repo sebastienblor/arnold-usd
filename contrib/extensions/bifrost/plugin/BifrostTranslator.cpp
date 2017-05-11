@@ -6,6 +6,11 @@
 #include <maya/MObject.h>
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
+#include <maya/MMatrix.h>
+#include <maya/MFnTransform.h>
+#include <maya/MBoundingBox.h>
+#include <maya/MDGModifier.h>
+#include <maya/MFnMeshData.h>
 
 #include <ai.h>
 
@@ -18,6 +23,7 @@
 
 #define EXPORT_BOOL(name) AiNodeSetBool(shape, name, dagNode.findPlug(name).asBool())
 #define EXPORT_INT(name) AiNodeSetInt(shape, name, dagNode.findPlug(name).asInt())
+#define EXPORT_UINT(name) AiNodeSetUInt(shape, name, dagNode.findPlug(name).asInt())
 #define EXPORT_FLT(name) AiNodeSetFlt(shape, name, dagNode.findPlug(name).asFloat())
 #define EXPORT_FLT2(name) AiNodeSetVec2(shape, name, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat())
 #define EXPORT_FLT3(name) AiNodeSetVec(shape, name, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
@@ -25,6 +31,7 @@
 
 #define EXPORT2_BOOL(aiName, name) AiNodeSetBool(shape, aiName, dagNode.findPlug(name).asBool())
 #define EXPORT2_INT(aiName, name) AiNodeSetInt(shape, aiName, dagNode.findPlug(name).asInt())
+#define EXPORT2_UINT(aiName, name) AiNodeSetUInt(shape, aiName, dagNode.findPlug(name).asInt())
 #define EXPORT2_FLT(aiName, name) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name).asFloat())
 #define EXPORT2_FLT3(aiName, name) AiNodeSetVec(shape, aiName, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
 #define EXPORT2_STR(aiName, name) AiNodeSetStr(shape, aiName, dagNode.findPlug(name).asString().asChar())
@@ -32,6 +39,50 @@
 AtNode* BifrostTranslator::CreateArnoldNodes()
 {
     return AddArnoldNode("bifrost_polymesh");
+}
+
+MMatrix BifrostTranslator::getRelativeMatrix(const MPlug &source){
+    // TODO: make sure right dag path is used
+    //unsigned int index = source.logicalIndex();
+    MFnDagNode dag(source.node());
+    MDagPath thisPath = m_dagPath; thisPath.pop();
+    MDagPath otherPath; CHECK_MSTATUS(dag.getPath(otherPath));
+    return otherPath.inclusiveMatrix() * thisPath.inclusiveMatrixInverse();
+}
+
+void BifrostTranslator::ExportClipping(const MFnDagNode &dagNode, AtNode *shape){
+    EXPORT_BOOL("clip");
+    MPlug clipBoxPlug = dagNode.findPlug("clip_box");
+    if(clipBoxPlug.isDestination()){
+        MPlug source = clipBoxPlug.source();
+        MMatrix matrix = this->getRelativeMatrix(source);
+        MBoundingBox bbox = MFnDagNode(source.node()).boundingBox();
+        bbox.transformUsing(matrix);
+        AiNodeSetVec(shape, "clip_min", bbox.min().x, bbox.min().y, bbox.min().z);
+        AiNodeSetVec(shape, "clip_max", bbox.max().x, bbox.max().y, bbox.max().z);
+    }else{
+        AiNodeSetBool(shape, "clip", false);
+    }
+}
+
+void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shape){
+    EXPORT_BOOL("enable_infinite_blending");
+    EXPORT_FLT("infinite_blending_radius");
+    MPlug oceanMeshPlug = dagNode.findPlug("ocean_plane");
+    if(oceanMeshPlug.isDestination()){
+        MPlug source = oceanMeshPlug.source();
+        MMatrix matrix = this->getRelativeMatrix(source);
+        MBoundingBox bbox = MFnDagNode(source.node()).boundingBox();
+        bbox.transformUsing(matrix);
+        float height = bbox.max().y;
+        MPoint center = (bbox.max() + bbox.min())*.5;
+        MPoint dimensions = (bbox.max() - bbox.min());
+        AiNodeSetFlt(shape,"infinite_blending_height", height);
+        AiNodeSetVec2(shape, "infinite_blending_center", center.x, center.z);
+        AiNodeSetVec2(shape, "infinite_blending_dimension", dimensions.x, dimensions.z);
+    }else{
+        AiNodeSetBool(shape, "enable_infinite_blending", false);
+    }
 }
 
 void BifrostTranslator::Export(AtNode* shape)
@@ -50,11 +101,7 @@ void BifrostTranslator::Export(AtNode* shape)
     float fps = (float) sec.as(MTime::uiUnit());
     AiNodeSetFlt(shape, "fps", fps);
 
-    //ADD_DSTR("channels");
-
-    EXPORT_BOOL("clip");
-    EXPORT_FLT3("clip_min");
-    EXPORT_FLT3("clip_max");
+    this->ExportClipping(dagNode, shape);
 
     // export shaders
     if(RequiresShaderExport()){
@@ -66,11 +113,18 @@ void BifrostTranslator::Export(AtNode* shape)
     AiNodeSetStr(shape, "object", dagNode.findPlug("object").asString().asChar());
 
     ExportPolymesh(dagNode, shape);
+    ExportMatrix(shape);
 }
 
 void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
 {
     EXPORT_STR("distance_channel");
+
+    EXPORT_FLT("levelset_droplet_reveal_factor");
+    EXPORT_FLT("levelset_surface_radius");
+    EXPORT_FLT("levelset_droplet_radius");
+    EXPORT_FLT("levelset_resolution_factor");
+    EXPORT_FLT("levelset_max_volume_of_holes_to_close");
 
     EXPORT_FLT("dilate");
     EXPORT_FLT("erode");
@@ -79,10 +133,7 @@ void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
     //ADD_DSMOOTH_ENUM("smooth_mode");
     EXPORT_INT("smooth_iterations");
 
-    EXPORT_BOOL("enable_infinite_blending");
-    EXPORT_FLT("enable_infinite_blending");
-    EXPORT_FLT2("infinite_blending_center");
-    EXPORT_FLT2("infinite_blending_dimension");
+    this->ExportOceanPlane(dagNode, shape);
 }
 
 void BifrostTranslator::ExportPolymesh(MFnDagNode &dagNode, AtNode *shape)
@@ -90,8 +141,9 @@ void BifrostTranslator::ExportPolymesh(MFnDagNode &dagNode, AtNode *shape)
     ExportSurface(dagNode, shape);
 
     // export mesh specific attributes
-    EXPORT_INT("subdivisions");
+    EXPORT_UINT("subdivisions");
     ExportDisplacement();
+    EXPORT_BOOL("smoothing");
 }
 
 void BifrostTranslator::ExportMotion( AtNode* shape ){
@@ -262,6 +314,12 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DSTR("channels", "vorticity");
     ADD_DSTR("distance_channel", "distance");
 
+    ADD_DFLT("levelset_droplet_reveal_factor",3);
+    ADD_DFLT("levelset_surface_radius", 1.4);
+    ADD_DFLT("levelset_droplet_radius", 1.2);
+    ADD_DFLT("levelset_resolution_factor",1);
+    ADD_DFLT("levelset_max_volume_of_holes_to_close", 8);
+
     ADD_DFLT("dilate", 0.f);
     ADD_DFLT("erode", 0.f);
 
@@ -270,11 +328,43 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DINT_HARDMIN("smooth_iterations", 1, 1);
 
     ADD_DBOOL("clip", false);
-    ADD_DFLT3("clip_min", -1.f, -1.f, -1.f);
-    ADD_DFLT3("clip_max",  1.f,  1.f,  1.f);
+    {
+        MStatus status;
+        MFnTypedAttribute typeAttr;
+        MObject obj = typeAttr.create("clip_box", "clip_box", MFnData::kMesh, &status);
+        typeAttr.setStorable(false);
+        typeAttr.setKeyable(true);
+        typeAttr.setDisconnectBehavior(MFnAttribute::kReset);
+        CHECK_MSTATUS(status);
+
+        MDGModifier dgMod;
+        if (dgMod.addExtensionAttribute(MString("bifrostShape"), obj) != MStatus::kSuccess){
+           AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
+        }else{
+            AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
+            CHECK_MSTATUS(dgMod.doIt());
+        }
+    }
+    //ADD_DFLT3("clip_min", -1.f, -1.f, -1.f);
+    //ADD_DFLT3("clip_max",  1.f,  1.f,  1.f);
 
     ADD_DBOOL("enable_infinite_blending", false);
-    ADD_DFLT("enable_infinite_blending", 0);
-    ADD_DFLT2("infinite_blending_center", 0, 0);
-    ADD_DFLT2("infinite_blending_dimension", 0, 0);
+    {
+        MStatus status;
+        MFnTypedAttribute typeAttr;
+        MObject obj = typeAttr.create("ocean_plane", "ocean_plane", MFnData::kMesh, &status);
+        typeAttr.setStorable(false);
+        typeAttr.setKeyable(true);
+        typeAttr.setDisconnectBehavior(MFnAttribute::kReset);
+        CHECK_MSTATUS(status);
+
+        MDGModifier dgMod;
+        if (dgMod.addExtensionAttribute(MString("bifrostShape"), obj) != MStatus::kSuccess){
+           AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
+        }else{
+            AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
+            CHECK_MSTATUS(dgMod.doIt());
+        }
+    }
+    ADD_DFLT("infinite_blending_radius", .1);
 }

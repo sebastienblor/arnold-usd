@@ -9,14 +9,36 @@
 #include <vector>
 #include "utils.h"
 
+#define DUMP_PARAM(param) ss << "    " << #param << " = " << (param) << std::endl;
+#define DUMP_ARRAY_PARAM(param) \
+    ss << "    " << #param << " = " << std::endl; \
+    for(const std::string& s : param) \
+        ss << "        " << s << std::endl;
+
+namespace {
+    std::vector<std::string> ArrayToStrings(const AtArray* array){
+        std::vector<std::string> strings;
+        for(unsigned int i = 0; i < AiArrayGetNumElements(array); ++i)
+            strings.push_back(AiArrayGetStr(array,i).c_str());
+        return strings;
+    }
+
+    AtArray* CreateStringArray(const std::vector<std::string>& strings){
+        AtArray* array = AiArrayAllocate(strings.size(),1,AI_TYPE_STRING);
+        for(unsigned int i = 0; i < strings.size(); ++i)
+            AiArraySetStr(array, i, strings[i].c_str());
+        return array;
+    }
+}
+
 namespace Surface{
 
 SurfaceParams::SurfaceParams(const AtNode* node){
     cache_file = AiNodeGetStr(node, "cache_file");
     object = AiNodeGetStr(node, "object");
-    AtArray* channels = AiNodeGetArray(node, "channels");
-    for(unsigned int i = 0; i < AiArrayGetNumElements(channels); ++i)
-        this->channels.push_back(AiArrayGetStr(channels,i).c_str());
+    channels = ArrayToStrings(AiNodeGetArray(node, "channels"));
+    velocity_channels = ArrayToStrings(AiNodeGetArray(node, "velocity_channels"));
+    uv_channel = AiNodeGetStr(node, "uv_channel");
 
     velocity_scale = AiNodeGetFlt(node, "velocity_scale");
     space_scale = AiNodeGetFlt(node, "space_scale");
@@ -53,6 +75,51 @@ SurfaceParams::SurfaceParams(const AtNode* node){
     debug = AiNodeGetInt(node, "debug");
 }
 
+std::string SurfaceParams::str() const{
+    std::stringstream ss;
+    ss << std::endl;
+    DUMP_PARAM(cache_file);
+    DUMP_PARAM(object);
+    DUMP_ARRAY_PARAM(channels);
+    DUMP_ARRAY_PARAM(velocity_channels);
+    DUMP_PARAM(uv_channel);
+
+    DUMP_PARAM(velocity_scale);
+    DUMP_PARAM(space_scale);
+    DUMP_PARAM(fps);
+
+    DUMP_PARAM(render_component);
+
+    DUMP_PARAM(distance_channel);
+
+    DUMP_PARAM(levelset_droplet_reveal_factor);
+    DUMP_PARAM(levelset_surface_radius);
+    DUMP_PARAM(levelset_droplet_radius);
+    DUMP_PARAM(levelset_resolution_factor);
+    DUMP_PARAM(levelset_max_volume_of_holes_to_close);
+
+    DUMP_PARAM(dilate);
+    DUMP_PARAM(erode);
+    DUMP_PARAM(smooth);
+    DUMP_PARAM(smooth_mode);
+
+    DUMP_PARAM(smooth_iterations);
+
+    DUMP_PARAM(clip);
+    DUMP_PARAM(clip_bbox);
+
+    DUMP_PARAM(enable_infinite_blending);
+    DUMP_PARAM(infinite_blending_height);
+    DUMP_PARAM(infinite_blending_center);
+    DUMP_PARAM(infinite_blending_dimension);
+    DUMP_PARAM(infinite_blending_radius);
+    DUMP_PARAM(infinite_blending_blend);
+    DUMP_PARAM(enable_infinite_blending_uvs);
+
+    DUMP_PARAM(debug);
+    return ss.str();
+}
+
 void SurfaceParams::declare(AtList* params, AtNodeEntry* nentry){
     static const char* RenderComponents[] = {
         "voxels",
@@ -76,9 +143,9 @@ void SurfaceParams::declare(AtList* params, AtNodeEntry* nentry){
 
     AiParameterStr("cache_file", "");
     AiParameterStr("object", "");
-    AtArray* channels = AiArrayAllocate(1,1,AI_TYPE_STRING);
-    AiArraySetStr(channels, 0, "vorticity");
-    AiParameterArray("channels", channels);
+    AiParameterArray("channels", CreateStringArray({"vorticity"}));
+    AiParameterArray("velocity_channels", CreateStringArray({"velocity_u", "velocity_v", "velocity_w"}));
+    AiParameterStr("uv_channel", "uv");
 
     AiParameterFlt("velocity_scale", 1);
     AiParameterFlt("space_scale", 1);
@@ -89,11 +156,11 @@ void SurfaceParams::declare(AtList* params, AtNodeEntry* nentry){
     AiParameterStr("distance_channel", "");
 
     // PARTICLES
-    AiParameterFlt("levelset_resolution_factor", 0);
-    AiParameterFlt("levelset_droplet_reveal_factor", 0);
-    AiParameterFlt("levelset_surface_radius", 0);
-    AiParameterFlt("levelset_droplet_radius", 0);
-    AiParameterFlt("levelset_max_volume_of_holes_to_close", 0);
+    AiParameterFlt("levelset_droplet_reveal_factor", 3);
+    AiParameterFlt("levelset_surface_radius", 1.4);
+    AiParameterFlt("levelset_droplet_radius", 1.2);
+    AiParameterFlt("levelset_resolution_factor", 1);
+    AiParameterFlt("levelset_max_volume_of_holes_to_close", 8);
 
     // Filter attributes
     AiParameterFlt("dilate", 0);
@@ -123,6 +190,23 @@ void SurfaceParams::declare(AtList* params, AtNodeEntry* nentry){
 PolymeshParams::PolymeshParams(const AtNode* node) : SurfaceParams(node){
     subdivisions = AiNodeGetUInt(node, "subdivisions");
     smoothing = AiNodeGetBool(node, "smoothing");
+    disp_map = AiArrayCopy(AiNodeGetArray(node, "disp_map"));
+    disp_padding = AiNodeGetFlt(node, "disp_padding");
+    disp_height = AiNodeGetFlt(node, "disp_height");
+    disp_zero_value = AiNodeGetFlt(node, "disp_zero_value");
+    disp_autobump = AiNodeGetBool(node, "disp_autobump");
+}
+std::string PolymeshParams::str() const{
+    std::stringstream ss;
+    ss << SurfaceParams::str();
+    DUMP_PARAM(subdivisions);
+    DUMP_PARAM(smoothing);
+
+    DUMP_PARAM(disp_padding);
+    DUMP_PARAM(disp_height);
+    DUMP_PARAM(disp_zero_value);
+    DUMP_PARAM(disp_autobump);
+    return ss.str();
 }
 
 void PolymeshParams::declare(AtList *params, AtNodeEntry *nentry){
