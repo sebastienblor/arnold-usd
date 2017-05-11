@@ -418,11 +418,6 @@ namespace
          }
       }
 
-      if(!status)
-      {
-         AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
-      }
-
       return status;
    }
 
@@ -503,11 +498,6 @@ namespace
          }
       }
 
-      if(!status)
-      {
-         AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
-      }
-
       return status;
    }
 };
@@ -548,6 +538,9 @@ node_update
    initializeSynColor(colorData);
 }
 
+// That methods returns true if a color transformation exists even if the
+// region of interest is empty.
+// 
 color_manager_transform
 {  
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
@@ -569,10 +562,6 @@ color_manager_transform
    const size_t height = actual_roi.maxy - actual_roi.miny + 1;
    uint8_t *actual_src = (uint8_t*)src;
    uint8_t *actual_dst = dst ? (uint8_t*)dst : actual_src;
-   if (!actual_src || width == 0 || height == 0)
-   {
-      return true;
-   }
 
    static const AtChannelLayout default_layout(AI_TYPE_FLOAT, AI_TYPE_RGB, 0, 0);
    const AtChannelLayout &actual_src_layout = src_layout ? *src_layout : default_layout;
@@ -600,15 +589,19 @@ color_manager_transform
          colorData, color_space, src_pixel_format, dst_pixel_format, SYNCOLOR::TransformForward, transform);
    }
 
-   // No color processing or failed to create the color transformation
+   // No color processing returns true if a color transformation exists.
 
-   if(!status)
+   if (!actual_src || width == 0 || height == 0 || !status)
    {
-      AiMsgError("[color_manager] %s color transformation computation failed: %s", 
-         is_output ? "Output" : "Input", status.getErrorMessage());
+      if (!status)
+      {
+         AiMsgInfo("[color_manager] %s color transformation computation failed: %s", 
+            is_output ? "Output" : "Input", status.getErrorMessage());
 
-      colorData->m_initialization_done = false;
-      return false;
+         colorData->m_initialization_done = false;
+      }
+
+      return status;
    }
 
    // Apply the color transformation
@@ -628,7 +621,7 @@ color_manager_transform
       actual_dst += dst_y_increment;
    }
 
-   return status;
+   return true;
 }
 
 color_manager_get_defaults
