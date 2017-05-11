@@ -21,6 +21,8 @@ enum ImagePlaneParams {
     p_colorOffset,
     p_alphaGain,
     p_coverage,
+    p_coverageOrigin,
+    p_fit_factor,
     p_translate,
     p_camera
 };
@@ -29,6 +31,8 @@ typedef struct AtImageData
 {
    AtTextureHandle* texture_handle;
    AtString color_space;
+   int xres;
+   int yres;
 } AtImageData;
 
 inline float mod(float n, float d)
@@ -68,6 +72,8 @@ node_parameters
    AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
    AiParameterFlt("alphaGain", 1.0f);
    AiParameterVec2("coverage", 1.0f, 1.0f);
+   AiParameterVec2("coverageOrigin", 0.0f, 0.0f);
+   AiParameterVec2("fitFactor", 1.0f, 1.0f);
    AiParameterVec2("translate", 0.0f, 0.0f);
 
    AiParameterNode("camera", NULL); 
@@ -110,6 +116,10 @@ node_update
    AiTextureHandleDestroy(idata->texture_handle);
    idata->color_space = AiNodeGetStr(node, "color_space");
    idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"), idata->color_space);
+
+   idata->xres =  AiNodeGetInt(AiUniverseGetOptions(), "xres");
+   idata->yres = AiNodeGetInt(AiUniverseGetOptions(), "yres");
+
 }
 
 node_finish
@@ -128,14 +138,35 @@ shader_evaluate
    AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);
    float alphaGain = AiShaderEvalParamFlt(p_alphaGain);
    AtVector2 coverage = AiShaderEvalParamVec2(p_coverage);
+   AtVector2 coverageOrigin = AiShaderEvalParamVec2(p_coverageOrigin);
+   AtVector2 fit_factor = AiShaderEvalParamVec2(p_fit_factor);
    AtVector2 translate = AiShaderEvalParamVec2(p_translate);
    int displayMode = AiShaderEvalParamInt(p_display_mode);
-   
+
    AtRGBA result; 
    result.r = color.r;
    result.g = color.g;
    result.b = color.b;
    result.a = 1.0f;
+
+   if (coverageOrigin.x < 0.f)
+   {
+      coverage.x *= (1.f + coverageOrigin.x);
+      coverageOrigin.x = 0.f;
+   } else
+   {
+      coverage.x = AiMin(1.f, coverage.x/(1.f- coverageOrigin.x));
+   }
+
+
+   if (coverageOrigin.y < 0.f)
+   {
+      coverage.y *= (1.f + coverageOrigin.y);
+      coverageOrigin.y = 0.f;
+   } else
+   {
+      coverage.y = AiMin(1.f, coverage.y/(1.f - coverageOrigin.y));
+   }
 
    if (idata->texture_handle != NULL)
    {   
@@ -149,17 +180,24 @@ shader_evaluate
       float inU = sg->u;
       float inV = sg->v;
 
-      //std::cerr<<coverage.x<<" "<<coverage.y<<std::endl;
-      float sx = -1 + (sg->x + sg->px) * (2.0f / AiNodeGetInt(AiUniverseGetOptions(), "xres"));
-      float sy =  1 - (sg->y + sg->py) * (2.0f / AiNodeGetInt(AiUniverseGetOptions(), "yres"));
+      float sx = -1 + (sg->x + sg->px) * (2.0f / idata->xres);
+      float sy =  1 - (sg->y + sg->py) * (2.0f /idata->yres);
 
 
+      sx *= fit_factor.x;
+      sy *= fit_factor.y;
+
+      sx = sx * 0.5f + 0.5f;
+      sy = sy * 0.5f + 0.5f;
+      
       sx *= coverage.x;
       sy *= coverage.y;
 
+      sx = sx + ((1.f - sx)*coverageOrigin.x);      
+      sy = sy + ((1.f - sy)*coverageOrigin.y);
+      
+      sy = 1.0f - sy;
 
-      sx = sx * 0.5f + 0.5f;
-      sy = 1.0f - (sy * 0.5f + 0.5f);
 
       sg->u = (sx - translate.x);
       sg->v =  (1.0f - ((sy - translate.y)));

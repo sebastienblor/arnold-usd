@@ -100,17 +100,18 @@ void CImagePlaneTranslator::ExportImagePlane()
    
    double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
    double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
-   
-   coverageX = coverageY = 1.f;
 
+   double coverageOriginX = fnRes.findPlug("coverageOriginX", &status).asDouble();
+   double coverageOriginY = fnRes.findPlug("coverageOriginY", &status).asDouble();
+   
    double ipWidth;
    double ipHeight;
 
    unsigned int iWidth = 0;
    unsigned int iHeight = 0;
 
-   float scaleX = 1.f;
-   float scaleY = 1.f;
+   double scaleX = 1.;
+   double scaleY = 1.;
 
    if (type == 0)
    {
@@ -210,7 +211,10 @@ void CImagePlaneTranslator::ExportImagePlane()
       }
 
       AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
-      AiNodeSetVec2(imagePlaneShader, "coverage", scaleX, scaleY);
+      AiNodeSetVec2(imagePlaneShader, "fitFactor", scaleX, scaleY);
+      AiNodeSetVec2(imagePlaneShader, "coverage", coverageX / (float)iWidth , coverageY / (float)iHeight);
+      AiNodeSetVec2(imagePlaneShader, "coverageOrigin", coverageOriginX / (float)iWidth , coverageOriginY / (float)iHeight);
+
 
       colorPlug  = fnRes.findPlug("colorGain");
       colorPlug.connectedTo(conn, true, false);
