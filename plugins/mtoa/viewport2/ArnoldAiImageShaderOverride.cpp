@@ -100,18 +100,20 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
                 {
 					switch(wrapMode[w])
 					{
+					// FIXME restore the original constants instead of hardcoding the values !
+					// but make sure it compiles on linux/osx (without c++11)
 					default:
 					case 0:
-						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexWrap; // arnold periodic
+						wrapMode[w] = 1;//MHWRender::MSamplerState::TextureAddress::kTexWrap; // arnold periodic
 						break;
 					case 1:
-						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexBorder; // arnold black
+						wrapMode[w] = 4;//MHWRender::MSamplerState::TextureAddress::kTexBorder; // arnold black
 						break;
 					case 2:
-						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexClamp; // arnold clamp
+						wrapMode[w] = 3;//MHWRender::MSamplerState::TextureAddress::kTexClamp; // arnold clamp
 						break;
 					case 3:
-						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexMirror; // arnold mirror
+						wrapMode[w] = 2;//MHWRender::MSamplerState::TextureAddress::kTexMirror; // arnold mirror
 						break;
 					}
                 }
