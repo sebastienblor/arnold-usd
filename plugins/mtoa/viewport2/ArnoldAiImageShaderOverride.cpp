@@ -96,25 +96,25 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
                 plugS.getValue(wrapMode[0]);
                 plugT.getValue(wrapMode[1]);
 
-				std::transform(std::begin(wrapMode), std::end(wrapMode), std::begin(wrapMode), [](int mode)->int {
-                    // translate arnold wrap mode to maya
-					switch(mode)
+                for (int w = 0; w < 2; ++w)
+                {
+					switch(wrapMode[w])
 					{
+					default:
 					case 0:
-						return MHWRender::MSamplerState::TextureAddress::kTexWrap; // arnold periodic
-
+						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexWrap; // arnold periodic
+						break;
 					case 1:
-						return MHWRender::MSamplerState::TextureAddress::kTexBorder; // arnold black
-
+						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexBorder; // arnold black
+						break;
 					case 2:
-						return MHWRender::MSamplerState::TextureAddress::kTexClamp; // arnold clamp
-
+						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexClamp; // arnold clamp
+						break;
 					case 3:
-						return MHWRender::MSamplerState::TextureAddress::kTexMirror; // arnold mirror
-					};
-
-					return MHWRender::MSamplerState::TextureAddress::kTexWrap; // default mode is wrap
-				});
+						wrapMode[w] = MHWRender::MSamplerState::TextureAddress::kTexMirror; // arnold mirror
+						break;
+					}
+                }
 
 				MHWRender::MSamplerStateDesc desc;
 				desc.filter = MHWRender::MSamplerState::kAnisotropic;
