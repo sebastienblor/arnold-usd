@@ -20,6 +20,7 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteColorMtd);
 node_parameters
 {
    // Node metadata
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "writeColor");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteColor_rgba");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);

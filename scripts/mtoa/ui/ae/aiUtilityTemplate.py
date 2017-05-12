@@ -43,7 +43,7 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.addControl('shadeMode', changeCommand=self.checkShadeMode, label='Shade Mode')
         self.addCustom('colorMode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
         if int(ai.AiGetVersion()[2]) > 2:
-            self.addControl('overlayMode', label='Overlay Mode')
+            self.addControl('overlay_mode', label='Overlay Mode')
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
         self.addControl('aoDistance', label='AO Distance')

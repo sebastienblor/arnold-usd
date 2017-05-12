@@ -19,6 +19,8 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteVector2InlineMtd);
 node_parameters
 {
    // Node metadata
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteVector2");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteVector2");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
    AiParameterVec2("input", 0.0f, 0.0f);

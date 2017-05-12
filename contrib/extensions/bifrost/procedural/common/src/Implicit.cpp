@@ -44,7 +44,7 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterFlt("dilateAmount", 0);
     AiParameterFlt("erodeAmount", 0);
     AiParameterInt("smoothMode" , 0);
-    AiParameterInt("smoothAmount" , 0);
+    AiParameterInt("smoothKernelSize" , 0);
     AiParameterInt("smoothIterations" , 0);
     AiParameterFlt("smoothWeight" , 0); // ???
     AiParameterVec2("smoothRemapRange", 0, 1);
@@ -56,7 +56,6 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
 
     AiParameterBool("infCubeBlendingOn", false);
     AiParameterInt("infCubeOutputType", OUTPUT_SIMONLY);
-    AiParameterFlt("simWaterLevel", 0);
     AiParameterVec("infCubeTopCenter", 0, 0, 0);
     AiParameterVec("infCubeDim", 100, 100, 100);
     AiParameterInt("blendType", kLinear);
@@ -83,9 +82,16 @@ void ImplicitNodeDeclareParameters(AtList* params, AtNodeEntry* nentry){
     AiParameterStr("bifrostObjectName", "");
 
     // arnold specific parameters // WTF
-    AiParameterBool("motionBlur", false);
+    AiParameterBool("motionBlur", true);
     AiParameterFlt("shutterStart" , 0);
     AiParameterFlt("shutterEnd", 1);
+
+    AiParameterBool("exportUVs", 0);
+    AiParameterArray("disp_map", AiArrayAllocate(0, 1, AI_TYPE_NODE));
+    AiParameterFlt("disp_padding", 0);
+    AiParameterFlt("disp_height", 1);
+    AiParameterFlt("disp_zero_value", 0);
+    AiParameterBool("disp_autobump", false);
 }
 
 bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
@@ -103,7 +109,7 @@ bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
     inData->dilateAmount = AiNodeGetFlt(node, "dilateAmount");
     inData->erodeAmount = AiNodeGetFlt(node, "erodeAmount");
     inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( node, "smoothMode" );
-    inData->smooth.amount = AiNodeGetInt( node, "smoothAmount" );
+    inData->smooth.kernelSize = AiNodeGetInt( node, "smoothKernelSize" );
     inData->smooth.iterations = AiNodeGetInt( node, "smoothIterations" );
     inData->smooth.weight = AiNodeGetFlt( node, "smoothWeight" );
     AtVector2 smoothRemapRange = AiNodeGetVec2(node, "smoothRemapRange");
@@ -122,7 +128,6 @@ bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
 
     inData->infCube.on = AiNodeGetBool( node, "infCubeBlendingOn" );
     inData->infCube.outputType = (InfCubeOutputType) AiNodeGetInt( node, "infCubeOutputType" );
-    inData->infCube.simWaterLevel = AiNodeGetFlt(node, "simWaterLevel");
     AtVector infCubeTopCenter = AiNodeGetVec(node, "infCubeTopCenter");
     inData->infCube.topCenterX = infCubeTopCenter.x;
     inData->infCube.topCenterY = infCubeTopCenter.y;
@@ -157,6 +162,7 @@ bool getNodeParameters(ImplicitsInputData *inData, const AtNode *node)
     inData->infCube.channelName = StringToChar(AiNodeGetStr(node, "infiniteSurfaceBlendingChannel"));
     inData->primVarNames = StringToChar(AiNodeGetStr(node, "primVarNames"));
     inData->bifrostObjectName = StringToChar(AiNodeGetStr(node, "bifrostObjectName"));
+    inData->exportUVs = AiNodeGetBool( node, "exportUVs" );
 
     // arnold specific parameters
     inData->motionBlur = AiNodeGetBool( node, "motionBlur" );
@@ -174,7 +180,7 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
     //
     // POST PROCESSING CHANNEL DATA
     //
-    if (inData->dilateAmount != 0.0f || inData->erodeAmount != 0.0f || ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 )) {
+    if (inData->dilateAmount != 0.0f || inData->erodeAmount != 0.0f || ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 )) {
         IFNOTSILENT {
             printf("\nPost Processing %s channel...\n", inData->inputChannelName);
             printf("\tPost processing parameters:\n");
@@ -194,9 +200,9 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
         }
 
         IFNOTSILENT {
-            if ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+            if ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
                 printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d Weight: %f FilterChannel: %s\n",
-                       filterType.c_str(), inData->smooth.amount, inData->smooth.iterations, inData->smooth.weight, inData->smooth.channelName );
+                       filterType.c_str(), inData->smooth.kernelSize, inData->smooth.iterations, inData->smooth.weight, inData->smooth.channelName );
             }
             if ( inData->erodeAmount != 0.0f ) {
                 printf("\t\tErode by: %.3f...\n", inData->erodeAmount);
@@ -210,7 +216,7 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
         }
 
         // Run the smoothing filter
-        if ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+        if ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
             IFNOTSILENT { printf("\tSmoothing...\n"); }
 
             // Run the smoothing filter
@@ -229,11 +235,11 @@ void PostProcessVoxels(ImplicitsInputData *inData, FrameData *frameData) {
     }
 }
 
-CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename, const ClipParams& clip){
-    CoreObjectUserData* out = NULL;
 
-    Bifrost::API::String tmpFolder;
+CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost::API::String& filename, const ClipParams& clip, Bifrost::API::String& tmpFolder){
+    CoreObjectUserData* out = NULL;
     CoreObjectUserData tmpObj(json, filename);
+
     if(tmpObj.objectExists()){
         // write in memory data to a temp file
         // TODO: get component in a more robust way....
@@ -268,9 +274,8 @@ CoreObjectUserData *createCoreObjectUserData(Bifrost::API::String& json, Bifrost
             AiMsgWarning("[BIFROST] Can't find bif object in file '%s' (%d objects exist).", filename.c_str(), objects.count());
         }
     }else{
-        AiMsgWarning("[BIFROST] Failed to load bif file '%s'.", filename.c_str());
+        AiMsgError("[BIFROST] Failed to load bif file '%s'.", filename.c_str());
     }
-    if(!tmpFolder.empty()) { Bifrost::API::File::deleteFolder(tmpFolder); }
 
     return out;
 }
@@ -285,10 +290,10 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
     // log start
     printEndOutput( "[BIFROST POLYMESH] START OUTPUT", inData->diagnostics );
 
-
+    Bifrost::API::String tmpFolder;
     { // init in memory class
         Bifrost::API::String obj = inData->bifrostObjectName, file = inData->bifFilename;
-        inData->inMemoryRef = createCoreObjectUserData(obj, file, inData->clip);
+        inData->inMemoryRef = createCoreObjectUserData(obj, file, inData->clip, tmpFolder);
         ERROR_ASSERT(inData->inMemoryRef != NULL);
 
         // realloc for the new name
@@ -316,8 +321,22 @@ bool InitializeImplicit(ImplicitsInputData* inData, FrameData* frameData, AtBBox
                             inData->diagnostics,
                             getASSData );
 
+    if(inData->exportUVs){
+        frameData->uvNeeded = true;
+        frameData->loadChannelNames.addUnique("uv");
+        frameData->primVarNames.addUnique("uv");
+    }
+
+    frameData->tmpFolder = tmpFolder;
+
     if ( frameData->error ) {
         printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
+        return false;
+    }
+
+    if ( frameData->empty ){
+        printEndOutput( "[BIFROST POLYMESH] END OUTPUT", inData->diagnostics );
+        AiMsgWarning("[bifrost liquid] Ignoring empty liquid data...");
         return false;
     }
 

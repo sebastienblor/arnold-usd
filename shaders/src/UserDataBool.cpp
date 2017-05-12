@@ -15,6 +15,7 @@ namespace
 
 node_parameters
 {
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataBool");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataBool");
    AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATA_BOOL);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");

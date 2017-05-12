@@ -99,7 +99,13 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	// process which channels to load
 	initAndGetPrimitivesFrameData(	frameData, inData, getASSData );
 
-	if ( frameData->error ) {
+    if ( frameData->empty ){
+        printEndOutput( "[BIFROST PRIMITIVES] END OUTPUT", inData->diagnostics );
+        AiMsgWarning("[bifrost foam] Ignoring empty foam data...");
+        return true;
+    }
+
+    if ( frameData->error ) {
 		printEndOutput( "[BIFROST PRIMITIVES] END OUTPUT", inData->diagnostics );
 		return false;
 	}
@@ -253,7 +259,6 @@ bool ProcSubdivide( AIProcNodeData *nodeData, PrimitivesInputData *inData )
 	}
 
 	if ( frameData->nofBaseElements == 0 ) {
-		// Diego wants to render 0 particles :)
 		printf("\tNothing to render! Exiting...\n");
 
 		printEndOutput( "[BIFROST PRIMITIVES] END OUTPUT", inData->diagnostics );
@@ -406,29 +411,30 @@ node_parameters
     AiParameterFlt("channelScale", 0);
     AiParameterBool("exportNormalAsPrimvar", 0);
 
-    AiParameterFlt("velocityScale", 0);
-    AiParameterFlt("fps", 0);
-    AiParameterFlt("spaceScale", 0);
+    AiParameterFlt("velocityScale", 1);
+    AiParameterFlt("fps", 25);
+    AiParameterFlt("spaceScale", 1);
     AiParameterInt("skip", 0);
-    AiParameterInt("chunkSize", 0);
+    AiParameterInt("chunkSize", 100000);
 
     AiParameterBool("clipOn", 0);
     AiParameterFlt("clipMinX", 0);
-    AiParameterFlt("clipMaxX", 0);
+    AiParameterFlt("clipMaxX", 1);
     AiParameterFlt("clipMinY", 0);
-    AiParameterFlt("clipMaxY", 0);
+    AiParameterFlt("clipMaxY", 1);
     AiParameterFlt("clipMinZ", 0);
-    AiParameterFlt("clipMaxZ", 0);
+    AiParameterFlt("clipMaxZ",1);
 
-    AiParameterFlt("pointRadius", 0);
+    AiParameterFlt("pointRadius", 0.05);
+    AiParameterFlt("stepSize", 0.016);
     AiParameterBool("useChannelToModulateRadius", 0);
 
-    AiParameterBool("camRadiusOn", 0);
+    AiParameterBool("camRadiusOn", false);
     AiParameterFlt("camRadiusStartDistance", 0);
-    AiParameterFlt("camRadiusEndDistance", 0);
+    AiParameterFlt("camRadiusEndDistance", 1);
     AiParameterFlt("camRadiusStartFactor", 0);
-    AiParameterFlt("camRadiusEndFactor", 0);
-    AiParameterFlt("camRadiusFactorExponent", 0);
+    AiParameterFlt("camRadiusEndFactor", 1);
+    AiParameterFlt("camRadiusFactorExponent", 1);
 
     AiParameterInt("mpSamples", 0);
     AiParameterFlt("mpMinRadius", 0);
@@ -510,6 +516,7 @@ procedural_init
     inData->clip.maxZ = AiNodeGetFlt(node, "clipMaxZ");
 
     inData->radius = AiNodeGetFlt(node, "pointRadius");
+    inData->stepSize = AiNodeGetFlt(node, "stepSize");
     inData->useChannelToModulateRadius = AiNodeGetBool(node, "useChannelToModulateRadius");
 
     inData->camRadius = AiNodeGetBool(node, "camRadiusOn");
@@ -556,6 +563,7 @@ procedural_init
 	strcpy( inData->bifrostObjectName, bifrostObjectName.c_str() );
 
 	// arnold specific parameters
+
     inData->motionBlur = AiNodeGetBool( node, "motionBlur" );
     inData->shutterStart = AiNodeGetFlt( node, "shutterStart" );
     inData->shutterEnd = AiNodeGetFlt( node, "shutterEnd" );

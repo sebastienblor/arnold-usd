@@ -473,7 +473,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          // This way it'll be properly cleared or re-used later in the IPR session
          shape = GetArnoldNode(nameKey.asChar());
          if (shape == NULL)
-            shape = AddArnoldNode("procedural", nameKey.asChar());
+            shape = AddArnoldNode("xgen_procedural", nameKey.asChar());
 
          AiNodeDeclare( shape, "xgen_shader", "constant ARRAY NODE" );
          AiNodeSetArray(shape, "xgen_shader", AiArray(1, 1, AI_TYPE_NODE, rootShader));
@@ -913,6 +913,10 @@ void CXgDescriptionTranslator::ExpandProcedural()
    AtNode *node = GetArnoldNode();
    m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
    m_expandedProcedural->Init( node );
+
+#if MAYA_API_VERSION >= 201600
+   MGlobal::executeCommand("xgmCache -clearPtexCache;");
+#endif
 
    // FIXME verify if we need to do something about the procedural matrix ?
 

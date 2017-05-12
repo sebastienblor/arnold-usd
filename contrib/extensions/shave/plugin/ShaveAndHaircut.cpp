@@ -195,18 +195,19 @@ void CShaveTranslator::Export(AtNode* curve)
       AiArraySetInt(curveNumPoints, i, (numRenderLineCVs+2));
 
       // Set UV
-      AiArraySetVec2(curveParamCoord, i, m_hairInfo.uvws[hairRootIndex]);
+      AtVector2 hairUVs(m_hairInfo.uvws[hairRootIndex].x, m_hairInfo.uvws[hairRootIndex].y);
+      AiArraySetVec2(curveParamCoord, i, hairUVs);
       
       // Root and tip colours for the ShaveHair shader.
       // TODO: Make exporting all the info for the ShaveHair shader an option.
       if (export_curve_color)
       {
-         AtColor shaveRootColors;
+         AtRGB shaveRootColors;
          shaveRootColors.r = m_hairInfo.rootColors[i].r;
          shaveRootColors.g = m_hairInfo.rootColors[i].g;
          shaveRootColors.b = m_hairInfo.rootColors[i].b;
    
-         AtColor shaveTipColors;
+         AtRGB shaveTipColors;
          shaveTipColors.r = m_hairInfo.tipColors[i].r;
          shaveTipColors.g = m_hairInfo.tipColors[i].g;
          shaveTipColors.b = m_hairInfo.tipColors[i].b;
@@ -246,9 +247,9 @@ void CShaveTranslator::Export(AtNode* curve)
    AtArray* curvePoints = NULL;
    // TODO: Change this to use RequiresMotionDeformData()
    if (RequiresMotionData() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
-      curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
+      curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_VECTOR);
    else
-      curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_POINT);
+      curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_VECTOR);
 
    // Set the required arrays
    AiNodeSetArray(curve, "num_points",             curveNumPoints);
@@ -355,8 +356,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
          nanCount++;
          // the root point is NaN
          // not good...
-         AtPoint previousPoint;
-         AiV3Create(previousPoint, 0.f, 0.f, 0.f);
+         AtVector previousPoint (0.f, 0.f, 0.f);
          bool searchPoint = true;
 
          // search for the first valid point we can find in our full list
@@ -372,7 +372,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
                {
                   // found a valid point in this hair system
                   searchPoint = false;
-                  AiV3Create(previousPoint, tmpVertex->x, tmpVertex->y, tmpVertex->z);
+                  previousPoint = AtVector(tmpVertex->x, tmpVertex->y, tmpVertex->z);
                   break;
                }
             }
@@ -403,12 +403,11 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       }
       
 
-      AtVector arnoldCurvePoint;
-      AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
+      AtVector arnoldCurvePoint(vertex->x, vertex->y, vertex->z);
      
 
       // Create a first point on the curve. Start and end are duplicated vertices.
-      AiArraySetPnt(curvePoints,
+      AiArraySetVec(curvePoints,
                     (curveLineInterpStartsIdx + (step * numPointsPerStep)),
                     arnoldCurvePoint);
       
@@ -421,7 +420,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       {
 
          // Add the point.
-         AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
+         arnoldCurvePoint = AtVector(vertex->x, vertex->y, vertex->z);
 
          shaveAPI::Vertex * tmpVertex = vertex;
          int tmpIndex = index;
@@ -435,13 +434,13 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
             if (tmpIndex < 0) 
             {
                // this should never happen since the root point is valid
-               AiV3Create(arnoldCurvePoint, 0.f, 0.f, 0.f);
+               arnoldCurvePoint = AtVector( 0.f, 0.f, 0.f);
                break;
             }
-            AiV3Create(arnoldCurvePoint, tmpVertex->x, tmpVertex->y, tmpVertex->z);
+            arnoldCurvePoint = AtVector(tmpVertex->x, tmpVertex->y, tmpVertex->z);
          }
 
-         AiArraySetPnt(curvePoints,
+         AiArraySetVec(curvePoints,
                        ((index+1) + curveLineInterpStartsIdx + (step * numPointsPerStep)),
                        arnoldCurvePoint);
 
@@ -455,7 +454,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       }
 
       // Last point (duplicate of the previous point).
-      AiArraySetPnt(curvePoints,
+      AiArraySetVec(curvePoints,
                     ((index+1) + curveLineInterpStartsIdx + (step * numPointsPerStep)),
                     arnoldCurvePoint);
 
@@ -477,17 +476,17 @@ void CShaveTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiExportHairColors";
    data.shortName = "ai_export_hair_colours";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL() = true;
    data.name = "aiExportHairIDs";
    data.shortName = "ai_export_hair_ids";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL() = false;
    data.name = "aiOverrideHair";
    data.shortName = "ai_override_hair";
    helper.MakeInputBoolean(data);

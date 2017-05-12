@@ -57,17 +57,17 @@ MString GetAOVNodeType(int type)
    switch (type)
    {
    case AI_TYPE_FLOAT:
-      nodeType = "aovWriteFloat";
+      nodeType = "MtoaAovWriteFloat";
       break;
    case AI_TYPE_RGB:
    case AI_TYPE_RGBA:
-      nodeType = "aovWriteColor";
+      nodeType = "MtoaAovWriteColor";
       break;
    case AI_TYPE_VECTOR:
-      nodeType = "aovWriteVector";
+      nodeType = "MtoaAovWriteVector";
       break;
    case AI_TYPE_VECTOR2:
-      nodeType = "aovWritePoint2"; // not renaming the shader for now...
+      nodeType = "MtoaAovWritePoint2"; // not renaming the shader for now...
       break;
    default:
       {

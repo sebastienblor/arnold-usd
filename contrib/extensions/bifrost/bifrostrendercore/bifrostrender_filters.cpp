@@ -103,7 +103,7 @@ void smoothChannel(	SmoothFilterParams smooth,
 		SmoothVoxelsVisitor visitor	(
 										i % 2 ? tmpChannel : inChannel,
 										i % 2 ? inChannel : tmpChannel,
-										int( smooth.amount ),
+										int( smooth.kernelSize ),
 										smooth.mode
 									);
 		layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst);
@@ -113,7 +113,7 @@ void smoothChannel(	SmoothFilterParams smooth,
 			SmoothVoxelsVisitor visitor2(	
 											i % 2 ? tmpAirDistanceChannel : airDistanceChannel,
 											i % 2 ? airDistanceChannel : tmpAirDistanceChannel,
-											int( smooth.amount ),
+											int( smooth.kernelSize ),
 											smooth.mode
 										);
 			layout.traverse(visitor2, Bifrost::API::TraversalMode::ParallelBreadthFirst);

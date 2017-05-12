@@ -40,10 +40,20 @@ extern "C"
                 if(renderType == 0){ // Aero => set density channel to smoke
                     command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
                 }
-                if(isVolume)
-                {
+                if(isVolume){
                     command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
                 }
+                MString preset;
+                if(renderType==0) { // aero
+                    preset = "aiStandardVolume/Smoke.mel";
+                }else if(renderType==1 || renderType==2){ // liquid
+                    preset = "aiStandardSurface/Deep_Water.mel";
+                }else{ // foam
+                    preset = "aiStandardVolume/Foam.mel";
+                }
+
+                command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
+
                 command += "select $sel;undoInfo -closeChunk;";
                 MGlobal::executeCommandOnIdle(command);
                 removeCallback(connectionCbId);
@@ -71,9 +81,7 @@ extern "C"
 #else
         extension.Requires ( "bifrostvisplugin" );
 #endif
-        extension.LoadArnoldPlugin("bifrost_shaders");
-        extension.LoadArnoldPlugin("bifrost_procedurals");
-
+     
         status = extension.RegisterTranslator ( "bifrostShape", "",
                                                 BifrostTranslator::creator,
                                                 BifrostTranslator::NodeInitializer );

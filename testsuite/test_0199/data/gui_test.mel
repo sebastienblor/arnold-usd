@@ -1,0 +1,30 @@
+file -f -o "test.ma";
+arnoldRenderView -cam RenderCamShape;
+pause -sec 2;
+arnoldRenderView -option "Wait Render"  "1";
+
+// add motion blur
+string $img = `pwd`;
+$img += "/testrender_1.tif";
+arnoldRenderView -option "Save Image" $img;
+
+pause -sec 2;
+
+arnoldRenderView -option "Camera"  "perspShape";
+pause -sec 2;
+arnoldRenderView -option "Wait Render"  "1";
+
+
+$img = `pwd`;
+$img += "/testrender.tif";
+arnoldRenderView -option "Save Image" $img;
+
+arnoldRenderView -mode "close";
+
+string $newImg = `pwd`;
+$newImg += "/testrender_2.tif";
+
+sysFile -rename $img  $newImg;
+
+
+quit -force -abort;

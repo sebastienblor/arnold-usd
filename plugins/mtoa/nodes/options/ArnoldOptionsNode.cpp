@@ -91,6 +91,7 @@ MObject CArnoldOptionsNode::s_kick_render_flags;
 MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
+MObject CArnoldOptionsNode::s_export_all_shading_groups;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
@@ -391,6 +392,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
+   s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
 #if MAYA_API_VERSION < 201600
@@ -562,6 +564,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(false);
    addAttribute(s_force_translate_shading_engines);
+
+   s_export_all_shading_groups = nAttr.create("exportAllShadingGroups", "export_all_shading_groups", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_export_all_shading_groups);
    
    s_version = tAttr.create("version", "version", MFnData::kString);
    tAttr.setKeyable(false);

@@ -21,16 +21,16 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   557MB         | log started Mon Mar 27 18:29:41 2017
-00:00:00   557MB         | Arnold 5.0.0.0.wip [307d620a] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/27 09:22:49
-00:00:00   557MB         | running on REM8WCK8D2, pid=592
-00:00:00   557MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   557MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   557MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   557MB         |  
-00:00:00   557MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   560MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+00:00:00   555MB         | log started Tue Mar 28 12:09:59 2017
+00:00:00   555MB         | Arnold 5.0.0.0.wip [99103722] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/28 04:50:02
+00:00:00   555MB         | running on REM8WCK8D2, pid=8688
+00:00:00   555MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   555MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   555MB         |  soft limit for open files raised from 512 to 2048
+00:00:00   555MB         |  
+00:00:00   555MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
+00:00:00   559MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
 
 Successfully imported python module 'arnold'
@@ -38,6 +38,6 @@ Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0187/test.ma line 7: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-File read in  0.76 seconds.
+File read in  0.78 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0187/test.ma
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0187\test.ma completed.

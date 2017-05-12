@@ -17,7 +17,7 @@ BUILTIN_AOVS = (
                 ('Pref',                'rgb'),
                 ('raycount',            'float'),
                 ('cputime',             'float'),
-                ('ID',                  'int'),
+                ('ID',                  'uint'),
                 ('RGBA',                'rgba'),
                 ('direct',              'rgb'),
                 ('indirect',            'rgb'),
@@ -51,6 +51,7 @@ BUILTIN_AOVS = (
 
 TYPES = (
     ("int",    arnold.ai_params.AI_TYPE_INT),
+    ("uint",    arnold.ai_params.AI_TYPE_UINT),
     ("bool",   arnold.ai_params.AI_TYPE_BOOLEAN),
     ("float",  arnold.ai_params.AI_TYPE_FLOAT),
     ("rgb",    arnold.ai_params.AI_TYPE_RGB),

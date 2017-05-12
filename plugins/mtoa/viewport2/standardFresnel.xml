@@ -1,0 +1,84 @@
+<fragment uiName="standardFresnel" name="standardFresnel" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[Combines inputs for the hair shader.]]></description>
+    <properties>
+        <float name="IOR" />
+        <float4 name="shaderGeomInput" />
+     </properties>
+    <values>
+        <float name="IOR" value="1.5" />
+    </values>
+    <outputs>
+        <float name="fresnel" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="standardFresnel" />
+            <source>
+                <![CDATA[       
+float3 standardFresnel( float IOR, float4 NL_NV_NH_VH )
+{
+    // calculate the fresnel
+    float fresnel = 0.0;
+    if (NL_NV_NH_VH.y > 0.0f)
+    {
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
+        fresnelWeight *= fresnelWeight;
+        float temp = 1.0f - NL_NV_NH_VH.y;
+        float fweight = temp * temp;
+        fweight *= fweight;
+        fweight *= temp;
+        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+    }
+    return fresnel;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
+            <function_name val="standardFresnel" />
+            <source>
+                 <![CDATA[
+float standardFresnel(float IOR, float4 NL_NV_NH_VH)
+{
+    // calculate the fresnel
+    float fresnel = 0.0;
+    if (NL_NV_NH_VH.y > 0.0f)
+    {
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
+        fresnelWeight *= fresnelWeight;
+        float temp = 1.0f - NL_NV_NH_VH.y;
+        float fweight = temp * temp;
+        fweight *= fweight;
+        fweight *= temp;
+        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+    }
+    return fresnel;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
+            <function_name val="standardFresnel" />
+            <source>
+                 <![CDATA[
+float standardFresnel(float IOR, vec4 NL_NV_NH_VH)
+{
+    // calculate the fresnel
+    float fresnel = 0.0;
+    if (NL_NV_NH_VH.y > 0.0f)
+    {
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
+        fresnelWeight *= fresnelWeight;
+        float temp = 1.0f - NL_NV_NH_VH.y;
+        float fweight = temp * temp;
+        fweight *= fweight;
+        fweight *= temp;
+        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+    }
+    return fresnel;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

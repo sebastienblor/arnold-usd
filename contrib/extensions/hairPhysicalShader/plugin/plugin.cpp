@@ -9,7 +9,7 @@ extern "C"
         MStatus status;
 
         extension.Requires ( "hairPhysicalShader" );
-        extension.LoadArnoldPlugin("hairPhysicalShader_shaders");
+        //extension.LoadArnoldPlugin("hairPhysicalShader_shaders");
 
         status = extension.RegisterTranslator ( "hairPhysicalShader",
                                                 "",

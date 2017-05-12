@@ -521,7 +521,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "incandescense"
       )
    {
-      return AddArnoldNode("userDataColor");
+      return AddArnoldNode("MtoaUserDataColor");
    }
 
    else if(
@@ -540,7 +540,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userVector5PP"
          )
    {
-      return AddArnoldNode("userDataVector");
+      return AddArnoldNode("MtoaUserDataVector");
    }
    else if (
          outputAttr == "ageNormalized" ||
@@ -567,7 +567,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userScalar5PP"
          )
    {
-      return AddArnoldNode("userDataFloat");
+      return AddArnoldNode("MtoaUserDataFloat");
    }
    else
       return NULL;
@@ -1115,7 +1115,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("anim_float");
+   return AddArnoldNode("MtoaAnimFloat");
 }
 
 void CAnimCurveTranslator::Export(AtNode* shader)
@@ -1686,6 +1686,9 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.name = "ignoreColorSpaceFileRules";
    data.shortName = "ifr";
    helper.MakeInputBoolean(data);
+
+   // This registers the flename attribute so that it appears in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
 }
 
 
@@ -1931,6 +1934,8 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
       else
          AiNodeResetParameter(shader, AtString(attrName.asChar()));
    }
+
+   ProcessParameter(shader, "index", AI_TYPE_INT);
 }
 
 void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
@@ -1943,7 +1948,7 @@ AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
    MFnDependencyNode dnode(GetMayaObject());
    MPlug inputPlug = dnode.findPlug("beauty");
 
-   bool isRGBA = false;
+   bool isClosure = false;
    if (!inputPlug.isNull())
    {
       MPlugArray conns;
@@ -1952,16 +1957,16 @@ AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
       {
          // export the connected node
          AtNode *node = ExportConnectedNode(conns[0]);
-         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) != AI_TYPE_CLOSURE)
-            isRGBA = true;
+         if (node && AiNodeEntryGetOutputType(AiNodeGetNodeEntry(node)) == AI_TYPE_CLOSURE)
+            isClosure = true;
             
       }
    }
 
-   if (isRGBA)
-      return AddArnoldNode("writeColor");
-   
-   return AddArnoldNode("aov_write_rgb");
+   if (isClosure)
+      return AddArnoldNode("aov_write_rgb");
+
+   return AddArnoldNode("MtoaWriteColor");
 }
 
 void CAiAovWriteColorTranslator::Export(AtNode* shader)
@@ -2006,7 +2011,7 @@ AtNode* CAiAovWriteFloatTranslator::CreateArnoldNodes()
    }
 
    if (isRGBA)
-      return AddArnoldNode("writeFloat");
+      return AddArnoldNode("MtoaWriteFloat");
 
    
    return AddArnoldNode("aov_write_float");

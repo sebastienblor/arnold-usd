@@ -199,11 +199,15 @@ void FrameData::init()
 	this->presenceNeeded = false;
 
 	this->doNotRender = false;
+
+    this->error = false;
+    this->empty = false;
 }
 
 void PrimitivesFrameData::init()
 {
 	this->error = false;
+    this->empty = false;
 }
 
 //
@@ -233,8 +237,8 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 
 	printf("\tdilateAmount: %f\n", this->dilateAmount);
 	printf("\terodeAmount: %f\n", this->erodeAmount);
-    if ( this->smooth.amount > 0 ) {
-		printf("\tsmoothKernelSize: %d\n", this->smooth.amount);
+    if ( this->smooth.kernelSize > 0 ) {
+        printf("\tsmoothKernelSizeSize: %d\n", this->smooth.kernelSize);
 	
 		switch (this->smooth.mode ) {
 			case kMeanValue:
@@ -291,12 +295,11 @@ void ImplicitsInputData::printParameters( bool isParticleCache )
 			printf("\tinfCubeOutputType: SIMONLY\n");
 		}
 
-		printf("\tsimWaterLevel: %f\n", this->infCube.simWaterLevel);
-
 		printf("\tinfCubeTopCenterX: %f\n", this->infCube.topCenterX);
 		printf("\tinfCubeTopCenterY: %f\n", this->infCube.topCenterY);
 		printf("\tinfCubeTopCenterZ: %f\n", this->infCube.topCenterZ);
 		printf("\tinfCubeDimX: %f\n", this->infCube.dimX);
+        printf("\tinfCubeDimY: %f\n", this->infCube.dimY);
 		printf("\tinfCubeDimZ: %f\n", this->infCube.dimZ);
 		printf("\tblendType: %d\n", this->infCube.blendType);
 		printf("\tinfCubeBlendStart: %f\n", this->infCube.blendStart);
@@ -348,8 +351,8 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	printf("\tvelocityScale: %f fps: %f\n", this->velocityScale, this->fps);
 	printf("\tspaceScale: %f\n", this->spaceScale);
 
-    if ( this->smooth.amount > 0 ) {
-		printf("\n\tsmoothKernelSize: %d\n", this->smooth.amount);
+    if ( this->smooth.kernelSize > 0 ) {
+        printf("\n\tsmoothKernelSizeSize: %d\n", this->smooth.kernelSize);
 	
 		switch (this->smooth.mode ) {
 			case kMeanValue:
@@ -397,7 +400,6 @@ void VolumeInputData::printParameters( bool isParticleCache )
 	}
 
 	if ( isParticleCache ) {
-		printf("\tsplatResolutionFactor: %f\n", this->splatResolutionFactor);
 		printf("\tskip: %d\n", this->skip);
 		printf("\tsplatSamples: %d\n", this->splatSamples);	
 		printf("\tsplatMinRadius: %f\n", this->splatMinRadius);
@@ -537,6 +539,11 @@ void PrimitivesInputData::checkParameters()
 		// if not calc correct velocity scale
 		this->velocityScale = this->velocityScale / this->fps;
 	}
+
+    if(this->spaceScale == 0){
+        printf("Invalid space scale.\n");
+        this->error = true;
+    }
 }
 
 void ImplicitsInputData::checkParameters()

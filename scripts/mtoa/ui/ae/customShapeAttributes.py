@@ -95,7 +95,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiStepSize', label='Step Size')
         self.endLayout()
         
-        #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()
 #       ui.addControl("enableProcedural")
@@ -108,7 +107,7 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl('dso', label='Path')
         self.addControl('data', label='Data')
-        self.addControl('deferStandinLoad', label='Defer Procedural Load')
+#        self.addControl('deferStandinLoad', label='Defer Procedural Load')
         self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
@@ -165,7 +164,6 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.commonShapeAttributes()
         self.addSeparator()
-        self.addControl("aiExportHairIDs", label="Export Hair IDs")
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair", label="Override Hair")
@@ -1171,7 +1169,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         pass
         
     def setup(self):
-        #self.addControl('tiled', label='Tiled')
+        self.addControl('tiled', label='Tiled')
+        self.addControl('append', label='Append')
         self.addControl('subpixelMerge', label='Subpixel Merge')
         self.addControl('useRGBOpacity', label='Use RGB Opacity')
         self.beginLayout("Tolerance Values", collapse=False)

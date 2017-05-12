@@ -1,0 +1,188 @@
+<fragment uiName="standardHairShaderBase" name="standardHairShaderBase" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[Computes the hair color from melanin.]]></description>
+    <properties>
+        <float name="base" />
+        <float3 name="baseColor" />
+        <float name="melanin" />
+        <float name="melaninRedness" />
+        <float name="melaninRandomize" />
+        <float name="fresnel" />
+     </properties>
+    <values>
+        <float name="base" value="1.0" />
+        <float3 name="baseColor" value="1.0 1.0 1.0" />
+        <float name="melanin" value="1.0" />
+        <float name="melaninRedness" value="0.5" />
+        <float name="melaninRandomize" value="0.0" />
+        <float name="fresnel" value="1.0" />
+    </values>
+    <outputs>
+        <float3 name="output" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="hairShaderBase" />
+            <source>
+                <![CDATA[
+float3 HSVtoRGB( float hue, float sat, float val )
+    {
+        float   HueSlice = 6.0 * hue;                                            // In [0,6[
+        float   HueSliceInteger = floor( HueSlice );
+        float   HueSliceInterpolant = HueSlice - HueSliceInteger;                   // In [0,1[ for each hue slice
+
+        float3  TempRGB = float3( val * (1.0 - sat), val * (1.0 - sat * HueSliceInterpolant), val * (1.0 - sat * (1.0 - HueSliceInterpolant)) );
+        float   IsOddSlice = fmod( HueSliceInteger, 2.0 );                          // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+        float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);          // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+        float3  ScrollingRGBForEvenSlices = float3( val, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+        float3  ScrollingRGBForOddSlices = float3( TempRGB.y, val, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+        float3  ScrollingRGB = lerp( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
+        float   IsNotFirstSlice = saturate( ThreeSliceSelector );                   // 1 if NOT the first slice (true for slices 1 and 2)
+        float   IsNotSecondSlice = saturate( ThreeSliceSelector-1.0 );              // 1 if NOT the first or second slice (true only for slice 2)
+
+        return  lerp( ScrollingRGB.xyz, lerp( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+    }
+        
+float3 hairShaderBase(
+                float base,
+                float3 baseColor,
+                float melanin,
+                float melaninRedness,
+                float melaninRandomize,
+                float fresnel )
+{
+    const float yellowHue = .12;
+    const float redHue = .04;
+    
+    // start by clamping the melanin from 0-1
+    float melC = clamp(melanin, 0.0, 1.0);   
+    
+    // Calculate the melanin contribution using hue, saturation, and value.
+    // All values are tweaked using melanin based exponent curves.
+    // Hue is a color shift between yellow and red.
+    // Saturation is a shift between 0.6 and 1.0 using the melanin redness. More redness = greater saturation.
+    // Multiplying the saturation by a melanin based curve gives a falloff to gray as melanin goes to 0.
+    // Multiplying saturation by a fresnel curve gives the illusion of picking up more color through transmission.
+    // Value uses an inverse curve to change the color from light to dark as the melanin is increased.
+    float hue = lerp(yellowHue, redHue-(melaninRedness*redHue), pow(melC, 0.8));
+    float satCurve = clamp(pow(melC, 0.2), 0.0, 1.0);
+    float sat = satCurve * lerp(0.7, 1.0, melaninRedness);
+    float val = min(.5, (1.0 - pow(melC, 0.2)));
+    float3 mel = HSVtoRGB(hue, sat, val);   
+
+    float3 B = base * baseColor * mel;
+    return B;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
+            <function_name val="hairShaderBase" />
+            <source>
+                 <![CDATA[
+float3 HSVtoRGB( float hue, float sat, float val )
+    {
+        float   HueSlice = 6.0 * hue;                                            // In [0,6[
+        float   HueSliceInteger = floor( HueSlice );
+        float   HueSliceInterpolant = HueSlice - HueSliceInteger;                   // In [0,1[ for each hue slice
+
+        float3  TempRGB = float3( val * (1.0 - sat), val * (1.0 - sat * HueSliceInterpolant), val * (1.0 - sat * (1.0 - HueSliceInterpolant)) );
+        float   IsOddSlice = fmod( HueSliceInteger, 2.0 );                          // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+        float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);          // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+        float3  ScrollingRGBForEvenSlices = float3( val, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+        float3  ScrollingRGBForOddSlices = float3( TempRGB.y, val, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+        float3  ScrollingRGB = lerp( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
+        float   IsNotFirstSlice = saturate( ThreeSliceSelector );                   // 1 if NOT the first slice (true for slices 1 and 2)
+        float   IsNotSecondSlice = saturate( ThreeSliceSelector-1.0 );              // 1 if NOT the first or second slice (true only for slice 2)
+
+        return  lerp( ScrollingRGB.xyz, lerp( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+    }
+        
+float3 hairShaderBase(
+                float base,
+                float3 baseColor,
+                float melanin,
+                float melaninRedness,
+                float melaninRandomize,
+                float fresnel
+                )
+{
+    const float yellowHue = .12;
+    const float redHue = .04;
+    
+    // start by clamping the melanin from 0-1
+    float melC = clamp(melanin, 0.0, 1.0);   
+    
+    // Calculate the melanin contribution using hue, saturation, and value.
+    // All values are tweaked using melanin based exponent curves.
+    // Hue is a color shift between yellow and red.
+    // Saturation is a shift between 0.6 and 1.0 using the melanin redness. More redness = greater saturation.
+    // Multiplying the saturation by a melanin based curve gives a falloff to gray as melanin goes to 0.
+    // Multiplying saturation by a fresnel curve gives the illusion of picking up more color through transmission.
+    // Value uses an inverse curve to change the color from light to dark as the melanin is increased.
+    float hue = lerp(yellowHue, redHue-(melaninRedness*redHue), pow(melC, 0.8));
+    float satCurve = clamp(pow(melC, 0.2), 0.0, 1.0);
+    float sat = satCurve * lerp(0.7, 1.0, melaninRedness);
+    float val = min(.5, (1.0 - pow(melC, 0.2)));
+    float3 mel = HSVtoRGB(hue, sat, val);   
+
+    float3 B = base * baseColor * mel;
+    return B;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
+            <function_name val="hairShaderBase" />
+            <source>
+                 <![CDATA[
+vec3 HSVtoRGB( float hue, float sat, float val )
+{
+    float   HueSlice = 6.0 * hue; // In [0,6[
+    float   HueSliceInteger = floor( HueSlice );
+    float   HueSliceInterpolant = HueSlice - HueSliceInteger; // In [0,1[ for each hue slice
+    vec3  TempRGB = vec3(   val * (1.0 - sat), val * (1.0 - sat * HueSliceInterpolant), val * (1.0 - sat * (1.0 - HueSliceInterpolant)) );
+    float   IsOddSlice = mod( HueSliceInteger, 2.0 ); // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
+    float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice); // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
+    vec3  ScrollingRGBForEvenSlices = vec3( val, TempRGB.zx );           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
+    vec3  ScrollingRGBForOddSlices = vec3( TempRGB.y, val, TempRGB.x );  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
+    vec3  ScrollingRGB = mix( ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice );
+    float   IsNotFirstSlice = clamp( ThreeSliceSelector, 0.0,1.0 );                   // 1 if NOT the first slice (true for slices 1 and 2)
+    float   IsNotSecondSlice = clamp( ThreeSliceSelector-1.0, 0.0,1. );              // 1 if NOT the first or second slice (true only for slice 2)
+    return  mix( ScrollingRGB.xyz, mix( ScrollingRGB.zxy, ScrollingRGB.yzx, IsNotSecondSlice ), IsNotFirstSlice );    // Make the RGB rotate right depending on final slice index
+}
+        
+vec3 hairShaderBase(
+                float base,
+                vec3 baseColor,
+                float melanin,
+                float melaninRedness,
+                float melaninRandomize,
+                float fresnel)
+{
+    const float yellowHue = .12;
+    const float redHue = .04;
+    
+    // start by clamping the melanin from 0-1
+    float melC = clamp(melanin, 0.0, 1.0);   
+    
+    // Calculate the melanin contribution using hue, saturation, and value.
+    // All values are tweaked using melanin based exponent curves.
+    // Hue is a color shift between yellow and red.
+    // Saturation is a shift between 0.6 and 1.0 using the melanin redness. More redness = greater saturation.
+    // Multiplying the saturation by a melanin based curve gives a falloff to gray as melanin goes to 0.
+    // Multiplying saturation by a fresnel curve gives the illusion of picking up more color through transmission.
+    // Value uses an inverse curve to change the color from light to dark as the melanin is increased.
+    float hue = lerp(yellowHue, redHue-(melaninRedness*redHue), pow(melC, 0.8));
+    float satCurve = clamp(pow(melC, 0.2), 0.0, 1.0);
+    float sat = satCurve * lerp(0.7, 1.0, melaninRedness);
+    float val = min(.5, (1.0 - pow(melC, 0.2)));
+    vec3 mel = HSVtoRGB(hue, sat, val);   
+
+    vec3 B = base * baseColor * mel;
+    return B;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

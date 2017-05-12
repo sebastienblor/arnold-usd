@@ -163,6 +163,7 @@
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
+        default             INT     8
         linkable            BOOL    false
         maya.orig_shortname STRING  "GI_rrd"
     [attr GI_volume_depth]
@@ -219,9 +220,9 @@
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
         linkable            BOOL    false
-    [attr background]
-        linkable            BOOL    false
     [attr atmosphere]
+        linkable            BOOL    false
+    [attr subdiv_dicing_camera]
         linkable            BOOL    false
 
 
@@ -858,10 +859,10 @@
     [attr rotate]
         min                 FLOAT   0.0
         max                 FLOAT   360.0
-    [attr scale_s]
+    [attr sscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
-    [attr scale_t]
+    [attr tscale]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
 
@@ -1444,6 +1445,8 @@
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
     maya.classification     STRING  "texture"
+    [attr filename]
+        maya.usedAsFilename BOOL    true     
     [attr multiply]
         linkable            BOOL    true
         maya.channelbox     BOOL    true
@@ -2351,7 +2354,9 @@ maya.swatch             BOOL    false
 
 
 [node skin]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D16
+    maya.name               STRING  "aiSkin"
+    maya.classification     STRING  "legacy"
 
 [node space_transform]
     maya.id                 INT     0x00115D78
@@ -2519,7 +2524,10 @@ c4d.step FLOAT 0.01
     maya.hide               BOOL    true
 
 [node volume_collector]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D1F
+    maya.name               STRING  "aiVolumeCollector"
+    maya.classification     STRING   "legacy"
+
 
 # enable volume_sample_float
 # enable volume_sample_rgb

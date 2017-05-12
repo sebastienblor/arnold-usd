@@ -101,7 +101,7 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *node )
     inData->spaceScale = AiNodeGetFlt(node, "spaceScale");
 
     inData->smooth.mode = (SmoothFilterType) AiNodeGetInt( node, "smoothMode" );
-    inData->smooth.amount = AiNodeGetInt( node, "smoothAmount" );
+    inData->smooth.kernelSize = AiNodeGetInt( node, "smoothKernelSize" );
     inData->smooth.iterations = AiNodeGetInt( node, "smoothIterations" );
     inData->smooth.weight = AiNodeGetFlt( node, "smoothWeight" );
     inData->smooth.remapMin = AiNodeGetFlt(node, "smoothRemapMin");
@@ -116,7 +116,6 @@ bool getNodeParameters( VolumeInputData *inData, const AtNode *node )
     inData->clip.minZ = AiNodeGetFlt(node, "clipMinZ");
     inData->clip.maxZ = AiNodeGetFlt(node, "clipMaxZ");
 
-    inData->splatResolutionFactor = AiNodeGetFlt(node, "splatResolutionFactor");
     inData->skip = std::max(1, AiNodeGetInt( node, "skip" ) );
     inData->splatSamples = AiNodeGetInt( node, "splatSamples" );
     inData->splatMinRadius = AiNodeGetFlt(node, "splatMinRadius");
@@ -183,7 +182,7 @@ node_parameters
 
     AiParameterBool( "smoothOn" , 0);
     AiParameterInt( "smoothMode" , 0);
-    AiParameterInt( "smoothAmount" , 0);
+    AiParameterInt( "smoothKernelSize" , 0);
     AiParameterInt( "smoothIterations" , 0);
     AiParameterFlt( "smoothWeight" , 0);
     AiParameterFlt("smoothRemapMin", 0);
@@ -198,7 +197,6 @@ node_parameters
     AiParameterFlt("clipMinZ", 0);
     AiParameterFlt("clipMaxZ", 0);
 
-    AiParameterFlt("splatResolutionFactor", 0);
     AiParameterInt( "skip" , 0);
     AiParameterInt( "splatSamples" , 0);
     AiParameterFlt("splatMinRadius", 0);
@@ -638,7 +636,7 @@ volume_create
 	//
 	//
 	//
-    if ( inData->smooth.amount > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
+    if ( inData->smooth.kernelSize > 0 && inData->smooth.iterations > 0 && inData->smooth.weight > 0.0 ) {
 		IFNOTSILENT {
 			printf("\nPost Processing %s channel...\n", inData->inputChannelName);
 			printf("\tPost processing parameters:\n");
@@ -670,7 +668,7 @@ volume_create
 
 		IFNOTSILENT {
 			printf("\t\tSmoothing FilterType: %s KernelSize: %d Iterations: %d Weight: %f FilterChannel: %s\n", filterType.c_str(),
-																												inData->smooth.amount,
+																												inData->smooth.kernelSize,
 																												inData->smooth.iterations,
 																												inData->smooth.weight,
 																												inData->smooth.channelName );

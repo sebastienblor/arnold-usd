@@ -56,6 +56,7 @@ MObject CArnoldStandInShape::s_frameNumber;
 MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
+MObject CArnoldStandInShape::s_overrideNodes;
 //MObject CArnoldStandInShape::s_deferStandinLoad;
 //MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
@@ -556,7 +557,7 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
    }
    else
    {
-      isOk = MPxSurfaceShape::getInternalValue(plug, datahandle);
+      isOk = MPxSurfaceShape::getInternalValueInContext(plug, datahandle, context);
    }
    return isOk;
 }
@@ -781,7 +782,11 @@ MStatus CArnoldStandInShape::initialize()
    s_dso = tAttr.create("dso", "dso", MFnData::kString);
    tAttr.setHidden(false);
    tAttr.setStorable(true);
+   tAttr.setUsedAsFilename(true);
    addAttribute(s_dso);
+
+   // Need to register this attribute to appear in the filepath editor
+   MGlobal::executeCommand("filePathEditor -registerType aiStandIn.dso -typeLabel \"Standin\"");
 
    s_mode = eAttr.create("mode", "mode", 0);
    eAttr.addField("Bounding Box", DM_BOUNDING_BOX);
@@ -820,6 +825,13 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(s_data);
+
+   s_overrideNodes = nAttr.create("overrideNodes", "override_nodes",
+         MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_overrideNodes);
+
 
    /*s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);

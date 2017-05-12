@@ -6,7 +6,7 @@ extern "C"
 
 DLLEXPORT void initializeExtension(CExtension& extension)
 {
-    extension.LoadArnoldPlugin("renderSetup_shaders");
+//    extension.LoadArnoldPlugin("renderSetup_shaders");
     extension.RegisterPluginNodesAndTranslators("renderSetup");
 }
 

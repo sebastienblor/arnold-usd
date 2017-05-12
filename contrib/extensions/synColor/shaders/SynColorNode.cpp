@@ -649,7 +649,12 @@ color_manager_transform
 
 color_manager_get_defaults
 {
-   sRGB = AiNodeGetStr(node, DataStr::view_transform_space);
+   static AtString sRgb_str = AtString("sRGB gamma");
+   // This is creating problems with arnold color management (see #2893)
+   AtString ocioPath = AiNodeGetStr(node, DataStr::ocioconfig_path);
+   if (ocioPath.empty())
+      sRGB = sRgb_str;
+   
    linear = AiNodeGetStr (node, DataStr::rendering_color_space);
 }
 

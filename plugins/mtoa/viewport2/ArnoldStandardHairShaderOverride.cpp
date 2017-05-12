@@ -21,7 +21,11 @@ ArnoldStandardHairShaderOverride::ArnoldStandardHairShaderOverride(const MObject
    reqs.append("standardShaderLightingData");
    reqs.append("standardShaderDiffuse");
    reqs.append("standardShaderEmission");
-   reqs.append("standardShaderSpecular");
+   reqs.append("standardHairSpecular");
+   reqs.append("standardHairShaderBase");
+   reqs.append("standardFresnel");
+   reqs.append("standardfloatPassThrough");
+   reqs.append("standardfloat3PassThrough");
    reqs.append("standardShaderLightingCombiner");
    if (LoadFragmentGraph("standardHairShader", reqs))
       m_fragmentName = "standardHairShader";

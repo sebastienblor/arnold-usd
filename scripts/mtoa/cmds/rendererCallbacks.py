@@ -44,6 +44,8 @@ try:
     from maya.app.renderSetup.model.selection import Selection
     import maya.app.renderSetup.model.undo as undo
     import maya.app.renderSetup.model.utils as renderSetupUtils
+    import maya.app.renderSetup.model.sceneObservable as sceneObservable
+
     from mtoa.aovs import AOVInterface
     import mtoa.core as core
     import mtoa.ui.aoveditor as aoveditor
@@ -71,14 +73,15 @@ try:
                         if self._isAOVDefaultValue(name, plg):
                             connectedPlgs = plg.plug.connectedTo(True, False)
                             if len(connectedPlgs) > 0:
-                                attrs[plg.name] = plg.plug.connectedTo(True, False)[0].name()
+                                attrs[plg.name] = connectedPlgs[0].name()
                             else:
-                                attrs[plg.name] = None
+                                attrs[plg.name] = ""
                         elif plg.type is not plug.Plug.kInvalid and plg.name not in self._plugsToIgnore:
                             attrs[plg.name] = plg.value
             return attrs
 
         def decode(self, encodedData):
+            self.AOVDefaultValuesNotImported = []
             nodes = {} # Avoid creating several time the same node
             for (key, value) in encodedData.items():
                 (nodeName, attrName) = plug.Plug.getNames(key)
@@ -103,6 +106,11 @@ try:
                     else:
                         if self._isAOVDefaultValue(nodeName, plg):
                             renderSetupUtils.connect(plug.Plug(value).plug, plg.plug)
+                            # Did we fail to make a connection? If so, keep
+                            # track of the aiAOV default value attribute as
+                            # well as what we tried to connect
+                            if not plg.plug.isConnected:
+                                self.AOVDefaultValuesNotImported.append((value, plg.plug.name()))
                         else:
                             plg.value = value
 
@@ -212,6 +220,14 @@ try:
         DEFAULT_ARNOLD_DRIVER_NAME = "defaultArnoldDriver"
         DEFAULT_ARNOLD_FILTER_NAME = "defaultArnoldFilter"
     
+        def __init__(self):
+            super(rendererCallbacks.AOVCallbacks, self).__init__()
+            self.AOVDefaultValuesNotImported = []
+            self.sceneObservableRegistered = False
+
+        def __del__(self):
+            self._unregister()
+
         def encode(self):
             aovsJSON = {}
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
@@ -268,9 +284,71 @@ try:
             aovsJSON["drivers"] = drivers
             aovsJSON["outputs"] = outputs
             return aovsJSON
-         
-        def decode(self, aovsJSON, decodeType):
+
+        def _getAOVNameFromJSON(self, aovsJSON, aiAOVName):
+            aovs = aovsJSON["aovs"]
+            for aov in aovs:
+                for key, value in aov.iteritems():
+                    if key == aiAOVName:
+                        return value[aiAOVName + ".name"]
+            return None
             
+        def _register(self):
+            sceneObservable.instance().register(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
+            sceneObservable.instance().register(sceneObservable.SceneObservable.NODE_RENAMED, self._nodeRenamedCB)
+            self._beforeFileNewId = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kBeforeNew, self._beforeFileNewCB)
+            self.sceneObservableRegistered = True
+
+        def _unregister(self):
+            self.AOVDefaultValuesNotImported = []
+            sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_ADDED, self._nodeAddedCB)
+            sceneObservable.instance().unregister(sceneObservable.SceneObservable.NODE_RENAMED, self._nodeRenamedCB)
+            OpenMaya.MMessage.removeCallback(self._beforeFileNewId)
+            self.sceneObservableRegistered = False
+
+        def _beforeFileNewCB(self, clientData):
+            self._unregister()
+
+        def _connectShadersIfMissingShaderNodeSupplied(self, obj):
+            # If the current node is a shading node
+            if renderSetupUtils.isShadingNode(obj):
+                # Does our created shading node match any of our previously
+                # imported default shader values which weren't successfully
+                # connected as the shading node didn't exist yet?
+                #
+                # Note: this search is linear, avoiding this with the use of a
+                # dictionary of lists was considered to improve efficiency, but
+                # in the end the linear workflow was selected as it is more
+                # simplistic and because realistically a user will not have
+                # more than 20 AOVs at a time that failed to load default
+                # shader values, so a linear workflow should still have nominal
+                # overhead.
+                indexesToDelete = []
+                for i, (src, dst) in enumerate(self.AOVDefaultValuesNotImported):
+                    fn = OpenMaya.MFnDependencyNode(obj)
+                    srcComponents = src.split('.')
+                    if srcComponents[0] == fn.name() and fn.hasAttribute(srcComponents[1]):
+                        dstPlug = plug.Plug(dst).plug
+                        renderSetupUtils.connect(plug.Plug(src).plug, dstPlug)
+                        if dstPlug.isConnected:
+                            indexesToDelete.append(i)
+
+                # If we found a match, delete the index
+                self.AOVDefaultValuesNotImported = [i for j, i in enumerate(self.AOVDefaultValuesNotImported) if j not in indexesToDelete]
+
+                # If there are no more missing connections, then we should stop
+                # observing node addition and file->new.
+                if len(self.AOVDefaultValuesNotImported) == 0:
+                    self._unregister()
+
+        def _nodeAddedCB(self, obj):
+            self._connectShadersIfMissingShaderNodeSupplied(obj)
+
+        def _nodeRenamedCB(self, obj, oldName):
+            self._connectShadersIfMissingShaderNodeSupplied(obj)
+
+        def decode(self, aovsJSON, decodeType):
+
             core.createOptions()
 
             # We're doing a replace, so remove all previous AOVs
@@ -287,13 +365,15 @@ try:
                 for key, value in output.iteritems():
 
                     # If we're doing a merge, we need to delete the nodes that overlap with the nodes we are importing.
-                    aovName = key[len('aiAOV_'):] # Remove aiAOV_ from the start of the string
+                    aovName = self._getAOVNameFromJSON(aovsJSON, key)
                     if decodeType == self.DECODE_TYPE_MERGE and AOVInterface().getAOVNode(aovName) != None:
                         AOVInterface().removeAOV(aovName)
 
                     # Create a new aov node with the given aov name
                     aovNode = AOVInterface().addAOV(aovName)
-                    
+                    if ("aiAOV_" + aovName) != key:
+                        cmds.rename(("aiAOV_" + aovName), key)
+
                     # Iterate over the output's value indexes
                     for outputIndex in range(0, len(value)):
                         filterName = value[outputIndex]["filter"]
@@ -319,12 +399,15 @@ try:
                         for outputType, outputName, newOutputName in ["filter", filterName, newFilterName], ["driver", driverName, newDriverName]:
                             if outputIndex > 0 or cmds.listConnections(key + ".outputs[" + str(outputIndex) + "]." + outputType)[0] != outputName:
                                 cmds.connectAttr(newOutputName + ".message", key + ".outputs[" + str(outputIndex) + "]." + outputType, force=True)
-
             # Iterate over our AOVs and decode them
             aovs = aovsJSON["aovs"]
             for aov in aovs:
                 for aovName, aovJSON in aov.iteritems():
                     arnoldNodeExporter.decode(aovJSON)
+                    self.AOVDefaultValuesNotImported.extend(arnoldNodeExporter.AOVDefaultValuesNotImported)
+            # Should we start listening on node creation?
+            if len(self.AOVDefaultValuesNotImported) > 0 and not self.sceneObservableRegistered:
+                self._register()
 
             # Iterate over our filters/drivers and decode them
             for outputType, outputNewNameMap in ["filters", filterNewNameMap], ["drivers", driverNewNameMap]:
@@ -348,7 +431,12 @@ try:
             mel.eval('unifiedRenderGlobalsWindow')
             mel.eval('setCurrentTabInRenderGlobalsWindow(\"AOVs\")')
             mel.eval('fillSelectedTabForCurrentRenderer')
-            
+
+        @staticmethod
+        def aovNodeTypes():
+            '''Return the AOV node types supported by this renderer.'''
+            return ['aiAOV', 'aiAOVDriver', 'aiAOVFilter']
+
         # Given an aovNode (aiAOV, aiAOVFilter, or aiAOVDriver type node), returns the aovName.
         def getAOVName(self, aovNode):
             try:

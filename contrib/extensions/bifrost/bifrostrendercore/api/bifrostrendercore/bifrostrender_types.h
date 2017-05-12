@@ -284,6 +284,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
     std::string idString;
 
 	bool error;
+    bool empty;
     Bifrost::API::String tmpFolder;
 	bool isPointCache;
 	bool idExists;
@@ -333,7 +334,7 @@ struct BIFROSTRENDERAPI_DECL FrameData {
 
 struct BIFROSTRENDERAPI_DECL SmoothFilterParams {
     SmoothFilterType mode;
-	int amount;
+    int kernelSize;
 	int iterations;
 	float weight;
 	CvString channelName;
@@ -355,7 +356,6 @@ struct BIFROSTRENDERAPI_DECL ClipParams {
 struct BIFROSTRENDERAPI_DECL InfCubeParams {
 	bool on;
 	InfCubeOutputType outputType;
-	float simWaterLevel;
 	float topCenterX;
 	float topCenterY;
 	float topCenterZ;
@@ -424,6 +424,7 @@ struct BIFROSTRENDERAPI_DECL ImplicitsInputData {
 	float velocityScale;
 	float fps;
 	float spaceScale;  // 4 params
+    bool exportUVs;
 
 	CullSidesParams cullSides; // 8 params
 
@@ -493,6 +494,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesInputData {
 	ClipParams clip;
 
 	float radius;
+    float stepSize;
 	bool useChannelToModulateRadius;
 	bool camRadius;
 	float camRadiusStartDistance;
@@ -556,17 +558,16 @@ struct BIFROSTRENDERAPI_DECL VolumeInputData {
 	ClipParams clip; // 19 params
 
 	// parameters for particle splating
-	float splatResolutionFactor;
 	int skip;
-	int splatSamples;
-	float splatMinRadius;
+    int splatSamples;
+    float splatMinRadius;
 	float splatMaxRadius;
-	float splatSurfaceAttract;
-	FalloffType splatFalloffType;
-	float splatFalloffStart;
+    float splatSurfaceAttract;
+    FalloffType splatFalloffType;
+    float splatFalloffStart;
 	float splatFalloffEnd;
-	float splatDisplacement;
-	float splatNoiseFreq; // 30 params
+    float splatDisplacement;
+    float splatNoiseFreq; // 30 params
 
 	// state parameters
 	DiagnosticsParams diagnostics; // 31 params
@@ -618,7 +619,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 
 	CvInt nofElements;
 	CvInt nofBaseElements;
-	bool isMultiPointing;
+    bool isMultiPointing;
 	bool isPointCache;
 	float voxelScale;
 	float minDistance;
@@ -626,6 +627,7 @@ struct BIFROSTRENDERAPI_DECL PrimitivesFrameData {
 	int finalChunkSize;
 
 	bool error;
+    bool empty;
 	Bifrost::API::String tmpFolder;
 
 	PluginType pluginType;

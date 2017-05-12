@@ -6,7 +6,6 @@
 namespace MSTR
 {
    static const AtString geo_opacity("geo_opacity");
-   static const AtString curve_id("curve_id");
 }
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaHairMtd);
@@ -116,7 +115,7 @@ shader_evaluate
    
    unsigned int seed = 0;
    if (enableHSVRand)
-      AiUDataGetUInt(MSTR::curve_id, seed); // the translator exports curve_ids   
+      seed =  AiShaderGlobalsGetUniformID(sg);
    // when needed, so no need for an extra check   
    
    const float diffuseRand = AiShaderEvalParamFlt(p_diffuse_rand);

@@ -12,7 +12,7 @@ extern "C"
       MStatus status;
 
       extension.Requires("shaveNode");
-      extension.LoadArnoldPlugin("shave_shaders");
+//      extension.LoadArnoldPlugin("shave_shaders");
       status = extension.RegisterTranslator("shaveHair",
                                             "",
                                             CShaveTranslator::creator,

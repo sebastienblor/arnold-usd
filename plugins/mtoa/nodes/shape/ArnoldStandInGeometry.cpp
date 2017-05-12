@@ -16,6 +16,12 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
    m_BBMax.z = -AI_BIG;
    
    p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+
+   if(!AiArrayGetNumElements(p_matrices)){
+	  AiArrayResize(p_matrices, 1, 1);
+	  AiArraySetMtx(p_matrices, 0, AiM4Identity());
+   }
+
    m_matrix = AiArrayGetMtx(p_matrices, 0);
    m_visible = AiNodeGetByte(node, "visibility") != 0;
    m_invalid = false;

@@ -160,7 +160,7 @@ public:
    AtNode* CreateArnoldNodes()
    {
       AddArnoldNode("polymesh", "mesh");
-      AddArnoldNode("meshLightMaterial", "shader");
+      AddArnoldNode("MtoaMeshLightMaterial", "shader");
       return AddArnoldNode("mesh_light");
    }
 
