@@ -175,39 +175,70 @@ void CImagePlaneTranslator::ExportImagePlane()
       // check if filename has changed. If it has we tell ArnoldSession to update tx
       MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename").c_str();
 
-      bool requestUpdateTx = true;
-      int prevFilenameLength = prevFilename.length();
+      MString resolvedFilename = imageName; // do we need to do anything else to resolve the filename ?
 
-      if (prevFilenameLength > 0)
-      {
-         // arnold filename param
-         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-         {
-            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
-
-            int dotPos = imageName.rindexW(".");
-            if (dotPos > 0)
-            {
-               MString basename = imageName.substring(0, dotPos - 1);
-               requestUpdateTx = (prevBasename != basename);
-            }
-         } else
-         {
-            // if previous filename and new one are exactly identical, it's useless to update Tx
-            requestUpdateTx = (prevFilename != imageName);
-         }
-      }
 
       MString colorSpace = fnRes.findPlug("colorSpace").asString();
       
-      if (colorSpace != m_colorSpace) requestUpdateTx = true;
+      bool requestUpdateTx = (colorSpace != m_colorSpace);
       m_colorSpace = colorSpace;
 
-      AiNodeSetStr(imagePlaneShader, "color_space", colorSpace.asChar());
+      if (!requestUpdateTx)
+      {
+         // Color Space is the same, so let's check if the filename was modified
+         int prevFilenameLength = prevFilename.length();
+
+         if (prevFilenameLength > 0)
+         {
+            // compare against previous filename to see if we need to re-generate the TX
+            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+            {
+               // Previous Filename was .tx, either because of "use existing tx", 
+               // or because it's explicitely targeting the .tx
+               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+               int dotPos = resolvedFilename.rindexW(".");
+               if (dotPos > 0)
+               {
+                  MString basename = resolvedFilename.substring(0, dotPos - 1);
+                  
+                  // Let's compare the basenames (without extension)
+                  if (prevBasename != basename)
+                  {
+                     // the basename was modified, this needs an update of TX
+                     requestUpdateTx = true;
+                  } else
+                  {
+                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
+                     // so let's keep the previous one (where Use Tx was applied)
+                     resolvedFilename = prevFilename;
+                  }
+               }
+            } else
+            {
+               // if previous filename and new one are exactly identical, it's useless to update Tx
+               requestUpdateTx = (prevFilename != resolvedFilename);
+            }
+         } else if (resolvedFilename.length() > 0)
+         {
+            requestUpdateTx = true;
+         }
+      }
+
+      AiNodeSetStr(imagePlaneShader, "filename", resolvedFilename.asChar());
+
+      // only set the color_space if the texture isn't a TX
+      AiNodeSetStr(imagePlaneShader, "color_space", "");
+      if (resolvedFilename.length() > 4)
+      {
+         MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
+
+         if (extension != ".tx" && extension !=  ".TX")
+            AiNodeSetStr(imagePlaneShader, "color_space", colorSpace.asChar());
+      }
 
       if (requestUpdateTx)
       {
-         AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
          m_impl->m_session->RequestUpdateTx();
       }
 
