@@ -69,8 +69,6 @@ namespace {
 
 procedural_init
 {
-    PROFILER("initialize mesh");
-
     float shutter_start, shutter_end;
     { // get shutter start / end
         AtNode* options = AiUniverseGetOptions();
@@ -108,7 +106,6 @@ procedural_init
     AtNode *polymesh = AiNode("polymesh");
     AiNodeSetBool(polymesh, "smoothing", params.smoothing);
     AiNodeSetStr(polymesh, "name", (std::string(AiNodeGetName(node))+"_polymesh").c_str() );
-    DUMP(AiNodeGetMatrix(node,"matrix"));
     AiNodeSetMatrix(polymesh, "matrix", AiM4Scaling(AtVector(params.space_scale, params.space_scale, params.space_scale)));
 
     // compute velocities
@@ -218,8 +215,6 @@ procedural_init
     AiNodeSetBool(polymesh, "disp_autobump", params.disp_autobump);
 
     *user_ptr = polymesh;
-
-    DUMP(params.str());
 
     return true;
 }

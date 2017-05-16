@@ -165,7 +165,6 @@ bool initialize(SurfaceParams& params, Bifrost::API::VoxelComponent& component){
         Bifrost::Processing::ErodeFilter<float>(params.erode).filter(distance, distance);
 
     if(params.enable_infinite_blending){
-        std::cerr << ("EXTEND STARTS") << std::endl;
         Bifrost::Processing::extend(distance, params.infinite_blending_height, params.infinite_blending_center, params.infinite_blending_dimension, params.infinite_blending_radius, distance);
         Bifrost::API::VoxelChannel uvs = component.findChannel(params.uv_channel.c_str());
         if(uvs.valid()){
@@ -174,7 +173,6 @@ bool initialize(SurfaceParams& params, Bifrost::API::VoxelComponent& component){
             AiMsgWarning("[BIFROST] Invalid uv channel \"%s\". Available channels are:\n%s", params.uv_channel.c_str(),
                        availableChannels(component, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
         }
-        std::cerr << ("EXTEND ENDS") << std::endl;
     }
 
     if(params.debug > 0){ // debug

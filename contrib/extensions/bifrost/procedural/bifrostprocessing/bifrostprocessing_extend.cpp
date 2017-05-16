@@ -11,7 +11,25 @@
 #include <bifrostapi/bifrost_component.h>
 #include <unordered_set>
 
+#define FLOOD(direction, i1, j1, k1, i2, j2, k2) \
+{\
+    bool eval = false;\
+    for(int s = 0; s < N && !eval; ++s) for(int t = 0; t < N && !eval; ++t) eval |= alphaData(i1,j1,k1) == 1;\
+    if(eval){\
+        FloodTile neighbor(sweeper.direction(tile), sdf, alpha, H);\
+        if(neighbor.valid()){\
+            eval = false;\
+            for(int s = 0; s < N; ++s)\
+                for(int t = 0; t < N; ++t)\
+                    eval |= (alphaData(i1,j1,k1) == 1 && neighbor.flood(i2,j2,k2));\
+            if(eval) indexes.insert(neighbor.tile.index().tile);\
+        }\
+    }\
+}
+
 namespace{
+
+// ***** OCEAN UVS *****
 
 class ExtendUVVistor : public Bifrost::API::Visitor {
 public:
@@ -43,6 +61,8 @@ private:
 };
 
 
+// ***** OCEAN SDF *****
+
 class PlaneSdfVistor : public Bifrost::API::Visitor {
 public:
     PlaneSdfVistor(float h, Bifrost::API::VoxelChannel& out)
@@ -57,10 +77,42 @@ public:
         for(size_t e = 0; e < data.count(); ++e)
             data[e] = (coord.j + ((int (e / 5)) % 5) - .5f)-h;
     }
-
 private:
     Bifrost::API::VoxelChannel out;
     float h;
+};
+inline void createOceanPlane(Bifrost::API::VoxelChannel& sdf, float height){
+    PROFILER("CREATE OCEAN PLANE");
+    Bifrost::API::Layout layout(sdf.layout());
+    PlaneSdfVistor visitor(height, sdf);
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
+}
+
+
+// ***** FLOODING ALGORITHM *****
+
+struct FloodTile{
+    Bifrost::API::Tile tile;
+    int H;
+    const Bifrost::API::VoxelChannel sdfChannel, alphaChannel;
+    const Bifrost::API::TileData<float> _sdf;
+    Bifrost::API::TileData<float> _alpha;
+
+    FloodTile(const Bifrost::API::Tile& tile, const Bifrost::API::VoxelChannel& sdf, Bifrost::API::VoxelChannel& alpha, int H)
+        : tile(tile), H(H), sdfChannel(sdf), alphaChannel(alpha),
+          _sdf(tile.valid()? sdf.tileData<float>(tile.index()) : Bifrost::API::TileData<float>()),
+          _alpha(tile.valid()? alpha.tileData<float>(tile.index()) : Bifrost::API::TileData<float>()) {}
+
+    inline bool valid() const{ return tile.valid(); }
+    inline const float& sdf(int i, int j, int k) const{ return _sdf(i,j,k); }
+    inline const float& alpha(int i, int j, int k) const{ return _alpha(i,j,k); }
+    inline float& alpha(int i, int j, int k){ return _alpha(i,j,k); }
+
+    inline bool flood(int i, int j, int k){
+        bool ret = (tile.coord().j + j <= H) && (alpha(i,j,k) == 0) && (sdf(i,j,k) >= 0);
+        if(ret) alpha(i,j,k) = 1;
+        return ret;
+    }
 };
 
 struct FloodSharedData{
@@ -81,13 +133,13 @@ void flood(const FloodSharedData& shared, Bifrost::API::TileData<float>& alphaDa
     if(k<n && alphaData(i,j,k+1) != 1) flood( shared, alphaData, i, j, k+1 );
 }
 
-class FloodVistor : public Bifrost::API::Visitor {
+class FloodVisitor : public Bifrost::API::Visitor {
 public:
-    FloodVistor(Bifrost::API::VoxelChannel& sdf, float height, Bifrost::API::VoxelChannel& alpha)
+    FloodVisitor(Bifrost::API::VoxelChannel& sdf, float height, Bifrost::API::VoxelChannel& alpha)
         : sdf(sdf), H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+1), alpha(alpha){}
-    FloodVistor(const FloodVistor& o)
+    FloodVisitor(const FloodVisitor& o)
         : sdf(o.sdf), H(o.H), alpha(o.alpha){}
-    Bifrost::API::Visitor* copy() const override{ return new FloodVistor(*this); }
+    Bifrost::API::Visitor* copy() const override{ return new FloodVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
         indexes.insert(index.tile);
@@ -106,53 +158,18 @@ public:
             Bifrost::API::TileData<float> alphaData = alpha.tileData<float>(center);
             FloodSharedData shared = { sdf.tileData<float>(center), H, n, tile.coord().j };
 
+            // flood current tile
             FOR_IJK(i,j,k,N){
                 if(alphaData(i,j,k) == 1)
                     flood(shared, alphaData, i, j, k);
             }
-            struct Neighbor{
-                Bifrost::API::Tile tile;
-                Bifrost::API::TileData<float> data;
-                bool eval = false;
-                Neighbor(const Bifrost::API::Tile& tile, Bifrost::API::VoxelChannel& channel)
-                    : tile(tile), data(tile.valid()? channel.tileData<float>(tile.index()) : Bifrost::API::TileData<float>()){}
-                inline bool valid() const{ return tile.valid(); }
-                inline const float& operator()(int i, int j, int k) const{ return data(i,j,k); }
-                inline float& operator()(int i, int j, int k){ return data(i,j,k); }
-            };
-
-            Neighbor l(  sweeper.left(tile),alpha), r(  sweeper.right(tile),alpha),
-                     b(sweeper.bottom(tile),alpha), t(    sweeper.top(tile),alpha),
-                     c(sweeper.closer(tile),alpha), f(sweeper.further(tile),alpha);
-
-            for(int i = 0; i < N; ++i){
-                for(int j = 0; j < N; ++j){
-                    if(alphaData(0,i,j)==1 && l.valid() && l(n,i,j) == 0){
-                        l(n,i,j) = 1;
-                        indexes.insert(l.tile.index().tile);
-                    }
-                    if(alphaData(n,i,j)==1 && r.valid() && r(0,i,j) == 0){
-                        r(0,i,j) = 1;
-                        indexes.insert(r.tile.index().tile);
-                    }
-                    if(alphaData(i,0,j)==1 && b.valid() && b(i,n,j) == 0){
-                        b(i,n,j) = 1;
-                        indexes.insert(b.tile.index().tile);
-                    }
-                    if(alphaData(i,n,j)==1 && t.valid() && t(i,0,j) == 0){
-                        t(i,0,j) = 1;
-                        indexes.insert(t.tile.index().tile);
-                    }
-                    if(alphaData(i,j,0)==1 && c.valid() && c(i,j,n) == 0){
-                        c(i,j,n) = 1;
-                        indexes.insert(c.tile.index().tile);
-                    }
-                    if(alphaData(i,j,n)==1 && f.valid() && f(i,j,0) == 0){
-                        f(i,j,0) = 1;
-                        indexes.insert(f.tile.index().tile);
-                    }
-                }
-            }
+            // add neighboring indexes if we need to flood them
+            FLOOD(   left, 0,s,t, n,s,t);
+            FLOOD(  right, n,s,t, 0,s,t);
+            FLOOD( bottom, s,0,t, s,n,t);
+            FLOOD(    top, s,n,t, s,0,t);
+            FLOOD( closer, s,t,0, s,t,n);
+            FLOOD(further, s,t,n, s,t,0);
         }
     }
 private:
@@ -160,6 +177,9 @@ private:
     int H;
     std::unordered_set<int> indexes;
 };
+
+
+// ***** CRAWLING ALGORITHM *****
 
 void crawl(const Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& alpha, Bifrost::API::Tile current, int i, int j, int k, int H){
     Bifrost::API::Layout layout(sdf.layout());
@@ -224,17 +244,13 @@ void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& a
     }
     {
         PROFILER("FLOOD");
-        FloodVistor visitor(sdf, height, alpha);
+        FloodVisitor visitor(sdf, height, alpha);
         layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
     }
 }
 
-inline void createOceanPlane(Bifrost::API::VoxelChannel& sdf, float height){
-    PROFILER("CREATE OCEAN PLANE");
-    Bifrost::API::Layout layout(sdf.layout());
-    PlaneSdfVistor visitor(height, sdf);
-    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
-}
+
+// ***** ALPHA BLENDING *****
 
 inline void blend(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::VoxelChannel& in2, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out){
     PROFILER("BLEND OCEAN PLANE");
@@ -254,6 +270,7 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
     Bifrost::API::Layout layout(sdf.layout());
 
     {// add tiles
+        // TODO: make this parallel
         PROFILER("ADDING OCEAN TILES");
         amino::Math::bboxf bbox(amino::Math::vec3f(center[0] - dimensions[0]*.5, height, center[1] - dimensions[1]*.5),
                                 amino::Math::vec3f(center[0] + dimensions[0]*.5, height, center[1] + dimensions[1]*.5));

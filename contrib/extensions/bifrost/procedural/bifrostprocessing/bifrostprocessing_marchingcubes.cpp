@@ -553,6 +553,7 @@ namespace Bifrost{
 namespace Processing{
 
 void createMarchingCubeMesh(const API::VoxelChannel &distance, Bifrost::API::Array<amino::Math::vec3f> &vertices, Bifrost::API::Array<amino::Math::vec3i> &indices, unsigned int subdivisions){
+    PROFILER("MARCHING CUBES");
     MarchingCubesVisitor visitor(distance, subdivisions);
     Bifrost::API::Layout layout(distance.layout());
     layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelReduceBreadthFirst, layout.maxDepth(), layout.maxDepth());
