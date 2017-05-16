@@ -727,7 +727,8 @@ void COptionsTranslator::Export(AtNode *options)
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
-            CNodeTranslator::ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+            int bucket_scanning = AiMin(FindMayaPlug("bucketScanning").asInt(), 4); // old scenes might have a bigger value
+            AiNodeSetInt(options, "bucket_scanning", bucket_scanning);
          }
          else if (strcmp(paramName, "texture_autotile") == 0)
          {
