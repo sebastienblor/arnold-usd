@@ -61,13 +61,13 @@ SurfaceParams::SurfaceParams(const AtNode* node){
     smooth_iterations = AiNodeGetInt(node, "smooth_iterations");
 
     clip = AiNodeGetBool(node, "clip");
-    clip_bbox = amino::Math::bboxf( AtVectorToAminoVec3(AiNodeGetVec(node,"clip_min")),
-                                    AtVectorToAminoVec3(AiNodeGetVec(node,"clip_max")) );
+    clip_bbox = amino::Math::bboxf( AtVectorToAminoVec3f(AiNodeGetVec(node,"clip_min")),
+                                    AtVectorToAminoVec3f(AiNodeGetVec(node,"clip_max")) );
 
     enable_infinite_blending = AiNodeGetBool(node, "enable_infinite_blending");
     infinite_blending_height = AiNodeGetFlt(node, "infinite_blending_height");
-    infinite_blending_center = AtVector2ToAminoVec2(AiNodeGetVec2(node,"infinite_blending_center"));
-    infinite_blending_dimension = AtVector2ToAminoVec2(AiNodeGetVec2(node,"infinite_blending_dimension"));
+    infinite_blending_center = AtVector2ToAminoVec2f(AiNodeGetVec2(node,"infinite_blending_center"));
+    infinite_blending_dimension = AtVector2ToAminoVec2f(AiNodeGetVec2(node,"infinite_blending_dimension"));
     infinite_blending_radius = AiNodeGetFlt(node, "infinite_blending_radius");
     infinite_blending_blend = (BlendType) AiNodeGetInt(node, "infinite_blending_blend");
     enable_infinite_blending_uvs = AiNodeGetBool(node, "enable_infinite_blending_uvs");

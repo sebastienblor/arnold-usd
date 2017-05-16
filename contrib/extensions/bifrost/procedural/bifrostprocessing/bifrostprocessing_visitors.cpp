@@ -65,12 +65,17 @@ RemapVisitor<T>::RemapVisitor(Bifrost::API::Channel& channel, const T& inMin, co
 
 template<typename T>
 BlendVisitor<T>::BlendVisitor(const Bifrost::API::Channel& in1, const Bifrost::API::Channel& in2, float alpha, Bifrost::API::Channel& out) :
-    _in1(in1), _in2(in2), _alpha(alpha), _out(out) {
+    _in1(in1), _in2(in2), _alphaChannel(Bifrost::API::Channel()), _alpha(alpha), _out(out) {
+    assert(in1.layout() == in2.layout() && in2.layout() == out.layout() );
+}
+template<typename T>
+BlendVisitor<T>::BlendVisitor(const Bifrost::API::Channel& in1, const Bifrost::API::Channel& in2,  const Bifrost::API::Channel& alpha, Bifrost::API::Channel& out) :
+    _in1(in1), _in2(in2), _alphaChannel(alpha), _alpha(1), _out(out) {
     assert(in1.layout() == in2.layout() && in2.layout() == out.layout() );
 }
 template<typename T>
 BlendVisitor<T>::BlendVisitor(const BlendVisitor& o) :
-    _in1(o._in1), _in2(o._in2), _alpha(o._alpha), _out(o._out) {}
+    _in1(o._in1), _in2(o._in2), _alphaChannel(o._alphaChannel), _alpha(o._alpha), _out(o._out) {}
 template<typename T>
 Bifrost::API::Visitor* BlendVisitor<T>::copy() const{ return new BlendVisitor<T>(*this); }
 
@@ -78,7 +83,14 @@ template<typename T>
 void BlendVisitor<T>::beginTile( const Bifrost::API::TileAccessor&, const Bifrost::API::TreeIndex& index ){
     const Bifrost::API::TileData<T> &inData1 = _in1.tileData<T>(index), &inData2 = _in2.tileData<T>(index);
     Bifrost::API::TileData<T> outData = _out.tileData<T>(index);
-    for(size_t k = 0; k < inData1.count(); ++k) outData[k] = inData2[k] + _alpha*(inData1[k] - inData2[k]);
+    if(_alphaChannel.valid()){
+        const Bifrost::API::TileData<T> &alphaData = _alphaChannel.tileData<T>(index);
+        for(size_t k = 0; k < inData1.count(); ++k)
+            outData[k] = inData2[k] + alphaData[k]*(inData1[k] - inData2[k]);
+    }else{
+        for(size_t k = 0; k < inData1.count(); ++k)
+            outData[k] = inData2[k] + _alpha*(inData1[k] - inData2[k]);
+    }
 }
 
 template<typename T>

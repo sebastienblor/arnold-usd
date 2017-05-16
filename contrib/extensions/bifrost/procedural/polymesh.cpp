@@ -5,6 +5,8 @@
 #include "surface.h"
 #include <bifrostapi/bifrost_voxelchannel.h>
 #include <bifrostapi/bifrost_voxelsampler.h>
+#include <bifrostapi/bifrost_layout.h>
+#include <bifrostapi/bifrost_tileaccessor.h>
 #include <bifrostprocessing/bifrostprocessing_meshing.h>
 #include "utils.h"
 
@@ -33,24 +35,46 @@ namespace {
         AiNodeDeclare(polymesh, channel.name().c_str(), declaration); \
         AtArray *channelArray = AiArrayAllocate(vertices.count(), 1, type); \
         TBB_FOR_ALL(0, vertices.count(), 100, [vertices, channel, channelArray](size_t start, size_t end){ \
-            Bifrost::API::VoxelSampler sampler = channel.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace); \
+            Bifrost::API::VoxelSampler sampler = channel.createSampler(Bifrost::API::VoxelSamplerLinearType, Bifrost::API::SamplerSpace::WorldSpace); \
             for(size_t i = start; i < end; ++i){ \
-                AiArraySet(channelArray, i, CAST(sampler.sample<T>(vertices[i]))); \
+                 AiArraySet(channelArray, i, CAST(sampler.sample<T>(vertices[i]))); \
             } \
         }); \
         AiNodeSetArray(polymesh, channel.name().c_str(), channelArray); \
     }
 
+#define EXPORT_ICHANNEL(T, type, declaration, AiArraySet, CAST) \
+    template<> void exportChannel<T>(AtNode* polymesh, const Bifrost::API::Array<amino::Math::vec3f>& vertices, const Bifrost::API::VoxelChannel& channel){ \
+        AiNodeDeclare(polymesh, channel.name().c_str(), declaration); \
+        AtArray *channelArray = AiArrayAllocate(vertices.count(), 1, type);\
+        Bifrost::API::Layout layout(channel.layout());\
+        const Bifrost::API::TileAccessor accessor = layout.tileAccessor();\
+        float invDx = 1./layout.voxelScale();\
+        TBB_FOR_ALL(0, vertices.count(), 100, [vertices, channel, channelArray, layout, accessor, invDx](size_t i){\
+            const amino::Math::vec3f& pos = vertices[i];\
+            const Bifrost::API::Tile& tile = accessor.tile(pos[0]*invDx, pos[1]*invDx, pos[2]*invDx, layout.maxDepth());\
+            const Bifrost::API::TileCoord& coord = tile.coord();\
+            AiArraySet(channelArray, i, CAST(channel.tileData<T>(tile.index())(coord.i%5, coord.j%5, coord.k%5)));\
+        });\
+        AiNodeSetArray(polymesh, channel.name().c_str(), channelArray);\
+    }
+
     // export channel specialization per type
     EXPORT_CHANNEL(float, AI_TYPE_FLOAT, "varying FLOAT", AiArraySetFlt,)
-    EXPORT_CHANNEL(amino::Math::vec2f, AI_TYPE_VECTOR2, "varying VECTOR2", AiArraySetVec2, AminoVec2ToAtVector)
-    EXPORT_CHANNEL(amino::Math::vec3f, AI_TYPE_VECTOR, "varying VECTOR", AiArraySetVec, AminoVec3ToAtVector)
+    EXPORT_CHANNEL(amino::Math::vec2f, AI_TYPE_VECTOR2, "varying VECTOR2", AiArraySetVec2, AminoVec2fToAtVector2)
+    EXPORT_CHANNEL(amino::Math::vec3f, AI_TYPE_VECTOR, "varying VECTOR", AiArraySetVec, AminoVec3fToAtVector)
+    EXPORT_ICHANNEL(int, AI_TYPE_INT, "varying INT", AiArraySetInt, )
+    EXPORT_ICHANNEL(amino::Math::vec2i, AI_TYPE_VECTOR2, "varying VECTOR2", AiArraySetVec2, AminoVec2iToAtVector2)
+    EXPORT_ICHANNEL(amino::Math::vec3i, AI_TYPE_VECTOR, "varying VECTOR", AiArraySetVec, AminoVec3iToAtVector)
 
     inline void exportChannel(AtNode *polymesh, const Bifrost::API::Array<amino::Math::vec3f> &vertices, const Bifrost::API::VoxelChannel &channel){
         switch(channel.dataType()){
         case Bifrost::API::DataType::FloatType:   exportChannel<float>(polymesh, vertices, channel); return;
         case Bifrost::API::DataType::FloatV2Type: exportChannel<amino::Math::vec2f>(polymesh, vertices, channel); return;
         case Bifrost::API::DataType::FloatV3Type: exportChannel<amino::Math::vec3f>(polymesh, vertices, channel); return;
+        case Bifrost::API::DataType::Int32Type:   exportChannel<int>(polymesh, vertices, channel); return;
+        case Bifrost::API::DataType::Int32V2Type: exportChannel<amino::Math::vec2i>(polymesh, vertices, channel); return;
+        case Bifrost::API::DataType::Int32V3Type: exportChannel<amino::Math::vec3i>(polymesh, vertices, channel); return;
         default: AiMsgWarning("[BIFROST] Unknown conversion for exporting channel '%s' (type = %d)", channel.name().c_str(), channel.dataType());
         }
     }
@@ -141,16 +165,16 @@ procedural_init
         AtArray *vlist = AiArrayAllocate( vertices.count(), motion? 2 : 1, AI_TYPE_VECTOR );
         if(shutter_start == 0){
             TBB_FOR_ALL(0, vertices.count(), 100, [vlist,vertices](size_t i){
-                AiArraySetVec(vlist, i, AminoVec3ToAtVector(vertices[i]));
+                AiArraySetVec(vlist, i, AminoVec3fToAtVector(vertices[i]));
             });
         }else{
             TBB_FOR_ALL(0, vertices.count(), 100, [vlist,vertices,velocities,shutter_start](size_t i){
-                AiArraySetVec(vlist, i, AminoVec3ToAtVector(vertices[i] + velocities[i]*shutter_start));
+                AiArraySetVec(vlist, i, AminoVec3fToAtVector(vertices[i] + velocities[i]*shutter_start));
             });
         }
         if(motion){
             TBB_FOR_ALL(0, vertices.count(), 100, [vlist,vertices,velocities,shutter_end](size_t i){
-                AiArraySetVec(vlist, vertices.count()+i, AminoVec3ToAtVector(vertices[i] + velocities[i]*shutter_end));
+                AiArraySetVec(vlist, vertices.count()+i, AminoVec3fToAtVector(vertices[i] + velocities[i]*shutter_end));
             });
         }
         AiNodeSetArray(polymesh, "vlist", vlist);
@@ -188,7 +212,7 @@ procedural_init
             TBB_FOR_ALL(0, vertices.count(), 100, [vertices, uvs, uvlist](size_t start, size_t end){
                 Bifrost::API::VoxelSampler sampler = uvs.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::WorldSpace);
                 for(size_t i = start; i < end; ++i){
-                    AiArraySetVec2(uvlist, i, AminoVec2ToAtVector(sampler.sample<amino::Math::vec2f>(vertices[i])));
+                    AiArraySetVec2(uvlist, i, AminoVec2fToAtVector2(sampler.sample<amino::Math::vec2f>(vertices[i])));
                 }
             });
             AiNodeSetArray( polymesh, "uvlist", uvlist );

@@ -80,12 +80,13 @@ template<typename T>
 class BlendVisitor : public Bifrost::API::Visitor {
 public:
     BlendVisitor(const Bifrost::API::Channel& in1, const Bifrost::API::Channel& in2, float alpha, Bifrost::API::Channel& out);
+    BlendVisitor(const Bifrost::API::Channel& in1, const Bifrost::API::Channel& in2, const Bifrost::API::Channel& alpha, Bifrost::API::Channel& out);
     BlendVisitor(const BlendVisitor& o);
     Bifrost::API::Visitor* copy() const override;
     void beginTile( const Bifrost::API::TileAccessor&, const Bifrost::API::TreeIndex& index ) override;
 
 private:
-    const Bifrost::API::Channel _in1, _in2;
+    const Bifrost::API::Channel _in1, _in2, _alphaChannel;
     Bifrost::API::Channel _out;
     float _alpha;
 };

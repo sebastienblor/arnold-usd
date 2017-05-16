@@ -32,6 +32,11 @@ public :
 
 namespace{
 
+struct Mesh{
+    Bifrost::API::Array<amino::Math::vec3f> vertices;
+    Bifrost::API::Array<amino::Math::vec3i> indices;
+};
+
 // marching cube every voxel
 class MarchingCubesVisitor : public Bifrost::API::Visitor
 {
@@ -44,14 +49,16 @@ public:
     Bifrost::API::VoxelChannel sdf;
     Bifrost::API::VoxelSampler sampler;
 
-    unsigned int sampleRate;
+    int sampleRate;
     float invSampleRate;
-    unsigned int tileWidth;
+    int tileWidth;
     float voxelScale;
 
     std::unordered_map<amino::Math::vec3f, size_t> ids;
     Bifrost::API::Array<amino::Math::vec3f> vertices;
     Bifrost::API::Array<amino::Math::vec3i> indices;
+
+    std::vector<Mesh> meshes;
 
     inline size_t getVertexCount() const{ return vertices.count(); }
     inline void addVertex(const amino::Math::vec3f& position) { vertices.add(position); }
@@ -65,7 +72,7 @@ public:
         : sdf(sdf),
           sampler(sdf.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::TileSpace)),
           sampleRate(subdivisions+1), invSampleRate(1./sampleRate),
-          tileWidth(sampleRate*Bifrost::API::Layout(sdf.layout()).tileDimInfo().tileWidth),
+          tileWidth(Bifrost::API::Layout(sdf.layout()).tileDimInfo().tileWidth),
           voxelScale(Bifrost::API::Layout(sdf.layout()).voxelScale()) {}
 
     MarchingCubesVisitor(const MarchingCubesVisitor& o)
@@ -77,6 +84,7 @@ public:
     size_t calcVoxel(float *gridVals, const amino::Math::vec3i &voxelCornerPos);
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index);
     void join(const Bifrost::API::Visitor& visitor);
+    void endTraverse(const Bifrost::API::TileAccessor &);
 };
 
 // voxelCornerPos is in scaled tile space (never use floats!)
@@ -144,63 +152,64 @@ size_t MarchingCubesVisitor::calcVoxel(float *gridVals, const amino::Math::vec3i
 void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index)
 {
     // get the tile and its coordinate
-    const Bifrost::API::Tile tile	= accessor.tile(index);
-    const Bifrost::API::TileInfo info = tile.info();
-
-    // TODO: remove this
-    if(true){
-        const int n = info.dimInfo.depthWidth;
-        for(int i = -n; i <= n; i+=n){
-            for(int j = -n; j <= n; j+=n){
-                for(int k = -n; k <= n; k+=n){
-                    if(accessor.tile(info.i+i,info.j+j,info.k+k,info.depth).info().depth != info.depth) return;
-                }
-            }
-        }
-    }
-
-    const Bifrost::API::TileCoord	coord	= tile.coord();
+    const Bifrost::API::Tile tile = accessor.tile(index);
+    const Bifrost::API::TileCoord coord	= tile.coord();
+    const Bifrost::API::TileData<float> data = sdf.tileData<float>(index);
 
     // now for each voxel in the tile, do marching cube calc
     size_t vertexCount = 0;
-    FOR_IJK(ii,jj,kk,tileWidth){
-        float gridVals[8];
+    FOR_IJK(i,j,k,tileWidth){
+        if(fabs(data(i,j,k)) > 1) continue; // doesn't contain a surface, early out
 
-        // corner in scaled tile space
-        amino::Math::vec3i cornerPos(coord.i*sampleRate + ii, coord.j*sampleRate + jj, coord.k*sampleRate + kk);
+        Bifrost::API::TileCoord scaledCoord((coord.i+i)*sampleRate, (coord.j+j)*sampleRate, (coord.k+k)*sampleRate);
+        FOR_IJK(ii,jj,kk,sampleRate){
+            float gridVals[8];
 
-        // get grid values at the corners of this voxel
-        for ( size_t i = 0; i < 8; i++ ) {
-            // operate in scaled tile space here
-            amino::Math::vec3i corner(c_cubeVerts[i][0], c_cubeVerts[i][1], c_cubeVerts[i][2] );
+            // corner in scaled tile space
+            amino::Math::vec3i cornerPos(scaledCoord.i + ii, scaledCoord.j + jj, scaledCoord.k + kk);
 
-            // calc voxel pos in scaled tile space
-            amino::Math::vec3i voxelPos = cornerPos + corner;
-            amino::Math::vec3f tileSpacePos((float)voxelPos[0]*invSampleRate, (float)voxelPos[1]*invSampleRate, (float)voxelPos[2]*invSampleRate);
+            // get grid values at the corners of this voxel
+            for ( size_t e = 0; e < 8; ++e ) {
+                // operate in scaled tile space here
+                amino::Math::vec3i corner(c_cubeVerts[e][0], c_cubeVerts[e][1], c_cubeVerts[e][2] );
 
-            gridVals[i] = sampler.sample<float>( tileSpacePos );
+                // calc voxel pos in scaled tile space
+                amino::Math::vec3i voxelPos = cornerPos + corner;
+                amino::Math::vec3f tileSpacePos((float)voxelPos[0]*invSampleRate, (float)voxelPos[1]*invSampleRate, (float)voxelPos[2]*invSampleRate);
+
+                gridVals[e] = sampler.sample<float>(tileSpacePos);
+            }
+
+            // run voxel mesher
+            vertexCount += calcVoxel( gridVals, cornerPos );
         }
-
-        // run voxel mesher
-        vertexCount += calcVoxel( gridVals, cornerPos );
     }
 }
 
 void MarchingCubesVisitor::join(const Bifrost::API::Visitor& visitor)
 {
     const MarchingCubesVisitor& o = static_cast<const MarchingCubesVisitor&>(visitor);
-
-    for(unsigned int i = 0; i < o.getVertexCount(); ++i){
-        const amino::Math::vec3f& newVertex = o.getVertex(i);
-        if(ids.find(newVertex) == ids.end()){ // only add new vertices
-            size_t vertexID = getVertexCount();
-            addVertex( newVertex );
-            ids[newVertex] = vertexID;
-        }
+    // only do final merge in endTraverse to avoid needless copies of huge arrays (vertices/indices)
+    for(const Mesh& mesh : o.meshes){
+        meshes.push_back(mesh);
     }
-    for(unsigned int i = 0; i < o.getTriangleCount(); ++i){ // remap triangles
-        const amino::Math::vec3i& triangle = o.getTriangle(i);
-        addTriangle(amino::Math::vec3i(ids[o.getVertex(triangle[0])], ids[o.getVertex(triangle[1])], ids[o.getVertex(triangle[2])]));
+    meshes.push_back({ o.vertices, o.indices });
+}
+
+void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
+    for(const Mesh& mesh : meshes){
+        for(unsigned int i = 0; i < mesh.vertices.count(); ++i){
+            const amino::Math::vec3f& newVertex = mesh.vertices[i];
+            if(ids.find(newVertex) == ids.end()){ // only add new vertices
+                size_t vertexID = getVertexCount();
+                addVertex( newVertex );
+                ids[newVertex] = vertexID;
+            }
+        }
+        for(unsigned int i = 0; i < mesh.indices.count(); ++i){ // remap triangles
+            const amino::Math::vec3i& triangle = mesh.indices[i];
+            addTriangle(amino::Math::vec3i(ids[mesh.vertices[triangle[0]]], ids[mesh.vertices[triangle[1]]], ids[mesh.vertices[triangle[2]]]));
+        }
     }
 }
 

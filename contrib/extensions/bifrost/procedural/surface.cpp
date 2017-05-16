@@ -62,12 +62,12 @@ bool getComponent(Surface::SurfaceParams& params, Bifrost::API::Component& compo
     Bifrost::API::RefArray components;
     components = object.findComponentsByType(params.render_component == Surface::VOXELS? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
     if(components.count()==0){
-        AiMsgError("NOOO");
+        AiMsgError("wrong component type");
         return false;
     }
     component = components[0];
     if(components.count() > 1){
-        AiMsgWarning("BLABLA");
+        AiMsgWarning("too many components");
     }
     return true;
 }
@@ -165,6 +165,7 @@ bool initialize(SurfaceParams& params, Bifrost::API::VoxelComponent& component){
         Bifrost::Processing::ErodeFilter<float>(params.erode).filter(distance, distance);
 
     if(params.enable_infinite_blending){
+        std::cerr << ("EXTEND STARTS") << std::endl;
         Bifrost::Processing::extend(distance, params.infinite_blending_height, params.infinite_blending_center, params.infinite_blending_dimension, params.infinite_blending_radius, distance);
         Bifrost::API::VoxelChannel uvs = component.findChannel(params.uv_channel.c_str());
         if(uvs.valid()){
@@ -173,9 +174,8 @@ bool initialize(SurfaceParams& params, Bifrost::API::VoxelComponent& component){
             AiMsgWarning("[BIFROST] Invalid uv channel \"%s\". Available channels are:\n%s", params.uv_channel.c_str(),
                        availableChannels(component, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
         }
+        std::cerr << ("EXTEND ENDS") << std::endl;
     }
-
-    std::cerr << ("EXTEND DONE") << std::endl;
 
     if(params.debug > 0){ // debug
         DUMP("SAVING");
