@@ -21,6 +21,7 @@ enum BlendType{
 
 struct SurfaceParams{
     std::string cache_file;
+    std::string tmp_folder;
     std::string object;
     std::vector<std::string> channels;
     std::vector<std::string> velocity_channels;

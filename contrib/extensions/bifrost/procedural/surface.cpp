@@ -36,10 +36,15 @@ bool getComponent(Surface::SurfaceParams& params, Bifrost::API::Component& compo
             }
             component = components[0];
 
-            Bifrost::API::String tmp_cache_file = Bifrost::API::File::createTempFolder().append(component.name()).append(".bif");
-            Bifrost::API::FileIO fio = om.createFileIO(tmp_cache_file);
-            DUMP(fio.save(component, Bifrost::API::BIF::Compression::Level0, 0).succeeded());
+            Bifrost::API::String tmp_folder = Bifrost::API::File::createTempFolder();
+            params.tmp_folder = tmp_folder.c_str();
+            Bifrost::API::String tmp_cache_file = tmp_folder.append(component.name()).append(".bif");
             params.cache_file = tmp_cache_file.c_str();
+            Bifrost::API::FileIO fio = om.createFileIO(tmp_cache_file);
+            if(!fio.save(component, Bifrost::API::BIF::Compression::Level0, 0).succeeded()){
+                AiMsgError("[BIFROST] Failed to write temporary bif file '%s'.", tmp_cache_file.c_str());
+                return false;
+            }
         }
     }
 

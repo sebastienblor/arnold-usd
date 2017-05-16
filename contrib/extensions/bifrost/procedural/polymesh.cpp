@@ -7,6 +7,7 @@
 #include <bifrostapi/bifrost_voxelsampler.h>
 #include <bifrostapi/bifrost_layout.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
+#include <bifrostapi/bifrost_fileio.h>
 #include <bifrostprocessing/bifrostprocessing_meshing.h>
 #include "utils.h"
 
@@ -215,6 +216,10 @@ procedural_init
     AiNodeSetBool(polymesh, "disp_autobump", params.disp_autobump);
 
     *user_ptr = polymesh;
+
+    if(!params.tmp_folder.empty()){
+        Bifrost::API::File::deleteFolder(params.tmp_folder.c_str());
+    }
 
     return true;
 }
