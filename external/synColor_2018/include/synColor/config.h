@@ -39,13 +39,13 @@ namespace SYNCOLOR
   class SYN_EXPORT Config
   {
   public:
-    // shared pointer
+    //! shared pointer
     typedef SharedPtr<Config> Ptr;
     
     //! Destructor
     virtual ~Config();
     
-    //! \brief Get a configuration
+    //! \brief Get an initialized configuration using a configuration file
     //! 
     //! \param configFile is the configuration file
     //! \param ocioConfigFile is an OCIO configuration file; it could be null
@@ -55,10 +55,13 @@ namespace SYNCOLOR
     //!
     static SynStatus get(const char* configFile, const char* ocioConfigFile, Ptr& pConfig);
 
-    //! \brief Get a configuration
+    //! \brief Get an initialized configuration using existing native catalog 
+    //!           and shared transform directories.
     //! 
-    //! \param transformPath is the path where to find all the ctf files part of the native catalog
-    //! \param sharedPath is the path where to find all the custom color spaces
+    //! \note The method will revert all the aliases to their default values.
+    //! 
+    //! \param transformPath is the directory of the native catalog
+    //! \param sharedPath is the directory of the custom color space catalog
     //! \param ocioConfigFile is an OCIO configuration file; it could be null
     //! \param pConfig [out] is the config class instance
     //! 
@@ -67,12 +70,15 @@ namespace SYNCOLOR
     static SynStatus get(
         const char* transformPath, const char* sharedPath, const char* ocioConfigFile, Ptr& pConfig);
 
-    //! \brief Create a configuration with its configuration file
+    //! \brief Create an initialized configuration using the catalog and shared transform paths
     //! 
-    //! \param configFile is the configuration file to create
-    //! \param transformPath is the path where to find all the ctf files part of the native catalog
-    //! \param sharedPath is the path where to find all the custom color spaces
-    //! \param ocioConfigFile is an OCIO configuration file; it could be null
+    //! The method creates a new configuration file using the native catalog
+    //! and shared catalog directories. It overwrites any existing configuration file.
+    //! 
+    //! \param configFile is the configuration file to be created
+    //! \param transformPath is the directory of the native catalog
+    //! \param sharedPath is the directory of the custom color space catalog
+    //! \param ocioConfigFile is an OCIO configuration file; it could be null if not used
     //! \param pConfig [out] is the config class instance
     //! 
     //! \return Returns a SYNCOLOR::SynStatus.
@@ -86,26 +92,37 @@ namespace SYNCOLOR
 
     //! Get a color space using its name
     //! 
-    //! \param name is the color space name
+    //! \param name is the color space unique name
     //! \param pColorSpace [out] is the color space class instance
     //! 
     //! \return Returns a SYNCOLOR::SynStatus.
     //!
     virtual SynStatus getColorSpace(const char* name, ColorSpace::Ptr& pColorSpace) const = 0;
 
+    //! List of all types of color space
+    enum ColorSpaceTypes
+    {
+        InputColorSpaces, //!< Only the input color spaces
+        ViewTransforms,   //!< Only the view transforms
+        AllColorSpaces    //!< All the color spaces
+    };
+
     //! Get the number of color spaces
+    //! 
+    //! \param type is the type of the requested color spaces
     //! 
     //! \return the number of color spaces
     //!
-    virtual unsigned getNumColorSpaces() const = 0;
+    virtual unsigned getNumColorSpaces(ColorSpaceTypes type) const = 0;
 
     //! Get a color space using its index
     //! 
-    //! \param idx is the color space index
+    //! \param type is the type of the requested color spaces
+    //! \param index is the color space index
     //! 
-    //! \return the color space name or an empty string in case of error
+    //! \return the color space name or NULL in case of error
     //!
-    virtual const char* getColorSpaceName(unsigned index) const = 0;
+    virtual const char* getColorSpaceName(ColorSpaceTypes type, unsigned index) const = 0;
 
     //! Get the template based on its type
     //! 

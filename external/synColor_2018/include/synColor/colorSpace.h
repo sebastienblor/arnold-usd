@@ -47,12 +47,12 @@ namespace SYNCOLOR
     //! Destructor
     virtual ~ColorSpace();
     
-    //! Get the color space name
-    //
+    //! \brief Get the color space unique name
+    //! \return the unique name
     virtual const char* getName() const = 0;
 
     //! Get the user facing color space name 
-    //
+    //! \return the user facing name
     virtual const char* getUserFacingName() const = 0;
 
     //! \brief Get all the chromaticity coordinates i.e. red, green, blue and the white point.

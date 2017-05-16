@@ -33,7 +33,8 @@ namespace SYNCOLOR
   struct SYN_EXPORT ChromaticityCoordinates
   {
     ChromaticityCoordinates() : x(0.0), y(0.0) {}
-    float x, y;
+    float x; //!< The x of the {x, y} coordinate
+    float y; //!< The y of the {x, y} coordinate
   };
 
   //------------------------------------------------------------------------------------------------
@@ -56,10 +57,10 @@ namespace SYNCOLOR
   //!
   struct SYN_EXPORT Chromaticities
   {
-    ChromaticityCoordinates red;
-    ChromaticityCoordinates green;
-    ChromaticityCoordinates blue;
-    ChromaticityCoordinates white;
+    ChromaticityCoordinates red;   //!< The red coordinates
+    ChromaticityCoordinates green; //!< The green coordinates
+    ChromaticityCoordinates blue;  //!< The blue coordinates
+    ChromaticityCoordinates white; //!< The white point coordinates
   };
 
 

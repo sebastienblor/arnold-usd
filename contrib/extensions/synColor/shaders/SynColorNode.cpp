@@ -598,7 +598,7 @@ node_parameters
    AiParameterStr (DataStr::custom_catalog_path,     NULL);
    AiParameterStr (DataStr::ocioconfig_path,         NULL);
    AiParameterStr (DataStr::rendering_color_space,   NULL);
-   AiParameterStr (DataStr::view_transform_space,   NULL);
+   AiParameterStr (DataStr::view_transform_space,    NULL);
    AiParameterBool(DataStr::output_color_conversion, false);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "defaultColorMgtGlobals");
@@ -619,8 +619,13 @@ node_update
 
    colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
    colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
-   colorData->m_view_transform_space   = AiNodeGetStr (node, DataStr::view_transform_space);
+   colorData->m_view_transform_space    = AiNodeGetStr (node, DataStr::view_transform_space);
+
+#if MAYA_API_VERSION >= 201800
    colorData->m_output_color_conversion = AiNodeGetBool(node, DataStr::output_color_conversion);
+#else
+   colorData->m_output_color_conversion = false;
+#endif
 
    colorData->m_input_transforms.clear();
    colorData->m_output_transforms.clear();
@@ -782,7 +787,9 @@ color_manager_get_num_color_spaces
 
    return 
 #if MAYA_API_VERSION >= 201800
-   colorData->m_config->getNumColorSpaces();
+   colorData->m_config->getNumColorSpaces(
+      colorData->m_output_color_conversion ? SYNCOLOR::Config::InputColorSpaces
+                                           : SYNCOLOR::Config::ViewTransforms);
 #else
    0;
 #endif
@@ -799,7 +806,10 @@ color_manager_get_color_space_name_by_index
 
    return 
 #if MAYA_API_VERSION >= 201800
-   AtString(colorData->m_config->getColorSpaceName(i));
+   AtString(colorData->m_config->getColorSpaceName(
+      colorData->m_output_color_conversion ? SYNCOLOR::Config::InputColorSpaces
+                                           : SYNCOLOR::Config::ViewTransforms, 
+      i));
 #else
    AtString("");
 #endif
