@@ -8,6 +8,9 @@
 #include <unordered_map>
 #include "defs.h"
 
+#define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerQBSplineType
+//#define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerLinearType
+
 /*
 std::ostream& operator<<(std::ostream& ostream, const amino::Math::vec3f& v){
     return ostream << "vec3f(" << v[0] << ", " << v[1] << ", " << v[2] << ")";
@@ -70,13 +73,13 @@ public:
 
     MarchingCubesVisitor(const Bifrost::API::VoxelChannel& sdf, unsigned int subdivisions)
         : sdf(sdf),
-          sampler(sdf.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::TileSpace)),
+          sampler(sdf.createSampler(VOXEL_SAMPLER_TYPE, Bifrost::API::SamplerSpace::TileSpace)),
           sampleRate(subdivisions+1), invSampleRate(1./sampleRate),
           tileWidth(Bifrost::API::Layout(sdf.layout()).tileDimInfo().tileWidth),
           voxelScale(Bifrost::API::Layout(sdf.layout()).voxelScale()) {}
 
     MarchingCubesVisitor(const MarchingCubesVisitor& o)
-        : sdf(o.sdf), sampler(sdf.createSampler(Bifrost::API::VoxelSamplerQBSplineType, Bifrost::API::SamplerSpace::TileSpace)),
+        : sdf(o.sdf), sampler(sdf.createSampler(VOXEL_SAMPLER_TYPE, Bifrost::API::SamplerSpace::TileSpace)),
           sampleRate(o.sampleRate), invSampleRate(o.invSampleRate), tileWidth(o.tileWidth), voxelScale(o.voxelScale) {}
 
     Bifrost::API::Visitor* copy() const{ return new MarchingCubesVisitor(*this); }

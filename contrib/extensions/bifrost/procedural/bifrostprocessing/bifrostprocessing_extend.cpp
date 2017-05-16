@@ -4,53 +4,14 @@
 #include <bifrostapi/bifrost_layout.h>
 #include <limits>
 #include "defs.h"
+#include "utils.h"
 #include <bifrostapi/bifrost_om.h>
 #include <bifrostapi/bifrost_stateserver.h>
 #include <bifrostapi/bifrost_tileiterator.h>
 #include <bifrostapi/bifrost_component.h>
+#include <unordered_set>
 
 namespace{
-
-class ExtendBlendVistor : public Bifrost::API::Visitor {
-public:
-    ExtendBlendVistor(const Bifrost::API::VoxelChannel& sdf, float h, float radius, Bifrost::API::VoxelChannel& out)
-        : sdf(sdf), dx(Bifrost::API::Layout(sdf.layout()).voxelScale()), h(h/dx), radius(radius/dx), out(out){}
-    ExtendBlendVistor(const ExtendBlendVistor& o)
-        : sdf(o.sdf), dx(o.dx), h(o.h), radius(o.radius), out(o.out){}
-    Bifrost::API::Visitor* copy() const override{ return new ExtendBlendVistor(*this); }
-
-    void beginTile(const Bifrost::API::TileAccessor& const_accessor, const Bifrost::API::TreeIndex& index) override{
-        Bifrost::API::TileAccessor accessor(const_accessor);
-
-        const Bifrost::API::Tile& tile = accessor.tile(index);
-        const Bifrost::API::TileCoord& coord = tile.coord();
-
-        Bifrost::API::TileData<float> data = sdf.tileData<float>(index);
-        for(size_t e = 0; e < data.count(); ++e){
-            int j = (int (e / 5)) % 5;
-            float simH = data[e], planeH = (coord.j + j - .5f)-h;
-            float r = fabs(planeH);
-
-            if(simH == sdf.backgroundValue<float>()){
-                data[e] = planeH;
-            }else if(r > radius || (planeH < 0 && simH > 0)){
-                data[e] = simH;
-            }else{
-                data[e] = fabs(simH) < fabs(planeH)? simH : planeH;
-            }
-        }
-    }
-
-private:
-    const Bifrost::API::VoxelChannel sdf;
-    Bifrost::API::VoxelChannel out;
-    float dx, h, radius;
-};
-
-std::ostream& operator<<(std::ostream& stream, const Bifrost::API::TileCoord& coord){
-    return stream << "Coord[" << coord.i << ", " << coord.j << ", " << coord.k << "]";
-}
-
 
 class ExtendUVVistor : public Bifrost::API::Visitor {
 public:
@@ -102,147 +63,102 @@ private:
     float h;
 };
 
-class AlphaVistor : public Bifrost::API::Visitor {
-public:
-    AlphaVistor(float h, Bifrost::API::VoxelChannel& out)
-        : h(h/Bifrost::API::Layout(out.layout()).voxelScale()+1), out(out){}
-    AlphaVistor(const AlphaVistor& o)
-        : h(o.h), out(o.out){}
-    Bifrost::API::Visitor* copy() const override{ return new AlphaVistor(*this); }
-
-    void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
-        const Bifrost::API::TileCoord& coord = accessor.tile(index).coord();
-        Bifrost::API::TileData<float> data = out.tileData<float>(index);
-        for(size_t e = 0; e < data.count(); ++e){
-            int j = ((int (e / 5)) % 5);
-            data[e] = ((coord.j + j - .5f)-h) > 0? 0.f : 1.f;
-        }
-    }
-
-private:
-    Bifrost::API::VoxelChannel out;
-    float h; // tile space
-};
-
-inline Bifrost::API::Tile left(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::Tile& tile){
-    Bifrost::API::TileCoord coord = tile.coord();
-    coord.i -= 5;
-    Bifrost::API::Tile out = accessor.tile(coord, tile.info().depth);
-    return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
-}
-inline Bifrost::API::Tile right(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::Tile& tile){
-    Bifrost::API::TileCoord coord = tile.coord();
-    coord.i += 5;
-    Bifrost::API::Tile out = accessor.tile(coord, tile.info().depth);
-    return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
-}
-inline Bifrost::API::Tile closer(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::Tile& tile){
-    Bifrost::API::TileCoord coord = tile.coord();
-    coord.k -= 5;
-    Bifrost::API::Tile out = accessor.tile(coord, tile.info().depth);
-    return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
-}
-inline Bifrost::API::Tile further(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::Tile& tile){
-    Bifrost::API::TileCoord coord = tile.coord();
-    coord.k += 5;
-    Bifrost::API::Tile out = accessor.tile(coord, tile.info().depth);
-    return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
-}
-inline Bifrost::API::Tile bottom(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::Tile& tile){
-    Bifrost::API::TileCoord coord = tile.coord();
-    coord.j -= 5;
-    Bifrost::API::Tile out = accessor.tile(coord, tile.info().depth);
-    return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
-}
-inline Bifrost::API::Tile top(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::Tile& tile){
-    Bifrost::API::TileCoord coord = tile.coord();
-    coord.j += 5;
-    Bifrost::API::Tile out = accessor.tile(coord, tile.info().depth);
-    return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
-}
-
-void blend(const Bifrost::API::VoxelChannel& sdf, Bifrost::API::VoxelChannel& alpha, const Bifrost::API::Tile& current, int i, int j, int k, const Bifrost::API::TileCoord& coord, float radius2){
-    {
-        if(!current.valid()) return;
-        amino::Math::vec3i ab(current.coord().i+i-coord.i, current.coord().j+j-coord.j, current.coord().k+k-coord.k);
-        float dist2 = ab[0]*ab[0] + ab[1]*ab[1] + ab[2]*ab[2];
-        if(dist2 > radius2) return; // outside blend cylinder
-
-        if(ab.nonzero()){// && sdf.tileData<float>(current.index())(i,j,k) > 0){
-            float& v = alpha.tileData<float>(current.index())(i,j,k);
-            if(v == 1 || v == -1) return; // ocean only
-            //float a =  1 - dist2 / radius2;
-            float a =  (radius2-dist2) / radius2;
-            if(sdf.tileData<float>(current.index())(i,j,k) < 0){
-                a = 1e-90;
-            }
-            if(a > v) v = a;
-            else return;
-        }
-    }
-    int n = Bifrost::API::Layout(sdf.layout()).tileDimInfo().tileWidth;
-    Bifrost::API::TileAccessor accessor(Bifrost::API::Layout(sdf.layout()).tileAccessor());
-    blend( sdf, alpha,  (i>0)? current :    left(accessor,current), (i+n-1)%n,         j,         k, coord, radius2 );
-    blend( sdf, alpha,(i+1<n)? current :   right(accessor,current),   (i+1)%n,         j,         k, coord, radius2 );
-    blend( sdf, alpha,  (j>0)? current :  bottom(accessor,current),         i, (j+n-1)%n,         k, coord, radius2 );
-    blend( sdf, alpha,(j+1<n)? current :     top(accessor,current),         i,   (j+1)%n,         k, coord, radius2 );
-    blend( sdf, alpha,  (k>0)? current :  closer(accessor,current),         i,         j, (k+n-1)%n, coord, radius2 );
-    blend( sdf, alpha,(k+1<n)? current : further(accessor,current),         i,         j,   (k+1)%n, coord, radius2 );
-}
-
 struct FloodSharedData{
-    const Bifrost::API::VoxelChannel sdf;
-    Bifrost::API::VoxelChannel alpha;
-    Bifrost::API::TileAccessor accessor;
-    int H;
-    int N;
+    Bifrost::API::TileData<float> sdfData;
+    int H, n, J;
 };
+void flood(const FloodSharedData& shared, Bifrost::API::TileData<float>& alphaData, int i, int j, int k){
+    if(shared.J + j > shared.H) return; // over ocean level
+    if(shared.sdfData(i,j,k) < 0) return; // already inside water
+    alphaData(i,j,k) = 1;
 
-void flood(const FloodSharedData& shared, const Bifrost::API::Tile& current, int i, int j, int k){
-    {
-        if(!current.valid()) return;
-        float& alphaValue = shared.alpha.tileData<float>(current.index())(i,j,k);
-        if(alphaValue == 1) return; // already visited
-
-        float sdfValue = shared.sdf.tileData<float>(current.index())(i,j,k);
-        if(current.coord().j + j > shared.H) return; // over ocean level
-
-        if(sdfValue < 0) return; // already inside water
-        alphaValue = 1;
-    }
-    const int n = shared.N;
-    flood( shared,   (i>0)? current :    left(shared.accessor,current), (i+n-1)%n,         j,         k );
-    flood( shared, (i+1<n)? current :   right(shared.accessor,current),   (i+1)%n,         j,         k );
-    flood( shared,   (j>0)? current :  bottom(shared.accessor,current),         i, (j+n-1)%n,         k );
-    flood( shared, (j+1<n)? current :     top(shared.accessor,current),         i,   (j+1)%n,         k );
-    flood( shared,   (k>0)? current :  closer(shared.accessor,current),         i,         j, (k+n-1)%n );
-    flood( shared, (k+1<n)? current : further(shared.accessor,current),         i,         j,   (k+1)%n );
+    const int& n = shared.n;
+    if(i>0 && alphaData(i-1,j,k) != 1) flood( shared, alphaData, i-1, j, k );
+    if(i<n && alphaData(i+1,j,k) != 1) flood( shared, alphaData, i+1, j, k );
+    if(j>0 && alphaData(i,j-1,k) != 1) flood( shared, alphaData, i, j-1, k );
+    if(j<n && alphaData(i,j+1,k) != 1) flood( shared, alphaData, i, j+1, k );
+    if(k>0 && alphaData(i,j,k-1) != 1) flood( shared, alphaData, i, j, k-1 );
+    if(k<n && alphaData(i,j,k+1) != 1) flood( shared, alphaData, i, j, k+1 );
 }
 
 class FloodVistor : public Bifrost::API::Visitor {
 public:
     FloodVistor(Bifrost::API::VoxelChannel& sdf, float height, Bifrost::API::VoxelChannel& alpha)
-        : sdf(sdf), H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+2), alpha(alpha){}
+        : sdf(sdf), H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+1), alpha(alpha){}
     FloodVistor(const FloodVistor& o)
         : sdf(o.sdf), H(o.H), alpha(o.alpha){}
     Bifrost::API::Visitor* copy() const override{ return new FloodVistor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
-        const Bifrost::API::Tile& current = accessor.tile(index);
-        Bifrost::API::TileData<float> alphaData = alpha.tileData<float>(index);
-        int n = current.info().dimInfo.tileWidth;
-        FloodSharedData shared = { sdf, alpha, accessor, H, n };
-        FOR_IJK(i,j,k,n){
-            if(alphaData(i,j,k) == 1){
-                alphaData(i,j,k) = 0;
-                flood(shared, current, i, j, k);
-                alphaData(i,j,k) = 1;
+        indexes.insert(index.tile);
+        const int depth = Bifrost::API::Layout(sdf.layout()).maxDepth();
+        const int N = accessor.tile(index).info().dimInfo.tileWidth;
+        const int n = N-1;
+        Bifrost::Private::SweepAccessor sweeper(accessor);
+
+        std::unordered_set<int>::iterator it;
+        while((it = indexes.begin()) != indexes.end()){
+            Bifrost::API::TreeIndex center(*it, depth);
+            indexes.erase(it);
+            assert(center.valid());
+
+            Bifrost::API::Tile tile = accessor.tile(center);
+            Bifrost::API::TileData<float> alphaData = alpha.tileData<float>(center);
+            FloodSharedData shared = { sdf.tileData<float>(center), H, n, tile.coord().j };
+
+            FOR_IJK(i,j,k,N){
+                if(alphaData(i,j,k) == 1)
+                    flood(shared, alphaData, i, j, k);
+            }
+            struct Neighbor{
+                Bifrost::API::Tile tile;
+                Bifrost::API::TileData<float> data;
+                bool eval = false;
+                Neighbor(const Bifrost::API::Tile& tile, Bifrost::API::VoxelChannel& channel)
+                    : tile(tile), data(tile.valid()? channel.tileData<float>(tile.index()) : Bifrost::API::TileData<float>()){}
+                inline bool valid() const{ return tile.valid(); }
+                inline const float& operator()(int i, int j, int k) const{ return data(i,j,k); }
+                inline float& operator()(int i, int j, int k){ return data(i,j,k); }
+            };
+
+            Neighbor l(  sweeper.left(tile),alpha), r(  sweeper.right(tile),alpha),
+                     b(sweeper.bottom(tile),alpha), t(    sweeper.top(tile),alpha),
+                     c(sweeper.closer(tile),alpha), f(sweeper.further(tile),alpha);
+
+            for(int i = 0; i < N; ++i){
+                for(int j = 0; j < N; ++j){
+                    if(alphaData(0,i,j)==1 && l.valid() && l(n,i,j) == 0){
+                        l(n,i,j) = 1;
+                        indexes.insert(l.tile.index().tile);
+                    }
+                    if(alphaData(n,i,j)==1 && r.valid() && r(0,i,j) == 0){
+                        r(0,i,j) = 1;
+                        indexes.insert(r.tile.index().tile);
+                    }
+                    if(alphaData(i,0,j)==1 && b.valid() && b(i,n,j) == 0){
+                        b(i,n,j) = 1;
+                        indexes.insert(b.tile.index().tile);
+                    }
+                    if(alphaData(i,n,j)==1 && t.valid() && t(i,0,j) == 0){
+                        t(i,0,j) = 1;
+                        indexes.insert(t.tile.index().tile);
+                    }
+                    if(alphaData(i,j,0)==1 && c.valid() && c(i,j,n) == 0){
+                        c(i,j,n) = 1;
+                        indexes.insert(c.tile.index().tile);
+                    }
+                    if(alphaData(i,j,n)==1 && f.valid() && f(i,j,0) == 0){
+                        f(i,j,0) = 1;
+                        indexes.insert(f.tile.index().tile);
+                    }
+                }
             }
         }
     }
 private:
     Bifrost::API::VoxelChannel sdf, alpha;
     int H;
+    std::unordered_set<int> indexes;
 };
 
 void crawl(const Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& alpha, Bifrost::API::Tile current, int i, int j, int k, int H){
@@ -293,92 +209,39 @@ void crawl(const Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& al
     }
 }
 
-class CrawlVistor : public Bifrost::API::Visitor {
-// prerequisite : all tiles must contain leaves
-public:
-    CrawlVistor(Bifrost::API::VoxelChannel& sdf, float h, Bifrost::API::VoxelChannel& alpha)
-        : sdf(sdf), H(floor(h/Bifrost::API::Layout(alpha.layout()).voxelScale())+2), alpha(alpha){}
-    CrawlVistor(const CrawlVistor& o)
-        : sdf(o.sdf), H(o.H), alpha(o.alpha){}
-    Bifrost::API::Visitor* copy() const override{ return new CrawlVistor(*this); }
-
-    void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
-        current = accessor.tile(index);
-        if(index.depth != Bifrost::API::Layout(sdf.layout()).maxDepth())
-            return;
-        const int n = current.info().dimInfo.tileWidth;
-        for(int i = 0; i < n; ++i)
-            for(int k = 0; k < n; ++k)
-                crawl(sdf, alpha, current,i, 0, k, H);
-    }
-    bool visitVoxel(const Bifrost::API::TileAccessor&, int i, int j, int k){
-        const int depth = current.info().depth+1;
-
-        for(int jj = j-1; jj >= 0; --jj){
-            if(current.child(i,jj,k).depth == depth){
-                std::cerr << i << ", " << j << ", " << k << " (" << depth << ")" << std::endl;
-                DUMP(jj);
-                DUMP(current.child(i,jj,k).depth);
-                DUMP(depth);
-                return false;
-            }
-        }
-        return true;
-    }
-
-private:
-    Bifrost::API::VoxelChannel sdf, alpha;
-    int H;
-    Bifrost::API::Tile current;
-};
-
-class CullVistor : public Bifrost::API::Visitor {
-public:
-    CullVistor() : hasLeaves(false){}
-    Bifrost::API::Visitor* copy() const override{ return new CullVistor(); }
-
-    void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
-        depth = index.depth;
-        hasLeaves = accessor.tile(index).info().depth == Bifrost::API::Layout(accessor.layout()).maxDepth();
-    }
-    void join(const Visitor &visitor){
-        const CullVistor& o = static_cast<const CullVistor&>(visitor);
-        hasLeaves |= ((depth+1 == o.depth) && o.hasLeaves);
-    }
-    void endTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex &index){
-        if(hasLeaves) return;
-        Bifrost::API::Tile tile = accessor.tile(index);
-        FOR_IJK(i,j,k,5){
-            Bifrost::API::TileAccessor(accessor).removeTile(tile.child(i,j,k)).succeeded();
-        }
-        //if(!hasLeaves) Bifrost::API::TileAccessor(accessor).removeTile(index);
-    }
-
-private:
-    int depth;
-    bool hasLeaves;
-};
-
-
 void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& alpha, float height, float radius){
     Bifrost::API::Layout layout(sdf.layout());
-    //CullVistor culler;
-    //layout.traverse(culler, Bifrost::API::TraversalMode::ParallelReduceDepthFirst);
-    DUMP("COMPUTE ALPHA START");
-    int H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+2);
-    Bifrost::API::Tile root = layout.tileAccessor().tile(0,0,0,0);
-    for(int i = 0; i < 5; ++i){
-        for(int k = 0; k < 5; ++k){
-            crawl(sdf, alpha, root, i, 0, k, H);
+    {
+        // TODO: make this parallel
+        PROFILER("CRAWL");
+        int H(ceil(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+1);
+        Bifrost::API::Tile root = layout.tileAccessor().tile(0,0,0,0);
+        for(int i = 0; i < 5; ++i){
+            for(int k = 0; k < 5; ++k){
+                crawl(sdf, alpha, root, i, 0, k, H);
+            }
         }
     }
-    //CrawlVistor crawler(sdf, height, alpha);
-    //layout.traverse(crawler, Bifrost::API::TraversalMode::DepthFirst);
-    DUMP("COMPUTE ALPHA ENDS");
-    DUMP("FLOOD STARTS");
-    FloodVistor visitor(sdf, height, alpha);
-    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelReduceBreadthFirstBottomUp, layout.maxDepth(), layout.maxDepth());
-    DUMP("FLOOD ENDS");
+    {
+        PROFILER("FLOOD");
+        FloodVistor visitor(sdf, height, alpha);
+        layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
+    }
+}
+
+inline void createOceanPlane(Bifrost::API::VoxelChannel& sdf, float height){
+    PROFILER("CREATE OCEAN PLANE");
+    Bifrost::API::Layout layout(sdf.layout());
+    PlaneSdfVistor visitor(height, sdf);
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
+}
+
+inline void blend(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::VoxelChannel& in2, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out){
+    PROFILER("BLEND OCEAN PLANE");
+    assert(in1.layout() == in2.layout() && in2.layout() == alpha.layout() && alpha.layout() == out.layout());
+    Bifrost::API::Layout layout(in1.layout());
+    Bifrost::Processing::BlendVisitor<float> visitor(in1, in2, alpha, out);
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst);
 }
 
 }
@@ -389,9 +252,9 @@ namespace Processing {
 void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius, Bifrost::API::VoxelChannel& out){
     Bifrost::API::VoxelChannel sdf(_sdf);
     Bifrost::API::Layout layout(sdf.layout());
-    std::cerr << sdf.valid() << height << dimensions[0] << radius << out.valid() << std::endl;
 
     {// add tiles
+        PROFILER("ADDING OCEAN TILES");
         amino::Math::bboxf bbox(amino::Math::vec3f(center[0] - dimensions[0]*.5, height, center[1] - dimensions[1]*.5),
                                 amino::Math::vec3f(center[0] + dimensions[0]*.5, height, center[1] + dimensions[1]*.5));
 
@@ -415,32 +278,18 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
     Bifrost::API::Component component = sdf.component();
 
     Bifrost::API::VoxelChannel alpha = ss.createChannel(component, Bifrost::API::DataType::FloatType, "alpha");
-    if(false){// alpha plane
-        AlphaVistor visitor(height, alpha);
-        layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
-    }else{
-        computeAlpha(out, alpha, height, radius);
-    }
+    computeAlpha(out, alpha, height, radius);
 
     if(sdf == out){
         sdf = ss.createChannel(component, Bifrost::API::DataType::FloatType, "tmp");
-
-        //PlaneSdfVistor visitor1(height+layout.voxelScale(), out);
-        PlaneSdfVistor visitor1(height, sdf);
-        layout.traverse(visitor1, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
-
-        BlendVisitor<float> visitor2(sdf, out, alpha, out); // sdf = plane, out = new sdf
-        layout.traverse(visitor2, Bifrost::API::TraversalMode::ParallelBreadthFirst);
-
+        createOceanPlane(sdf, height);
+        blend(sdf, out, alpha, out);
         Bifrost::API::String name = sdf.fullPathName();
         sdf.reset();
         ss.removeChannel(name);
     }else{
-        PlaneSdfVistor visitor1(height, out);
-        layout.traverse(visitor1, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
-
-        BlendVisitor<float> visitor2(out, sdf, alpha, out);
-        layout.traverse(visitor2, Bifrost::API::TraversalMode::ParallelBreadthFirst);
+        createOceanPlane(out, height);
+        blend(out, sdf, alpha, out);
     }
 
     //Bifrost::API::String name = alpha.fullPathName();
@@ -449,9 +298,10 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
 }
 
 void extendUVs(const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, API::VoxelChannel &out){
+    PROFILER("EXTEND UVS");
     Bifrost::API::Layout layout(out.layout());
     ExtendUVVistor visitor(center-dimensions*.5, center+dimensions*.5, out);
-    layout.traverse(visitor, Bifrost::API::TraversalMode::BreadthFirst, layout.maxDepth(), layout.maxDepth());
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
 }
 
 }}

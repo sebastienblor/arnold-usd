@@ -14,19 +14,6 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPolymeshMtds)
 
 namespace {
 
-    std::ostream& operator<<(std::ostream& out, const AtMatrix& m){
-        out << "AtMatrix[";
-        for(unsigned int i = 0; i < 4; ++i){
-            out << "[";
-            for(unsigned int j = 0; j < 4; ++j){
-                out << m[i][j];
-            }
-            out << "]";
-        }
-        out << "]";
-        return out;
-    }
-
     template<typename T>
     void exportChannel(AtNode* polymesh, const Bifrost::API::Array<amino::Math::vec3f>& vertices, const Bifrost::API::VoxelChannel& channel);
 
@@ -99,11 +86,12 @@ procedural_init
     bool motion = shutter_start != shutter_end;
 
     Surface::PolymeshParams params(node);
+    DUMP(params.str());
+
     Bifrost::API::VoxelComponent component;
     if(!Surface::initialize(params, component)){
         return false;
     }
-    DUMP(params.str());
 
     Bifrost::API::VoxelChannel distance = component.findChannel(params.distance_channel.c_str());
     if(!distance.valid()){
@@ -230,6 +218,8 @@ procedural_init
     AiNodeSetBool(polymesh, "disp_autobump", params.disp_autobump);
 
     *user_ptr = polymesh;
+
+    DUMP(params.str());
 
     return true;
 }

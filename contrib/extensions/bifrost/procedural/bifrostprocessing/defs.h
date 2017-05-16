@@ -18,7 +18,7 @@
     template class BIFROSTPROCESSING_API_DECL classname<amino::Math::vec2i>;\
     template class BIFROSTPROCESSING_API_DECL classname<amino::Math::vec3i>
 
-//#define PROCESSING_PROFILING
+#define PROCESSING_PROFILING
 #ifdef PROCESSING_PROFILING
 #include <iostream>
 #include <chrono>
@@ -49,6 +49,8 @@ public:
 #define PROFILE
 #define PROFILER(name)
 
+#endif
+
 #include <aminomath/vec.h>
 
 namespace amino{
@@ -62,4 +64,4 @@ namespace Math{
 }
 }
 
-#endif
+
