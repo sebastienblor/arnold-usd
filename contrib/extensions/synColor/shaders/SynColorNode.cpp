@@ -243,7 +243,7 @@ namespace
 
             if(!status)
             {
-               AiMsgWarning("[color_manager] Error: %s", status.getErrorMessage());
+               AiMsgWarning("[color_manager_syncolor] Error: %s", status.getErrorMessage());
 
                // Try to survive to unexpected issue by creating the preferences from scratch.
                // It should never happen within Maya; however it could happen if used 
@@ -296,7 +296,7 @@ namespace
 
             if(!status)
             {
-               AiMsgWarning("[color_manager] Error: %s", status.getErrorMessage());
+               AiMsgWarning("[color_manager_syncolor] Error: %s", status.getErrorMessage());
 
                // Try to survive to unexpected issue by creating the preferences from scratch.
                // It should never happen within Maya; however it could happen if used 
@@ -312,7 +312,7 @@ namespace
 
             if(status)
             {
-               AiMsgInfo("[color_manager] Using syncolor_color_manager Version %s", SYNCOLOR::getVersionString());
+               AiMsgInfo("[color_manager_syncolor] Using syncolor_color_manager Version %s", SYNCOLOR::getVersionString());
                if(useEnvVariable)
                {
                   AiMsgInfo("                from the preference file %s", envVariableValue);
@@ -373,12 +373,12 @@ namespace
          {
             if(useEnvVariable)
             {
-               AiMsgError("[color_manager] Initialization failed: %s from the preference file %s", 
+               AiMsgError("[color_manager_syncolor] Initialization failed: %s from the preference file %s", 
                   status.getErrorMessage(), envVariableValue);
             }
             else
             {
-               AiMsgError("[color_manager] Initialization failed: %s", status.getErrorMessage());
+               AiMsgError("[color_manager_syncolor] Initialization failed: %s", status.getErrorMessage());
             }
          }
 
@@ -490,12 +490,12 @@ namespace
 
                                  if(direction==SYNCOLOR::TransformReverse)
                                  {
-                                    AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'", 
+                                    AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'", 
                                        colorData->m_rendering_color_space.c_str(), color_space.c_str());
                                  }
                                  else
                                  {
-                                    AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'", 
+                                    AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'", 
                                        color_space.c_str(), colorData->m_rendering_color_space.c_str());
                                  }
                               }
@@ -576,7 +576,7 @@ namespace
                               if(status)
                               {
                                  colorData->m_output_transforms[key] = transform;
-                                 AiMsgInfo("[color_manager] Color transformation from '%s' to '%s'",
+                                 AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'",
                                     colorData->m_rendering_color_space.c_str(), color_space.c_str());
                               }
                            }
@@ -690,7 +690,7 @@ color_manager_transform
    {
       if (!status)
       {
-         AiMsgInfo("[color_manager] %s color transformation computation failed: %s", 
+         AiMsgDebug("[color_manager_syncolor] %s color transformation computation failed: %s", 
             is_output ? "Output" : "Input", status.getErrorMessage());
 
          colorData->m_initialization_done = false;
