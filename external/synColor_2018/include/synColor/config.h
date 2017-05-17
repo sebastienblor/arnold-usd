@@ -60,6 +60,13 @@ namespace SYNCOLOR
     //! 
     //! \note The method will revert all the aliases to their default values.
     //! 
+    //! The method is initializing a configuration using a minimum set of information.
+    //! It's dedicated to external tools consuming existing a color managed 'scene'
+    //! (i.e. without the need to change anything, Arnold makeTx, Arnold kick).
+    //! As a concrete example, the default Maya windows paths are:
+    //!  - transformPath is [Maya installation path]\synColor
+    //!  - sharedPath is C:\Users\[user name]\Documents\maya\synColor\Shared
+    //! 
     //! \param transformPath is the directory of the native catalog
     //! \param sharedPath is the directory of the custom color space catalog
     //! \param ocioConfigFile is an OCIO configuration file; it could be null
