@@ -730,12 +730,6 @@ color_manager_get_defaults
    linear = AiNodeGetStr (node, DataStr::rendering_color_space);
 }
 
-static const float sRGBChromaticities[8]
-   =  { 
-         0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f,  0.06000f,  // sRGB
-         0.31270f, 0.32900f                                            // D65
-      };
-
 color_manager_get_chromaticities
 {
    ColorManagerData* colorData = (ColorManagerData*)AiNodeGetLocalData(node);
@@ -760,18 +754,14 @@ color_manager_get_chromaticities
          chromaticities[5] = c.blue.y;
          chromaticities[6] = c.white.x;
          chromaticities[7] = c.white.y;
+
+         return true;
       }
    }
 
-   if(!status)
-
 #endif
 
-   {
-      memcpy(chromaticities, sRGBChromaticities, 8 * sizeof(float));
-   }
-
-   return true;
+   return false;
 }
 
 color_manager_get_custom_attributes
