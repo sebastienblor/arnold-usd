@@ -7,6 +7,7 @@
 #include <float.h>
 #include <unordered_map>
 #include "defs.h"
+#include "tbb.h"
 
 #define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerQBSplineType
 //#define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerLinearType
@@ -38,6 +39,7 @@ namespace{
 struct Mesh{
     Bifrost::API::Array<amino::Math::vec3f> vertices;
     Bifrost::API::Array<amino::Math::vec3i> indices;
+    unsigned long index; // cumulated index used in endTraverse to add triangles from other visitors
 };
 
 // marching cube every voxel
@@ -62,6 +64,9 @@ public:
     Bifrost::API::Array<amino::Math::vec3i> indices;
 
     std::vector<Mesh> meshes;
+#ifdef PROCESSING_PROFILING
+    std::chrono::high_resolution_clock::duration joining_time = std::chrono::high_resolution_clock::duration(0); // for profiling
+#endif
 
     inline size_t getVertexCount() const{ return vertices.count(); }
     inline void addVertex(const amino::Math::vec3f& position) { vertices.add(position); }
@@ -191,28 +196,53 @@ void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor,
 
 void MarchingCubesVisitor::join(const Bifrost::API::Visitor& visitor)
 {
+#ifdef PROCESSING_PROFILING
+    std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
+#endif
     const MarchingCubesVisitor& o = static_cast<const MarchingCubesVisitor&>(visitor);
     // only do final merge in endTraverse to avoid needless copies of huge arrays (vertices/indices)
+    unsigned long index = meshes.size()==0? indices.count() : meshes[meshes.size()-1].index + meshes[meshes.size()-1].indices.count();
     for(const Mesh& mesh : o.meshes){
-        meshes.push_back(mesh);
+        meshes.push_back({ mesh.vertices, mesh.indices, index });
+        index += mesh.indices.count();
     }
-    meshes.push_back({ o.vertices, o.indices });
+    if(o.indices.count() > 0){
+        meshes.push_back({ o.vertices, o.indices, index });
+    }
+#ifdef PROCESSING_PROFILING
+    joining_time += o.joining_time + (std::chrono::high_resolution_clock::now() - start);
+#endif
 }
 
 void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
-    for(const Mesh& mesh : meshes){
-        for(unsigned int i = 0; i < mesh.vertices.count(); ++i){
-            const amino::Math::vec3f& newVertex = mesh.vertices[i];
-            if(ids.find(newVertex) == ids.end()){ // only add new vertices
-                size_t vertexID = getVertexCount();
-                addVertex( newVertex );
-                ids[newVertex] = vertexID;
+#ifdef PROCESSING_PROFILING
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(joining_time).count();
+    std::cerr << "[BIFROST PROFILER] " << "MARCHING CUBES JOIN" << ": " << (microseconds/(double)1000000.) << "s" << std::endl;
+#endif
+    {
+        PROFILER("MARCHING CUBES ADD VERTICES");
+        for(const Mesh& mesh : meshes){
+            for(unsigned int i = 0; i < mesh.vertices.count(); ++i){
+                const amino::Math::vec3f& newVertex = mesh.vertices[i];
+                if(ids.find(newVertex) == ids.end()){ // only add new vertices
+                    size_t vertexID = getVertexCount();
+                    addVertex( newVertex );
+                    ids[newVertex] = vertexID;
+                }
             }
         }
-        for(unsigned int i = 0; i < mesh.indices.count(); ++i){ // remap triangles
-            const amino::Math::vec3i& triangle = mesh.indices[i];
-            addTriangle(amino::Math::vec3i(ids[mesh.vertices[triangle[0]]], ids[mesh.vertices[triangle[1]]], ids[mesh.vertices[triangle[2]]]));
-        }
+    }
+    {
+        PROFILER("MARCHING CUBES ADD TRIANGLES");
+        unsigned long total = (meshes.size()==0? 0 : meshes[meshes.size()-1].index+meshes[meshes.size()-1].index);
+        indices.resize(total);
+        Bifrost::Private::TBB_FOR_ALL(0, meshes.size(), 1, [&](size_t i){
+            const Mesh& mesh = meshes[i];
+            for(unsigned int j = 0; j < mesh.indices.count(); ++j){ // remap triangles
+                const amino::Math::vec3i& triangle = mesh.indices[j];
+                indices[mesh.index+j] = amino::Math::vec3i(ids[mesh.vertices[triangle[0]]], ids[mesh.vertices[triangle[1]]], ids[mesh.vertices[triangle[2]]]);
+            }
+        });
     }
 }
 
@@ -553,12 +583,15 @@ namespace Bifrost{
 namespace Processing{
 
 void createMarchingCubeMesh(const API::VoxelChannel &distance, Bifrost::API::Array<amino::Math::vec3f> &vertices, Bifrost::API::Array<amino::Math::vec3i> &indices, unsigned int subdivisions){
+    {
     PROFILER("MARCHING CUBES");
     MarchingCubesVisitor visitor(distance, subdivisions);
     Bifrost::API::Layout layout(distance.layout());
     layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelReduceBreadthFirst, layout.maxDepth(), layout.maxDepth());
     vertices = visitor.vertices;
     indices = visitor.indices;
+    }
+    std::cerr << "                   (" << vertices.count() << " vertices, " << indices.count() << " faces)" << std::endl;
 }
 
 }} // Bifrost::Processing

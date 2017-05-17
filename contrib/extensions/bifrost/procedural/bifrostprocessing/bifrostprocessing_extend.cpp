@@ -31,17 +31,17 @@ namespace{
 
 // ***** OCEAN UVS *****
 
-class ExtendUVVistor : public Bifrost::API::Visitor {
+class ExtendUVVisitor : public Bifrost::API::Visitor {
 public:
-    ExtendUVVistor(const amino::Math::vec2f& min, const amino::Math::vec2f& max, Bifrost::API::VoxelChannel& out) : out(out) {
+    ExtendUVVisitor(const amino::Math::vec2f& min, const amino::Math::vec2f& max, Bifrost::API::VoxelChannel& out) : out(out) {
         float dx = Bifrost::API::Layout(out.layout()).voxelScale();
         mat =   amino::Math::mat33f(dx,0,0,  0,dx,0,  0,0,1) *
                 amino::Math::mat33f(1,0,-min[0],  0,1,-min[1],  0,0,1) *
                 amino::Math::mat33f(1./(max[0]-min[0]),0,0,  0,1./(max[1]-min[1]),0,  0,0,1);
     }
-    ExtendUVVistor(const ExtendUVVistor& o)
+    ExtendUVVisitor(const ExtendUVVisitor& o)
         : mat(o.mat), out(o.out) {}
-    Bifrost::API::Visitor* copy() const override{ return new ExtendUVVistor(*this); }
+    Bifrost::API::Visitor* copy() const override{ return new ExtendUVVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
         const Bifrost::API::Tile& tile = accessor.tile(index);
@@ -63,13 +63,13 @@ private:
 
 // ***** OCEAN SDF *****
 
-class PlaneSdfVistor : public Bifrost::API::Visitor {
+class PlaneSdfVisitor : public Bifrost::API::Visitor {
 public:
-    PlaneSdfVistor(float h, Bifrost::API::VoxelChannel& out)
+    PlaneSdfVisitor(float h, Bifrost::API::VoxelChannel& out)
         : h(h/Bifrost::API::Layout(out.layout()).voxelScale()), out(out){}
-    PlaneSdfVistor(const PlaneSdfVistor& o)
+    PlaneSdfVisitor(const PlaneSdfVisitor& o)
         : h(o.h), out(o.out){}
-    Bifrost::API::Visitor* copy() const override{ return new PlaneSdfVistor(*this); }
+    Bifrost::API::Visitor* copy() const override{ return new PlaneSdfVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
         const Bifrost::API::TileCoord& coord = accessor.tile(index).coord();
@@ -84,7 +84,7 @@ private:
 inline void createOceanPlane(Bifrost::API::VoxelChannel& sdf, float height){
     PROFILER("CREATE OCEAN PLANE");
     Bifrost::API::Layout layout(sdf.layout());
-    PlaneSdfVistor visitor(height, sdf);
+    PlaneSdfVisitor visitor(height, sdf);
     layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
 }
 
@@ -282,9 +282,9 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
 
         int n = layout.tileDimInfo().tileWidth;
         Bifrost::API::TileAccessor accessor = layout.tileAccessor();
-        for(int j = ranges.min()[1]; j <= ranges.max()[1]+2*n; j+=n){
-            for(int i = ranges.min()[0]; i <= ranges.max()[0]+n; i+=n){
-                for(int k = ranges.min()[2]; k <= ranges.max()[2]+n; k+=n){
+        for(int j = ranges.min()[1]; j < ranges.max()[1]; j+=n){
+            for(int i = ranges.min()[0]; i < ranges.max()[0]; i+=n){
+                for(int k = ranges.min()[2]; k < ranges.max()[2]; k+=n){
                     accessor.addTile(i,j,k,layout.maxDepth());
                 }
             }
@@ -317,7 +317,7 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
 void extendUVs(const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, API::VoxelChannel &out){
     PROFILER("EXTEND UVS");
     Bifrost::API::Layout layout(out.layout());
-    ExtendUVVistor visitor(center-dimensions*.5, center+dimensions*.5, out);
+    ExtendUVVisitor visitor(center-dimensions*.5, center+dimensions*.5, out);
     layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
 }
 
