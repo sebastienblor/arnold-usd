@@ -217,7 +217,7 @@ def buildAtmosphereMenu(popup, field, select):
 
     pm.popupMenu(popup, edit=True, deleteAllItems=True)
 
-    for typ in pm.listNodeTypes(['rendernode/arnold/shader/volume/atmosphere']) or []:
+    for typ in pm.listNodeTypes(['rendernode/arnold/light/volume']) or []:
         shaders = pm.ls(type=typ)
         for item in shaders:
             pm.menuItem(parent=popup, label=item, command=Callback(changeAtmosphere, item, field, select))
