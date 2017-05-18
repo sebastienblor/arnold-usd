@@ -6,6 +6,7 @@
 #include "AbMayaNode.h"
 #include "AbTranslator.h"
 #include "utils/Version.h"
+#include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/Universe.h"
 
@@ -137,10 +138,10 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* filename = AiNodeEntryGetFilename(nentry);
+      MString filename = ArnoldGetEntryFile(nentry);
 
       // skip builtins and already registered
-      if (filename && !CExtension::IsArnoldPluginLoaded(filename))
+      if (filename.length() > 0 && !CExtension::IsArnoldPluginLoaded(filename))
       {
          MStatus pluginStatus;
          LoadArnoldPlugin(filename, path, &pluginStatus, true);

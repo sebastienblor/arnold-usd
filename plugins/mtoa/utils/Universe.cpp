@@ -120,3 +120,18 @@ void ArnoldUniverseEndAndFlush(int cache_flags)
       AiEnd();
    }
 }
+
+MString ArnoldGetEntryFile(const AtNodeEntry *entry)
+{
+   if (entry == NULL)
+      return "";
+
+   const char *filename = AiNodeEntryGetFilename(entry);
+   if (filename == NULL)
+      return "";
+
+   std::string fileStr(filename);
+   std::replace(fileStr.begin(), fileStr.end(), '\\', '/');
+
+   return MString(fileStr.c_str());
+}

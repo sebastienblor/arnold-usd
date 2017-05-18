@@ -10,10 +10,25 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
     def changeParams(self, nodeName):
         metal_0 = float(pm.getAttr(nodeName + '.metalness')) == 0.0
         metal_1 = float(pm.getAttr(nodeName + '.metalness')) == 1.0
+
+        metalConnections = pm.listConnections(nodeName + '.metalness', d=False,s=True)
+        if (metalConnections is not None) and len(metalConnections) > 0:
+            metal_0 = metal_1 = False
+
         transmission_0 = float(pm.getAttr(nodeName + '.transmission')) == 0.0
         transmission_1 = float(pm.getAttr(nodeName + '.transmission')) == 1.0
+
+        transmissionConnections = pm.listConnections(nodeName + '.transmission', d=False,s=True)
+        if (transmissionConnections is not None) and len(transmissionConnections) > 0:
+            transmission_0 = transmission_1 = False
+
         subsurface_0 = float(pm.getAttr(nodeName + '.subsurface')) == 0.0
         subsurface_1 = float(pm.getAttr(nodeName + '.subsurface')) == 1.0
+
+        sssConnections = pm.listConnections(nodeName + '.subsurface', d=False,s=True)
+        if (sssConnections is not None) and len(sssConnections) > 0:
+            subsurface_0 = subsurface_1 = False
+
         thin_walled = bool(pm.getAttr(nodeName + '.thin_walled'))
 
         pm.editorTemplate(dimControl=(nodeName, 'specularIOR', metal_1))

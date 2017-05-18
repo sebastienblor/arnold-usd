@@ -1,7 +1,7 @@
 #include "PxArnoldNode.h"
 #include <maya/MStringArray.h>
 #include <maya/MNodeClass.h>
-
+#include "utils/Universe.h"
 
 // An Arnold node entry proxy
 CPxArnoldNode::CPxArnoldNode(const MString &nodeName)
@@ -11,11 +11,8 @@ CPxArnoldNode::CPxArnoldNode(const MString &nodeName)
    if (name.numChars() > 0) entry = AiNodeEntryLookUp(name.asChar());
    if (NULL != entry)
    {
-      const char* fileChar = AiNodeEntryGetFilename(entry);
-      if (fileChar != 0)
-         file = fileChar;
-      else
-         file = "";
+      file = ArnoldGetEntryFile(entry);
+      
       MStringArray split;
       file.split('/', split);
       unsigned int l = split.length();
@@ -30,11 +27,8 @@ CPxArnoldNode::CPxArnoldNode(const AtNodeEntry* nodeEntry)
    if (NULL != entry) name = AiNodeEntryGetName(entry);
    if (NULL != entry)
    {
-      const char* fileChar = AiNodeEntryGetFilename(entry);
-      if (fileChar != 0)
-         file = fileChar;
-      else
-         file = "";
+      file = ArnoldGetEntryFile(entry);
+      
       MStringArray split;
       file.split('/', split);
       unsigned int l = split.length();

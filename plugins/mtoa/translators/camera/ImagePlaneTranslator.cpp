@@ -28,72 +28,11 @@ void CImagePlaneTranslator::Export(AtNode *imagePlane)
    CNodeTranslator::Export(imagePlane);
    ExportImagePlane();
 }
-void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane)
-{
-   CNodeTranslator::ExportMotion(imagePlane);
-   ExportImagePlane();
 
-}
 void CImagePlaneTranslator::SetCamera(MString cameraName)
 {
    m_camera = cameraName;
    ExportImagePlane();
-}
-static void GetCameraRotationMatrix(MDagPath camera, AtMatrix& matrix)
-{
-   MObject transform = camera.transform();
-   MFnTransform mTransform;
-   mTransform.setObject(transform);
-   MTransformationMatrix mTransformMatrix = mTransform.transformation();
-
-   MMatrix tm = mTransformMatrix.asRotateMatrix();
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) tm[I][J];
-      }
-   }
-}
-static void GetCameraMatrix(MDagPath camera, CArnoldSession *session, AtMatrix& matrix)
-{
-   MStatus status;
-   MMatrix mayaMatrix = camera.inclusiveMatrix(&status);
-   if (status)
-   {
-      if (session)
-      {
-         MTransformationMatrix trMat = mayaMatrix;
-         trMat.addTranslation((-1.0) * session->GetOrigin(), MSpace::kWorld);
-         MMatrix copyMayaMatrix = trMat.asMatrix();
-         copyMayaMatrix[3][0] = session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
-         copyMayaMatrix[3][1] = session->ScaleDistance(copyMayaMatrix[3][1]);
-         copyMayaMatrix[3][2] = session->ScaleDistance(copyMayaMatrix[3][2]);
-
-         for (int J = 0; (J < 4); ++J)
-         {
-            for (int I = 0; (I < 4); ++I)
-            {
-               matrix[I][J] = (float) copyMayaMatrix[I][J];
-            }
-         }
-      }
-      else
-      {
-         for (int J = 0; (J < 4); ++J)
-         {
-            for (int I = 0; (I < 4); ++I)
-            {
-               matrix[I][J] = (float) mayaMatrix[I][J];
-            }
-         }  
-      }
-   }
-}
-
-bool CImagePlaneTranslator::RequiresMotionData()
-{
-   return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
 }
 
 void CImagePlaneTranslator::ExportImagePlane()
@@ -120,418 +59,222 @@ void CImagePlaneTranslator::ExportImagePlane()
          }
       }
    }
-    
-   // a camera must have been specified for us to do that  
-   double camFocal = 1.f;
-   double camScale = 1.f;
    double lensSqueeze = 1.f;
 
    bool visible = false;
    if (validCamera)
    {
-      // If displayOnlyIfCurrent is true and this is not the current camera, set visibility to AI_RAY_UNDEFINED
-      bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
       MFnCamera fnCamera(pathCamera);
-      
-      if(displayOnlyIfCurrent && (m_impl->m_session->GetExportCamera().partialPathName() != fnCamera.partialPathName()))  visible = false;
-      else visible = true;
-
-      camFocal = fnCamera.findPlug("focalLength").asDouble();
-      camScale = fnCamera.findPlug("cameraScale").asDouble();
       lensSqueeze = fnCamera.findPlug("lensSqueezeRatio").asDouble();   
    }
 
-   // check if the image plane should be created
-   int displayMode = fnRes.findPlug("displayMode", &status).asInt();
-   if (displayMode > 1)
-   {
-
-      MString imagePlaneName = (validCamera) ? MFnDependencyNode(pathCamera.node()).name() : MString("");
-      imagePlaneName += GetMayaNodeName();
-      //imagePlaneName += "_IP_";
-      //imagePlaneName += ips;
-      MString imageName;
-      MImage mImage;
-
-      //type: 0 == Image, 1 == Texture, 2 == Movie
-      int type = fnRes.findPlug("type", &status).asInt();
-
-      if (type == 2)//Not supporting type Movie for now....
-      {
-         AiMsgWarning("[mtoa] [translator %s] Image Planes of type Movie are unsupported", GetTranslatorName().asChar());
-         return;
-      }
-
-      double planeSizeX;
-      double planeSizeY;
-
-      // UV Values
-      double uMin = 0.0f;
-      double vMin = 0.0f;
-      double uMax = 1.0f;
-      double vMax = 1.0f;
-
-      int lockedToCamera = fnRes.findPlug("lockedToCamera", &status).asInt();
-      if (lockedToCamera)
-      {
-         planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
-         planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
-      }
-      else
-      {
-         planeSizeX = fnRes.findPlug("width", &status).asDouble();
-         planeSizeY = fnRes.findPlug("height", &status).asDouble();
-      }
-
-      double planeDepth = fnRes.findPlug("depth").asDouble();
-
-      double ipWidth;
-      double ipHeight;
-
-      unsigned int iWidth = 0;
-      unsigned int iHeight = 0;
-
-      if (type == 0)
-      {
-         imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
-         mImage = MImage();
-         mImage.readFromFile(imageName);
-
-         //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
-         mImage.getSize(iWidth, iHeight);
-         double iAspect = 1.0;
-         if (iWidth > 0 && iHeight > 0)
-         {
-            iAspect = double(iWidth) / iHeight;
-         }
-         double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
-         if (iAspect != planeAspect)
-         {
-            FitType fit = (FitType)fnRes.findPlug("fit", &status).asInt();
-
-            if (fit == FIT_BEST)
-            {
-               // fit all of the image in the plane
-               if (iAspect > planeAspect)
-                  fit = FIT_HORIZONTAL;
-               else
-                  fit = FIT_VERTICAL;
-            }
-            else if (fit == FIT_FILL)
-            {
-               // fill the entire plane with the image
-               if (iAspect < planeAspect)
-                  fit = FIT_HORIZONTAL;
-               else
-                  fit = FIT_VERTICAL;
-            }
-
-            // in either case we trim the plane to the dimensions of the image, or
-            // the image overflows and we adjust the plane's UVs to compensate
-            if (fit == FIT_HORIZONTAL)
-            {
-               // left and right side of image registers with plane
-               if (iAspect > planeAspect)
-               {
-                  // trim the plane vertically to fit image
-                  planeSizeY *= (planeAspect / iAspect);
-               }
-               else
-               {
-                  // adjust the uv's vertically
-                  vMin += ((1.0f - (iAspect / planeAspect)) * 0.5f);
-                  vMax -= ((1.0f - (iAspect / planeAspect)) * 0.5f);
-               }
-
-            }
-            else if (fit == FIT_VERTICAL)
-            {
-               // top and bottom of image registers with plane
-               if (iAspect < planeAspect)
-               {
-                  // trim the plane horizontally to fit image
-                  planeSizeX *= (iAspect / planeAspect);
-               }
-               else
-               {
-                  // adjust the uv's horizontally
-                  uMin += ((1.0f - (planeAspect / iAspect)) * 0.5f);
-                  uMax -= ((1.0f - (planeAspect / iAspect)) * 0.5f);
-               }
-            }
-            else if (fit ==  FIT_TOSIZE)
-            {
-               // stretch image to fit plane
-               double squeezeCorrection = fnRes.findPlug("squeezeCorrection").asDouble();
-               if (squeezeCorrection < 0.0001f)
-                  squeezeCorrection = 1.0f;
-               planeSizeX /= squeezeCorrection;
-            }
-         }
-      }
-
-      if (lockedToCamera)
-      {
-         ipWidth = (planeSizeX * planeDepth * lensSqueeze) / ((camFocal * MM_TO_INCH) / camScale);
-         ipHeight = (planeSizeY * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
-      }
-      else
-      {
-         ipWidth = planeSizeX;
-         ipHeight = planeSizeY;
-      }
-
-      if (!IsExportingMotion())
-      {
-         AtNode* imagePlane = GetArnoldNode("polymesh");
-         AiNodeSetStr(imagePlane, "name", imagePlaneName.asChar());
-
-         AiNodeSetArray(imagePlane, "nsides", AiArray(1, 1, AI_TYPE_BYTE, 4));
-         AiNodeSetArray(imagePlane, "vidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
-         AiNodeSetArray(imagePlane, "nidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 2, 3));
-         AiNodeSetArray(imagePlane, "uvidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
-
-         AtVector p1, p2, p3, p4, n1;
-         AtVector2 uv1, uv2, uv3, uv4;
-         p1 = AtVector(-0.5, -0.5, 0.0);
-         p2 = AtVector(0.5, -0.5, 0.0);
-         p3 = AtVector(-0.5, 0.5, 0.0);
-         p4 = AtVector(0.5, 0.5, 0.0);
-         n1 = AtVector(0.0, 0.0, 1.0);
-
-         /*
-         if (type == 0)
-         {
-            double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
-            double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
-            double uOffset = 1.0f + (((0.0f - coverageX)/(0.0f - iWidth)) * (0.0f - 1.0f));
-            double vOffset = 1.0f + (((0.0f - coverageY)/(0.0f - iHeight)) * (0.0f - 1.0f));
-
-            int coverageOriginX = fnRes.findPlug("coverageOriginX", &status).asInt();
-            int coverageOriginY = fnRes.findPlug("coverageOriginY", &status).asInt();
-
-            double uOriginOffset = (((coverageOriginX - 0.0f)/(iWidth - 0.0f)) * (1.0f - 0.0f));
-            double vOriginOffset = (((coverageOriginY - 0.0f)/(iHeight - 0.0f)) * (1.0f - 0.0f));
-
-            uMin = uOriginOffset;
-            uMax = 1.0f - (uOffset - uOriginOffset);
-            if (uMax > 1)
-               uMax = 1.0f;
-
-            vMin = vOriginOffset;
-            vMax = 1.0f - (vOffset - vOriginOffset);
-            if (vMax > 1)
-               vMax = 1.0f;
-         }
-         */
-         uv1 = AtVector2((float)uMin, (float)vMin);
-         uv2 = AtVector2((float)uMax, (float)vMin);
-         uv3 = AtVector2((float)uMin, (float)vMax);
-         uv4 = AtVector2((float)uMax, (float)vMax);
-
-         AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_VECTOR, p1, p2, p3, p4));
-         AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
-         AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_VECTOR2, uv1, uv2, uv3, uv4));
-         AtByte visibilityFlag = AI_RAY_CAMERA | AI_RAY_ALL_DIFFUSE | AI_RAY_VOLUME;
-         if (fnRes.findPlug("visibleInReflections").asBool())
-            visibilityFlag |= AI_RAY_SPECULAR_REFLECT;
-         if (fnRes.findPlug("visibleInRefractions").asBool())
-            visibilityFlag |= AI_RAY_SPECULAR_TRANSMIT;
-
-         if (!visible) visibilityFlag = AI_RAY_UNDEFINED;
-         
-         AiNodeSetByte(imagePlane, "visibility", visibilityFlag);
-
-         // create a flat shader with the needed image
-         MPlug colorPlug;
-         MPlugArray conn;
-
-         AtNode* imagePlaneShader = GetArnoldNode();
-         //AtNode* imagePlaneShader = AiNode("flat");
-         char nodeName[MAX_NAME_SIZE];
-         AiNodeSetStr(imagePlaneShader, "name", NodeUniqueName(imagePlaneShader, nodeName));
-
-         if (type == 0)
-         {
-            /*
-            AtNode* file = AiNode("image");
-            AiNodeSetStr(file, "name", NodeUniqueName(file, nodeName));
-            AiNodeSetStr(file, "filename", imageName.asChar());
-            AiNodeLink(file, "color", imagePlaneShader);
-            */
-            
-            // check if filename has changed. If it has we tell ArnoldSession to update tx
-            MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename").c_str();
-
-            bool requestUpdateTx = true;
-            int prevFilenameLength = prevFilename.length();
-
-            if (prevFilenameLength > 0)
-            {
-               // arnold filename param
-               if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-               {
-                  MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
-
-                  int dotPos = imageName.rindexW(".");
-                  if (dotPos > 0)
-                  {
-                     MString basename = imageName.substring(0, dotPos - 1);
-                     requestUpdateTx = (prevBasename != basename);
-                  }
-               } else
-               {
-                  // if previous filename and new one are exactly identical, it's useless to update Tx
-                  requestUpdateTx = (prevFilename != imageName);
-               }
-
-            }
-
-            MString colorSpace = fnRes.findPlug("colorSpace").asString();
-            
-            if (colorSpace != m_colorSpace) requestUpdateTx = true;
-            m_colorSpace = colorSpace;
-
-            AiNodeSetStr(imagePlaneShader, "color_space", colorSpace.asChar());
-
-            if (requestUpdateTx)
-            {
-               AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
-               m_impl->m_session->RequestUpdateTx();
-            }
-
-            AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
-            AiNodeSetVec2(imagePlaneShader, "coverage", 1.f, 1.f);
-            //AiNodeSetPnt2(imagePlaneShader, "translate", coverageOriginX, coverageOriginY);
-
-            colorPlug  = fnRes.findPlug("colorGain");
-            colorPlug.connectedTo(conn, true, false);
-            if (!conn.length())
-              AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
-            else
-            {
-               AiNodeLink(ExportConnectedNode(conn[0]), "colorGain", imagePlaneShader);
-            }
-
-            colorPlug  = fnRes.findPlug("colorOffset");
-            colorPlug.connectedTo(conn, true, false);
-            if (!conn.length())
-               AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
-            else
-            {
-               AiNodeLink(ExportConnectedNode(conn[0]), "colorOffset", imagePlaneShader);
-            }
-
-            float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
-            AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
-            
-         }
-         else if (type == 1)
-         {
-            MPlug colorPlug  = fnRes.findPlug("sourceTexture");
-            MPlugArray conn;
-            colorPlug.connectedTo(conn, true, false);
-            if (conn.length())
-            {
-               MPlug outputPlug = conn[0];
-               AiNodeLink(ExportConnectedNode(outputPlug), "color", imagePlaneShader);
-            }
-         }
-
-         AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
-         AiNodeSetBool(imagePlane, "opaque", 0);
-
-      }
-
-      AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
-
-      AtMatrix offsetMatrix;
-      AtMatrix scaleMatrix;
-      AtMatrix rotationMatrix;
-      AtMatrix imagePlaneMatrix;
-      AtVector offsetVector;
-      AtVector scaleVector;
-
-      double offsetX;
-      double offsetY;
-      double offsetZ;
-
-      //if the plane is locked to the camera find and use the offset values
-      //otherwise it isn't locked so use the center attribute values to offset the plane
-      if (lockedToCamera)
-      {
-         offsetX = (fnRes.findPlug("offsetX", &status).asDouble() * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
-         offsetY = (fnRes.findPlug("offsetY", &status).asDouble() * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
-         offsetZ = -planeDepth;
-      }
-      else
-      {
-         offsetX = fnRes.findPlug("centerX", &status).asDouble();
-         offsetY = fnRes.findPlug("centerY", &status).asDouble();
-         offsetZ = fnRes.findPlug("centerZ", &status).asDouble();
-      }
-
-      // useless to compute matrices if no camera is provided
-      if (validCamera)
-      {
-         MFnCamera fnCamera(pathCamera);
    
-         offsetVector = AtVector(static_cast<float>(offsetX), static_cast<float>(offsetY), static_cast<float>(offsetZ));
-         scaleVector = AtVector(static_cast<float>(ipWidth), static_cast<float>(ipHeight), 1.0f);
+   AtNode *imagePlaneShader = GetArnoldNode();
 
-         offsetMatrix = AiM4Translation(offsetVector);
-         scaleMatrix = AiM4Scaling(scaleVector);
+   // check if the image plane should be created
+   int displayMode = fnRes.findPlug("displayMode").asInt();
+   if (displayMode <= 1)
+      return;
 
-         if (lockedToCamera)
+
+   MString imageName;
+   MImage mImage;
+
+   //type: 0 == Image, 1 == Texture, 2 == Movie
+   int type = fnRes.findPlug("type", &status).asInt();
+
+   if (type == 2)//Not supporting type Movie for now....
+   {
+      AiMsgWarning("[mtoa] [translator %s] Image Planes of type Movie are unsupported", GetTranslatorName().asChar());
+      return;
+   }
+
+   // UV Values
+   double uMin = 0.0f;
+   double vMin = 0.0f;
+   double uMax = 1.0f;
+   double vMax = 1.0f;
+
+   double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
+   double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
+   
+   double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
+   double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
+
+   double coverageOriginX = fnRes.findPlug("coverageOriginX", &status).asDouble();
+   double coverageOriginY = fnRes.findPlug("coverageOriginY", &status).asDouble();
+
+   double offsetX = fnRes.findPlug("offsetX", &status).asDouble();
+   double offsetY = fnRes.findPlug("offsetY", &status).asDouble();
+   
+
+   unsigned int iWidth = 0;
+   unsigned int iHeight = 0;
+
+   double scaleX = 1.;
+   double scaleY = 1.;
+
+   if (type == 0)
+   {
+      imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
+      mImage = MImage();
+      mImage.readFromFile(imageName);
+
+      //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
+      mImage.getSize(iWidth, iHeight);
+      double iAspect = 1.0;
+      if (iWidth > 0 && iHeight > 0)
+      {
+         iAspect = double(iWidth) / iHeight;
+      }
+      double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
+      if (iAspect != planeAspect)
+      {
+         FitType fit = (FitType)fnRes.findPlug("fit", &status).asInt();
+
+         if (fit == FIT_BEST)
          {
-            double ipRotate = fnRes.findPlug("rotate", &status).asDouble() * AI_RTOD * -1.0f;
-            rotationMatrix = AiM4RotationZ(float(ipRotate));
-         }
-         else
-         {
-            //Get the camera's object space rotation matrix
-            GetCameraRotationMatrix(pathCamera, rotationMatrix);
-         }
-
-         // multiply in order
-         imagePlaneMatrix = AiM4Identity();
-         imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, scaleMatrix);
-         imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, rotationMatrix);
-         imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, offsetMatrix);
-         //if the imageplane is locked we use the camera's matrix
-         if (lockedToCamera)
-         {
-
-            // get cam's matrix
-            AtMatrix translateMatrix;
-
-            GetCameraMatrix(pathCamera, m_impl->m_session, translateMatrix);
-            imagePlaneMatrix = AiM4Mult(imagePlaneMatrix, translateMatrix);
-         }
-
-         // image plane should move with the camera to render it with no motion blur
-         if (m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
-         {
-            if (!IsExportingMotion())
-            {
-               AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-               AiArraySetMtx(matrices, GetMotionStep(), imagePlaneMatrix);
-               AiNodeSetArray(imagePlane, "matrix", matrices);
-            }
+            // fit all of the image in the plane
+            if (iAspect > planeAspect)
+               fit = FIT_HORIZONTAL;
             else
-            {
-               AtArray* matrices = AiNodeGetArray(imagePlane, "matrix");
-               AiArraySetMtx(matrices, GetMotionStep(), imagePlaneMatrix);
-            }
+               fit = FIT_VERTICAL;
          }
-         else
+         else if (fit == FIT_FILL)
          {
-            AiNodeSetMatrix(imagePlane, "matrix", imagePlaneMatrix);
+            // fill the entire plane with the image
+            if (iAspect < planeAspect)
+               fit = FIT_HORIZONTAL;
+            else
+               fit = FIT_VERTICAL;
+         }
+
+         // in either case we trim the plane to the dimensions of the image, or
+         // the image overflows and we adjust the plane's UVs to compensate
+         if (fit == FIT_HORIZONTAL)
+         {
+            scaleX = 1.f;
+            scaleY =iAspect/planeAspect;
+
+         }
+         else if (fit == FIT_VERTICAL)
+         {
+            scaleX =  planeAspect/iAspect;
+            scaleY = 1.f;
          }
       }
    }
-}
 
+   // create a flat shader with the needed image
+   MPlug colorPlug;
+   MPlugArray conn;
+
+   
+   if (type == 0)
+   {
+      // check if filename has changed. If it has we tell ArnoldSession to update tx
+      MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename").c_str();
+
+      MString resolvedFilename = imageName; // do we need to do anything else to resolve the filename ?
+
+
+      MString colorSpace = fnRes.findPlug("colorSpace").asString();
+      
+      bool requestUpdateTx = (colorSpace != m_colorSpace);
+      m_colorSpace = colorSpace;
+
+      if (!requestUpdateTx)
+      {
+         // Color Space is the same, so let's check if the filename was modified
+         int prevFilenameLength = prevFilename.length();
+
+         if (prevFilenameLength > 0)
+         {
+            // compare against previous filename to see if we need to re-generate the TX
+            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+            {
+               // Previous Filename was .tx, either because of "use existing tx", 
+               // or because it's explicitely targeting the .tx
+               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+               int dotPos = resolvedFilename.rindexW(".");
+               if (dotPos > 0)
+               {
+                  MString basename = resolvedFilename.substring(0, dotPos - 1);
+                  
+                  // Let's compare the basenames (without extension)
+                  if (prevBasename != basename)
+                  {
+                     // the basename was modified, this needs an update of TX
+                     requestUpdateTx = true;
+                  } else
+                  {
+                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
+                     // so let's keep the previous one (where Use Tx was applied)
+                     resolvedFilename = prevFilename;
+                  }
+               }
+            } else
+            {
+               // if previous filename and new one are exactly identical, it's useless to update Tx
+               requestUpdateTx = (prevFilename != resolvedFilename);
+            }
+         } else if (resolvedFilename.length() > 0)
+         {
+            requestUpdateTx = true;
+         }
+      }
+
+      AiNodeSetStr(imagePlaneShader, "filename", resolvedFilename.asChar());
+
+      // only set the color_space if the texture isn't a TX
+      AiNodeSetStr(imagePlaneShader, "color_space", "");
+      if (resolvedFilename.length() > 4)
+      {
+         MString extension = resolvedFilename.substring(resolvedFilename.length() - 3, resolvedFilename.length() - 1);
+
+         if (extension != ".tx" && extension !=  ".TX")
+            AiNodeSetStr(imagePlaneShader, "color_space", colorSpace.asChar());
+      }
+
+      if (requestUpdateTx)
+      {
+         m_impl->m_session->RequestUpdateTx();
+      }
+
+      AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
+      AiNodeSetVec2(imagePlaneShader, "fitFactor", (float)scaleX, (float)scaleY);
+      AiNodeSetVec2(imagePlaneShader, "coverage", (float)coverageX / (float)iWidth , (float)coverageY / (float)iHeight);
+      AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
+      AiNodeSetVec2(imagePlaneShader, "translate", (float)offsetX, (float)offsetY);
+      
+      colorPlug  = fnRes.findPlug("colorGain");
+      colorPlug.connectedTo(conn, true, false);
+      if (!conn.length())
+        AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+      else
+      {
+         AiNodeLink(ExportConnectedNode(conn[0]), "colorGain", imagePlaneShader);
+      }
+
+      colorPlug  = fnRes.findPlug("colorOffset");
+      colorPlug.connectedTo(conn, true, false);
+      if (!conn.length())
+         AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+      else
+      {
+         AiNodeLink(ExportConnectedNode(conn[0]), "colorOffset", imagePlaneShader);
+      }
+
+      float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
+      AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
+
+
+     float rotate = fnRes.findPlug("rotate", &status).asFloat();
+     AiNodeSetFlt(imagePlaneShader, "rotate", rotate);
+      
+   }
+}
 
 void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -545,6 +288,6 @@ void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CImagePlaneTranslator::CreateArnoldNodes()
 {
-   AddArnoldNode("polymesh", "polymesh");
    return AddArnoldNode("MayaImagePlane");
+
 }

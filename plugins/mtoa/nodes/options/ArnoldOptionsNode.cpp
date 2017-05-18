@@ -225,7 +225,8 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("random", 2);
    eAttr.addField("spiral", 3);
    eAttr.addField("hilbert", 4);
-   eAttr.addField("list", 5);
+   //eAttr.addField("list", 5);
+   
    eAttr.setDefault(3);
    eAttr.setKeyable(false);
    addAttribute(s_bucket_scanning);
