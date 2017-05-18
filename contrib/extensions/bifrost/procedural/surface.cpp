@@ -12,7 +12,7 @@
 
 namespace{
 
-bool getComponent(Surface::SurfaceParams& params, Bifrost::API::Component& component){
+bool getComponent(SurfaceParams& params, Bifrost::API::Component& component){
     Bifrost::API::ObjectModel om;
     Bifrost::API::Object object;
 
@@ -29,7 +29,7 @@ bool getComponent(Surface::SurfaceParams& params, Bifrost::API::Component& compo
         }else{ // count = 1
             object = objects[0];
             Bifrost::API::RefArray components;
-            components = object.findComponentsByType(params.render_component == Surface::VOXELS? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
+            components = object.findComponentsByType(params.render_component == RenderComponent::VOXELS? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
             if(components.count()==0){
                 AiMsgError("NOOO");
                 return false;
@@ -65,7 +65,7 @@ bool getComponent(Surface::SurfaceParams& params, Bifrost::API::Component& compo
     }
     object = objects[0];
     Bifrost::API::RefArray components;
-    components = object.findComponentsByType(params.render_component == Surface::VOXELS? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
+    components = object.findComponentsByType(params.render_component == VOXELS? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
     if(components.count()==0){
         AiMsgError("wrong component type");
         return false;
@@ -77,7 +77,7 @@ bool getComponent(Surface::SurfaceParams& params, Bifrost::API::Component& compo
     return true;
 }
 
-bool convertPointsToVoxels(Surface::SurfaceParams& params, const Bifrost::API::PointComponent& pointComponent, Bifrost::API::VoxelComponent& component){
+bool convertPointsToVoxels(SurfaceParams& params, const Bifrost::API::PointComponent& pointComponent, Bifrost::API::VoxelComponent& component){
     Bifrost::API::Object object(pointComponent.object());
     Bifrost::API::Dictionary dict = object.dictionary();
 

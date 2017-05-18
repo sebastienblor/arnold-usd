@@ -5,9 +5,10 @@
 #include <string>
 #include <sstream>
 #include <bifrostapi/bifrost_component.h>
-#include <bifrostapi/bifrost_channel.h>
+#include <bifrostapi/bifrost_voxelchannel.h>
 #include <functional>
 #include <ai_matrix.h>
+#include <ai_nodes.h>
 
 inline amino::Math::vec2f AtVector2ToAminoVec2f(const AtVector2& v){ return amino::Math::vec2f(v.x, v.y); }
 inline amino::Math::vec3f AtVectorToAminoVec3f(const AtVector& v){ return amino::Math::vec3f(v.x, v.y, v.z); }
@@ -19,3 +20,5 @@ inline AtVector AminoVec3iToAtVector(const amino::Math::vec3i& v){ return AtVect
 std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter=[](const Bifrost::API::Channel&){ return true; });
 
 std::ostream& operator<<(std::ostream& out, const AtMatrix& m);
+
+void exportChannel(AtNode *node, const Bifrost::API::Array<amino::Math::vec3f> &positions, const Bifrost::API::VoxelChannel &channel);

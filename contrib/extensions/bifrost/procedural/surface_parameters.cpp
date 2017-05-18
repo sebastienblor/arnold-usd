@@ -9,85 +9,35 @@
 #include <vector>
 #include "utils.h"
 
-#define DUMP_PARAM(param) ss << "    " << #param << " = " << (param) << std::endl;
-#define DUMP_ARRAY_PARAM(param) \
-    ss << "    " << #param << " = " << std::endl; \
-    for(const std::string& s : param) \
-        ss << "        " << s << std::endl;
+SurfaceParams::SurfaceParams(const AtNode* node) : BifrostParams(node) {
+    GET_ENUM(render_component, RenderComponent);
 
-namespace {
-    std::vector<std::string> ArrayToStrings(const AtArray* array){
-        std::vector<std::string> strings;
-        for(unsigned int i = 0; i < AiArrayGetNumElements(array); ++i)
-            strings.push_back(AiArrayGetStr(array,i).c_str());
-        return strings;
-    }
+    GET_STR(distance_channel);
 
-    AtArray* CreateStringArray(const std::vector<std::string>& strings){
-        AtArray* array = AiArrayAllocate(strings.size(),1,AI_TYPE_STRING);
-        for(unsigned int i = 0; i < strings.size(); ++i)
-            AiArraySetStr(array, i, strings[i].c_str());
-        return array;
-    }
-}
+    GET_FLT(levelset_resolution_factor);
+    GET_FLT(levelset_droplet_reveal_factor);
+    GET_FLT(levelset_surface_radius);
+    GET_FLT(levelset_droplet_radius);
+    GET_FLT(levelset_max_volume_of_holes_to_close);
 
-namespace Surface{
+    GET_FLT(dilate);
+    GET_FLT(erode);
+    GET_FLT(smooth);
+    GET_ENUM(smooth_mode, SmoothMode);
+    GET_INT(smooth_iterations);
 
-SurfaceParams::SurfaceParams(const AtNode* node){
-    cache_file = AiNodeGetStr(node, "cache_file");
-    object = AiNodeGetStr(node, "object");
-    channels = ArrayToStrings(AiNodeGetArray(node, "channels"));
-    velocity_channels = ArrayToStrings(AiNodeGetArray(node, "velocity_channels"));
-    uv_channel = AiNodeGetStr(node, "uv_channel");
-
-    velocity_scale = AiNodeGetFlt(node, "velocity_scale");
-    space_scale = AiNodeGetFlt(node, "space_scale");
-    fps = AiNodeGetUInt(node, "fps");
-
-    render_component = (RenderComponent) AiNodeGetInt(node, "render_component");
-
-    distance_channel = AiNodeGetStr(node, "distance_channel");
-
-    levelset_resolution_factor = AiNodeGetFlt(node, "levelset_resolution_factor");
-    levelset_droplet_reveal_factor = AiNodeGetFlt(node, "levelset_droplet_reveal_factor");
-    levelset_surface_radius = AiNodeGetFlt(node, "levelset_surface_radius");
-    levelset_droplet_radius = AiNodeGetFlt(node, "levelset_droplet_radius");
-    levelset_max_volume_of_holes_to_close = AiNodeGetFlt(node, "levelset_max_volume_of_holes_to_close");
-
-    dilate = AiNodeGetFlt(node, "dilate");
-    erode = AiNodeGetFlt(node, "erode");
-    smooth = AiNodeGetFlt(node, "smooth");
-    smooth_mode = (SmoothMode) AiNodeGetInt(node, "smooth_mode");
-    smooth_iterations = AiNodeGetInt(node, "smooth_iterations");
-
-    clip = AiNodeGetBool(node, "clip");
-    clip_bbox = amino::Math::bboxf( AtVectorToAminoVec3f(AiNodeGetVec(node,"clip_min")),
-                                    AtVectorToAminoVec3f(AiNodeGetVec(node,"clip_max")) );
-
-    enable_infinite_blending = AiNodeGetBool(node, "enable_infinite_blending");
-    infinite_blending_height = AiNodeGetFlt(node, "infinite_blending_height");
-    infinite_blending_center = AtVector2ToAminoVec2f(AiNodeGetVec2(node,"infinite_blending_center"));
-    infinite_blending_dimension = AtVector2ToAminoVec2f(AiNodeGetVec2(node,"infinite_blending_dimension"));
-    infinite_blending_radius = AiNodeGetFlt(node, "infinite_blending_radius");
-    infinite_blending_blend = (BlendType) AiNodeGetInt(node, "infinite_blending_blend");
-    enable_infinite_blending_uvs = AiNodeGetBool(node, "enable_infinite_blending_uvs");
-
-    debug = AiNodeGetInt(node, "debug");
+    GET_BOOL(enable_infinite_blending);
+    GET_FLT(infinite_blending_height);
+    GET_VEC2(infinite_blending_center);
+    GET_VEC2(infinite_blending_dimension);
+    GET_FLT(infinite_blending_radius);
+    GET_ENUM(infinite_blending_blend, BlendType);
+    GET_BOOL(enable_infinite_blending_uvs);
 }
 
 std::string SurfaceParams::str() const{
     std::stringstream ss;
-    ss << std::endl;
-    DUMP_PARAM(cache_file);
-    DUMP_PARAM(object);
-    DUMP_ARRAY_PARAM(channels);
-    DUMP_ARRAY_PARAM(velocity_channels);
-    DUMP_PARAM(uv_channel);
-
-    DUMP_PARAM(velocity_scale);
-    DUMP_PARAM(space_scale);
-    DUMP_PARAM(fps);
-
+    ss << BifrostParams::str();
     DUMP_PARAM(render_component);
 
     DUMP_PARAM(distance_channel);
@@ -102,11 +52,7 @@ std::string SurfaceParams::str() const{
     DUMP_PARAM(erode);
     DUMP_PARAM(smooth);
     DUMP_PARAM(smooth_mode);
-
     DUMP_PARAM(smooth_iterations);
-
-    DUMP_PARAM(clip);
-    DUMP_PARAM(clip_bbox);
 
     DUMP_PARAM(enable_infinite_blending);
     DUMP_PARAM(infinite_blending_height);
@@ -116,85 +62,51 @@ std::string SurfaceParams::str() const{
     DUMP_PARAM(infinite_blending_blend);
     DUMP_PARAM(enable_infinite_blending_uvs);
 
-    DUMP_PARAM(debug);
     return ss.str();
 }
 
-void SurfaceParams::declare(AtList* params, AtNodeEntry* nentry){
-    static const char* RenderComponents[] = {
-        "voxels",
-        "particles",
-        NULL
-    };
-    static const char* SmoothModes[] = {
-        "mean",
-        "gaussian",
-        "median",
-        "laplacian_flow",
-        "curvature_flow",
-        NULL
-    };
-    static const char* BlendTypes[] = {
-        "linear",
-        "smooth",
-        "smoother",
-        NULL
-    };
-
-    AiParameterStr("cache_file", "");
-    AiParameterStr("object", "");
-    AiParameterArray("channels", CreateStringArray({"vorticity"}));
-    AiParameterArray("velocity_channels", CreateStringArray({"velocity_u", "velocity_v", "velocity_w"}));
-    AiParameterStr("uv_channel", "uv");
-
-    AiParameterFlt("velocity_scale", 1);
-    AiParameterFlt("space_scale", 1);
-    AiParameterUInt("fps", 24);
-
-    AiParameterEnum("render_component", VOXELS, RenderComponents);
+void SurfaceParams::declare(AtList* params, AtNodeEntry* nentry)
+{
+    BifrostParams::declare(params, nentry);
+    static const char* rc_enums[] = RENDER_COMPONENT_STRINGS;
+    PARAM_ENUM(render_component, VOXELS, rc_enums);
     // VOXELS
-    AiParameterStr("distance_channel", "");
+    PARAM_STR(distance_channel, "");
 
     // PARTICLES
-    AiParameterFlt("levelset_droplet_reveal_factor", 3);
-    AiParameterFlt("levelset_surface_radius", 1.4);
-    AiParameterFlt("levelset_droplet_radius", 1.2);
-    AiParameterFlt("levelset_resolution_factor", 1);
-    AiParameterFlt("levelset_max_volume_of_holes_to_close", 8);
+    PARAM_FLT(levelset_droplet_reveal_factor, 3);
+    PARAM_FLT(levelset_surface_radius, 1.4);
+    PARAM_FLT(levelset_droplet_radius, 1.2);
+    PARAM_FLT(levelset_resolution_factor, 1);
+    PARAM_FLT(levelset_max_volume_of_holes_to_close, 8);
 
     // Filter attributes
-    AiParameterFlt("dilate", 0);
-    AiParameterFlt("erode", 0);
-    AiParameterFlt("smooth", 0);
-    AiParameterEnum("smooth_mode", MEAN, SmoothModes);
-    //AiParameterInt("smooth_kernel" , 0);
-    AiParameterInt("smooth_iterations", 1);
+    PARAM_FLT(dilate, 0);
+    PARAM_FLT(erode, 0);
+    PARAM_FLT(smooth, 0);
+    static const char* sm_enums[] = SMOOTH_MODE_STRINGS;
+    PARAM_ENUM(smooth_mode, MEAN, sm_enums);
+    PARAM_INT(smooth_iterations, 1);
 
-    AiParameterBool("clip", 0);
-    AiParameterVec("clip_min", -1, -1, -1);
-    AiParameterVec("clip_max",  1,  1,  1);
-
-    AiParameterBool("enable_infinite_blending", false);
-    AiParameterBool("infinite_blending_auto_height", true);
-    AiParameterFlt("infinite_blending_height", -1);
-    AiParameterVec2("infinite_blending_center", 0, 0);
-    AiParameterVec2("infinite_blending_dimension", 100, 100);
-    AiParameterFlt("infinite_blending_radius", -1);
-    AiParameterEnum("infinite_blending_blend", SMOOTH, BlendTypes);
-    AiParameterBool("enable_infinite_blending_uvs", true);
-
-    AiParameterInt("debug", 0);
+    PARAM_BOOL(enable_infinite_blending, false);
+    PARAM_FLT(infinite_blending_height, -1);
+    PARAM_VEC2(infinite_blending_center, 0, 0);
+    PARAM_VEC2(infinite_blending_dimension, 50, 50);
+    PARAM_FLT(infinite_blending_radius, -1);
+    static const char* bt_enums[] = BLEND_TYPE_STRINGS;
+    PARAM_ENUM(infinite_blending_blend, SMOOTH, bt_enums);
+    PARAM_BOOL(enable_infinite_blending_uvs, true);
 }
 
 
 PolymeshParams::PolymeshParams(const AtNode* node) : SurfaceParams(node){
-    subdivisions = AiNodeGetUInt(node, "subdivisions");
-    smoothing = AiNodeGetBool(node, "smoothing");
+    GET_UINT(subdivisions);
+    GET_BOOL(smoothing);
     disp_map = AiArrayCopy(AiNodeGetArray(node, "disp_map"));
-    disp_padding = AiNodeGetFlt(node, "disp_padding");
-    disp_height = AiNodeGetFlt(node, "disp_height");
-    disp_zero_value = AiNodeGetFlt(node, "disp_zero_value");
-    disp_autobump = AiNodeGetBool(node, "disp_autobump");
+    GET_FLT(disp_padding);
+    GET_FLT(disp_height);
+    GET_FLT(disp_zero_value);
+    GET_BOOL(disp_autobump);
 }
 std::string PolymeshParams::str() const{
     std::stringstream ss;
@@ -211,14 +123,14 @@ std::string PolymeshParams::str() const{
 
 void PolymeshParams::declare(AtList *params, AtNodeEntry *nentry){
     SurfaceParams::declare(params, nentry);
-    AiParameterUInt("subdivisions", 1);
-    AiParameterBool("smoothing", true);
+    PARAM_UINT(subdivisions, 1);
+    PARAM_BOOL(smoothing, true);
 
-    AiParameterArray("disp_map", AiArrayAllocate(0, 1, AI_TYPE_NODE));
-    AiParameterFlt("disp_padding", 0);
-    AiParameterFlt("disp_height", 1);
-    AiParameterFlt("disp_zero_value", 0);
-    AiParameterBool("disp_autobump", false);
+    PARAM_ARRAY(disp_map, AiArrayAllocate(0, 1, AI_TYPE_NODE));
+    PARAM_FLT(disp_padding, 0);
+    PARAM_FLT(disp_height, 1);
+    PARAM_FLT(disp_zero_value, 0);
+    PARAM_BOOL(disp_autobump, false);
 }
 
 
@@ -229,4 +141,3 @@ void ImplicitParams::declare(AtList *params, AtNodeEntry *nentry){
     SurfaceParams::declare(params, nentry);
 }
 
-} // Surface

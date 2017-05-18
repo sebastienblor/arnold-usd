@@ -3,71 +3,12 @@
 #include "debug.h"
 #include "tbb.h"
 #include "surface.h"
-#include <bifrostapi/bifrost_voxelchannel.h>
 #include <bifrostapi/bifrost_voxelsampler.h>
-#include <bifrostapi/bifrost_layout.h>
-#include <bifrostapi/bifrost_tileaccessor.h>
 #include <bifrostapi/bifrost_fileio.h>
 #include <bifrostprocessing/bifrostprocessing_meshing.h>
 #include "utils.h"
 
 AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPolymeshMtds)
-
-namespace {
-
-    template<typename T>
-    void exportChannel(AtNode* polymesh, const Bifrost::API::Array<amino::Math::vec3f>& vertices, const Bifrost::API::VoxelChannel& channel);
-
-#define EXPORT_CHANNEL(T, type, declaration, AiArraySet, CAST) \
-    template<> void exportChannel<T>(AtNode* polymesh, const Bifrost::API::Array<amino::Math::vec3f>& vertices, const Bifrost::API::VoxelChannel& channel){ \
-        AiNodeDeclare(polymesh, channel.name().c_str(), declaration); \
-        AtArray *channelArray = AiArrayAllocate(vertices.count(), 1, type); \
-        TBB_FOR_ALL(0, vertices.count(), 100, [vertices, channel, channelArray](size_t start, size_t end){ \
-            Bifrost::API::VoxelSampler sampler = channel.createSampler(Bifrost::API::VoxelSamplerLinearType, Bifrost::API::SamplerSpace::WorldSpace); \
-            for(size_t i = start; i < end; ++i){ \
-                 AiArraySet(channelArray, i, CAST(sampler.sample<T>(vertices[i]))); \
-            } \
-        }); \
-        AiNodeSetArray(polymesh, channel.name().c_str(), channelArray); \
-    }
-
-#define EXPORT_ICHANNEL(T, type, declaration, AiArraySet, CAST) \
-    template<> void exportChannel<T>(AtNode* polymesh, const Bifrost::API::Array<amino::Math::vec3f>& vertices, const Bifrost::API::VoxelChannel& channel){ \
-        AiNodeDeclare(polymesh, channel.name().c_str(), declaration); \
-        AtArray *channelArray = AiArrayAllocate(vertices.count(), 1, type);\
-        Bifrost::API::Layout layout(channel.layout());\
-        const Bifrost::API::TileAccessor accessor = layout.tileAccessor();\
-        float invDx = 1./layout.voxelScale();\
-        int N = layout.tileDimInfo().tileWidth; \
-        TBB_FOR_ALL(0, vertices.count(), 100, [vertices, channel, channelArray, layout, accessor, invDx, N](size_t e){\
-            amino::Math::vec3f pos = vertices[e]*invDx;\
-            const Bifrost::API::Tile& tile = accessor.tile(pos[0], pos[1], pos[2], layout.maxDepth());\
-            const Bifrost::API::TileCoord& coord = tile.coord();\
-            AiArraySet(channelArray, e, CAST(channel.tileData<T>(tile.index())((int)(pos[0]-coord.i)%N, (int)(pos[1]-coord.j)%N, (int)(pos[2]-coord.k)%N)));\
-        });\
-        AiNodeSetArray(polymesh, channel.name().c_str(), channelArray);\
-    }
-
-    // export channel specialization per type
-    EXPORT_CHANNEL(float, AI_TYPE_FLOAT, "varying FLOAT", AiArraySetFlt,)
-    EXPORT_CHANNEL(amino::Math::vec2f, AI_TYPE_VECTOR2, "varying VECTOR2", AiArraySetVec2, AminoVec2fToAtVector2)
-    EXPORT_CHANNEL(amino::Math::vec3f, AI_TYPE_VECTOR, "varying VECTOR", AiArraySetVec, AminoVec3fToAtVector)
-    EXPORT_ICHANNEL(int, AI_TYPE_INT, "varying INT", AiArraySetInt, )
-    EXPORT_ICHANNEL(amino::Math::vec2i, AI_TYPE_VECTOR2, "varying VECTOR2", AiArraySetVec2, AminoVec2iToAtVector2)
-    EXPORT_ICHANNEL(amino::Math::vec3i, AI_TYPE_VECTOR, "varying VECTOR", AiArraySetVec, AminoVec3iToAtVector)
-
-    inline void exportChannel(AtNode *polymesh, const Bifrost::API::Array<amino::Math::vec3f> &vertices, const Bifrost::API::VoxelChannel &channel){
-        switch(channel.dataType()){
-        case Bifrost::API::DataType::FloatType:   exportChannel<float>(polymesh, vertices, channel); return;
-        case Bifrost::API::DataType::FloatV2Type: exportChannel<amino::Math::vec2f>(polymesh, vertices, channel); return;
-        case Bifrost::API::DataType::FloatV3Type: exportChannel<amino::Math::vec3f>(polymesh, vertices, channel); return;
-        case Bifrost::API::DataType::Int32Type:   exportChannel<int>(polymesh, vertices, channel); return;
-        case Bifrost::API::DataType::Int32V2Type: exportChannel<amino::Math::vec2i>(polymesh, vertices, channel); return;
-        case Bifrost::API::DataType::Int32V3Type: exportChannel<amino::Math::vec3i>(polymesh, vertices, channel); return;
-        default: AiMsgWarning("[BIFROST] Unknown conversion for exporting channel '%s' (type = %d)", channel.name().c_str(), channel.dataType());
-        }
-    }
-}
 
 procedural_init
 {
@@ -85,7 +26,7 @@ procedural_init
     }
     bool motion = shutter_start != shutter_end;
 
-    Surface::PolymeshParams params(node);
+    PolymeshParams params(node);
     DUMP(params.str());
 
     Bifrost::API::VoxelComponent component;
@@ -227,7 +168,7 @@ procedural_init
 
 node_parameters
 {
-    Surface::PolymeshParams::declare(params, nentry);
+    PolymeshParams::declare(params, nentry);
 }
 procedural_cleanup
 {

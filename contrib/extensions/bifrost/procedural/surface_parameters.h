@@ -1,36 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <aminomath/vec.h>
-#include <aminomath/bbox.h>
-#include <ai_nodes.h>
-#include <ai_msg.h>
+#include "bifrost_parameters.h"
 
-namespace Surface{
-
-enum RenderComponent{
-    VOXELS, PARTICLES
-};
-enum SmoothMode{
-    MEAN, GAUSSIAN, MEDIAN, LAPLACIAN_FLOW, CURVATURE_FLOW
-};
-enum BlendType{
-    LINEAR, SMOOTH, SMOOTHER
-};
-
-struct SurfaceParams{
-    std::string cache_file;
-    std::string tmp_folder;
-    std::string object;
-    std::vector<std::string> channels;
-    std::vector<std::string> velocity_channels;
-    std::string uv_channel;
-
-    float velocity_scale;
-    float space_scale;
-    unsigned int fps;
-
+struct SurfaceParams : public BifrostParams {
     RenderComponent render_component;
     // VOXELS
     std::string distance_channel;
@@ -50,9 +22,6 @@ struct SurfaceParams{
     //intsmooth_kernel;
     int smooth_iterations;
 
-    bool clip;
-    amino::Math::bboxf clip_bbox;
-
     bool enable_infinite_blending;
     float infinite_blending_height;
     amino::Math::vec2f infinite_blending_center;
@@ -60,8 +29,6 @@ struct SurfaceParams{
     float infinite_blending_radius;
     BlendType infinite_blending_blend;
     bool enable_infinite_blending_uvs;
-
-    int debug;
 
     SurfaceParams(const AtNode* node);
     virtual std::string str() const;
@@ -87,6 +54,4 @@ struct ImplicitParams : public SurfaceParams{
     ImplicitParams(const AtNode* node);
     static void declare(AtList *params, AtNodeEntry *nentry);
 };
-
-}
 

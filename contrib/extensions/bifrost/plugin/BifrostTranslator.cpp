@@ -38,7 +38,16 @@
 
 AtNode* BifrostTranslator::CreateArnoldNodes()
 {
-    return AddArnoldNode("bifrost_polymesh");
+    MFnDagNode dagNode(m_dagPath.node());
+    int render_as = dagNode.findPlug("render_as").asInt();
+    switch(render_as){
+    case 0: return AddArnoldNode("bifrost_polymesh");
+    case 1: return AddArnoldNode("bifrost_points");
+    case 2: return AddArnoldNode("bifrost_volume");
+    default: break;
+    }
+    AiMsgError("[mtoa.bifrost] Unknown 'render as' value: %d.\n", render_as);
+    return nullptr;
 }
 
 MMatrix BifrostTranslator::getRelativeMatrix(const MPlug &source){
@@ -294,6 +303,17 @@ void BifrostTranslator::RequestUpdate()
     }\
     helper.MakeInputEnum(data);
 
+#define ADD_DRENDER_AS_ENUM(longName) \
+    data.name = data.shortName = longName;\
+    {\
+        MStringArray enums;\
+        enums.append("Surface");\
+        enums.append("Points");\
+        enums.append("Volume");\
+        data.enums = enums;\
+    }\
+    helper.MakeInputEnum(data);
+
 
 void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
@@ -305,6 +325,7 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DBOOL("smoothing", true);
     ADD_DINT_HARDMIN("subdivisions", 1, 0);
 
+    ADD_DRENDER_AS_ENUM("render_as");
     // TODO: remove the following attributes (non arnold specific)
     ADD_DDATA_ENUM("render_component");
 
@@ -345,8 +366,6 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
             CHECK_MSTATUS(dgMod.doIt());
         }
     }
-    //ADD_DFLT3("clip_min", -1.f, -1.f, -1.f);
-    //ADD_DFLT3("clip_max",  1.f,  1.f,  1.f);
 
     ADD_DBOOL("enable_infinite_blending", false);
     {

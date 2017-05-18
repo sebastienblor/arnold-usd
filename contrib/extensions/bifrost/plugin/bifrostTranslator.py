@@ -59,6 +59,8 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("matte")
         self.addSeparator()
 
+        self.addControl("render_as")
+        self.addSeparator()
         self.addControl("render_component", changeCommand=CheckRenderComponents)
         self.addControl("velocity_scale")
         self.addControl("space_scale")
