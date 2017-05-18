@@ -414,15 +414,16 @@ namespace
          else
          {
             status = SYNCOLOR::createStockTransform(SYNCOLOR::STOCK_TRANSFORM_IDENTITY, transform);
-            if(status)
-            {
-               status = SYNCOLOR::finalize(
-                  transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
-               if(status)
-               {
-                  colorData->m_output_transforms[tag] = transform;
-               }
-            }
+         }
+      }
+
+      if(status)
+      {
+         status = SYNCOLOR::finalize(
+            transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+         if(status)
+         {
+            colorData->m_output_transforms[tag] = transform;
          }
       }
 
@@ -482,27 +483,29 @@ namespace
                         {
                            if(status)
                            {
-                              status = SYNCOLOR::finalize(
-                                 transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
-                              if(status)
-                              {
-                                 colorData->m_input_transforms[key] = transform;
-
-                                 if(direction==SYNCOLOR::TransformReverse)
-                                 {
-                                    AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'", 
-                                       colorData->m_rendering_color_space.c_str(), color_space.c_str());
-                                 }
-                                 else
-                                 {
-                                    AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'", 
-                                       color_space.c_str(), colorData->m_rendering_color_space.c_str());
-                                 }
-                              }
+                              colorData->m_input_transforms[key] = transform;
                            }
                         }
                      }
                   }
+               }
+            }
+         }
+         if(status)
+         {
+            status = SYNCOLOR::finalize(
+               transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+            if(status)
+            {
+               if(direction==SYNCOLOR::TransformReverse)
+               {
+                  AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'", 
+                     colorData->m_rendering_color_space.c_str(), color_space.c_str());
+               }
+               else
+               {
+                  AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'", 
+                     color_space.c_str(), colorData->m_rendering_color_space.c_str());
                }
             }
          }
@@ -571,19 +574,20 @@ namespace
                            status = colorData->m_output_template->createTransform(transform, SYNCOLOR::TransformForward);
                            if(status)
                            {
-                              status = SYNCOLOR::finalize(
-                                 transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
-                              if(status)
-                              {
-                                 colorData->m_output_transforms[key] = transform;
-                                 AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'",
-                                    colorData->m_rendering_color_space.c_str(), color_space.c_str());
-                              }
+                              colorData->m_output_transforms[key] = transform;
                            }
                         }
                      }
                   }
                }
+            }
+            if(status)
+            {
+               status = SYNCOLOR::finalize(
+                  transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+
+               AiMsgInfo("[color_manager_syncolor] Color transformation from '%s' to '%s'",
+                  colorData->m_rendering_color_space.c_str(), color_space.c_str());
             }
          }
       }
