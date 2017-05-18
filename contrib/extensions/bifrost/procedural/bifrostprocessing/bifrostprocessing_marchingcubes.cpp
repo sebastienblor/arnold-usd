@@ -216,11 +216,10 @@ void MarchingCubesVisitor::join(const Bifrost::API::Visitor& visitor)
 
 void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
 #ifdef PROCESSING_PROFILING
-    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(joining_time).count();
-    std::cerr << "[BIFROST PROFILER] " << "MARCHING CUBES JOIN" << ": " << (microseconds/(double)1000000.) << "s" << std::endl;
+    Bifrost::Private::Profiler::dump("MARCHING CUBES JOIN", joining_time);
 #endif
     {
-        PROFILER("MARCHING CUBES ADD VERTICES");
+        PROFILER("MARCHING CUBES MERGE VERTICES");
         for(const Mesh& mesh : meshes){
             for(unsigned int i = 0; i < mesh.vertices.count(); ++i){
                 const amino::Math::vec3f& newVertex = mesh.vertices[i];
@@ -233,7 +232,7 @@ void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
         }
     }
     {
-        PROFILER("MARCHING CUBES ADD TRIANGLES");
+        PROFILER("MARCHING CUBES MERGE TRIANGLES");
         unsigned long total = (meshes.size()==0? 0 : meshes[meshes.size()-1].index+meshes[meshes.size()-1].index);
         indices.resize(total);
         Bifrost::Private::TBB_FOR_ALL(0, meshes.size(), 1, [&](size_t i){

@@ -7,6 +7,8 @@
 
 #define FOR_IJK(i,j,k,w) for(int i = 0; i < w; ++i) for(int j = 0; j < w; ++j) for(int k = 0; k < w; ++k)
 
+#define FOR_IJK_SYMMETRIC(i,j,k,w) for(int i = -w; i <= w; ++i) for(int j = -w; j <= w; ++j) for(int k = -w; k <= w; ++k)
+
 #define INSTANCIATE(classname)\
     template class BIFROSTPROCESSING_API_DECL classname<float>;\
     template class BIFROSTPROCESSING_API_DECL classname<int32_t>;\
@@ -19,14 +21,16 @@
     template class BIFROSTPROCESSING_API_DECL classname<amino::Math::vec3i>
 
 #define PROCESSING_PROFILING
+#define PROCESSING_PROFILING_PADDING 30
 #ifdef PROCESSING_PROFILING
 #include <iostream>
 #include <chrono>
 
-#define PROFILE Profiler p(__PRETTY_FUNCTION__)
-#define PROFILER(name) Profiler p(name)
+#define PROFILE Bifrost::Private::Profiler p(__PRETTY_FUNCTION__)
+#define PROFILER(name) Bifrost::Private::Profiler p(name)
 
-namespace{
+namespace Bifrost{
+namespace Private {
 
 class Profiler{
 private:
@@ -36,13 +40,20 @@ public:
     Profiler(const std::string& name)
         :name(name), start(std::chrono::high_resolution_clock::now()){}
     ~Profiler(){
-        auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-        std::cerr << "[BIFROST PROFILER] " << name << ": " << (microseconds/(double)1000000.) << "s" << std::endl;
+        dump(name, std::chrono::high_resolution_clock::now() - start);
+    }
+    static void dump(const std::string& name, const std::chrono::high_resolution_clock::duration& duration){
+        long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+        std::stringstream ss;
+        ss << "[BIFROST PROFILER] " << name;
+        int n = PROCESSING_PROFILING_PADDING - name.size();
+        for(int i = 0; i < n; ++i) ss << " ";
+        ss << " : " << (microseconds/(double)1000000.) << "s" << std::endl;
+        std::cerr << ss.str();
     }
 };
 
-}
+}} // Bifrost::Private
 
 #else
 

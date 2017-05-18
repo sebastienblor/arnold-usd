@@ -38,11 +38,12 @@ namespace {
         Bifrost::API::Layout layout(channel.layout());\
         const Bifrost::API::TileAccessor accessor = layout.tileAccessor();\
         float invDx = 1./layout.voxelScale();\
-        TBB_FOR_ALL(0, vertices.count(), 100, [vertices, channel, channelArray, layout, accessor, invDx](size_t i){\
-            const amino::Math::vec3f& pos = vertices[i];\
-            const Bifrost::API::Tile& tile = accessor.tile(pos[0]*invDx, pos[1]*invDx, pos[2]*invDx, layout.maxDepth());\
+        int N = layout.tileDimInfo().tileWidth; \
+        TBB_FOR_ALL(0, vertices.count(), 100, [vertices, channel, channelArray, layout, accessor, invDx, N](size_t e){\
+            amino::Math::vec3f pos = vertices[e]*invDx;\
+            const Bifrost::API::Tile& tile = accessor.tile(pos[0], pos[1], pos[2], layout.maxDepth());\
             const Bifrost::API::TileCoord& coord = tile.coord();\
-            AiArraySet(channelArray, i, CAST(channel.tileData<T>(tile.index())(coord.i%5, coord.j%5, coord.k%5)));\
+            AiArraySet(channelArray, e, CAST(channel.tileData<T>(tile.index())((int)(pos[0]-coord.i)%N, (int)(pos[1]-coord.j)%N, (int)(pos[2]-coord.k)%N)));\
         });\
         AiNodeSetArray(polymesh, channel.name().c_str(), channelArray);\
     }
