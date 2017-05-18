@@ -21,8 +21,8 @@ private:
 
 namespace{
 
-std::ostream& operator<<(std::ostream& stream, const Bifrost::API::TileCoord& coord){
-    return stream << "Coord[" << coord.i << ", " << coord.j << ", " << coord.k << "]";
-}
+//std::ostream& operator<<(std::ostream& stream, const Bifrost::API::TileCoord& coord){
+//    return stream << "Coord[" << coord.i << ", " << coord.j << ", " << coord.k << "]";
+//}
 
 }

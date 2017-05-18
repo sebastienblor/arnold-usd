@@ -70,11 +70,7 @@ public:
 
     inline size_t getVertexCount() const{ return vertices.count(); }
     inline void addVertex(const amino::Math::vec3f& position) { vertices.add(position); }
-    inline const amino::Math::vec3f& getVertex(unsigned int i) const{ assert(i < vertices.count()); return vertices[i]; }
-
-    inline size_t getTriangleCount() const{ return indices.count(); }
     inline void addTriangle(const amino::Math::vec3i& triangle) { indices.add(triangle); }
-    inline const amino::Math::vec3i& getTriangle(unsigned int i) const { assert(i < indices.count()); return indices[i]; }
 
     MarchingCubesVisitor(const Bifrost::API::VoxelChannel& sdf, unsigned int subdivisions)
         : sdf(sdf),

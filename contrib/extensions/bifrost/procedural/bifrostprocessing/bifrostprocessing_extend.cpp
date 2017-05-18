@@ -35,9 +35,9 @@ class ExtendUVVisitor : public Bifrost::API::Visitor {
 public:
     ExtendUVVisitor(const amino::Math::vec2f& min, const amino::Math::vec2f& max, Bifrost::API::VoxelChannel& out) : out(out) {
         float dx = Bifrost::API::Layout(out.layout()).voxelScale();
-        mat =   amino::Math::mat33f(dx,0,0,  0,dx,0,  0,0,1) *
+        mat =   amino::Math::mat33f(1./(max[0]-min[0]),0,0,  0,1./(max[1]-min[1]),0,  0,0,1) *
                 amino::Math::mat33f(1,0,-min[0],  0,1,-min[1],  0,0,1) *
-                amino::Math::mat33f(1./(max[0]-min[0]),0,0,  0,1./(max[1]-min[1]),0,  0,0,1);
+                amino::Math::mat33f(dx,0,0,  0,dx,0,  0,0,1);
     }
     ExtendUVVisitor(const ExtendUVVisitor& o)
         : mat(o.mat), out(o.out) {}
@@ -105,7 +105,6 @@ struct FloodTile{
 
     inline bool valid() const{ return tile.valid(); }
     inline const float& sdf(int i, int j, int k) const{ return _sdf(i,j,k); }
-    inline const float& alpha(int i, int j, int k) const{ return _alpha(i,j,k); }
     inline float& alpha(int i, int j, int k){ return _alpha(i,j,k); }
 
     inline bool flood(int i, int j, int k){
@@ -230,6 +229,7 @@ void crawl(const Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& al
 }
 
 void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& alpha, float height, float radius){
+    if((0)) DUMP(radius);
     Bifrost::API::Layout layout(sdf.layout());
     {
         // TODO: make this parallel
@@ -299,12 +299,8 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
 
     if(sdf == out){
         sdf = ss.createChannel(component, Bifrost::API::DataType::FloatType, "tmp");
-        if(true){
-            createOceanPlane(sdf, height);
-            blend(sdf, out, alpha, out);
-        }else{
-            createOceanPlane(out, height);
-        }
+        createOceanPlane(sdf, height);
+        blend(sdf, out, alpha, out);
         Bifrost::API::String name = sdf.fullPathName();
         sdf.reset();
         ss.removeChannel(name);
