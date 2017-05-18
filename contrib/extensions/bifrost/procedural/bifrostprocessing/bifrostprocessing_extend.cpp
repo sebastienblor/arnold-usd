@@ -277,16 +277,16 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
 
         float invDx = 1./layout.voxelScale();
         const amino::Math::bboxi ranges(
-                    amino::Math::vec3i((int)floor((bbox.min()[0]-radius)*invDx), (int)floor((bbox.max()[1]-radius)*invDx), (int)floor((bbox.min()[2]-radius)*invDx)),
-                    amino::Math::vec3i( (int)ceil((bbox.max()[0]+radius)*invDx),  (int)ceil((bbox.max()[1]+radius)*invDx),  (int)ceil((bbox.max()[2]+radius)*invDx)));
+                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-1, (int)floor((bbox.min()[2])*invDx)),
+                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+1,  (int)ceil((bbox.max()[2])*invDx)));
 
         int n = layout.tileDimInfo().tileWidth;
+        int jmin = ranges.min()[1], jmax = ranges.max()[1];
         Bifrost::API::TileAccessor accessor = layout.tileAccessor();
-        for(int j = ranges.min()[1]; j < ranges.max()[1]; j+=n){
-            for(int i = ranges.min()[0]; i < ranges.max()[0]; i+=n){
-                for(int k = ranges.min()[2]; k < ranges.max()[2]; k+=n){
-                    accessor.addTile(i,j,k,layout.maxDepth());
-                }
+        for(int i = ranges.min()[0]; i < ranges.max()[0]; i+=n){
+            for(int k = ranges.min()[2]; k < ranges.max()[2]; k+=n){
+                accessor.addTile(i,jmin,k,layout.maxDepth());
+                accessor.addTile(i,jmax,k,layout.maxDepth());
             }
         }
     }
@@ -299,8 +299,12 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
 
     if(sdf == out){
         sdf = ss.createChannel(component, Bifrost::API::DataType::FloatType, "tmp");
-        createOceanPlane(sdf, height);
-        blend(sdf, out, alpha, out);
+        if(true){
+            createOceanPlane(sdf, height);
+            blend(sdf, out, alpha, out);
+        }else{
+            createOceanPlane(out, height);
+        }
         Bifrost::API::String name = sdf.fullPathName();
         sdf.reset();
         ss.removeChannel(name);
