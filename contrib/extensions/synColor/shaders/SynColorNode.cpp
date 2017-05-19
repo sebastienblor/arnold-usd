@@ -459,16 +459,15 @@ namespace
          else
          {
             status = SYNCOLOR::createStockTransform(SYNCOLOR::STOCK_TRANSFORM_IDENTITY, transform);
-         }
-      }
-
-      if(status)
-      {
-         status = SYNCOLOR::finalize(
-            transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
-         if(status)
-         {
-            colorData->m_output_transforms[0] = transform;
+            if(status)
+            {
+               status = SYNCOLOR::finalize(
+                  transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
+               if(status)
+               {
+                  colorData->m_output_transforms[tag] = transform;
+               }
+            }
          }
       }
 
@@ -484,10 +483,12 @@ namespace
                                                        const SYNCOLOR::TransformDirection& direction,
                                                        SYNCOLOR::TransformPtr& transform)
    {
-      const TransformKey tKey(colorData->m_rendering_color_space.hash(), color_space.hash(), 
-         (unsigned int)src_pixel_format, (unsigned int)dst_pixel_format);
-
-      const size_t key = tKey.GetHash();
+      // Having a human readable tag is always useful when debugging.
+      const AtString key( std::string(
+                              std::string(color_space.c_str())
+                              + std::string(" to ")
+                              + std::string(colorData->m_rendering_color_space.c_str())
+                              + std::string(direction==SYNCOLOR::TransformReverse ? " reverse" : "" ) ).c_str() );
 
       SYNCOLOR::SynStatus status;
 
@@ -578,10 +579,11 @@ namespace
       }
       else
       {
-         const TransformKey tKey(colorData->m_rendering_color_space.hash(), color_space.hash(), 
-            (unsigned int)src_pixel_format, (unsigned int)dst_pixel_format);
-
-         const size_t key = tKey.GetHash();
+         // Having a human readable tag is always useful when debugging.
+         const AtString key( std::string(
+                                 std::string(colorData->m_rendering_color_space.c_str())
+                                 + std::string(" to ")
+                                 + std::string(color_space.c_str()) ).c_str() );
 
          ProcessorMap::const_iterator it = colorData->m_output_transforms.find(key);
          if(it != colorData->m_output_transforms.end())
