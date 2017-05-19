@@ -12,14 +12,45 @@
 
 #ifdef _LINUX
 #include <tr1/unordered_map>
-typedef std::tr1::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtStringHash> ProcessorMap;
+typedef std::tr1::unordered_map<size_t, SYNCOLOR::TransformPtr> ProcessorMap;
 #else
 #include <unordered_map>
-typedef std::unordered_map<const AtString, SYNCOLOR::TransformPtr, AtStringHash> ProcessorMap;
+typedef std::unordered_map<size_t, SYNCOLOR::TransformPtr> ProcessorMap;
 #endif
 #include <string>
 #include <fstream>
 
+struct TransformKey
+{
+   TransformKey(size_t rHash, size_t csHash, unsigned int sFormat, unsigned int dFormat) :
+      renderingSpaceHash(rHash),
+      colorSpaceHash(csHash),
+      srcPixelFormat(sFormat),
+      dstPixelFormat(dFormat) 
+   {}
+
+
+   size_t GetHash() const 
+   {
+      // hash function from http://www.cse.yorku.ca/~oz/hash.html
+      size_t size = sizeof(TransformKey);
+      unsigned char *input = (unsigned char*)this;
+      size_t hash = 5381;
+      int c;
+      while (size--)
+      {
+         c = *input++;
+         hash = ((hash << 5) + hash) + c; 
+      }
+      return hash;
+   }
+   
+   size_t renderingSpaceHash;
+   size_t colorSpaceHash;
+   unsigned int srcPixelFormat;
+   unsigned int dstPixelFormat;
+
+};
 
 AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
 
@@ -319,11 +350,13 @@ namespace
                                                      const SYNCOLOR::PixelFormat& dst_pixel_format,
                                                      SYNCOLOR::TransformPtr& transform)
    {
-      static const AtString tag("<Identity>");
+      // considering Raw transformation as having the key = 0
+
+      // static const AtString tag("<Identity>");
 
       SYNCOLOR::SynStatus status;
 
-      ProcessorMap::const_iterator it = colorData->m_output_transforms.find(tag);
+      ProcessorMap::const_iterator it = colorData->m_output_transforms.find(0);
       if(it != colorData->m_output_transforms.end())
       {
          transform = it->second;
@@ -332,7 +365,7 @@ namespace
       {
          ThreadGuard guard(colorData->m_output_guard);
 
-         it = colorData->m_output_transforms.find(tag);
+         it = colorData->m_output_transforms.find(0);
          if(it != colorData->m_output_transforms.end())
          {
             transform = it->second;
@@ -346,7 +379,7 @@ namespace
                   transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
                if(status)
                {
-                  colorData->m_output_transforms[tag] = transform;
+                  colorData->m_output_transforms[0] = transform;
                }
             }
          }
@@ -365,11 +398,16 @@ namespace
                                                        SYNCOLOR::TransformPtr& transform)
    {
       // Having a human readable tag is always useful when debugging.
-      const AtString key( std::string(
+  /*    const AtString key( std::string(
                               std::string(color_space.c_str())
                               + std::string(" to ")
                               + std::string(colorData->m_rendering_color_space.c_str())
                               + std::string(direction==SYNCOLOR::TransformReverse ? " reverse" : "" ) ).c_str() );
+*/
+      TransformKey tKey(colorData->m_rendering_color_space.hash(), color_space.hash(), 
+         (unsigned int)src_pixel_format, (unsigned int)dst_pixel_format);
+
+      size_t key = tKey.GetHash();
 
       SYNCOLOR::SynStatus status;
 
@@ -463,11 +501,18 @@ namespace
       }
       else
       {
+         /*
          // Having a human readable tag is always useful when debugging.
          const AtString key( std::string(
                                  std::string(colorData->m_rendering_color_space.c_str())
+                                 +
                                  + std::string(" to ")
                                  + std::string(color_space.c_str()) ).c_str() );
+                                 */
+         TransformKey tKey(colorData->m_rendering_color_space.hash(), color_space.hash(), 
+         (unsigned int)src_pixel_format, (unsigned int)dst_pixel_format);
+
+         size_t key = tKey.GetHash();
 
          ProcessorMap::const_iterator it = colorData->m_output_transforms.find(key);
          if(it != colorData->m_output_transforms.end())
