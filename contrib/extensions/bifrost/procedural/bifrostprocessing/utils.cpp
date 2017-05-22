@@ -43,4 +43,13 @@ Bifrost::API::Tile SweepAccessor::further(const Bifrost::API::Tile& tile) const{
     return out.info().depth == tile.info().depth? out : Bifrost::API::Tile();
 }
 
+std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter){
+    Bifrost::API::RefArray channels = component.channels();
+    std::stringstream ss;
+    for(unsigned int i = 0; i < channels.count(); ++i)
+        if(filter(channels[i]))
+            ss << "    " << Bifrost::API::Channel(channels[i]).name() << std::endl;
+    return ss.str();
+}
+
 }} // Bifrost::Private

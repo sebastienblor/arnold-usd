@@ -1,15 +1,10 @@
 #include <ai.h>
 #include "debug.h"
 
-AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostImplicitMtds)
-
-node_parameters
-{
-}
+AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPointsMtds)
 
 procedural_init
 {
-    PROFILER("initialize implicit");
     return false;
 }
 
@@ -26,4 +21,8 @@ procedural_num_nodes
 procedural_get_node
 {
     return NULL;
+}
+
+node_parameters
+{
 }

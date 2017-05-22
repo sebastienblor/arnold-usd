@@ -20,6 +20,12 @@
     template class BIFROSTPROCESSING_API_DECL classname<amino::Math::vec2i>;\
     template class BIFROSTPROCESSING_API_DECL classname<amino::Math::vec3i>
 
+#define DUMP_PARAM(param) ss << "    " << #param << " = " << (param) << std::endl;
+#define DUMP_ARRAY_PARAM(param) \
+    ss << "    " << #param << " = " << std::endl; \
+    for(int i = 0; i < param.count(); ++i) \
+        ss << "        " << param[i].c_str() << std::endl;
+
 #define PROCESSING_PROFILING
 #define PROCESSING_PROFILING_PADDING 30
 #ifdef PROCESSING_PROFILING

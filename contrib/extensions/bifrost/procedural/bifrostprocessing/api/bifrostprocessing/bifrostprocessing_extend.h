@@ -1,3 +1,5 @@
+#pragma once
+
 #include <bifrostapi/bifrost_voxelchannel.h>
 
 namespace Bifrost{

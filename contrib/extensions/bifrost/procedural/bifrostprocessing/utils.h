@@ -1,5 +1,7 @@
 #include <bifrostapi/bifrost_tile.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
+#include <bifrostapi/bifrost_component.h>
+#include <bifrostapi/bifrost_channel.h>
 
 namespace Bifrost{
 namespace Private{
@@ -16,6 +18,9 @@ public:
 private:
     Bifrost::API::TileAccessor accessor;
 };
+
+std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter=[](const Bifrost::API::Channel&){ return true; });
+
 
 }} // namespace Bifrost::Private
 

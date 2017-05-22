@@ -229,7 +229,7 @@ void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
     }
     {
         PROFILER("MARCHING CUBES MERGE TRIANGLES");
-        unsigned long total = (meshes.size()==0? 0 : meshes[meshes.size()-1].index+meshes[meshes.size()-1].index);
+        unsigned long total = (meshes.size()==0? 0 : meshes[meshes.size()-1].index+meshes[meshes.size()-1].indices.count());
         indices.resize(total);
         Bifrost::Private::TBB_FOR_ALL(0, meshes.size(), 1, [&](size_t i){
             const Mesh& mesh = meshes[i];
@@ -577,7 +577,7 @@ int MarchingCubesVisitor::c_triTable[256][16] =
 namespace Bifrost{
 namespace Processing{
 
-void createMarchingCubeMesh(const API::VoxelChannel &distance, Bifrost::API::Array<amino::Math::vec3f> &vertices, Bifrost::API::Array<amino::Math::vec3i> &indices, unsigned int subdivisions){
+void MarchingCubes::mesh(const API::VoxelChannel &distance, Bifrost::API::Array<amino::Math::vec3f> &vertices, Bifrost::API::Array<amino::Math::vec3i> &indices, unsigned int subdivisions) const{
     {
     PROFILER("MARCHING CUBES");
     MarchingCubesVisitor visitor(distance, subdivisions);

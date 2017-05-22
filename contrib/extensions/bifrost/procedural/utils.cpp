@@ -6,6 +6,20 @@
 #include <bifrostapi/bifrost_voxelsampler.h>
 #include <bifrostapi/bifrost_layout.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
+#include <ai_universe.h>
+
+bool getMotion(float &shutter_start, float &shutter_end){
+    AtNode* options = AiUniverseGetOptions();
+    if(AiNodeGetBool(options, "ignore_motion_blur")){
+        shutter_start = shutter_end = AiNodeGetFlt(options, "reference_time");
+    }else{
+        AtNode* camera = AiUniverseGetCamera();
+        shutter_start = AiNodeGetFlt(camera, "shutter_start");
+        shutter_end = AiNodeGetFlt(camera, "shutter_end");
+    }
+    if(shutter_end < shutter_start){ shutter_end = shutter_start; }
+    return shutter_start != shutter_end;
+}
 
 std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter){
     Bifrost::API::RefArray channels = component.channels();
