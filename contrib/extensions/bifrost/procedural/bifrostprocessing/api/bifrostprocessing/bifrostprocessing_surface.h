@@ -23,13 +23,13 @@ public:
     SmoothMode smooth_mode = Mean;
     int smooth_iterations = 1;
 
-    bool enable_infinite_blending = false;
-    float infinite_blending_height = 0;
-    amino::Math::vec2f infinite_blending_center = amino::Math::vec2f(0,0);
-    amino::Math::vec2f infinite_blending_dimension = amino::Math::vec2f(10,10);
-    float infinite_blending_radius = 1;
-    BlendType infinite_blending_blend = Smooth;
-    bool enable_infinite_blending_uvs = true;
+    bool enable_ocean_blending = false;
+    float ocean_blending_height = 0;
+    amino::Math::vec2f ocean_blending_center = amino::Math::vec2f(0,0);
+    amino::Math::vec2f ocean_blending_dimension = amino::Math::vec2f(10,10);
+    float ocean_blending_radius = 1;
+    BlendType ocean_blending_blend = Smooth;
+    bool enable_ocean_blending_uvs = true;
 
     virtual Status initialize() override;
     void mesh(Bifrost::API::Array<amino::Math::vec3f>& vertices, Bifrost::API::Array<amino::Math::vec3i>& indices, unsigned int subdivisions=1) const;

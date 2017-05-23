@@ -8,6 +8,30 @@
 #include <bifrostapi/bifrost_tileaccessor.h>
 #include <ai_universe.h>
 
+Bifrost::Processing::Status report(const Bifrost::Processing::Status& status){
+    for(unsigned int i = 0; i < status.warnings().count(); ++i){
+        AiMsgWarning("[BIFROST] %s", status.warnings()[i].c_str());
+    }
+    if(!status){
+        AiMsgError("[BIFROST] %s", status.error().c_str());
+    }
+    return status;
+}
+
+Bifrost::API::StringArray ArrayToStrings(const AtArray* array){
+    Bifrost::API::StringArray strings;
+    for(unsigned int i = 0; i < AiArrayGetNumElements(array); ++i)
+        strings.add(AiArrayGetStr(array,i).c_str());
+    return strings;
+}
+
+AtArray* CreateStringArray(const std::vector<std::string>& strings){
+    AtArray* array = AiArrayAllocate(strings.size(),1,AI_TYPE_STRING);
+    for(unsigned int i = 0; i < strings.size(); ++i)
+        AiArraySetStr(array, i, strings[i].c_str());
+    return array;
+}
+
 bool getMotion(float &shutter_start, float &shutter_end){
     AtNode* options = AiUniverseGetOptions();
     if(AiNodeGetBool(options, "ignore_motion_blur")){
@@ -19,6 +43,10 @@ bool getMotion(float &shutter_start, float &shutter_end){
     }
     if(shutter_end < shutter_start){ shutter_end = shutter_start; }
     return shutter_start != shutter_end;
+}
+
+amino::Math::vec3f getCameraPosition(){
+    return amino::Math::vec3f();
 }
 
 std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter){

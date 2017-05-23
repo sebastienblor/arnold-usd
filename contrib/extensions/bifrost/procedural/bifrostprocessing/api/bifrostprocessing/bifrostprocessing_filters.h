@@ -10,8 +10,8 @@ class Filter{
 public:
     virtual ~Filter(){}
 
-    virtual void filter(const Bifrost::API::Channel& in, Bifrost::API::Channel& out) const=0;
-    void filter(Bifrost::API::Channel& inOut) const;
+    virtual void filter(const Bifrost::API::Channel in, Bifrost::API::Channel out) const=0;
+    void filter(Bifrost::API::Channel inOut) const;
 
     void setTraversalMode(Bifrost::API::TraversalMode mode);
     Bifrost::API::TraversalMode traversalMode() const;
@@ -27,7 +27,7 @@ private:
 template<typename T>
 class TransformFilter : public Filter{
 public:
-    void filter(const API::Channel &in, API::Channel &out) const;
+    void filter(const API::Channel in, API::Channel out) const;
     virtual T compute(const T& in) const=0;
 };
 
@@ -79,7 +79,7 @@ private:
 template<typename T>
 class HaloFilter : public Filter{
 public:
-    void filter(const API::Channel &in, API::Channel &out) const;
+    void filter(const API::Channel in, API::Channel out) const;
     virtual T compute(const typename Bifrost::API::HaloedCache<T>::Tile& in, int i, int j, int k) const=0;
 };
 
@@ -118,12 +118,24 @@ public:
         kCurvatureFlow
     };
     SmoothFilter(Mode mode, unsigned int iterations, float blend);
-    void filter(const Bifrost::API::Channel& in, Bifrost::API::Channel& out) const override;
+    void filter(const Bifrost::API::Channel in, Bifrost::API::Channel out) const override;
 
 private:
     Mode _mode;
     unsigned int _iterations;
     float blend;
+};
+
+class ExtendFilter : public Filter{
+public:
+    ExtendFilter(float height, const amino::Math::vec2f& center, const amino::Math::vec2f& dimensions, float radius);
+    void filter(const Bifrost::API::Channel in, Bifrost::API::Channel out) const override;
+    void uvs(Bifrost::API::Channel out) const;
+
+private:
+    float height;
+    amino::Math::vec2f center, dimensions;
+    float radius;
 };
 
 }} // namespace Bifrost::Processing

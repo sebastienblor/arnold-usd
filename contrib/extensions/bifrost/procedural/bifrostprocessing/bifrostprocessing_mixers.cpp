@@ -1,4 +1,4 @@
-#include <bifrostprocessing/bifrostprocessing_mixer.h>
+#include <bifrostprocessing/bifrostprocessing_mixers.h>
 #include <bifrostapi/bifrost_visitor.h>
 #include <bifrostapi/bifrost_layout.h>
 #include "defs.h"

@@ -1,11 +1,9 @@
 #include <bifrostprocessing/bifrostprocessing_surface.h>
-#include <bifrostprocessing/bifrostprocessing_meshing.h>
 #include <bifrostapi/bifrost_all.h>
 #include <bifrostapi/bifrost_status.h>
 #include <bifrostapi/bifrost_levelset.h>
 #include <bifrostprocessing/bifrostprocessing_filters.h>
-#include <bifrostprocessing/bifrostprocessing_meshing.h>
-#include <bifrostprocessing/bifrostprocessing_extend.h>
+#include <bifrostprocessing/bifrostprocessing_meshers.h>
 #include <bifrostapi/bifrost_cacheresource.h>
 #include <aminomath/vec.h>
 #include "utils.h"
@@ -54,7 +52,7 @@ Status convertPointsToVoxels(Surface& surface, const Bifrost::API::PointComponen
             particleChannels.add(pointChannel.partialPathName());
             voxelChannels.add(voxelChannel.partialPathName());
         }else{
-            status.error("[BIFROST] Failed to create voxel channel '%s'.", pointChannel.name().c_str());
+            status.error("Failed to create voxel channel '%s'.", pointChannel.name().c_str());
             return status;
         }
     }
@@ -65,7 +63,7 @@ Status convertPointsToVoxels(Surface& surface, const Bifrost::API::PointComponen
                                                        component,                      /* component holding the output voxel channels */
                                                        voxelChannels                   /* must exist on outputVoxel: distance, etc... */
                                                        ).succeeded()){
-        status.error("[BIFROST] createLevelSet call failed...");
+        status.error("createLevelSet call failed...");
         return status;
     }
     return status;
@@ -95,7 +93,7 @@ Status Surface::initialize(){
 
     Bifrost::API::VoxelChannel distance = _component.findChannel(distance_channel.c_str());
     if(!distance.valid() || distance.dataType() != Bifrost::API::DataType::FloatType){
-        status.error("[BIFROST] Invalid distance channel \"%s\". Available channels are:\n%s", distance_channel.c_str(),
+        status.error("Invalid distance channel \"%s\". Available channels are:\n%s", distance_channel.c_str(),
                    Bifrost::Private::availableChannels(_component, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
         return status;
     }
@@ -107,28 +105,17 @@ Status Surface::initialize(){
     if(erode != 0)
         Bifrost::Processing::ErodeFilter<float>(erode).filter(distance, distance);
 
-    if(enable_infinite_blending){
-        Bifrost::Processing::extend(distance, infinite_blending_height, infinite_blending_center, infinite_blending_dimension, infinite_blending_radius, distance);
-        Bifrost::API::VoxelChannel uvs = _component.findChannel(uv_channel.c_str());
-        if(uvs.valid()){
-            Bifrost::Processing::extendUVs(infinite_blending_center, infinite_blending_dimension, uvs);
-        }else{
-            status.warn("[BIFROST] Invalid uv channel \"%s\". Available channels are:\n%s", uv_channel.c_str(),
-                       Bifrost::Private::availableChannels(_component, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
-        }
-    }
-    Bifrost::API::Layout layout(_component.layout());
-    layout.setVoxelScale(layout.voxelScale()*space_scale);
-    float vscale = velocity_scale / fps;
-    if(vscale != 1){
-        if(velocity_channels.count()==3){
-            for(unsigned int i = 0; i < velocity_channels.count(); ++i){
-                Bifrost::API::Channel v = _component.findChannel(velocity_channels[i]);
-                ScaleFilter<float>(vscale).filter(v,v);
+    if(enable_ocean_blending){
+        Bifrost::Processing::ExtendFilter extend(ocean_blending_height, ocean_blending_center, ocean_blending_dimension, ocean_blending_radius);
+        extend.filter(distance,distance);
+        if(enable_ocean_blending_uvs){
+            Bifrost::API::VoxelChannel uvs = _component.findChannel(uv_channel.c_str());
+            if(uvs.valid()){
+                extend.uvs(uvs);
+            }else{
+                status.warn("Invalid uv channel \"%s\". Available channels are:\n%s", uv_channel.c_str(),
+                            Bifrost::Private::availableChannels(_component, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
             }
-        }else if(velocity_channels.count()==1){
-            Bifrost::API::Channel v = _component.findChannel(velocity_channels[0]);
-            ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
         }
     }
     return status;
@@ -158,13 +145,13 @@ Bifrost::API::String Surface::str() const{
     DUMP_PARAM(smooth_mode);
     DUMP_PARAM(smooth_iterations);
 
-    DUMP_PARAM(enable_infinite_blending);
-    DUMP_PARAM(infinite_blending_height);
-    DUMP_PARAM(infinite_blending_center);
-    DUMP_PARAM(infinite_blending_dimension);
-    DUMP_PARAM(infinite_blending_radius);
-    DUMP_PARAM(infinite_blending_blend);
-    DUMP_PARAM(enable_infinite_blending_uvs);
+    DUMP_PARAM(enable_ocean_blending);
+    DUMP_PARAM(ocean_blending_height);
+    DUMP_PARAM(ocean_blending_center);
+    DUMP_PARAM(ocean_blending_dimension);
+    DUMP_PARAM(ocean_blending_radius);
+    DUMP_PARAM(ocean_blending_blend);
+    DUMP_PARAM(enable_ocean_blending_uvs);
 
     return ss.str().c_str();
 }

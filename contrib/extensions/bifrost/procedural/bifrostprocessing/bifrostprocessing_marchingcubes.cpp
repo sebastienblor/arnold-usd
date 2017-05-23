@@ -1,4 +1,4 @@
-#include <bifrostprocessing/bifrostprocessing_meshing.h>
+#include <bifrostprocessing/bifrostprocessing_meshers.h>
 #include <bifrostapi/bifrost_voxelchannel.h>
 #include <bifrostapi/bifrost_voxelsampler.h>
 #include <bifrostapi/bifrost_visitor.h>

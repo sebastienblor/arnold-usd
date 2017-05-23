@@ -9,9 +9,25 @@
 #include <functional>
 #include <ai_matrix.h>
 #include <ai_nodes.h>
+#include <ai.h>
+#include <vector>
 #include "defs.h"
+#include <bifrostprocessing/bifrostprocessing_shape.h>
+
+inline amino::Math::vec2f AtVector2ToAminoVec2f(const AtVector2& v){ return amino::Math::vec2f(v.x, v.y); }
+inline amino::Math::vec3f AtVectorToAminoVec3f(const AtVector& v){ return amino::Math::vec3f(v.x, v.y, v.z); }
+inline AtVector2 AminoVec2fToAtVector2(const amino::Math::vec2f& v){ return AtVector2(v[0],v[1]); }
+inline AtVector AminoVec3fToAtVector(const amino::Math::vec3f& v){ return AtVector(v[0],v[1],v[2]); }
+inline AtVector2 AminoVec2iToAtVector2(const amino::Math::vec2i& v){ return AtVector2(v[0],v[1]); }
+inline AtVector AminoVec3iToAtVector(const amino::Math::vec3i& v){ return AtVector(v[0],v[1],v[2]); }
+Bifrost::API::StringArray ArrayToStrings(const AtArray* array);
+AtArray* CreateStringArray(const std::vector<std::string>& strings);
+
+Bifrost::Processing::Status report(const Bifrost::Processing::Status& status);
 
 bool getMotion(float& shutter_start, float& shutter_end);
+
+amino::Math::vec3f getCameraPosition();
 
 std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter=[](const Bifrost::API::Channel&){ return true; });
 

@@ -1,4 +1,6 @@
-#include <bifrostprocessing/bifrostprocessing_extend.h>
+#include <bifrostprocessing/bifrostprocessing_filters.h>
+#include <bifrostapi/bifrost_channel.h>
+#include <bifrostapi/bifrost_voxelchannel.h>
 #include <bifrostapi/bifrost_visitor.h>
 #include <bifrostapi/bifrost_layout.h>
 #include <limits>
@@ -274,9 +276,6 @@ public:
         for(size_t e = 0; e < r.count(); ++e){
             float p2 = p[e]*p[e], q2 = q[e]*q[e];
 
-            r[e] = p[e] + q[e] - sqrt(p2+q2) + a0 / (1 + p2*invA12 + q2*invA22);
-            if(!(0)) continue;
-
             if(p[e] == bg){
                 r[e] = q[e];
                 continue;
@@ -290,7 +289,8 @@ public:
                 continue;
             }
 
-            /*
+            r[e] = p[e] + q[e] - sqrt(p2+q2) + a0 / (1 + p2*invA12 + q2*invA22);
+
             if(q[e] < 0){
                 r[e] = fmax(q[e],p[e]);
             }else{
@@ -300,7 +300,6 @@ public:
                     r[e] = p[e];
                 }
             }
-            //*/
         }
     }
 private:
@@ -320,8 +319,11 @@ inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::Vox
 namespace Bifrost {
 namespace Processing {
 
-void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius, Bifrost::API::VoxelChannel& out){
-    Bifrost::API::VoxelChannel sdf(_sdf);
+ExtendFilter::ExtendFilter(float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius)
+    : height(height), center(center), dimensions(dimensions), radius(radius) {}
+
+void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel _out) const{
+    Bifrost::API::VoxelChannel sdf(in), out(_out);
     Bifrost::API::Layout layout(sdf.layout());
 
     {// add tiles
@@ -370,7 +372,8 @@ void extend(const Bifrost::API::VoxelChannel& _sdf, float height, const amino::M
     //ss.removeChannel(name);
 }
 
-void extendUVs(const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, API::VoxelChannel &out){
+void ExtendFilter::uvs(Bifrost::API::Channel _out) const{
+    Bifrost::API::VoxelChannel out(_out);
     PROFILER("EXTEND UVS");
     Bifrost::API::Layout layout(out.layout());
     ExtendUVVisitor visitor(center-dimensions*.5, center+dimensions*.5, out);

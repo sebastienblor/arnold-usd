@@ -1,5 +1,5 @@
 #include <bifrostprocessing/bifrostprocessing_filters.h>
-#include <bifrostprocessing/bifrostprocessing_mixer.h>
+#include <bifrostprocessing/bifrostprocessing_mixers.h>
 #include <bifrostapi/bifrost_visitor.h>
 #include <bifrostapi/bifrost_layout.h>
 #include <bifrostapi/bifrost_component.h>
@@ -76,7 +76,7 @@ protected:
 namespace Bifrost{
 namespace Processing{
 
-void Filter::filter(API::Channel &inOut) const{
+void Filter::filter(API::Channel inOut) const{
     filter(inOut, inOut);
 }
 void Filter::setTraversalMode(API::TraversalMode mode){ _mode = mode; }
@@ -85,7 +85,7 @@ void Filter::setDepths(int min, int max){ _depths = amino::Math::vec2i(min, max)
 const amino::Math::vec2i& Filter::depths() const{ return _depths; }
 
 template<typename T>
-void TransformFilter<T>::filter(const API::Channel &in, API::Channel &out) const{
+void TransformFilter<T>::filter(const API::Channel in, API::Channel out) const{
     TransformVisitor<T> visitor(in,out,*this);
     if(depths()[0] > 0 && depths()[1] > 0){
         Bifrost::API::Layout(in.layout()).traverse(visitor, traversalMode(), depths()[0], depths()[1]);
@@ -131,7 +131,7 @@ T RemapFilter<T>::compute(const T &in) const{
 }
 
 template<typename T>
-void HaloFilter<T>::filter(const API::Channel &in, API::Channel &out) const{
+void HaloFilter<T>::filter(const API::Channel in, API::Channel out) const{
     HaloVisitor<T> visitor(in,out,*this);
     if(depths()[0] > 0 && depths()[1] > 0){
         Bifrost::API::Layout(in.layout()).traverse(visitor, traversalMode(), depths()[0], depths()[1]);
@@ -233,7 +233,7 @@ Bifrost::API::VoxelChannel copy(const Bifrost::API::VoxelChannel& in, const Bifr
 }
 
 template<typename T>
-void SmoothFilter<T>::filter(const API::Channel &_in, API::Channel &out) const{
+void SmoothFilter<T>::filter(const API::Channel _in, API::Channel out) const{
     Bifrost::API::Channel in(_in); // create new reference for swapping
     assert(in.layout() == out.layout());
 

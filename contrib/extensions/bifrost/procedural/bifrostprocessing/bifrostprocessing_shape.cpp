@@ -3,8 +3,7 @@
 #include <bifrostapi/bifrost_status.h>
 #include <bifrostapi/bifrost_levelset.h>
 #include <bifrostprocessing/bifrostprocessing_filters.h>
-#include <bifrostprocessing/bifrostprocessing_meshing.h>
-#include <bifrostprocessing/bifrostprocessing_extend.h>
+#include <bifrostprocessing/bifrostprocessing_meshers.h>
 #include <bifrostapi/bifrost_cacheresource.h>
 #include <aminomath/vec.h>
 #include "defs.h"
@@ -21,6 +20,7 @@ Status& Status::operator =(const Status& o){
 }
 
 void Status::error(const char* format, ...){
+    // TODO: fix this
     char buffer[1000];
     va_list args;
     va_start(args, format);
@@ -30,12 +30,19 @@ void Status::error(const char* format, ...){
 }
 
 void Status::warn(const char* format, ...){
+    // TODO: fix this
     char buffer[1000];
     va_list args;
     va_start(args, format);
     sprintf(buffer, format, args);
     va_end(args);
     _warnings.add(buffer);
+}
+
+Shape::~Shape(){
+    if(!tmp_folder.empty()){
+        Bifrost::API::File::deleteFolder(tmp_folder);
+    }
 }
 
 Status Shape::initialize(){
@@ -51,9 +58,9 @@ Status Shape::initialize(){
         // find in-memory object
         objects = query.run();
         if(objects.count() == 0){
-            retStatus.warn("[BIFROST] Failed to find object from descriptor '%s'. Using cache file '%s'.", this->object.c_str(), cache_file.c_str());
+            retStatus.warn("Failed to find object from descriptor '%s'. Using cache file '%s'.", this->object.c_str(), cache_file.c_str());
         }else if((objects = query.run()).count() != 1){
-            retStatus.error("[BIFROST] Can't find bif object from descriptor '%s' (%d objects exist).", this->object.c_str(), (int)objects.count());
+            retStatus.error("Can't find bif object from descriptor '%s' (%d objects exist).", this->object.c_str(), (int)objects.count());
             return retStatus;
         }else{ // count = 1
             object = objects[0];
@@ -71,7 +78,7 @@ Status Shape::initialize(){
             cache_file = tmp_cache_file.c_str();
             Bifrost::API::FileIO fio = om.createFileIO(tmp_cache_file);
             if(!fio.save(component, Bifrost::API::BIF::Compression::Level0, 0).succeeded()){
-                retStatus.error("[BIFROST] Failed to write temporary bif file '%s'.", tmp_cache_file.c_str());
+                retStatus.error("Failed to write temporary bif file '%s'.", tmp_cache_file.c_str());
                 return retStatus;
             }
         }
@@ -84,12 +91,12 @@ Status Shape::initialize(){
     // get object from file
     status = clip? fio.load(ss, clip_bbox) : fio.load(ss);
     if(status != Bifrost::API::Status::Success){
-        retStatus.error("[BIFROST] Failed to load bif file '%s'.", cache_file.c_str());
+        retStatus.error("Failed to load bif file '%s'.", cache_file.c_str());
         return retStatus;
     }
     objects = ss.objects();
     if(objects.count() != 1) {
-        retStatus.error("[BIFROST] Can't find bif object in file '%s' (%d objects exist).", cache_file.c_str(), (int)objects.count());
+        retStatus.error("Can't find bif object in file '%s' (%d objects exist).", cache_file.c_str(), (int)objects.count());
         return retStatus;
     }
     object = objects[0];
@@ -102,6 +109,21 @@ Status Shape::initialize(){
     _component = components[0];
     if(components.count() > 1){
         retStatus.warn("too many components");
+    }
+
+    Bifrost::API::Layout layout(_component.layout());
+    layout.setVoxelScale(layout.voxelScale()*space_scale);
+    float vscale = velocity_scale / fps;
+    if(vscale != 1){
+        if(velocity_channels.count()==3){
+            for(unsigned int i = 0; i < velocity_channels.count(); ++i){
+                Bifrost::API::Channel v = _component.findChannel(velocity_channels[i]);
+                ScaleFilter<float>(vscale).filter(v,v);
+            }
+        }else if(velocity_channels.count()==1){
+            Bifrost::API::Channel v = _component.findChannel(velocity_channels[0]);
+            ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
+        }
     }
     return retStatus;
 }
