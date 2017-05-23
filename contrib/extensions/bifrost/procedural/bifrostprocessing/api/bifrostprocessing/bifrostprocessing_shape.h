@@ -21,8 +21,8 @@ public:
     inline bool operator!() const{ return !_error.empty(); }
     const Bifrost::API::String& error() const{ return _error; }
     const Bifrost::API::StringArray& warnings() const{ return _warnings; }
-    void error(const Bifrost::API::String& str, ...);
-    void warn(const Bifrost::API::String& str, ...);
+    void error(const char* format, ...);
+    void warn(const char* format, ...);
 
 private:
     Bifrost::API::StringArray _warnings;
@@ -46,6 +46,7 @@ public:
     bool clip = false;
     amino::Math::bboxf clip_bbox = amino::Math::bboxf(amino::Math::vec3f(-1,-1,-1), amino::Math::vec3f(1,1,1));
 
+    virtual ~Shape(){}
     virtual Status initialize();
     virtual Bifrost::API::String str() const;
 

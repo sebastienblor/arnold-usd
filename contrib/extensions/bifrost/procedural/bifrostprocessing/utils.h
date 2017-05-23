@@ -2,6 +2,7 @@
 #include <bifrostapi/bifrost_tileaccessor.h>
 #include <bifrostapi/bifrost_component.h>
 #include <bifrostapi/bifrost_channel.h>
+#include <functional>
 
 namespace Bifrost{
 namespace Private{

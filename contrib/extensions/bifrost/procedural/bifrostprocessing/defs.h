@@ -23,7 +23,7 @@
 #define DUMP_PARAM(param) ss << "    " << #param << " = " << (param) << std::endl;
 #define DUMP_ARRAY_PARAM(param) \
     ss << "    " << #param << " = " << std::endl; \
-    for(int i = 0; i < param.count(); ++i) \
+    for(unsigned int i = 0; i < param.count(); ++i) \
         ss << "        " << param[i].c_str() << std::endl;
 
 #define PROCESSING_PROFILING

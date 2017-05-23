@@ -8,16 +8,20 @@
 #include <bifrostapi/bifrost_om.h>
 #include "defs.h"
 #include <vector>
+#include <memory>
+#include <algorithm>
 
 #define SWAP(ch1, ch2) { API::Channel _tmp = ch1; ch1 = ch2; ch2 = _tmp; }
 
 namespace{
 
+/*
 template<typename T> inline T sqrt(const T& v){ return std::sqrt(v); }
 template<> inline amino::Math::vec2f sqrt<amino::Math::vec2f>(const amino::Math::vec2f& v){ return amino::Math::vec2f(std::sqrt(v[0]), std::sqrt(v[1])); }
 template<> inline amino::Math::vec2i sqrt<amino::Math::vec2i>(const amino::Math::vec2i& v){ return amino::Math::vec2i((int)std::sqrt(v[0]), (int)std::sqrt(v[1])); }
 template<> inline amino::Math::vec3f sqrt<amino::Math::vec3f>(const amino::Math::vec3f& v){ return amino::Math::vec3f(std::sqrt(v[0]), std::sqrt(v[1]), std::sqrt(v[2])); }
 template<> inline amino::Math::vec3i sqrt<amino::Math::vec3i>(const amino::Math::vec3i& v){ return amino::Math::vec3i((int)std::sqrt(v[0]), (int)std::sqrt(v[1]), (int)std::sqrt(v[2])); }
+*/
 
 template<typename T>
 class TransformVisitor : public Bifrost::API::Visitor {
@@ -247,16 +251,16 @@ void SmoothFilter<T>::filter(const API::Channel &_in, API::Channel &out) const{
     switch(_mode){
     case kMeanValue:
     case kGaussian: {// gaussian approximation handled as 4*mean
-        filter = std::make_unique< MeanFilter<T> >();
+        filter.reset(new MeanFilter<T>());
         break;
     }case kMedianValue:{
-        filter = std::make_unique< MedianFilter<T> >();
+        filter.reset(new MedianFilter<T>());
         break;
     }case kLaplacianFlow:{
-        filter = std::make_unique< LaplacianFilter<T> >();
+        filter.reset(new LaplacianFilter<T>());
         break;
     }case kCurvatureFlow:{
-        filter = std::make_unique< CurvatureFilter<T> >();
+        filter.reset(new CurvatureFilter<T>());
         break;
     }
     }

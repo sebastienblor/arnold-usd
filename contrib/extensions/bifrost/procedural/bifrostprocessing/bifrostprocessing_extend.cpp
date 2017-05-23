@@ -262,7 +262,7 @@ public:
         : sdf(o.sdf), ocean(o.ocean), alpha(o.alpha), out(o.out){}
     Bifrost::API::Visitor* copy() const override{ return new MergeVisitor(*this); }
 
-    void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
+    void beginTile(const Bifrost::API::TileAccessor& , const Bifrost::API::TreeIndex& index) override{
         Bifrost::API::TileData<float> p = sdf.tileData<float>(index);
         Bifrost::API::TileData<float> q  = ocean.tileData<float>(index);
         Bifrost::API::TileData<float> alphaData = alpha.tileData<float>(index);
@@ -275,7 +275,7 @@ public:
             float p2 = p[e]*p[e], q2 = q[e]*q[e];
 
             r[e] = p[e] + q[e] - sqrt(p2+q2) + a0 / (1 + p2*invA12 + q2*invA22);
-            continue;
+            if(!(0)) continue;
 
             if(p[e] == bg){
                 r[e] = q[e];

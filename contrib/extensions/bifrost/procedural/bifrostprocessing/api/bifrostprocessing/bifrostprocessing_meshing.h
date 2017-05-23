@@ -7,6 +7,7 @@ namespace Processing {
 
 class Mesher{
 public:
+    virtual ~Mesher(){}
     virtual void mesh(const Bifrost::API::VoxelChannel& distance, Bifrost::API::Array<amino::Math::vec3f>& vertices, Bifrost::API::Array<amino::Math::vec3i>& indices, unsigned int subdivisions=1) const=0;
 };
 

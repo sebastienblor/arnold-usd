@@ -20,18 +20,17 @@ Status& Status::operator =(const Status& o){
     return *this;
 }
 
-void Status::error(const API::String &str, ...){
-    static char buffer[1000];
+void Status::error(const char* format, ...){
+    char buffer[1000];
     va_list args;
-    va_start(args, str.c_str());
-    sprintf(buffer, str.c_str(), args);
+    va_start(args, format);
+    sprintf(buffer, format, args);
     va_end(args);
     _error = buffer;
 }
 
-void Status::warn(const API::String &str, ...){
-    static char buffer[1000];
-    const char* format = str.c_str();
+void Status::warn(const char* format, ...){
+    char buffer[1000];
     va_list args;
     va_start(args, format);
     sprintf(buffer, format, args);
