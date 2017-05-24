@@ -646,14 +646,15 @@ except:
 
 # Add the callbacks
 def registerCallbacks():
-    if cmds.about(batch=True):
-        return
-        
+
     if arnoldAOVCallbacks is not None:
         rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_AOVS, arnoldAOVCallbacks)
-        
+    
     if arnoldRenderSettingsCallbacks is not None:
         rendererCallbacks.registerCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_RENDER_SETTINGS, arnoldRenderSettingsCallbacks)
+
+    if cmds.about(batch=True):
+        return
 
     cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
                    hook="hyperShadePanelBuildCreateMenu",
