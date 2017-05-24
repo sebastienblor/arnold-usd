@@ -940,7 +940,36 @@ void COptionsTranslator::Export(AtNode *options)
                                    240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
                                    600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
                                    6000.f, 0.f };
-   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);   
+   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);
+
+   // Export AOV shaders   
+   MPlug aovShadersPlug = FindMayaPlug("aov_shaders");
+   unordered_set<AtNode*> aovShaders;
+   for (unsigned int i = 0; i < aovShadersPlug.numElements (); i++)
+   {
+      MPlug elementPlug = aovShadersPlug [i];
+      MPlugArray conns;
+      elementPlug.connectedTo(conns, true, false);
+
+      if (conns.length() > 0)
+      {
+         AtNode *aovShaderNode = ExportConnectedNode(conns[0]);
+         if (aovShaderNode)
+            aovShaders.insert(aovShaderNode);
+      }
+   }
+
+   AiNodeResetParameter(options, "aov_shaders");
+   if (!aovShaders.empty())
+   {
+      AtArray *aovShadersArray = AiArrayAllocate(aovShaders.size(), 1, AI_TYPE_NODE);
+      int aovShaderIndex = 0;
+      for (unordered_set<AtNode*>::iterator it = aovShaders.begin(); it != aovShaders.end(); ++it)
+         AiArraySetPtr(aovShadersArray, aovShaderIndex++, *it);
+      
+      AiNodeSetArray(options, "aov_shaders", aovShadersArray);
+   }
+
 
 }
 
