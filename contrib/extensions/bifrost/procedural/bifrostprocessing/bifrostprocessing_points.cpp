@@ -5,24 +5,9 @@
 namespace Bifrost{
 namespace Processing{
 
-Points::Points(const amino::Math::vec3f &camera_position)
-    : camera_position(camera_position){}
-
-Status Points::initialize(){
-    Status status;
-    if(render_component == Volume){
-        status.warn("Cannot use volume component for points, using particle instead.");
-        render_component = Particle;
-    }
-    if(!(status = Shape::initialize())){
-        return status;
-    }
-    return status;
-}
-
-Bifrost::API::String Points::str() const{
+Bifrost::API::String PointsParameters::str() const{
     std::stringstream ss;
-    ss << Shape::str().c_str();
+    ss << ShapeParameters::str().c_str();
 
     DUMP_PARAM(radius);
     DUMP_PARAM(enable_radius_channel);
@@ -46,6 +31,8 @@ Bifrost::API::String Points::str() const{
 
     return ss.str().c_str();
 }
+
+Points::Points(const PointsParameters& params) : Shape(params) {}
 
 }} // Bifrost::Processing
 

@@ -22,6 +22,9 @@ inline AtVector2 AminoVec2iToAtVector2(const amino::Math::vec2i& v){ return AtVe
 inline AtVector AminoVec3iToAtVector(const amino::Math::vec3i& v){ return AtVector(v[0],v[1],v[2]); }
 Bifrost::API::StringArray ArrayToStrings(const AtArray* array);
 AtArray* CreateStringArray(const std::vector<std::string>& strings);
+std::string ArrayToString(const Bifrost::API::StringArray& strings);
+
+std::string typeName(uint8_t type);
 
 Bifrost::Processing::Status report(const Bifrost::Processing::Status& status);
 
@@ -32,5 +35,3 @@ amino::Math::vec3f getCameraPosition();
 std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter=[](const Bifrost::API::Channel&){ return true; });
 
 std::ostream& operator<<(std::ostream& out, const AtMatrix& m);
-
-void exportChannel(AtNode *node, const Bifrost::API::Array<amino::Math::vec3f> &positions, const Bifrost::API::VoxelChannel &channel);

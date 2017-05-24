@@ -1,9 +1,9 @@
-#include "bifrost_surface.h"
+#include "surface.h"
 #include "utils.h"
 
-Surface::Surface() : Bifrost::Processing::Surface(){}
+SurfaceParameters::SurfaceParameters() : Bifrost::Processing::SurfaceParameters(){}
 
-Surface::Surface(const AtNode* node) : Bifrost::Processing::Surface() {
+SurfaceParameters::SurfaceParameters(const AtNode* node) : Bifrost::Processing::SurfaceParameters() {
     GET_SHAPE();
     GET_STR(distance_channel);
 
@@ -28,15 +28,9 @@ Surface::Surface(const AtNode* node) : Bifrost::Processing::Surface() {
     GET_BOOL(enable_ocean_blending_uvs);
 }
 
-Bifrost::Processing::Status Surface::initialize(){
-    return report(Bifrost::Processing::Surface::initialize());
-}
+Bifrost::API::String SurfaceParameters::str() const{ return Bifrost::Processing::SurfaceParameters::str(); }
 
-Bifrost::API::String Surface::str() const{
-    return Bifrost::Processing::Surface::str();
-}
-
-void Surface::declare(AtList* params, AtNodeEntry* nentry)
+void SurfaceParameters::declare(AtList* params, AtNodeEntry* nentry)
 {
     PARAM_SHAPE(({ "vorticity" }), ({ "velocity_u", "velocity_v", "velocity_w" }));
     // VOXELS

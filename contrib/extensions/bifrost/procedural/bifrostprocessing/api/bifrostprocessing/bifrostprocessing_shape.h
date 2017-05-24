@@ -29,8 +29,7 @@ private:
     Bifrost::API::String _error;
 };
 
-class Shape{
-public:
+struct ShapeParameters{
     Bifrost::API::String cache_file;
     Bifrost::API::String object;
     RenderComponent render_component = Volume;
@@ -45,16 +44,22 @@ public:
     bool clip = false;
     amino::Math::bboxf clip_bbox = amino::Math::bboxf(amino::Math::vec3f(-1,-1,-1), amino::Math::vec3f(1,1,1));
 
-    Shape(){}
-    Shape(const Shape&) = delete;
-    virtual ~Shape();
-    virtual Status initialize();
-    //virtual amino::Math::bboxf bbox() const;
+    virtual ~ShapeParameters(){}
     virtual Bifrost::API::String str() const;
+};
 
+class Shape{
+public:
+    Shape(const ShapeParameters& params);
+    virtual ~Shape();
+
+    //virtual amino::Math::bboxf bbox() const;
     inline const Bifrost::API::Component& component() const{ return _component; }
 
+    Status status() const{ return _status; }
+
 protected:
+    Status _status;
     Bifrost::API::Component _component;
 
 private:

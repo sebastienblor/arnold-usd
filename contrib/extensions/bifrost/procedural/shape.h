@@ -6,6 +6,8 @@
 #include <ai_msg.h>
 #include <ai_array.h>
 #include <vector>
+#include <ai_params.h>
+#include <ai_nodes.h>
 
 #define GET_ENUM(param, CAST) param = (CAST) AiNodeGetInt(node, #param)
 #define GET_BOOL(param) param = AiNodeGetBool(node, #param)

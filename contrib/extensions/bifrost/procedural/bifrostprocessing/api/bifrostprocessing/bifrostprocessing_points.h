@@ -4,8 +4,7 @@
 namespace Bifrost{
 namespace Processing{
 
-class Points : public Shape {
-public:
+struct PointsParameters : public ShapeParameters{
     float radius;
     bool enable_radius_channel = true;
     Bifrost::API::String radius_channel = "density"; // empty => do not modulate
@@ -14,6 +13,7 @@ public:
     amino::Math::vec2f camera_distance = amino::Math::vec2f(0,1);
     amino::Math::vec2f camera_factor = amino::Math::vec2f(0,1);
     float camera_factor_exponent = 1;
+    amino::Math::vec3f camera_position;
 
     bool enable_multi_pointing = false;
     int mp_samples = 0;
@@ -27,9 +27,13 @@ public:
 
     int skip = 0;
 
-    Points(const amino::Math::vec3f& camera_position);
-    virtual Status initialize() override;
+    PointsParameters() : ShapeParameters() { render_component = RenderComponent::Particle; }
     virtual Bifrost::API::String str() const;
+};
+
+class Points : public Shape {
+public:
+    Points(const PointsParameters& params);
 
 private:
     amino::Math::vec3f camera_position;

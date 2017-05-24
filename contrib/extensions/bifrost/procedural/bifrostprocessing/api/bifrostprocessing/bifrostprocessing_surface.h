@@ -4,8 +4,7 @@
 namespace Bifrost{
 namespace Processing{
 
-class Surface : public Shape {
-public:
+struct SurfaceParameters : public ShapeParameters {
     // VOXELS
     Bifrost::API::String distance_channel = "distance";
 
@@ -31,9 +30,16 @@ public:
     BlendType ocean_blending_blend = Smooth;
     bool enable_ocean_blending_uvs = true;
 
-    virtual Status initialize() override;
-    void mesh(Bifrost::API::Array<amino::Math::vec3f>& vertices, Bifrost::API::Array<amino::Math::vec3i>& indices, unsigned int subdivisions=1) const;
     virtual Bifrost::API::String str() const override;
+};
+
+class Surface : public Shape {
+public:
+    Surface(const SurfaceParameters& params);
+    void mesh(Bifrost::API::Array<amino::Math::vec3f>& vertices, Bifrost::API::Array<amino::Math::vec3i>& indices, unsigned int subdivisions=1) const;
+
+private:
+    Bifrost::API::String distance_channel;
 };
 
 }}

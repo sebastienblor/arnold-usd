@@ -4,15 +4,15 @@
 namespace Bifrost{
 namespace Processing{
 
-Status Volume::initialize(){
-    return Shape::initialize();
-}
-
-Bifrost::API::String Volume::str() const{
+Bifrost::API::String VolumeParameters::str() const{
     std::stringstream ss;
-    ss << Shape::str().c_str();
+    ss << ShapeParameters::str().c_str();
     DUMP_PARAM(density_channel);
     return ss.str().c_str();
+}
+
+Volume::Volume(const VolumeParameters& params) : Shape(params){
+
 }
 
 }} // Bifrost::Processing
