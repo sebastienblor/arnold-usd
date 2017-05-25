@@ -1,5 +1,5 @@
 #pragma once
-#include "bifrostprocessing_shape.h"
+#include <bifrostprocessing/bifrostprocessing_shape.h>
 
 namespace Bifrost{
 namespace Processing{
@@ -19,7 +19,7 @@ struct SurfaceParameters : public ShapeParameters {
     float dilate = 0;
     float erode = 0;
     float smooth = 0;
-    SmoothMode smooth_mode = Mean;
+    SmoothMode smooth_mode = SmoothMode::Mean;
     int smooth_iterations = 1;
 
     bool enable_ocean_blending = false;
@@ -27,7 +27,7 @@ struct SurfaceParameters : public ShapeParameters {
     amino::Math::vec2f ocean_blending_center = amino::Math::vec2f(0,0);
     amino::Math::vec2f ocean_blending_dimension = amino::Math::vec2f(10,10);
     float ocean_blending_radius = 1;
-    BlendType ocean_blending_blend = Smooth;
+    BlendType ocean_blending_blend = BlendType::Smooth;
     bool enable_ocean_blending_uvs = true;
 
     virtual Bifrost::API::String str() const override;

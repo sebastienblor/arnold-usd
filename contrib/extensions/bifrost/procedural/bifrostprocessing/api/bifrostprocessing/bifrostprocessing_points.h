@@ -1,5 +1,5 @@
 #pragma once
-#include "bifrostprocessing_shape.h"
+#include <bifrostprocessing/bifrostprocessing_shape.h>
 
 namespace Bifrost{
 namespace Processing{
@@ -34,9 +34,6 @@ struct PointsParameters : public ShapeParameters{
 class Points : public Shape {
 public:
     Points(const PointsParameters& params);
-
-private:
-    amino::Math::vec3f camera_position;
 };
 
 

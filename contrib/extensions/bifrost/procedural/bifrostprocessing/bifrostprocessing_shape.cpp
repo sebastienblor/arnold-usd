@@ -13,6 +13,28 @@
 namespace Bifrost {
 namespace Processing {
 
+std::ostream& operator <<(std::ostream& out, RenderComponent rc){
+    return out << ((rc == RenderComponent::Volume)? "Volume" : "Particle");
+}
+std::ostream& operator <<(std::ostream& out, SmoothMode sm){
+    switch(sm){
+    case SmoothMode::Mean: return out << "Mean";
+    case SmoothMode::Gaussian: return out << "Gaussian";
+    case SmoothMode::Median: return out << "Median";
+    case SmoothMode::Laplacian: return out << "Laplacian";
+    case SmoothMode::Curvature: return out << "Curvature";
+    default: return out;
+    }
+}
+std::ostream& operator <<(std::ostream& out, BlendType bt){
+    switch(bt){
+    case BlendType::Linear: return out << "Linear";
+    case BlendType::Smooth: return out << "Smooth";
+    case BlendType::Smoother: return out << "Smoother";
+    default: return out;
+    }
+}
+
 Status& Status::operator =(const Status& o){
     _error = o.error();
     _warnings = o._warnings.copy();
@@ -111,7 +133,7 @@ Shape::Shape(const ShapeParameters& params){
     }
     object = objects[0];
     Bifrost::API::RefArray components;
-    components = object.findComponentsByType(params.render_component == Volume? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
+    components = object.findComponentsByType(params.render_component == RenderComponent::Volume? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
     if(components.count()==0){
         _status.error("wrong component type");
         return;

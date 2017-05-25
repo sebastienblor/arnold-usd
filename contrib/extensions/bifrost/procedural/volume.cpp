@@ -1,5 +1,5 @@
-#include <ai.h>
 #include "volume.h"
+#include <ai.h>
 #include "defs.h"
 #include "utils.h"
 #include "debug.h"
@@ -33,8 +33,9 @@ Volume* VolumeParameters::volume() const{
     return volume;
 }
 
-Volume::Volume(const VolumeParameters& params) : Bifrost::Processing::Volume(params) {
-    samplers.resize(AI_MAX_THREADS, ComponentSampler(component()));
+Volume::Volume(const VolumeParameters& params) : volume(Bifrost::Processing::Volume(params)) {
+    if(!volume.status()) return;
+    samplers.resize(AI_MAX_THREADS, ComponentSampler(volume.component()));
 }
 
 bool Volume::sample(const AtString& channel, const AtVector& pos, uint16_t tid, AtParamValue *value, uint8_t *type, int interp){

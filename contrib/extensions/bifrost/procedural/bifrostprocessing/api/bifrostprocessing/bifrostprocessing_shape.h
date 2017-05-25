@@ -1,19 +1,25 @@
 #pragma once
+
 #include <bifrostapi/bifrost_string.h>
 #include <bifrostapi/bifrost_component.h>
 
 namespace Bifrost {
 namespace Processing {
 
-enum RenderComponent{
+enum class RenderComponent{
     Volume, Particle
 };
-enum SmoothMode{
+std::ostream& operator <<(std::ostream& out, RenderComponent rc);
+
+enum class SmoothMode{
     Mean, Gaussian, Median, Laplacian, Curvature
 };
-enum BlendType{
+std::ostream& operator <<(std::ostream& out, SmoothMode sm);
+
+enum class BlendType{
     Linear, Smooth, Smoother
 };
+std::ostream& operator <<(std::ostream& out, BlendType bt);
 
 class Status{
 public:
@@ -32,7 +38,7 @@ private:
 struct ShapeParameters{
     Bifrost::API::String cache_file;
     Bifrost::API::String object;
-    RenderComponent render_component = Volume;
+    RenderComponent render_component = RenderComponent::Volume;
     Bifrost::API::StringArray channels;
     Bifrost::API::StringArray velocity_channels;
     Bifrost::API::String uv_channel;
@@ -56,7 +62,7 @@ public:
     //virtual amino::Math::bboxf bbox() const;
     inline const Bifrost::API::Component& component() const{ return _component; }
 
-    Status status() const{ return _status; }
+    const Status& status() const{ return _status; }
 
 protected:
     Status _status;
@@ -67,3 +73,4 @@ private:
 };
 
 }} // Bifrost::Processing
+

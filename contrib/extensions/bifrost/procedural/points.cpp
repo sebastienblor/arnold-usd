@@ -1,6 +1,5 @@
 #include "points.h"
 #include <ai.h>
-#include <bifrostprocessing/bifrostprocessing_points.h>
 #include <bifrostapi/bifrost_pointcomponent.h>
 #include "defs.h"
 #include "utils.h"

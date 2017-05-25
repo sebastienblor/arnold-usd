@@ -1,18 +1,20 @@
 #pragma once
-
-#include "bifrostprocessing_shape.h"
+#include <bifrostprocessing/bifrostprocessing_shape.h>
 
 namespace Bifrost{
 namespace Processing{
 
-struct VolumeParameters : public ShapeParameters {
-    Bifrost::API::String density_channel = "smoke";
-    virtual Bifrost::API::String str() const override;
+struct VolumeParameters : public ShapeParameters{
+    Bifrost::API::String density_channel = "density";
+
+    VolumeParameters() : ShapeParameters() { render_component = RenderComponent::Volume; }
+    virtual Bifrost::API::String str() const;
 };
 
-class Volume : public Shape{
+class Volume : public Shape {
 public:
     Volume(const VolumeParameters& params);
 };
+
 
 }} // Bifrost::Processing

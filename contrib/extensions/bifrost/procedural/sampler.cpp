@@ -56,7 +56,7 @@ class ChannelSamplerT : public ChannelSamplerImpl{
 public:
     ChannelSamplerT(const Bifrost::API::VoxelChannel (& inChannels) [N]);
     ChannelSamplerT(const ChannelSamplerT<N,T> &o);
-    ChannelSamplerImpl* clone() const;
+    ChannelSamplerImpl* clone() const override;
     uint8_t type() const override;
     void sample(const AtVector &pos, AtParamValue *value) const override;
     AtArray* array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const override;

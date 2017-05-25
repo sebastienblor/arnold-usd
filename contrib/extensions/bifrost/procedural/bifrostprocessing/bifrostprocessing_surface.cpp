@@ -15,8 +15,6 @@ namespace Processing{
 Bifrost::API::String SurfaceParameters::str() const{
     std::stringstream ss;
     ss << ShapeParameters::str();
-    DUMP_PARAM(render_component);
-
     DUMP_PARAM(distance_channel);
 
     DUMP_PARAM(levelset_droplet_reveal_factor);

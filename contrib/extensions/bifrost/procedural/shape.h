@@ -1,6 +1,5 @@
 #include <aminomath/vec.h>
 #include <aminomath/bbox.h>
-#include <bifrostprocessing/bifrostprocessing_shape.h>
 #include "defs.h"
 #include <ai_vector.h>
 #include <ai_msg.h>
@@ -20,7 +19,7 @@
 #define GET_STR_ARRAY(param) param = ArrayToStrings(AiNodeGetArray(node, #param))
 #define GET_BBOX(prefix) prefix ## _bbox = amino::Math::bboxf( AtVectorToAminoVec3f(AiNodeGetVec(node,#prefix "_min")), AtVectorToAminoVec3f(AiNodeGetVec(node,#prefix "_max")) );
 
-#define PARAM_ENUM(param, strings) AiParameterEnum(#param, param, strings)
+#define PARAM_ENUM(param, strings) AiParameterEnum(#param, (int) param, strings)
 #define PARAM_BOOL(param) AiParameterBool(#param, param)
 #define PARAM_FLT(param) AiParameterFlt(#param, param)
 #define PARAM_INT(param) AiParameterInt(#param, param)

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "shape.h"
 #include <bifrostprocessing/bifrostprocessing_volume.h>
 #include "sampler.h"
@@ -14,11 +16,14 @@ struct VolumeParameters : public Bifrost::Processing::VolumeParameters{
     Volume* volume() const;
 };
 
-class Volume : public Bifrost::Processing::Volume {
+class Volume{
 public:
     Volume(const VolumeParameters& params);
+    inline const Bifrost::Processing::Status& status(){ return volume.status(); }
     bool sample(const AtString& channel, const AtVector& pos, uint16_t tid, AtParamValue *value, uint8_t *type, int interp);
 
-public:
+private:
+    Bifrost::Processing::Volume volume;
     std::vector<ComponentSampler> samplers;
 };
+
