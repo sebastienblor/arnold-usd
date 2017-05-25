@@ -83,10 +83,15 @@ std::ostream& operator<<(std::ostream& out, const AtMatrix& m){
     for(unsigned int i = 0; i < 4; ++i){
         out << "[";
         for(unsigned int j = 0; j < 4; ++j){
-            out << m[i][j];
+            out << m[i][j] << " ";
         }
         out << "]";
     }
     out << "]";
     return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const AtBBox& bbox){
+    out << "AtBBox[[" << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << "],";
+    return out << "[" << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << "]]";
 }

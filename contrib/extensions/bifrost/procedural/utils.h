@@ -38,3 +38,4 @@ amino::Math::vec3f getCameraPosition();
 std::string availableChannels(const Bifrost::API::Component& component, std::function<bool(const Bifrost::API::Channel&)> filter=[](const Bifrost::API::Channel&){ return true; });
 
 std::ostream& operator<<(std::ostream& out, const AtMatrix& m);
+std::ostream& operator<<(std::ostream& out, const AtBBox& bbox);

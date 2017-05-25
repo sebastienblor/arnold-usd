@@ -4,6 +4,7 @@
 #include <bifrostapi/bifrost_levelset.h>
 #include <bifrostprocessing/bifrostprocessing_filters.h>
 #include <bifrostprocessing/bifrostprocessing_meshers.h>
+#include <bifrostprocessing/bifrostprocessing_tools.h>
 #include <bifrostapi/bifrost_cacheresource.h>
 #include <aminomath/vec.h>
 #include "defs.h"
@@ -23,7 +24,6 @@ std::ostream& operator <<(std::ostream& out, SmoothMode sm){
     case SmoothMode::Median: return out << "Median";
     case SmoothMode::Laplacian: return out << "Laplacian";
     case SmoothMode::Curvature: return out << "Curvature";
-    default: return out;
     }
 }
 std::ostream& operator <<(std::ostream& out, BlendType bt){
@@ -31,7 +31,6 @@ std::ostream& operator <<(std::ostream& out, BlendType bt){
     case BlendType::Linear: return out << "Linear";
     case BlendType::Smooth: return out << "Smooth";
     case BlendType::Smoother: return out << "Smoother";
-    default: return out;
     }
 }
 
@@ -160,7 +159,7 @@ Shape::Shape(const ShapeParameters& params){
 }
 
 amino::Math::bboxf Shape::bbox() const{
-    return amino::Math::bboxf(amino::Math::vec3f(-5), amino::Math::vec3f(5));
+    return computeBBox(component().layout());
 }
 
 Shape::~Shape(){

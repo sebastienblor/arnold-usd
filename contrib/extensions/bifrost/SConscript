@@ -6,6 +6,8 @@ Import('ext_env')
 ##############################################################
 ## COMMON ENV
 common_env = ext_env.Clone()
+common_env.Append(CXXFLAGS = Split('-Wno-comment'))
+common_env.Append(CCFLAGS = Split('-Wno-comment'))
 
 BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
 ROOT_DIR = common_env['ROOT_DIR']

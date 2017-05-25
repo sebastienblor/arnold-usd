@@ -63,6 +63,7 @@ volume_create
         return false;
     data->auto_step_size = .1;
     data->bbox = volume->bbox();
+    DUMP(data->bbox);
     return true;
 }
 volume_cleanup
