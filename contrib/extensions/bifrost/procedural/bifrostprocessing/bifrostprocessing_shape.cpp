@@ -159,6 +159,10 @@ Shape::Shape(const ShapeParameters& params){
     }
 }
 
+amino::Math::bboxf Shape::bbox() const{
+    return amino::Math::bboxf(amino::Math::vec3f(-5), amino::Math::vec3f(5));
+}
+
 Shape::~Shape(){
     if(!tmp_folder.empty()){
         Bifrost::API::File::deleteFolder(tmp_folder);

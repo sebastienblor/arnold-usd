@@ -89,7 +89,7 @@ AtNode* PolymeshParameters::node() const{
                 ChannelSampler vsampler(velocities);
                 AtParamValue value;
                 for(size_t i = start; i < end; ++i){
-                    AtVector pos(AminoVec3fToAtVector(vertices[i]));
+                    AtVector pos(Convert(vertices[i]));
                     vsampler.sample(pos, &value);
                     AtVector vel(value.VEC());
                     AiArraySetVec(vlist, i, pos + shutter_start * vel);
@@ -100,7 +100,7 @@ AtNode* PolymeshParameters::node() const{
             AiNodeSetFlt(node, "motion_end", shutter_end);
         }else{
             TBB_FOR_ALL(0, vertices.count(), 100, [vlist,&vertices](size_t i){
-                AiArraySetVec(vlist, i, AminoVec3fToAtVector(vertices[i]));
+                AiArraySetVec(vlist, i, Convert(vertices[i]));
             });
         }
         AiNodeSetArray(node, "vlist", vlist);

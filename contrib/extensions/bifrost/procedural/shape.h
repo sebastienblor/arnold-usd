@@ -13,11 +13,11 @@
 #define GET_FLT(param) param = AiNodeGetFlt(node, #param)
 #define GET_INT(param) param = AiNodeGetInt(node, #param)
 #define GET_UINT(param) param = AiNodeGetUInt(node, #param)
-#define GET_VEC2(param) param = AtVector2ToAminoVec2f(AiNodeGetVec2(node, #param))
-#define GET_VEC(param) param = AtVectorToAminoVec3f(AiNodeGetVec(node, #param))
+#define GET_VEC2(param) param = Convert(AiNodeGetVec2(node, #param))
+#define GET_VEC(param) param = Convert(AiNodeGetVec(node, #param))
 #define GET_STR(param) param = AiNodeGetStr(node, #param)
 #define GET_STR_ARRAY(param) param = ArrayToStrings(AiNodeGetArray(node, #param))
-#define GET_BBOX(prefix) prefix ## _bbox = amino::Math::bboxf( AtVectorToAminoVec3f(AiNodeGetVec(node,#prefix "_min")), AtVectorToAminoVec3f(AiNodeGetVec(node,#prefix "_max")) );
+#define GET_BBOX(prefix) prefix ## _bbox = amino::Math::bboxf( Convert(AiNodeGetVec(node,#prefix "_min")), Convert(AiNodeGetVec(node,#prefix "_max")) );
 
 #define PARAM_ENUM(param, strings) AiParameterEnum(#param, (int) param, strings)
 #define PARAM_BOOL(param) AiParameterBool(#param, param)

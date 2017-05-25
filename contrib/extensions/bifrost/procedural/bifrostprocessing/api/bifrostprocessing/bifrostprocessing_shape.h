@@ -59,7 +59,7 @@ public:
     Shape(const ShapeParameters& params);
     virtual ~Shape();
 
-    //virtual amino::Math::bboxf bbox() const;
+    virtual amino::Math::bboxf bbox() const;
     inline const Bifrost::API::Component& component() const{ return _component; }
 
     const Status& status() const{ return _status; }

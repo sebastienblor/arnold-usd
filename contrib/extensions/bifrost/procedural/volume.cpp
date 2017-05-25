@@ -45,6 +45,9 @@ bool Volume::sample(const AtString& channel, const AtVector& pos, uint16_t tid, 
     sampler.sample(pos, value);
     return true;
 }
+AtBBox Volume::bbox() const{
+    return Convert(volume.bbox());
+}
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostVolumeMtds)
 
@@ -54,12 +57,12 @@ node_parameters
 }
 volume_create
 {
-    data->private_info = VolumeParameters(node).volume();
+    Volume* volume = VolumeParameters(node).volume();
+    data->private_info = volume;
     if(!data->private_info)
         return false;
     data->auto_step_size = .1;
-    data->bbox.min.x = data->bbox.min.y = data->bbox.min.z = -10;
-    data->bbox.max.x = data->bbox.max.y = data->bbox.max.z =  10;
+    data->bbox = volume->bbox();
     return true;
 }
 volume_cleanup

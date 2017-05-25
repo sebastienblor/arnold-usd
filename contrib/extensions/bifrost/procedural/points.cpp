@@ -108,12 +108,12 @@ std::vector<AtNode*>* PointsParameters::nodes() const{
             if(need_velocity) velocityData = velocities.tileData<amino::Math::vec3f>((*it).index());
             for(unsigned int e = 0; e < positionData.count(); ++e, ++i){
                 if(motion){
-                    AiArraySetVec(points_array,   i, AminoVec3fToAtVector((positionData[e]*layout.voxelScale() + shutter_start*velocityData[e])));
-                    AiArraySetVec(points_array, i+N, AminoVec3fToAtVector((positionData[e]*layout.voxelScale() + shutter_end*velocityData[e])));
+                    AiArraySetVec(points_array,   i, Convert((positionData[e]*layout.voxelScale() + shutter_start*velocityData[e])));
+                    AiArraySetVec(points_array, i+N, Convert((positionData[e]*layout.voxelScale() + shutter_end*velocityData[e])));
                 }else if(need_velocity){
-                    AiArraySetVec(points_array,   i, AminoVec3fToAtVector((positionData[e]*layout.voxelScale() + shutter_start*velocityData[e])));
+                    AiArraySetVec(points_array,   i, Convert((positionData[e]*layout.voxelScale() + shutter_start*velocityData[e])));
                 }else{
-                    AiArraySetVec(points_array,   i, AminoVec3fToAtVector((positionData[e])*layout.voxelScale()));
+                    AiArraySetVec(points_array,   i, Convert((positionData[e])*layout.voxelScale()));
                 }
             }
         }
