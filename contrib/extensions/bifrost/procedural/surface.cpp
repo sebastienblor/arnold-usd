@@ -5,6 +5,7 @@ SurfaceParameters::SurfaceParameters() : Bifrost::Processing::SurfaceParameters(
 
 SurfaceParameters::SurfaceParameters(const AtNode* node) : Bifrost::Processing::SurfaceParameters() {
     GET_SHAPE();
+    GET_ENUM(render_component, Bifrost::Processing::RenderComponent);
     distance_channel = AiNodeGetStr(node, "field_channel");
 
     GET_FLT(levelset_resolution_factor);
@@ -32,7 +33,9 @@ Bifrost::API::String SurfaceParameters::str() const{ return Bifrost::Processing:
 
 void SurfaceParameters::declare(AtList* params, AtNodeEntry* nentry)
 {
-    PARAM_SHAPE(({ "vorticity" }), ({ "velocity_u", "velocity_v", "velocity_w" }));
+    static const char* rc_enums[] = RENDER_COMPONENT_STRINGS;
+    PARAM_ENUM(render_component, rc_enums);
+    PARAM_SHAPE(({ "vorticity" }));
 
     // PARTICLES
     PARAM_FLT(levelset_droplet_reveal_factor);

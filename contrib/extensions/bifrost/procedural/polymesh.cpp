@@ -55,11 +55,11 @@ AtNode* PolymeshParameters::node() const{
     if(!surface.status()){
         return nullptr;
     }
+    Bifrost::API::Component component = surface.voxels();
+
     float shutter_start, shutter_end;
     bool motion = getMotion(shutter_start, shutter_end);
     bool need_velocity = motion || (shutter_start != 0);
-
-    Bifrost::API::Component component = surface.component();
 
     // **** CREATE POLYMESH ****
 
@@ -73,15 +73,11 @@ AtNode* PolymeshParameters::node() const{
     {// export vertices
         ChannelSampler velocities;
         if(need_velocity){
-            if(velocity_channels.count() == 3){
-                velocities = ChannelSampler({component.findChannel(velocity_channels[0]), component.findChannel(velocity_channels[1]), component.findChannel(velocity_channels[2])});
-            }else if(velocity_channels.count() == 1){
-                velocities = ChannelSampler(component.findChannel(velocity_channels[0]));
-            }
+            velocities = ChannelSampler(component, velocity_channel);
             if(!velocities.valid()){
                 motion = need_velocity = false;
                 shutter_start = shutter_end = 0;
-                AiMsgWarning("[BIFROST] Invalid velocity channels: %s. Ignoring motion...", ArrayToString(velocity_channels).c_str());
+                AiMsgWarning("[BIFROST] Invalid velocity channel: %s. Ignoring motion...", velocity_channel.c_str());
             }
         }
 

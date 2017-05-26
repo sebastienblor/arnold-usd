@@ -6,6 +6,7 @@
 #include <bifrostprocessing/bifrostprocessing_meshers.h>
 #include <bifrostprocessing/bifrostprocessing_tools.h>
 #include <bifrostapi/bifrost_cacheresource.h>
+#include <bifrostapi/bifrost_context.h>
 #include <aminomath/vec.h>
 #include "defs.h"
 #include <stdio.h>
@@ -63,10 +64,14 @@ void Status::warn(const char* format, ...){
 Bifrost::API::String ShapeParameters::str() const{
     std::stringstream ss;
     ss << std::endl;
-    DUMP_PARAM(cache_file);
+    DUMP_PARAM(cache_folder);
+    DUMP_PARAM(object);
+    DUMP_PARAM(point_component);
+    DUMP_PARAM(voxel_component);
+    DUMP_PARAM(frame);
     DUMP_PARAM(object);
     DUMP_ARRAY_PARAM(channels);
-    DUMP_ARRAY_PARAM(velocity_channels);
+    DUMP_PARAM(velocity_channel);
     DUMP_PARAM(uv_channel);
 
     DUMP_PARAM(velocity_scale);
@@ -79,105 +84,117 @@ Bifrost::API::String ShapeParameters::str() const{
     return ss.str().c_str();
 }
 
+namespace{
+
+    Bifrost::API::Component findComponent(const Bifrost::API::Object& obj, const Bifrost::API::String& name, const Bifrost::API::TypeID& type, Bifrost::Processing::Status& status){
+        Bifrost::API::Component component;
+        if(name.empty()){
+            Bifrost::API::RefArray refs = obj.findComponentsByType(type);
+            if(refs.count() == 0){
+                status.warn("Could not find components of type '%s'.", type.c_str());
+            }else{
+                component = refs[0];
+                if(refs.count() > 1){
+                    status.warn("Found multiple components of type... Using '%s'.", type.c_str(), component.name().c_str());
+                }
+            }
+        }else{
+            component = obj.findComponent(name);
+            if(!component.valid()){
+                status.warn("Could not find component named '%s'.", name.c_str());
+            }
+        }
+        return component;
+    }
+
+}
+
 Shape::Shape(const ShapeParameters& params){
     Bifrost::API::ObjectModel om;
-    Bifrost::API::Object object;
-    Bifrost::API::Component component;
+    Bifrost::API::String objectName = params.object;
+    Bifrost::API::Runtime::Frame frame(params.frame);
+    Bifrost::API::Runtime::CacheResource::LoadOptions options;
+    if(params.clip) options.bbox = params.clip_bbox;
 
-    Bifrost::API::String cache_file = params.cache_file;
-    Bifrost::API::Query query = om.createQuery();
-    Bifrost::API::RefArray objects;
-    if(query.load(params.object.c_str())){
-        // find in-memory object
-        objects = query.run();
-        if(objects.count() == 0){
-            _status.warn("Failed to find object from descriptor '%s'. Using cache file '%s'.", params.object.c_str(), cache_file.c_str());
-        }else if((objects = query.run()).count() != 1){
-            _status.error("Can't find bif object from descriptor '%s' (%d objects exist).", params.object.c_str(), (int)objects.count());
+    Bifrost::API::Runtime::ActiveGraph ag = om.activeGraph(params.cache_folder);
+    if(!ag.valid()) ag = om.createActiveGraph(params.cache_folder);
+    if(!ag.valid()){
+        _status.error("Could not create active graph for path: '%s'", params.cache_folder.c_str());
+        return;
+    }
+    Bifrost::API::Runtime::CacheResourceImporter importer = ag.createCacheResourceImporter(params.cache_folder);
+    if(!params.object.empty()){
+        importer.readFiles(false, false, params.object);
+        if(importer.objectNames().count() != 1){
+            _status.error("Could not find object '%s' in path '%s'", params.object.c_str(), params.cache_folder.c_str());
             return;
-        }else{ // count = 1
-            object = objects[0];
-            Bifrost::API::RefArray components;
-            components = object.findComponentsByType(params.render_component == RenderComponent::Volume? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
-            if(components.count()==0){
-                _status.error("NOOO");
-                return;
-            }
-            component = components[0];
+        }
+    }else{
+        importer.readFiles(false, false);
+        if(importer.objectNames().count() == 0){
+            _status.error("Could not find objects in path '%s'", params.cache_folder.c_str());
+            return;
+        }
+        objectName = importer.objectNames()[0];
+        if(importer.objectNames().count() > 1){
+            _status.error("Found multiple objects in path '%s'. Using object '%n'.", params.cache_folder.c_str(), objectName.c_str());
+        }
+    }
+    Bifrost::API::Runtime::ResIDArray resIds;
+    importer.resIDs(objectName, frame, resIds);
+    if(resIds.count() != 1){
+        _status.error("Could not figure what resource ID to use: %d found.", resIds.count());
+        return;
+    }
+    Bifrost::API::Runtime::CacheResource resource = ag.resource(frame, Bifrost::API::Runtime::ResID(resIds[0]));
+    if(!resource.load(options).succeeded()){
+        _status.error("Failed to load frame '%d'.", frame.value);
+        return;
+    }
+    Bifrost::API::StateServer stateServer = resource.dataSource();
+    if(!stateServer.valid()){
+        _status.error("Invalid state server.");
+        return;
+    }
+    Bifrost::API::Object obj = stateServer.findObject(objectName);
+    if(!obj.valid()){
+        _status.error("Could not find object in state server '%s'", stateServer.name().c_str());
+        return;
+    }
+    _points = findComponent(obj, params.point_component, Bifrost::API::PointComponentType, _status);
+    _voxels = findComponent(obj, params.voxel_component, Bifrost::API::VoxelComponentType, _status);
 
-            Bifrost::API::String tmp_folder = Bifrost::API::File::createTempFolder();
-            tmp_folder = tmp_folder.c_str();
-            cache_file = tmp_folder.append(component.name()).append(".bif");
-            Bifrost::API::FileIO fio = om.createFileIO(cache_file);
-            if(!fio.save(component, Bifrost::API::BIF::Compression::Level0, 0).succeeded()){
-                _status.error("Failed to write temporary bif file '%s'.", cache_file.c_str());
-                return;
-            }
+    {
+        Bifrost::API::Object object;
+        Bifrost::API::Component component;
+        Bifrost::API::Context ctx = om.runtimeContext();
+        if(ctx.valid()){
+            Bifrost::API::StateServer ss = ctx.stateServer();
+            Bifrost::API::Object obj = ss.findObject(params.object);
+            // TODO: save object in temp folder
         }
     }
 
-    Bifrost::API::Status status;
-    Bifrost::API::FileIO fio = om.createFileIO(Bifrost::API::File::forwardSlashes(cache_file.c_str()));
-    Bifrost::API::StateServer ss = om.createStateServer();
-
-    // get object from file
-    status = params.clip? fio.load(ss, params.clip_bbox) : fio.load(ss);
-    if(status != Bifrost::API::Status::Success){
-        _status.error("Failed to load bif file '%s'.", params.cache_file.c_str());
-        return;
-    }
-    objects = ss.objects();
-    if(objects.count() != 1) {
-        _status.error("Can't find bif object in file '%s' (%d objects exist).", cache_file.c_str(), (int)objects.count());
-        return;
-    }
-    object = objects[0];
-    Bifrost::API::RefArray components;
-    components = object.findComponentsByType(params.render_component == RenderComponent::Volume? Bifrost::API::VoxelComponentType : Bifrost::API::PointComponentType);
-    if(components.count()==0){
-        _status.error("wrong component type");
-        return;
-    }
-    _component = components[0];
-    if(components.count() > 1){
-        _status.warn("too many components");
-    }
-
-    Bifrost::API::Layout layout(_component.layout());
+    Bifrost::API::Layout layout(_voxels.layout());
     layout.setVoxelScale(layout.voxelScale()*params.space_scale);
     float vscale = params.velocity_scale / params.fps;
     if(vscale != 1){
-        Bifrost::API::String velocities[3] = { "velocity_u", "velocity_v", "velocity_w" };
+        Bifrost::API::String velocities[3] = { params.velocity_channel+"_u", params.velocity_channel+"_v", params.velocity_channel+"_w" };
         for(unsigned int i = 0; i < 3; ++i){
-            Bifrost::API::Channel v = _component.findChannel(velocities[i]);
+            Bifrost::API::Channel v = _voxels.findChannel(velocities[i]);
             if(v.valid()) ScaleFilter<float>(vscale).filter(v,v);
         }
-        Bifrost::API::Channel v = _component.findChannel("velocity");
+        Bifrost::API::Channel v = _points.findChannel(params.velocity_channel);
         if(v.valid()) ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
-        /*
-        if(params.velocity_channels.count()==3){
-            for(unsigned int i = 0; i < params.velocity_channels.count(); ++i){
-                Bifrost::API::Channel v = _component.findChannel(params.velocity_channels[i]);
-                ScaleFilter<float>(vscale).filter(v,v);
-            }
-        }else if(params.velocity_channels.count()==1){
-            Bifrost::API::Channel v = _component.findChannel(params.velocity_channels[0]);
-            ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
-        }
-        */
     }
 }
 
 amino::Math::bboxf Shape::bbox() const{
-    return computeBBox(component().layout());
+    return computeBBox(voxels().layout());
 }
 
 Shape::~Shape(){
-    if(_component.valid()){
-        Bifrost::API::StateID stateId = _component.stateID();
-        _component.reset();
-        Bifrost::API::ObjectModel().removeStateServer(stateId);
-    }
+    // TODO: clear active graph
     if(!tmp_folder.empty()){
         Bifrost::API::File::deleteFolder(tmp_folder);
     }

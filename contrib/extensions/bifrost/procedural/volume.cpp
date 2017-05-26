@@ -11,7 +11,7 @@ VolumeParameters::VolumeParameters(const AtNode* node) : Bifrost::Processing::Vo
     GET_STR(density_channel);
 }
 void VolumeParameters::declare(AtList* params, AtNodeEntry* nentry){
-    PARAM_SHAPE(({"vorticity"}), ({"velocity_u", "velocity_v", "velocity_w"}));
+    PARAM_SHAPE(({"vorticity"}));
     PARAM_STR(density_channel);
 }
 
@@ -32,11 +32,11 @@ Volume* VolumeParameters::volume() const{
 }
 
 Volume::Volume(const VolumeParameters& params)
-    : _volume(Bifrost::Processing::Volume(params)), _sampler(Sampler(_volume.component(), valid()? AI_MAX_THREADS : 0)) {
+    : _volume(Bifrost::Processing::Volume(params)), _sampler(Sampler(_volume.voxels(), valid()? AI_MAX_THREADS : 0)) {
     DUMP(params.str());
     report(_volume.status());
     if(!valid()) return;
-    const Bifrost::API::Component& component = _volume.component();
+    const Bifrost::API::Component& component = _volume.voxels();
     for(unsigned int i = 0; i < params.channels.count(); ++i){
         ChannelSampler sampler(component, params.channels[i]);
         if(!sampler.valid()){
@@ -58,7 +58,7 @@ volume_create
     data->private_info = volume;
     if(!data->private_info)
         return false;
-    data->auto_step_size = .1;
+    data->auto_step_size = AiNodeGetFlt(node, "step_size");
     data->bbox = Convert(volume->volume().bbox());
     DUMP(data->bbox);
     return true;

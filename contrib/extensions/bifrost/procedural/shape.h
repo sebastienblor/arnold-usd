@@ -40,29 +40,33 @@
 #define SMOOTH_MODE_STRINGS { "mean", "gaussian", "median", "laplacian_flow", "curvature_flow", NULL }
 #define BLEND_TYPE_STRINGS { "linear", "smooth", "smoother", NULL }
 
-#define PARAM_SHAPE(channels_, velocities_) \
-    PARAM_STR(cache_file);\
+#define PARAM_SHAPE(channels_) \
+    PARAM_STR(cache_folder);\
     PARAM_STR(object);\
+    PARAM_STR(point_component);\
+    PARAM_STR(voxel_component);\
+    PARAM_UINT(frame);\
     PARAM_ARRAY(channels, CreateStringArray channels_);\
-    PARAM_ARRAY(velocity_channels, CreateStringArray velocities_);\
+    PARAM_STR(velocity_channel);\
     PARAM_STR(uv_channel);\
     PARAM_FLT(velocity_scale);\
     PARAM_FLT(space_scale);\
     PARAM_UINT(fps);\
     PARAM_BOOL(clip);\
-    PARAM_BBOX(clip, -1,-1,-1, 1,1,1)\
-    static const char* rc_enums[] = RENDER_COMPONENT_STRINGS;\
-    PARAM_ENUM(render_component, rc_enums)
+    PARAM_BBOX(clip, -1,-1,-1, 1,1,1)
 
 #define GET_SHAPE() \
-    GET_STR(cache_file);\
+    GET_STR(cache_folder);\
     GET_STR(object);\
+    GET_STR(point_component);\
+    GET_STR(voxel_component);\
+    GET_STR(object);\
+    GET_UINT(frame);\
     GET_STR_ARRAY(channels);\
-    GET_STR_ARRAY(velocity_channels);\
+    GET_STR(velocity_channel);\
     GET_STR(uv_channel);\
     GET_FLT(velocity_scale);\
     GET_FLT(space_scale);\
     GET_UINT(fps);\
     GET_BOOL(clip);\
-    GET_BBOX(clip);\
-    GET_ENUM(render_component, Bifrost::Processing::RenderComponent)
+    GET_BBOX(clip)

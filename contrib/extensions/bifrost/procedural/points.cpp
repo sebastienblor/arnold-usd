@@ -4,11 +4,13 @@
 #include "defs.h"
 #include "utils.h"
 #include "debug.h"
+#include "tbb.h"
 
 #include <bifrostapi/bifrost_layout.h>
 #include <bifrostapi/bifrost_tileiterator.h>
 #include <bifrostapi/bifrost_tile.h>
 #include <bifrostapi/bifrost_pointchannel.h>
+#include "sampler.h"
 
 PointsParameters::PointsParameters() : Bifrost::Processing::PointsParameters() {}
 
@@ -49,7 +51,7 @@ Bifrost::API::String PointsParameters::str() const{
 }
 
 void PointsParameters::declare(AtList* params, AtNodeEntry* nentry){
-    PARAM_SHAPE(({}), ({ "velocity" }));
+    PARAM_SHAPE(({}));
 
     PARAM_FLT(radius);
     PARAM_BOOL(enable_radius_channel);
@@ -89,58 +91,93 @@ std::vector<AtNode*>* PointsParameters::nodes() const{
     bool motion = getMotion(shutter_start, shutter_end);
     bool need_velocity = motion || (shutter_start != 0);
 
-    Bifrost::API::PointComponent comp(points.component());
+    Bifrost::API::PointComponent pointComponent(points.points());
+    Bifrost::API::VoxelComponent voxels(points.voxels());
 
-    Bifrost::API::Layout layout(comp.layout());
-    AtNode *points_node = AiNode("points");
+    Bifrost::API::Layout layout(pointComponent.layout());
+    AtNode *node = AiNode("points");
 
-    unsigned int N = comp.elementCount();
-    {// export positions
-        AtArray* points_array = AiArrayAllocate(N, motion? 2 : 1, AI_TYPE_VECTOR);
+    unsigned int N = pointComponent.elementCount();
+    float dx = layout.voxelScale();
+    Bifrost::API::Array<amino::Math::vec3f> positions;
+    positions.resize(N);
 
+    {// get positions
         Bifrost::API::TileIterator it = layout.tileIterator(layout.maxDepth(), layout.maxDepth(), Bifrost::API::TraversalMode::BreadthFirst);
-        Bifrost::API::PointChannel positions, velocities;
-        positions = comp.findChannel("position");
-        if(need_velocity) velocities = comp.findChannel("velocity");
-        Bifrost::API::TileData<amino::Math::vec3f> positionData, velocityData;
+        // TODO: expose position channel
+        Bifrost::API::PointChannel channel = points.points().findChannel("position");
+        Bifrost::API::TileData<amino::Math::vec3f> data;
         unsigned int i = 0;
         for(;it;++it){
-            positionData = positions.tileData<amino::Math::vec3f>((*it).index());
-            if(need_velocity) velocityData = velocities.tileData<amino::Math::vec3f>((*it).index());
-            for(unsigned int e = 0; e < positionData.count(); ++e, ++i){
-                if(motion){
-                    AiArraySetVec(points_array,   i, Convert((positionData[e]*layout.voxelScale() + shutter_start*velocityData[e])));
-                    AiArraySetVec(points_array, i+N, Convert((positionData[e]*layout.voxelScale() + shutter_end*velocityData[e])));
-                }else if(need_velocity){
-                    AiArraySetVec(points_array,   i, Convert((positionData[e]*layout.voxelScale() + shutter_start*velocityData[e])));
-                }else{
-                    AiArraySetVec(points_array,   i, Convert((positionData[e])*layout.voxelScale()));
-                }
+            data = channel.tileData<amino::Math::vec3f>((*it).index());
+            for(unsigned int e = 0; e < data.count(); ++e){
+                positions[i++] = (data[e]*dx);
             }
         }
-        AiNodeSetArray(points_node, "points", points_array);
+    }
+
+    {// export positions
+        // TODO: factorize that out (same in polymesh.cpp for vertices)
+        ChannelSampler velocities;
+        if(need_velocity){
+            velocities = ChannelSampler(voxels, velocity_channel);
+            if(!velocities.valid()){
+                motion = need_velocity = false;
+                shutter_start = shutter_end = 0;
+                AiMsgWarning("[BIFROST] Invalid velocity channel: %s. Ignoring motion...", velocity_channel.c_str());
+            }
+        }
+
+        AtArray *vlist = AiArrayAllocate( positions.count(), motion? 2 : 1, AI_TYPE_VECTOR );
+        if(need_velocity){
+            TBB_FOR_ALL(0, positions.count(), 100, [vlist,&positions,&velocities,motion,shutter_start,shutter_end](size_t start, size_t end){
+                ChannelSampler vsampler(velocities);
+                AtParamValue value;
+                for(size_t i = start; i < end; ++i){
+                    AtVector pos(Convert(positions[i]));
+                    vsampler.sample(pos, &value);
+                    AtVector vel(value.VEC());
+                    AiArraySetVec(vlist, i, pos + shutter_start * vel);
+                    if(motion) AiArraySetVec(vlist, positions.count()+i, pos + shutter_end * vel);
+                }
+            });
+            AiNodeSetFlt(node, "motion_start", shutter_start);
+            AiNodeSetFlt(node, "motion_end", shutter_end);
+        }else{
+            TBB_FOR_ALL(0, positions.count(), 100, [vlist,&positions](size_t i){
+                AiArraySetVec(vlist, i, Convert(positions[i]));
+            });
+        }
+        AiNodeSetArray(node, "points", vlist);
     }
 
     {// export radius
-        AtArray* radius_array = AiArrayAllocate(comp.elementCount(), 1, AI_TYPE_FLOAT);
-        for(unsigned int i = 0; i < comp.elementCount(); ++i)
+        const float radius = this->radius;
+        AtArray* radius_array = AiArrayAllocate(pointComponent.elementCount(), 1, AI_TYPE_FLOAT);
+        TBB_FOR_ALL(0, N, 100, [radius_array, radius](size_t i){
             AiArraySetFlt(radius_array, i, radius);
-        AiNodeSetArray(points_node, "radius", radius_array);
+        });
+        AiNodeSetArray(node, "radius", radius_array);
     }
 
-    for(unsigned int k = 0; k < channels.count(); ++k){// export channels
-        Bifrost::API::PointChannel channel(comp.findChannel(channels[k]));
-        if(!channel.valid()){
-            AiMsgWarning("[BIFROST] Don't know how to export channel '%s', Available channels are: %s", channels[k].c_str(), availableChannels(comp).c_str());
-            continue;
+    if(voxels.valid()){
+        for(unsigned int i = 0; i < channels.count(); ++i){
+            ChannelSampler sampler(voxels, channels[i]);
+            if(!sampler.valid()){
+                AiMsgWarning("[BIFROST] Don't know how to export channel '%s', Available channels are: %s", channels[i].c_str(), availableChannels(voxels).c_str());
+                continue;
+            }
+            AiNodeDeclare(node, channels[i].c_str(), (std::string("uniform ")+typeName(sampler.type())).c_str()); \
+            AiNodeSetArray(node, channels[i].c_str(), sampler.array(positions));
         }
-        // TODO: export channel
+    }else if(channels.count() > 0){
+        AiMsgWarning("[BIFROST] Invalid voxels. Ignoring channel export...");
     }
 
-    AiNodeSetInt(points_node, "mode", mode);
-    AiNodeSetFlt(points_node, "step_size", step_size);
+    AiNodeSetInt(node, "mode", mode);
+    AiNodeSetFlt(node, "step_size", step_size);
 
-    return new std::vector<AtNode*>({ points_node });
+    return new std::vector<AtNode*>({ node });
 }
 
 AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPointsMtds)

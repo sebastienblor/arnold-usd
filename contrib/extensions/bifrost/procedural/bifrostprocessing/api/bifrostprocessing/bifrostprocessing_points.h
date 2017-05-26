@@ -27,7 +27,7 @@ struct PointsParameters : public ShapeParameters{
 
     int skip = 0;
 
-    PointsParameters() : ShapeParameters() { render_component = RenderComponent::Particle; }
+    PointsParameters() : ShapeParameters() {}
     virtual Bifrost::API::String str() const;
 };
 

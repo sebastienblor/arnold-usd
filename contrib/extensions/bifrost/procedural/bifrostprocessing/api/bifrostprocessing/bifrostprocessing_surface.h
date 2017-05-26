@@ -5,6 +5,7 @@ namespace Bifrost{
 namespace Processing{
 
 struct SurfaceParameters : public ShapeParameters {
+    RenderComponent render_component = RenderComponent::Volume;
     // VOXELS
     Bifrost::API::String distance_channel = "distance";
 

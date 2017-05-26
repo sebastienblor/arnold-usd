@@ -14,11 +14,11 @@ Implicit* ImplicitParameters::implicit() const{
 }
 
 Implicit::Implicit(const ImplicitParameters& params)
-    : _surface(Bifrost::Processing::Surface(params)), _sampler(Sampler(_surface.component(), valid()? AI_MAX_THREADS : 0)) {
+    : _surface(Bifrost::Processing::Surface(params)), _sampler(Sampler(_surface.voxels(), valid()? AI_MAX_THREADS : 0)) {
     DUMP(params.str());
     report(_surface.status());
     if(!valid()) return;
-    const Bifrost::API::Component& component = _surface.component();
+    const Bifrost::API::Component& component = _surface.voxels();
     for(unsigned int i = 0; i < params.channels.count(); ++i){
         ChannelSampler sampler(component, params.channels[i]);
         if(!sampler.valid()){
@@ -40,7 +40,7 @@ volume_create
     data->private_info = implicit;
     if(!data->private_info)
         return false;
-    data->auto_step_size = .1;
+    data->auto_step_size = AiNodeGetFlt(node, "step_size");
     data->bbox = Convert(implicit->surface().bbox());
     DUMP(data->bbox);
     return true;

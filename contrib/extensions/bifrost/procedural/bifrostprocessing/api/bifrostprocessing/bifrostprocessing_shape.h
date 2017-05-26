@@ -36,11 +36,14 @@ private:
 };
 
 struct ShapeParameters{
-    Bifrost::API::String cache_file;
+    Bifrost::API::String cache_folder;
     Bifrost::API::String object;
-    RenderComponent render_component = RenderComponent::Volume;
+    Bifrost::API::String point_component;
+    Bifrost::API::String voxel_component;
+    unsigned int frame;
+
     Bifrost::API::StringArray channels;
-    Bifrost::API::StringArray velocity_channels;
+    Bifrost::API::String velocity_channel = "velocity";
     Bifrost::API::String uv_channel = "uv";
 
     float velocity_scale = 1;
@@ -60,13 +63,14 @@ public:
     virtual ~Shape();
 
     virtual amino::Math::bboxf bbox() const;
-    inline const Bifrost::API::Component& component() const{ return _component; }
+    inline const Bifrost::API::Component& points() const{ return _points; }
+    inline const Bifrost::API::Component& voxels() const{ return _voxels; }
 
     const Status& status() const{ return _status; }
 
 protected:
     Status _status;
-    Bifrost::API::Component _component;
+    Bifrost::API::Component _points, _voxels;
 
 private:
     Bifrost::API::String tmp_folder;

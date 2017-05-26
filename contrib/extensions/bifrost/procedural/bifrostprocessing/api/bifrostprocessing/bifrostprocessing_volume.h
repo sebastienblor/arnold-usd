@@ -7,7 +7,7 @@ namespace Processing{
 struct VolumeParameters : public ShapeParameters{
     Bifrost::API::String density_channel = "density";
 
-    VolumeParameters() : ShapeParameters() { render_component = RenderComponent::Volume; }
+    VolumeParameters() : ShapeParameters() {}
     virtual Bifrost::API::String str() const;
 };
 
