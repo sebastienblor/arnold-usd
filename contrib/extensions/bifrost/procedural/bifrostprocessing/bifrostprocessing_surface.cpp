@@ -108,11 +108,15 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         _voxels = component;
         distance_channel = "distance";
     }
+    if(!voxels().valid()){
+        _status.error("Invalid voxel component.");
+        return;
+    }
 
     Bifrost::API::VoxelChannel distance = voxels().findChannel(distance_channel);
     DUMP(distance.valid());
     if(!distance.valid() || distance.dataType() != Bifrost::API::DataType::FloatType){
-        _status.error("Invalid distance channel \"%s\". Available channels are:\n%s", distance_channel.c_str(),
+        _status.error("Invalid distance channel '%s'. Available channels are:\n%s", distance_channel.c_str(),
                    Bifrost::Private::availableChannels(_voxels, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
         return;
     }
@@ -132,7 +136,7 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
             if(uvs.valid()){
                 extend.uvs(uvs);
             }else{
-                _status.warn("Invalid uv channel \"%s\". Available channels are:\n%s", params.uv_channel.c_str(),
+                _status.warn("Invalid uv channel '%s'. Available channels are:\n%s", params.uv_channel.c_str(),
                             Bifrost::Private::availableChannels(_voxels, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
             }
         }

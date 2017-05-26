@@ -26,6 +26,7 @@ std::ostream& operator <<(std::ostream& out, SmoothMode sm){
     case SmoothMode::Laplacian: return out << "Laplacian";
     case SmoothMode::Curvature: return out << "Curvature";
     }
+    return out;
 }
 std::ostream& operator <<(std::ostream& out, BlendType bt){
     switch(bt){
@@ -33,6 +34,7 @@ std::ostream& operator <<(std::ostream& out, BlendType bt){
     case BlendType::Smooth: return out << "Smooth";
     case BlendType::Smoother: return out << "Smoother";
     }
+    return out;
 }
 
 Status& Status::operator =(const Status& o){
@@ -41,24 +43,12 @@ Status& Status::operator =(const Status& o){
     return *this;
 }
 
-void Status::error(const char* format, ...){
-    // TODO: fix this
-    char buffer[1000];
-    va_list args;
-    va_start(args, format);
-    sprintf(buffer, format, args);
-    va_end(args);
-    _error = buffer;
+// TODO: fix logging
+void Status::error(const Bifrost::API::String& format, ...) {
+    _error = format;
 }
-
-void Status::warn(const char* format, ...){
-    // TODO: fix this
-    char buffer[1000];
-    va_list args;
-    va_start(args, format);
-    sprintf(buffer, format, args);
-    va_end(args);
-    _warnings.add(buffer);
+void Status::warn(const Bifrost::API::String& format, ...) {
+    _warnings.add(format);
 }
 
 Bifrost::API::String ShapeParameters::str() const{
@@ -95,7 +85,7 @@ namespace{
             }else{
                 component = refs[0];
                 if(refs.count() > 1){
-                    status.warn("Found multiple components of type... Using '%s'.", type.c_str(), component.name().c_str());
+                    status.warn("Found multiple components of type '%s'. Using '%s'.", type.c_str(), component.name().c_str());
                 }
             }
         }else{

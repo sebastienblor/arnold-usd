@@ -27,8 +27,8 @@ public:
     inline bool operator!() const{ return !_error.empty(); }
     const Bifrost::API::String& error() const{ return _error; }
     const Bifrost::API::StringArray& warnings() const{ return _warnings; }
-    void error(const char* format, ...);
-    void warn(const char* format, ...);
+    void error(const Bifrost::API::String& format, ...);
+    void warn(const Bifrost::API::String& format, ...);
 
 private:
     Bifrost::API::StringArray _warnings;
