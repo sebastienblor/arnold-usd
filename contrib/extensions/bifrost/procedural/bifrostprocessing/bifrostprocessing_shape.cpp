@@ -173,6 +173,11 @@ amino::Math::bboxf Shape::bbox() const{
 }
 
 Shape::~Shape(){
+    if(_component.valid()){
+        Bifrost::API::StateID stateId = _component.stateID();
+        _component.reset();
+        Bifrost::API::ObjectModel().removeStateServer(stateId);
+    }
     if(!tmp_folder.empty()){
         Bifrost::API::File::deleteFolder(tmp_folder);
     }

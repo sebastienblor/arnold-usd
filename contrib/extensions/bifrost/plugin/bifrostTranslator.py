@@ -49,21 +49,34 @@ def dimControls(nodeName, attrs, dim):
         cmds.editorTemplate(dimControl=(nodeName, attr, dim))
 
 def SurfaceControls():
-    return ("distance_channel",
+    return ("surface_type",
+            "render_component",
+            "distance_channel",
             "levelset_droplet_reveal_factor",
             "levelset_surface_radius",
             "levelset_droplet_radius",
             "levelset_resolution_factor",
             "levelset_max_volume_of_holes_to_close",
+            "dilate",
+            "smooth",
+            "smooth_mode",
+            "smooth_iterations",
+            "erode",
             "enable_ocean_blending",
             "ocean_plane",
-            "ocean_blending_radius")
+            "ocean_blending_radius",
+            "subdivisions",
+            "smoothing",
+            "implicit_step_size",
+            "implicit_samples")
 
 def PointsControls():
-    return ()
+    return ("points_type",
+            "radius",
+            "points_step_size")
 
 def VolumeControls():
-    return ("density_channel")
+    return ("density_channel",)
 
 def CheckRenderAs( nodeName ):
     render_as = cmds.getAttr(nodeName+".render_as")
@@ -98,6 +111,11 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("space_scale")
         self.addControl("channels")
 
+        self.beginLayout("Clipping", collapse=True)
+        self.addControl("clip", label="Enable")
+        self.addCustom("clip_box", partial(InputMeshNew,"Bounding Mesh"), InputMeshReplace)
+        self.endLayout()
+
         self.beginLayout("Surface Controls", collapse=False)
         self.addControl("surface_type")
         self.addControl("render_component", changeCommand=CheckRenderComponents)
@@ -110,17 +128,27 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("levelset_resolution_factor", label="Resolution Factor")
         self.addControl("levelset_max_volume_of_holes_to_close", label="Max Volume Of Holes To Close")
 
-        self.beginLayout("Ocean Blending", collapse=False)
+        self.beginLayout("Filtering", collapse=True)
+        self.addControl("dilate")
+        self.addSeparator()
+        self.addControl("smooth")
+        self.addControl("smooth_mode")
+        self.addControl("smooth_iterations")
+        self.addSeparator()
+        self.addControl("erode")
+        self.endLayout()
+
+        self.beginLayout("Ocean Blending", collapse=True)
         self.addControl("enable_ocean_blending", label="Enable")
         self.addCustom("ocean_plane", partial(InputMeshNew,"Mesh Plane"), InputMeshReplace)
         self.addControl("ocean_blending_radius", label="Boundary Radius")
         self.endLayout()
 
-        self.beginLayout("Mesh Controls", collapse=False)
+        self.beginLayout("Mesh Controls", collapse=True)
         self.addControl("subdivisions")
         self.addControl("smoothing")
         self.endLayout()
-        self.beginLayout("Implicit Controls", collapse=False)
+        self.beginLayout("Implicit Controls", collapse=True)
         self.addControl("implicit_step_size", label="Step Size")
         self.addControl("implicit_samples", label="Samples")
         self.endLayout()
@@ -134,21 +162,6 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Volume Controls", collapse=False)
         self.addControl("density_channel")
-        self.endLayout()
-
-        self.beginLayout("Filtering", collapse=False)
-        self.addControl("dilate")
-        self.addSeparator()
-        self.addControl("smooth")
-        self.addControl("smooth_mode")
-        self.addControl("smooth_iterations")
-        self.addSeparator()
-        self.addControl("erode")
-        self.endLayout()
-
-        self.beginLayout("Clipping", collapse=False)
-        self.addControl("clip", label="Enable")
-        self.addCustom("clip_box", partial(InputMeshNew,"Bounding Mesh"), InputMeshReplace)
         self.endLayout()
 
         self.suppress("aiDebug")
