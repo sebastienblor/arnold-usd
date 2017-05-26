@@ -34,6 +34,7 @@ struct PointsParameters : public ShapeParameters{
 class Points : public Shape {
 public:
     Points(const PointsParameters& params);
+    bool positions(Bifrost::API::Array<amino::Math::vec3f>& positions) const;
 };
 
 

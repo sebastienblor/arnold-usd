@@ -5,11 +5,6 @@
 #include "utils.h"
 #include "debug.h"
 #include "tbb.h"
-
-#include <bifrostapi/bifrost_layout.h>
-#include <bifrostapi/bifrost_tileiterator.h>
-#include <bifrostapi/bifrost_tile.h>
-#include <bifrostapi/bifrost_pointchannel.h>
 #include "sampler.h"
 
 PointsParameters::PointsParameters() : Bifrost::Processing::PointsParameters() {}
@@ -94,27 +89,9 @@ std::vector<AtNode*>* PointsParameters::nodes() const{
     Bifrost::API::PointComponent pointComponent(points.points());
     Bifrost::API::VoxelComponent voxels(points.voxels());
 
-    Bifrost::API::Layout layout(pointComponent.layout());
     AtNode *node = AiNode("points");
-
-    unsigned int N = pointComponent.elementCount();
-    float dx = layout.voxelScale();
     Bifrost::API::Array<amino::Math::vec3f> positions;
-    positions.resize(N);
-
-    {// get positions
-        Bifrost::API::TileIterator it = layout.tileIterator(layout.maxDepth(), layout.maxDepth(), Bifrost::API::TraversalMode::BreadthFirst);
-        // TODO: expose position channel
-        Bifrost::API::PointChannel channel = points.points().findChannel("position");
-        Bifrost::API::TileData<amino::Math::vec3f> data;
-        unsigned int i = 0;
-        for(;it;++it){
-            data = channel.tileData<amino::Math::vec3f>((*it).index());
-            for(unsigned int e = 0; e < data.count(); ++e){
-                positions[i++] = (data[e]*dx);
-            }
-        }
-    }
+    points.positions(positions);
 
     {// export positions
         // TODO: factorize that out (same in polymesh.cpp for vertices)
@@ -154,7 +131,7 @@ std::vector<AtNode*>* PointsParameters::nodes() const{
     {// export radius
         const float radius = this->radius;
         AtArray* radius_array = AiArrayAllocate(pointComponent.elementCount(), 1, AI_TYPE_FLOAT);
-        TBB_FOR_ALL(0, N, 100, [radius_array, radius](size_t i){
+        TBB_FOR_ALL(0, positions.count(), 100, [radius_array, radius](size_t i){
             AiArraySetFlt(radius_array, i, radius);
         });
         AiNodeSetArray(node, "radius", radius_array);
