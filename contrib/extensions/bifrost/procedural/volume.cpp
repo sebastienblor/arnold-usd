@@ -10,6 +10,10 @@ VolumeParameters::VolumeParameters(const AtNode* node) : Bifrost::Processing::Vo
     GET_SHAPE();
     GET_STR(density_channel);
 }
+void VolumeParameters::declare(AtList* params, AtNodeEntry* nentry){
+    PARAM_SHAPE(({"vorticity"}), ({"velocity_u", "velocity_v", "velocity_w"}));
+    PARAM_STR(density_channel);
+}
 
 Bifrost::API::String VolumeParameters::str() const {
     std::stringstream ss;
@@ -18,35 +22,28 @@ Bifrost::API::String VolumeParameters::str() const {
     return ss.str().c_str();
 }
 
-void VolumeParameters::declare(AtList* params, AtNodeEntry* nentry){
-    PARAM_SHAPE(({"vorticity"}), ({"velocity"}));
-    PARAM_STR(density_channel);
-}
-
 Volume* VolumeParameters::volume() const{
     Volume* volume = new Volume(*this);
-    report(volume->status());
-    if(!volume->status()){
+    if(!volume->valid()){
         delete volume;
         return nullptr;
     }
     return volume;
 }
 
-Volume::Volume(const VolumeParameters& params) : volume(Bifrost::Processing::Volume(params)) {
-    if(!volume.status()) return;
-    samplers.resize(AI_MAX_THREADS, ComponentSampler(volume.component()));
-}
-
-bool Volume::sample(const AtString& channel, const AtVector& pos, uint16_t tid, AtParamValue *value, uint8_t *type, int interp){
-    const ChannelSampler& sampler = samplers[tid].channelSampler(std::string(channel.c_str()), interp);
-    if(!sampler.valid()) return false;
-    *type = sampler.type();
-    sampler.sample(pos, value);
-    return true;
-}
-AtBBox Volume::bbox() const{
-    return Convert(volume.bbox());
+Volume::Volume(const VolumeParameters& params)
+    : _volume(Bifrost::Processing::Volume(params)), _sampler(Sampler(_volume.component(), valid()? AI_MAX_THREADS : 0)) {
+    DUMP(params.str());
+    report(_volume.status());
+    if(!valid()) return;
+    const Bifrost::API::Component& component = _volume.component();
+    for(unsigned int i = 0; i < params.channels.count(); ++i){
+        ChannelSampler sampler(component, params.channels[i]);
+        if(!sampler.valid()){
+            AiMsgWarning("[BIFROST] Don't know how to export channel '%s'. Available channels are: '%s'", params.channels[i].c_str(), availableChannels(component).c_str());
+            continue;
+        }
+    }
 }
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostVolumeMtds)
@@ -62,31 +59,32 @@ volume_create
     if(!data->private_info)
         return false;
     data->auto_step_size = .1;
-    data->bbox = volume->bbox();
+    data->bbox = Convert(volume->volume().bbox());
     DUMP(data->bbox);
-    return true;
-}
-volume_cleanup
-{
-    if(data->private_info) delete (Volume*) data->private_info;
-    data->private_info = nullptr;
     return true;
 }
 volume_sample
 {
     if(!data->private_info) return false;
     Volume* volume = static_cast<Volume*>(data->private_info);
-    return volume->sample(channel, sg->P, sg->tid, value, type, interp);
+    return volume->sampler().sample(channel, sg->P, sg->tid, value, type, interp, sg->time);
+}
+volume_gradient
+{
+    if(!data->private_info) return false;
+    Volume* volume = static_cast<Volume*>(data->private_info);
+    return volume->sampler().sampleGradient(channel, sg->P, sg->tid, *gradient, interp, sg->time);
 }
 volume_ray_extents
 {
     // TODO: compute extents
     AiVolumeAddIntersection(info, t0, t1);
 }
-volume_gradient
+volume_cleanup
 {
-    DUMP("salut");
-    return false;
+    if(data->private_info) delete (Volume*) data->private_info;
+    data->private_info = nullptr;
+    return true;
 }
 volume_update
 {

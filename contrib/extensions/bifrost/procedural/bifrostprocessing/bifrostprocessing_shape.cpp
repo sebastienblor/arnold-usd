@@ -84,13 +84,14 @@ Shape::Shape(const ShapeParameters& params){
     Bifrost::API::Object object;
     Bifrost::API::Component component;
 
+    Bifrost::API::String cache_file = params.cache_file;
     Bifrost::API::Query query = om.createQuery();
     Bifrost::API::RefArray objects;
     if(query.load(params.object.c_str())){
         // find in-memory object
         objects = query.run();
         if(objects.count() == 0){
-            _status.warn("Failed to find object from descriptor '%s'. Using cache file '%s'.", params.object.c_str(), params.cache_file.c_str());
+            _status.warn("Failed to find object from descriptor '%s'. Using cache file '%s'.", params.object.c_str(), cache_file.c_str());
         }else if((objects = query.run()).count() != 1){
             _status.error("Can't find bif object from descriptor '%s' (%d objects exist).", params.object.c_str(), (int)objects.count());
             return;
@@ -106,17 +107,17 @@ Shape::Shape(const ShapeParameters& params){
 
             Bifrost::API::String tmp_folder = Bifrost::API::File::createTempFolder();
             tmp_folder = tmp_folder.c_str();
-            Bifrost::API::String tmp_cache_file = tmp_folder.append(component.name()).append(".bif");
-            Bifrost::API::FileIO fio = om.createFileIO(tmp_cache_file);
+            cache_file = tmp_folder.append(component.name()).append(".bif");
+            Bifrost::API::FileIO fio = om.createFileIO(cache_file);
             if(!fio.save(component, Bifrost::API::BIF::Compression::Level0, 0).succeeded()){
-                _status.error("Failed to write temporary bif file '%s'.", tmp_cache_file.c_str());
+                _status.error("Failed to write temporary bif file '%s'.", cache_file.c_str());
                 return;
             }
         }
     }
 
     Bifrost::API::Status status;
-    Bifrost::API::FileIO fio = om.createFileIO(Bifrost::API::File::forwardSlashes(params.cache_file.c_str()));
+    Bifrost::API::FileIO fio = om.createFileIO(Bifrost::API::File::forwardSlashes(cache_file.c_str()));
     Bifrost::API::StateServer ss = om.createStateServer();
 
     // get object from file
@@ -127,7 +128,7 @@ Shape::Shape(const ShapeParameters& params){
     }
     objects = ss.objects();
     if(objects.count() != 1) {
-        _status.error("Can't find bif object in file '%s' (%d objects exist).", params.cache_file.c_str(), (int)objects.count());
+        _status.error("Can't find bif object in file '%s' (%d objects exist).", cache_file.c_str(), (int)objects.count());
         return;
     }
     object = objects[0];
@@ -146,6 +147,14 @@ Shape::Shape(const ShapeParameters& params){
     layout.setVoxelScale(layout.voxelScale()*params.space_scale);
     float vscale = params.velocity_scale / params.fps;
     if(vscale != 1){
+        Bifrost::API::String velocities[3] = { "velocity_u", "velocity_v", "velocity_w" };
+        for(unsigned int i = 0; i < 3; ++i){
+            Bifrost::API::Channel v = _component.findChannel(velocities[i]);
+            if(v.valid()) ScaleFilter<float>(vscale).filter(v,v);
+        }
+        Bifrost::API::Channel v = _component.findChannel("velocity");
+        if(v.valid()) ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
+        /*
         if(params.velocity_channels.count()==3){
             for(unsigned int i = 0; i < params.velocity_channels.count(); ++i){
                 Bifrost::API::Channel v = _component.findChannel(params.velocity_channels[i]);
@@ -155,6 +164,7 @@ Shape::Shape(const ShapeParameters& params){
             Bifrost::API::Channel v = _component.findChannel(params.velocity_channels[0]);
             ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
         }
+        */
     }
 }
 

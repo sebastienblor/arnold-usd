@@ -16,10 +16,21 @@ public:
     static void NodeInitializer( CAbTranslator context );
 
 private:
+    // common
+    void ExportShape(MFnDagNode& dagNode, AtNode *shape);
+
+    // surface
     void ExportSurface(MFnDagNode& dagNode, AtNode *shape);
     void ExportPolymesh(MFnDagNode& dagNode, AtNode *shape);
+    void ExportImplicit(MFnDagNode& dagNode, AtNode *shape);
     void ExportClipping(const MFnDagNode& dagNode, AtNode *shape);
     void ExportOceanPlane(const MFnDagNode& dagNode, AtNode *shape);
+
+    // volume
+    void ExportVolume(MFnDagNode& dagNode, AtNode *shape);
+
+    // points
+    void ExportPoints(MFnDagNode& dagNode, AtNode *shape);
 
     MMatrix getRelativeMatrix(const MPlug& src);
 

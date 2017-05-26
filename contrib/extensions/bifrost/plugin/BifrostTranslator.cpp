@@ -29,25 +29,132 @@
 #define EXPORT_FLT3(name) AiNodeSetVec(shape, name, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
 #define EXPORT_STR(name) AiNodeSetStr(shape, name, dagNode.findPlug(name).asString().asChar())
 
-#define EXPORT2_BOOL(aiName, name) AiNodeSetBool(shape, aiName, dagNode.findPlug(name).asBool())
-#define EXPORT2_INT(aiName, name) AiNodeSetInt(shape, aiName, dagNode.findPlug(name).asInt())
-#define EXPORT2_UINT(aiName, name) AiNodeSetUInt(shape, aiName, dagNode.findPlug(name).asInt())
-#define EXPORT2_FLT(aiName, name) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name).asFloat())
-#define EXPORT2_FLT3(aiName, name) AiNodeSetVec(shape, aiName, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
-#define EXPORT2_STR(aiName, name) AiNodeSetStr(shape, aiName, dagNode.findPlug(name).asString().asChar())
+#define EXPORT2_BOOL(name, aiName) AiNodeSetBool(shape, aiName, dagNode.findPlug(name).asBool())
+#define EXPORT2_INT(name, aiName) AiNodeSetInt(shape, aiName, dagNode.findPlug(name).asInt())
+#define EXPORT2_UINT(name, aiName) AiNodeSetUInt(shape, aiName, dagNode.findPlug(name).asInt())
+#define EXPORT2_FLT(name, aiName) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name).asFloat())
+#define EXPORT2_FLT3(name, aiName) AiNodeSetVec(shape, aiName, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
+#define EXPORT2_STR(name, aiName) AiNodeSetStr(shape, aiName, dagNode.findPlug(name).asString().asChar())
+
+namespace {
+    AtArray* Convert(const MStringArray& array){
+        AtArray* out = AiArrayAllocate(array.length(), 1, AI_TYPE_STRING);
+        for(unsigned int i = 0; i < array.length(); ++i){
+            AiArraySetStr(out, i, array[i].asChar());
+        }
+        return out;
+    }
+}
 
 AtNode* BifrostTranslator::CreateArnoldNodes()
 {
     MFnDagNode dagNode(m_dagPath.node());
     int render_as = dagNode.findPlug("render_as").asInt();
     switch(render_as){
-    case 0: return AddArnoldNode("bifrost_polymesh");
+    case 0: return AddArnoldNode(dagNode.findPlug("surface_type").asInt()==0? "bifrost_polymesh" : "bifrost_implicit");
     case 1: return AddArnoldNode("bifrost_points");
     case 2: return AddArnoldNode("bifrost_volume");
     default: break;
     }
     AiMsgError("[mtoa.bifrost] Unknown 'render as' value: %d.\n", render_as);
     return nullptr;
+}
+
+void BifrostTranslator::Export( AtNode *shape ){
+    MFnDagNode dagNode(m_dagPath.node());
+    int render_as = dagNode.findPlug("render_as").asInt();
+    switch(render_as){
+    case 0:
+        if(dagNode.findPlug("surface_type").asInt()==0) ExportPolymesh(dagNode, shape);
+        else ExportImplicit(dagNode, shape);
+        break;
+    case 1: ExportPoints(dagNode, shape); break;
+    case 2: ExportVolume(dagNode, shape); break;
+    default: AiMsgError("[mtoa.bifrost] Unknown 'render as' value: %d.\n", render_as);
+    }
+}
+
+void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
+{
+    EXPORT_BOOL("opaque");
+    EXPORT_BOOL("matte");
+    AiNodeSetByte(shape, "visibility", AI_RAY_ALL);
+
+    // common attributes
+    EXPORT_FLT("velocity_scale");
+    EXPORT_FLT("space_scale");
+    const MTime sec(1.0, MTime::kSeconds);
+    float fps = (float) sec.as(MTime::uiUnit());
+    AiNodeSetFlt(shape, "fps", fps);
+
+    this->ExportClipping(dagNode, shape);
+
+    MString channels = dagNode.findPlug("channels").asString();
+    MStringArray array;
+    channels.split(' ', array);
+    AiNodeSetArray(shape, "channels", Convert(array));
+
+    if(RequiresShaderExport()){
+        ExportBifrostShader();
+    }
+    ExportLightLinking( shape );
+
+    // object / file
+    AiNodeSetStr(shape, "object", dagNode.findPlug("object").asString().asChar());
+
+    ExportMatrix(shape);
+}
+
+void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
+{
+    ExportShape(dagNode, shape);
+    EXPORT_INT("render_component");
+
+    EXPORT2_STR("distance_channel", "field_channel");
+
+    EXPORT_FLT("levelset_droplet_reveal_factor");
+    EXPORT_FLT("levelset_surface_radius");
+    EXPORT_FLT("levelset_droplet_radius");
+    EXPORT_FLT("levelset_resolution_factor");
+    EXPORT_FLT("levelset_max_volume_of_holes_to_close");
+
+    EXPORT_FLT("dilate");
+    EXPORT_FLT("erode");
+
+    EXPORT_FLT("smooth");
+    EXPORT_INT("smooth_iterations");
+
+    this->ExportOceanPlane(dagNode, shape);
+}
+
+void BifrostTranslator::ExportPolymesh(MFnDagNode &dagNode, AtNode *shape)
+{
+    ExportSurface(dagNode, shape);
+
+    // export mesh specific attributes
+    EXPORT_UINT("subdivisions");
+    ExportDisplacement();
+    EXPORT_BOOL("smoothing");
+}
+void BifrostTranslator::ExportImplicit(MFnDagNode &dagNode, AtNode *shape)
+{
+    ExportSurface(dagNode, shape);
+    AiNodeSetStr( shape, "solver", "levelset" );
+    EXPORT2_FLT("implicit_step_size", "step_size");
+    EXPORT2_UINT("implicit_samples", "samples");
+}
+
+void BifrostTranslator::ExportVolume(MFnDagNode &dagNode, AtNode *shape)
+{
+    ExportShape(dagNode, shape);
+}
+
+void BifrostTranslator::ExportPoints(MFnDagNode &dagNode, AtNode *shape)
+{
+    ExportShape(dagNode, shape);
+    EXPORT_FLT("radius");
+    EXPORT2_INT("points_type", "mode");
+    EXPORT2_FLT("points_step_size", "step_size");
 }
 
 MMatrix BifrostTranslator::getRelativeMatrix(const MPlug &source){
@@ -75,8 +182,8 @@ void BifrostTranslator::ExportClipping(const MFnDagNode &dagNode, AtNode *shape)
 }
 
 void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shape){
-    EXPORT_BOOL("enable_infinite_blending");
-    EXPORT_FLT("infinite_blending_radius");
+    EXPORT_BOOL("enable_ocean_blending");
+    EXPORT_FLT("ocean_blending_radius");
     MPlug oceanMeshPlug = dagNode.findPlug("ocean_plane");
     if(oceanMeshPlug.isDestination()){
         MPlug source = oceanMeshPlug.source();
@@ -86,73 +193,12 @@ void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shap
         float height = bbox.max().y;
         MPoint center = (bbox.max() + bbox.min())*.5;
         MPoint dimensions = (bbox.max() - bbox.min());
-        AiNodeSetFlt(shape,"infinite_blending_height", height);
-        AiNodeSetVec2(shape, "infinite_blending_center", center.x, center.z);
-        AiNodeSetVec2(shape, "infinite_blending_dimension", dimensions.x, dimensions.z);
+        AiNodeSetFlt(shape,"ocean_blending_height", height);
+        AiNodeSetVec2(shape, "ocean_blending_center", center.x, center.z);
+        AiNodeSetVec2(shape, "ocean_blending_dimension", dimensions.x, dimensions.z);
     }else{
-        AiNodeSetBool(shape, "enable_infinite_blending", false);
+        AiNodeSetBool(shape, "enable_ocean_blending", false);
     }
-}
-
-void BifrostTranslator::Export(AtNode* shape)
-{
-    MFnDagNode dagNode(m_dagPath.node());
-    EXPORT_BOOL("opaque");
-    EXPORT_BOOL("matte");
-    AiNodeSetByte(shape, "visibility", AI_RAY_ALL);
-
-    // common attributes
-    EXPORT_INT("render_component");
-
-    EXPORT_FLT("velocity_scale");
-    EXPORT_FLT("space_scale");
-    const MTime sec(1.0, MTime::kSeconds);
-    float fps = (float) sec.as(MTime::uiUnit());
-    AiNodeSetFlt(shape, "fps", fps);
-
-    this->ExportClipping(dagNode, shape);
-
-    // export shaders
-    if(RequiresShaderExport()){
-        ExportBifrostShader();
-    }
-    ExportLightLinking( shape );
-
-    // object / file
-    AiNodeSetStr(shape, "object", dagNode.findPlug("object").asString().asChar());
-
-    ExportPolymesh(dagNode, shape);
-    ExportMatrix(shape);
-}
-
-void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
-{
-    EXPORT_STR("distance_channel");
-
-    EXPORT_FLT("levelset_droplet_reveal_factor");
-    EXPORT_FLT("levelset_surface_radius");
-    EXPORT_FLT("levelset_droplet_radius");
-    EXPORT_FLT("levelset_resolution_factor");
-    EXPORT_FLT("levelset_max_volume_of_holes_to_close");
-
-    EXPORT_FLT("dilate");
-    EXPORT_FLT("erode");
-
-    EXPORT_FLT("smooth");
-    //ADD_DSMOOTH_ENUM("smooth_mode");
-    EXPORT_INT("smooth_iterations");
-
-    this->ExportOceanPlane(dagNode, shape);
-}
-
-void BifrostTranslator::ExportPolymesh(MFnDagNode &dagNode, AtNode *shape)
-{
-    ExportSurface(dagNode, shape);
-
-    // export mesh specific attributes
-    EXPORT_UINT("subdivisions");
-    ExportDisplacement();
-    EXPORT_BOOL("smoothing");
 }
 
 void BifrostTranslator::ExportMotion( AtNode* shape ){
@@ -314,12 +360,34 @@ void BifrostTranslator::RequestUpdate()
     }\
     helper.MakeInputEnum(data);
 
+#define ADD_DSURFACE_TYPE_AS_ENUM(longName) \
+    data.name = data.shortName = longName;\
+    {\
+        MStringArray enums;\
+        enums.append("Mesh");\
+        enums.append("Implicit");\
+        data.enums = enums;\
+    }\
+    helper.MakeInputEnum(data);
+
+#define ADD_DPOINTS_TYPE(longName) \
+    data.name = data.shortName = longName;\
+    {\
+        MStringArray enums;\
+        enums.append("Points");\
+        enums.append("Spheres");\
+        data.enums = enums;\
+        data.defaultValue.INT() = 1;\
+    }\
+    helper.MakeInputEnum(data);
+
 
 void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
     CExtensionAttrHelper helper(context.maya, "standard");
     CAttrData data;
 
+    // common
     ADD_DBOOL("opaque", true);
     ADD_DBOOL("matte", false);
     ADD_DBOOL("smoothing", true);
@@ -333,6 +401,13 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DFLT("space_scale", 1.f);
 
     ADD_DSTR("channels", "vorticity");
+
+    // surface
+    ADD_DSURFACE_TYPE_AS_ENUM("surface_type");
+
+    ADD_DFLT("implicit_step_size", 0.01);
+    ADD_DINT("implicit_samples", 5);
+
     ADD_DSTR("distance_channel", "distance");
 
     ADD_DFLT("levelset_droplet_reveal_factor",3);
@@ -342,11 +417,10 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DFLT("levelset_max_volume_of_holes_to_close", 8);
 
     ADD_DFLT("dilate", 0.f);
-    ADD_DFLT("erode", 0.f);
-
     ADD_DFLT("smooth", 0.f);
     ADD_DSMOOTH_ENUM("smooth_mode");
     ADD_DINT_HARDMIN("smooth_iterations", 1, 1);
+    ADD_DFLT("erode", 0.f);
 
     ADD_DBOOL("clip", false);
     {
@@ -367,7 +441,7 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
         }
     }
 
-    ADD_DBOOL("enable_infinite_blending", false);
+    ADD_DBOOL("enable_ocean_blending", false);
     {
         MStatus status;
         MFnTypedAttribute typeAttr;
@@ -385,5 +459,23 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
             CHECK_MSTATUS(dgMod.doIt());
         }
     }
-    ADD_DFLT("infinite_blending_radius", .1);
+    ADD_DFLT("ocean_blending_radius", .1);
+
+    // volume
+    ADD_DSTR("density_channel", "density");
+
+    // points
+    ADD_DFLT("radius", 0.01);
+    ADD_DPOINTS_TYPE("points_type");
+
+    //ADD_DBOOL("enable_radius_channel", false);
+    //ADD_DSTR("radius_channel", "density");
+
+    //ADD_DBOOL("enable_camera_radius", false);
+    //ADD_DFLT2("camera_distance", 0, 1);
+    //ADD_DFLT2("camera_factor", 0, 1);
+    //ADD_DFLT("camera_factor_exponent", 1);
+
+    //ADD_DINT("skip", 0);
+    ADD_DFLT("points_step_size", 0.025);
 }

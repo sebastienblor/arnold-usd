@@ -41,7 +41,7 @@ struct ShapeParameters{
     RenderComponent render_component = RenderComponent::Volume;
     Bifrost::API::StringArray channels;
     Bifrost::API::StringArray velocity_channels;
-    Bifrost::API::String uv_channel;
+    Bifrost::API::String uv_channel = "uv";
 
     float velocity_scale = 1;
     float space_scale = 1;

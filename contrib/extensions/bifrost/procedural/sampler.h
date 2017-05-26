@@ -12,6 +12,7 @@ public:
     virtual ChannelSamplerImpl* clone() const=0;
     virtual uint8_t type() const=0;
     virtual void sample(const AtVector& pos, AtParamValue *value) const=0;
+    virtual bool sampleGradient(const AtVector& pos, AtVector& gradient) const{ return false; }
     virtual AtArray* array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const=0;
 };
 
@@ -27,19 +28,31 @@ public:
     inline bool valid() const{ return impl != nullptr; }
     uint8_t type() const;
     void sample(const AtVector& pos, AtParamValue *value) const;
+    bool sampleGradient(const AtVector& pos, AtVector& gradient) const;
     AtArray* array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const;
 
 private:
     std::unique_ptr<ChannelSamplerImpl> impl;
 };
 
-class ComponentSampler{
+class ThreadSampler{
 public:
-    ComponentSampler(const ComponentSampler& o);
-    ComponentSampler(const Bifrost::API::VoxelComponent component);
-    const ChannelSampler& channelSampler(const std::string& channel, int interp);
+    ThreadSampler(const ThreadSampler& o);
+    ThreadSampler(const Bifrost::API::VoxelComponent component);
+    const ChannelSampler& channelSampler(const std::string& channel, int interp) const;
 
 private:
     Bifrost::API::VoxelComponent component;
-    std::unordered_map< std::string, ChannelSampler> samplers;
+    mutable std::unordered_map< std::string, ChannelSampler> samplers;
+};
+
+class Sampler{
+public:
+    Sampler(const Bifrost::API::VoxelComponent component, unsigned int N);
+    bool sample(const AtString& channel, const AtVector& pos, uint16_t tid, AtParamValue *value, uint8_t *type, int interp, float time) const;
+    bool sampleGradient(const AtString& channel, const AtVector& pos, uint16_t tid, AtVector& gradient, int interp, float time) const;
+
+private:
+    AtVector velocity(const AtVector& pos, uint16_t tid) const;
+    std::vector<ThreadSampler> samplers;
 };

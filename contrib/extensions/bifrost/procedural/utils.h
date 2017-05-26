@@ -39,3 +39,4 @@ std::string availableChannels(const Bifrost::API::Component& component, std::fun
 
 std::ostream& operator<<(std::ostream& out, const AtMatrix& m);
 std::ostream& operator<<(std::ostream& out, const AtBBox& bbox);
+std::ostream& operator<<(std::ostream& out, const AtVector& vec);

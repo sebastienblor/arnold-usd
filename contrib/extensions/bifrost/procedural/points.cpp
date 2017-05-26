@@ -79,6 +79,7 @@ void PointsParameters::declare(AtList* params, AtNodeEntry* nentry){
 
 std::vector<AtNode*>* PointsParameters::nodes() const{
     Bifrost::Processing::Points points(*this);
+    DUMP(this->str());
     report(points.status());
     if(!points.status()){
         return nullptr;
@@ -121,14 +122,19 @@ std::vector<AtNode*>* PointsParameters::nodes() const{
     }
 
     {// export radius
-        AtArray* radius_array = AiArrayAllocate(comp.elementCount(), 2, AI_TYPE_FLOAT);
-        for(unsigned int i = 0; i < comp.elementCount()<<1; ++i)
-            AiArraySetFlt(radius_array, i, .025);
+        AtArray* radius_array = AiArrayAllocate(comp.elementCount(), 1, AI_TYPE_FLOAT);
+        for(unsigned int i = 0; i < comp.elementCount(); ++i)
+            AiArraySetFlt(radius_array, i, radius);
         AiNodeSetArray(points_node, "radius", radius_array);
     }
 
-    {// export channels
-
+    for(unsigned int k = 0; k < channels.count(); ++k){// export channels
+        Bifrost::API::PointChannel channel(comp.findChannel(channels[k]));
+        if(!channel.valid()){
+            AiMsgWarning("[BIFROST] Don't know how to export channel '%s', Available channels are: %s", channels[k].c_str(), availableChannels(comp).c_str());
+            continue;
+        }
+        // TODO: export channel
     }
 
     AiNodeSetInt(points_node, "mode", mode);

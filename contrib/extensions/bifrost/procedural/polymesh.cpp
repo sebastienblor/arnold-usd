@@ -24,6 +24,7 @@ PolymeshParameters::PolymeshParameters(const AtNode* node) : SurfaceParameters(n
 
 void PolymeshParameters::declare(AtList *params, AtNodeEntry *nentry){
     SurfaceParameters::declare(params,nentry);
+    AiParameterStr("field_channel", distance_channel.c_str());
     PARAM_UINT(subdivisions);
     PARAM_BOOL(smoothing);
 
@@ -49,6 +50,7 @@ Bifrost::API::String PolymeshParameters::str() const{
 
 AtNode* PolymeshParameters::node() const{
     Bifrost::Processing::Surface surface(*this);
+    DUMP(this->str());
     report(surface.status());
     if(!surface.status()){
         return nullptr;
@@ -122,7 +124,7 @@ AtNode* PolymeshParameters::node() const{
     for(unsigned int i = 0; i < channels.count(); ++i){
         ChannelSampler sampler(component, channels[i]);
         if(!sampler.valid()){
-            AiMsgWarning("[BIFROST] Don't know how to export channel '%s'", channels[i].c_str());
+            AiMsgWarning("[BIFROST] Don't know how to export channel '%s', Available channels are: %s", channels[i].c_str(), availableChannels(component).c_str());
             continue;
         }
         AiNodeDeclare(node, channels[i].c_str(), (std::string("varying ")+typeName(sampler.type())).c_str()); \

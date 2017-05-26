@@ -48,6 +48,39 @@ def dimControls(nodeName, attrs, dim):
     for attr in attrs:
         cmds.editorTemplate(dimControl=(nodeName, attr, dim))
 
+def SurfaceControls():
+    return ("distance_channel",
+            "levelset_droplet_reveal_factor",
+            "levelset_surface_radius",
+            "levelset_droplet_radius",
+            "levelset_resolution_factor",
+            "levelset_max_volume_of_holes_to_close",
+            "enable_ocean_blending",
+            "ocean_plane",
+            "ocean_blending_radius")
+
+def PointsControls():
+    return ()
+
+def VolumeControls():
+    return ("density_channel")
+
+def CheckRenderAs( nodeName ):
+    render_as = cmds.getAttr(nodeName+".render_as")
+    if render_as == 0:
+        dimControls(nodeName, VolumeControls(), True)
+        dimControls(nodeName, PointsControls(), True)
+        dimControls(nodeName, SurfaceControls(), False)
+        CheckRenderComponents( nodeName )
+    elif render_as == 1:
+        dimControls(nodeName, VolumeControls(), True)
+        dimControls(nodeName, SurfaceControls(), True)
+        dimControls(nodeName, PointsControls(), False)
+    else:
+        dimControls(nodeName, SurfaceControls(), True)
+        dimControls(nodeName, PointsControls(), True)
+        dimControls(nodeName, VolumeControls(), False)
+
 def CheckRenderComponents( nodeName ):
     voxels = (cmds.getAttr(nodeName+".render_component") == 0)
     dimControls(nodeName, ("levelset_droplet_reveal_factor", "levelset_surface_radius", "levelset_droplet_radius", "levelset_resolution_factor", "levelset_max_volume_of_holes_to_close"), voxels)
@@ -59,14 +92,16 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("matte")
         self.addSeparator()
 
-        self.addControl("render_as")
+        self.addControl("render_as", changeCommand=CheckRenderAs)
         self.addSeparator()
-        self.addControl("render_component", changeCommand=CheckRenderComponents)
         self.addControl("velocity_scale")
         self.addControl("space_scale")
         self.addControl("channels")
 
         self.beginLayout("Surface Controls", collapse=False)
+        self.addControl("surface_type")
+        self.addControl("render_component", changeCommand=CheckRenderComponents)
+        self.addSeparator()
         self.addControl("distance_channel")
         self.addSeparator()
         self.addControl("levelset_droplet_reveal_factor", label="Droplet Reveal Factor")
@@ -76,15 +111,29 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("levelset_max_volume_of_holes_to_close", label="Max Volume Of Holes To Close")
 
         self.beginLayout("Ocean Blending", collapse=False)
-        self.addControl("enable_infinite_blending", label="Enable")
+        self.addControl("enable_ocean_blending", label="Enable")
         self.addCustom("ocean_plane", partial(InputMeshNew,"Mesh Plane"), InputMeshReplace)
-        self.addControl("infinite_blending_radius", label="Boundary Radius")
+        self.addControl("ocean_blending_radius", label="Boundary Radius")
         self.endLayout()
 
         self.beginLayout("Mesh Controls", collapse=False)
         self.addControl("subdivisions")
         self.addControl("smoothing")
         self.endLayout()
+        self.beginLayout("Implicit Controls", collapse=False)
+        self.addControl("implicit_step_size", label="Step Size")
+        self.addControl("implicit_samples", label="Samples")
+        self.endLayout()
+        self.endLayout()
+
+        self.beginLayout("Points Controls", collapse=False)
+        self.addControl("points_type", label="Type")
+        self.addControl("radius")
+        self.addControl("points_step_size", label="Step Size")
+        self.endLayout()
+
+        self.beginLayout("Volume Controls", collapse=False)
+        self.addControl("density_channel")
         self.endLayout()
 
         self.beginLayout("Filtering", collapse=False)

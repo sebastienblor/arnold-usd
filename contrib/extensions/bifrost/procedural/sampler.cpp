@@ -5,13 +5,7 @@
 #include <bifrostapi/bifrost_layout.h>
 #include <bifrostapi/bifrost_tile.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
-
-inline amino::Math::vec2f Convert(const AtVector2& v){ return amino::Math::vec2f(v.x, v.y); }
-inline amino::Math::vec3f Convert(const AtVector& v){ return amino::Math::vec3f(v.x, v.y, v.z); }
-inline AtVector2 Convert(const amino::Math::vec2f& v){ return AtVector2(v[0],v[1]); }
-inline AtVector Convert(const amino::Math::vec3f& v){ return AtVector(v[0],v[1],v[2]); }
-inline AtVector2 Convert(const amino::Math::vec2i& v){ return AtVector2(v[0],v[1]); }
-inline AtVector Convert(const amino::Math::vec3i& v){ return AtVector(v[0],v[1],v[2]); }
+#include "utils.h"
 
 template<typename T>
 inline T getData(const amino::Math::vec3f& wsPos, float invDx, const Bifrost::API::VoxelChannel& channel, const Bifrost::API::TileAccessor& accessor, int maxDepth, int N){
@@ -59,6 +53,7 @@ public:
     ChannelSamplerImpl* clone() const override;
     uint8_t type() const override;
     void sample(const AtVector &pos, AtParamValue *value) const override;
+    bool sampleGradient(const AtVector &pos, AtVector& gradient) const override{ return false; }
     AtArray* array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const override;
 
 private:
@@ -94,6 +89,12 @@ template<> uint8_t ChannelSamplerT<1,float>::type() const {
 }
 template<> void ChannelSamplerT<1,float>::sample(const AtVector &pos, AtParamValue *value) const {
     value->FLT() = samplers[0].sample<float>(Convert(pos));
+}
+template<> bool ChannelSamplerT<1,float>::sampleGradient(const AtVector &pos, AtVector& gradient) const {
+    amino::Math::vec3f g;
+    samplers[0].sampleGradient<float>(Convert(pos), g);
+    gradient = Convert(g);
+    return true;
 }
 template<> AtArray* ChannelSamplerT<1,float>::array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const{
     ARRAY(float, AiArraySetFlt,);
@@ -248,17 +249,47 @@ uint8_t ChannelSampler::type() const{
 void ChannelSampler::sample(const AtVector &pos, AtParamValue *value) const{
     if(valid()) impl->sample(pos,value);
 }
+bool ChannelSampler::sampleGradient(const AtVector &pos, AtVector& gradient) const{
+    return valid() && impl->sampleGradient(pos,gradient);
+}
 AtArray* ChannelSampler::array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const{
     return valid()? impl->array(positions) : nullptr;
 }
 
-// *** COMPONENT SAMPLER ***
+// *** THREAD SAMPLER ***
 
-ComponentSampler::ComponentSampler(const Bifrost::API::VoxelComponent component) : component(component) {}
-ComponentSampler::ComponentSampler(const ComponentSampler &o) : component(o.component) {}
-const ChannelSampler& ComponentSampler::channelSampler(const std::string &channel, int){
+ThreadSampler::ThreadSampler(const Bifrost::API::VoxelComponent component) : component(component) {}
+ThreadSampler::ThreadSampler(const ThreadSampler &o) : component(o.component) {}
+const ChannelSampler& ThreadSampler::channelSampler(const std::string &channel, int) const{
     // TODO: consider interpolation mode
     if(samplers.find(channel) == samplers.end())
         samplers[channel] = ChannelSampler(component, channel.c_str());
     return samplers[channel];
+}
+
+// *** COMPONENT SAMPLER ***
+
+Sampler::Sampler(const Bifrost::API::VoxelComponent component, unsigned int N){
+    samplers.resize(N, ThreadSampler(component));
+}
+
+bool Sampler::sample(const AtString& channel, const AtVector& pos, uint16_t tid, AtParamValue *value, uint8_t *type, int interp, float time) const{
+    const ChannelSampler& sampler = samplers[tid].channelSampler(std::string(channel.c_str()), interp);
+    if(!sampler.valid()) return false;
+    *type = sampler.type();
+    sampler.sample((time==0)? pos : pos - time * velocity(pos, tid), value);
+    return true;
+}
+
+bool Sampler::sampleGradient(const AtString& channel, const AtVector& pos, uint16_t tid, AtVector& gradient, int interp, float time) const{
+    const ChannelSampler& sampler = samplers[tid].channelSampler(std::string(channel.c_str()), interp);
+    return sampler.valid() && sampler.sampleGradient(((time==0)? pos : pos - time * velocity(pos, tid)), gradient);
+}
+
+AtVector Sampler::velocity(const AtVector& pos, uint16_t tid) const{
+    const ChannelSampler& sampler = samplers[tid].channelSampler("velocity", AI_VOLUME_INTERP_TRICUBIC);
+    if(!sampler.valid()) return AtVector(0,0,0);
+    AtParamValue value;
+    sampler.sample(pos, &value);
+    return value.VEC();
 }

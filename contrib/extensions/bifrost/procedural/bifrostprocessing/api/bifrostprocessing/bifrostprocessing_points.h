@@ -6,7 +6,7 @@ namespace Processing{
 
 struct PointsParameters : public ShapeParameters{
     float radius;
-    bool enable_radius_channel = true;
+    bool enable_radius_channel = false;
     Bifrost::API::String radius_channel = "density"; // empty => do not modulate
 
     bool enable_camera_radius = false;

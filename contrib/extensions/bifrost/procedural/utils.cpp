@@ -95,3 +95,7 @@ std::ostream& operator<<(std::ostream& out, const AtBBox& bbox){
     out << "AtBBox[[" << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << "],";
     return out << "[" << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << "]]";
 }
+
+std::ostream& operator<<(std::ostream& out, const AtVector& vec){
+    return out << "AtVector[" << vec.x << ", " << vec.y << ", " << vec.z << "]";
+}

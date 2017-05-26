@@ -20,12 +20,12 @@ struct VolumeParameters : public Bifrost::Processing::VolumeParameters{
 class Volume{
 public:
     Volume(const VolumeParameters& params);
-    inline const Bifrost::Processing::Status& status(){ return volume.status(); }
-    bool sample(const AtString& channel, const AtVector& pos, uint16_t tid, AtParamValue *value, uint8_t *type, int interp);
-    AtBBox bbox() const;
+    inline bool valid() const{ return !(!_volume.status()); }
+    inline const Bifrost::Processing::Volume& volume() const{ return _volume; }
+    inline const Sampler& sampler() const{ return _sampler; }
 
 private:
-    Bifrost::Processing::Volume volume;
-    std::vector<ComponentSampler> samplers;
+    Bifrost::Processing::Volume _volume;
+    Sampler _sampler;
 };
 
