@@ -103,6 +103,7 @@ MObject CArnoldOptionsNode::s_render_unit;
 MObject CArnoldOptionsNode::s_scene_scale;
 MObject CArnoldOptionsNode::s_offset_origin;
 MObject CArnoldOptionsNode::s_origin;
+MObject CArnoldOptionsNode::s_aov_shaders;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -634,5 +635,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_origin = mAttr.create("origin", "orig");
    mAttr.setKeyable(false);
    addAttribute(s_origin);
+
+   s_aov_shaders = mAttr.create("aovShaders","aov_shaders");
+   mAttr.setArray(1);
+   mAttr.setIndexMatters(false);
+   addAttribute(s_aov_shaders);
+
    return MS::kSuccess;
 }

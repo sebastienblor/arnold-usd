@@ -131,5 +131,6 @@ public:
 
    static MObject s_offset_origin;
    static MObject s_origin;
+   static MObject s_aov_shaders;
    
 };  // class CArnoldOptionsNode
