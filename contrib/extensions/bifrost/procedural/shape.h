@@ -41,11 +41,13 @@
 #define BLEND_TYPE_STRINGS { "linear", "smooth", "smoother", NULL }
 
 #define PARAM_SHAPE(channels_) \
+    PARAM_STR(activeGraph);\
+    PARAM_STR(resourceId);\
     PARAM_STR(cache_folder);\
     PARAM_STR(object);\
     PARAM_STR(point_component);\
     PARAM_STR(voxel_component);\
-    PARAM_UINT(frame);\
+    PARAM_INT(frame);\
     PARAM_ARRAY(channels, CreateStringArray channels_);\
     PARAM_STR(velocity_channel);\
     PARAM_STR(uv_channel);\
@@ -56,12 +58,14 @@
     PARAM_BBOX(clip, -1,-1,-1, 1,1,1)
 
 #define GET_SHAPE() \
+    GET_STR(activeGraph);\
+    GET_STR(resourceId);\
     GET_STR(cache_folder);\
     GET_STR(object);\
     GET_STR(point_component);\
     GET_STR(voxel_component);\
     GET_STR(object);\
-    GET_UINT(frame);\
+    GET_INT(frame);\
     GET_STR_ARRAY(channels);\
     GET_STR(velocity_channel);\
     GET_STR(uv_channel);\

@@ -37,10 +37,12 @@ private:
 
 struct ShapeParameters{
     Bifrost::API::String cache_folder;
+    Bifrost::API::String activeGraph;
+    Bifrost::API::String resourceId;
     Bifrost::API::String object;
     Bifrost::API::String point_component;
     Bifrost::API::String voxel_component;
-    unsigned int frame;
+    int frame;
 
     Bifrost::API::StringArray channels;
     Bifrost::API::String velocity_channel = "velocity";
@@ -73,6 +75,7 @@ protected:
     Bifrost::API::Component _points, _voxels;
 
 private:
+    Bifrost::API::String activeGraph;
     Bifrost::API::String tmp_folder;
 };
 

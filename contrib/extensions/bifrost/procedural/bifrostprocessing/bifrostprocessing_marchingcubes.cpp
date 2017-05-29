@@ -64,9 +64,6 @@ public:
     Bifrost::API::Array<amino::Math::vec3i> indices;
 
     std::vector<Mesh> meshes;
-#ifdef PROCESSING_PROFILING
-    std::chrono::high_resolution_clock::duration joining_time = std::chrono::high_resolution_clock::duration(0); // for profiling
-#endif
 
     inline size_t getVertexCount() const{ return vertices.count(); }
     inline void addVertex(const amino::Math::vec3f& position) { vertices.add(position); }
@@ -192,9 +189,6 @@ void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor,
 
 void MarchingCubesVisitor::join(const Bifrost::API::Visitor& visitor)
 {
-#ifdef PROCESSING_PROFILING
-    std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
-#endif
     const MarchingCubesVisitor& o = static_cast<const MarchingCubesVisitor&>(visitor);
     // only do final merge in endTraverse to avoid needless copies of huge arrays (vertices/indices)
     unsigned long index = meshes.size()==0? indices.count() : meshes[meshes.size()-1].index + meshes[meshes.size()-1].indices.count();
@@ -205,15 +199,9 @@ void MarchingCubesVisitor::join(const Bifrost::API::Visitor& visitor)
     if(o.indices.count() > 0){
         meshes.push_back({ o.vertices, o.indices, index });
     }
-#ifdef PROCESSING_PROFILING
-    joining_time += o.joining_time + (std::chrono::high_resolution_clock::now() - start);
-#endif
 }
 
 void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
-#ifdef PROCESSING_PROFILING
-    Bifrost::Private::Profiler::dump("MARCHING CUBES JOIN", joining_time);
-#endif
     {
         PROFILER("MARCHING CUBES MERGE VERTICES");
         for(const Mesh& mesh : meshes){
@@ -227,9 +215,9 @@ void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
             }
         }
     }
-    {
+    if(meshes.size() != 0){
         PROFILER("MARCHING CUBES MERGE TRIANGLES");
-        unsigned long total = (meshes.size()==0? 0 : meshes[meshes.size()-1].index+meshes[meshes.size()-1].indices.count());
+        unsigned long total = meshes[meshes.size()-1].index + meshes[meshes.size()-1].indices.count();
         indices.resize(total);
         Bifrost::Private::TBB_FOR_ALL(0, meshes.size(), 1, [&](size_t i){
             const Mesh& mesh = meshes[i];

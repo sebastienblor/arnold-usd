@@ -55,6 +55,8 @@ Bifrost::API::String ShapeParameters::str() const{
     std::stringstream ss;
     ss << std::endl;
     DUMP_PARAM(cache_folder);
+    DUMP_PARAM(activeGraph);
+    DUMP_PARAM(resourceId);
     DUMP_PARAM(object);
     DUMP_PARAM(point_component);
     DUMP_PARAM(voxel_component);
@@ -101,33 +103,55 @@ namespace{
 
 Shape::Shape(const ShapeParameters& params){
     Bifrost::API::ObjectModel om;
+    Bifrost::API::String cacheFolder = params.cache_folder;
     Bifrost::API::String objectName = params.object;
     Bifrost::API::Runtime::Frame frame(params.frame);
     Bifrost::API::Runtime::CacheResource::LoadOptions options;
     if(params.clip) options.bbox = params.clip_bbox;
 
-    Bifrost::API::Runtime::ActiveGraph ag = om.activeGraph(params.cache_folder);
-    if(!ag.valid()) ag = om.createActiveGraph(params.cache_folder);
+    {// try to get the object from the active graph and save to temporary file
+        Bifrost::API::Query query = om.createQuery(params.activeGraph, frame, params.resourceId);
+        query.addFilter('&', "type = Object");
+        query.addFilter('&', "name = "+params.object);
+        Bifrost::API::RefArray objs = query.run();
+        if(objs.count() > 0){
+            Bifrost::API::Object obj = objs[0];
+            this->tmp_folder = cacheFolder = Bifrost::API::File::createTempFolder();
+            Bifrost::API::Runtime::ActiveGraph ag = om.activeGraph(query.binding().activeGraph);
+            Bifrost::API::Runtime::CacheResource cache = ag.createCacheResource(frame, cacheFolder, params.object);
+            Bifrost::API::Runtime::ResID resId = cache.resID();
+            if(!cache.save(obj, Bifrost::API::BIF::Compression::Level0).succeeded()){
+                _status.error("Failed to write to temporary cache folder.");
+                return;
+            }
+            cache.reset();
+            ag.removeResource(frame, resId);
+        }
+    }
+
+    Bifrost::API::Runtime::ActiveGraph ag = om.activeGraph(cacheFolder);
+    if(!ag.valid()) ag = om.createActiveGraph(cacheFolder);
     if(!ag.valid()){
-        _status.error("Could not create active graph for path: '%s'", params.cache_folder.c_str());
+        _status.error("Could not create active graph for path: '%s'", cacheFolder.c_str());
         return;
     }
-    Bifrost::API::Runtime::CacheResourceImporter importer = ag.createCacheResourceImporter(params.cache_folder);
+    activeGraph = ag.name();
+    Bifrost::API::Runtime::CacheResourceImporter importer = ag.createCacheResourceImporter(cacheFolder);
     if(!params.object.empty()){
         importer.readFiles(false, false, params.object);
         if(importer.objectNames().count() != 1){
-            _status.error("Could not find object '%s' in path '%s'", params.object.c_str(), params.cache_folder.c_str());
+            _status.error("Could not find object '%s' in path '%s'", params.object.c_str(), cacheFolder.c_str());
             return;
         }
     }else{
         importer.readFiles(false, false);
         if(importer.objectNames().count() == 0){
-            _status.error("Could not find objects in path '%s'", params.cache_folder.c_str());
+            _status.error("Could not find objects in path '%s'", cacheFolder.c_str());
             return;
         }
         objectName = importer.objectNames()[0];
         if(importer.objectNames().count() > 1){
-            _status.error("Found multiple objects in path '%s'. Using object '%n'.", params.cache_folder.c_str(), objectName.c_str());
+            _status.warn("Found multiple objects in path '%s'. Using object '%n'.", cacheFolder.c_str(), objectName.c_str());
         }
     }
     Bifrost::API::Runtime::ResIDArray resIds;
@@ -154,17 +178,6 @@ Shape::Shape(const ShapeParameters& params){
     _points = findComponent(obj, params.point_component, Bifrost::API::PointComponentType, _status);
     _voxels = findComponent(obj, params.voxel_component, Bifrost::API::VoxelComponentType, _status);
 
-    {
-        Bifrost::API::Object object;
-        Bifrost::API::Component component;
-        Bifrost::API::Context ctx = om.runtimeContext();
-        if(ctx.valid()){
-            Bifrost::API::StateServer ss = ctx.stateServer();
-            Bifrost::API::Object obj = ss.findObject(params.object);
-            // TODO: save object in temp folder
-        }
-    }
-
     Bifrost::API::Layout layout(_voxels.layout());
     layout.setVoxelScale(layout.voxelScale()*params.space_scale);
     float vscale = params.velocity_scale / params.fps;
@@ -184,7 +197,10 @@ amino::Math::bboxf Shape::bbox() const{
 }
 
 Shape::~Shape(){
-    // TODO: clear active graph
+    Bifrost::API::ObjectModel om;
+    if(om.activeGraph(activeGraph).valid()){
+        om.removeActiveGraph(activeGraph);
+    }
     if(!tmp_folder.empty()){
         Bifrost::API::File::deleteFolder(tmp_folder);
     }

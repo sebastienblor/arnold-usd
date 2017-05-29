@@ -11,6 +11,11 @@
 #include <maya/MBoundingBox.h>
 #include <maya/MDGModifier.h>
 #include <maya/MFnMeshData.h>
+#include <bifrostapi/bifrost_om.h>
+#include <bifrostapi/bifrost_query.h>
+#include <bifrostapi/bifrost_object.h>
+#include <bifrostapi/bifrost_activegraph.h>
+#include <bifrostapi/bifrost_cacheresource.h>
 
 #include <ai.h>
 
@@ -100,7 +105,29 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
     ExportLightLinking( shape );
 
     // object / file
-    AiNodeSetStr(shape, "object", dagNode.findPlug("object").asString().asChar());
+    Bifrost::API::ObjectModel om;
+    Bifrost::API::Query query = om.createQuery();
+    query.load(dagNode.findPlug("object").asString().asChar());
+    Bifrost::API::Query::Binding binding = query.binding();
+    AiNodeSetStr(shape, "activeGraph", binding.activeGraph.c_str());
+    AiNodeSetStr(shape, "resourceId", binding.resID.c_str());
+    AiNodeSetInt(shape, "frame", (int) binding.frame.value);
+    Bifrost::API::RefArray objs = query.run();
+    if(objs.count() == 1){
+        Bifrost::API::Object obj = objs[0];
+        AiNodeSetStr(shape, "object", obj.name().c_str());
+        Bifrost::API::Runtime::ActiveGraph ag = om.activeGraph(binding.activeGraph);
+        Bifrost::API::RefArray caches = ag.cacheResources(binding.frame);
+        for(unsigned int i = 0; i < caches.count(); ++i){
+            Bifrost::API::Runtime::CacheResource cache = caches[i];
+            if(cache.objectName() == obj.name()){
+                AiNodeSetStr(shape, "cache_folder", cache.folderPath().c_str());
+                break;
+            }
+        }
+    }else{
+        AiMsgError("Failed to get bifrost object from query : %s", dagNode.findPlug("object").asString().asChar());
+    }
 
     ExportMatrix(shape);
 }
