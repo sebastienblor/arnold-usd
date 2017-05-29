@@ -30,23 +30,13 @@ src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 's
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
-mayaRoot = shader_env['MAYA_ROOT']
-if system.os() == 'darwin':
-    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
-    mayaRoot = mayaRoot.replace('//', '/')
-
 shader_env.Append(CPPPATH = ['.'])
 
 # Add the syncolor paths
-syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')
-syncolor_partial_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib')
-maya_version = shader_env['MAYA_VERSION']
-if int(maya_version) >= 201800:
-   syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'include')
-   syncolor_partial_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib')
+syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'include')
+syncolor_partial_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib')
 
 shader_env.Append(CPPPATH = [syncolor_include_path])
-shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
 # Add platform specific paths
 if system.os() =='windows':
