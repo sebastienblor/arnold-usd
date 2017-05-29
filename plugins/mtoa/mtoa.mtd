@@ -398,7 +398,6 @@
         maya.channelbox     BOOL    false
     [attr lens_radius]
         min                 FLOAT   0.0
-        max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    false
