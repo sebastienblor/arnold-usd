@@ -11,8 +11,6 @@
 #include <memory>
 #include <algorithm>
 
-#define SWAP(ch1, ch2) { API::Channel _tmp = ch1; ch1 = ch2; ch2 = _tmp; }
-
 namespace{
 
 /*
@@ -170,7 +168,7 @@ T MedianFilter<T>::compute(const typename API::HaloedCache<T>::Tile &in, int i, 
 template<typename T>
 T LaplacianFilter<T>::compute(const typename API::HaloedCache<T>::Tile &in, int i, int j, int k) const{
     static float s = 1./6.;
-    return in(i,j,k) + s * (-6 * in(i,j,k) + in(i-1,j,k) + in(i+1,j,k) + in(i,j-1,k) + in(i,j+1,k) + in(i,j,k-1) + in(i,j,k+1));
+    return s * (-6 * in(i,j,k) + in(i-1,j,k) + in(i+1,j,k) + in(i,j-1,k) + in(i,j+1,k) + in(i,j,k-1) + in(i,j,k+1));
 }
 
 template<typename T>
@@ -193,7 +191,7 @@ T CurvatureFilter<T>::compute(const typename API::HaloedCache<T>::Tile &in, int 
             Dz  = Half * (stencil[6] - stencil[5]), Dz2 = Dz * Dz,
             normGrad = Dx2 + Dy2 + Dz2;
 
-    if (normGrad < T(0)) {
+    if (normGrad <= T(0)) {
         return T(0);
     }
 
@@ -207,81 +205,41 @@ T CurvatureFilter<T>::compute(const typename API::HaloedCache<T>::Tile &in, int 
     T alpha = (Dx2*(Dyy+Dzz)+Dy2*(Dxx+Dzz)+Dz2*(Dxx+Dyy)-2*(Dx*(Dy*Dxy+Dz*Dxz)+Dy*Dz*Dyz));
     T beta  = sqrt(normGrad);
 
-    return in(i, j, k) + s*(alpha/(2*beta*beta));
+    return s*(alpha/(2*beta*beta));
 }
 
 template<typename T>
-SmoothFilter<T>::SmoothFilter(Mode mode, unsigned int iterations, float blend)
-    : _mode(mode), _iterations(iterations), blend(blend) {}
-
-namespace{
+SmoothFilter<T>::SmoothFilter(Mode mode, unsigned int iterations, float dt)
+    : _mode(mode), _iterations(iterations), _dt(dt) {}
 
 template<typename T>
-Bifrost::API::VoxelChannel copy(const Bifrost::API::VoxelChannel& in, const Bifrost::API::String& name){
-    Bifrost::API::Layout layout(in.layout());
-    Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(in.stateID()));
-
-    Bifrost::API::VoxelChannel out = ss.createChannel(Bifrost::API::Component(in.component()), in.dataType(), name);
-    out.setOffsetType (in.offsetType());
-    out.setBackgroundValue<T>(in.backgroundValue<T>());
-
-    IdentityFilter<T>().filter(in,out);
-
-    return out;
-}
-
-}
-
-template<typename T>
-void SmoothFilter<T>::filter(const API::Channel _in, API::Channel out) const{
-    Bifrost::API::Channel in(_in); // create new reference for swapping
+void SmoothFilter<T>::filter(const API::Channel in, API::Channel out) const{
     assert(in.layout() == out.layout());
-
-    Bifrost::API::Layout layout(in.layout());
-    Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(in.stateID()));
+    if(in != out) IdentityFilter<T>().filter(in,out);
+    Bifrost::API::Layout layout(out.layout());
 
     unsigned int n = _iterations;
-    if(_mode == kGaussian) n *= 4; // gaussian approximation handled as 4*mean
+    float dt = _dt;
 
-    Bifrost::API::Channel tmp = copy<T>(in, "tmp");
-    bool need_copy = (blend != 1 && in == out);
-    if(need_copy) out = copy<T>(in, "tmp2");
+    Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(out.stateID()));
+    Bifrost::API::VoxelChannel tmp = ss.createChannel(Bifrost::API::Component(out.component()), out.dataType(), "tmp");
+    tmp.setBackgroundValue<T>(T(0));
 
-    std::unique_ptr<Filter> filter;
-    switch(_mode){
-    case kMeanValue:
-    case kGaussian: {// gaussian approximation handled as 4*mean
-        filter.reset(new MeanFilter<T>());
-        break;
-    }case kMedianValue:{
-        filter.reset(new MedianFilter<T>());
-        break;
-    }case kLaplacianFlow:{
-        filter.reset(new LaplacianFilter<T>());
-        break;
-    }case kCurvatureFlow:{
-        filter.reset(new CurvatureFilter<T>());
-        break;
-    }
-    }
+    StepMixer<T> mixer(dt);
+    mixer.setDepths(layout.maxDepth(), layout.maxDepth());
 
-    if(n%2==1) SWAP(tmp,out); // => result in 'out' at the end of the loop
     for(unsigned int i = 0; i < n; ++i){
-        SWAP(tmp,out);
-        filter->filter(tmp,out);
+        switch (_mode) {
+        case kLaplacianFlow:
+            LaplacianFilter<T>().filter(out,tmp); break;
+        case kCurvatureFlow:
+            CurvatureFilter<T>().filter(out,tmp); break;
+        }
+        mixer.mix(out, tmp, out);
     }
-    float blend = need_copy? this->blend : 1-this->blend;
-    if(need_copy) SWAP(in,out);
 
-    if(blend != 1){
-        AlphaMixer<T>(blend).mix(in,out,out);
-    }
-
-    // clear temporary channels
     tmp.reset();
-    in.reset();
     ss.removeChannel("tmp");
-    if(need_copy) ss.removeChannel("tmp2");
 }
 
 INSTANCIATE(TransformFilter);

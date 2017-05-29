@@ -20,9 +20,6 @@ std::ostream& operator <<(std::ostream& out, RenderComponent rc){
 }
 std::ostream& operator <<(std::ostream& out, SmoothMode sm){
     switch(sm){
-    case SmoothMode::Mean: return out << "Mean";
-    case SmoothMode::Gaussian: return out << "Gaussian";
-    case SmoothMode::Median: return out << "Median";
     case SmoothMode::Laplacian: return out << "Laplacian";
     case SmoothMode::Curvature: return out << "Curvature";
     }

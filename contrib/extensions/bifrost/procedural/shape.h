@@ -37,7 +37,7 @@
         ss << "        " << param[i].c_str() << std::endl;
 
 #define RENDER_COMPONENT_STRINGS { "voxels", "particles", NULL }
-#define SMOOTH_MODE_STRINGS { "mean", "gaussian", "median", "laplacian_flow", "curvature_flow", NULL }
+#define SMOOTH_MODE_STRINGS { "laplacian_flow", "curvature_flow", NULL }
 #define BLEND_TYPE_STRINGS { "linear", "smooth", "smoother", NULL }
 
 #define PARAM_SHAPE(channels_) \

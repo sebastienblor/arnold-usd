@@ -117,6 +117,9 @@ AtNode* PolymeshParameters::node() const{
     }
 
     // export channels
+    Bifrost::API::StringArray channels = this->channels.copy();
+    if(export_laplacian) channels.add("laplacian");
+    if(export_curvature) channels.add("curvature");
     for(unsigned int i = 0; i < channels.count(); ++i){
         ChannelSampler sampler(component, channels[i]);
         if(!sampler.valid()){

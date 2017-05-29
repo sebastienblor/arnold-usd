@@ -20,7 +20,7 @@ public:
 
 private:
     Bifrost::API::TraversalMode _mode = Bifrost::API::TraversalMode::ParallelBreadthFirst;
-    amino::Math::vec2i _depths;
+    amino::Math::vec2i _depths = amino::Math::vec2i(-1,-1);
 };
 
 template<typename T>

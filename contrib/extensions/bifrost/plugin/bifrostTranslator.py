@@ -152,6 +152,10 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("implicit_step_size", label="Step Size")
         self.addControl("implicit_samples", label="Samples")
         self.endLayout()
+        self.beginLayout("Advanced", collapse=True)
+        self.addControl("export_laplacian")
+        self.addControl("export_curvature")
+        self.endLayout()
         self.endLayout()
 
         self.beginLayout("Points Controls", collapse=False)

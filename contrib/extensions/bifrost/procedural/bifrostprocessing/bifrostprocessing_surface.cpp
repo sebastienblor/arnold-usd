@@ -141,6 +141,19 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
             }
         }
     }
+
+    if(params.export_laplacian){
+        Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(_voxels.stateID()));
+        Bifrost::API::VoxelChannel laplacian = ss.createChannel(_voxels, Bifrost::API::DataType::FloatType, "laplacian");
+        laplacian.setBackgroundValue<float>(0);
+        LaplacianFilter<float>().filter(distance, laplacian);
+    }
+    if(params.export_curvature){
+        Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(_voxels.stateID()));
+        Bifrost::API::VoxelChannel curvature = ss.createChannel(_voxels, Bifrost::API::DataType::FloatType, "curvature");
+        curvature.setBackgroundValue<float>(0);
+        CurvatureFilter<float>().filter(distance, curvature);
+    }
 }
 
 void Surface::mesh(Bifrost::API::Array<amino::Math::vec3f> &vertices, Bifrost::API::Array<amino::Math::vec3i> &indices, unsigned int subdivisions) const{

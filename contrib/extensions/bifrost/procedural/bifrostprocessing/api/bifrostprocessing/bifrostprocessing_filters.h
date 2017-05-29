@@ -111,19 +111,16 @@ template<typename T>
 class SmoothFilter : public Filter{
 public:
     enum Mode{
-        kMeanValue=0,
-        kGaussian,
-        kMedianValue,
         kLaplacianFlow,
         kCurvatureFlow
     };
-    SmoothFilter(Mode mode, unsigned int iterations, float blend);
+    SmoothFilter(Mode mode, unsigned int iterations, float dt);
     void filter(const Bifrost::API::Channel in, Bifrost::API::Channel out) const override;
 
 private:
     Mode _mode;
     unsigned int _iterations;
-    float blend;
+    float _dt;
 };
 
 class ExtendFilter : public Filter{

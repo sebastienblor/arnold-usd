@@ -12,7 +12,7 @@ enum class RenderComponent{
 std::ostream& operator <<(std::ostream& out, RenderComponent rc);
 
 enum class SmoothMode{
-    Mean, Gaussian, Median, Laplacian, Curvature
+    Laplacian, Curvature
 };
 std::ostream& operator <<(std::ostream& out, SmoothMode sm);
 

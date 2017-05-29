@@ -149,7 +149,11 @@ void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
     EXPORT_FLT("erode");
 
     EXPORT_FLT("smooth");
+    EXPORT_INT("smooth_mode");
     EXPORT_INT("smooth_iterations");
+
+    EXPORT_BOOL("export_laplacian");
+    EXPORT_BOOL("export_curvature");
 
     this->ExportOceanPlane(dagNode, shape);
 }
@@ -345,11 +349,8 @@ void BifrostTranslator::RequestUpdate()
     data.name = data.shortName = longName;\
     {\
         MStringArray enums;\
-        enums.append("MeanValue");\
-        enums.append("Gaussian");\
-        enums.append("Median");\
-        enums.append("LaplacianFlow");\
-        enums.append("CurvatureFlow");\
+        enums.append("Laplacian Flow");\
+        enums.append("Curvature Flow");\
         data.enums = enums;\
     }\
     helper.MakeInputEnum(data);
@@ -448,6 +449,9 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DSMOOTH_ENUM("smooth_mode");
     ADD_DINT_HARDMIN("smooth_iterations", 1, 1);
     ADD_DFLT("erode", 0.f);
+
+    ADD_DBOOL("export_laplacian", false);
+    ADD_DBOOL("export_curvature", false);
 
     ADD_DBOOL("clip", false);
     {

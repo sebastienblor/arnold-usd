@@ -20,7 +20,7 @@ struct SurfaceParameters : public ShapeParameters {
     float dilate = 0;
     float erode = 0;
     float smooth = 0;
-    SmoothMode smooth_mode = SmoothMode::Mean;
+    SmoothMode smooth_mode = SmoothMode::Laplacian;
     int smooth_iterations = 1;
 
     bool enable_ocean_blending = false;
@@ -30,6 +30,9 @@ struct SurfaceParameters : public ShapeParameters {
     float ocean_blending_radius = 1;
     BlendType ocean_blending_blend = BlendType::Smooth;
     bool enable_ocean_blending_uvs = true;
+
+    bool export_laplacian = true;
+    bool export_curvature = true;
 
     virtual Bifrost::API::String str() const override;
 };
