@@ -206,8 +206,8 @@ shader_evaluate
       float inU = sg->u;
       float inV = sg->v;
 
-      float sx = -1 + (sg->x + sg->px) * (2.0f / idata->xres);
-      float sy =  1 - (sg->y + sg->py) * (2.0f /idata->yres);
+      float sx = -1.f + float((sg->x + sg->px) * (2.0f / idata->xres));
+      float sy =  1.f - float((sg->y + sg->py) * (2.0f /idata->yres));
 
       sx *= fit_factor.x;
       sy *= fit_factor.y;
