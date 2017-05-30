@@ -11,7 +11,7 @@ Import('env')
 local_env = env.Clone(SHLIBPREFIX = '')
 
 # Add new procedural directory names here
-PROCEDURALS = ['ParticleInstancer'] 
+PROCEDURALS = ['ParticleInstancer', 'ParticleVolume'] 
 
 if env['ENABLE_XGEN'] == 1:
     PROCEDURALS.append('xgen')

@@ -24,10 +24,17 @@
 
 AtNode* CParticleTranslator::CreateArnoldNodes()
 {
+   int renderType = m_fnParticleSystem.renderType();
+   
    if (IsMasterInstance())
-      return  AddArnoldNode("points");
+   {
+      if (renderType == PARTICLE_TYPE_BLOBBYSURFACE)
+         return AddArnoldNode("implicit_particle");
+      else
+         return AddArnoldNode("points");
+   }
    else
-      return  AddArnoldNode("ginstance");
+      return AddArnoldNode("ginstance");
 }
 
 void CParticleTranslator::NodeInitializer(CAbTranslator context)
@@ -79,6 +86,23 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiMinPixelWidth";
    data.shortName = "ai_min_pixel_width";
    helper.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 0;
+   data.name = "aiFalloffExponent";
+   data.shortName = "ai_falloff_exponent";
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiSmoothStepFalloff";
+   data.shortName = "ai_smooth_step_falloff";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.INT() = 10;
+   data.name = "aiImplicitSamples";
+   data.shortName = "ai_implicit_samples";
+   data.hasMin = true;
+   data.min.INT() = 1;
+   helper.MakeInputInt(data);
 
    data.defaultValue.BOOL() = false;
    data.name = "aiDeleteDeadParticles";
@@ -184,7 +208,7 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle)
 void CParticleTranslator::ExportPreambleData(AtNode* particle)
 {
    int renderType = m_fnParticleSystem.renderType();
-
+   
    AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName().asChar(), renderType);
    MStatus status;
 
@@ -196,7 +220,17 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    m_inheritCacheTxfm      = m_fnParticleSystem.findPlug("aiInheritCacheTransform").asBool();
 
    m_minPixelWidth = m_fnParticleSystem.findPlug("aiMinPixelWidth").asFloat();
-   AiNodeSetFlt(particle, "min_pixel_width", m_minPixelWidth);
+   if (renderType != PARTICLE_TYPE_BLOBBYSURFACE)
+      AiNodeSetFlt(particle, "min_pixel_width", m_minPixelWidth);
+   else
+   {
+      float falloffExponent = m_fnParticleSystem.findPlug("aiFalloffExponent").asFloat();
+      bool smoothStepFalloff = m_fnParticleSystem.findPlug("aiSmoothStepFalloff").asBool();
+      int implicitSamples = m_fnParticleSystem.findPlug("aiImplicitSamples").asInt();
+      AiNodeSetFlt(particle, "falloff_exponent", falloffExponent);
+      AiNodeSetBool(particle, "smooth_step", smoothStepFalloff);
+      AiNodeSetUInt(particle, "samples", static_cast<uint32_t>(implicitSamples));
+   }
 
    // TODO implement  streak / blobby / cloud / tube,  formats
    switch (renderType)
@@ -209,7 +243,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          m_isSprite = true;
          break;
       case PARTICLE_TYPE_BLOBBYSURFACE:
-         AiNodeSetStr(particle, "mode", "sphere");
+         //AiNodeSetStr(particle, "mode", "sphere");
          break;
       case PARTICLE_TYPE_CLOUD:
          AiNodeSetStr(particle, "mode", "sphere");
@@ -328,9 +362,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          m_particleSize = (m_lineWidth)*0.01;
          break;
       case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
-         MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
-         AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
-         m_particleSize = m_radius;
+          m_particleSize = m_radius;
          break;
       case PARTICLE_TYPE_CLOUD:// cloud
          MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
