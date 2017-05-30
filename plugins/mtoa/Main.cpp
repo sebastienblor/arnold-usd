@@ -607,15 +607,17 @@ namespace // <anonymous>
          SetFragmentSearchPath(pluginPath + MString("vp2"));
 #endif
          MString modulePluginPath = pluginPath + MString("shaders");
+         MString proceduralsPath = pluginPath + MString("procedurals");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          if (envVar != 0)
             SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath));
          else
-            SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath);
+            SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
          envVar = getenv("MTOA_EXTENSIONS_PATH");
          if (envVar != 0)
-            SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath));
+            SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath
+               + MString(PATH_SEPARATOR) + proceduralsPath));
          else
             SetEnv("MTOA_EXTENSIONS_PATH", moduleExtensionPath);
       }
