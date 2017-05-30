@@ -150,7 +150,7 @@ void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
 
     EXPORT_FLT("smooth");
     EXPORT_INT("smooth_mode");
-    EXPORT_INT("smooth_iterations");
+    EXPORT_UINT("smooth_iterations");
 
     EXPORT_BOOL("export_laplacian");
     EXPORT_BOOL("export_curvature");
@@ -178,6 +178,10 @@ void BifrostTranslator::ExportImplicit(MFnDagNode &dagNode, AtNode *shape)
 void BifrostTranslator::ExportVolume(MFnDagNode &dagNode, AtNode *shape)
 {
     ExportShape(dagNode, shape);
+    EXPORT_STR("density_channel");
+    EXPORT2_FLT("volume_smooth", "smooth");
+    EXPORT2_UINT("volume_smooth_iterations", "smooth_iterations");
+    EXPORT2_FLT("volume_step_size", "step_size");
 }
 
 void BifrostTranslator::ExportPoints(MFnDagNode &dagNode, AtNode *shape)
@@ -494,6 +498,9 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
 
     // volume
     ADD_DSTR("density_channel", "density");
+    ADD_DFLT("volume_smooth", 0);
+    ADD_DINT("volume_smooth_iterations", 1);
+    ADD_DFLT("volume_step_size", .1);
 
     // points
     ADD_DFLT("radius", 0.01);

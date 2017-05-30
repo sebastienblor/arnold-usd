@@ -166,6 +166,10 @@ class BifrostTemplate(ShapeTranslatorTemplate):
 
         self.beginLayout("Volume Controls", collapse=False)
         self.addControl("density_channel")
+        self.addControl("volume_step_size", label="Step Size")
+        self.addSeparator()
+        self.addControl("volume_smooth", label="Smooth")
+        self.addControl("volume_smooth_iterations", label="Smooth Iterations")
         self.endLayout()
 
         self.suppress("aiDebug")

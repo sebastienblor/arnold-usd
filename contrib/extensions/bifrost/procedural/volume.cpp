@@ -9,16 +9,21 @@ VolumeParameters::VolumeParameters() : Bifrost::Processing::VolumeParameters(){}
 VolumeParameters::VolumeParameters(const AtNode* node) : Bifrost::Processing::VolumeParameters() {
     GET_SHAPE();
     GET_STR(density_channel);
+    GET_FLT(smooth);
+    GET_UINT(smooth_iterations);
+    GET_FLT(step_size);
 }
 void VolumeParameters::declare(AtList* params, AtNodeEntry* nentry){
     PARAM_SHAPE(({"vorticity"}));
     PARAM_STR(density_channel);
+    PARAM_FLT(smooth);
+    PARAM_UINT(smooth_iterations);
 }
 
 Bifrost::API::String VolumeParameters::str() const {
     std::stringstream ss;
     ss << Bifrost::Processing::VolumeParameters::str().c_str();
-    DUMP_PARAM(density_channel);
+    DUMP_PARAM(step_size);
     return ss.str().c_str();
 }
 

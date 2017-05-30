@@ -8,6 +8,8 @@
 class Volume;
 
 struct VolumeParameters : public Bifrost::Processing::VolumeParameters{
+    float step_size = .1;
+
     VolumeParameters();
     VolumeParameters(const AtNode* node);
 

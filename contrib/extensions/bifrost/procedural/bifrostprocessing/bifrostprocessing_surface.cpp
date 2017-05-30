@@ -114,7 +114,6 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
     }
 
     Bifrost::API::VoxelChannel distance = voxels().findChannel(distance_channel);
-    DUMP(distance.valid());
     if(!distance.valid() || distance.dataType() != Bifrost::API::DataType::FloatType){
         _status.error("Invalid distance channel '%s'. Available channels are:\n%s", distance_channel.c_str(),
                    Bifrost::Private::availableChannels(_voxels, [](const Bifrost::API::Channel& c){ return c.dataType() == Bifrost::API::DataType::FloatType; }).c_str());
