@@ -24,6 +24,9 @@
 
 AtNode* CParticleTranslator::CreateArnoldNodes()
 {
+   // we first need to initialize the particle system
+   m_fnParticleSystem.setObject(m_dagPath.node());
+
    int renderType = m_fnParticleSystem.renderType();
 
    if (IsMasterInstance())
