@@ -84,7 +84,8 @@ volume_ray_extents
 {
     if(!data->private_info) return;
     Volume* volume = static_cast<Volume*>(data->private_info);
-    Bifrost::Processing::Intersector intersector(volume->volume().voxels().layout(), Convert(*origin), Convert(*direction), t0, t1);
+    Bifrost::Processing::Intersector intersector(volume->volume().voxels().layout());
+    intersector.init(Convert(*origin), Convert(*direction), t0, t1);
     Bifrost::Processing::Interval interval;
     while((interval = intersector.next()).valid()){
         AiVolumeAddIntersection(info, interval.t0, interval.t1);

@@ -3,6 +3,7 @@
 #include "surface.h"
 #include <ai_bbox.h>
 #include "sampler.h"
+#include <bifrostprocessing/bifrostprocessing_intersector.h>
 
 class Implicit;
 
@@ -19,8 +20,10 @@ public:
     inline bool valid() const{ return !(!_surface.status()); }
     inline const Bifrost::Processing::Surface& surface() const{ return _surface; }
     inline const Sampler& sampler() const{ return _sampler; }
+    inline const Bifrost::Processing::Intersector& intersector() const{ return _intersector; }
 private:
     Bifrost::Processing::Surface _surface;
     Sampler _sampler;
+    Bifrost::Processing::Intersector _intersector;
 };
 

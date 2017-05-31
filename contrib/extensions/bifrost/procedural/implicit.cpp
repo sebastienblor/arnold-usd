@@ -15,7 +15,9 @@ Implicit* ImplicitParameters::implicit() const{
 }
 
 Implicit::Implicit(const ImplicitParameters& params)
-    : _surface(Bifrost::Processing::Surface(params)), _sampler(Sampler(_surface.voxels(), valid()? AI_MAX_THREADS : 0)) {
+    : _surface(Bifrost::Processing::Surface(params)),
+      _sampler(Sampler(_surface.voxels(), valid()? AI_MAX_THREADS : 0)),
+      _intersector(Bifrost::Processing::Intersector(_surface.voxels().layout())) {
     DUMP(params.str());
     report(_surface.status());
     if(!valid()) return;
@@ -61,7 +63,8 @@ volume_ray_extents
 {
     if(!data->private_info) return;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
-    Bifrost::Processing::Intersector intersector(implicit->surface().voxels().layout(), Convert(*origin), Convert(*direction), t0, t1);
+    Bifrost::Processing::Intersector intersector(implicit->intersector());
+    intersector.init(Convert(*origin), Convert(*direction), t0, t1);
     Bifrost::Processing::Interval interval;
     while((interval = intersector.next()).valid()){
         AiVolumeAddIntersection(info, interval.t0, interval.t1);
