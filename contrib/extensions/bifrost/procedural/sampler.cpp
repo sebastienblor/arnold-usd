@@ -16,6 +16,7 @@ inline T getData(const amino::Math::vec3f& wsPos, float invDx, const Bifrost::AP
 }
 
 #define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerQBSplineType
+//#define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerLinearType
 #define VOXEL_SAMPLER_ARGS VOXEL_SAMPLER_TYPE, Bifrost::API::WorldSpace
 
 #define ARRAY(T, AiArraySet, CAST) \

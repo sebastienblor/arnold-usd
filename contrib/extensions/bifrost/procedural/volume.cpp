@@ -1,4 +1,5 @@
 #include "volume.h"
+#include <bifrostprocessing/bifrostprocessing_intersector.h>
 #include <ai.h>
 #include "defs.h"
 #include "utils.h"
@@ -63,9 +64,8 @@ volume_create
     data->private_info = volume;
     if(!data->private_info)
         return false;
-    data->auto_step_size = AiNodeGetFlt(node, "step_size");
+    data->auto_step_size = Bifrost::API::Layout(volume->volume().voxels().layout()).voxelScale()*.5;
     data->bbox = Convert(volume->volume().bbox());
-    DUMP(data->bbox);
     return true;
 }
 volume_sample
@@ -82,8 +82,13 @@ volume_gradient
 }
 volume_ray_extents
 {
-    // TODO: compute extents
-    AiVolumeAddIntersection(info, t0, t1);
+    if(!data->private_info) return;
+    Volume* volume = static_cast<Volume*>(data->private_info);
+    Bifrost::Processing::Intersector intersector(volume->volume().voxels().layout(), Convert(*origin), Convert(*direction), t0, t1);
+    Bifrost::Processing::Interval interval;
+    while((interval = intersector.next()).valid()){
+        AiVolumeAddIntersection(info, interval.t0, interval.t1);
+    }
 }
 volume_cleanup
 {
