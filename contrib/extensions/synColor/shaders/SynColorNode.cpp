@@ -23,11 +23,12 @@ typedef std::unordered_map<size_t, SYNCOLOR::TransformPtr> ProcessorMap;
 
 struct TransformKey
 {
-   TransformKey(size_t rHash, size_t csHash, unsigned int sFormat, unsigned int dFormat) :
+   TransformKey(size_t rHash, size_t csHash, unsigned sFormat, unsigned dFormat, unsigned direc) :
       renderingSpaceHash(rHash),
       colorSpaceHash(csHash),
       srcPixelFormat(sFormat),
-      dstPixelFormat(dFormat) 
+      dstPixelFormat(dFormat),
+      direction(direc)
    {}
 
 
@@ -48,9 +49,9 @@ struct TransformKey
    
    size_t renderingSpaceHash;
    size_t colorSpaceHash;
-   unsigned int srcPixelFormat;
-   unsigned int dstPixelFormat;
-
+   unsigned srcPixelFormat;
+   unsigned dstPixelFormat;
+   unsigned direction;
 };
 
 AI_COLOR_MANAGER_NODE_EXPORT_METHODS(synColor_color_manager_Methods);
@@ -356,49 +357,6 @@ namespace
       }
    }
 
-   // The method computes a identity color transformation useful for channel layout 
-   // conversion between the source and destination buffers.
-   SYNCOLOR::SynStatus computeRawColorTransformation(ColorManagerData* colorData, 
-                                                     const SYNCOLOR::PixelFormat& src_pixel_format, 
-                                                     const SYNCOLOR::PixelFormat& dst_pixel_format,
-                                                     SYNCOLOR::TransformPtr& transform)
-   {
-      // considering Raw transformation as having the key = 0
-
-      SYNCOLOR::SynStatus status;
-
-      ProcessorMap::const_iterator it = colorData->m_output_transforms.find(0);
-      if(it != colorData->m_output_transforms.end())
-      {
-         transform = it->second;
-      }
-      else
-      {
-         ThreadGuard guard(colorData->m_output_guard);
-
-         it = colorData->m_output_transforms.find(0);
-         if(it != colorData->m_output_transforms.end())
-         {
-            transform = it->second;
-         }
-         else
-         {
-            status = SYNCOLOR::createStockTransform(SYNCOLOR::STOCK_TRANSFORM_IDENTITY, transform);
-            if(status)
-            {
-               status = SYNCOLOR::finalize(
-                  transform, src_pixel_format, dst_pixel_format, optimizerFlags, resolveFlag, transform);
-               if(status)
-               {
-                  colorData->m_output_transforms[0] = transform;
-               }
-            }
-         }
-      }
-
-      return status;
-   }
-
    // The method computes the input color transformation which is the conversion from
    // the input color space to the rendering color space.
    SYNCOLOR::SynStatus computeInputColorTransformation(ColorManagerData* colorData,
@@ -409,7 +367,7 @@ namespace
                                                        SYNCOLOR::TransformPtr& transform)
    {
       const TransformKey tKey(colorData->m_rendering_color_space.hash(), color_space.hash(), 
-         (unsigned int)src_pixel_format, (unsigned int)dst_pixel_format);
+         (unsigned)src_pixel_format, (unsigned)dst_pixel_format, (unsigned)direction);
       const size_t key = tKey.GetHash();
 
       SYNCOLOR::SynStatus status;
@@ -480,7 +438,7 @@ namespace
       SYNCOLOR::SynStatus status;
 
       const TransformKey tKey(colorData->m_rendering_color_space.hash(), color_space.hash(), 
-         (unsigned int)src_pixel_format, (unsigned int)dst_pixel_format);
+         (unsigned)src_pixel_format, (unsigned)dst_pixel_format, (unsigned)direction);
       const size_t key = tKey.GetHash();
 
       ProcessorMap::const_iterator it = colorData->m_output_transforms.find(key);
