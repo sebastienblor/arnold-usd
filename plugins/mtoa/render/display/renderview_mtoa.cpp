@@ -835,7 +835,7 @@ void CRenderViewMtoA::RenderViewClosed()
    ReceiveSelectionChanges(false);
 
    // Saving user prefs when the render view is closed
-   const char *userSerialized = renderViewMtoA->Serialize(true, false); // user settings
+   const char *userSerialized = Serialize(true, false); // user settings
    MString arvOptionName("arv_user_options");
    MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
 
