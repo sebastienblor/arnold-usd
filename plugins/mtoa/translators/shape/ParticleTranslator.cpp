@@ -247,7 +247,8 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          AiNodeSetUInt(particle, "samples", static_cast<uint32_t>(implicitSamples));
    }
 
-   // TODO implement  streak / blobby / cloud / tube,  formats
+   // TODO implement streak and tube formats
+   bool constantUserData = false;
    switch (renderType)
    {
       case PARTICLE_TYPE_SPHERE:
@@ -258,10 +259,10 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          m_isSprite = true;
          break;
       case PARTICLE_TYPE_BLOBBYSURFACE:
-         //AiNodeSetStr(particle, "mode", "sphere");
+         constantUserData = true;
          break;
       case PARTICLE_TYPE_CLOUD:
-         //AiNodeSetStr(particle, "mode", "sphere");
+         constantUserData = true;
          break;
       case PARTICLE_TYPE_TUBE:
          AiNodeSetStr(particle, "mode", "sphere");
@@ -282,7 +283,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    if (renderType == PARTICLE_TYPE_MULTIPOINT || renderType == PARTICLE_TYPE_MULTISTREAK) // multiPoint/multiStreak
    {
       m_doMultiPoint = true;
-      AiNodeDeclare(particle, "particleMultiIndex", "uniform INT");
+      AiNodeDeclare(particle, "particleMultiIndex", constantUserData ? "constant ARRAY INT" : "uniform INT");
       MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
       if ( MS::kSuccess == status )
       {
@@ -309,13 +310,13 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    // get the array of rgbPPs
    if (m_hasRGB)
    {
-      AiNodeDeclare(particle, "rgbPP", "uniform RGB");
+      AiNodeDeclare(particle, "rgbPP", constantUserData ? "constant ARRAY RGB" : "uniform RGB");
    }
 
    // get the array of opacities
    if (m_hasOpacity)
    {
-      AiNodeDeclare(particle, "opacityPP", "uniform FLOAT");
+      AiNodeDeclare(particle, "opacityPP", constantUserData ? "constant ARRAY FLOAT" : "uniform FLOAT");
    }
 
    // radius is a bit more complicated.   radiusPP overrides everything except spritePP widths
@@ -323,7 +324,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    if (m_exportId)
    {
-      AiNodeDeclare(particle, "particleId", "uniform INT");
+      AiNodeDeclare(particle, "particleId", constantUserData ? "constant ARRAY INT" : "uniform INT");
    }
 
    if (!m_hasRadiusPP || m_isSprite)
@@ -1213,6 +1214,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius").asFloat();
    float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier").asFloat();
 
+   bool constantUserData = m_fnParticleSystem.renderType() == PARTICLE_TYPE_CLOUD ||
+                           m_fnParticleSystem.renderType() == PARTICLE_TYPE_BLOBBYSURFACE;
+
    m_particleCount = (*m_out_positionArrays[0]).length();
 
    AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName().asChar(), m_particleCount);
@@ -1433,7 +1437,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          }
          // memory cleanup
          delete doubleIt->second;
-         AiNodeDeclare(particle, doubleIt->first.c_str(), "uniform FLOAT");
+         AiNodeDeclare(particle, doubleIt->first.c_str(), constantUserData ? "constant ARRAY FLOAT" : "uniform FLOAT");
          AiNodeSetArray(particle, doubleIt->first.c_str(), a_attributes);
 
       }
@@ -1463,7 +1467,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          // memory cleanup
          //std::cout << "cleaning up extra Vector attr memory " << vecIt->second[s] << std::endl;
          delete vecIt->second;
-         AiNodeDeclare(particle, vecIt->first.c_str(), "uniform VECTOR");
+         AiNodeDeclare(particle, vecIt->first.c_str(), constantUserData ? "constant ARRAY VECTOR" : "uniform VECTOR");
          AiNodeSetArray(particle, vecIt->first.c_str(), a_attributes);
 
       }
@@ -1492,7 +1496,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          // memory cleanup
          //std::cout << "cleaning up extra Int attr memory " << vecIt->second[s] << std::endl;
          delete vecIt->second;
-         AiNodeDeclare(particle, intIt->first.c_str(), "uniform INT");
+         AiNodeDeclare(particle, intIt->first.c_str(), constantUserData ? "constant ARRAY INT" : "uniform INT");
          AiNodeSetArray(particle, intIt->first.c_str(), a_attributes);
       }
    }
