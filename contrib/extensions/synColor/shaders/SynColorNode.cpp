@@ -256,6 +256,12 @@ namespace
 
          if(status)
          {
+            const char* nativeCatalog 
+               = colorData->m_native_catalog_path.empty() ? "" : colorData->m_native_catalog_path.c_str();
+
+            const char* customCatalog
+               = colorData->m_custom_catalog_path.empty() ? "" : colorData->m_custom_catalog_path.c_str();
+
             if(useEnvVariable)
             {
                status 
@@ -273,8 +279,8 @@ namespace
 
                status 
                   = SYNCOLOR::Config::get(
-                     colorData->m_native_catalog_path.c_str(),
-                     colorData->m_custom_catalog_path.c_str(),
+                     nativeCatalog,
+                     customCatalog,
                      colorData->m_ocioconfig_path.c_str(), 
                      colorData->m_config);
 
@@ -283,16 +289,14 @@ namespace
 
             if(!status)
             {
-               AiMsgWarning("[color_manager_syncolor] Error: %s", status.getErrorMessage());
-
                // Try to survive to unexpected issue by creating the preferences from scratch.
                // It should never happen within Maya; however it could happen if used 
                // with kick (a tool without its own synColor catalog installation).
                status 
                   = SYNCOLOR::Config::create(
                      filename.c_str(),
-                     colorData->m_native_catalog_path.c_str(),
-                     colorData->m_custom_catalog_path.c_str(),
+                     nativeCatalog,
+                     customCatalog,
                      colorData->m_ocioconfig_path.c_str(), 
                      colorData->m_config);
             }
@@ -311,7 +315,7 @@ namespace
                }
                else
                {
-                  AiMsgInfo("                         with the native catolog directory from %s", colorData->m_native_catalog_path);
+                  AiMsgInfo("                         with the native catolog directory from %s", nativeCatalog);
                }
 
                if(!colorData->m_ocioconfig_path.empty())
@@ -321,7 +325,8 @@ namespace
 
                const char* pSharedDirectory = 0x0;
                SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
-               AiMsgInfo("                         and the optional custom catalog directory from %s", pSharedDirectory);
+               AiMsgInfo("                         and the optional custom catalog directory from %s", 
+                  pSharedDirectory ? pSharedDirectory : "");
             }
          }
          ColorManagerData::m_initialization_library_done = (bool)status;
@@ -340,20 +345,20 @@ namespace
             }
          }
 
-         if(!status)
-         {
-            if(useEnvVariable)
-            {
-               AiMsgError("[color_manager_syncolor] Initialization failed: %s from the preference file %s", 
-                  status.getErrorMessage(), envVariableValue);
-            }
-            else
-            {
-               AiMsgError("[color_manager_syncolor] Initialization failed: %s", status.getErrorMessage());
-            }
-         }
-
          colorData->m_initialization_done = (bool)status;
+      }
+
+      if(!status)
+      {
+         if(useEnvVariable)
+         {
+            AiMsgError("[color_manager_syncolor] Using %s initialization failed: %s", 
+               envVariableValue, status.getErrorMessage());
+         }
+         else
+         {
+            AiMsgError("[color_manager_syncolor] Initialization failed: %s", status.getErrorMessage());
+         }
       }
    }
 
