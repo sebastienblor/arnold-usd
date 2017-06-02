@@ -747,20 +747,21 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extensi
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
+COLOR_MANAGEMENT_FILES = ""
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
+    COLOR_MANAGEMENT_FILES = os.path.join(EXTERNAL_PATH, 'maketx', system.os(), '*')
 
     for dylibElem in reversed(dylibs):
         
         if 'maketx' in dylibElem:
             dylibs.remove(dylibElem)
+        
+    if system.os() == 'windows' and int(maya_version) >= 201800:
+        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
+        if os.path.exists(syncolor_library_path):
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/synColor*.dll"))
 
-    synColor_libname_pattern = 'libsynColor*'
-    if system.os() == 'windows':
-        synColor_libname_pattern = 'synColor.*.dll'
-
-    env.Install(env['TARGET_BINARIES'], 
-        [glob.glob(os.path.join(EXTERNAL_PATH, 'maketx', system.os(), synColor_libname_pattern)),
-         glob.glob(os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', system.os(), synColor_libname_pattern))])
+    env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 
@@ -1090,6 +1091,17 @@ for p in presetfiles:
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 0:
     PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
+else:
+    PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
+
+    # for Maya 2018, on windows we also need to copy the syncolor dll
+    if (int(maya_version) >= 201800):
+        if system.os() == 'windows':    
+            syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
+            syncolor_2018_files = glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll'))
+
+            for syncolor_file in syncolor_2018_files:
+                PACKAGE_FILES.append([syncolor_file, 'bin'])
             
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
