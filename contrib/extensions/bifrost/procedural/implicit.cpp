@@ -29,6 +29,9 @@ Implicit::Implicit(const ImplicitParameters& params)
             continue;
         }
     }
+    Bifrost::API::Layout layout(_surface.voxels().layout());
+    // padding to avoid qb spline samplers to pick up background value when evaluating sdf
+    _padding = -( layout.voxelScale() * layout.tileDimInfo().tileWidth *.5f );
 }
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostImplicitMtds)
@@ -43,8 +46,8 @@ volume_create
     data->private_info = implicit;
     if(!data->private_info)
         return false;
-    data->auto_step_size = Bifrost::API::Layout(implicit->surface().voxels().layout()).voxelScale()*.5;
-    data->bbox = Convert(implicit->surface().bbox());
+    data->auto_step_size = Bifrost::API::Layout(implicit->surface().voxels().layout()).voxelScale()*.2;
+    data->bbox = pad(Convert(implicit->surface().bbox()), implicit->padding());
     return true;
 }
 volume_sample
@@ -62,12 +65,16 @@ volume_gradient
 volume_ray_extents
 {
     if(!data->private_info) return;
+    //AiVolumeAddIntersection(info, t0, t1); return;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
     Bifrost::Processing::Intersector intersector(implicit->intersector());
     intersector.init(Convert(*origin), Convert(*direction), t0, t1);
     Bifrost::Processing::Interval interval;
     while((interval = intersector.next()).valid()){
-        AiVolumeAddIntersection(info, interval.t0, interval.t1);
+        if(interval.t0 != t0) interval.t0 -= implicit->padding();
+        if(interval.t1 != t1) interval.t1 += implicit->padding();
+        if(interval.valid())
+            AiVolumeAddIntersection(info, interval.t0, interval.t1);
     }
 }
 volume_cleanup

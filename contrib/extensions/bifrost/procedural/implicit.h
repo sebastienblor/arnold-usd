@@ -21,9 +21,11 @@ public:
     inline const Bifrost::Processing::Surface& surface() const{ return _surface; }
     inline const Sampler& sampler() const{ return _sampler; }
     inline const Bifrost::Processing::Intersector& intersector() const{ return _intersector; }
+    inline float padding() const{ return _padding; }
 private:
     Bifrost::Processing::Surface _surface;
     Sampler _sampler;
     Bifrost::Processing::Intersector _intersector;
+    float _padding;
 };
 

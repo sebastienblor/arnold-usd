@@ -23,10 +23,7 @@ public:
     Interval next();
     bool done() const;
 private:
-    int tileWidth, maxDepth;
-    float invDx;
-    const Bifrost::API::TileAccessor accessor;
-    void* hdda;
+    void* impl;
 };
 
 }} // namespace Bifrost::Processing

@@ -23,6 +23,11 @@ inline AtVector Convert(const amino::Math::vec3i& v){ return AtVector(v[0],v[1],
 inline AtBBox Convert(const amino::Math::bboxf& bbox){
     return AtBBox(Convert(bbox.min()), Convert(bbox.max()));
 }
+inline AtBBox pad(const AtBBox& bbox, float padding){
+    AtVector pad(padding, padding, padding);
+    return AtBBox(bbox.min - pad, bbox.max + pad);
+}
+
 Bifrost::API::StringArray ArrayToStrings(const AtArray* array);
 AtArray* CreateStringArray(const std::vector<std::string>& strings);
 std::string ArrayToString(const Bifrost::API::StringArray& strings);

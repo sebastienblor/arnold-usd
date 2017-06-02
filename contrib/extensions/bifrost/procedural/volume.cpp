@@ -83,6 +83,7 @@ volume_gradient
 volume_ray_extents
 {
     if(!data->private_info) return;
+    //AiVolumeAddIntersection(info, t0, t1); return;
     Volume* volume = static_cast<Volume*>(data->private_info);
     Bifrost::Processing::Intersector intersector(volume->volume().voxels().layout());
     intersector.init(Convert(*origin), Convert(*direction), t0, t1);
