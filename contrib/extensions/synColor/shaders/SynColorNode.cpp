@@ -231,12 +231,8 @@ namespace
       return "";
    }
 
-   void logger(SYNCOLOR::LogLevel lvl, const char * msg)
+   void logger(SYNCOLOR::LogLevel, const char*)
    {
-      if(lvl == SYNCOLOR::LEVEL_USER)
-      {
-         AiMsgWarning(msg);
-      }
    }
 
    // The method initializes the SynColor library only once.
@@ -260,6 +256,22 @@ namespace
 
          if(status)
          {
+            if(colorData->m_native_catalog_path.empty())
+            {
+               ColorManagerData::m_initialization_library_done = false;
+               colorData->m_initialization_done = false;
+
+               AiMsgError("[color_manager_syncolor] Initialization failed: native_catalog_path is missing");
+
+               return;
+            }
+
+            const AtString nativePath(colorData->m_native_catalog_path);
+
+            // Provide a dummy path to avoid error on empty path: synColor 2017 limitation.
+            const AtString sharedPath(
+               colorData->m_custom_catalog_path.empty() ? "/tmp/shared" : colorData->m_custom_catalog_path);
+
 #if MAYA_API_VERSION >= 201800
             if(useEnvVariable)
             {
@@ -278,8 +290,8 @@ namespace
 
                status 
                   = SYNCOLOR::Config::get(
-                     colorData->m_native_catalog_path.c_str(),
-                     colorData->m_custom_catalog_path.c_str(),
+                     nativePath.c_str(),
+                     sharedPath.c_str(),
                      colorData->m_ocioconfig_path.c_str(), 
                      colorData->m_config);
 
@@ -288,16 +300,14 @@ namespace
 
             if(!status)
             {
-               AiMsgWarning("[color_manager_syncolor] Error: %s", status.getErrorMessage());
-
                // Try to survive to unexpected issue by creating the preferences from scratch.
                // It should never happen within Maya; however it could happen if used 
                // with kick (a tool without its own synColor catalog installation).
                status 
                   = SYNCOLOR::Config::create(
                      filename.c_str(),
-                     colorData->m_native_catalog_path.c_str(),
-                     colorData->m_custom_catalog_path.c_str(),
+                     nativePath.c_str(),
+                     sharedPath.c_str(),
                      colorData->m_ocioconfig_path.c_str(), 
                      colorData->m_config);
             }
@@ -316,8 +326,8 @@ namespace
                ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                      << "<SynColorConfig version=\"2.0\">\n"
                      << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
-                     << "   <TransformsHome dir=\"" << (colorData->m_native_catalog_path ? colorData->m_native_catalog_path : AtString("")) << "\" />\n"
-                     << "   <SharedHome dir=\"" << (colorData->m_custom_catalog_path ? colorData->m_custom_catalog_path: AtString("")) << "\" />\n"
+                     << "   <TransformsHome dir=\"" << nativePath << "\" />\n"
+                     << "   <SharedHome dir=\"" << sharedPath << "\" />\n"
                      << "   <ReferenceTable>\n"
                      << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
                      << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
@@ -341,13 +351,11 @@ namespace
 
             if(!status)
             {
-               AiMsgWarning("[color_manager_syncolor] Error: %s", status.getErrorMessage());
-
                // Try to survive to unexpected issue by creating the preferences from scratch.
                // It should never happen within Maya; however it could happen if used 
                // with kick (a tool without its own synColor catalog installation).
                status 
-                  = SYNCOLOR::configurePaths(colorData->m_native_catalog_path, filename.c_str(), colorData->m_custom_catalog_path);
+                  = SYNCOLOR::configurePaths(nativePath, filename.c_str(), sharedPath);
             }
 #endif
             if(!useEnvVariable)
@@ -364,7 +372,7 @@ namespace
                }
                else
                {
-                  AiMsgInfo("                with the native catolog directory from %s", colorData->m_native_catalog_path);
+                  AiMsgInfo("                with the native catolog directory from %s", nativePath);
                }
 
                if(!colorData->m_ocioconfig_path.empty())
@@ -372,9 +380,13 @@ namespace
                   AiMsgInfo("                using the OCIO config file %s", colorData->m_ocioconfig_path);
                }
 
-               const char* pSharedDirectory = 0x0;
-               SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
-               AiMsgInfo("                and the optional custom catalog directory from %s", pSharedDirectory);
+               if(!colorData->m_custom_catalog_path.empty())
+               {
+                  const char* pSharedDirectory = 0x0;
+                  SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
+                  AiMsgInfo("                and the optional custom catalog directory from %s", 
+                     pSharedDirectory ? pSharedDirectory : "");
+               }
             }
          }
          ColorManagerData::m_initialization_library_done = (bool)status;
@@ -414,20 +426,20 @@ namespace
 #endif
          }
 
-         if(!status)
-         {
-            if(useEnvVariable)
-            {
-               AiMsgError("[color_manager_syncolor] Initialization failed: %s from the preference file %s", 
-                  status.getErrorMessage(), envVariableValue);
-            }
-            else
-            {
-               AiMsgError("[color_manager_syncolor] Initialization failed: %s", status.getErrorMessage());
-            }
-         }
-
          colorData->m_initialization_done = (bool)status;
+      }
+
+      if(!status)
+      {
+         if(useEnvVariable)
+         {
+            AiMsgError("[color_manager_syncolor] Initialization failed: %s from the preference file %s", 
+               status.getErrorMessage(), envVariableValue);
+         }
+         else
+         {
+            AiMsgError("[color_manager_syncolor] Initialization failed: %s", status.getErrorMessage());
+         }
       }
    }
 
