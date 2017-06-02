@@ -9,6 +9,7 @@ class Volume;
 
 struct VolumeParameters : public Bifrost::Processing::VolumeParameters{
     float step_size = .1;
+    bool ignore_motion_blur = false;
 
     VolumeParameters();
     VolumeParameters(const AtNode* node);
@@ -25,9 +26,10 @@ public:
     inline bool valid() const{ return !(!_volume.status()); }
     inline const Bifrost::Processing::Volume& volume() const{ return _volume; }
     inline const Sampler& sampler() const{ return _sampler; }
-
+    inline bool hasMotion() const{ return _hasMotion; }
 private:
     Bifrost::Processing::Volume _volume;
     Sampler _sampler;
+    bool _hasMotion;
 };
 

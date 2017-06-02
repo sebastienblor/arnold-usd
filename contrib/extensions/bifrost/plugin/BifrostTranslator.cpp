@@ -130,6 +130,7 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
     }
 
     ExportMatrix(shape);
+    AiNodeSetBool(shape, "ignore_motion_blur", !IsMotionBlurEnabled());
 }
 
 void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )

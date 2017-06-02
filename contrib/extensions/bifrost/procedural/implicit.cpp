@@ -31,7 +31,9 @@ Implicit::Implicit(const ImplicitParameters& params)
     }
     Bifrost::API::Layout layout(_surface.voxels().layout());
     // padding to avoid qb spline samplers to pick up background value when evaluating sdf
-    _padding = -( layout.voxelScale() * layout.tileDimInfo().tileWidth *.5f );
+    _padding = -( layout.voxelScale() * layout.tileDimInfo().tileWidth );
+    float shutter_start, shutter_end;
+    _hasMotion = !params.ignore_motion_blur && getMotion(shutter_start, shutter_end) && (shutter_start != 0 || shutter_start != shutter_end);
 }
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostImplicitMtds)
@@ -54,19 +56,19 @@ volume_sample
 {
     if(!data->private_info) return false;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
-    return implicit->sampler().sample(channel, sg->P, sg->tid, value, type, interp, sg->time);
+    return implicit->sampler().sample(channel, sg->P, sg->tid, value, type, interp, implicit->hasMotion()? sg->time : 0);
 }
 volume_gradient
 {
     if(!data->private_info) return false;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
-    return implicit->sampler().sampleGradient(channel, sg->P, sg->tid, *gradient, interp, sg->time);
+    return implicit->sampler().sampleGradient(channel, sg->P, sg->tid, *gradient, interp, implicit->hasMotion()? sg->time : 0);
 }
 volume_ray_extents
 {
     if(!data->private_info) return;
-    //AiVolumeAddIntersection(info, t0, t1); return;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
+    //AiVolumeAddIntersection(info, t0, t1); return;
     Bifrost::Processing::Intersector intersector(implicit->intersector());
     intersector.init(Convert(*origin), Convert(*direction), t0, t1);
     Bifrost::Processing::Interval interval;

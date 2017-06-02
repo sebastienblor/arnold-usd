@@ -58,7 +58,7 @@ AtNode* PolymeshParameters::node() const{
     Bifrost::API::Component component = surface.voxels();
 
     float shutter_start, shutter_end;
-    bool motion = getMotion(shutter_start, shutter_end);
+    bool motion = !ignore_motion_blur && getMotion(shutter_start, shutter_end);
     bool need_velocity = motion || (shutter_start != 0);
 
     // **** CREATE POLYMESH ****

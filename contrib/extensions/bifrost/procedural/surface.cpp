@@ -30,9 +30,16 @@ SurfaceParameters::SurfaceParameters(const AtNode* node) : Bifrost::Processing::
 
     GET_BOOL(export_laplacian);
     GET_BOOL(export_curvature);
+
+    GET_BOOL(ignore_motion_blur);
 }
 
-Bifrost::API::String SurfaceParameters::str() const{ return Bifrost::Processing::SurfaceParameters::str(); }
+Bifrost::API::String SurfaceParameters::str() const{
+    std::stringstream ss;
+    ss << Bifrost::Processing::SurfaceParameters::str().c_str();
+    DUMP_PARAM(ignore_motion_blur);
+    return ss.str().c_str();
+}
 
 void SurfaceParameters::declare(AtList* params, AtNodeEntry* nentry)
 {
@@ -66,4 +73,6 @@ void SurfaceParameters::declare(AtList* params, AtNodeEntry* nentry)
 
     PARAM_BOOL(export_laplacian);
     PARAM_BOOL(export_curvature);
+
+    PARAM_BOOL(ignore_motion_blur);
 }

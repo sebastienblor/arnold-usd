@@ -22,10 +22,12 @@ public:
     inline const Sampler& sampler() const{ return _sampler; }
     inline const Bifrost::Processing::Intersector& intersector() const{ return _intersector; }
     inline float padding() const{ return _padding; }
+    inline bool hasMotion() const{ return _hasMotion; }
 private:
     Bifrost::Processing::Surface _surface;
     Sampler _sampler;
     Bifrost::Processing::Intersector _intersector;
     float _padding;
+    bool _hasMotion;
 };
 

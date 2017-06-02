@@ -13,12 +13,14 @@ VolumeParameters::VolumeParameters(const AtNode* node) : Bifrost::Processing::Vo
     GET_FLT(smooth);
     GET_UINT(smooth_iterations);
     GET_FLT(step_size);
+    GET_BOOL(ignore_motion_blur);
 }
 void VolumeParameters::declare(AtList* params, AtNodeEntry* nentry){
     PARAM_SHAPE(({"vorticity"}));
     PARAM_STR(density_channel);
     PARAM_FLT(smooth);
     PARAM_UINT(smooth_iterations);
+    PARAM_BOOL(ignore_motion_blur);
 }
 
 Bifrost::API::String VolumeParameters::str() const {
@@ -50,6 +52,8 @@ Volume::Volume(const VolumeParameters& params)
             continue;
         }
     }
+    float shutter_start, shutter_end;
+    _hasMotion = !params.ignore_motion_blur && getMotion(shutter_start, shutter_end) && (shutter_start != 0 || shutter_start != shutter_end);
 }
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostVolumeMtds)
@@ -72,13 +76,13 @@ volume_sample
 {
     if(!data->private_info) return false;
     Volume* volume = static_cast<Volume*>(data->private_info);
-    return volume->sampler().sample(channel, sg->P, sg->tid, value, type, interp, sg->time);
+    return volume->sampler().sample(channel, sg->P, sg->tid, value, type, interp, volume->hasMotion()? sg->time : 0);
 }
 volume_gradient
 {
     if(!data->private_info) return false;
     Volume* volume = static_cast<Volume*>(data->private_info);
-    return volume->sampler().sampleGradient(channel, sg->P, sg->tid, *gradient, interp, sg->time);
+    return volume->sampler().sampleGradient(channel, sg->P, sg->tid, *gradient, interp, volume->hasMotion()? sg->time : 0);
 }
 volume_ray_extents
 {

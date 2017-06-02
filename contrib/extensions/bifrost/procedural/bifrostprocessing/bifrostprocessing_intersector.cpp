@@ -76,12 +76,11 @@ public:
     }
 
     inline bool done() const{ return t0 >= t1; }
-    inline bool step() {
+    inline void step() {
         const int stepAxis = minIndex(_next);
         t0 = _next[stepAxis];
         _next[stepAxis]  += _delta[stepAxis];
         _voxel[stepAxis] += _step[stepAxis];
-        return !done();
     }
     inline Bifrost::API::TileCoord coord() const{ return Bifrost::API::TileCoord(_voxel[0], _voxel[1], _voxel[2]); }
     inline float time() const { return t0; }
@@ -131,7 +130,7 @@ struct IntersectorImpl{
         int depth;
         DDA* dda = &ddas[index];
         bool loop = true;
-        while(loop && t0 < t1){
+        while(loop && !dda->done()){
             depth = accessor.index(dda->coord(), maxDepth).depth;
             if(depth == maxDepth){
                 if(!current.valid()) current.t0 = t0;
@@ -181,7 +180,7 @@ Intersector::~Intersector(){
 void Intersector::init(const amino::Math::vec3f &origin, const amino::Math::vec3f &direction, float t0, float t1){
     static_cast<IntersectorImpl*>(impl)->init(origin, direction, t0, t1);
     /*
-    TODO: debug the offset
+    //TODO: debug the offset
     Interval current;
     amino::Math::vec3f orig(1.88, -8.82, -29.14);
     amino::Math::vec3f end(6.38, 10.30,21.22);

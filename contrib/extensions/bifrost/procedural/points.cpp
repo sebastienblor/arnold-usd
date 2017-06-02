@@ -34,6 +34,8 @@ PointsParameters::PointsParameters(const AtNode* node) : Bifrost::Processing::Po
     GET_FLT(step_size);
     GET_UINT(chunk_size);
     GET_ENUM(mode, PointsParameters::Mode);
+
+    GET_BOOL(ignore_motion_blur);
 }
 
 Bifrost::API::String PointsParameters::str() const{
@@ -42,6 +44,7 @@ Bifrost::API::String PointsParameters::str() const{
     DUMP_PARAM(step_size);
     DUMP_PARAM(chunk_size);
     DUMP_PARAM(mode);
+    DUMP_PARAM(ignore_motion_blur);
     return ss.str().c_str();
 }
 
@@ -72,6 +75,7 @@ void PointsParameters::declare(AtList* params, AtNodeEntry* nentry){
     PARAM_UINT(chunk_size);
     static const char* mode_enums[] = { "disk", "sphere" };
     PARAM_ENUM(mode, mode_enums);
+    PARAM_BOOL(ignore_motion_blur);
 }
 
 std::vector<AtNode*>* PointsParameters::nodes() const{
@@ -83,7 +87,7 @@ std::vector<AtNode*>* PointsParameters::nodes() const{
     }
 
     float shutter_start, shutter_end;
-    bool motion = getMotion(shutter_start, shutter_end);
+    bool motion = !ignore_motion_blur && getMotion(shutter_start, shutter_end);
     bool need_velocity = motion || (shutter_start != 0);
 
     Bifrost::API::PointComponent pointComponent(points.points());

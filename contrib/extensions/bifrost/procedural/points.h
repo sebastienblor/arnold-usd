@@ -8,6 +8,7 @@ struct PointsParameters : public Bifrost::Processing::PointsParameters{
     float step_size = .025;
     unsigned int chunk_size = 100000;
     enum Mode { Disk=0, Sphere=1 } mode = Sphere;
+    bool ignore_motion_blur;
 
     PointsParameters();
     PointsParameters(const AtNode* node);
