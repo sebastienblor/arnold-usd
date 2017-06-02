@@ -798,13 +798,45 @@ arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
-if env['ENABLE_VP2']:
+def GetViewportShaders(maya_version):
+
+    vp2ShadersList = []
     vp2ShaderExtensions = ['.xml']
+    
     if system.os() == 'windows':
         vp2ShaderExtensions.append('.hlsl')
     vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
-    env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
-                    [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
+    old_vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2', '2016'), vp2ShaderExtensions)
+
+    for vp2shader in vp2shaders:
+        vpTargetShader = vp2shader
+
+        if int(maya_version) >= 201700:
+            if vp2shader.find('2016') >= 0:
+                continue
+        else:
+            # 2016 and older
+            if vp2shader.find('2016') < 0:
+                # this is one of the 2016 shaders, we need to remove  '2016'
+                # from the output path
+                if os.path.exists(os.path.join('plugins', 'mtoa', 'viewport2', '2016', vp2shader)):
+                    # this shader is already in the 2016 folder,
+                    # we don't want to copy it
+                    continue
+
+        vp2ShadersList.append(vp2shader)
+
+    return vp2ShadersList
+
+         
+if env['ENABLE_VP2']:
+
+    vp2Shaders = GetViewportShaders(maya_version)
+
+    for vp2Shader in vp2Shaders:
+        vpTargetShader = vp2Shader.replace('2016/', '')
+        vpTargetShader = vp2Shader.replace('2016\\', '')
+        env.InstallAs([os.path.join(TARGET_VP2_PATH, vpTargetShader)], [os.path.join('plugins', 'mtoa', 'viewport2', vp2Shader)])
 
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
@@ -1107,9 +1139,13 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 if env['ENABLE_VP2'] == 1:
-    PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
-    if system.os() == 'windows':
-        PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.hlsl'), 'vp2'])
+    vp2shaders = GetViewportShaders(maya_version)
+    installedVp2Shaders = []
+    for vp2shader in vp2shaders:
+        installedVp2Shaders.append( os.path.join('plugins', 'mtoa', 'viewport2', vp2shader ))
+
+    for vp2shader in installedVp2Shaders:
+        PACKAGE_FILES.append([vp2shader, 'vp2'])
     
 if env['ENABLE_XGEN'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
