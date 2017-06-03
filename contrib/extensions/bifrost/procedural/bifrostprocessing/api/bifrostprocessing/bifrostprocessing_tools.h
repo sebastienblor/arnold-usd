@@ -8,4 +8,6 @@ namespace Processing{
 
 amino::Math::bboxf computeBBox(const Bifrost::API::Layout& layout);
 
+void optimize(Bifrost::API::Layout layout);
+
 }}

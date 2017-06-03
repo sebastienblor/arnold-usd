@@ -4,6 +4,7 @@
 #include <bifrostapi/bifrost_levelset.h>
 #include <bifrostprocessing/bifrostprocessing_filters.h>
 #include <bifrostprocessing/bifrostprocessing_meshers.h>
+#include <bifrostprocessing/bifrostprocessing_tools.h>
 #include <bifrostapi/bifrost_cacheresource.h>
 #include <aminomath/vec.h>
 #include "utils.h"
@@ -152,6 +153,17 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         Bifrost::API::VoxelChannel curvature = ss.createChannel(_voxels, Bifrost::API::DataType::FloatType, "curvature");
         curvature.setBackgroundValue<float>(0);
         CurvatureFilter<float>().filter(distance, curvature);
+    }
+    //optimize(voxels().layout());
+    //Bifrost::API::VoxelChannel(_voxels.findChannel("distance")).setBackgroundValue<float>(.2);
+
+    if(false){
+        DUMP("SAVING");
+        Bifrost::API::ObjectModel om;
+        Bifrost::API::Runtime::ActiveGraph ag = om.createActiveGraph( "myAG" );
+        Bifrost::API::Runtime::CacheResource resource = ag.createCacheResource(35, "/home/beauchc/bifrost_debug/bifrostLiquidContainer1/voxel_liquid", Bifrost::API::Object(_voxels.object()).name() );
+        DUMP(resource.save(_voxels.object(), Bifrost::API::BIF::Compression::Level0).succeeded());
+        om.removeActiveGraph(ag.name());
     }
 }
 

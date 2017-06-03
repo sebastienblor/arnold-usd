@@ -19,7 +19,7 @@ public:
     Intersector(const Bifrost::API::Layout& layout);
     Intersector(const Bifrost::Processing::Intersector& o);
     ~Intersector();
-    void init(const amino::Math::vec3f& origin, const amino::Math::vec3f& direction, float t0, float t1);
+    void init(const amino::Math::vec3f& origin, const amino::Math::vec3f& direction, float t0, float t1, bool debug=false);
     Interval next();
     bool done() const;
 private:

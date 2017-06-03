@@ -1,5 +1,6 @@
 #include <bifrostprocessing/bifrostprocessing_tools.h>
 #include <bifrostapi/bifrost_visitor.h>
+#include "defs.h"
 
 namespace{
 
@@ -34,6 +35,25 @@ private:
     amino::Math::vec3i min, max;
 };
 
+class OptimizeVisitor : public Bifrost::API::Visitor{
+public:
+    OptimizeVisitor(){}
+    Bifrost::API::Visitor* copy() const override{ return new OptimizeVisitor(); }
+
+    void endTile(const Bifrost::API::TileAccessor &_accessor, const Bifrost::API::TreeIndex &index) override{
+        Bifrost::API::TileAccessor accessor(_accessor);
+        Bifrost::API::Tile tile = accessor.tile(index);
+        int n = tile.info().dimInfo.tileWidth;
+        FOR_IJK(i,j,k,n){
+            Bifrost::API::TreeIndex cIndex = tile.child(i,j,k);
+            if(!cIndex.valid()) continue;
+            if(!accessor.tileInfo(cIndex).hasChildren){
+                accessor.removeTile(cIndex);
+            }
+        }
+    }
+};
+
 }
 
 namespace Bifrost{
@@ -46,6 +66,11 @@ amino::Math::bboxf computeBBox(const Bifrost::API::Layout& layout){
     float dx = layout.voxelScale();
     return amino::Math::bboxf( amino::Math::vec3f(bbox.min()[0]*dx, bbox.min()[1]*dx, bbox.min()[2]*dx),
                                amino::Math::vec3f(bbox.max()[0]*dx, bbox.max()[1]*dx, bbox.max()[2]*dx) );
+}
+
+void optimize(API::Layout layout){
+    OptimizeVisitor visitor;
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelReduceBreadthFirstBottomUp, 0, layout.maxDepth()-2);
 }
 
 }} // Bifrost::Processing

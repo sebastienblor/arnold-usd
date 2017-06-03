@@ -6,11 +6,13 @@
 #include <bifrostapi/bifrost_tile.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
 #include "utils.h"
+#include "debug.h"
 
 template<typename T>
 inline T getData(const amino::Math::vec3f& wsPos, float invDx, const Bifrost::API::VoxelChannel& channel, const Bifrost::API::TileAccessor& accessor, int maxDepth, int N){
     amino::Math::vec3f pos = wsPos*invDx;\
-    const Bifrost::API::Tile& tile = accessor.tile(pos[0], pos[1], pos[2], maxDepth);\
+    const Bifrost::API::Tile& tile = accessor.tile((int)pos[0], (int)pos[1], (int)pos[2], maxDepth);\
+    if(tile.index().depth != maxDepth) return channel.backgroundValue<T>();
     const Bifrost::API::TileCoord& coord = tile.coord();\
     return channel.tileData<T>(tile.index())((int)(pos[0]-coord.i)%N, (int)(pos[1]-coord.j)%N, (int)(pos[2]-coord.k)%N);\
 }
@@ -58,6 +60,7 @@ public:
     AtArray* array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const override;
 
 private:
+    int maxDepth, tileWidth;
     float invDx;
     Bifrost::API::VoxelChannel channels[N];
     Bifrost::API::VoxelSampler samplers[N];
@@ -65,14 +68,20 @@ private:
 };
 
 template<unsigned int N,typename T>
-ChannelSamplerT<N,T>::ChannelSamplerT(const Bifrost::API::VoxelChannel (& inChannels) [N]) : invDx(1./Bifrost::API::Layout(inChannels[0]).voxelScale()){
+ChannelSamplerT<N,T>::ChannelSamplerT(const Bifrost::API::VoxelChannel (& inChannels) [N]){
+    Bifrost::API::Layout layout(inChannels[0].layout());
+    invDx = 1./layout.voxelScale();
+    maxDepth = layout.maxDepth();
+    tileWidth = layout.tileDimInfo().tileWidth;
     for(unsigned int i = 0; i < N; ++i){
         channels[i] = inChannels[i];
         samplers[i] = channels[i].createSampler(VOXEL_SAMPLER_ARGS);
     }
+    accessor = layout.tileAccessor();
 }
 template<unsigned int N,typename T>
-ChannelSamplerT<N,T>::ChannelSamplerT(const ChannelSamplerT<N,T> &o) : invDx(o.invDx){
+ChannelSamplerT<N,T>::ChannelSamplerT(const ChannelSamplerT<N,T> &o)
+    : invDx(o.invDx), maxDepth(o.maxDepth), tileWidth(o.tileWidth), accessor(o.accessor){
     for(unsigned int i = 0; i < N; ++i){
         channels[i] = o.channels[i];
         samplers[i] = channels[i].createSampler(VOXEL_SAMPLER_ARGS);
@@ -90,6 +99,7 @@ template<> uint8_t ChannelSamplerT<1,float>::type() const {
 }
 template<> void ChannelSamplerT<1,float>::sample(const AtVector &pos, AtParamValue *value) const {
     value->FLT() = samplers[0].sample<float>(Convert(pos));
+    //value->FLT() = getData<float>(Convert(pos), invDx, channels[0], accessor, maxDepth, tileWidth);
 }
 template<> bool ChannelSamplerT<1,float>::sampleGradient(const AtVector &pos, AtVector& gradient) const {
     amino::Math::vec3f g;
@@ -168,7 +178,7 @@ template<> uint8_t ChannelSamplerT<1,int>::type() const {
     return AI_TYPE_INT;
 }
 template<> void ChannelSamplerT<1,int>::sample(const AtVector &pos, AtParamValue *value) const {
-    value->INT() = getData<int>(Convert(pos), invDx, channels[0], accessor, Bifrost::API::Layout(channels[0]).maxDepth(), Bifrost::API::Layout(channels[0]).tileDimInfo().tileWidth);
+    value->INT() = getData<int>(Convert(pos), invDx, channels[0], accessor, maxDepth, tileWidth);
 }
 template<> AtArray* ChannelSamplerT<1,int>::array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const{
     ARRAY_CLOSEST(int, AiArraySetInt,);
@@ -179,7 +189,7 @@ template<> uint8_t ChannelSamplerT<1,amino::Math::vec2i>::type() const {
     return AI_TYPE_VECTOR2;
 }
 template<> void ChannelSamplerT<1,amino::Math::vec2i>::sample(const AtVector &pos, AtParamValue *value) const {
-    value->VEC2() = Convert(getData<amino::Math::vec2i>(Convert(pos), invDx, channels[0], accessor, Bifrost::API::Layout(channels[0]).maxDepth(), Bifrost::API::Layout(channels[0]).tileDimInfo().tileWidth));
+    value->VEC2() = Convert(getData<amino::Math::vec2i>(Convert(pos), invDx, channels[0], accessor, maxDepth, tileWidth));
 }
 template<> AtArray* ChannelSamplerT<1,amino::Math::vec2i>::array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const{
     ARRAY_CLOSEST(amino::Math::vec2i, AiArraySetVec2, Convert);
@@ -190,7 +200,7 @@ template<> uint8_t ChannelSamplerT<1,amino::Math::vec3i>::type() const {
     return AI_TYPE_VECTOR2;
 }
 template<> void ChannelSamplerT<1,amino::Math::vec3i>::sample(const AtVector &pos, AtParamValue *value) const {
-    value->VEC() = Convert(getData<amino::Math::vec3i>(Convert(pos), invDx, channels[0], accessor, Bifrost::API::Layout(channels[0]).maxDepth(), Bifrost::API::Layout(channels[0]).tileDimInfo().tileWidth));
+    value->VEC() = Convert(getData<amino::Math::vec3i>(Convert(pos), invDx, channels[0], accessor, maxDepth, tileWidth));
 }
 template<> AtArray* ChannelSamplerT<1,amino::Math::vec3i>::array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const{
     ARRAY_CLOSEST(amino::Math::vec3i, AiArraySetVec, Convert);

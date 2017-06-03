@@ -31,7 +31,7 @@ Implicit::Implicit(const ImplicitParameters& params)
     }
     Bifrost::API::Layout layout(_surface.voxels().layout());
     // padding to avoid qb spline samplers to pick up background value when evaluating sdf
-    _padding = -( layout.voxelScale() * layout.tileDimInfo().tileWidth );
+    _padding = -( layout.voxelScale() * layout.tileDimInfo().tileWidth * .5 );
     float shutter_start, shutter_end;
     _hasMotion = !params.ignore_motion_blur && getMotion(shutter_start, shutter_end) && (shutter_start != 0 || shutter_start != shutter_end);
 }
@@ -56,6 +56,12 @@ volume_sample
 {
     if(!data->private_info) return false;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
+    Bifrost::API::Layout layout(implicit->surface().voxels().layout());
+    float invDx = 1./layout.voxelScale();
+    int depth = layout.tileAccessor().index((int)(sg->Po.x*invDx), (int)(sg->Po.y*invDx), (int)(sg->Po.z*invDx), layout.maxDepth()).depth;
+    if(depth != layout.maxDepth()){
+        return false;
+    }
     return implicit->sampler().sample(channel, sg->P, sg->tid, value, type, interp, implicit->hasMotion()? sg->time : 0);
 }
 volume_gradient
@@ -68,15 +74,44 @@ volume_ray_extents
 {
     if(!data->private_info) return;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
+    float l = direction->x*direction->x+direction->y*direction->y+direction->z*direction->z;
+    assert(fabs(l-1) < EPS);
     //AiVolumeAddIntersection(info, t0, t1); return;
     Bifrost::Processing::Intersector intersector(implicit->intersector());
-    intersector.init(Convert(*origin), Convert(*direction), t0, t1);
+    const float padding = implicit->padding() * 1;
+    //t0 -= padding; t1 += padding;
+    bool debug = false;
+    intersector.init(Convert(*origin), Convert(*direction), t0, t1, true);
+    std::vector<Bifrost::Processing::Interval> intervals;
     Bifrost::Processing::Interval interval;
     while((interval = intersector.next()).valid()){
-        if(interval.t0 != t0) interval.t0 -= implicit->padding();
-        if(interval.t1 != t1) interval.t1 += implicit->padding();
+        intervals.push_back(interval);
+        interval.t0 -= padding;
+        interval.t1 += padding;
         if(interval.valid())
             AiVolumeAddIntersection(info, interval.t0, interval.t1);
+    }
+    if(debug){
+        intersector.init(Convert(*origin), Convert(*direction), t0, t1, false);
+        unsigned int i = 0;
+        while((interval = intersector.next()).valid()){
+            float t0diff = fabs(interval.t0 - intervals[i].t0);
+            float t1diff = fabs(interval.t1 - intervals[i].t1);
+            if(t0diff > 1e-4 || t1diff > 1e-4){
+                DUMP(t0diff);
+                DUMP(t1diff);
+                DUMP(interval.t0);
+                DUMP(interval.t1);
+                DUMP(intervals[i].t0);
+                DUMP(intervals[i].t1);
+                DUMP(*origin);
+                DUMP(*origin + t1*(*direction));
+                DUMP(t0);
+                DUMP(t1);
+                assert(false);
+            }
+            ++i;
+        }
     }
 }
 volume_cleanup
