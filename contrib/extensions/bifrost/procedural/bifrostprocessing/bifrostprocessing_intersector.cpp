@@ -4,13 +4,14 @@
 #include <vector>
 #include "defs.h"
 
-//#define NDEBUG
+#define NDEBUG
 #ifdef NDEBUG
 #define assert_le(x,y)
 #define assert_l(x,y)
 #define assert_ge(x,y)
 #define assert_g(x,y)
 #define assert_e(x,y)
+#define assert(a)
 #else
 #define assert_le(x,y) if((x)>(y)) { std::cerr << __LINE__ << ": " << x << ">" << y << std::endl; assert((x) <= (y)); }
 #define assert_l(x,y) if((x)>=(y)) { std::cerr << __LINE__ << ": " << x << ">=" << y << std::endl; assert((x) < (y)); }
@@ -18,11 +19,12 @@
 #define assert_g(x,y) if((x)<=(y)) { std::cerr << __LINE__ << ": " << x << "<=" << y << std::endl; assert((x) > (y)); }
 #define assert_e(x,y) if((x)!=(y)) { std::cerr << __LINE__ << ": " << x << "!=" << y << std::endl; assert((x) == (y)); }
 #endif
-//#define assert(a)
-#define MIN(a,b) (a)<(b)?(a):(b)
 #define INV(v) (v)==0? std::numeric_limits<float>::max() : 1./(v)
 
 namespace{
+
+template<typename T>
+inline T MIN(T a, T b){ return (a < b)? a : b; }
 
 typedef Bifrost::Processing::Interval Interval;
 //std::ostream& operator <<(std::ostream& out, const Interval& interval){ return out << "Interval(" << interval.t0 << ", " << interval.t1 << ")"; }
@@ -102,11 +104,9 @@ struct DDA
         for(unsigned int i = 0; i < 3; ++i) {
             switch(ray.sign.v[i]){
             case ZERO:     _next[i] = std::numeric_limits<float>::max(); break;
-            case POSITIVE: _next[i] = (_voxel[i] - pos.v[i] + DIM) * inv.v[i]; break;
-            case NEGATIVE: _next[i] = (_voxel[i] - pos.v[i]) * inv.v[i]; break;
+            case POSITIVE: _next[i] = t0 + (_voxel[i] - pos.v[i] + DIM) * inv.v[i]; break;
+            case NEGATIVE: _next[i] = t0 + (_voxel[i] - pos.v[i]) * inv.v[i]; break;
             }
-            if(_next[i] < 0) DUMP(*this);
-            _next[i] += t0;
             assert_ge(_next[i], t0);
         }
 
@@ -167,15 +167,12 @@ struct IntersectorImpl{
     }
 
     inline void init(const amino::Math::vec3f& org, const amino::Math::vec3f& dir, float t0, float t1, bool debug=false){
-        Ray ray(org*invDx, dir*invDx);
-        //Ray ray(amino::Math::vec3f(2.5,2.5,2.5), amino::Math::vec3f(1,1,1));
-        ray.org += amino::Math::vec3f(.5);
+        Ray ray(org*invDx + amino::Math::vec3f(.5), dir*invDx);
         this->t0 = t0; this->t1 = t1;
         index = ddas.size()-1;
         for(DDA& dda : ddas)
             dda.init(ray);
         ddas[index].update(t0,t1);
-        count = 0;
         this->debug = debug;
         this->ray = ray;
     }
@@ -203,10 +200,7 @@ struct IntersectorImpl{
             depth = accessor.index(nextVoxel(), maxDepth).depth;
 
             if(depth == maxDepth){
-                if(!current.valid()) {
-                    if(!mute) DUMP("!!!!!!!!!!!!!!!!!!!!");
-                    current.t0 = ddas[ddas.size()-1].time();
-                }
+                if(!current.valid()) current.t0 = ddas[ddas.size()-1].time();
                 current.t1 = dda->next();
             }else if(current.valid()){
                 loop = false;
@@ -230,20 +224,16 @@ struct IntersectorImpl{
             dda->step();
             assert(dda->done() || dda->time() >= t0);
             t0 = dda->time();
-            if(!mute) ++count;
         }
-        //if(!mute) DUMP(count);
         return current;
     }
 
     Ray ray;
-    unsigned int count;
     float t0, t1;
     int index;
     float invDx;
     Bifrost::API::TileAccessor accessor;
     std::vector<DDA> ddas;
-    bool mute = true;
     bool debug = false;
 };
 
@@ -254,10 +244,8 @@ namespace Processing{
 
 Intersector::Intersector(const Bifrost::API::Layout &layout)
     : impl(new IntersectorImpl(layout)){
-    return;
+#if 0
     float t0 = 0, t1 = 1;
-    //*
-    //TODO: debug the offset
     Interval current;
 
     amino::Math::vec3f orig(-39.43, 18.29, -5.46);
@@ -309,7 +297,7 @@ Intersector::Intersector(const Bifrost::API::Layout &layout)
         assert(index.depth==7);
         assert(index.tile == tile);
     }
-    //*/
+#endif
 }
 
 Intersector::Intersector(const Bifrost::Processing::Intersector &o)
@@ -323,7 +311,6 @@ void Intersector::init(const amino::Math::vec3f &origin, const amino::Math::vec3
     static_cast<IntersectorImpl*>(impl)->init(origin, direction, t0, t1, debug);
 }
 
-//Interval Intersector::next(){ return Interval(); }
 Interval Intersector::next(){ return impl? static_cast<IntersectorImpl*>(impl)->next() : Interval(); }
 
 }} // Bifrost::Processing

@@ -65,9 +65,7 @@ volume_sample
 {
     if(!data->private_info) return false;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
-    if(implicit->depth(sg->Po) != 7){
-        //return false;
-    }
+    //if(implicit->depth(sg->Po) != 7){ return false; }
     return implicit->sampler().sample(channel, sg->P, sg->tid, value, type, interp, implicit->hasMotion()? sg->time : 0);
 }
 volume_gradient
@@ -82,31 +80,33 @@ volume_ray_extents
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
     //AiVolumeAddIntersection(info, t0, t1); return;
     Bifrost::Processing::Intersector intersector(implicit->intersector());
-    const float padding = -1e-4;// implicit->padding()*.75;
-    //t0 -= padding; t1 += padding;
-    bool debug = true;
+    intersector.init(Convert(*origin), Convert(*direction), t0, t1, false);
+    Bifrost::Processing::Interval interval;
+    while((interval = intersector.next()).valid()){
+        AiVolumeAddIntersection(info, interval.t0, interval.t1);
+    }
+
+#if 0
+    const float padding = 0;
+    intersector.init(Convert(*origin), Convert(*direction), t0, t1, false);
     bool fromCam = false;
     AtVector start, end;
-    if(debug){
+    if(true){
         AtVector tmp = (*origin - AtVector(-27.2573, 34.2993, -0.472827));
         fromCam = (tmp.x*tmp.x + tmp.y *tmp.y + tmp.z*tmp.z) < 1e-4;
     }
-    intersector.init(Convert(*origin), Convert(*direction), t0, t1, false);
-    std::vector<Bifrost::Processing::Interval> intervals;
-    Bifrost::Processing::Interval interval;
+
     while((interval = intersector.next()).valid()){
-        intervals.push_back(interval);
         interval.t0 -= padding;
         interval.t1 += padding;
         if(!interval.valid()){
-            if(debug) std::cerr << "# skip: " << interval.t0 << ", " << interval.t1 << std::endl;
+            std::cerr << "# skip: " << interval.t0 << ", " << interval.t1 << std::endl;
             continue;
         }
-        if(debug){
-            start = *origin + interval.t0 * (*direction);
-            end   = *origin + interval.t1 * (*direction);
-        }
-        if(debug && (implicit->depth(start) != 7 || implicit->depth(end) != 7)){
+        start = *origin + interval.t0 * (*direction);
+        end   = *origin + interval.t1 * (*direction);
+
+        if(implicit->depth(start) != 7 || implicit->depth(end) != 7){
             float radius = .1;
             interval.t0 += padding;
             interval.t1 -= padding;
@@ -131,11 +131,9 @@ volume_ray_extents
             ss << "    shader black\n}" << std::endl;
             }
             std::cerr << ss.str();
-            interval.t0 -= padding;
-            interval.t1 += padding;
         }
-        AiVolumeAddIntersection(info, interval.t0, interval.t1);
     }
+#endif
 }
 volume_cleanup
 {
