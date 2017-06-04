@@ -99,6 +99,7 @@ Status convertPointsToVoxels(const SurfaceParameters& params, const Bifrost::API
 
 Surface::Surface(const SurfaceParameters& params) : Shape(params){
     if(!status()) return;
+    scale(1./params.space_scale);
 
     distance_channel = params.distance_channel;
     if(params.render_component == RenderComponent::Particle){
@@ -156,6 +157,11 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
     }
     //optimize(voxels().layout());
     //Bifrost::API::VoxelChannel(_voxels.findChannel("distance")).setBackgroundValue<float>(.2);
+
+    if(params.space_scale != 1){
+        scale(params.space_scale);
+        ScaleFilter<float>(params.space_scale).filter(distance,distance);
+    }
 
     if(false){
         DUMP("SAVING");

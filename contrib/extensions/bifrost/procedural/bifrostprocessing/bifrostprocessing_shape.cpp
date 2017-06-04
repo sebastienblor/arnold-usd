@@ -175,9 +175,7 @@ Shape::Shape(const ShapeParameters& params){
     _points = findComponent(obj, params.point_component, Bifrost::API::PointComponentType, _status);
     _voxels = findComponent(obj, params.voxel_component, Bifrost::API::VoxelComponentType, _status);
 
-    Bifrost::API::Layout layout(_voxels.layout());
-    layout.setVoxelScale(layout.voxelScale()*params.space_scale);
-    float vscale = params.velocity_scale / params.fps;
+    float vscale = params.space_scale * params.velocity_scale / params.fps;
     if(vscale != 1){
         Bifrost::API::String velocities[3] = { params.velocity_channel+"_u", params.velocity_channel+"_v", params.velocity_channel+"_w" };
         for(unsigned int i = 0; i < 3; ++i){
@@ -187,6 +185,12 @@ Shape::Shape(const ShapeParameters& params){
         Bifrost::API::Channel v = _points.findChannel(params.velocity_channel);
         if(v.valid()) ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
     }
+    scale(params.space_scale);
+}
+
+void Shape::scale(float space_scale){
+    Bifrost::API::Layout layout = _voxels.layout().valid()? _voxels.layout() : _points.layout();
+    layout.setVoxelScale(layout.voxelScale()*space_scale);
 }
 
 amino::Math::bboxf Shape::bbox() const{

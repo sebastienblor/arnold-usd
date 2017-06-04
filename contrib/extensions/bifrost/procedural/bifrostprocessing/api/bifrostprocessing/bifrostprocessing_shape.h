@@ -64,6 +64,8 @@ public:
     Shape(const ShapeParameters& params);
     virtual ~Shape();
 
+    void scale(float space);
+
     virtual amino::Math::bboxf bbox() const;
     inline const Bifrost::API::Component& points() const{ return _points; }
     inline const Bifrost::API::Component& voxels() const{ return _voxels; }

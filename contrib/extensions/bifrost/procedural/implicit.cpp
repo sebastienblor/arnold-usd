@@ -66,7 +66,7 @@ volume_sample
     if(!data->private_info) return false;
     Implicit* implicit = static_cast<Implicit*>(data->private_info);
     //if(implicit->depth(sg->Po) != 7){ return false; }
-    return implicit->sampler().sample(channel, sg->P, sg->tid, value, type, interp, implicit->hasMotion()? sg->time : 0);
+    return implicit->sampler().sample(channel, sg->Po, sg->tid, value, type, interp, implicit->hasMotion()? sg->time : 0);
 }
 volume_gradient
 {

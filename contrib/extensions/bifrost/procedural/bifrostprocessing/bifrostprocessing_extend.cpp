@@ -67,26 +67,26 @@ private:
 class PlaneSdfVisitor : public Bifrost::API::Visitor {
 public:
     PlaneSdfVisitor(float h, Bifrost::API::VoxelChannel& out)
-        : h(h/Bifrost::API::Layout(out.layout()).voxelScale()), out(out){}
+        : dx(Bifrost::API::Layout(out.layout()).voxelScale()), h(h/dx), out(out){}
     PlaneSdfVisitor(const PlaneSdfVisitor& o)
-        : h(o.h), out(o.out){}
+        : dx(o.dx), h(o.h), out(o.out){}
     Bifrost::API::Visitor* copy() const override{ return new PlaneSdfVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
         const Bifrost::API::TileCoord& coord = accessor.tile(index).coord();
         Bifrost::API::TileData<float> data = out.tileData<float>(index);
         for(size_t e = 0; e < data.count(); ++e)
-            data[e] = (coord.j + ((int (e / 5)) % 5) - .5f)-h;
+            data[e] = ((coord.j + ((int (e / 5)) % 5) - .5f)-h)*dx; // in world space
     }
 private:
     Bifrost::API::VoxelChannel out;
-    float h;
+    float dx, h; // h is in tile space
 };
 inline void createOceanPlane(Bifrost::API::VoxelChannel& sdf, float height){
     PROFILER("CREATE OCEAN PLANE");
     Bifrost::API::Layout layout(sdf.layout());
     PlaneSdfVisitor visitor(height, sdf);
-    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
+    layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst);
 }
 
 
@@ -333,20 +333,30 @@ void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel 
                                 amino::Math::vec3f(center[0] + dimensions[0]*.5, height, center[1] + dimensions[1]*.5));
 
         float invDx = 1./layout.voxelScale();
-        const amino::Math::bboxi ranges(
-                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-5, (int)floor((bbox.min()[2])*invDx)),
-                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+5,  (int)ceil((bbox.max()[2])*invDx)));
-
         int n = layout.tileDimInfo().tileWidth;
+        // TODO : could it be narrowed
+        const amino::Math::bboxi ranges(
+                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-2*n, (int)floor((bbox.min()[2])*invDx)),
+                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+2*n,  (int)ceil((bbox.max()[2])*invDx)));
+
+        int depth = layout.maxDepth();
         int jmin = ranges.min()[1], jmax = ranges.max()[1];
         Bifrost::API::TileAccessor accessor = layout.tileAccessor();
         for(int j = jmin; j <= jmax; j+=n){
             for(int i = ranges.min()[0]; i <= ranges.max()[0]; i+=n){
                 for(int k = ranges.min()[2]; k <= ranges.max()[2]; k+=n){
-                    accessor.addTile(i,j,k,layout.maxDepth());
+                    accessor.addTile(i,j,k,depth);
                 }
             }
         }
+        //*
+        for(int i = ranges.min()[0]; i <= ranges.max()[0]; i+=n){
+            for(int k = ranges.min()[2]; k <= ranges.max()[2]; k+=n){
+                accessor.addTile(i,jmin-n,k,depth-1);
+                accessor.addTile(i,jmax+n,k,depth-1);
+            }
+        }
+        //*/
     }
 
     Bifrost::API::StateServer ss = Bifrost::API::ObjectModel().stateServer(sdf.stateID());
