@@ -4,7 +4,7 @@
 #include <vector>
 #include "defs.h"
 
-#define NDEBUG
+//#define NDEBUG
 #ifdef NDEBUG
 #define assert_le(x,y)
 #define assert_l(x,y)
@@ -27,6 +27,19 @@ namespace{
 typedef Bifrost::Processing::Interval Interval;
 //std::ostream& operator <<(std::ostream& out, const Interval& interval){ return out << "Interval(" << interval.t0 << ", " << interval.t1 << ")"; }
 std::ostream& operator <<(std::ostream& out, const Bifrost::API::TileCoord& coord){ return out << "Coordl(" << coord.i << ", " << coord.j << ", " << coord.k << ")"; }
+struct DDA;
+std::ostream& operator <<(std::ostream& out, const DDA& dda);
+
+std::ostream& operator <<(std::ostream& out, const int v[3]){
+    std::stringstream ss;
+    ss << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
+    return out << ss.str();
+}
+std::ostream& operator <<(std::ostream& out, const float v[3]){
+    std::stringstream ss;
+    ss << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
+    return out << ss.str();
+}
 
 enum{ ZERO = 0, POSITIVE = 1, NEGATIVE = -1 };
 struct Ray{
@@ -89,11 +102,14 @@ struct DDA
         for(unsigned int i = 0; i < 3; ++i) {
             switch(ray.sign.v[i]){
             case ZERO:     _next[i] = std::numeric_limits<float>::max(); break;
-            case POSITIVE: _next[i] = t0 + (_voxel[i] - pos.v[i] + DIM) * inv.v[i]; break;
-            case NEGATIVE: _next[i] = t0 + (_voxel[i] - pos.v[i]) * inv.v[i]; break;
+            case POSITIVE: _next[i] = (_voxel[i] - pos.v[i] + DIM) * inv.v[i]; break;
+            case NEGATIVE: _next[i] = (_voxel[i] - pos.v[i]) * inv.v[i]; break;
             }
+            if(_next[i] < 0) DUMP(*this);
+            _next[i] += t0;
             assert_ge(_next[i], t0);
         }
+
     }
 
     inline bool done() const{ return t0 >= t1; }
@@ -114,24 +130,21 @@ struct DDA
     float _delta[3], _next[3];
 };
 
-std::ostream& operator <<(std::ostream& out, const int v[3]){
-    return out << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
-}
-std::ostream& operator <<(std::ostream& out, const float v[3]){
-    return out << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
-}
-
 std::ostream& operator <<(std::ostream& out, const DDA& dda){
-    out << "DDA( DIM = " << dda.DIM << ", OFFSET = " << dda.OFFSET << " (" << dda.t0 << ", " << dda.t1 << ")" << std::endl;
-    out << "    voxel = " << dda._voxel << std::endl;
-    out << "     next = " << dda._next << std::endl;
-    out << "    delta = " << dda._delta << std::endl;
-    out << "     step = " << dda._step << std::endl;
-    return out << ")";
+    std::stringstream ss;
+    ss << "DDA( DIM = " << dda.DIM << ", OFFSET = " << dda.OFFSET << " (" << dda.t0 << ", " << dda.t1 << ")" << std::endl;
+    ss << "     orig = " << dda.ray.org << std::endl;
+    ss << "      dir = " << dda.ray.dir << std::endl;
+    ss << "    voxel = " << dda._voxel << std::endl;
+    ss << "     next = " << dda._next << std::endl;
+    ss << "    delta = " << dda._delta << std::endl;
+    ss << "     step = " << dda._step << std::endl;
+    ss << ")";
+    return out << ss.str();
 }
 
 void test(const DDA* dda, float dx){
-    Ray ray(dda->ray.org*dx, dda->ray.dir); // world space
+    Ray ray(dda->ray.org*dx, dda->ray.dir*dx); // world space
     amino::Math::vec3f start(ray(dda->time())), end(ray(dda->next()));
     std::cerr << "setAttr pSphere6.translate " << start.v[0] << " " << start.v[1] << " " << start.v[2] << "; "
               << "setAttr pSphere7.translate " << end.v[0] << " " << end.v[1] << " " << end.v[2] << "; // " << dda->DIM << ", " << dda->time() << std::endl;
@@ -155,6 +168,8 @@ struct IntersectorImpl{
 
     inline void init(const amino::Math::vec3f& org, const amino::Math::vec3f& dir, float t0, float t1, bool debug=false){
         Ray ray(org*invDx, dir*invDx);
+        //Ray ray(amino::Math::vec3f(2.5,2.5,2.5), amino::Math::vec3f(1,1,1));
+        ray.org += amino::Math::vec3f(.5);
         this->t0 = t0; this->t1 = t1;
         index = ddas.size()-1;
         for(DDA& dda : ddas)
@@ -169,7 +184,7 @@ struct IntersectorImpl{
         DDA& last = ddas[ddas.size()-1];
         if(index==(int)ddas.size()-1) return last.voxel();
         if(last.time() < t0){
-            last.update(t0,t1);
+            last.update(t0+EPS,t1);
             last.step();
         }
         return last.voxel();
@@ -190,7 +205,7 @@ struct IntersectorImpl{
             if(depth == maxDepth){
                 if(!current.valid()) {
                     if(!mute) DUMP("!!!!!!!!!!!!!!!!!!!!");
-                    current.t0 = t0;
+                    current.t0 = ddas[ddas.size()-1].time();
                 }
                 current.t1 = dda->next();
             }else if(current.valid()){
@@ -198,7 +213,7 @@ struct IntersectorImpl{
             }
             if(depth > maxDepth-1) depth = maxDepth-1;
 
-            if(depth != index){
+            if(!debug && depth != index){
                 assert_e(dda->time(), t0);
                 assert(dda->done() || dda->next() >= dda->time());
                 dda->step();
@@ -239,6 +254,7 @@ namespace Processing{
 
 Intersector::Intersector(const Bifrost::API::Layout &layout)
     : impl(new IntersectorImpl(layout)){
+    return;
     float t0 = 0, t1 = 1;
     //*
     //TODO: debug the offset
@@ -268,7 +284,7 @@ Intersector::Intersector(const Bifrost::API::Layout &layout)
 
 
     IntersectorImpl impl(*static_cast<IntersectorImpl*>(this->impl));
-    impl.mute = false;
+    impl.mute = true;
     impl.init(orig, dir,t0,t1);
     while((current = impl.next()).valid());
     impl.mute = true;

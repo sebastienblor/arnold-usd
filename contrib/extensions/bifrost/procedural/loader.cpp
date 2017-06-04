@@ -5,12 +5,14 @@ extern AtNodeMethods* BifrostVolumeMtds;
 extern AtNodeMethods* BifrostPointsMtds;
 extern AtNodeMethods* BifrostImplicitMtds;
 extern AtNodeMethods* BifrostPolymeshMtds;
+extern AtNodeMethods* BifrostBlocksMtds;
 
 enum {
     BIFROST_POLYMESH = 0,
     BIFROST_POINTS,
     BIFROST_VOLUME,
-    BIFROST_IMPLICIT
+    BIFROST_IMPLICIT,
+    BIFROST_BLOCKS
 };
 
 node_loader
@@ -35,6 +37,11 @@ node_loader
         node->methods = BifrostImplicitMtds;
         node->name = "bifrost_implicit";
         node->node_type = AI_NODE_SHAPE_IMPLICIT;
+        break;
+    case BIFROST_BLOCKS:
+        node->methods = BifrostBlocksMtds;
+        node->name = "bifrost_blocks";
+        node->node_type = AI_NODE_SHAPE_PROCEDURAL;
         break;
     default:
         return false;

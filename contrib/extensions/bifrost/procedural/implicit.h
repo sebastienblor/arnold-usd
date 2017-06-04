@@ -23,11 +23,15 @@ public:
     inline const Bifrost::Processing::Intersector& intersector() const{ return _intersector; }
     inline float padding() const{ return _padding; }
     inline bool hasMotion() const{ return _hasMotion; }
+    int depth(const AtVector& p);
 private:
     Bifrost::Processing::Surface _surface;
     Sampler _sampler;
     Bifrost::Processing::Intersector _intersector;
     float _padding;
     bool _hasMotion;
+    Bifrost::API::TileAccessor _accessor;
+    float invDx;
+    int maxDepth;
 };
 
