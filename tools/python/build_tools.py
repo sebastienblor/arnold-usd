@@ -145,7 +145,7 @@ def get_mtoa_version(components = 4):
       version += '.' + MAJOR_VERSION
    if (components > 2):
       version += '.' + MINOR_VERSION
-   if (components > 3):
+   if (components > 3 and FIX_VERSION != ''):
       version += '.' + FIX_VERSION
    return version      
 
