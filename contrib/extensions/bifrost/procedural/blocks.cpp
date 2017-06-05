@@ -17,7 +17,7 @@ public:
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index){
         Bifrost::API::TileCoord coord = accessor.tile(index).coord();
         AtNode* box = AiNode("box");
-        amino::Math::vec3f p((coord.i-.5)*dx, (coord.j-.5)*dx, (coord.k-.5)*dx);
+        amino::Math::vec3f p((coord.i)*dx, (coord.j)*dx, (coord.k)*dx);
         AiNodeSetVec(box, "min", p.v[0], p.v[1], p.v[2]);
         AiNodeSetVec(box, "max", p.v[0]+5*dx, p.v[1]+5*dx, p.v[2]+5*dx);
         nodes.push_back(box);

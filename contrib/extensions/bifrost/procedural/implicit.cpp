@@ -18,7 +18,7 @@ Implicit::Implicit(const ImplicitParameters& params)
     : _surface(Bifrost::Processing::Surface(params)),
       _sampler(Sampler(_surface.voxels(), valid()? AI_MAX_THREADS : 0)),
       _intersector(Bifrost::Processing::Intersector(_surface.voxels().layout())) {
-    //DUMP(params.str());
+    DUMP(params.str());
     report(_surface.status());
     if(!valid()) return;
     const Bifrost::API::Component& component = _surface.voxels();
@@ -40,8 +40,7 @@ Implicit::Implicit(const ImplicitParameters& params)
 }
 
 int Implicit::depth(const AtVector &p){
-    float ofs = .5;
-    return _accessor.index((int)floor(p.x*invDx+ofs), (int)floor(p.y*invDx+ofs), (int)floor(p.z*invDx+ofs), maxDepth).depth;
+    return _accessor.index((int)floor(p.x*invDx), (int)floor(p.y*invDx), (int)floor(p.z*invDx), maxDepth).depth;
 }
 
 AI_VOLUME_NODE_EXPORT_METHODS(BifrostImplicitMtds)
@@ -57,7 +56,8 @@ volume_create
     if(!data->private_info)
         return false;
     data->auto_step_size = Bifrost::API::Layout(implicit->surface().voxels().layout()).voxelScale()*.2;
-    data->bbox = pad(Convert(implicit->surface().bbox()), implicit->padding());
+    //data->bbox = pad(Convert(implicit->surface().bbox()), implicit->padding());
+    data->bbox = Convert(implicit->surface().bbox());
     return true;
 }
 
@@ -85,55 +85,6 @@ volume_ray_extents
     while((interval = intersector.next()).valid()){
         AiVolumeAddIntersection(info, interval.t0, interval.t1);
     }
-
-#if 0
-    const float padding = 0;
-    intersector.init(Convert(*origin), Convert(*direction), t0, t1, false);
-    bool fromCam = false;
-    AtVector start, end;
-    if(true){
-        AtVector tmp = (*origin - AtVector(-27.2573, 34.2993, -0.472827));
-        fromCam = (tmp.x*tmp.x + tmp.y *tmp.y + tmp.z*tmp.z) < 1e-4;
-    }
-
-    while((interval = intersector.next()).valid()){
-        interval.t0 -= padding;
-        interval.t1 += padding;
-        if(!interval.valid()){
-            std::cerr << "# skip: " << interval.t0 << ", " << interval.t1 << std::endl;
-            continue;
-        }
-        start = *origin + interval.t0 * (*direction);
-        end   = *origin + interval.t1 * (*direction);
-
-        if(implicit->depth(start) != 7 || implicit->depth(end) != 7){
-            float radius = .1;
-            interval.t0 += padding;
-            interval.t1 -= padding;
-            start = *origin + interval.t0 * (*direction);
-            AtVector END = *origin + t1 * (*direction);
-            std::stringstream ss; ss << std::endl;
-            ss << "#" << ((implicit->depth(start) != 7)? " start" : "") << ((implicit->depth(end) != 7)? " end" : "") << std::endl;
-            ss << "sphere {" << std::endl;
-            ss << "    center " << start.x << " " << start.y << " " << start.z << std::endl;
-            ss << "    radius " << radius << std::endl;
-            ss << "    shader red\n}" << std::endl;
-            if(true){
-            ss << "sphere {" << std::endl;
-            ss << "    center " << end.x << " " << end.y << " " << end.z << std::endl;
-            ss << "    radius " << (radius*2) << std::endl;
-            ss << "    shader green\n}" << std::endl;
-
-            ss << "cylinder {" << std::endl;
-            ss << "    bottom " << origin->x << " " << origin->y << " " << origin->z << " ";
-            ss << "    top " << END.x << " " << END.y << " " << END.z << std::endl;
-            ss << "    radius " << (radius*.1) << std::endl;
-            ss << "    shader black\n}" << std::endl;
-            }
-            std::cerr << ss.str();
-        }
-    }
-#endif
 }
 volume_cleanup
 {

@@ -167,7 +167,7 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         DUMP("SAVING");
         Bifrost::API::ObjectModel om;
         Bifrost::API::Runtime::ActiveGraph ag = om.createActiveGraph( "myAG" );
-        Bifrost::API::Runtime::CacheResource resource = ag.createCacheResource(35, "/home/beauchc/bifrost_debug/bifrostLiquidContainer1/voxel_liquid", Bifrost::API::Object(_voxels.object()).name() );
+        Bifrost::API::Runtime::CacheResource resource = ag.createCacheResource(41, "/home/beauchc/bifrost_debug/bifrostLiquidContainer1/voxel_liquid", Bifrost::API::Object(_voxels.object()).name() );
         DUMP(resource.save(_voxels.object(), Bifrost::API::BIF::Compression::Level0).succeeded());
         om.removeActiveGraph(ag.name());
     }
