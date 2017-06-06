@@ -565,6 +565,16 @@ namespace
       SYNCOLOR::SynStatus status;
 
       ProcessorMap::const_iterator it1 = colorData->m_input_transforms.find(key);
+      if(it1==colorData->m_output_transforms.end())
+      {
+         // Use a wrong error id because synColor does not have a 
+         // generic error id for now.
+         status.setErrorCode(SYNCOLOR::ERROR_RENDERER_GPU_ADAPTOR_ERROR);
+         std::string err("The color sapce is unkonw: ");
+         err += color_space.c_str();
+         status.setErrorMessage(err.c_str());
+         return status;
+      }
 
       if(it1->second.get()!=0x0)
       {
@@ -656,6 +666,17 @@ namespace
       SYNCOLOR::SynStatus status;
 
       ProcessorMap::const_iterator it1 = colorData->m_output_transforms.find(key);
+      if(it1==colorData->m_output_transforms.end())
+      {
+         // Use a wrong error id because synColor does not have a 
+         // generic error id for now.
+         status.setErrorCode(SYNCOLOR::ERROR_RENDERER_GPU_ADAPTOR_ERROR);
+         std::string err("The color sapce is unkonw: ");
+         err += color_space.c_str();
+         status.setErrorMessage(err.c_str());
+         return status;
+      }
+
       if(it1->second.get()!=0x0)
       {
          transform = it1->second;
