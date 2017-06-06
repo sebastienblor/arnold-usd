@@ -116,6 +116,12 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("emissionColor", label="Color", annotation="Emission Color")
         self.endLayout() 
 
+        self.beginLayout("Thin Film", collapse=True)
+        self.addControl("thin_film_thickness",  label="Thickness", annotation="Thin Film Thickness")
+        self.addControl("thin_film_IOR", label="IOR", annotation="Thin Film IOR")
+        self.endLayout()
+
+
         self.beginLayout("Geometry", collapse=True)
         self.addControl("thinWalled", label="Thin Walled", annotation="Thin Surface with no Interior", changeCommand=self.changeParams) 
         self.addControl("opacity",  label="Opacity", annotation="Cutout Opacity")

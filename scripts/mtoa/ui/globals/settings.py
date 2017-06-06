@@ -541,7 +541,7 @@ def createArnoldSamplingSettings():
 
     pm.checkBoxGrp('ss_clamp_sample_values',
                     cc=updateSamplingSettings,
-                    label='Clamp Sample Values')
+                    label='Clamp AA Samples')
 
     pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=1)
     pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=2)
@@ -554,11 +554,11 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=2)
 
     pm.attrControlGrp('ss_max_value',
-                        label="Max Value",
+                        label="AA Clamp Value",
                         attribute='defaultArnoldRenderOptions.AASampleClamp')
 
     pm.attrControlGrp('ss_indirect_max_value',
-                        label="Indirect Max Value",
+                        label="Indirect Clamp Value",
                         attribute='defaultArnoldRenderOptions.indirectSampleClamp')
                         
     pm.setParent('..')

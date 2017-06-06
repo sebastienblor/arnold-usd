@@ -7,6 +7,8 @@ class AEaiNormalMapTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         
         self.addControl('input')
+        self.addControl('strength')
+        
         self.addControl('tangent')
         self.addControl('normal')
         self.addControl('order')
@@ -15,7 +17,7 @@ class AEaiNormalMapTemplate(ShaderAETemplate):
         self.addControl('invertZ')
         self.addControl('colorToSigned')
         self.addControl('tangentSpace')
-        self.addControl('normalize')
+        
         
         pm.mel.AEdependNodeTemplate(self.nodeName)
         

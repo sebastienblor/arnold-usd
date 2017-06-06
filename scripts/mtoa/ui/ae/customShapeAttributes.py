@@ -547,6 +547,7 @@ class PerspCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
         self.addShutterAttributes()
+        self.addControl('aiRadialDistortion', label="Radial Distortion")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 

@@ -979,6 +979,9 @@
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
         max                 FLOAT     1.0
+    [attr radial_distortion]
+        softmin             FLOAT     -1.0
+        softmax             FLOAT     1.0
 
 [node ortho_camera]
     maya.name               STRING  "camera"
@@ -1341,6 +1344,14 @@
     [attr normal]
         maya.hide       BOOL    true
         softmax         FLOAT   1.0
+    [attr thin_film_thickness]
+        min             FLOAT   0.0
+        softmax         FLOAT   100.0
+    [attr thin_film_IOR]
+        min             FLOAT   0.0
+        softmax         FLOAT   10.0
+
+
 
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."
@@ -2685,6 +2696,9 @@ desc STRING "Apply a gamma correction to the color."
     maya.name               STRING  "aiNormalMap"
     maya.id                 INT     0x00115D80
     maya.classification     STRING  "utility/shader"
+    [attr strength]
+        softmin FLOAT 0
+        softmax FLOAT 1
 
 [node vector_map]
     maya.name               STRING  "aiVectorMap"
