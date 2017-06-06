@@ -75,8 +75,13 @@ public:
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
         const Bifrost::API::TileCoord& coord = accessor.tile(index).coord();
         Bifrost::API::TileData<float> data = out.tileData<float>(index);
-        for(size_t e = 0; e < data.count(); ++e)
-            data[e] = ((coord.j + ((int (e / 5)) % 5) - .5f)-h)*dx; // in world space
+        int tileWidth = accessor.tileInfo(index).dimInfo.tileWidth;
+        int W = accessor.tileInfo(index).dimInfo.depthWidth / tileWidth;
+        float w = W * .5;
+        for(size_t e = 0; e < data.count(); ++e){
+            int j = ((int (e / tileWidth)) % tileWidth);
+            data[e] = ((coord.j + j*W + w) - h)*dx; // in world space
+        }
     }
 private:
     Bifrost::API::VoxelChannel out;
@@ -336,8 +341,8 @@ void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel 
         int n = layout.tileDimInfo().tileWidth;
         // TODO : could it be narrowed
         const amino::Math::bboxi ranges(
-                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-2*n, (int)floor((bbox.min()[2])*invDx)),
-                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+2*n,  (int)ceil((bbox.max()[2])*invDx)));
+                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-n, (int)floor((bbox.min()[2])*invDx)),
+                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+n,  (int)ceil((bbox.max()[2])*invDx)));
 
         int depth = layout.maxDepth();
         int jmin = ranges.min()[1], jmax = ranges.max()[1];

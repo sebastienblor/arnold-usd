@@ -103,6 +103,7 @@ class BifrostTemplate(ShapeTranslatorTemplate):
     def setup(self):
         self.addControl("opaque")
         self.addControl("matte")
+        self.addControl("tile_mode")
         self.addSeparator()
 
         self.addControl("render_as", changeCommand=CheckRenderAs)

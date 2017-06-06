@@ -54,6 +54,9 @@ namespace {
 AtNode* BifrostTranslator::CreateArnoldNodes()
 {
     MFnDagNode dagNode(m_dagPath.node());
+    if(dagNode.findPlug("tile_mode").asBool()){
+        return AddArnoldNode("bifrost_blocks");
+    }
     int render_as = dagNode.findPlug("render_as").asInt();
     switch(render_as){
     case 0: return AddArnoldNode(dagNode.findPlug("surface_type").asInt()==0? "bifrost_polymesh" : "bifrost_implicit");
@@ -67,6 +70,10 @@ AtNode* BifrostTranslator::CreateArnoldNodes()
 
 void BifrostTranslator::Export( AtNode *shape ){
     MFnDagNode dagNode(m_dagPath.node());
+    if(dagNode.findPlug("tile_mode").asBool()){
+        ExportImplicit(dagNode, shape);
+        return;
+    }
     int render_as = dagNode.findPlug("render_as").asInt();
     switch(render_as){
     case 0:
@@ -419,6 +426,8 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
     CExtensionAttrHelper helper(context.maya, "standard");
     CAttrData data;
+
+    ADD_DBOOL("tile_mode", false);
 
     // common
     ADD_DBOOL("opaque", true);

@@ -163,7 +163,7 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         ScaleFilter<float>(params.space_scale).filter(distance,distance);
     }
 
-    if(false){
+    if(true){
         DUMP("SAVING");
         Bifrost::API::ObjectModel om;
         Bifrost::API::Runtime::ActiveGraph ag = om.createActiveGraph( "myAG" );
