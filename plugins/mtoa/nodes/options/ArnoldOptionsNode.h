@@ -58,6 +58,7 @@ public:
    static MObject s_use_sample_clamp;
    static MObject s_use_sample_clamp_AOVs;
    static MObject s_AA_sample_clamp;
+   static MObject s_indirect_sample_clamp;
    static MObject s_lock_sampling_noise;
    static MObject s_aa_seed;
    static MObject s_filterType;

@@ -556,6 +556,10 @@ def createArnoldSamplingSettings():
     pm.attrControlGrp('ss_max_value',
                         label="Max Value",
                         attribute='defaultArnoldRenderOptions.AASampleClamp')
+
+    pm.attrControlGrp('ss_indirect_max_value',
+                        label="Indirect Max Value",
+                        attribute='defaultArnoldRenderOptions.indirectSampleClamp')
                         
     pm.setParent('..')
     

@@ -75,6 +75,13 @@
         default             FLOAT   10.0
         linkable            BOOL    false
         maya.orig_shortname STRING  "smpclamp"
+    [attr indirect_sample_clamp]
+        maya.keyable        BOOL    false
+        softmin             FLOAT   0.001
+        softmax             FLOAT   100.0
+        linkable            BOOL    false
+        maya.orig_shortname STRING  "indsmpclamp"
+
     [attr AA_sample_clamp_affects_aovs]
         maya.keyable        BOOL    false
         linkable            BOOL    false    

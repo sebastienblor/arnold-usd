@@ -48,6 +48,7 @@ MObject CArnoldOptionsNode::s_plugins_path;
 MObject CArnoldOptionsNode::s_use_sample_clamp;
 MObject CArnoldOptionsNode::s_use_sample_clamp_AOVs;
 MObject CArnoldOptionsNode::s_AA_sample_clamp;
+MObject CArnoldOptionsNode::s_indirect_sample_clamp;
 MObject CArnoldOptionsNode::s_lock_sampling_noise;
 MObject CArnoldOptionsNode::s_aa_seed;
 MObject CArnoldOptionsNode::s_filterType;
@@ -280,6 +281,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_use_sample_clamp_AOVs);
    
    s_attributes.MakeInput("AA_sample_clamp");
+   s_attributes.MakeInput("indirect_sample_clamp");
 
    s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

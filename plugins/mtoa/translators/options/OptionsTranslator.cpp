@@ -713,6 +713,10 @@ void COptionsTranslator::Export(AtNode *options)
                CNodeTranslator::ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
             }
          }
+         else if (strcmp(paramName, "indirect_sample_clamp") == 0)
+         {
+            CNodeTranslator::ProcessParameter(options, "indirect_sample_clamp", AI_TYPE_FLOAT);
+         }
          else if (strcmp(paramName, "AA_seed") == 0)
          {
             // FIXME: this is supposed to use a connection to AA_seed attribute
