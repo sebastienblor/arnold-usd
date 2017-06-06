@@ -19,27 +19,24 @@
 #endif
 #define INV(v) (v)==0? std::numeric_limits<float>::max() : 1./(v)
 
+//#define DDA_DEBUG
+#ifdef DDA_DEBUG
+namespace{
+struct DDA;
+std::ostream& operator <<(std::ostream& out, const Bifrost::Processing::Interval& interval);
+std::ostream& operator <<(std::ostream& out, const Bifrost::API::TileCoord& coord);
+std::ostream& operator <<(std::ostream& out, const int v[3]);
+std::ostream& operator <<(std::ostream& out, const float v[3]);
+std::ostream& operator <<(std::ostream& out, const DDA& dda);
+}
+#endif
+
 namespace{
 
 template<typename T>
 inline T MIN(T a, T b){ return (a < b)? a : b; }
 
 typedef Bifrost::Processing::Interval Interval;
-
-#ifdef DDA_DEBUG
-std::ostream& operator <<(std::ostream& out, const Interval& interval){ return out << "Interval(" << interval.t0 << ", " << interval.t1 << ")"; }
-std::ostream& operator <<(std::ostream& out, const Bifrost::API::TileCoord& coord){ return out << "TileCoord(" << coord.i << ", " << coord.j << ", " << coord.k << ")"; }
-std::ostream& operator <<(std::ostream& out, const int v[3]){
-    std::stringstream ss; ss << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
-    return out << ss.str();
-}
-std::ostream& operator <<(std::ostream& out, const float v[3]){
-    std::stringstream ss; ss << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
-    return out << ss.str();
-}
-struct DDA;
-std::ostream& operator <<(std::ostream& out, const DDA& dda);
-#endif
 
 enum{ ZERO = 0, POSITIVE = 1, NEGATIVE = -1 };
 struct Ray{
@@ -127,21 +124,6 @@ struct DDA
     int _voxel[3], _step[3];
     float _delta[3], _next[3];
 };
-
-#ifdef DDA_DEBUG
-std::ostream& operator <<(std::ostream& out, const DDA& dda){
-    std::stringstream ss;
-    ss << "DDA( DIM = " << dda.DIM << ", OFFSET = " << dda.OFFSET << " (" << dda.t0 << ", " << dda.t1 << ")" << std::endl;
-    ss << "     orig = " << dda.ray.org << std::endl;
-    ss << "      dir = " << dda.ray.dir << std::endl;
-    ss << "    voxel = " << dda._voxel << std::endl;
-    ss << "     next = " << dda._next << std::endl;
-    ss << "    delta = " << dda._delta << std::endl;
-    ss << "     step = " << dda._step << std::endl;
-    ss << ")";
-    return out << ss.str();
-}
-#endif
 
 struct IntersectorImpl{
     IntersectorImpl(const Bifrost::API::Layout& layout)
@@ -251,3 +233,36 @@ void Intersector::init(const amino::Math::vec3f &origin, const amino::Math::vec3
 Interval Intersector::next(){ return impl? static_cast<IntersectorImpl*>(impl)->next() : Interval(); }
 
 }} // Bifrost::Processing
+
+
+
+#ifdef DDA_DEBUG
+namespace{
+std::ostream& operator <<(std::ostream& out, const Bifrost::Processing::Interval& interval){
+    return out << "Interval(" << interval.t0 << ", " << interval.t1 << ")";
+}
+std::ostream& operator <<(std::ostream& out, const Bifrost::API::TileCoord& coord){
+    return out << "TileCoord(" << coord.i << ", " << coord.j << ", " << coord.k << ")";
+}
+std::ostream& operator <<(std::ostream& out, const int v[3]){
+    std::stringstream ss; ss << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
+    return out << ss.str();
+}
+std::ostream& operator <<(std::ostream& out, const float v[3]){
+    std::stringstream ss; ss << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
+    return out << ss.str();
+}
+std::ostream& operator <<(std::ostream& out, const DDA& dda){
+    std::stringstream ss;
+    ss << "DDA( DIM = " << dda.DIM << ", OFFSET = " << dda.OFFSET << " (" << dda.t0 << ", " << dda.t1 << ")" << std::endl;
+    ss << "     orig = " << dda.ray.org << std::endl;
+    ss << "      dir = " << dda.ray.dir << std::endl;
+    ss << "    voxel = " << dda._voxel << std::endl;
+    ss << "     next = " << dda._next << std::endl;
+    ss << "    delta = " << dda._delta << std::endl;
+    ss << "     step = " << dda._step << std::endl;
+    ss << ")";
+    return out << ss.str();
+}
+}
+#endif
