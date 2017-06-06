@@ -5,6 +5,14 @@
 #include "utils.h"
 #include <bifrostapi/bifrost_layout.h>
 
+//#define DEBUG_EXTENTS_FILE "/home/beauchc/dev/mtoa/data/spheres.ass"
+#ifdef DEBUG_EXTENTS_FILE
+namespace{
+void init_output();
+void output(const AtVector &origin, const AtVector &direction, float t0, float t1, const Bifrost::Processing::Interval &interval, bool ray=true);
+}
+#endif
+
 Implicit* ImplicitParameters::implicit() const{
     Implicit* implicit = new Implicit(*this);
     if(!implicit->valid()){
@@ -37,6 +45,9 @@ Implicit::Implicit(const ImplicitParameters& params)
     _accessor = layout.tileAccessor();
     invDx = 1./layout.voxelScale();
     maxDepth = layout.maxDepth();
+#ifdef DEBUG_EXTENTS_FILE
+    init_output();
+#endif
 }
 
 int Implicit::depth(const AtVector &p){
@@ -84,6 +95,9 @@ volume_ray_extents
     Bifrost::Processing::Interval interval;
     while((interval = intersector.next()).valid()){
         AiVolumeAddIntersection(info, interval.t0, interval.t1);
+#ifdef DEBUG_EXTENTS_FILE
+        output(*origin, *direction, t0, t1, interval, true);
+#endif
     }
 }
 volume_cleanup
@@ -96,3 +110,43 @@ volume_update
 {
     return true;
 }
+
+
+#ifdef DEBUG_EXTENTS_FILE
+#include <fstream>
+namespace{
+
+void init_output(){
+    std::ofstream out(DEBUG_EXTENTS_FILE);
+    out << "standard_surface { name red base_color 1 0 0 }\n";
+    out << "standard_surface { name orange base_color 1 .5 0 }\n";
+    out << "standard_surface { name green base_color 0 1 0 }\n";
+    out << "standard_surface { name turquoise base_color 0 1 .5 }\n";
+    out << "standard_surface { name black base_color .1 .1 .1 }\n";
+    out.close();
+}
+
+void output(const AtVector& origin, const AtVector& direction, float t0, float t1, const Bifrost::Processing::Interval& interval, bool ray){
+    AtVector start = origin + interval.t0 * direction;
+    AtVector end = origin + interval.t1 * direction;
+    float radius = .1;
+    std::ofstream out(DEBUG_EXTENTS_FILE, std::ofstream::out | std::ofstream::app);
+    out << "sphere {" << std::endl;
+    out << "    center " << start.x << " " << start.y << " " << start.z << std::endl;
+    out << "    radius " << radius << std::endl;
+    out << "    shader red\n}" << std::endl;
+    out << "sphere {" << std::endl;
+    out << "    center " << end.x << " " << end.y << " " << end.z << std::endl;
+    out << "    radius " << radius << std::endl;
+    out << "    shader green\n}" << std::endl;
+    if(ray){
+        out << "cylinder {" << std::endl;
+        out << "    bottom " << start.x << " " << start.y << " " << start.z << " ";
+        out << "    top " << end.x << " " << end.y << " " << end.z << std::endl;
+        out << "    radius " << (radius*.1) << std::endl;
+        out << "    shader black\n}" << std::endl;
+    }
+    out.close();
+}
+}
+#endif
