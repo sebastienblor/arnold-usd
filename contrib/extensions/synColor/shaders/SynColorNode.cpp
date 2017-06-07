@@ -580,7 +580,7 @@ namespace
          // Use a wrong error id because synColor does not have a 
          // generic error id for now.
          status.setErrorCode(SYNCOLOR::ERROR_RENDERER_GPU_ADAPTOR_ERROR);
-         std::string err("The color sapce is unkonw: ");
+         std::string err("The color space is unknown: ");
          err += color_space.c_str();
          status.setErrorMessage(err.c_str());
          return status;
@@ -610,12 +610,13 @@ namespace
                if(status)
                {
                   it2->second = transform;
-
+/*
                   AiMsgInfo("[color_manager_syncolor] Computation of %s input color transformation from '%s' to '%s'"\
                             " for a buffer from '%s' to '%s'",
                      direction==SYNCOLOR::TransformForward ? "forward" : "reverse",
                      color_space.c_str(), colorData->m_rendering_color_space.c_str(),
                      pixelFormatStr(src_pixel_format), pixelFormatStr(dst_pixel_format));
+*/
                }
             }
          }
@@ -681,7 +682,7 @@ namespace
          // Use a wrong error id because synColor does not have a 
          // generic error id for now.
          status.setErrorCode(SYNCOLOR::ERROR_RENDERER_GPU_ADAPTOR_ERROR);
-         std::string err("The color sapce is unkonw: ");
+         std::string err("The color space is unknown: ");
          err += color_space.c_str();
          status.setErrorMessage(err.c_str());
          return status;
@@ -711,12 +712,13 @@ namespace
                if(status)
                {
                   it2->second = transform;
-
+/*
                   AiMsgInfo("[color_manager_syncolor] Computation of %s output color transformation from '%s' to '%s'"\
                             " for a buffer from '%s' to '%s'",
                      direction==SYNCOLOR::TransformForward ? "forward" : "reverse",
                      colorData->m_rendering_color_space.c_str(), color_space.c_str(),
                      pixelFormatStr(src_pixel_format), pixelFormatStr(dst_pixel_format));
+*/
                }
             }
          }
