@@ -21,17 +21,25 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   484MB         | log started Sun Mar 26 15:24:52 2017
-00:00:00   484MB         | Arnold 5.0.0.0.wip [9bb2c2eb] windows icc-17.0.2 oiio-1.7.7 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/23 03:10:48
-00:00:00   484MB         | running on REM8WCK8D2, pid=456
-00:00:00   484MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   484MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   484MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   484MB         |  
-00:00:00   484MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   488MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   489MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   489MB WARNING |  node "MayaClamp" is already installed
+00:00:00   489MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   489MB WARNING |  node "MayaCondition" is already installed
+00:00:00   489MB WARNING |  node "MayaReverse" is already installed
+00:00:00   490MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/bifrost_shaders.dll
+00:00:00   490MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/bifrost_shaders.dll
+00:00:00   490MB WARNING | [mtoa] [cryptomatte] [node cryptomatte] Assigning temporary node id 1138176 to associated Maya type name cryptomatte.
+00:00:00   490MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/cryptomatte.dll
+00:00:00   490MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/cryptomatte.dll
+00:00:00   490MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
+00:00:00   490MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
+00:00:00   490MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
+00:00:00   490MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
+00:00:00   490MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
+00:00:00   490MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
+00:00:00   493MB ERROR   | [mtoa.attr] Arnold parameter "skydome_light.aov_indirect" does not exist.
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0142/test.ma line 590: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage1.colorManagementEnabled'.
@@ -42,7 +50,7 @@ Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/tes
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0142/test.ma line 628: 'defaultColorMgtGlobals.configFileEnabled' is already connected to 'aiImage2.colorManagementConfigFileEnabled'.
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0142/test.ma line 629: 'defaultColorMgtGlobals.configFilePath' is already connected to 'aiImage2.colorManagementConfigFilePath'.
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0142/test.ma line 630: 'defaultColorMgtGlobals.workingSpaceName' is already connected to 'aiImage2.workingSpace'.
-File read in  0.26 seconds.
+File read in  0.27 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0142/test.ma
 libpng warning: iCCP: known incorrect sRGB profile
 Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0142\test.ma completed.
