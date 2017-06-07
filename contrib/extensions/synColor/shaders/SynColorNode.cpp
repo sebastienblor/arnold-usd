@@ -226,6 +226,7 @@ namespace
          case SYNCOLOR::PF_RGB_16i: return "RGB(16i)";
          case SYNCOLOR::PF_RGBA_8i: return "RGBA(8i)";
          case SYNCOLOR::PF_RGB_8i:  return "RGB(8i)";
+         default: break;
       }
       return "";
    }
@@ -234,7 +235,7 @@ namespace
    {
       if(lvl == SYNCOLOR::LEVEL_USER)
       {
-         AiMsgWarning(msg);
+         AiMsgWarning("%s", msg);
       }
    }
 
@@ -307,10 +308,9 @@ namespace
             }
             else
             {
-               char tmpFilename[L_tmpnam];
-               tmpnam(tmpFilename);
+               filename = std::tmpnam(0x0);
 
-               std::ofstream ofs(tmpFilename, std::ofstream::out);
+               std::ofstream ofs(filename, std::ofstream::out);
 
                ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                      << "<SynColorConfig version=\"2.0\">\n"
@@ -327,8 +327,6 @@ namespace
                      << "</SynColorConfig>\n";
 
                ofs.close();
-
-               filename = tmpFilename;
             }
 
             status = SYNCOLOR::configureAsStandalone(filename.c_str());
@@ -351,7 +349,7 @@ namespace
 #endif
             if(!useEnvVariable)
             {
-               remove(filename.c_str());
+               std::remove(filename.c_str());
             }
 
             if(status)
@@ -363,12 +361,12 @@ namespace
                }
                else
                {
-                  AiMsgInfo("                with the native catolog directory from %s", colorData->m_native_catalog_path);
+                  AiMsgInfo("                with the native catolog directory from %s", colorData->m_native_catalog_path.c_str());
                }
 
                if(!colorData->m_ocioconfig_path.empty())
                {
-                  AiMsgInfo("                using the OCIO config file %s", colorData->m_ocioconfig_path);
+                  AiMsgInfo("                using the OCIO config file %s", colorData->m_ocioconfig_path.c_str());
                }
 
                const char* pSharedDirectory = 0x0;
@@ -584,7 +582,7 @@ namespace
       {
          ThreadGuard guard(colorData->m_input_guard);
 
-         ProcessorMap::iterator& it2 = colorData->m_input_transforms.find(key);
+         ProcessorMap::iterator it2 = colorData->m_input_transforms.find(key);
          if(it2->second.get()!=0x0)
          {
             transform = it2->second;
@@ -685,7 +683,7 @@ namespace
       {
          ThreadGuard guard(colorData->m_output_guard);
 
-         ProcessorMap::iterator& it2 = colorData->m_output_transforms.find(key);
+         ProcessorMap::iterator it2 = colorData->m_output_transforms.find(key);
          if(it2->second.get()!=0x0)
          {
             transform = it2->second;
