@@ -6,10 +6,10 @@ class AEaiAOVTemplate(ShaderAETemplate):
     def defaultValueNew(self, nodeAttr):
         pm.attrNavigationControlGrp('aiAOVDefaultValue',
                                     label='Default Shader',
-                                    at=nodeAttr)
+                                    at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def defaultValueReplace(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiAOVDefaultValue', edit=True, at=nodeAttr)
+        pm.attrNavigationControlGrp('aiAOVDefaultValue', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def outputsNew(self, attr):
         node, plug = attr.split('.', 1)
