@@ -35,7 +35,7 @@ Bifrost::API::String SurfaceParameters::str() const{
     DUMP_PARAM(ocean_blending_center);
     DUMP_PARAM(ocean_blending_dimension);
     DUMP_PARAM(ocean_blending_radius);
-    DUMP_PARAM(ocean_blending_blend);
+    DUMP_PARAM(ocean_blending_controls);
     DUMP_PARAM(enable_ocean_blending_uvs);
 
     return ss.str().c_str();
@@ -130,7 +130,8 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         Bifrost::Processing::ErodeFilter<float>(params.erode).filter(distance, distance);
 
     if(params.enable_ocean_blending){
-        Bifrost::Processing::ExtendFilter extend(params.ocean_blending_height, params.ocean_blending_center, params.ocean_blending_dimension, params.ocean_blending_radius);
+        Bifrost::Processing::ExtendFilter extend(params.ocean_blending_height, params.ocean_blending_center, params.ocean_blending_dimension, params.ocean_blending_radius,
+                                                 params.ocean_blending_controls[0], params.ocean_blending_controls[1], params.ocean_blending_controls[2]);
         extend.filter(distance,distance);
         if(params.enable_ocean_blending_uvs){
             Bifrost::API::VoxelChannel uvs = _voxels.findChannel(params.uv_channel.c_str());

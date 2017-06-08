@@ -227,6 +227,7 @@ void BifrostTranslator::ExportClipping(const MFnDagNode &dagNode, AtNode *shape)
 void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shape){
     EXPORT_BOOL("enable_ocean_blending");
     EXPORT_FLT("ocean_blending_radius");
+    EXPORT_FLT3("ocean_blending_controls");
     MPlug oceanMeshPlug = dagNode.findPlug("ocean_plane");
     if(oceanMeshPlug.isDestination()){
         MPlug source = oceanMeshPlug.source();
@@ -505,6 +506,7 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
         }
     }
     ADD_DFLT("ocean_blending_radius", .1);
+    ADD_DFLT3("ocean_blending_controls", 1, 1, 1);
 
     // volume
     ADD_DSTR("density_channel", "density");

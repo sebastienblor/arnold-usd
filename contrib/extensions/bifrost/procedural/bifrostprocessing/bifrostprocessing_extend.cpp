@@ -170,7 +170,7 @@ private:
     int N, n, maxDepth;
 
     void flood(int i, int j, int k){
-        if(coord.j + j > H) { // over ocean level
+        if(coord.j + j + .5 > H) { // over ocean level
             for(; j<N && sdfData(i,j,k) > 0 && alphaData(i,j,k) != 1; ++j)
                 alphaData(i,j,k) = 1;
             return;
@@ -186,6 +186,65 @@ private:
         if(k<n && alphaData(i,j,k+1) != 1) flood( i, j, k+1 );
     }
 };
+
+class FloodRadiusVisitor : public Bifrost::API::Visitor {
+public:
+    FloodRadiusVisitor(Bifrost::API::VoxelChannel& sdf, float height, float radius, Bifrost::API::VoxelChannel& alpha)
+        : sdf(sdf), alpha(alpha),
+          H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+1),
+          R(radius/Bifrost::API::Layout(alpha.layout()).voxelScale()), invR2(1./(R*R)),
+          N(Bifrost::API::Layout(sdf.layout()).tileDimInfo().tileWidth),
+          maxDepth(Bifrost::API::Layout(sdf.layout()).maxDepth()){ _haloCache.init(alpha); }
+    FloodRadiusVisitor(const FloodRadiusVisitor& o)
+        : sdf(o.sdf), alpha(o.alpha), H(o.H), R(o.R), invR2(o.invR2), N(o.N), maxDepth(o.maxDepth) { _haloCache.init(alpha); }
+    Bifrost::API::Visitor* copy() const override{ return new FloodRadiusVisitor(*this); }
+
+    void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
+        Bifrost::API::Tile tile = accessor.tile(index);
+        int J = H - tile.coord().j;
+        if(J < 0 || J > N) return;
+        _haloCache.update(index);
+        const Bifrost::API::HaloedCache<float>::Tile& halo = _haloCache.tile(index);
+
+        alphaData = alpha.tileData<float>(index);
+        sdfData = sdf.tileData<float>(index);
+
+        // flood current tile
+        for(int I = 0; I < N; ++I){
+            for(int K = 0; K < N; ++K){
+                if(alphaData(I,J,K) != 1 || sdfData(I,J,K) < 0) continue;
+                bool contour = false;
+                for(int i = -1; i <= 1 && !contour; i+=2){
+                    for(int k = -1; k <= 1 && !contour; k+=2){
+                        if(halo(I+i,J,K+k) != 1) contour = true;
+                    }
+                }
+                if(!contour) continue;
+
+                FOR_IJK_SYMMETRIC(i,j,k,R){
+                    float dist = (i*i+j*j+k*k)*invR2;
+                    if(dist > 1) continue;
+                    dist = 1 - sqrt(dist);
+                    Bifrost::API::TileCoord coord = tile.coord() + Bifrost::API::TileCoord(I+i, J+j, K+k);
+                    Bifrost::API::Tile ctile = accessor.tile(coord, maxDepth);
+                    if(ctile.index().depth != maxDepth) continue;
+                    float& prev = alpha.tileData<float>(ctile.index())(coord.i-ctile.coord().i, coord.j-ctile.coord().j, coord.k-ctile.coord().k);
+                    if(prev == 1) continue;
+                    if(prev == 0 || prev < dist) prev = dist;
+                }
+            }
+        }
+    }
+private:
+    Bifrost::API::HaloedCache<float> _haloCache;
+    Bifrost::API::VoxelChannel sdf, alpha;
+    int H; // ocean height in tile space
+    float R, invR2; // radius, 1/(radius^2) in tile space
+
+    Bifrost::API::TileData<float> sdfData, alphaData;
+    int N, maxDepth;
+};
+
 
 
 // ***** CRAWLING ALGORITHM *****
@@ -244,7 +303,7 @@ void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& a
     {
         // TODO: make this parallel
         PROFILER("CRAWL");
-        int H(ceil(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+1);
+        int H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+5);
         Bifrost::API::Tile root = layout.tileAccessor().tile(0,0,0,0);
         for(int i = 0; i < 5; ++i){
             for(int k = 0; k < 5; ++k){
@@ -256,6 +315,8 @@ void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& a
         PROFILER("FLOOD");
         FloodVisitor visitor(sdf, height, alpha);
         layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
+        FloodRadiusVisitor visitor2(sdf, height, radius, alpha);
+        layout.traverse(visitor2, Bifrost::API::TraversalMode::ParallelBreadthFirst, layout.maxDepth(), layout.maxDepth());
     }
 }
 
@@ -263,10 +324,10 @@ void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& a
 
 class MergeVisitor : public Bifrost::API::Visitor {
 public:
-    MergeVisitor(const Bifrost::API::VoxelChannel& sdf, const Bifrost::API::VoxelChannel& ocean, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out)
-        : sdf(sdf), ocean(ocean), alpha(alpha), out(out){}
+    MergeVisitor(const Bifrost::API::VoxelChannel& sdf, const Bifrost::API::VoxelChannel& ocean, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out, float a0, float a1, float a2)
+        : sdf(sdf), ocean(ocean), alpha(alpha), out(out), a0(a0), inv2a1(1./(a1*a1)), inv2a2(1./(a2*a2)){}
     MergeVisitor(const MergeVisitor& o)
-        : sdf(o.sdf), ocean(o.ocean), alpha(o.alpha), out(o.out){}
+        : sdf(o.sdf), ocean(o.ocean), alpha(o.alpha), out(o.out), a0(o.a0), inv2a1(o.inv2a1), inv2a2(o.inv2a2){}
     Bifrost::API::Visitor* copy() const override{ return new MergeVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& , const Bifrost::API::TreeIndex& index) override{
@@ -274,48 +335,46 @@ public:
         Bifrost::API::TileData<float> q  = ocean.tileData<float>(index);
         Bifrost::API::TileData<float> alphaData = alpha.tileData<float>(index);
         Bifrost::API::TileData<float> r = out.tileData<float>(index);
-        float bg = sdf.backgroundValue<float>();
 
-        float a0 = 0, a1 = 1, a2 = 5;
-        float invA12 = 1./(a1*a1), invA22 = 1./(a2*a2);
         for(size_t e = 0; e < r.count(); ++e){
-            float p2 = p[e]*p[e], q2 = q[e]*q[e];
-
-            if(p[e] == bg){
-                r[e] = q[e];
-                continue;
-            }
-            if(alphaData[e] != 1) {
+            float a = alphaData[e];
+            if(a == 0) {
                 r[e] = p[e];
                 continue;
             }
-            if((q[e] < 0 && p[e] > 0) || p[e] == bg){
-                r[e] = q[e];
-                continue;
-            }
+            //if(a != 1 && q[e] < 0 && p[e] > 0) q[e] = p[e]; // keep trapped air
 
-            r[e] = p[e] + q[e] - sqrt(p2+q2) + a0 / (1 + p2*invA12 + q2*invA22);
-
-            if(q[e] < 0){
-                r[e] = fmax(q[e],p[e]);
-            }else{
-                if(p[e] > 0){
-                    r[e] = fmin(q[e],p[e]);
+            // signed union
+            r[e] = (q[e] < 0)? ((p[e] > 0)? q[e] :
+                                            fmax(q[e], p[e])):
+                               ((p[e] > 0)? fmin(q[e], p[e]):
+                                            p[e]);
+            if(a != 1 || true){
+                float a1 = .005, a2 = .1;
+                float s = p[e] + q[e] - sqrt(p[e]*p[e]+q[e]*q[e]);// + .1 / (1 + (p[e]*p[e])/(a1*a1) + (q[e]*q[e])*(.1*a*a));
+                if(a > .65){
+                    a = (a-.5)*2; // [0,1]
+                    a = a * a * (3.f -2.f * a);
+                    r[e] = q[e] + (1-a)*(s-q[e]);
                 }else{
-                    r[e] = p[e];
+                    a = (a)*2; // [0,1]
+                    a = a * a * (3.f -2.f * a);
+                    r[e] = p[e] + a*(s-p[e]);
                 }
+                r[e] = s;
             }
         }
     }
 private:
     Bifrost::API::VoxelChannel sdf, ocean, alpha, out;
+    float a0, inv2a1, inv2a2;
 };
 
-inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::VoxelChannel& in2, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out){
+inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::VoxelChannel& in2, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out, float a0, float a1, float a2){
     PROFILER("BLEND OCEAN PLANE");
     assert(in1.layout() == in2.layout() && in2.layout() == alpha.layout() && alpha.layout() == out.layout());
     Bifrost::API::Layout layout(in1.layout());
-    MergeVisitor visitor(in2, in1, alpha, out);
+    MergeVisitor visitor(in2, in1, alpha, out, a0, a1, a2);
     layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst);
 }
 
@@ -324,14 +383,14 @@ inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::Vox
 namespace Bifrost {
 namespace Processing {
 
-ExtendFilter::ExtendFilter(float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius)
-    : height(height), center(center), dimensions(dimensions), radius(radius) {}
+ExtendFilter::ExtendFilter(float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius, float a0, float a1, float a2)
+    : height(height), center(center), dimensions(dimensions), radius(radius), a0(a0), a1(a1), a2(a2) {}
 
 void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel _out) const{
     Bifrost::API::VoxelChannel sdf(in), out(_out);
     Bifrost::API::Layout layout(sdf.layout());
 
-    {// add tiles
+    if(true){// add tiles
         // TODO: make this parallel
         PROFILER("ADDING OCEAN TILES");
         amino::Math::bboxf bbox(amino::Math::vec3f(center[0] - dimensions[0]*.5, height, center[1] - dimensions[1]*.5),
@@ -373,13 +432,13 @@ void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel 
     if(sdf == out){
         sdf = ss.createChannel(component, Bifrost::API::DataType::FloatType, "tmp");
         createOceanPlane(sdf, height);
-        merge(sdf, out, alpha, out);
+        merge(sdf, out, alpha, out, a0, a1, a2);
         Bifrost::API::String name = sdf.fullPathName();
         sdf.reset();
         ss.removeChannel(name);
     }else{
         createOceanPlane(out, height);
-        merge(out, sdf, alpha, out);
+        merge(out, sdf, alpha, out, a0, a1, a2);
     }
 
     //Bifrost::API::String name = alpha.fullPathName();

@@ -109,6 +109,7 @@ template<> bool ChannelSamplerT<1,float>::sampleGradient(const AtVector &pos, At
 }
 template<> AtArray* ChannelSamplerT<1,float>::array(const Bifrost::API::Array<amino::Math::vec3f> &positions) const{
     ARRAY(float, AiArraySetFlt,);
+    //ARRAY_CLOSEST(float, AiArraySetFlt,);
 }
 
 

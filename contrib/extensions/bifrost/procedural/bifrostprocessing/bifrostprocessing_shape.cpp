@@ -182,6 +182,10 @@ Shape::Shape(const ShapeParameters& params){
             Bifrost::API::Channel v = _voxels.findChannel(velocities[i]);
             if(v.valid()) ScaleFilter<float>(vscale).filter(v,v);
         }
+        {
+            Bifrost::API::Channel v = _voxels.findChannel(params.velocity_channel);
+            if(v.valid()) ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
+        }
         Bifrost::API::Channel v = _points.findChannel(params.velocity_channel);
         if(v.valid()) ScaleFilter<amino::Math::vec3f>(amino::Math::vec3f(vscale)).filter(v,v);
     }

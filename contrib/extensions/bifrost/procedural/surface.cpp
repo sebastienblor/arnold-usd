@@ -26,6 +26,7 @@ SurfaceParameters::SurfaceParameters(const AtNode* node) : Bifrost::Processing::
     GET_VEC2(ocean_blending_dimension);
     GET_FLT(ocean_blending_radius);
     GET_ENUM(ocean_blending_blend, Bifrost::Processing::BlendType);
+    GET_VEC(ocean_blending_controls);
     GET_BOOL(enable_ocean_blending_uvs);
 
     GET_BOOL(export_laplacian);
@@ -67,6 +68,7 @@ void SurfaceParameters::declare(AtList* params, AtNodeEntry* nentry)
     PARAM_VEC2(ocean_blending_center);
     PARAM_VEC2(ocean_blending_dimension);
     PARAM_FLT(ocean_blending_radius);
+    PARAM_VEC(ocean_blending_controls);
     static const char* bt_enums[] = BLEND_TYPE_STRINGS;
     PARAM_ENUM(ocean_blending_blend, bt_enums);
     PARAM_BOOL(enable_ocean_blending_uvs);

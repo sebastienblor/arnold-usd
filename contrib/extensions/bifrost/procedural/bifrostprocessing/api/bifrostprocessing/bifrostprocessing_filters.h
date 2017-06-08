@@ -125,7 +125,7 @@ private:
 
 class ExtendFilter : public Filter{
 public:
-    ExtendFilter(float height, const amino::Math::vec2f& center, const amino::Math::vec2f& dimensions, float radius);
+    ExtendFilter(float height, const amino::Math::vec2f& center, const amino::Math::vec2f& dimensions, float radius, float a0, float a1, float a2);
     void filter(const Bifrost::API::Channel in, Bifrost::API::Channel out) const override;
     void uvs(Bifrost::API::Channel out) const;
 
@@ -133,6 +133,7 @@ private:
     float height;
     amino::Math::vec2f center, dimensions;
     float radius;
+    float a0, a1, a2;
 };
 
 }} // namespace Bifrost::Processing

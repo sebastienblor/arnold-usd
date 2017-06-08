@@ -28,6 +28,7 @@ struct SurfaceParameters : public ShapeParameters {
     amino::Math::vec2f ocean_blending_center = amino::Math::vec2f(0,0);
     amino::Math::vec2f ocean_blending_dimension = amino::Math::vec2f(10,10);
     float ocean_blending_radius = 1;
+    amino::Math::vec3f ocean_blending_controls = amino::Math::vec3f(1,1,1);
     BlendType ocean_blending_blend = BlendType::Smooth;
     bool enable_ocean_blending_uvs = true;
 
