@@ -472,6 +472,11 @@ elif env['COMPILER'] == 'msvc':
 
     LINK_FLAGS  = " /MANIFEST"
 
+    # Needed because of the compilation and/or runtime problem 
+    # related to the list iterator optimization from MSVC. 
+    if env['MODE'] in ['debug']:
+        MSVC_FLAGS += " -D_ITERATOR_DEBUG_LEVEL=0"
+
     if env['MODE'] in ['opt', 'profile']:
         MSVC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
         MSVC_FLAGS += " /GL"     # enables whole program optimization
