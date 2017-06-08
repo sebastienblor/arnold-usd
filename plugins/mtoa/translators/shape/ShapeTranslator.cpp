@@ -77,6 +77,14 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    MFnDependencyNode dnode(m_dagPath.node(), &status);
    if (status)
       AiNodeSetUInt(node, "id",  getHash(node));
+
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(node, "motion_start", (float)motionStart);
+      AiNodeSetFlt(node, "motion_end", (float)motionEnd);
+   }
 }
 
 

@@ -362,26 +362,26 @@ namespace
 
             if(status)
             {
-               AiMsgInfo("[color_manager_syncolor] Using syncolor_color_manager Version %s", SYNCOLOR::getVersionString());
+               AiMsgInfo("[color_manager_syncolor] synColor version %s", SYNCOLOR::getVersionString());
                if(useEnvVariable)
                {
-                  AiMsgInfo("                from the preference file %s", envVariableValue);
+                  AiMsgInfo("[color_manager_syncolor] with SYNCOLOR env. variable: %s", envVariableValue);
                }
                else
                {
-                  AiMsgInfo("                with the native catolog directory from %s", nativePath);
+                  AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath);
                }
 
                if(!colorData->m_ocioconfig_path.empty())
                {
-                  AiMsgInfo("                using the OCIO config file %s", colorData->m_ocioconfig_path.c_str());
+                  AiMsgInfo("[color_manager_syncolor] OCIO config file: %s", colorData->m_ocioconfig_path.c_str());
                }
 
                if(!colorData->m_custom_catalog_path.empty())
                {
                   const char* pSharedDirectory = 0x0;
                   SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
-                  AiMsgInfo("                and the optional custom catalog directory from %s", 
+                  AiMsgInfo("[color_manager_syncolor] optional custom catalog directory: %s", 
                      pSharedDirectory ? pSharedDirectory : "");
                }
             }

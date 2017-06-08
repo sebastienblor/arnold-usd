@@ -98,8 +98,17 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
    AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
 
-   AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
-   AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
+   if (FindMayaPlug("aiUseGlobalShutter").asBool())
+   {
+      double shutterStart, shutterEnd;
+      GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
+      AiNodeSetFlt(camera, "shutter_start", float(shutterStart));
+      AiNodeSetFlt(camera, "shutter_end", float(shutterEnd));
+   } else
+   {
+      AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
+      AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
+   }
    AiNodeSetInt(camera, "shutter_type", FindMayaPlug("aiShutterType").asInt());
    
    ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
@@ -317,6 +326,12 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("shutter_end");
    helper.MakeInput("shutter_type");
    helper.MakeInput("shutter_curve");
+
+   CAttrData data;
+   data.defaultValue.BOOL() = true;
+   data.name = "aiUseGlobalShutter";
+   data.shortName = "ai_ugs";
+   helper.MakeInputBoolean(data);
 }
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)

@@ -531,9 +531,19 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiApertureRotation")
         self.addControl("aiApertureAspectRatio")
         
+    def globaShutterChanged(self, *args):
+        
+        if cmds.getAttr(self.nodeAttr('aiUseGlobalShutter')) == 1:
+            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterStart', True))
+            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterEnd', True))
+        else:
+            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterStart', False))
+            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterEnd', False))
+        
     def addShutterAttributes(self):
         self.addSeparator()
         self.addControl("motionBlurOverride", label="Camera Motion Blur")
+        self.addControl("aiUseGlobalShutter", label="Use Global Shutter", changeCommand=self.globaShutterChanged)
         self.addControl("aiShutterStart")
         self.addControl("aiShutterEnd")
         self.addControl("aiShutterType")
