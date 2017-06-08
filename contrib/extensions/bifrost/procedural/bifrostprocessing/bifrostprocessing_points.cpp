@@ -49,7 +49,7 @@ bool Points::positions(Bifrost::API::Array<amino::Math::vec3f>& positions) const
     Bifrost::API::TileData<amino::Math::vec3f> data;
     unsigned int i = 0;
     for(;it;++it){
-        data = channel.tileData<amino::Math::vec3f>((*it).index());
+        data = channel.tileData<amino::Math::vec3f>(it.index());
         for(unsigned int e = 0; e < data.count(); ++e){
             positions[i++] = (data[e]*dx);
         }
