@@ -1,6 +1,6 @@
 Color Management: kick test for the output color space processing using the View Transform 
 
-This test validates kick plus view transform. I've also added some not color managed textures 
+This test validates kick with view transform. I've also added some not color managed textures 
 to stress a little bit more the synColor plugin (i.e. output & input color transformations).
 
 author: patrick.hodoul

@@ -1,0 +1,9 @@
+Color Management: kick test for the output color space processing using the Output Transform 
+
+This test validates kick with output transform. I've also added some not color managed textures 
+to stress a little bit more the synColor plugin (i.e. output & input color transformations).
+
+Also I've artificially increase the number of threads to stress the multi-thread mechanism used 
+by the synColor plugin cache.
+
+author: patrick.hodoul
