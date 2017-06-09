@@ -99,6 +99,7 @@ namespace{
 }
 
 Shape::Shape(const ShapeParameters& params){
+    PROFILER("Initialize shape");
     Bifrost::API::ObjectModel om;
     Bifrost::API::String cacheFolder = params.cache_folder;
     Bifrost::API::String objectName = params.object;

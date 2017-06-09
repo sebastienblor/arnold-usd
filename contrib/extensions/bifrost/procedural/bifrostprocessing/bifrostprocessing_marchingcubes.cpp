@@ -159,7 +159,7 @@ void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor,
     // now for each voxel in the tile, do marching cube calc
     size_t vertexCount = 0;
     FOR_IJK(i,j,k,tileWidth){
-        if(fabs(data(i,j,k)) > 1) continue; // doesn't contain a surface, early out
+        if(fabs(data(i,j,k)) > voxelScale) continue; // doesn't contain a surface, early out
 
         Bifrost::API::TileCoord scaledCoord((coord.i+i)*sampleRate, (coord.j+j)*sampleRate, (coord.k+k)*sampleRate);
         FOR_IJK(ii,jj,kk,sampleRate){

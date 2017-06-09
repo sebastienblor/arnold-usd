@@ -44,6 +44,7 @@ Bifrost::API::String SurfaceParameters::str() const{
 namespace{
 
 Status convertPointsToVoxels(const SurfaceParameters& params, const Bifrost::API::PointComponent& pointComponent, Bifrost::API::VoxelComponent& component, Status& status){
+    PROFILER("Points to voxels");
     Bifrost::API::Object object(pointComponent.object());
     Bifrost::API::Dictionary dict = object.dictionary();
 
@@ -122,18 +123,25 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         return;
     }
 
-    if(params.dilate != 0)
+    if(params.dilate != 0){
+        PROFILER("Dilate");
         Bifrost::Processing::DilateFilter<float>(params.dilate).filter(distance, distance);
-    if(params.smooth > 0 && params.smooth_iterations > 0)
+    }
+    if(params.smooth > 0 && params.smooth_iterations > 0){
+        PROFILER("Smooth");
         Bifrost::Processing::SmoothFilter<float>((Bifrost::Processing::SmoothFilter<float>::Mode) params.smooth_mode, params.smooth_iterations, params.smooth).filter(distance, distance);
-    if(params.erode != 0)
+    }
+    if(params.erode != 0){
+        PROFILER("Erode");
         Bifrost::Processing::ErodeFilter<float>(params.erode).filter(distance, distance);
+    }
 
     if(params.enable_ocean_blending){
+        PROFILER("Ocean blending");
         Bifrost::Processing::ExtendFilter extend(params.ocean_blending_height, params.ocean_blending_center, params.ocean_blending_dimension, params.ocean_blending_radius,
                                                  params.ocean_blending_controls[0], params.ocean_blending_controls[1], params.ocean_blending_controls[2]);
         extend.filter(distance,distance);
-        if(params.enable_ocean_blending_uvs){
+        if(params.enable_ocean_blending_uvs && params.ocean_blending_dimension.v[0] > 0 && params.ocean_blending_dimension.v[1] > 0){
             Bifrost::API::VoxelChannel uvs = _voxels.findChannel(params.uv_channel.c_str());
             if(uvs.valid()){
                 extend.uvs(uvs);
@@ -145,12 +153,14 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
     }
 
     if(params.export_laplacian){
+        PROFILER("Compute laplacian");
         Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(_voxels.stateID()));
         Bifrost::API::VoxelChannel laplacian = ss.createChannel(_voxels, Bifrost::API::DataType::FloatType, "laplacian");
         laplacian.setBackgroundValue<float>(0);
         LaplacianFilter<float>().filter(distance, laplacian);
     }
     if(params.export_curvature){
+        PROFILER("Compute curvature");
         Bifrost::API::StateServer ss(Bifrost::API::ObjectModel().stateServer(_voxels.stateID()));
         Bifrost::API::VoxelChannel curvature = ss.createChannel(_voxels, Bifrost::API::DataType::FloatType, "curvature");
         curvature.setBackgroundValue<float>(0);
@@ -164,7 +174,7 @@ Surface::Surface(const SurfaceParameters& params) : Shape(params){
         ScaleFilter<float>(params.space_scale).filter(distance,distance);
     }
 
-    if(true){
+    if(false){
         DUMP("SAVING");
         Bifrost::API::ObjectModel om;
         Bifrost::API::Runtime::ActiveGraph ag = om.createActiveGraph( "myAG" );

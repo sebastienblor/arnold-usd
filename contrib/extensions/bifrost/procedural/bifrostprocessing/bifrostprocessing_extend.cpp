@@ -11,6 +11,7 @@
 #include <bifrostapi/bifrost_tileiterator.h>
 #include <bifrostapi/bifrost_component.h>
 #include <unordered_set>
+#include "tbb.h"
 
 #define FLOOD(direction, i1, j1, k1, i2, j2, k2) \
 {\
@@ -288,11 +289,9 @@ void crawl(const Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& al
         if(current.valid() && current.child(i,j,k).valid()){
             Bifrost::API::Tile child = accessor.tile(current.child(i,j,k));
             if(child.info().depth == current.info().depth) return;
-            for(int ii = 0; ii < 5; ++ii){
-                for(int kk = 0; kk < 5; ++kk){
-                    crawl(sdf,alpha,child,ii,0,kk, H);
-                }
-            }
+            TBB_FOR_ALL<int>(0,25, [&](int i){
+                crawl(sdf,alpha,child,i/5,0,i%5, H);
+            });
         }
     }
 }
@@ -300,16 +299,15 @@ void crawl(const Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& al
 void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& alpha, float height, float radius){
     if((0)) DUMP(radius);
     Bifrost::API::Layout layout(sdf.layout());
+    int N = layout.tileDimInfo().tileWidth;
     {
         // TODO: make this parallel
         PROFILER("CRAWL");
-        int H(floor(height/Bifrost::API::Layout(alpha.layout()).voxelScale())+5);
+        int H(floor(height/layout.voxelScale())+5);
         Bifrost::API::Tile root = layout.tileAccessor().tile(0,0,0,0);
-        for(int i = 0; i < 5; ++i){
-            for(int k = 0; k < 5; ++k){
-                crawl(sdf, alpha, root, i, 0, k, H);
-            }
-        }
+        TBB_FOR_ALL<int>(0,N*N,[&](int i){
+            crawl(sdf, alpha, root, i/N, 0, i%N, H);
+        });
     }
     {
         PROFILER("FLOOD");
@@ -397,27 +395,29 @@ void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel 
                                 amino::Math::vec3f(center[0] + dimensions[0]*.5, height, center[1] + dimensions[1]*.5));
 
         float invDx = 1./layout.voxelScale();
-        int n = layout.tileDimInfo().tileWidth;
+        int N = layout.tileDimInfo().tileWidth;
         // TODO : could it be narrowed
         const amino::Math::bboxi ranges(
-                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-n, (int)floor((bbox.min()[2])*invDx)),
-                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+n,  (int)ceil((bbox.max()[2])*invDx)));
+                    amino::Math::vec3i((int)floor((bbox.min()[0])*invDx), (int)floor((bbox.max()[1])*invDx)-N, (int)floor((bbox.min()[2])*invDx)),
+                    amino::Math::vec3i( (int)ceil((bbox.max()[0])*invDx),  (int)ceil((bbox.max()[1])*invDx)+N,  (int)ceil((bbox.max()[2])*invDx)));
 
         int depth = layout.maxDepth();
         int jmin = ranges.min()[1], jmax = ranges.max()[1];
         Bifrost::API::TileAccessor accessor = layout.tileAccessor();
-        for(int j = jmin; j <= jmax; j+=n){
-            for(int i = ranges.min()[0]; i <= ranges.max()[0]; i+=n){
-                for(int k = ranges.min()[2]; k <= ranges.max()[2]; k+=n){
+
+        for(int j = jmin; j <= jmax; j+=N){
+            for(int i = ranges.min()[0]; i <= ranges.max()[0]; i+=N){
+                for(int k = ranges.min()[2]; k <= ranges.max()[2]; k+=N){
                     accessor.addTile(i,j,k,depth);
                 }
             }
         }
         //*
-        for(int i = ranges.min()[0]; i <= ranges.max()[0]; i+=n){
-            for(int k = ranges.min()[2]; k <= ranges.max()[2]; k+=n){
-                accessor.addTile(i,jmin-n,k,depth-1);
-                accessor.addTile(i,jmax+n,k,depth-1);
+        int n2 = N*N;
+        for(int i = ranges.min()[0]; i <= ranges.max()[0]; i+=n2){
+            for(int k = ranges.min()[2]; k <= ranges.max()[2]; k+=n2){
+                accessor.addTile(i,jmin-N,k,depth-1);
+                accessor.addTile(i,jmax+N,k,depth-1);
             }
         }
         //*/
