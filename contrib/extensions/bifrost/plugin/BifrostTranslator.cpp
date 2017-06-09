@@ -226,6 +226,8 @@ void BifrostTranslator::ExportPoint(AtNode *shape)
     }
     AiNodeSetFlt( shape, "shutterStart", (float) shutterStart );
     AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
+    AiNodeSetFlt( shape, "motion_start", (float) shutterStart );
+    AiNodeSetFlt( shape, "motion_end", (float) shutterEnd );
 
     const MTime sec(1.0, MTime::kSeconds);
     float fps = (float) sec.as(MTime::uiUnit());
@@ -333,6 +335,10 @@ void BifrostTranslator::ExportAero(AtNode *shape)
     }
     AiNodeSetFlt( shape, "shutterStart", (float) shutterStart );
     AiNodeSetFlt( shape, "shutterEnd", (float) shutterEnd );
+
+    AiNodeSetFlt(shape, "motion_start", (float)shutterStart);
+    AiNodeSetFlt(shape, "motion_end", (float)shutterEnd);
+
     const MTime sec(1.0, MTime::kSeconds);
     float fps = (float) sec.as(MTime::uiUnit());
     AiNodeSetFlt(shape, "fps", fps);
@@ -418,6 +424,8 @@ void BifrostTranslator::ExportLiquidAttributes( MFnDagNode&  bifrostDesc, AtNode
     }
     AiNodeSetFlt(shape, "shutterStart", (float) shutterStart);
     AiNodeSetFlt(shape, "shutterEnd", (float) shutterEnd);
+    AiNodeSetFlt(shape, "motion_start", (float) shutterStart);
+    AiNodeSetFlt(shape, "motion_end", (float) shutterEnd);
 
     // culling params
     EXPORT_BOOL("cullSidesOn");

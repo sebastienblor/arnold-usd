@@ -348,6 +348,14 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "velocity_scale", AI_TYPE_VECTOR, "velocityScale");
    ProcessParameter(fluid_shader, "motion_vector_scale", AI_TYPE_FLOAT, "aiMotionVectorScale");
    
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(fluid, "motion_start", (float)motionStart);
+      AiNodeSetFlt(fluid, "motion_end", (float)motionEnd);
+   }
+
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
    if (RequiresMotionData())
