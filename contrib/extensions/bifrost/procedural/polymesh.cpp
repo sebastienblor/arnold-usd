@@ -67,6 +67,7 @@ AtNode* PolymeshParameters::node() const{
     Bifrost::API::Array<amino::Math::vec3i> indices;
     surface.mesh(vertices, indices, subdivisions);
 
+    PROFILER("[BIFROST] Export polymesh.");
     AtNode *node = AiNode("polymesh");
     AiNodeSetBool(node, "smoothing", smoothing);
 

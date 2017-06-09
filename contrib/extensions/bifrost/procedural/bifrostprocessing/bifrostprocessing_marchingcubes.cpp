@@ -7,7 +7,7 @@
 #include <float.h>
 #include <unordered_map>
 #include "defs.h"
-#include "tbb.h"
+#include <tbb/parallel_for_each.h>
 
 #define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerQBSplineType
 //#define VOXEL_SAMPLER_TYPE Bifrost::API::VoxelSamplerLinearType
@@ -153,8 +153,7 @@ size_t MarchingCubesVisitor::calcVoxel(float *gridVals, const amino::Math::vec3i
 void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index)
 {
     // get the tile and its coordinate
-    const Bifrost::API::Tile tile = accessor.tile(index);
-    const Bifrost::API::TileCoord coord	= tile.coord();
+    const Bifrost::API::TileCoord coord	= accessor.tile(index).coord();
     const Bifrost::API::TileData<float> data = sdf.tileData<float>(index);
 
     // now for each voxel in the tile, do marching cube calc
@@ -190,8 +189,10 @@ void MarchingCubesVisitor::beginTile(const Bifrost::API::TileAccessor& accessor,
 void MarchingCubesVisitor::join(const Bifrost::API::Visitor& visitor)
 {
     const MarchingCubesVisitor& o = static_cast<const MarchingCubesVisitor&>(visitor);
+
     // only do final merge in endTraverse to avoid needless copies of huge arrays (vertices/indices)
     unsigned long index = meshes.size()==0? indices.count() : meshes[meshes.size()-1].index + meshes[meshes.size()-1].indices.count();
+
     for(const Mesh& mesh : o.meshes){
         meshes.push_back({ mesh.vertices, mesh.indices, index });
         index += mesh.indices.count();
@@ -219,8 +220,7 @@ void MarchingCubesVisitor::endTraverse(const Bifrost::API::TileAccessor &){
         PROFILER("MARCHING CUBES MERGE TRIANGLES");
         unsigned long total = meshes[meshes.size()-1].index + meshes[meshes.size()-1].indices.count();
         indices.resize(total);
-        Bifrost::Private::TBB_FOR_ALL(0, meshes.size(), 1, [&](size_t i){
-            const Mesh& mesh = meshes[i];
+        tbb::parallel_for_each(meshes.begin(), meshes.end(), [&](const Mesh& mesh){
             for(unsigned int j = 0; j < mesh.indices.count(); ++j){ // remap triangles
                 const amino::Math::vec3i& triangle = mesh.indices[j];
                 indices[mesh.index+j] = amino::Math::vec3i(ids[mesh.vertices[triangle[0]]], ids[mesh.vertices[triangle[1]]], ids[mesh.vertices[triangle[2]]]);

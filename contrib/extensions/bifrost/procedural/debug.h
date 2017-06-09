@@ -4,7 +4,7 @@
 #define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
 #define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 
-//#define PROFILING
+#define PROFILING
 #ifdef PROFILING
 #define PROFILE Profiler p(__PRETTY_FUNCTION__)
 #define PROFILER(name) Profiler p(name)

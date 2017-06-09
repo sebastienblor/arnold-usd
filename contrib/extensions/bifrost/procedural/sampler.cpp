@@ -24,7 +24,7 @@ inline T getData(const amino::Math::vec3f& wsPos, float invDx, const Bifrost::AP
 #define ARRAY(T, AiArraySet, CAST) \
     const Bifrost::API::VoxelChannel& channel = channels[0];\
     AtArray *channelArray = AiArrayAllocate(positions.count(), 1, type()); \
-    TBB_FOR_ALL(0, positions.count(), 100, [&positions, &channel, channelArray](size_t start, size_t end){ \
+    TBB_FOR_ALL(0, positions.count(), 100, [&positions, &channel, &channelArray](size_t start, size_t end){ \
         Bifrost::API::VoxelSampler sampler = channel.createSampler(VOXEL_SAMPLER_ARGS); \
         for(size_t i = start; i < end; ++i){ \
              AiArraySet(channelArray, i, CAST(sampler.sample<T>(positions[i]))); \
@@ -41,7 +41,7 @@ inline T getData(const amino::Math::vec3f& wsPos, float invDx, const Bifrost::AP
     int N = layout.tileDimInfo().tileWidth; \
     float invDx = this->invDx;\
     int maxDepth = layout.maxDepth();\
-    TBB_FOR_ALL(0, positions.count(), 100, [positions, channel, channelArray, accessor, invDx, maxDepth, N](size_t e){\
+    TBB_FOR_ALL(0, positions.count(), 100, [&positions, &channel, &channelArray, &accessor, &invDx, &maxDepth, &N](size_t e){\
         AiArraySet(channelArray, e, CAST(getData<T>(positions[e], invDx, channel, accessor, maxDepth, N)));\
     });\
     return channelArray
