@@ -9,6 +9,11 @@ enum AnimFloatParams
    p_values
 };
 
+struct animFloatData{
+   float shutter_start;
+   float inv_shutter_length;
+};
+
 };
 
 AI_SHADER_NODE_EXPORT_METHODS(AnimFloatMtd);
@@ -24,17 +29,32 @@ node_parameters
 
 shader_evaluate
 {
-   sg->out.FLT() = AiArrayInterpolateFlt(AiShaderEvalParamArray(p_values), sg->time, 0);
+   animFloatData *data = (animFloatData*)AiNodeGetLocalData(node);
+   sg->out.FLT() = AiArrayInterpolateFlt(AiShaderEvalParamArray(p_values), (sg->time - data->shutter_start) * data->inv_shutter_length, 0);
 }
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new animFloatData());   
 }
 
 node_update
 {
+   animFloatData *data = (animFloatData*)AiNodeGetLocalData(node);
+   AtNode *camera = AiUniverseGetCamera();
+   if (camera)
+   {  
+      data->shutter_start  = AiNodeGetFlt(camera, "shutter_start");
+      float shutter_end  = AiNodeGetFlt(camera, "shutter_end");
+      data->inv_shutter_length = 1.f / (AiMax(AI_EPSILON, shutter_end - data->shutter_start));
+   } else
+   {
+      data->shutter_start = 0.f;
+      data->inv_shutter_length = 1.f;
+   }
 }
 
 node_finish
 {
+   delete (animFloatData*)AiNodeGetLocalData(node);
 }

@@ -98,17 +98,25 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
    AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
 
+   float shutterStart = 0.f;
+   float shutterEnd = 1.f;
+
    if (FindMayaPlug("aiUseGlobalShutter").asBool())
    {
-      double shutterStart, shutterEnd;
-      GetSessionOptions().GetMotionRange(shutterStart, shutterEnd);
-      AiNodeSetFlt(camera, "shutter_start", float(shutterStart));
-      AiNodeSetFlt(camera, "shutter_end", float(shutterEnd));
+      double shutterStartDbl, shutterEndDbl;
+      GetSessionOptions().GetMotionRange(shutterStartDbl, shutterEndDbl);
+      shutterStart = (float)shutterStartDbl;
+      shutterEnd = (float)shutterEndDbl;
    } else
    {
-      AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
-      AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
+      shutterStart = FindMayaPlug("aiShutterStart").asFloat();
+      shutterEnd = FindMayaPlug("aiShutterEnd").asFloat();
    }
+   AiNodeSetFlt(camera, "shutter_start", shutterStart);
+   AiNodeSetFlt(camera, "shutter_end", shutterEnd);
+   AiNodeSetFlt(camera, "motion_start", shutterStart);
+   AiNodeSetFlt(camera, "motion_end", shutterEnd);
+
    AiNodeSetInt(camera, "shutter_type", FindMayaPlug("aiShutterType").asInt());
    
    ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
