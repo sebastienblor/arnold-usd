@@ -10,7 +10,7 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.addControl("background", label="Background")
-        self.addControl("backgroundType", label="Background Type")
+        #self.addControl("backgroundType", label="Background Type")
         self.addControl("offscreenColor", label="Offscreen Color")
 
         self.beginLayout("Shadows", collapse=False)

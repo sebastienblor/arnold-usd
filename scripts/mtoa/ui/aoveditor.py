@@ -361,8 +361,9 @@ class AOVItem(object):
         if self.outputsChanged:
             pm.popupMenu(self.popupMenu, edit=True, deleteAllItems=True)
             pm.cmds.menuItem(parent=menu, label='Select AOV Node', c=lambda *args: pm.select(self.aov.node))
-            pm.cmds.menuItem(parent=menu, label='Remove AOV', c=lambda *args: self.parent.removeAOV(self.aov))
             pm.cmds.menuItem(parent=menu, label='Add New Output Driver', c=lambda *args: self.addOutput())
+            pm.cmds.menuItem(parent=menu, label='Remove AOV', c=lambda *args: self.parent.removeAOV(self.aov))
+
             pm.cmds.menuItem(parent=menu, divider=True)
             if len(self.outputs) > 1:
                 for i, outputRow in enumerate(self.outputs):
