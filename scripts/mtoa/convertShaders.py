@@ -3,8 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair']
-
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -62,6 +61,10 @@ def doMapping(inShd):
         ret = convertAiStandard(inShd)
     elif 'aiHair' in shaderType :
         ret = convertAiHair(inShd)
+    elif 'alHair' in shaderType:
+        ret = convertAlHair(inShd)
+    elif 'alSurface' in shaderType:
+        ret = convertAlSurface(inShd)
         
     if ret:
         # assign objects to the new shader
@@ -207,6 +210,66 @@ def convertAiHair(inShd):
 
     cmds.setAttr(outNode + '.melanin', 0)
 
+    print "Converted %s to aiStandardHair" % inShd
+    return outNode
+
+def convertAlSurface(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'
+    
+    
+    #print 'creating '+ aiName
+    outNode = cmds.shadingNode('aiStandardSurface', name=aiName, asShader=True)
+    convertAttr(inShd, 'diffuseStrength', outNode, 'base')
+    convertAttr(inShd, 'diffuseColor', outNode, 'baseColor')
+
+    convertAttr(inShd, 'diffuseRoughness', outNode, 'diffuseRoughness')
+    convertAttr(inShd, 'sssMix', outNode, 'subsurface')
+    convertAttr(inShd, 'sssDensityScale', outNode, 'subsurfaceScale')
+    convertAttr(inShd, 'sssRadiusColor2', outNode, 'subsurfaceRadius')
+    convertAttr(inShd, 'specular1Strength', outNode, 'specular')
+    convertAttr(inShd, 'specular1Color', outNode, 'specularColor')
+    convertAttr(inShd, 'specular1Roughness', outNode, 'specularRoughness')
+    convertAttr(inShd, 'specular1Anisotropy', outNode, 'specularAnisotropy')
+    convertAttr(inShd, 'specular1Rotation', outNode, 'specularRotation')
+    convertAttr(inShd, 'specular1Ior', outNode, 'specularIOR')
+    convertAttr(inShd, 'specular2Strength', outNode, 'coat')
+    convertAttr(inShd, 'specular2Color', outNode, 'coatColor')
+    convertAttr(inShd, 'specular2Roughness', outNode, 'coatRoughness')
+    convertAttr(inShd, 'specular2Ior', outNode, 'coatIOR')
+    convertAttr(inShd, 'specular2Normal', outNode, 'coatNormal')
+    convertAttr(inShd, 'transmissionStrength', outNode, 'transmission')
+    convertAttr(inShd, 'transmissionColor', outNode, 'transmissionColor')
+    convertAttr(inShd, 'transmissionRoughness', outNode, 'transmissionExtraRoughness')
+    convertAttr(inShd, 'ssAttenuationColor', outNode, 'transmissionScatter')
+    convertAttr(inShd, 'ssInScatteringStrength', outNode, 'transmissionDepth')
+    convertAttr(inShd, 'ssDirection', outNode, 'transmissionScatterAnisotropy')
+    convertAttr(inShd, 'emissionStrength', outNode, 'emission')
+    convertAttr(inShd, 'emissionColor', outNode, 'emissionColor')
+    convertAttr(inShd, 'opacity', outNode, 'opacity')
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode
+
+
+def convertAlHair(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiStandardHair', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'dyeColor', outNode, 'baseColor')
+    convertAttr(inShd, 'melanin', outNode, 'melanin')
+    convertAttr(inShd, 'opacity', outNode, 'opacity')
+    convertAttr(inShd, 'randomMelanin', outNode, 'melaninRandomize')
+    convertAttr(inShd, 'diffuseStrength', outNode, 'diffuse')
+    convertAttr(inShd, 'diffuseColor', outNode, 'diffuseColor')
+    
     print "Converted %s to aiStandardHair" % inShd
     return outNode
 
