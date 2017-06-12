@@ -24,7 +24,7 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         self.addControl('outputMode')
         maya_version = versions.shortName()
         if int(float(maya_version)) >= 2017:
-            self.addControl('colorManagement')
+            self.addControl('colorManagement', label = 'Color Space')
 
         self.addControl('lightPathExpression')
         self.addControl('lightGroups')
