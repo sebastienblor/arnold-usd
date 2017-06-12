@@ -176,7 +176,8 @@ private:
                 alphaData(i,j,k) = 1;
             return;
         }
-        if(sdfData(i,j,k) < 0) return; // already inside water
+        // todo: replace -.1 with -dx*.5
+        if(sdfData(i,j,k) < -.1) return; // completely inside water
         alphaData(i,j,k) = 1;
 
         if(i>0 && alphaData(i-1,j,k) != 1) flood( i-1, j, k );
@@ -329,38 +330,20 @@ public:
     Bifrost::API::Visitor* copy() const override{ return new MergeVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& , const Bifrost::API::TreeIndex& index) override{
-        Bifrost::API::TileData<float> p = sdf.tileData<float>(index);
-        Bifrost::API::TileData<float> q  = ocean.tileData<float>(index);
+        Bifrost::API::TileData<float> sdfData = sdf.tileData<float>(index);
+        Bifrost::API::TileData<float> oceanData  = ocean.tileData<float>(index);
         Bifrost::API::TileData<float> alphaData = alpha.tileData<float>(index);
-        Bifrost::API::TileData<float> r = out.tileData<float>(index);
+        Bifrost::API::TileData<float> outData = out.tileData<float>(index);
 
-        for(size_t e = 0; e < r.count(); ++e){
-            float a = alphaData[e];
-            if(a == 0) {
-                r[e] = p[e];
-                continue;
-            }
-            //if(a != 1 && q[e] < 0 && p[e] > 0) q[e] = p[e]; // keep trapped air
+        float bg = sdf.backgroundValue<float>();
 
-            // signed union
-            r[e] = (q[e] < 0)? ((p[e] > 0)? q[e] :
-                                            fmax(q[e], p[e])):
-                               ((p[e] > 0)? fmin(q[e], p[e]):
-                                            p[e]);
-            if(a != 1 || true){
-                float a1 = .005, a2 = .1;
-                float s = p[e] + q[e] - sqrt(p[e]*p[e]+q[e]*q[e]);// + .1 / (1 + (p[e]*p[e])/(a1*a1) + (q[e]*q[e])*(.1*a*a));
-                if(a > .65){
-                    a = (a-.5)*2; // [0,1]
-                    a = a * a * (3.f -2.f * a);
-                    r[e] = q[e] + (1-a)*(s-q[e]);
-                }else{
-                    a = (a)*2; // [0,1]
-                    a = a * a * (3.f -2.f * a);
-                    r[e] = p[e] + a*(s-p[e]);
-                }
-                r[e] = s;
+        for(size_t e = 0; e < outData.count(); ++e){
+            float p = sdfData[e], q = oceanData[e], a = alphaData[e], &r = outData[e];
+            //if(p == bg){ p = q; }
+            if(a == 0){
+                q = fmax(q,p); // reenforce holes
             }
+            r = p + q - sqrt(p*p+q*q) + a0 / (1 + (p*p)*inv2a1 + (q*q)*inv2a2);
         }
     }
 private:
