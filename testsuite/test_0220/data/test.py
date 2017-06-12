@@ -8,7 +8,7 @@ maya_root_path    = sys.argv[1]
 mtoa_shaders_path = os.path.join(sys.argv[2], 'shaders')
 test_root_path    = sys.argv[3]
 synColor_path     = os.path.join(maya_root_path, 'synColor')
-output_file_path  = os.path.join(test_root_path, 'testrender.exr')
+output_file_path  = os.path.join(test_root_path, 'testrender.tif')
 
 # Build the ass file with the right synColor catalog path
 
