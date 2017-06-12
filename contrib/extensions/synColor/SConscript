@@ -72,5 +72,7 @@ EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREF
 if system.os() == 'windows':
    shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
 
+if system.os() == 'linux':
+   shader_env.Append(RPATH = shader_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
 Return('EXT EXT_SHADERS')
