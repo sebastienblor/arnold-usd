@@ -227,22 +227,27 @@ void BifrostTranslator::ExportClipping(const MFnDagNode &dagNode, AtNode *shape)
 void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shape){
     EXPORT_BOOL("enable_ocean_blending");
     EXPORT_FLT("ocean_blending_radius");
-    EXPORT_FLT3("ocean_blending_controls");
     MPlug oceanMeshPlug = dagNode.findPlug("ocean_plane");
+    float height = 0;
+    MPoint center(0,0,0);
+    MPoint dimensions(0,0,0);
     if(oceanMeshPlug.isDestination()){
         MPlug source = oceanMeshPlug.source();
         MMatrix matrix = this->getRelativeMatrix(source);
         MBoundingBox bbox = MFnDagNode(source.node()).boundingBox();
         bbox.transformUsing(matrix);
-        float height = bbox.max().y;
-        MPoint center = (bbox.max() + bbox.min())*.5;
-        MPoint dimensions = (bbox.max() - bbox.min());
-        AiNodeSetFlt(shape,"ocean_blending_height", height);
-        AiNodeSetVec2(shape, "ocean_blending_center", center.x, center.z);
-        AiNodeSetVec2(shape, "ocean_blending_dimension", dimensions.x, dimensions.z);
-    }else{
-        AiNodeSetBool(shape, "enable_ocean_blending", false);
+        height = bbox.max().y;
+        center = (bbox.max() + bbox.min())*.5;
+        dimensions = (bbox.max() - bbox.min());
     }
+    height += dagNode.findPlug("ocean_blending_offsetsY").asFloat();
+    dimensions.x += dagNode.findPlug("ocean_blending_offsetsX").asFloat();
+    dimensions.z += dagNode.findPlug("ocean_blending_offsetsZ").asFloat();
+
+    AiNodeSetFlt(shape,"ocean_blending_height", height);
+    AiNodeSetVec2(shape, "ocean_blending_center", center.x, center.z);
+    AiNodeSetVec2(shape, "ocean_blending_dimension", dimensions.x, dimensions.z);
+    EXPORT_STR("ocean_blending_out_channel");
 }
 
 void BifrostTranslator::ExportMotion( AtNode* shape ){
@@ -505,8 +510,9 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
             CHECK_MSTATUS(dgMod.doIt());
         }
     }
-    ADD_DFLT("ocean_blending_radius", .1);
-    ADD_DFLT3("ocean_blending_controls", 1, 1, 1);
+    ADD_DFLT("ocean_blending_radius", 0);
+    ADD_DFLT3("ocean_blending_offsets", 0, 0, 0);
+    ADD_DSTR("ocean_blending_out_channel", "");
 
     // volume
     ADD_DSTR("density_channel", "density");

@@ -143,7 +143,8 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.addControl("enable_ocean_blending", label="Enable")
         self.addCustom("ocean_plane", partial(InputMeshNew,"Mesh Plane"), InputMeshReplace)
         self.addControl("ocean_blending_radius", label="Boundary Radius")
-        self.addControl("ocean_blending_controls")
+        self.addControl("ocean_blending_offsets", label="Offsets")
+        self.addControl("ocean_blending_out_channel", label="Output Channel")
         self.endLayout()
 
         self.beginLayout("Mesh Controls", collapse=True)

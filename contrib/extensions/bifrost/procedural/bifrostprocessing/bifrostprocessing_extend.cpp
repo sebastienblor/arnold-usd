@@ -124,12 +124,12 @@ struct FloodTile{
 class FloodVisitor : public Bifrost::API::Visitor {
 public:
     FloodVisitor(Bifrost::API::VoxelChannel& sdf, float height, Bifrost::API::VoxelChannel& alpha)
-        : sdf(sdf), alpha(alpha),
-          H(height/Bifrost::API::Layout(alpha.layout()).voxelScale()),
+        : sdf(sdf), alpha(alpha), dx(Bifrost::API::Layout(alpha.layout()).voxelScale()),
+          H(height/dx),
           N(Bifrost::API::Layout(sdf.layout()).tileDimInfo().tileWidth), n(N-1),
           maxDepth(Bifrost::API::Layout(sdf.layout()).maxDepth()){}
     FloodVisitor(const FloodVisitor& o)
-        : sdf(o.sdf), alpha(o.alpha), H(o.H), N(o.N), n(N-1), maxDepth(o.maxDepth) {}
+        : sdf(o.sdf), alpha(o.alpha), dx(o.dx), H(o.H), N(o.N), n(N-1), maxDepth(o.maxDepth) {}
     Bifrost::API::Visitor* copy() const override{ return new FloodVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& accessor, const Bifrost::API::TreeIndex& index) override{
@@ -163,6 +163,7 @@ public:
     }
 private:
     Bifrost::API::VoxelChannel sdf, alpha;
+    float dx;
     float H; // ocean height in tile space
 
     std::unordered_set<int> indexes;
@@ -176,8 +177,8 @@ private:
                 alphaData(i,j,k) = 1;
             return;
         }
-        // todo: replace -.1 with -dx*.5
-        if(sdfData(i,j,k) < -.1) return; // completely inside water
+        //if(sdfData(i,j,k) < ((coord.j + j + 1.5 >= H)? -dx*0.8660254f : 0)) return; // completely inside water 0.8660254 = sqrt(3)/2 (half unit cube diagonal)
+        if(sdfData(i,j,k) < -dx*0.8660254f) return; // completely inside water 0.8660254 = sqrt(3)/2 (half unit cube diagonal)
         alphaData(i,j,k) = 1;
 
         if(i>0 && alphaData(i-1,j,k) != 1) flood( i-1, j, k );
@@ -323,10 +324,10 @@ void computeAlpha(Bifrost::API::VoxelChannel &sdf, Bifrost::API::VoxelChannel& a
 
 class MergeVisitor : public Bifrost::API::Visitor {
 public:
-    MergeVisitor(const Bifrost::API::VoxelChannel& sdf, const Bifrost::API::VoxelChannel& ocean, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out, float a0, float a1, float a2)
-        : sdf(sdf), ocean(ocean), alpha(alpha), out(out), a0(a0), inv2a1(1./(a1*a1)), inv2a2(1./(a2*a2)){}
+    MergeVisitor(const Bifrost::API::VoxelChannel& sdf, const Bifrost::API::VoxelChannel& ocean, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out)
+        : sdf(sdf), ocean(ocean), alpha(alpha), out(out) {}
     MergeVisitor(const MergeVisitor& o)
-        : sdf(o.sdf), ocean(o.ocean), alpha(o.alpha), out(o.out), a0(o.a0), inv2a1(o.inv2a1), inv2a2(o.inv2a2){}
+        : sdf(o.sdf), ocean(o.ocean), alpha(o.alpha), out(o.out){}
     Bifrost::API::Visitor* copy() const override{ return new MergeVisitor(*this); }
 
     void beginTile(const Bifrost::API::TileAccessor& , const Bifrost::API::TreeIndex& index) override{
@@ -343,19 +344,18 @@ public:
             if(a == 0){
                 q = fmax(q,p); // reenforce holes
             }
-            r = p + q - sqrt(p*p+q*q) + a0 / (1 + (p*p)*inv2a1 + (q*q)*inv2a2);
+            r = p + q - sqrt(p*p+q*q);
         }
     }
 private:
     Bifrost::API::VoxelChannel sdf, ocean, alpha, out;
-    float a0, inv2a1, inv2a2;
 };
 
-inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::VoxelChannel& in2, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out, float a0, float a1, float a2){
+inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::VoxelChannel& in2, const Bifrost::API::VoxelChannel& alpha, Bifrost::API::VoxelChannel& out){
     PROFILER("BLEND OCEAN PLANE");
     assert(in1.layout() == in2.layout() && in2.layout() == alpha.layout() && alpha.layout() == out.layout());
     Bifrost::API::Layout layout(in1.layout());
-    MergeVisitor visitor(in2, in1, alpha, out, a0, a1, a2);
+    MergeVisitor visitor(in2, in1, alpha, out);
     layout.traverse(visitor, Bifrost::API::TraversalMode::ParallelBreadthFirst);
 }
 
@@ -364,8 +364,8 @@ inline void merge(const Bifrost::API::VoxelChannel& in1, const Bifrost::API::Vox
 namespace Bifrost {
 namespace Processing {
 
-ExtendFilter::ExtendFilter(float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius, float a0, float a1, float a2)
-    : height(height), center(center), dimensions(dimensions), radius(radius), a0(a0), a1(a1), a2(a2) {}
+ExtendFilter::ExtendFilter(float height, const amino::Math::vec2f &center, const amino::Math::vec2f &dimensions, float radius, const Bifrost::API::String& out_channel)
+    : height(height), center(center), dimensions(dimensions), radius(radius), out_channel(out_channel) {}
 
 void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel _out) const{
     Bifrost::API::VoxelChannel sdf(in), out(_out);
@@ -409,24 +409,27 @@ void ExtendFilter::filter(const Bifrost::API::Channel in, Bifrost::API::Channel 
     Bifrost::API::StateServer ss = Bifrost::API::ObjectModel().stateServer(sdf.stateID());
     Bifrost::API::Component component = sdf.component();
 
-    Bifrost::API::VoxelChannel alpha = ss.createChannel(component, Bifrost::API::DataType::FloatType, "alpha");
+    Bifrost::API::VoxelChannel alpha = ss.createChannel(component, Bifrost::API::DataType::FloatType, (out_channel.empty()? "oceanTmp" : out_channel));
     computeAlpha(out, alpha, height, radius);
 
     if(sdf == out){
         sdf = ss.createChannel(component, Bifrost::API::DataType::FloatType, "tmp");
         createOceanPlane(sdf, height);
-        merge(sdf, out, alpha, out, a0, a1, a2);
+        merge(sdf, out, alpha, out);
         Bifrost::API::String name = sdf.fullPathName();
         sdf.reset();
         ss.removeChannel(name);
     }else{
         createOceanPlane(out, height);
-        merge(out, sdf, alpha, out, a0, a1, a2);
+        merge(out, sdf, alpha, out);
     }
 
-    //Bifrost::API::String name = alpha.fullPathName();
-    //alpha.reset();
-    //ss.removeChannel(name);
+    if(out_channel.empty()){
+        // clear temporary channel
+        Bifrost::API::String name = alpha.fullPathName();
+        alpha.reset();
+        ss.removeChannel(name);
+    }
 }
 
 void ExtendFilter::uvs(Bifrost::API::Channel _out) const{
