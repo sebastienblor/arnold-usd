@@ -123,11 +123,11 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   ;Add a mtoa.mod file in the installer folder
   FileOpen $0 "$INSTDIR\mtoa.mod" w
   FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
-  ${If} "$%MAYA_VERSION%" != "2012"
   FileWrite $0 "PATH +:= bin$\r$\n"
   FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
   FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
-  ${EndIf}
+  FileWrite $0 "MAYA_RENDER_DESC_PATH = $INSTDIR$\r$\n"
+  
   FileClose $0
   
   ;Store installation folder
@@ -171,18 +171,21 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     
     CreateDirectory "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%"
     FileOpen $0 "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod" w
-
     FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
     FileWrite $0 "PATH +:= bin$\r$\n"
     FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
     FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
+    FileWrite $0 "MAYA_RENDER_DESC_PATH = $INSTDIR$\r$\n"
     FileClose $0
     
+    ${If} "$%MAYA_VERSION%" < "2018"
     SetRegView 64
     ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
     StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
     CopyFiles "$INSTDIR\arnoldRenderer.xml" "$R1$R2"
-    
+    ${EndIf}
+
+
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
     ${If} "$%MAYA_VERSION%" >= "2017"
     CreateDirectory "$R1\maya\RSTemplates"
