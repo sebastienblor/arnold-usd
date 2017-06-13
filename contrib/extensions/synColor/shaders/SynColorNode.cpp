@@ -92,7 +92,6 @@ class ColorManagerData
 {
 public:
    ColorManagerData()
-      : m_output_color_conversion(false)
    {
       m_initialization_done = false;
 
@@ -124,7 +123,6 @@ public:
    AtString m_ocioconfig_path;        // The ocio config file to use if ocio mode enabled
    AtString m_rendering_color_space;  // The rendering color space
    AtString m_view_transform_space;   // The view transform space (for kick display)
-   bool     m_output_color_conversion;// Is it a color conversion only ?
    
    // Keep a cache of all output transforms to only compute them once
    SYNCOLOR::TemplatePtr m_output_template;
@@ -791,12 +789,6 @@ node_update
    colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
    colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
    colorData->m_view_transform_space    = AiNodeGetStr (node, DataStr::view_transform_space);
-
-#if MAYA_API_VERSION >= 201800
-   colorData->m_output_color_conversion = AiNodeGetBool(node, DataStr::output_color_conversion);
-#else
-   colorData->m_output_color_conversion = false;
-#endif
 
    colorData->m_input_transforms.clear();
    colorData->m_output_transforms.clear();
