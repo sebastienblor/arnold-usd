@@ -3,6 +3,7 @@
 import system, os
 from build_tools import find_files_recursive
 import glob
+import subprocess
 
 # import build env
 Import('ext_env')
@@ -69,10 +70,20 @@ else:
 
 EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREFIX='')
 
+def osx_hardcode_path(target, source, env):
+   cmd = " install_name_tool -add_rpath @loader_path/../bin/"
+   if cmd:
+      p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
+      retcode = p.wait()
+      return 0
+
 if system.os() == 'windows':
    shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
 
 if system.os() == 'linux':
    shader_env.Append(RPATH = shader_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
+
+if system.os() == 'darwin':
+   env.AddPostAction(EXT_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in synColor shader...'))
 
 Return('EXT EXT_SHADERS')
