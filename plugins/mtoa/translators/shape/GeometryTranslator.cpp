@@ -921,6 +921,21 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
             shidxs.push_back(indexToBePushed);
       }
 
+      // Need to add per-face data for the holes as well.  Since the holes are not visible
+      // it does not matter what shader index we use so we just fill it in with 0's here.
+      // Note the geometry processing adds the holes at the end so we also add the per face data 
+      // for the holes at the end too.
+      MStatus status;
+      MIntArray holeInfoArray, holeVertexArray;
+      int numHoles = fnMesh.getHoles(holeInfoArray, holeVertexArray, &status);
+      if (status == MS::kSuccess)
+      {
+          for (int i = 0; i < numHoles; i++)
+          {
+              shidxs.push_back(0);
+          }
+      }
+
       int numFaceShaders = (int)shidxs.size();
       if (numFaceShaders > 0)
       {
