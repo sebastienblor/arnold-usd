@@ -1087,7 +1087,8 @@ CExtension* CExtensionsManager::NewExtension(const MString &extensionFile)
    }
    else
    {
-      AiMsgInfo("[mtoa] Extension already managed: %s", extensionFile.asChar());
+      // #2946 hiding excessive messages when extensions are loaded multiple times
+//      AiMsgInfo("[mtoa] Extension already managed: %s", extensionFile.asChar());
       result = NULL;
    }
 
