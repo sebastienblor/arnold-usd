@@ -273,6 +273,7 @@ mtoaMod.write('+ mtoa any %s\n' % installDir)
 mtoaMod.write('PATH +:= bin\n')
 mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
 mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
+mtoaMod.write('MAYA_RENDER_DESC_PATH = %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
@@ -328,7 +329,9 @@ if installMode == 1: # do the proper installation
         renderDescFolder = os.path.join(mayaInstallDir, 'Maya.app', 'Contents', 'bin', 'rendererDesc')
     else:
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
-    shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
+
+    if sys.argv[1] != '2018':
+        shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
     
     if sys.argv[1] == '2017' or sys.argv[1] == '2018':
         homeDir = os.path.expanduser(userString)
