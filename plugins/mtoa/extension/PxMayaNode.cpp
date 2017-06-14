@@ -213,6 +213,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/arnold/skin";
          }
+         else if(id == ARNOLD_NODEID_IMAGE)
+         {
+            creator    = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract   = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/image";             
+         }
          else
          {
             creator    = CArnoldShaderNode::creator;
