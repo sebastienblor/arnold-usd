@@ -56,7 +56,6 @@ namespace DataStr
    const AtString custom_catalog_path("custom_catalog_path");
    const AtString ocioconfig_path("ocioconfig_path");
    const AtString rendering_color_space("rendering_color_space");
-   const AtString view_transform_space("view_transform_space");
    const AtString output_color_conversion("output_color_conversion");
 };
 
@@ -122,7 +121,6 @@ public:
 
    AtString m_ocioconfig_path;        // The ocio config file to use if ocio mode enabled
    AtString m_rendering_color_space;  // The rendering color space
-   AtString m_view_transform_space;   // The view transform space (for kick display)
    
    // Keep a cache of all output transforms to only compute them once
    SYNCOLOR::TemplatePtr m_output_template;
@@ -767,7 +765,6 @@ node_parameters
    AiParameterStr (DataStr::custom_catalog_path,     NULL);
    AiParameterStr (DataStr::ocioconfig_path,         NULL);
    AiParameterStr (DataStr::rendering_color_space,   NULL);
-   AiParameterStr (DataStr::view_transform_space,    NULL);
    AiParameterBool(DataStr::output_color_conversion, false);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "defaultColorMgtGlobals");
@@ -788,7 +785,6 @@ node_update
 
    colorData->m_ocioconfig_path         = AiNodeGetStr (node, DataStr::ocioconfig_path);
    colorData->m_rendering_color_space   = AiNodeGetStr (node, DataStr::rendering_color_space);
-   colorData->m_view_transform_space    = AiNodeGetStr (node, DataStr::view_transform_space);
 
    colorData->m_input_transforms.clear();
    colorData->m_output_transforms.clear();
@@ -805,12 +801,9 @@ color_manager_transform
 
    if(!colorData->m_initialization_done) return false;
 
-   // During kick rendering, this function is currently being called with "auto".
-   // Let's use the view transform in that case.
-   // FIXME : remove this if arnold core changes this behaviour
+   // 'auto' should have been resolved 
    static AtString autoStr("auto");
-   if (color_space == autoStr)
-      color_space = colorData->m_view_transform_space;
+   if (color_space == autoStr) return false;
 
    // Find all the information to finalize the color transformation
 
@@ -904,7 +897,8 @@ color_manager_transform
 
 color_manager_get_defaults
 {
-   static AtString sRgb_str = AtString("sRGB gamma");
+   static AtString sRgb_str("sRGB gamma");
+
    // This is creating problems with arnold color management (see #2893)
    AtString ocioPath = AiNodeGetStr(node, DataStr::ocioconfig_path);
    if (ocioPath.empty())

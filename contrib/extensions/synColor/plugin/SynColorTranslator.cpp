@@ -76,9 +76,6 @@ void CSynColorTranslator::Export(AtNode* node)
       MString customCatalogDir;
       MGlobal::executeCommand("colorManagementCatalog -queryUserTransformPath", customCatalogDir);
       AiNodeSetStr(node, "custom_catalog_path", customCatalogDir.asChar());
-
-      // For the display we need to set the current view transform to the syncolor node
-      AiNodeSetStr (node, "view_transform_space", defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
    }
 }
 
