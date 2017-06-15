@@ -925,11 +925,11 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // it does not matter what shader index we use so we just fill it in with 0's here.
       // Note the geometry processing adds the holes at the end so we also add the per face data 
       // for the holes at the end too.
-      MStatus status;
-      MIntArray holeInfoArray, holeVertexArray;
-      int numHoles = fnMesh.getHoles(holeInfoArray, holeVertexArray, &status);
-      if (status == MS::kSuccess)
+      AtArray *holesArray = AiNodeGetArray(polymesh, "polygon_holes");
+      if (holesArray != NULL)
       {
+         // we already exported some holes here
+         int numHoles = AiArrayGetNumElements(holesArray) / 2;
           for (int i = 0; i < numHoles; i++)
           {
               shidxs.push_back(0);
@@ -1154,9 +1154,32 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
 
          if (!arnoldPolygonHoles.empty())
          {
+            numFaceVertices = AiArrayGetNumElements(vidxs); // the amount of face vertices gets bigger with the holes
             AtArray *polygonHoles = AiArrayConvert(arnoldPolygonHoles.size(), 1, AI_TYPE_UINT, &arnoldPolygonHoles[0]);
             AiNodeSetArray(polymesh, "polygon_holes", polygonHoles);
+
+            // make sure shidx has the proper amount of elements
+            AtArray *shidxArray = AiNodeGetArray(polymesh, "shidx");
+            if (shidxArray != NULL)
+            {
+               unsigned int shidxCount = AiArrayGetNumElements(shidxArray);
+               unsigned int polyCount = AiArrayGetNumElements(nsides);
+               if (shidxCount > 0 && shidxCount < polyCount)
+               {
+                  // the "shidx" needs some extra-data here, to fill the holes...
+                  unsigned int *origShidx = (unsigned int*)AiArrayMap(shidxArray);
+                  std::vector<unsigned int> newShidxList (polyCount, 0);
+                  
+                  memcpy(&newShidxList[0], origShidx, shidxCount * sizeof(unsigned int));
+                  AiArrayUnmap(shidxArray); // is it necessary here ?
+                  
+                  AtArray* newShidxArray = AiArrayConvert(polyCount, 1, AI_TYPE_UINT, &newShidxList[0]);
+                  AiNodeSetArray(polymesh, "shidx", newShidxArray);
+               }
+            }
+         
          }
+
       }
       
       if (exportReferenceObjects) // TODO : use local space for this and manually transform that later, 
