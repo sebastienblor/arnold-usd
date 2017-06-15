@@ -910,12 +910,12 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
             multiplier = static_cast<int> (pow(4.0f, (divisions-1)));
       }
 
-      std::vector<unsigned int> shidxs;
+      std::vector<unsigned char> shidxs;
       for (unsigned int i = 0; i < indices.length(); i++)
       {
          const int subdivisions = multiplier * fnMesh.polygonVertexCount(i);
          // indices[i] == -1 when a Shading Group is not connected
-         const unsigned int indexToBePushed = (indices[i] == -1) ? 0 : indices[i];
+         const unsigned char indexToBePushed = (indices[i] == -1) ? 0 : (unsigned char)AiMin(indices[i], 255);
          shidxs.push_back(indexToBePushed);
          for (int j = 0; j < subdivisions -1; j++)
             shidxs.push_back(indexToBePushed);
@@ -939,7 +939,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       int numFaceShaders = (int)shidxs.size();
       if (numFaceShaders > 0)
       {
-         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_UINT, &(shidxs[0])));
+         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_BYTE, &(shidxs[0])));
       }
    }
 
@@ -1159,22 +1159,24 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiNodeSetArray(polymesh, "polygon_holes", polygonHoles);
 
             // make sure shidx has the proper amount of elements
-            AtArray *shidxArray = AiNodeGetArray(polymesh, "shidx");
+            AtArray *shidxArray = AiNodeGetArray(polymesh, "shidxs");
+            
             if (shidxArray != NULL)
             {
                unsigned int shidxCount = AiArrayGetNumElements(shidxArray);
                unsigned int polyCount = AiArrayGetNumElements(nsides);
+
                if (shidxCount > 0 && shidxCount < polyCount)
                {
                   // the "shidx" needs some extra-data here, to fill the holes...
-                  unsigned int *origShidx = (unsigned int*)AiArrayMap(shidxArray);
-                  std::vector<unsigned int> newShidxList (polyCount, 0);
-                  
-                  memcpy(&newShidxList[0], origShidx, shidxCount * sizeof(unsigned int));
-                  AiArrayUnmap(shidxArray); // is it necessary here ?
-                  
-                  AtArray* newShidxArray = AiArrayConvert(polyCount, 1, AI_TYPE_UINT, &newShidxList[0]);
-                  AiNodeSetArray(polymesh, "shidx", newShidxArray);
+                  unsigned char *shidxList = (unsigned char*)AiArrayMap(shidxArray);
+                  std::vector<unsigned char> newShidxList (polyCount, 0);
+                  memcpy(&newShidxList[0], shidxList, shidxCount * sizeof(unsigned char) );
+                  AiArrayUnmap(shidxArray); // is it necessary ?
+
+                  AtArray* newShidxArray = AiArrayConvert(polyCount, 1, AI_TYPE_BYTE, &newShidxList[0]);
+                  AiNodeSetArray(polymesh, "shidxs", newShidxArray);
+
                }
             }
          
