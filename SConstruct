@@ -760,11 +760,16 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         
         if 'maketx' in dylibElem:
             dylibs.remove(dylibElem)
-        
-    if system.os() == 'windows' and int(maya_version) >= 201800:
-        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
-        if os.path.exists(syncolor_library_path):
-            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/synColor*.dll"))
+       
+    # install syncolor packages 
+    if int(maya_version) >= 201800:
+        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', system.os())
+        if (system.os() == 'linux'):
+            # on linux the version number is after ".so."
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
+        else:
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
+    
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
@@ -777,13 +782,9 @@ if int(maya_version) < 201500:
     env['MTOA_DISABLE_RV'] = 1
 
 if not env['MTOA_DISABLE_RV']:
-    if system.os() == 'windows':
-        RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-    else:
-        RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-
+    RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+    
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
@@ -932,6 +933,8 @@ if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
 
 package_name_inst = package_name
+
+
 
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
@@ -1131,15 +1134,19 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
 
-    # for Maya 2018, on windows we also need to copy the syncolor dll
+    # for Maya 2018, we also need to copy the syncolor dylib, for syncolor extension
     if (int(maya_version) >= 201800):
-        if system.os() == 'windows':    
-            syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
-            syncolor_2018_files = glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll'))
+        syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', system.os())
+        if (system.os() == 'linux'):
+            # on linux the syncolor version number is after ".so."
+            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
+        else:
+            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 
-            for syncolor_file in syncolor_2018_files:
-                PACKAGE_FILES.append([syncolor_file, 'bin'])
+        for syncolor_file in syncolor_2018_files:
+            PACKAGE_FILES.append([syncolor_file, 'bin'])
             
+
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 

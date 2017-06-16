@@ -272,6 +272,18 @@ def get_library_extension():
       return ".dylib"
    else:
       return ""
+
+def get_library_prefix():
+   if system.os() == 'windows':
+      return ""
+   elif system.os() == 'linux':
+      return "lib"
+   elif system.os() == 'darwin':
+      return "lib"
+   else:
+      return ""
+      
+
       
 def get_executable_extension():
    if system.os() == 'windows':

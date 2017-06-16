@@ -1,7 +1,7 @@
 # vim: filetype=python
 
 import system, os
-from build_tools import find_files_recursive
+from build_tools import *
 import glob
 import subprocess
 
@@ -40,33 +40,33 @@ shader_env.Append(CPPPATH = ['.'])
 
 # Add the syncolor paths
 syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')
-syncolor_partial_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib')
+syncolor_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib')
 maya_version = shader_env['MAYA_VERSION']
 if int(maya_version) >= 201800:
    syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'include')
-   syncolor_partial_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib')
+   syncolor_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', system.os())
 
 shader_env.Append(CPPPATH = [syncolor_include_path])
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+
+shader_env.Append(LIBPATH = [syncolor_library_path])
 
 # Add platform specific paths
 if system.os() =='windows':
    shader_env.Append(LIBS=Split('ai.lib'))
    shader_env.Append(LIBS=Split('synColor.lib'))
-
-   library_path = os.path.join(syncolor_partial_library_path, 'windows')
-
-   shader_env.Append(LIBPATH = [library_path])
-
 else:
    shader_env.Append(LIBS=Split('ai'))
-   shader_env.Append(LIBS=Split('synColor'))
-
    shader_env.Append(CCFLAGS = Split('-fvisibility=hidden  -std=c++0x')) # hide symbols by default
-   if system.os() =='darwin':
-      shader_env.Append(LIBPATH = [os.path.join(syncolor_partial_library_path, 'darwin')])
-   else:
-      shader_env.Append(LIBPATH = [os.path.join(syncolor_partial_library_path, 'linux')])
+
+   synColorLibs = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
+
+   for syncolorFile in synColorLibs:
+      syncolorFile = os.path.basename(syncolorFile)
+      extLength = -len(get_library_extension())
+      syncolorFile = syncolorFile[3:extLength]
+      shader_env.Append(LIBS=Split(syncolorFile))
+
 
 EXT_SHADERS = shader_env.SharedLibrary('synColor_shaders', source_files, LIBPREFIX='')
 
