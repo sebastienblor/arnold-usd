@@ -243,145 +243,136 @@ namespace
       {
          std::string filename;
 
-         status = SYNCOLOR::setUp(SYNCOLOR::Maya, SYNCOLOR::LANG_EN);
-
-         if(status)
+         if(colorData->m_native_catalog_path.empty())
          {
-            status = SYNCOLOR::setLoggerFunction(logger);
+            ColorManagerData::m_initialization_library_done = false;
+            colorData->m_initialization_done = false;
+
+            AiMsgError("[color_manager_syncolor] Initialization failed: native_catalog_path is missing");
+
+            return;
          }
 
-         if(status)
-         {
-            if(colorData->m_native_catalog_path.empty())
-            {
-               ColorManagerData::m_initialization_library_done = false;
-               colorData->m_initialization_done = false;
+         const AtString nativePath(colorData->m_native_catalog_path);
 
-               AiMsgError("[color_manager_syncolor] Initialization failed: native_catalog_path is missing");
-
-               return;
-            }
-
-            const AtString nativePath(colorData->m_native_catalog_path);
-
-            // Provide a dummy path to avoid error on empty path: synColor 2017 limitation.
-            const AtString sharedPath(
-               colorData->m_custom_catalog_path.empty() ? "/tmp/shared" : colorData->m_custom_catalog_path);
+         // Provide a dummy path to avoid error on empty path: synColor 2017 limitation.
+         const AtString sharedPath(
+            colorData->m_custom_catalog_path.empty() ? "/tmp/shared" : colorData->m_custom_catalog_path);
 
 #if MAYA_API_VERSION >= 201800
-            if(useEnvVariable)
-            {
-               status 
-                  = SYNCOLOR::Config::get(
-                     envVariableValue, 
-                     colorData->m_ocioconfig_path.c_str(), 
-                     colorData->m_config);
+         if(useEnvVariable)
+         {
+            status 
+               = SYNCOLOR::Config::get(
+                  envVariableValue, 
+                  colorData->m_ocioconfig_path.c_str(), 
+                  colorData->m_config);
 
-               filename = envVariableValue;
-            }
-            else
-            {
-               char tmpFilename[L_tmpnam];
-               tmpnam(tmpFilename);
+            filename = envVariableValue;
+         }
+         else
+         {
+            char tmpFilename[L_tmpnam];
+            tmpnam(tmpFilename);
 
-               status 
-                  = SYNCOLOR::Config::get(
-                     nativePath.c_str(),
-                     sharedPath.c_str(),
-                     colorData->m_ocioconfig_path.c_str(), 
-                     colorData->m_config);
+            status 
+               = SYNCOLOR::Config::get(
+                  nativePath.c_str(),
+                  sharedPath.c_str(),
+                  colorData->m_ocioconfig_path.c_str(), 
+                  colorData->m_config);
 
-               filename = tmpFilename;
-            }
+            filename = tmpFilename;
+         }
 
-            if(!status)
-            {
-               // Try to survive to unexpected issue by creating the preferences from scratch.
-               // It should never happen within Maya; however it could happen if used 
-               // with kick (a tool without its own synColor catalog installation).
-               status 
-                  = SYNCOLOR::Config::create(
-                     filename.c_str(),
-                     nativePath.c_str(),
-                     sharedPath.c_str(),
-                     colorData->m_ocioconfig_path.c_str(), 
-                     colorData->m_config);
-            }
+         if(!status)
+         {
+            // Try to survive to unexpected issue by creating the preferences from scratch.
+            // It should never happen within Maya; however it could happen if used 
+            // with kick (a tool without its own synColor catalog installation).
+            status 
+               = SYNCOLOR::Config::create(
+                  filename.c_str(),
+                  nativePath.c_str(),
+                  sharedPath.c_str(),
+                  colorData->m_ocioconfig_path.c_str(), 
+                  colorData->m_config);
+         }
 #else
+         if(useEnvVariable)
+         {
+            filename = envVariableValue;
+         }
+         else
+         {
+            filename = std::tmpnam(0x0);
+
+            std::ofstream ofs(filename, std::ofstream::out);
+
+            ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                  << "<SynColorConfig version=\"2.0\">\n"
+                  << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
+                  << "   <TransformsHome dir=\"" << nativePath << "\" />\n"
+                  << "   <SharedHome dir=\"" << sharedPath << "\" />\n"
+                  << "   <ReferenceTable>\n"
+                  << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
+                  << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
+                  << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
+                  << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
+                  << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
+                  << "   </ReferenceTable>\n"
+                  << "</SynColorConfig>\n";
+
+            ofs.close();
+         }
+
+         status = SYNCOLOR::configureAsStandalone(filename.c_str());
+         if(status.getErrorCode()==SYNCOLOR::ERROR_SYN_COLOR_PREFS_ALREADY_LOADED)
+         {
+            // When using the Maya syncolor library, the initialization was already done.
+            status = SYNCOLOR::SynStatus();
+         }
+
+         if(!status)
+         {
+            // Try to survive to unexpected issue by creating the preferences from scratch.
+            // It should never happen within Maya; however it could happen if used 
+            // with kick (a tool without its own synColor catalog installation).
+            status 
+               = SYNCOLOR::configurePaths(nativePath, filename.c_str(), sharedPath);
+         }
+#endif
+         if(!useEnvVariable)
+         {
+            std::remove(filename.c_str());
+         }
+
+         if(status)
+         {
+            AiMsgInfo("[color_manager_syncolor] synColor version %s", SYNCOLOR::getVersionString());
             if(useEnvVariable)
             {
-               filename = envVariableValue;
+               AiMsgInfo("[color_manager_syncolor] with SYNCOLOR env. variable: %s", envVariableValue);
             }
             else
             {
-               filename = std::tmpnam(0x0);
-
-               std::ofstream ofs(filename, std::ofstream::out);
-
-               ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                     << "<SynColorConfig version=\"2.0\">\n"
-                     << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
-                     << "   <TransformsHome dir=\"" << nativePath << "\" />\n"
-                     << "   <SharedHome dir=\"" << sharedPath << "\" />\n"
-                     << "   <ReferenceTable>\n"
-                     << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
-                     << "   </ReferenceTable>\n"
-                     << "</SynColorConfig>\n";
-
-               ofs.close();
+               AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath);
             }
 
-            status = SYNCOLOR::configureAsStandalone(filename.c_str());
-            if(status.getErrorCode()==SYNCOLOR::ERROR_SYN_COLOR_PREFS_ALREADY_LOADED)
+            if(!colorData->m_ocioconfig_path.empty())
             {
-               // When using the Maya syncolor library, the initialization was already done.
-               status = SYNCOLOR::SynStatus();
+               AiMsgInfo("[color_manager_syncolor] OCIO config file: %s", colorData->m_ocioconfig_path.c_str());
             }
 
-            if(!status)
+            if(!colorData->m_custom_catalog_path.empty())
             {
-               // Try to survive to unexpected issue by creating the preferences from scratch.
-               // It should never happen within Maya; however it could happen if used 
-               // with kick (a tool without its own synColor catalog installation).
-               status 
-                  = SYNCOLOR::configurePaths(nativePath, filename.c_str(), sharedPath);
-            }
-#endif
-            if(!useEnvVariable)
-            {
-               std::remove(filename.c_str());
-            }
-
-            if(status)
-            {
-               AiMsgInfo("[color_manager_syncolor] synColor version %s", SYNCOLOR::getVersionString());
-               if(useEnvVariable)
-               {
-                  AiMsgInfo("[color_manager_syncolor] with SYNCOLOR env. variable: %s", envVariableValue);
-               }
-               else
-               {
-                  AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath);
-               }
-
-               if(!colorData->m_ocioconfig_path.empty())
-               {
-                  AiMsgInfo("[color_manager_syncolor] OCIO config file: %s", colorData->m_ocioconfig_path.c_str());
-               }
-
-               if(!colorData->m_custom_catalog_path.empty())
-               {
-                  const char* pSharedDirectory = 0x0;
-                  SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
-                  AiMsgInfo("[color_manager_syncolor] optional custom catalog directory: %s", 
-                     pSharedDirectory ? pSharedDirectory : "");
-               }
+               const char* pSharedDirectory = 0x0;
+               SYNCOLOR::getSharedColorTransformPath(pSharedDirectory);                  
+               AiMsgInfo("[color_manager_syncolor] optional custom catalog directory: %s", 
+                  pSharedDirectory ? pSharedDirectory : "");
             }
          }
+
          ColorManagerData::m_initialization_library_done = (bool)status;
          colorData->m_initialization_done = false;
       }
