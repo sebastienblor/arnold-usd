@@ -2238,6 +2238,9 @@ void CArnoldSession::ExportTxFiles()
       if (node == NULL) continue;
       
       MString filename = AiNodeGetStr(node, "filename").c_str();
+      if (filename.length() == 0)
+         continue;
+
       std::string filenameStr = filename.asChar();
 
       const char *autoTxParam = AiNodeIs(node, image_str) ? "autoTx" : "aiAutoTx";

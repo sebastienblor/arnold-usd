@@ -25,7 +25,8 @@ enum ImagePlaneParams {
     p_fit_factor,
     p_translate,
     p_rotate,
-    p_camera
+    p_camera,
+    p_sourceTexture
 };
 
 typedef struct AtImageData
@@ -38,6 +39,7 @@ typedef struct AtImageData
    double cosAngle;
    unsigned int iWidth;
    unsigned int iHeight;
+   AtNode *sourceTexture;
 
 } AtImageData;
 
@@ -83,7 +85,9 @@ node_parameters
    AiParameterVec2("translate", 0.0f, 0.0f);
    AiParameterFlt("rotate", 0.0f);
 
+
    AiParameterNode("camera", NULL); 
+   AiParameterNode("sourceTexture", NULL); 
 
    AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
    AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
@@ -114,24 +118,43 @@ node_initialize
     */
    AtImageData *idata = (AtImageData*) AiMalloc(sizeof(AtImageData));
    idata->texture_handle = NULL;
+   idata->sourceTexture = NULL;
    AiNodeSetLocalData(node, idata);    
 }
 
 node_update
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
-   AiTextureHandleDestroy(idata->texture_handle);
-   idata->color_space = AiNodeGetStr(node, "color_space");
-   const char *filename = AiNodeGetStr(node, "filename");
-   idata->texture_handle = AiTextureHandleCreate(filename, idata->color_space);
 
-   AiTextureGetResolution(filename, &idata->iWidth, &idata->iHeight);
+   if (idata->texture_handle)
+      AiTextureHandleDestroy(idata->texture_handle);
+
+   idata->color_space = AiNodeGetStr(node, "color_space");
+
+   idata->sourceTexture = (AtNode*)AiNodeGetPtr(node, "sourceTexture");
    idata->xres =  AiNodeGetInt(AiUniverseGetOptions(), "xres");
    idata->yres = AiNodeGetInt(AiUniverseGetOptions(), "yres");
+   
 
+   if (idata->sourceTexture)
+   {
+      idata->texture_handle = NULL;
+      idata->iWidth = idata->xres;
+      idata->iHeight = idata->yres;
+   }
+   else
+   {
+      const char *filename = AiNodeGetStr(node, "filename");
+
+      idata->texture_handle = AiTextureHandleCreate(filename, idata->color_space);
+      AiTextureGetResolution(filename, &idata->iWidth, &idata->iHeight);
+   }
+   
+   
    float angle = AiNodeGetFlt(node, "rotate");
    idata->sinAngle = sin(angle);
    idata->cosAngle = cos(angle);
+   
 }
 
 node_finish
@@ -150,7 +173,6 @@ shader_evaluate
       sg->out.RGBA() = AI_RGBA_ZERO;
       return;
    }
-
 
    AtRGB color = AiShaderEvalParamRGB(p_color);
    AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);
@@ -194,15 +216,8 @@ shader_evaluate
    else
       translate.y /= imgInvRatio;
 
-   if (idata->texture_handle != NULL)
-   {   
-      // do texture lookup
-      AtTextureParams texparams;
-      AiTextureParamsSetDefaults(texparams);
-      // setup filter?
-      texparams.wrap_s = AI_WRAP_BLACK;
-      texparams.wrap_t = AI_WRAP_BLACK;
-
+   if (idata->texture_handle != NULL || idata->sourceTexture != NULL)
+   {  
       float inU = sg->u;
       float inV = sg->v;
 
@@ -212,37 +227,49 @@ shader_evaluate
       sx *= fit_factor.x;
       sy *= fit_factor.y;
 
-
       float origSx = sx;
       float origSy = sy* imgInvRatio;
 
       
-      sx = idata->cosAngle * origSx - idata->sinAngle * origSy;
-      sy = idata->sinAngle * origSx + idata->cosAngle * origSy;
+      sx = (float)(idata->cosAngle * origSx - idata->sinAngle * origSy);
+      sy = (float)(idata->sinAngle * origSx + idata->cosAngle * origSy);
 
       sy /= imgInvRatio;
-
 
       sx = sx * 0.5f + 0.5f;
       sy = sy * 0.5f + 0.5f;
       
       sx *= coverage.x;
       sy *= coverage.y;
-
       sx = sx + ((1.f - sx)*coverageOrigin.x);      
       sy = sy + ((1.f - sy)*coverageOrigin.y);
-      
       sy = 1.0f - sy;
-
 
       sg->u = (sx - translate.x);
       sg->v =  (1.0f - ((sy + translate.y)));
 
-      result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
+      if (idata->sourceTexture != NULL)
+      {
+         AiShaderEvaluate(idata->sourceTexture, sg);
+         result = sg->out.RGBA();
+         sg->out.RGBA() = AI_RGBA_ZERO;
+      }
+      else if (idata->texture_handle != NULL)
+      {
+         // do texture lookup
+         AtTextureParams texparams;
+         AiTextureParamsSetDefaults(texparams);
+         // setup filter?
+         texparams.wrap_s = AI_WRAP_BLACK;
+         texparams.wrap_t = AI_WRAP_BLACK;
+
+         result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
+      }
 
       sg->u = inU;
       sg->v = inV;
    }
+
    if (displayMode == 2)
    {
        result.a = 1.0f;
@@ -273,4 +300,5 @@ shader_evaluate
    result.b = (result.b * colorGain.b) + colorOffset.b;
    result.a = (result.a * alphaGain);
    sg->out.RGBA() = result;
+   
 }

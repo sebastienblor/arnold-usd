@@ -108,8 +108,8 @@ void CImagePlaneTranslator::ExportImagePlane()
    double offsetY = fnRes.findPlug("offsetY", &status).asDouble();
    
 
-   unsigned int iWidth = 0;
-   unsigned int iHeight = 0;
+   unsigned int iWidth = 1;
+   unsigned int iHeight = 1;
 
    double scaleX = 1.;
    double scaleY = 1.;
@@ -236,44 +236,58 @@ void CImagePlaneTranslator::ExportImagePlane()
          if (extension != ".tx" && extension !=  ".TX")
             AiNodeSetStr(imagePlaneShader, "color_space", colorSpace.asChar());
       }
+      AiNodeSetPtr(imagePlaneShader, "sourceTexture", NULL);
 
       if (requestUpdateTx)
       {
          m_impl->m_session->RequestUpdateTx();
       }
+   } else if (type == 1)
+   {
+      coverageX = coverageY = 1.0;
+      coverageOriginX = coverageOriginY = 0.0;
+      scaleX = planeSizeX;
+      scaleY = planeSizeY;
 
-      AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
-      AiNodeSetVec2(imagePlaneShader, "fitFactor", (float)scaleX, (float)scaleY);
-      AiNodeSetVec2(imagePlaneShader, "coverage", (float)coverageX / (float)iWidth , (float)coverageY / (float)iHeight);
-      AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
-      AiNodeSetVec2(imagePlaneShader, "translate", (float)offsetX, (float)offsetY);
-      
-      colorPlug  = fnRes.findPlug("colorGain");
-      colorPlug.connectedTo(conn, true, false);
-      if (!conn.length())
-        AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
-      else
+      MPlug sourceTexturePlug  = fnRes.findPlug("sourceTexture");
+      sourceTexturePlug.connectedTo(conn, true, false);
+      if (conn.length())
       {
-         AiNodeLink(ExportConnectedNode(conn[0]), "colorGain", imagePlaneShader);
+         AiNodeSetPtr(imagePlaneShader, "sourceTexture", ExportConnectedNode(conn[0]));
       }
-
-      colorPlug  = fnRes.findPlug("colorOffset");
-      colorPlug.connectedTo(conn, true, false);
-      if (!conn.length())
-         AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
-      else
-      {
-         AiNodeLink(ExportConnectedNode(conn[0]), "colorOffset", imagePlaneShader);
-      }
-
-      float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
-      AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
-
-
-     float rotate = fnRes.findPlug("rotate", &status).asFloat();
-     AiNodeSetFlt(imagePlaneShader, "rotate", rotate);
-      
    }
+
+   AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
+   AiNodeSetVec2(imagePlaneShader, "fitFactor", (float)scaleX, (float)scaleY);
+   AiNodeSetVec2(imagePlaneShader, "coverage", (float)coverageX / (float)iWidth , (float)coverageY / (float)iHeight);
+   AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
+   AiNodeSetVec2(imagePlaneShader, "translate", (float)offsetX, (float)offsetY);
+   
+   colorPlug  = fnRes.findPlug("colorGain");
+   colorPlug.connectedTo(conn, true, false);
+   if (!conn.length())
+     AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+   else
+   {
+      AiNodeLink(ExportConnectedNode(conn[0]), "colorGain", imagePlaneShader);
+   }
+
+   colorPlug  = fnRes.findPlug("colorOffset");
+   colorPlug.connectedTo(conn, true, false);
+   if (!conn.length())
+      AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+   else
+   {
+      AiNodeLink(ExportConnectedNode(conn[0]), "colorOffset", imagePlaneShader);
+   }
+
+   float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
+   AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
+
+
+   float rotate = fnRes.findPlug("rotate", &status).asFloat();
+   AiNodeSetFlt(imagePlaneShader, "rotate", rotate);
+   
 }
 
 void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
