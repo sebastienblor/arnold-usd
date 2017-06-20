@@ -47,11 +47,7 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
 
    if (IsMasterInstance())
    {
-      const float stepSize = FindMayaPlug("aiStepSize").asFloat();
-      if ((stepSize > AI_EPSILON))
-         return AddArnoldNode("box");
-      else
-         return AddArnoldNode("polymesh");
+      return AddArnoldNode("polymesh");
    }
    else
    {

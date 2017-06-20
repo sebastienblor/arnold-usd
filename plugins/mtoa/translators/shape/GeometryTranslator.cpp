@@ -1361,6 +1361,9 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
+   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
+   AiNodeSetFlt(polymesh, "volume_padding", FindMayaPlug("aiVolumePadding").asFloat());
+   
    // Subdivision surfaces
    //
    const int subdivision = FindMayaPlug("aiSubdivType").asInt();
@@ -1402,7 +1405,7 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
    MBoundingBox bbox = fnMesh.boundingBox();
    AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
    AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
-   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
+   //AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
@@ -1530,10 +1533,7 @@ void CPolygonGeometryTranslator::Export(AtNode *anode)
             return;
          ExportMesh(anode, false);
       }
-      else if (strcmp(nodeType, "box") == 0)
-      {
-         ExportBBox(anode);  
-      }
+      
    } else
    {
       // This is what we used to do, we should check if it's the good thing
@@ -1614,6 +1614,14 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.min.FLT() = 0.f;
    data.hasSoftMax = true;
    data.softMax.FLT() = 1.f;
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 0.f;
+   data.name = "aiVolumePadding";
+   data.shortName = "ai_volume_padding";
+   data.channelBox = false;
+   data.hasMin = true;
+   data.min.FLT() = 0.f;
    helper.MakeInputFloat(data);
 
    data.stringDefault = "velocityPV";
