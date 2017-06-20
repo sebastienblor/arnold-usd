@@ -616,7 +616,7 @@ namespace // <anonymous>
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          if (envVar != 0)
-            SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath));
+            SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath));
          else
             SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
          envVar = getenv("MTOA_EXTENSIONS_PATH");
