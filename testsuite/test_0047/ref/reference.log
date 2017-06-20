@@ -1,8 +1,8 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0047\test_0047.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0047\test_0047.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 2016.3.18.11. Feature Level 5.
+  Version : 2016.3.78.11. Feature Level 5.
   Adapter : Quadro K620/PCIe/SSE2
   Vendor ID: 4318. Device ID : 5051
   Driver : nvoglv64.dll:10.18.13.5413.
@@ -21,41 +21,21 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 5: Unknown Maya file version: 2017ff04.
-Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-00:00:00   564MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   564MB WARNING |  node "MayaClamp" is already installed
-00:00:00   564MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   564MB WARNING |  node "MayaCondition" is already installed
-00:00:00   564MB WARNING |  node "MayaReverse" is already installed
-00:00:00   565MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/bifrost_shaders.dll
-00:00:00   565MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/bifrost_shaders.dll
-00:00:00   565MB WARNING | [mtoa] [cryptomatte] [node cryptomatte] Assigning temporary node id 1138176 to associated Maya type name cryptomatte.
-00:00:00   565MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/cryptomatte.dll
-00:00:00   565MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/cryptomatte.dll
-00:00:00   565MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
-00:00:00   565MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
-00:00:00   565MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
-00:00:00   565MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
-00:00:00   565MB ERROR   | [mtoa] Extension already managed: C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
-00:00:00   565MB ERROR   | [mtoa] There is already an extension of name C:/solidangle/mtoadeploy/2017/shaders/hairPhysicalShader_shaders.dll
-Warning: 00:00:00   567MB ERROR   | [mtoa.attr] Arnold parameter "skydome_light.aov_indirect" does not exist.
-line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 7: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 9: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 390: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 392: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 396: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma line 489: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0047/test.ma line 9: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0047/test.ma line 390: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0047/test.ma line 392: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0047/test.ma line 396: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0047/test.ma line 489: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  0.88 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0047/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0047\test.ma completed.
+File read in  0.63 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0047/test.ma
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0047\test.ma completed.

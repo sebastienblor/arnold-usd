@@ -1,8 +1,8 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0147\test_0147.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0147\test_0147.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 2016.3.18.11. Feature Level 5.
+  Version : 2016.3.78.11. Feature Level 5.
   Adapter : Quadro K620/PCIe/SSE2
   Vendor ID: 4318. Device ID : 5051
   Driver : nvoglv64.dll:10.18.13.5413.
@@ -21,20 +21,16 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   484MB         | log started Mon Mar 27 00:12:56 2017
-00:00:00   484MB         | Arnold 5.0.0.0.wip [c43eb9b4] windows icc-17.0.2 oiio-1.7.12 osl-1.8.2 vdb-4.0.0 rlm-12.2.2 2017/03/26 18:30:06
-00:00:00   484MB         | running on REM8WCK8D2, pid=10140
-00:00:00   484MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   484MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   484MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   484MB         |  
-00:00:00   484MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   486MB WARNING | [mtoa] [<built-in>] [node triplanar] Assigning temporary node id 1138176 to associated Maya type name aiTriplanar.
-00:00:00   489MB WARNING | [mtoa] [synColorTranslator] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-File read in  0.23 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0147/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0147\test.ma completed.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.56 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0147/test.ma
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0147\test.ma completed.

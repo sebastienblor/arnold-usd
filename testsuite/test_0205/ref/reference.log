@@ -1,8 +1,8 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0205\test_0205.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0205\test_0205.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 2016.3.18.11. Feature Level 5.
+  Version : 2016.3.78.11. Feature Level 5.
   Adapter : Quadro K620/PCIe/SSE2
   Vendor ID: 4318. Device ID : 5051
   Driver : nvoglv64.dll:10.18.13.5413.
@@ -22,16 +22,15 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   489MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   489MB WARNING |  node "MayaClamp" is already installed
-00:00:00   489MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   489MB WARNING |  node "MayaCondition" is already installed
-00:00:00   489MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.2-windows\bin
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0205/test.ma line 5: Unknown Maya file version: 2017ff04.
-Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  0.22 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0205/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0205\test.ma completed.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.53 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0205/test.ma
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0205\test.ma completed.
