@@ -17,65 +17,69 @@ void CSynColorTranslator::Export(AtNode* node)
       AtNode *options = AiUniverseGetOptions();
       AiNodeSetPtr(options, "color_manager", (void*)node);
 
-      // Take values from the defaultColorMgtGlobals node
-
       const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled").asBool();
       if(cmOCIOEnabled)
       {
-         AiNodeSetStr (node, "ocioconfig_path", defaultColorSettings.findPlug("configFilePath").asString().asChar());
+         AiNodeSetStr (node, "config",             defaultColorSettings.findPlug("configFilePath").asString().asChar());
+         AiNodeSetStr (node, "color_space_linear", defaultColorSettings.findPlug("workingSpaceName").asString().asChar());
       }
-      AiNodeSetStr (node, "rendering_color_space",   defaultColorSettings.findPlug("workingSpaceName").asString().asChar());
-
-      // Find the native catalog location
-      // 
-      //   PH 2017-02-27: For Maya 2018, it could be far more robust to have a mel command
-      //   
-      //   However it's important to not take for granted that the transform path 
-      //   is the default one (by only using MAYA_LOCATION). A user could manually change 
-      //   the preferences to use a central repository so that all its facility or 
-      //   all its render farm nodes have 'granted' access to the synColor catalog.
-      //
-      MString userPrefsDir;
-      MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
-      userPrefsDir += "/synColorConfig.xml";
-
-      MString nativeCatalogDir;
-      std::ifstream ifs(userPrefsDir.asChar(), std::ifstream::in);
-      char line[2048];
-      while(ifs.good())
+      else
       {
-         ifs.getline(line, sizeof(line));
-         const std::string str(line);
-         static const char *tag = "<TransformsHome dir=";
-         const size_t found = str.find(tag);
-         if(found!=std::string::npos)
+         // Take values from the defaultColorMgtGlobals node
+
+         AiNodeSetStr (node, "rendering_color_space",   defaultColorSettings.findPlug("workingSpaceName").asString().asChar());
+
+         // Find the native catalog location
+         // 
+         //   PH 2017-02-27: For Maya 2018, it could be far more robust to have a mel command
+         //   
+         //   However it's important to not take for granted that the transform path 
+         //   is the default one (by only using MAYA_LOCATION). A user could manually change 
+         //   the preferences to use a central repository so that all its facility or 
+         //   all its render farm nodes have 'granted' access to the synColor catalog.
+         //
+         MString userPrefsDir;
+         MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
+         userPrefsDir += "/synColorConfig.xml";
+
+         MString nativeCatalogDir;
+         std::ifstream ifs(userPrefsDir.asChar(), std::ifstream::in);
+         char line[2048];
+         while(ifs.good())
          {
-            const std::size_t end = str.find("/>", found);
-            if(end!=std::string::npos)
+            ifs.getline(line, sizeof(line));
+            const std::string str(line);
+            static const char *tag = "<TransformsHome dir=";
+            const size_t found = str.find(tag);
+            if(found!=std::string::npos)
             {
-               const size_t pos = found + strlen(tag) + 1;
-               const std::string path = str.substr(pos, end - pos - 2);
+               const std::size_t end = str.find("/>", found);
+               if(end!=std::string::npos)
+               {
+                  const size_t pos = found + strlen(tag) + 1;
+                  const std::string path = str.substr(pos, end - pos - 2);
 
-               nativeCatalogDir = path.c_str();
+                  nativeCatalogDir = path.c_str();
+               }
+               break;
             }
-            break;
          }
+         ifs.close();
+
+         if (nativeCatalogDir.length() == 0)
+         {
+            // Old versions of the synColor preferences were not including the catalog path
+            MGlobal::executeCommand("getenv MAYA_LOCATION", nativeCatalogDir);
+            nativeCatalogDir += "/synColor";
+         }
+
+         AiNodeSetStr(node, "native_catalog_path", nativeCatalogDir.asChar());
+
+         // Find the shared catalog location
+         MString customCatalogDir;
+         MGlobal::executeCommand("colorManagementCatalog -queryUserTransformPath", customCatalogDir);
+         AiNodeSetStr(node, "custom_catalog_path", customCatalogDir.asChar());
       }
-      ifs.close();
-
-      if (nativeCatalogDir.length() == 0)
-      {
-         // Old versions of the synColor preferences were not including the catalog path
-         MGlobal::executeCommand("getenv MAYA_LOCATION", nativeCatalogDir);
-         nativeCatalogDir += "/synColor";
-      }
-
-      AiNodeSetStr(node, "native_catalog_path", nativeCatalogDir.asChar());
-
-      // Find the shared catalog location
-      MString customCatalogDir;
-      MGlobal::executeCommand("colorManagementCatalog -queryUserTransformPath", customCatalogDir);
-      AiNodeSetStr(node, "custom_catalog_path", customCatalogDir.asChar());
    }
 }
 
@@ -89,7 +93,15 @@ AtNode* CSynColorTranslator::CreateArnoldNodes()
    const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled").asBool();
    if(cmEnabled)
    {
-      return AddArnoldNode("color_manager_syncolor");
+      const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled").asBool();
+      if(cmOCIOEnabled)
+      {
+         return AddArnoldNode("color_manager_ocio");
+      }
+      else
+      {
+         return AddArnoldNode("color_manager_syncolor");
+      }
    }
    else
    {
