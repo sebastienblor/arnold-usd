@@ -130,7 +130,7 @@ vars.AddVariables(
                  os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_PROCEDURAL_PATH', 
                  'Path used for installation of arnold procedurals', 
-                 os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
+                 os.path.join('$TARGET_MODULE_PATH', 'procedurals'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_EXTENSION_PATH', 
                  'Path used for installation of mtoa translator extensions', 
                  os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
@@ -472,6 +472,11 @@ elif env['COMPILER'] == 'msvc':
 
     LINK_FLAGS  = " /MANIFEST"
 
+    # Needed because of the compilation and/or runtime problem 
+    # related to the list iterator optimization from MSVC. 
+    if env['MODE'] in ['debug']:
+        MSVC_FLAGS += " -D_ITERATOR_DEBUG_LEVEL=0"
+
     if env['MODE'] in ['opt', 'profile']:
         MSVC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
         MSVC_FLAGS += " /GL"     # enables whole program optimization
@@ -755,11 +760,16 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         
         if 'maketx' in dylibElem:
             dylibs.remove(dylibElem)
-        
-    if system.os() == 'windows' and int(maya_version) >= 201800:
-        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', 'windows')
-        if os.path.exists(syncolor_library_path):
-            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/synColor*.dll"))
+       
+    # install syncolor packages 
+    if int(maya_version) >= 201800:
+        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', system.os())
+        if (system.os() == 'linux'):
+            # on linux the version number is after ".so."
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
+        else:
+            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
+    
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
@@ -772,13 +782,9 @@ if int(maya_version) < 201500:
     env['MTOA_DISABLE_RV'] = 1
 
 if not env['MTOA_DISABLE_RV']:
-    if system.os() == 'windows':
-        RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-    else:
-        RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
-        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-
+    RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+    
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
@@ -798,13 +804,45 @@ arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
-if env['ENABLE_VP2']:
+def GetViewportShaders(maya_version):
+
+    vp2ShadersList = []
     vp2ShaderExtensions = ['.xml']
+    
     if system.os() == 'windows':
         vp2ShaderExtensions.append('.hlsl')
     vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
-    env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
-                    [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
+    old_vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2', '2016'), vp2ShaderExtensions)
+
+    for vp2shader in vp2shaders:
+        vpTargetShader = vp2shader
+
+        if int(maya_version) >= 201700:
+            if vp2shader.find('2016') >= 0:
+                continue
+        else:
+            # 2016 and older
+            if vp2shader.find('2016') < 0:
+                # this is one of the 2016 shaders, we need to remove  '2016'
+                # from the output path
+                if os.path.exists(os.path.join('plugins', 'mtoa', 'viewport2', '2016', vp2shader)):
+                    # this shader is already in the 2016 folder,
+                    # we don't want to copy it
+                    continue
+
+        vp2ShadersList.append(vp2shader)
+
+    return vp2ShadersList
+
+         
+if env['ENABLE_VP2']:
+
+    vp2Shaders = GetViewportShaders(maya_version)
+
+    for vp2Shader in vp2Shaders:
+        vpTargetShader = vp2Shader.replace('2016/', '')
+        vpTargetShader = vp2Shader.replace('2016\\', '')
+        env.InstallAs([os.path.join(TARGET_VP2_PATH, vpTargetShader)], [os.path.join('plugins', 'mtoa', 'viewport2', vp2Shader)])
 
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
@@ -895,6 +933,8 @@ if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
 
 package_name_inst = package_name
+
+
 
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
@@ -1076,6 +1116,9 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.pit'), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
@@ -1094,30 +1137,38 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
 
-    # for Maya 2018, on windows we also need to copy the syncolor dll
+    # for Maya 2018, we also need to copy the syncolor dylib, for syncolor extension
     if (int(maya_version) >= 201800):
-        if system.os() == 'windows':    
-            syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', 'windows')
-            syncolor_2018_files = glob.glob(os.path.join(syncolor_library_path, 'synColor*.dll'))
+        syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', system.os())
+        if (system.os() == 'linux'):
+            # on linux the syncolor version number is after ".so."
+            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
+        else:
+            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 
-            for syncolor_file in syncolor_2018_files:
-                PACKAGE_FILES.append([syncolor_file, 'bin'])
+        for syncolor_file in syncolor_2018_files:
+            PACKAGE_FILES.append([syncolor_file, 'bin'])
             
+
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 if env['ENABLE_VP2'] == 1:
-    PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
-    if system.os() == 'windows':
-        PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.hlsl'), 'vp2'])
+    vp2shaders = GetViewportShaders(maya_version)
+    installedVp2Shaders = []
+    for vp2shader in vp2shaders:
+        installedVp2Shaders.append( os.path.join('plugins', 'mtoa', 'viewport2', vp2shader ))
+
+    for vp2shader in installedVp2Shaders:
+        PACKAGE_FILES.append([vp2shader, 'vp2'])
     
 if env['ENABLE_XGEN'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
   
 if (env['ENABLE_XGEN'] == 1) and (int(maya_version) >= 201700):
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
@@ -1128,7 +1179,7 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedurals%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedurals%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
@@ -1146,7 +1197,7 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
 
 for p in MTOA_PROCS:
-    PACKAGE_FILES += [[p, 'shaders']]
+    PACKAGE_FILES += [[p, 'procedurals']]
 
 if not env['DISABLE_COMMON']:
     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
@@ -1248,6 +1299,7 @@ def create_installer(target, source, env):
         mtoaMod.write('PATH +:= bin\n')
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
+        mtoaMod.write('MAYA_RENDER_DESC_PATH = %s\n' % installPath)
         mtoaMod.close()
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')

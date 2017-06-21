@@ -1,0 +1,7 @@
+Color Management: kick test for the output color space processing using the Raw with exr driver
+
+The test validates the Arnold Core color space linearity check for the exr driver. 
+It uses the post_script to extract the rgba part from the exr to create a tiff file as only tiff files 
+are used for the color difference computation.
+
+author: patrick.hodoul

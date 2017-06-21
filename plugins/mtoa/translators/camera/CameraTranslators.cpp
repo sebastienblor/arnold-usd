@@ -35,6 +35,7 @@ void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
    MakeDefaultAttributes(helper);
    MakeDOFAttributes(helper);
    helper.MakeInput("uv_remap");
+   helper.MakeInput("radial_distortion");
    
    CExtensionAttrHelper helper2(context.maya, "ortho_camera");
    MakeDefaultAttributes(helper2);
@@ -121,6 +122,7 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
    {
       AiNodeSetFlt(camera, "fov", fov);
    }
+   ProcessParameter(camera, "radial_distortion", AI_TYPE_FLOAT, "aiRadialDistortion");
 }
 
 void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)

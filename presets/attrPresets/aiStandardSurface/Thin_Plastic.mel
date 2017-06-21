@@ -65,7 +65,7 @@ blendAttr "emissionColorB" 1;
 blendAttr "opacityR" 1; 
 blendAttr "opacityG" 1; 
 blendAttr "opacityB" 1; 
-blendAttr "caustics" 1; 
+blendAttr "caustics" 0; 
 blendAttr "internalReflections" 1; 
 blendAttr "indirectDiffuse" 1; 
 blendAttr "indirectSpecular" 1; 

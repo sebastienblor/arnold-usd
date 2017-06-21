@@ -75,6 +75,13 @@
         default             FLOAT   10.0
         linkable            BOOL    false
         maya.orig_shortname STRING  "smpclamp"
+    [attr indirect_sample_clamp]
+        maya.keyable        BOOL    false
+        softmin             FLOAT   0.001
+        softmax             FLOAT   100.0
+        linkable            BOOL    false
+        maya.orig_shortname STRING  "indsmpclamp"
+
     [attr AA_sample_clamp_affects_aovs]
         maya.keyable        BOOL    false
         linkable            BOOL    false    
@@ -219,8 +226,6 @@
         maya.keyable        BOOL    false
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
-        linkable            BOOL    false
-    [attr background]
         linkable            BOOL    false
     [attr atmosphere]
         linkable            BOOL    false
@@ -400,7 +405,6 @@
         maya.channelbox     BOOL    false
     [attr lens_radius]
         min                 FLOAT   0.0
-        max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    false
@@ -975,6 +979,9 @@
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
         max                 FLOAT     1.0
+    [attr radial_distortion]
+        softmin             FLOAT     -0.2
+        softmax             FLOAT     2.0
 
 [node ortho_camera]
     maya.name               STRING  "camera"
@@ -1337,6 +1344,14 @@
     [attr normal]
         maya.hide       BOOL    true
         softmax         FLOAT   1.0
+    [attr thin_film_thickness]
+        min             FLOAT   0.0
+        softmax         FLOAT   2000.0
+    [attr thin_film_IOR]
+        min             FLOAT   0.0
+        softmax         FLOAT   3.0
+
+
 
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."
@@ -1404,6 +1419,83 @@
     maya.id                 INT     0x00115D89
     maya.name               STRING  "aiColorJitter"
     maya.classification     STRING  "utility/shader"
+    [attr data_gain_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr data_gain_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr data_hue_min]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr data_hue_max]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr data_saturation_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr data_saturation_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr proc_gain_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr proc_gain_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr proc_hue_min]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr proc_hue_max]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr proc_saturation_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr proc_saturation_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr obj_gain_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr obj_gain_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr obj_hue_min]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr obj_hue_max]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr obj_saturation_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr obj_saturation_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr face_gain_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr face_gain_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr face_hue_min]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr face_hue_max]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr face_saturation_min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr face_saturation_max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+
+
+
+
+
 
 [node lambert]
     maya.hide               BOOL    true
@@ -2009,6 +2101,13 @@
     maya.name               STRING  "aiClamp"
     maya.classification     STRING  "utility/shader"
     maya.swatch             BOOL    true
+    [attr min]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr max]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    
 
 [node color_convert]
     maya.id                 INT     0x00115D5F
@@ -2021,6 +2120,31 @@
     maya.name               STRING  "aiColorCorrect"
     maya.classification     STRING  "utility/shader"
     maya.swatch             BOOL    true
+    [attr gamma]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr hue_shift]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    [attr saturation]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr contrast]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr contrast_pivot]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr alpha_multiply]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr alpha_add]
+        softmin             FLOAT   -1.0
+        softmax             FLOAT   1.0
+    
 
 [node compare]
     maya.id                 INT     0x00115D7E
@@ -2174,17 +2298,16 @@ desc STRING "Multiplies the curvature by this factor."
     [attr normal_randomize]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-    
-
-
-
 
 [node float_to_int]
     maya.id                 INT     0x00115D67
     maya.name               STRING  "aiFloatToInt"
     maya.classification     STRING  "utility/conversion"
     maya.swatch             BOOL    true
-
+    [attr input]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+    
 [node float_to_matrix]
     maya.hide               BOOL    true
 [node float_to_rgb]
@@ -2293,6 +2416,19 @@ desc STRING "Multiplies the curvature by this factor."
     maya.name               STRING  "aiRange"
     maya.classification     STRING  "utility/shader"
     maya.swatch             BOOL    true
+    [attr input_min]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr input_max]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr output_min]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr output_max]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+        
 
 
 [node reciprocal]
@@ -2314,7 +2450,10 @@ desc STRING "Multiplies the curvature by this factor."
     maya.name               STRING  "aiShuffle"
     maya.classification     STRING  "utility/shader"
     maya.swatch             BOOL    true
-
+    [attr alpha]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    
 
 [node rgb_to_vector]
     maya.hide               BOOL    true
@@ -2681,6 +2820,9 @@ desc STRING "Apply a gamma correction to the color."
     maya.name               STRING  "aiNormalMap"
     maya.id                 INT     0x00115D80
     maya.classification     STRING  "utility/shader"
+    [attr strength]
+        min     FLOAT 0
+        softmax FLOAT 4
 
 [node vector_map]
     maya.name               STRING  "aiVectorMap"

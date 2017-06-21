@@ -1,0 +1,6 @@
+Color Management: kick test for the output color space processing using the color conversion mode
+
+The test validates that the color conversion mode is working as the driver color space is 
+an input color space instead of the expected output color space.
+
+author: patrick.hodoul

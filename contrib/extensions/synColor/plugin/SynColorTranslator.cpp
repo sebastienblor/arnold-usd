@@ -27,7 +27,13 @@ void CSynColorTranslator::Export(AtNode* node)
       AiNodeSetStr (node, "rendering_color_space",   defaultColorSettings.findPlug("workingSpaceName").asString().asChar());
 
       // Find the native catalog location
+      // 
       //   PH 2017-02-27: For Maya 2018, it could be far more robust to have a mel command
+      //   
+      //   However it's important to not take for granted that the transform path 
+      //   is the default one (by only using MAYA_LOCATION). A user could manually change 
+      //   the preferences to use a central repository so that all its facility or 
+      //   all its render farm nodes have 'granted' access to the synColor catalog.
       //
       MString userPrefsDir;
       MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
@@ -59,6 +65,7 @@ void CSynColorTranslator::Export(AtNode* node)
 
       if (nativeCatalogDir.length() == 0)
       {
+         // Old versions of the synColor preferences were not including the catalog path
          MGlobal::executeCommand("getenv MAYA_LOCATION", nativeCatalogDir);
          nativeCatalogDir += "/synColor";
       }
@@ -70,46 +77,6 @@ void CSynColorTranslator::Export(AtNode* node)
       MGlobal::executeCommand("colorManagementCatalog -queryUserTransformPath", customCatalogDir);
       AiNodeSetStr(node, "custom_catalog_path", customCatalogDir.asChar());
    }
-
-   // I should know if my output driver needs the output transform or the view transform
-
-   MSelectionList activeList;
-   activeList.add(MString("defaultArnoldDriver"));
-
-   int mode = 0; // 0 = no transform, 1 = view transform, 2 = output transform
-
-   if (activeList.length() > 0 && cmEnabled)
-   {
-      MObject depNode;
-      activeList.getDependNode(0, depNode);
-
-      MPlug colorManagementPlug = MFnDependencyNode(depNode).findPlug("colorManagement");
-      if (!colorManagementPlug.isNull())
-         mode = colorManagementPlug.asInt();
-   } 
-
-   switch(mode)
-   {
-      default:
-      case 0:
-         // Nothing to do.
-      break;
-
-      case 1:
-         //AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
-      break;
-
-      case 2:
-#if MAYA_API_VERSION >= 201800
-         AiNodeSetBool(node, "output_color_conversion", defaultColorSettings.findPlug("outputTransformUseColorConversion").asBool());
-#endif
-         //AiNodeSetStr (node, "output_color_space",      defaultColorSettings.findPlug("outputTransformName").asString().asChar());
-      break;
-
-   }
-
-   // For the display we need to set the current view transform to the syncolor node
-   AiNodeSetStr (node, "view_transform_space",      defaultColorSettings.findPlug("viewTransformName").asString().asChar());   
 }
 
 void CSynColorTranslator::NodeInitializer(CAbTranslator context)

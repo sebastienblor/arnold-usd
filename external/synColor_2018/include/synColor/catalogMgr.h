@@ -156,6 +156,8 @@ namespace SYNCOLOR
     //!        the new transform at the root of the hierarchy.
     //! \param displayType specifies the type attribute for user displays only.
     //!        This is a noop for other type of color spaces.
+    //! \param imageState specifies the image state attribute for user input color space.
+    //!        This is a noop for other type of color spaces.
     //! \param transformPath File path of the user color space transform.
     //! \param useResolvedTransform Whether the definition contains a reference
     //!           to the user color space transform or a self-contained resolved
@@ -169,6 +171,7 @@ namespace SYNCOLOR
                                         const char* userFacingName,
                                         const char* hierarchy,
                                         const char* displayType,
+                                        const char* imageState,
                                         const char* transformPath,
                                         bool useResolvedTransform) = 0;
 

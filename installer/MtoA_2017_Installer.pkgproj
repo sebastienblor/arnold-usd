@@ -692,7 +692,7 @@
 				<key>RELOCATABLE</key>
 				<false/>
 				<key>VERSION</key>
-				<string>2.0.0.1</string>
+				<string>2.0.1.wip</string>
 			</dict>
 			<key>UUID</key>
 			<string>68FF7CCF-3B50-4D51-9970-29665CCB299B</string>
@@ -1232,7 +1232,7 @@
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
-				<string>2.0.0.1</string>
+				<string>2.0.1.wip</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1444,7 +1444,7 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
-						<string>MtoA 2.0.0.1 Maya 2017</string>
+						<string>MtoA 2.0.1.wip Maya 2017</string>
 					</dict>
 				</array>
 			</dict>

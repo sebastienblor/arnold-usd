@@ -367,6 +367,14 @@ void CHairTranslator::Export( AtNode *curve )
 
    AiNodeSetStr(curve, "basis", "catmull-rom");
    
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(curve, "motion_start", (float)motionStart);
+      AiNodeSetFlt(curve, "motion_end", (float)motionEnd);
+   }
+   
    mainLines.deleteArray();
 }
 

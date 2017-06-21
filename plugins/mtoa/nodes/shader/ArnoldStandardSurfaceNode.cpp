@@ -110,6 +110,13 @@ MStatus CArnoldStandardSurfaceNode::initialize()
          maya.asChar(), arnold.asChar(), provider.asChar());
    CStaticAttrHelper helper(CArnoldStandardSurfaceNode::addAttribute, nodeEntry);
 
+   // outputs
+   s_OUT_color = helper.MakeOutput();
+   
+   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
+   MAKE_OUTPUT(nAttr, s_OUT_transparency);
+
+   // inputs
    s_normal_camera = nAttr.createPoint( "normalCamera", "n" );
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
@@ -117,23 +124,23 @@ MStatus CArnoldStandardSurfaceNode::initialize()
    nAttr.setWritable(true);
    nAttr.setDefault(1.0f, 1.0f, 1.0f);
    nAttr.setHidden(true) ;
-   addAttribute(s_normal_camera);
-   attributeAffects(s_normal_camera, s_OUT_color);
+   CHECK_MSTATUS_AND_RETURN_IT(addAttribute(s_normal_camera));
+   CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(s_normal_camera, s_OUT_color));
    
    MObject tempObject = nAttr.create("aiEnableMatte", "ai_enable_matte", MFnNumericData::kBoolean, 0);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(tempObject);
-   attributeAffects(tempObject, s_OUT_color);
+   CHECK_MSTATUS_AND_RETURN_IT(addAttribute(tempObject));
+   CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(tempObject, s_OUT_color));
    
    tempObject = nAttr.createColor("aiMatteColor", "ai_matte_color");
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setDefault(0.);
-   addAttribute(tempObject);
-   attributeAffects(tempObject, s_OUT_color);
+   CHECK_MSTATUS_AND_RETURN_IT(addAttribute(tempObject));
+   CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(tempObject, s_OUT_color));
    
    tempObject = nAttr.create("aiMatteColorA", "ai_matte_color_a", MFnNumericData::kFloat);
    nAttr.setStorable(true);
@@ -142,15 +149,10 @@ MStatus CArnoldStandardSurfaceNode::initialize()
    nAttr.setDefault(0.);
    nAttr.setMin(0.);
    nAttr.setMax(1.);
-   addAttribute(tempObject);
-   attributeAffects(tempObject, s_OUT_color);
+   CHECK_MSTATUS_AND_RETURN_IT(addAttribute(tempObject));
+   CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(tempObject, s_OUT_color));
    
-   // outputs
-   s_OUT_color = helper.MakeOutput();
    
-   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
-   MAKE_OUTPUT(nAttr, s_OUT_transparency);
-
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
@@ -166,7 +168,7 @@ MStatus CArnoldStandardSurfaceNode::initialize()
             CAttrData attrData;
             helper.GetAttrData(paramName, attrData);
             MObject attr = helper.MakeInput(attrData);
-            attributeAffects(attr, s_OUT_color);
+            CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(attr, s_OUT_color));
             if (strcmp(paramName, "base") == 0)
             {
                s_Kd = attr;
@@ -186,7 +188,7 @@ MStatus CArnoldStandardSurfaceNode::initialize()
             else if (strcmp(paramName, "opacity") == 0)
             {
                s_opacity = attr;
-               attributeAffects(attr, s_OUT_transparency);
+               CHECK_MSTATUS_AND_RETURN_IT(attributeAffects(attr, s_OUT_transparency));
             }
          }
       }

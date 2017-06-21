@@ -236,8 +236,8 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "portal_mode", FindMayaPlug("portal_mode").asInt());
    AiNodeSetFlt(light, "camera", FindMayaPlug("camera").asFloat());
    AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
-
-
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
+   AiNodeSetBool(light, "aov_indirect", FindMayaPlug("aiAovIndirect").asBool());
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
    if (!shadowColorPlug.isNull())
    {
@@ -253,6 +253,7 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("shadow_color");
+   helper.MakeInput("aov_indirect");
 }
 
 void CSkyDomeLightTranslator::NodeChanged(MObject& node, MPlug& plug)

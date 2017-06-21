@@ -155,6 +155,109 @@ def unzip(zipFilePath, destDir):
             fd.close()
     zfile.close()
 
+
+# delete previous files (#3040)
+# Note that I'm leaving the AE scripts + NE templates for now.
+# The list would be quite long, and to my knowledge it's harmless
+# to keep eventually these deprecated scripts
+
+previousFiles = [
+'docs',
+'extensions/bifrostTranslator.py',
+'extensions/xgenArnoldUI.py',
+'extensions/bifrostTranslator.so',
+'extensions/xgenArnoldUI_res.py',
+'extensions/hairPhysicalShaderTranslator.py',
+'extensions/xgenSplineTranslator.py',
+'extensions/xgenSplineTranslator.so',
+'extensions/hairPhysicalShaderTranslator.so',
+'extensions/xgenTranslator.py',
+'extensions/xgenTranslator.so',
+'extensions/lookdevkit.so',
+'extensions/renderSetup.so',
+'extensions/synColorTranslator.so',     
+'icons',
+'include',
+'bin/kick',
+'bin/libmtoa_api.so',
+'bin/libsynColor.so.2017.0.69',
+'bin/libsynColor.so.2017.0.68',
+'bin/libOpenColorIO.so',
+'bin/libOpenColorIO.so.1',
+'bin/libOpenColorIO.so.1.0.9',
+'bin/libAdClmHub.so',
+'bin/maketx',
+'bin/libadlmint.so',
+'bin/oslc',
+'bin/libai_renderview.so',
+'bin/oslinfo',
+'bin/libai.so',
+'bin/ProductInformation.pit',
+'lib/libAdClmHub.so',
+'lib/libadlmint.so',
+'lib/libai.so',
+'plug-ins/mtoa.mtd',
+'plug-ins/mtoa.so',
+'procedurals/bifrost_procedural.so',
+'procedurals/volume_openvdb.so',
+'procedurals/bifrost_procedurals.so',
+'procedurals/xgen_procedural.so',
+'procedurals/mtoa_ParticleInstancer_proc.so',
+'procedurals/xgenSpline_procedural.so',
+'procedurals/mtoa_ParticleVolume_proc.so',
+'presets',
+'RSTemplates',
+'scripts/arnold',
+'scripts/pykick',
+'scripts/mtoa/2015',
+'scripts/mtoa/2016',
+'scripts/mtoa/2017',
+'scripts/mtoa/2018',
+'scripts/mtoa/api',
+'scripts/mtoa/aov.py',
+'scripts/mtoa/core.py',
+'scripts/mtoa/hooks.py',
+'scripts/mtoa/callbacks.py',
+'scripts/mtoa/lightFilters.py',
+'scripts/mtoa/__init__.py',
+'scripts/mtoa/makeTx.py',
+'scripts/mtoa/renderToTexture.py',
+'scripts/mtoa/txManager.py',
+'scripts/mtoa/utils.py',
+'scripts/mtoa/volume_vdb.py',
+'scripts/mtoa/cmds',
+'scripts/mtoa/mel',
+'scripts/mtoa/ui/aoveditor.py',
+'scripts/mtoa/ui/arnoldmenu.py',
+'scripts/mtoa/ui/exportass.py',
+'scripts/mtoa/ui/nodeTreeLister.py',
+'scripts/mtoa/ui/globals',
+'vp2',
+'shaders/bifrost_procedurals.so',
+'shaders/mtoa_shaders.so',
+'shaders/bifrost_shaders.so',
+'shaders/renderSetup_shaders.so',
+'shaders/hairPhysicalShader_shaders.so',
+'shaders/synColor_shaders.so',
+'shaders/lookdevkit_shaders.so',
+'shaders/xgen_procedural.so',
+'shaders/mtoa_ParticleInstancer_proc.so',
+'shaders/xgenSpline_procedural.so',
+'shaders/mtoa_shaders.mtd',
+'shaders/xgenSpline_shaders.so'
+]
+
+for previousFile in previousFiles:
+    prevFile = os.path.join(installDir,previousFile)
+    if not os.path.exists(prevFile):
+        continue
+
+    if os.path.isdir(prevFile):
+        shutil.rmtree(prevFile)
+    else:
+        os.remove(prevFile)
+
+
 try:
     #zipfile.ZipFile(os.path.abspath('package.zip'), 'r').extractall(installDir)
     unzip(os.path.abspath('package.zip'), installDir)
@@ -170,6 +273,7 @@ mtoaMod.write('+ mtoa any %s\n' % installDir)
 mtoaMod.write('PATH +:= bin\n')
 mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
 mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
+mtoaMod.write('MAYA_RENDER_DESC_PATH = %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
@@ -225,7 +329,9 @@ if installMode == 1: # do the proper installation
         renderDescFolder = os.path.join(mayaInstallDir, 'Maya.app', 'Contents', 'bin', 'rendererDesc')
     else:
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
-    shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
+
+    if sys.argv[1] != '2018':
+        shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
     
     if sys.argv[1] == '2017' or sys.argv[1] == '2018':
         homeDir = os.path.expanduser(userString)

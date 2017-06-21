@@ -98,6 +98,15 @@ void CLightTranslator::Export(AtNode* light)
    {
       AiNodeSetMatrix(light, "matrix", matrix);
    }
+
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(light, "motion_start", (float)motionStart);
+      AiNodeSetFlt(light, "motion_end", (float)motionEnd);
+   }
+
 }
 
 void CLightTranslator::ExportMotion(AtNode* light)

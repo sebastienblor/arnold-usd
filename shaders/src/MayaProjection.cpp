@@ -369,6 +369,8 @@ typedef struct
    float    render_aspect;
    float    image_aspect;
    float    output_aspect;
+   float    shutter_start;
+   float    inv_shutter_length;
 } ShaderData;
 
 node_initialize
@@ -397,8 +399,19 @@ node_update
          for (int i = 0; i < AiArrayGetNumKeys(data->camera_fov); ++i)
             AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
       }
-   }
+   } 
 
+   AtNode *renderCamera = AiUniverseGetCamera();
+   if (renderCamera)
+   {  
+      data->shutter_start  = AiNodeGetFlt(renderCamera, "shutter_start");
+      float shutter_end  = AiNodeGetFlt(renderCamera, "shutter_end");
+      data->inv_shutter_length = 1.f / (AiMax(AI_EPSILON, shutter_end - data->shutter_start));
+   } else
+   {
+      data->shutter_start = 0.f;
+      data->inv_shutter_length = 1.f;
+   }
    data->image_aspect = 1.0f;
       
    if(AiNodeGetInt(node, "projType") == PT_PERSPECTIVE && AiNodeGetInt(node, "fitType") != FIT_NONE && AiNodeGetBool(node, "wrap") == true)
@@ -577,7 +590,7 @@ shader_evaluate
                   const float invCamAR = 1.0f / camAR;
                   const float invImgAR = 1.0f / imgAR;
 
-                  float hfov = AiArrayInterpolateFlt(data->camera_fov, sg->time, 0);
+                  float hfov = AiArrayInterpolateFlt(data->camera_fov, (sg->time - data->shutter_start) * data->inv_shutter_length, 0);
                   float nearp = AiShaderEvalParamFlt(p_camera_near);
 
                   float maxw = nearp * tan(0.5f * hfov);

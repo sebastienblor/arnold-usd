@@ -183,17 +183,40 @@ namespace SYNCOLOR
                                                   const char * type,
                                                   StringListPtr& resolvedTypes);
 
-  //! \brief Get information on the allowed color spaces for a specified viewing
-  //         rule view transform.
+  //! \brief Get the list of possible ImageState user-facing names (friendly names).
   //
-  //! \param category Color space category. See SYNCOLOR::ColorSpaceCategory.
-  //! \param viewTransform The view transform used in the search.
-  //! \param namesAndContexts Returned allowed color space names and contexts (see
-  //!                         ViewingRule::Context).
+  //! \param names Returned input color space image states.
+  //!
+  SYN_EXPORT void getImageStateFriendlyNames(StringListPtr& states);
+  
+  //! \brief Get the input color space auto populate image states.
+  //
+  //! \param path Path to the transform
+  //! \param values Returned color space auto populate image states where
+  //                states[0] is the image state.  The image state is in
+  //                the friendly format (ui).
   //
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine
   //!         if an error occurred.
   //!
+  SYN_EXPORT SynStatus getInputColorSpaceAutoPopulateImageStates(const char* path,
+                                                                 StringListPtr& values);
+
+  //! \brief Translate the friendly image state name to the token image state name.
+  //
+  //! \param type Image State to be translated.
+  //
+  //! \return Returns the translated token image state.
+  //!
+  SYN_EXPORT const char * getImageStateTokenFromFriendlyName(const char * imageState);
+
+  //! \brief Get information on the allowed color spaces for a specified viewing
+  //         rule view transform.
+  
+  //! \param viewTransform The view transform used in the search.
+  //! \param namesAndContexts Returned allowed color space names and contexts (see
+  //!                         ViewingRule::Context).
+  
   SYN_EXPORT SynStatus getViewingRulesAllowedColorSpaces(ColorSpaceCategory category,
                                                          const char * viewTransform,
                                                          StringIntListPtr& namesAndContexts);

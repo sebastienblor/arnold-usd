@@ -9,6 +9,11 @@ enum AnimMatrixParams
    p_values
 };
 
+struct animMatrixData{
+   float shutter_start;
+   float inv_shutter_length;
+};
+
 };
 
 AI_SHADER_NODE_EXPORT_METHODS(AnimMatrixMtd);
@@ -24,20 +29,34 @@ node_parameters
 
 shader_evaluate
 {
-   //AtMatrix *mtx = (AtMatrix*)AiShaderGlobalsQuickAlloc(sg, sizeof(AtMatrix));
-   
-   AtMatrix mtx = AiArrayInterpolateMtx(AiShaderEvalParamArray(p_values), sg->time, 0);
+   animMatrixData *data = (animMatrixData*)AiNodeGetLocalData(node);
+  
+   AtMatrix mtx = AiArrayInterpolateMtx(AiShaderEvalParamArray(p_values), (sg->time - data->shutter_start) * data->inv_shutter_length, 0);
    sg->out.pMTX() = new AtMatrix(mtx);
 }
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new animMatrixData());   
 }
 
 node_update
 {
+   animMatrixData *data = (animMatrixData*)AiNodeGetLocalData(node);
+   AtNode *camera = AiUniverseGetCamera();
+   if (camera)
+   {  
+      data->shutter_start  = AiNodeGetFlt(camera, "shutter_start");
+      float shutter_end  = AiNodeGetFlt(camera, "shutter_end");
+      data->inv_shutter_length = 1.f / (AiMax(AI_EPSILON, shutter_end - data->shutter_start));
+   } else
+   {
+      data->shutter_start = 0.f;
+      data->inv_shutter_length = 1.f;
+   }
 }
 
 node_finish
 {
+   delete (animMatrixData*)AiNodeGetLocalData(node);
 }

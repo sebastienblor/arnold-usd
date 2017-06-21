@@ -6,6 +6,7 @@
 #include "AbMayaNode.h"
 #include "AbTranslator.h"
 #include "utils/Version.h"
+#include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/Universe.h"
 
@@ -116,7 +117,7 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
    }
    else
    {
-      AiMsgError("[mtoa] There is already an extension of name %s", file.asChar());
+      AiMsgInfo("[mtoa] There is already an extension of name %s", file.asChar());
    }
 
    if (NULL != returnStatus) *returnStatus = status;
@@ -137,10 +138,10 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* filename = AiNodeEntryGetFilename(nentry);
+      MString filename = ArnoldGetEntryFile(nentry);
 
       // skip builtins and already registered
-      if (filename && !CExtension::IsArnoldPluginLoaded(filename))
+      if (filename.length() > 0 && !CExtension::IsArnoldPluginLoaded(filename))
       {
          MStatus pluginStatus;
          LoadArnoldPlugin(filename, path, &pluginStatus, true);
@@ -383,7 +384,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    if (extension->IsRegistered())
    {
-      AiMsgError("[mtoa] Already registered extension %s, provided by %s.",
+      AiMsgInfo("[mtoa] Already registered extension %s, provided by %s.",
             extName.asChar(), extFile.asChar());
       return MStatus::kFailure;
    }
@@ -428,7 +429,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       if (NULL != existingMayaNode)
       {
          // TODO : allow node overriding?
-         AiMsgError("[mtoa] [%s] Tried to replace Maya node %s, provided by %s(%s) with Maya node %s, provided by %s(%s).",
+         AiMsgInfo("[mtoa] [%s] Tried to replace Maya node %s, provided by %s(%s) with Maya node %s, provided by %s(%s).",
                extName.asChar(),
                mayaNode->name.asChar(), mayaNode->provider.asChar(), mayaNode->file.asChar(),
                existingMayaNode->name.asChar(), existingMayaNode->provider.asChar(), existingMayaNode->file.asChar());
@@ -1086,7 +1087,8 @@ CExtension* CExtensionsManager::NewExtension(const MString &extensionFile)
    }
    else
    {
-      AiMsgError("[mtoa] Extension already managed: %s", extensionFile.asChar());
+      // #2946 hiding excessive messages when extensions are loaded multiple times
+//      AiMsgInfo("[mtoa] Extension already managed: %s", extensionFile.asChar());
       result = NULL;
    }
 
@@ -1126,7 +1128,7 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
 
    if (MFnPlugin::isNodeRegistered(mayaNode.name))
    {
-      AiMsgError("[mtoa] Cannot register already existing Maya node %s, provided by %s(%s).",
+      AiMsgInfo("[mtoa] Cannot register already existing Maya node %s, provided by %s(%s).",
             mayaNode.name.asChar(),
             mayaNode.provider.asChar(), mayaNode.file.asChar());
       return MStatus::kFailure;

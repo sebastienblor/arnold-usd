@@ -18,157 +18,6 @@
 							<array>
 								<dict>
 									<key>CHILDREN</key>
-									<array>
-										<dict>
-											<key>CHILDREN</key>
-											<array>
-												<dict>
-													<key>CHILDREN</key>
-													<array>
-														<dict>
-															<key>CHILDREN</key>
-															<array>
-																<dict>
-																	<key>CHILDREN</key>
-																	<array>
-																		<dict>
-																			<key>CHILDREN</key>
-																			<array>
-																				<dict>
-																					<key>CHILDREN</key>
-																					<array/>
-																					<key>GID</key>
-																					<integer>80</integer>
-																					<key>PATH</key>
-																					<string>2018/arnoldRenderer.xml</string>
-																					<key>PATH_TYPE</key>
-																					<integer>1</integer>
-																					<key>PERMISSIONS</key>
-																					<integer>420</integer>
-																					<key>TYPE</key>
-																					<integer>3</integer>
-																					<key>UID</key>
-																					<integer>0</integer>
-																				</dict>
-																			</array>
-																			<key>GID</key>
-																			<integer>80</integer>
-																			<key>PATH</key>
-																			<string>rendererDesc</string>
-																			<key>PATH_TYPE</key>
-																			<integer>0</integer>
-																			<key>PERMISSIONS</key>
-																			<integer>509</integer>
-																			<key>TYPE</key>
-																			<integer>2</integer>
-																			<key>UID</key>
-																			<integer>0</integer>
-																		</dict>
-																	</array>
-																	<key>GID</key>
-																	<integer>80</integer>
-																	<key>PATH</key>
-																	<string>bin</string>
-																	<key>PATH_TYPE</key>
-																	<integer>0</integer>
-																	<key>PERMISSIONS</key>
-																	<integer>509</integer>
-																	<key>TYPE</key>
-																	<integer>2</integer>
-																	<key>UID</key>
-																	<integer>0</integer>
-																</dict>
-															</array>
-															<key>GID</key>
-															<integer>80</integer>
-															<key>PATH</key>
-															<string>Contents</string>
-															<key>PATH_TYPE</key>
-															<integer>0</integer>
-															<key>PERMISSIONS</key>
-															<integer>509</integer>
-															<key>TYPE</key>
-															<integer>2</integer>
-															<key>UID</key>
-															<integer>0</integer>
-														</dict>
-													</array>
-													<key>GID</key>
-													<integer>80</integer>
-													<key>PATH</key>
-													<string>Maya.app</string>
-													<key>PATH_TYPE</key>
-													<integer>0</integer>
-													<key>PERMISSIONS</key>
-													<integer>509</integer>
-													<key>TYPE</key>
-													<integer>2</integer>
-													<key>UID</key>
-													<integer>0</integer>
-												</dict>
-											</array>
-											<key>GID</key>
-											<integer>80</integer>
-											<key>PATH</key>
-											<string>maya2018</string>
-											<key>PATH_TYPE</key>
-											<integer>0</integer>
-											<key>PERMISSIONS</key>
-											<integer>509</integer>
-											<key>TYPE</key>
-											<integer>2</integer>
-											<key>UID</key>
-											<integer>0</integer>
-										</dict>
-									</array>
-									<key>GID</key>
-									<integer>80</integer>
-									<key>PATH</key>
-									<string>Autodesk</string>
-									<key>PATH_TYPE</key>
-									<integer>0</integer>
-									<key>PERMISSIONS</key>
-									<integer>509</integer>
-									<key>TYPE</key>
-									<integer>2</integer>
-									<key>UID</key>
-									<integer>0</integer>
-								</dict>
-								<dict>
-									<key>CHILDREN</key>
-									<array/>
-									<key>GID</key>
-									<integer>80</integer>
-									<key>PATH</key>
-									<string>Utilities</string>
-									<key>PATH_TYPE</key>
-									<integer>0</integer>
-									<key>PERMISSIONS</key>
-									<integer>493</integer>
-									<key>TYPE</key>
-									<integer>1</integer>
-									<key>UID</key>
-									<integer>0</integer>
-								</dict>
-							</array>
-							<key>GID</key>
-							<integer>80</integer>
-							<key>PATH</key>
-							<string>Applications</string>
-							<key>PATH_TYPE</key>
-							<integer>0</integer>
-							<key>PERMISSIONS</key>
-							<integer>509</integer>
-							<key>TYPE</key>
-							<integer>1</integer>
-							<key>UID</key>
-							<integer>0</integer>
-						</dict>
-						<dict>
-							<key>CHILDREN</key>
-							<array>
-								<dict>
-									<key>CHILDREN</key>
 									<array/>
 									<key>GID</key>
 									<integer>80</integer>
@@ -692,7 +541,7 @@
 				<key>RELOCATABLE</key>
 				<false/>
 				<key>VERSION</key>
-				<string>2.0.0.1</string>
+				<string>2.0.1.wip</string>
 			</dict>
 			<key>UUID</key>
 			<string>68FF7CCF-3B50-4D51-9970-29665CCB299B</string>
@@ -1232,7 +1081,7 @@
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
-				<string>2.0.0.1</string>
+				<string>2.0.1.wip</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1444,7 +1293,7 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
-						<string>MtoA 2.0.0.1 Maya 2018</string>
+						<string>MtoA 2.0.1.wip Maya 2018</string>
 					</dict>
 				</array>
 			</dict>

@@ -4,6 +4,8 @@
 
 #include <maya/MString.h>
 #include <maya/MStatus.h>
+#include <ai_node_entry.h>
+
 
 DLLEXPORT void SetMetafile(MString metafile);
 
@@ -18,3 +20,5 @@ DLLEXPORT bool ArnoldUniverseOnlyBegin();
 DLLEXPORT void ArnoldUniverseLoadPluginsAndMetadata();
 DLLEXPORT void ArnoldUniverseEnd();
 DLLEXPORT void ArnoldUniverseEndAndFlush(int cache_flags);
+
+DLLEXPORT MString ArnoldGetEntryFile(const AtNodeEntry *entry);

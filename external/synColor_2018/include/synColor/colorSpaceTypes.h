@@ -59,7 +59,15 @@ namespace SYNCOLOR
     DisplayPathKey,         //!< Display path.
     ConSpaceImageStateKey,  //!< Connection space's image state.
     InfoVersionKey,         //!< Info element version number.
-    VisibilityKey           //!< UI Visibility : "true" or "false".
+    VisibilityKey,          //!< UI Visibility : "true" or "false".
+    PrimariesRedxKey,       //!< The x coordinate of the red primary
+    PrimariesRedyKey,       //!< The y coordinate of the red primary
+    PrimariesGreenxKey,     //!< The x coordinate of the green primary
+    PrimariesGreenyKey,     //!< The y coordinate of the green primary
+    PrimariesBluexKey,      //!< The x coordinate of the blue primary
+    PrimariesBlueyKey,      //!< The y coordinate of the blue primary
+    PrimariesWhitexKey,     //!< The x coordinate of the white point
+    PrimariesWhiteyKey      //!< The y coordinate of the white point
   };
 
   //! \brief List of color space tags for classifying color spaces

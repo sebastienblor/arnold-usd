@@ -96,7 +96,7 @@ public:
    void SetOption(const char *option, const char *value);
 
    // Get a serialized definition of the RenderView options
-   const char *Serialize();
+   const char *Serialize(bool userSettings = true, bool sceneSettings = true);
    void SetFromSerialized(const char *);
    
 

@@ -2,6 +2,7 @@
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "translators/driver/DriverTranslator.h"
+#include "translators/camera/ImagePlaneTranslator.h"
 
 #include "utils/MayaUtils.h"
 
@@ -631,6 +632,46 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
       overscan = 0.0f;
 }
 
+static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
+{
+   MFnDependencyNode fnNode (camera.node());
+   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
+
+   AtNode *options = AiUniverseGetOptions();
+
+   CNodeTranslator *imgTranslator = NULL;
+   MStatus status;
+
+   if (imagePlanePlug.numConnectedElements() == 0)
+      return;
+
+   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+   {
+      MPlugArray connectedPlugs;
+      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+
+      if (status && (connectedPlugs.length() > 0))
+      {
+         imgTranslator = session->ExportNode(connectedPlugs[0], NULL, NULL, true);
+         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
+
+         if (imgPlaneTranslator)
+         {
+            imgPlaneTranslator->SetCamera(fnNode.name());
+
+            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
+            
+            if (imgPlaneShader)      
+            {
+               AiNodeSetPtr(options, "background", imgPlaneShader);
+               AiNodeSetByte(options, "background_visibility", 1);
+            }
+         }
+      }
+   }
+}
+
 void COptionsTranslator::Export(AtNode *options)
 {
    assert(AiUniverseIsActive());
@@ -672,6 +713,10 @@ void COptionsTranslator::Export(AtNode *options)
                CNodeTranslator::ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
             }
          }
+         else if (strcmp(paramName, "indirect_sample_clamp") == 0)
+         {
+            CNodeTranslator::ProcessParameter(options, "indirect_sample_clamp", AI_TYPE_FLOAT);
+         }
          else if (strcmp(paramName, "AA_seed") == 0)
          {
             // FIXME: this is supposed to use a connection to AA_seed attribute
@@ -686,7 +731,8 @@ void COptionsTranslator::Export(AtNode *options)
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
-            CNodeTranslator::ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+            int bucket_scanning = AiMin(FindMayaPlug("bucketScanning").asInt(), 4); // old scenes might have a bigger value
+            AiNodeSetInt(options, "bucket_scanning", bucket_scanning);
          }
          else if (strcmp(paramName, "texture_autotile") == 0)
          {
@@ -775,6 +821,10 @@ void COptionsTranslator::Export(AtNode *options)
    else
    {
       AiNodeSetPtr(options, "background", NULL);
+      // first we get the image planes connected to this camera
+      
+      ExportImagePlane(GetSessionOptions().GetExportCamera(), m_impl->m_session);
+
    }
    if ((GetSessionMode() == MTOA_SESSION_BATCH) || (GetSessionMode() == MTOA_SESSION_ASS))
    {
@@ -894,7 +944,36 @@ void COptionsTranslator::Export(AtNode *options)
                                    240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
                                    600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
                                    6000.f, 0.f };
-   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);   
+   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);
+
+   // Export AOV shaders   
+   MPlug aovShadersPlug = FindMayaPlug("aov_shaders");
+   unordered_set<AtNode*> aovShaders;
+   for (unsigned int i = 0; i < aovShadersPlug.numElements (); i++)
+   {
+      MPlug elementPlug = aovShadersPlug [i];
+      MPlugArray conns;
+      elementPlug.connectedTo(conns, true, false);
+
+      if (conns.length() > 0)
+      {
+         AtNode *aovShaderNode = ExportConnectedNode(conns[0]);
+         if (aovShaderNode)
+            aovShaders.insert(aovShaderNode);
+      }
+   }
+
+   AiNodeResetParameter(options, "aov_shaders");
+   if (!aovShaders.empty())
+   {
+      AtArray *aovShadersArray = AiArrayAllocate(aovShaders.size(), 1, AI_TYPE_NODE);
+      int aovShaderIndex = 0;
+      for (unordered_set<AtNode*>::iterator it = aovShaders.begin(); it != aovShaders.end(); ++it)
+         AiArraySetPtr(aovShadersArray, aovShaderIndex++, *it);
+      
+      AiNodeSetArray(options, "aov_shaders", aovShadersArray);
+   }
+
 
 }
 
