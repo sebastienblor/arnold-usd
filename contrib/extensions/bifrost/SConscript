@@ -22,4 +22,7 @@ src_base_dir  = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost', 'plug
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX= '')
 
+if (system.os() == 'windows'):
+    EXT = [EXT[0]]
+
 Return('EXT')
