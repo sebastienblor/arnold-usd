@@ -242,7 +242,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 #        self.addControl('loadAtInit')
         self.addSeparator()
         self.addControl('disableRayExtents')
-        self.addControl('boundsSlack')
+        self.addControl('volumePadding')
         self.addControl('compress')
         
         self.addSeparator()

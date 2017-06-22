@@ -2683,7 +2683,7 @@ c4d.step FLOAT 0.01
 
     [attr position_offset]
     desc STRING "An offset added to the sampling position, in order to displace or "
-    "add noise to the volume. Remember to pad the volume bounds_slack accordingly."
+    "add noise to the volume. Remember to pad the volume's volume_padding accordingly."
 
     [attr interpolation]
     desc STRING "The voxel interpolation used when sampling the channel."
@@ -2759,7 +2759,7 @@ desc STRING "The volume channel to sample."
 
 [attr position_offset]
 desc STRING "An offset added to the sampling position, in order to displace or "
-"add noise to the volume. Remember to pad the volume bounds_slack accordingly."
+"add noise to the volume. Remember to pad the volume's volume_padding accordingly."
 
 [attr interpolation]
 desc STRING "The voxel interpolation used when sampling the channel."
