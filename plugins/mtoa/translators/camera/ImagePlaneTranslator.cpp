@@ -73,6 +73,8 @@ void CImagePlaneTranslator::ExportImagePlane()
 
    // check if the image plane should be created
    int displayMode = fnRes.findPlug("displayMode").asInt();
+   AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
+
    if (displayMode <= 1)
       return;
 
@@ -257,7 +259,6 @@ void CImagePlaneTranslator::ExportImagePlane()
       }
    }
 
-   AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
    AiNodeSetVec2(imagePlaneShader, "fitFactor", (float)scaleX, (float)scaleY);
    AiNodeSetVec2(imagePlaneShader, "coverage", (float)coverageX / (float)iWidth , (float)coverageY / (float)iHeight);
    AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
