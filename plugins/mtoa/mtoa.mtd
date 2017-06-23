@@ -129,8 +129,8 @@
         maya.orig_shortname STRING  "sssshs"
     [attr max_subdivisions]
         maya.keyable        BOOL    false
-        min                 BYTE    0
-        softmax             BYTE    100
+        min                 INT     0
+        max                 INT     999
         linkable            BOOL    false
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
