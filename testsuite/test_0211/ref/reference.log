@@ -33,4 +33,5 @@ Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Pytho
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 File read in  0.56 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0211/test.ma
+CArnoldSession::ExportTxFiles
 Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0211\test.ma completed.

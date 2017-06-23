@@ -21,12 +21,12 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   492MB WARNING |  node "MayaClamp" is already installed
-00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   492MB WARNING |  node "MayaCondition" is already installed
-00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+00:00:00   493MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   493MB WARNING |  node "MayaClamp" is already installed
+00:00:00   493MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   493MB WARNING |  node "MayaCondition" is already installed
+00:00:00   493MB WARNING |  node "MayaReverse" is already installed
 ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
@@ -41,6 +41,9 @@ Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/tes
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 File read in  0.6 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0142/test.ma
-libpng warning: iCCP: known incorrect sRGB profile
-00:00:00   599MB ERROR   | [maketx] Couldn't convert the texture to TX "D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0142/texture.exr"
+CArnoldSession::Expolibpng warning: iCCP: known incorrect sRGB profile
+rtTxFiles
+list textures =4
+CArnoldSession::ExportTxFiles
+list textures =0
 Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0142\test.ma completed.
