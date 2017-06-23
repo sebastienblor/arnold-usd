@@ -355,9 +355,12 @@ class MayaTestRunner(object):
                 elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
                     test_script = 'maya  -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
                 elif os.path.exists(os.path.join(test_dir, 'test.py')):
+                    test_script = os.path.join(test_dir, 'test.py')    
+                elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
                 # If the test.py is found, we want to run mayapy with this script
-                    test_script = 'mayapy ' + os.path.join(test_dir, 'test.py "%s" "%s" "%s"' \
+                    test_script = 'mayapy ' + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
                         % (test_env['MAYA_ROOT'], os.environ['MAYA_RENDER_DESC_PATH'], test_dir) )
+
 
                 t, files = run_test(test_name,
                                     lock,
