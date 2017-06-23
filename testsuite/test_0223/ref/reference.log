@@ -1,0 +1,2 @@
+COLOR:XML:CATALOG_MANAGER: The shared catalog directory does not exist: .\shared_catalog.cat
+C:\solidangle\mtoadeploy\2017\bin\makeTx --nomipmap --colorengine "syncolor" --colorconfig synColorConfig.xml --colorconvert "Sony SLog2" "ACEScg" texture.jpg -o testrender.tif
