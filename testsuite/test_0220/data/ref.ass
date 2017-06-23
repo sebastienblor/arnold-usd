@@ -3,6 +3,9 @@
 ### host app: MtoA 2.0.1.wip 13d13fa3 (FB-3019b) Maya 2018
 
 
+# The test validates that the color conversion mode is working as the driver color space is 
+# an input color space instead of the expected output color space.
+
 
 options
 {
@@ -11,12 +14,12 @@ options
  xres 960
  yres 540
  texture_per_file_stats on
- texture_searchpath "C:/Users/hodoulp/Documents/maya/projects/default/sourceimages"
+ texture_searchpath "."
  texture_automip off
  texture_specular_blur 0
  camera "perspShape"
  color_manager "defaultColorMgtGlobals"
- procedural_searchpath "C:/Users/hodoulp/Documents/maya/projects/default/"
+ procedural_searchpath "."
  GI_diffuse_depth 1
  GI_specular_depth 1
  GI_transmission_depth 8
@@ -37,7 +40,7 @@ gaussian_filter
 driver_tiff
 {
  name defaultArnoldDriver@driver_tiff.RGBA
- filename "C:/Users/hodoulp/Documents/maya/projects/default/images/case_4.tif"
+ filename "testrender.tif"
  compression "lzw"
  format "int8"
  tiled off
@@ -53,9 +56,7 @@ driver_tiff
 color_manager_syncolor
 {
  name defaultColorMgtGlobals
- __REPLACE__
  rendering_color_space "scene-linear Rec 709/sRGB"
- view_transform_space "sRGB gamma"
  output_color_conversion on
 }
 
@@ -186,7 +187,7 @@ MayaFile
  repeatUV 1 1
  offsetUV 0 0
  rotateUV 0
- filename "D:/SolidAngle/mtoa/testsuite/test_0220/data/texture.jpg"
+ filename "texture.jpg"
  noiseUV 0 0
  mipBias 0
  filter "smart_bicubic"
