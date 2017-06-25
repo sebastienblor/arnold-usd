@@ -192,6 +192,9 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     CopyFiles "$INSTDIR\RSTemplates\*.json" "$R1\maya\RSTemplates"
     ${EndIf}
 
+    ExecWait '"$INSTDIR\pit\pitreg.exe"' $0
+    DetailPrint "Registered PIT file : $0"
+
 SectionEnd
 
 ;--------------------------------

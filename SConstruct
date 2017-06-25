@@ -1153,6 +1153,8 @@ else:
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
+PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*.*'), 'pit'])
+
 if env['ENABLE_VP2'] == 1:
     vp2shaders = GetViewportShaders(maya_version)
     installedVp2Shaders = []
