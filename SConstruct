@@ -1303,7 +1303,14 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.write('MAYA_RENDER_DESC_PATH = %s\n' % installPath)
         mtoaMod.close()
-        shutil.copyfile(os.path.abspath('installer/pitreg_script.sh'), os.path.join(tempdir, 'pitreg_script.sh'))
+
+        pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
+        pitregScript.write('#!/usr/bin/env bash\n')
+        pitregScript.write('\n')
+        pitregCommand = "$2/Applications/solidangle/mtoa/%s/pit/pitreg" % maya_version
+        pitregScript.write(pitregCommand)
+        pitregScript.write('\n')
+        pitregScript.close()
 
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')
