@@ -1306,9 +1306,15 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
-        pitregScript.write('\n')
-        pitregCommand = "$2/Applications/solidangle/mtoa/%s/pit/pitreg" % maya_version
+        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
         pitregScript.write(pitregCommand)
+        pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
+        pitregCommand = "  $2/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
+        pitregScript.write(pitregCommand)
+        pitregScript.write('else\n')
+        pitregCommand = "  $3/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
+        pitregScript.write(pitregCommand)
+        pitregScript.write('fi\n')
         pitregScript.write('\n')
         pitregScript.close()
 
