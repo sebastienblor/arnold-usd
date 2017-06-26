@@ -1153,7 +1153,7 @@ else:
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
-PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*.*'), 'pit'])
+PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'pit'])
 
 if env['ENABLE_VP2'] == 1:
     vp2shaders = GetViewportShaders(maya_version)
@@ -1259,7 +1259,6 @@ else:
 
 def create_installer(target, source, env):
 
-    
     import tempfile
     import shutil
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
@@ -1296,6 +1295,7 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'kick')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'maketx')])
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'pit', 'pitreg')])
         installPath = '/Applications/solidangle/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
@@ -1303,8 +1303,12 @@ def create_installer(target, source, env):
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
         mtoaMod.write('MAYA_RENDER_DESC_PATH = %s\n' % installPath)
         mtoaMod.close()
+        shutil.copyfile(os.path.abspath('installer/pitreg_script.sh'), os.path.join(tempdir, 'pitreg_script.sh'))
+
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')
+        
+
     else:
         shutil.copyfile(os.path.abspath('%s.zip' % package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))

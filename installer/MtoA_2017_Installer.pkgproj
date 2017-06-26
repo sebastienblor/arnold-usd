@@ -674,6 +674,13 @@
 			</dict>
 			<key>PACKAGE_SCRIPTS</key>
 			<dict>
+				<key>POSTINSTALL_PATH</key>
+				<dict>
+					<key>PATH</key>
+					<string>pitreg_script.sh</string>
+					<key>PATH_TYPE</key>
+					<integer>1</integer>
+				</dict>
 				<key>RESOURCES</key>
 				<array/>
 			</dict>
@@ -1214,6 +1221,13 @@
 			</dict>
 			<key>PACKAGE_SCRIPTS</key>
 			<dict>
+				<key>POSTINSTALL_PATH</key>
+				<dict>
+					<key>PATH</key>
+					<string>pitreg_script.sh</string>
+					<key>PATH_TYPE</key>
+					<integer>1</integer>
+				</dict>
 				<key>RESOURCES</key>
 				<array/>
 			</dict>
