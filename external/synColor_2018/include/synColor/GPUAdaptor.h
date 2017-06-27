@@ -102,7 +102,8 @@ namespace SYNCOLOR
     {
       LANGUAGE_GLSL = 0,  //!< GLSL
       LANGUAGE_CG,        //!< Cg
-      LANGUAGE_HLSL       //!< HLSL
+      LANGUAGE_HLSL,      //!< HLSL
+      LANGUAGE_GLSL_CORE  //!< GLSL Core profile
     };
 
     //----------------------------------------------------------------------------------------------

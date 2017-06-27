@@ -1,0 +1,2 @@
+COLOR:XML:CATALOG_MANAGER: The shared catalog directory does not exist: /tmp/shared\shared_catalog.cat
+kick -v 0 -dp -dw ref.ass -l "C:\solidangle\mtoadeploy\2017/shaders" -r 160 120 -set defaultColorMgtGlobals.native_catalog_path "C:\Program Files\Autodesk\Maya2017/synColor" -set defaultColorMgtGlobals.ocioconfig_path "ocio/config.ocio"   -t 64 -o testrender.tif

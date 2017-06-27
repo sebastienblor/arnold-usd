@@ -106,6 +106,10 @@ shader_evaluate
 {
    mayaBump2DData* data = (mayaBump2DData*)AiNodeGetLocalData(node);
 
+   // we don't want bump for indirect diffuse, or shadows
+   if (sg->Rt & AI_RAY_DIFFUSE_REFLECT || sg->Rt & AI_RAY_SHADOW || (data->bumpMode == BM_BUMP && data->bumpMap == 0))
+      return;
+   
    // If this same shader has bump, evaluate it first so that it 
    // serves as a basis for this bump
    if (data->hasChainedBump)
@@ -119,12 +123,6 @@ shader_evaluate
       return;
    }
    
-   if (sg->Rt & AI_RAY_DIFFUSE_REFLECT || sg->Rt & AI_RAY_SHADOW || (data->bumpMode == BM_BUMP && data->bumpMap == 0))
-   { 
-      return;
-   }
-   
-
    if (data->bumpMode == BM_BUMP) // do classic bump mapping
    {
       const float bumpHeight = AiShaderEvalParamFlt(p_bump_height);

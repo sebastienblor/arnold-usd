@@ -557,7 +557,7 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
    }
    else
    {
-      isOk = MPxSurfaceShape::getInternalValue(plug, datahandle);
+      isOk = MPxSurfaceShape::getInternalValueInContext(plug, datahandle, context);
    }
    return isOk;
 }

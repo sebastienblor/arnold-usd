@@ -1,8 +1,8 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0050\test_0050.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0050\test_0050.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 2016.3.18.11. Feature Level 5.
+  Version : 2016.3.78.11. Feature Level 5.
   Adapter : Quadro K620/PCIe/SSE2
   Vendor ID: 4318. Device ID : 5051
   Driver : nvoglv64.dll:10.18.13.5413.
@@ -21,229 +21,33 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-00:00:00   521MB         | log started Fri Mar 10 13:37:05 2017
-00:00:00   521MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   521MB         | running on REM8WCK8D2, pid=9504
-00:00:00   521MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   521MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   521MB         |  soft limit for open files raised from 512 to 2048
-00:00:00   521MB         |  
-00:00:00   521MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00   521MB ERROR   | [mtoa.attr] Arnold parameter "skydome_light.time_samples" does not exist.
-00:00:00   524MB WARNING | [mtoa] [syncolor_shaders] [node color_manager_syncolor] There was not enough metadata information to automatically register a translator for that node, ignored.
-00:00:00   527MB WARNING | [mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type "aiSwitchShader"
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .aiUserOptions
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
 
-API error detected in plugins\mtoa\attributes\Att00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .index
-rHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .input0A
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] Unable to create extension attribute .input1
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInval00:00:00   527MB WARNING | [mtoa.attr] CBaseAttrHelper passed unknown Arnold node type "volume_openvdb"
-00:00:00   527MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "self_shadows"
-idParameter): Object is incompatible with this method
-
-API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1272
-: (kInvalidParameter): Object is incompatible with this method
-00:00:00   527MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "opaque"
-00:00:00   527MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "matte"
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.0.0-windows\bin
-
-00:00:00   530MB ERROR   | [mtoa.attr] Arnold parameter "hair.uparam" does not exist.
-00:00:00   530MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
-00:00:00   530MB ERROR   | [mtoa.attr] Arnold parameter "hair.vparam" does not exist.
-00:00:00   530MB ERROR   | [mtoa.attr] Unable to create attribute "" from arnold node "hair": parameters type is undefined
-00:00:00   530MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_diffuse" does not exist.
-00:00:00   530MB ERROR   | [mtoa.attr] Arnold parameter "hair.aov_direct_specular" does not exist.
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-00:00:00   535MB         | log started Fri Mar 10 13:37:05 2017
-00:00:00   535MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   535MB         | running on REM8WCK8D2, pid=9504
-00:00:00   535MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   535MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   535MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   535MB         |  
-00:00:00   535MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   535MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   535MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00 WARNING |  node "MayaClamp" is already installed
-00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00 WARNING |  node "MayaCondition" is already installed
-00:00:00 WARNING |  node "MayaReverse" is already installed
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 6: line 1: Cannot find procedure "shaderBallRendererMenuUpdate".
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
-00:00:00   547MB         | log started Fri Mar 10 13:37:06 2017
-00:00:00   547MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   547MB         | running on REM8WCK8D2, pid=9504
-00:00:00   547MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   547MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   547MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   547MB         |  
-00:00:00   547MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   547MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   547MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00 WARNING |  node "MayaClamp" is already installed
-00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00 WARNING |  node "MayaCondition" is already installed
-00:00:00 WARNING |  node "MayaReverse" is already installed
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1121: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1121: setAttr: No object matches name: .dgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1122: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1122: setAttr: No object matches name: .lgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1123: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1123: setAttr: No object matches name: .sgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1124: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1124: setAttr: No object matches name: .tgamma
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1215: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1216: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1219: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1311: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1367: The aiAOVDriver 'defaultArnoldDriver' has no '.gamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201700/msvc_opt/testsuite/test_0050/test.ma line 1367: setAttr: No object matches name: .gamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1121: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1121: setAttr: No object matches name: .dgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1122: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1122: setAttr: No object matches name: .lgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1123: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1123: setAttr: No object matches name: .sgamma
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1124: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1124: setAttr: No object matches name: .tgamma
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1215: Unrecognized node type 'mentalrayItemsList'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1216: Unrecognized node type 'mentalrayGlobals'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1219: Unrecognized node type 'mentalrayOptions'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1311: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1367: The aiAOVDriver 'defaultArnoldDriver' has no '.gamma' attribute.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0050/test.ma line 1367: setAttr: No object matches name: .gamma
 Viewport 2.0 floating point render target is turned off.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  1.4 seconds.
+File read in  0.67 seconds.
 Error: line 1: Error reading file.
 Error: line 1: Error reading file.
-00:00:00   550MB         | log started Fri Mar 10 13:37:06 2017
-00:00:00   550MB         | Arnold 5.0.0.0.wip [e537a22f] windows icc-16.0.3 oiio-1.7.7 osl-1.8.2 rlm-12.2.2 2017/03/07 05:34:39
-00:00:00   550MB         | running on REM8WCK8D2, pid=9504
-00:00:00   550MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
-00:00:00   550MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
-00:00:00   550MB         |  soft limit for open files raised from 2048 to 2048
-00:00:00   550MB         |  
-00:00:00   550MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
-00:00:00   550MB         | loaded 124 plugins from 11 lib(s) in 0:00.00
-00:00:00   550MB WARNING | unable to create log file$MTOA_LOG_PATH/arnold.log: No such file or directory
-00:00:00 WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00 WARNING |  node "MayaClamp" is already installed
-00:00:00 WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00 WARNING |  node "MayaCondition" is already installed
-00:00:00 WARNING |  node "MayaReverse" is already installed
-Scene D:\arnold\mtoa\build\windows_x86_64\201700\msvc_opt\testsuite\test_0050\test.ma completed.
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0050\test.ma completed.

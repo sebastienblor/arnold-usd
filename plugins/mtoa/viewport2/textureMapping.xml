@@ -1,0 +1,128 @@
+<fragment uiName="textureMapping" name="textureMapping" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[texture sampling for aiImage.]]></description>
+    <properties>
+        <float2 name="uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
+        <texture2 name="map" />
+        <sampler name="textureSampler" />
+        <float name="soffset" />
+        <float name="toffset" />
+        <float name="sscale" />
+        <float name="tscale" />
+        <bool name="sflip" />
+        <bool name="tflip" />
+        <bool name="swapSt" />
+        <float3 name="multiply" />
+        <float3 name="offset" />
+    </properties>
+    <values>
+    </values>
+    <outputs>
+        <float3 name="outColor" semantic="mayaCMSemantic" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="textureMapping" />
+            <source>
+                <![CDATA[
+float3 textureMapping(
+                float2 uv, 
+                texture2D map, 
+                sampler2D mapSampler,
+                float soffset,
+                float toffset,
+                float sscale,
+                float tscale,
+                bool sflip,
+                bool tflip,
+                bool swapSt, 
+                float3 multiply,
+                float3 offset)
+{
+    float2 texUV = uv * float2(sscale, tscale) + float2(soffset, toffset);
+
+    if(sflip)
+        texUV.x *= -1;
+    if(tflip)
+        texUV.y *= -1;
+    if(swapSt)
+        texUV.xy = texUV.yx;
+
+	texUV.y = 1.0f - texUV.y;
+	float4 color = tex2D(mapSampler, texUV);
+    color.rgb = ( color.rgb + offset ) * multiply;
+	return color.rgb;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="textureMapping" />
+            <source>
+                 <![CDATA[
+float3 textureMapping(
+                float2 uv, 
+                Texture2D map, 
+                sampler mapSampler,
+                float soffset,
+                float toffset,
+                float sscale,
+                float tscale,
+                bool sflip,
+                bool tflip,
+                bool swapSt,
+                float3 multiply,
+                float3 offset)
+{
+    float2 texUV = uv * float2(sscale, tscale) + float2(soffset, toffset);
+
+    if(sflip)
+        texUV.x *= -1;
+    if(tflip)
+        texUV.y *= -1;
+    if(swapSt)
+        texUV.xy = texUV.yx;
+
+	texUV.y = 1.0f - texUV.y;
+	float4 color = map.Sample(mapSampler, texUV);
+    color.rgb = ( color.rgb + offset ) * multiply;
+	return color.rgb;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
+            <function_name val="textureMapping" />
+            <source>
+                 <![CDATA[
+vec3 textureMapping(
+                vec2 uv, 
+                sampler2D mapSampler,
+                float soffset,
+                float toffset,
+                float sscale,
+                float tscale,
+                bool sflip,
+                bool tflip,
+                bool swapSt, 
+                vec3 multiply,
+                vec3 offset)
+{
+    vec2 texUV = uv * vec2(sscale, tscale) + vec2(soffset, toffset);
+
+    if(sflip)
+        texUV.x *= -1;
+    if(tflip)
+        texUV.y *= -1;
+    if(swapSt)
+        texUV.xy = texUV.yx;
+
+	texUV.y = 1.0f - texUV.y;
+	vec4 color = texture(mapSampler, texUV);
+    color.rgb = ( color.rgb + offset ) * multiply;
+	return color.rgb;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

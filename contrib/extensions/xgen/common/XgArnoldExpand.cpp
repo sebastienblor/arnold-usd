@@ -323,6 +323,9 @@ int Procedural::Init(AtNode* node)
          AiNodeSetFlt( m_sphere, "radius", 0.5f );
          AiNodeSetVec( m_sphere, "center", 0.0f, 0.0f, 0.0f );
          AiNodeSetByte( m_sphere, "visibility", 0 );
+         AiNodeSetFlt(m_sphere, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+         AiNodeSetFlt(m_sphere, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+
          m_nodes.push_back( m_sphere );
       }
 
@@ -1061,6 +1064,10 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       AiNodeSetBool(nodeCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
       AiNodeSetBool(nodeCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
       AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
+      AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+      AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      
+
       // Add custom renderer parameters.
       pushCustomParams( nodeCurves, pc );
 
@@ -1256,6 +1263,9 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         AiNodeSetBool(nodeInstance, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
         AiNodeSetBool(nodeInstance, "matte", AiNodeGetBool(m_node, "matte"));
 
+        AiNodeSetFlt(nodeInstance, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+        AiNodeSetFlt(nodeInstance, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      
         // Add custom renderer parameters.
         pushCustomParams( nodeInstance, pc, j);
 
@@ -1322,6 +1332,9 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AiNodeSetBool(nodeCard, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
       AiNodeSetBool(nodeCard, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
       AiNodeSetBool(nodeCard, "matte", AiNodeGetBool(m_node, "matte"));
+      
+      AiNodeSetFlt(nodeCard, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+      AiNodeSetFlt(nodeCard, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
       
       // Add custom renderer parameters.
        pushCustomParams( nodeCard, pc );

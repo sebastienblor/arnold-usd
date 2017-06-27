@@ -39,6 +39,7 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         self.addControl('aiShadowColor', label='Shadow Color')
         self.addSeparator()
         self.addControl('portalMode', label='Portal Mode')
+        self.addControl('aiAovIndirect', label='AOV Indirect')
         self.addSeparator()
 
         self.commonLightAttributes(addVisibility = True)

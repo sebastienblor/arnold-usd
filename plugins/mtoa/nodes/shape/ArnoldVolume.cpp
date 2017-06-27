@@ -63,7 +63,7 @@ MObject CArnoldVolumeShape::s_stepScale;
 MObject CArnoldVolumeShape::s_filename;
 MObject CArnoldVolumeShape::s_filedata;
 MObject CArnoldVolumeShape::s_disable_ray_extents;
-MObject CArnoldVolumeShape::s_bounds_slack;
+MObject CArnoldVolumeShape::s_volume_padding;
 MObject CArnoldVolumeShape::s_step_scale;
 MObject CArnoldVolumeShape::s_step_size;
 MObject CArnoldVolumeShape::s_compress;
@@ -180,10 +180,10 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_disable_ray_extents);
    
-   s_bounds_slack = nAttr.create("boundsSlack", "boundsSlack", MFnNumericData::kFloat, 0);
+   s_volume_padding = nAttr.create("volumePadding", "volumePadding", MFnNumericData::kFloat, 0);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
-   addAttribute(s_bounds_slack);
+   addAttribute(s_volume_padding);
 
    s_step_size = nAttr.create("stepSize", "stepSize", MFnNumericData::kFloat, 0);
    nAttr.setStorable(true);

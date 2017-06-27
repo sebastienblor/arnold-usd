@@ -24,10 +24,22 @@
 
 AtNode* CParticleTranslator::CreateArnoldNodes()
 {
+   // we first need to initialize the particle system
+   m_fnParticleSystem.setObject(m_dagPath.node());
+
+   int renderType = m_fnParticleSystem.renderType();
+
    if (IsMasterInstance())
-      return  AddArnoldNode("points");
+   {
+      if (renderType == PARTICLE_TYPE_BLOBBYSURFACE)
+         return AddArnoldNode("implicit_particle");
+      else if (renderType == PARTICLE_TYPE_CLOUD)
+         return AddArnoldNode("volume_particle");
+      else
+         return AddArnoldNode("points");
+   }
    else
-      return  AddArnoldNode("ginstance");
+      return AddArnoldNode("ginstance");
 }
 
 void CParticleTranslator::NodeInitializer(CAbTranslator context)
@@ -80,15 +92,22 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_min_pixel_width";
    helper.MakeInputFloat(data);
 
-   data.defaultValue.BOOL() = false;
-   data.name = "aiDeleteDeadParticles";
-   data.shortName = "ai_delete_dead_particles";
-   helper.MakeInputBoolean(data);
+   data.defaultValue.FLT() = 0;
+   data.name = "aiFalloffExponent";
+   data.shortName = "ai_falloff_exponent";
+   helper.MakeInputFloat(data);
 
    data.defaultValue.BOOL() = true;
-   data.name = "aiInterpolateBlur";
-   data.shortName = "ai_interpolate_blur";
+   data.name = "aiSmoothStepFalloff";
+   data.shortName = "ai_smooth_step_falloff";
    helper.MakeInputBoolean(data);
+
+   data.defaultValue.INT() = 10;
+   data.name = "aiImplicitSamples";
+   data.shortName = "ai_implicit_samples";
+   data.hasMin = true;
+   data.min.INT() = 1;
+   helper.MakeInputInt(data);
 
    data.defaultValue.FLT() = 0.f;
    data.name = "aiStepSize";
@@ -98,6 +117,25 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.hasSoftMax = true;
    data.softMax.FLT() = 2.f;
    helper.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 1.0f;
+   data.name = "aiStepScale";
+   data.shortName = "ai_step_scale";
+   data.hasMin = true;
+   data.min.FLT() = 0;
+   data.hasSoftMax = true;
+   data.softMax.FLT() = 10.0f;
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "aiDeleteDeadParticles";
+   data.shortName = "ai_delete_dead_particles";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiInterpolateBlur";
+   data.shortName = "ai_interpolate_blur";
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.FLT() = 1.f;
    data.name = "aiEvaluateEvery";
@@ -184,7 +222,7 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle)
 void CParticleTranslator::ExportPreambleData(AtNode* particle)
 {
    int renderType = m_fnParticleSystem.renderType();
-
+   
    AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName().asChar(), renderType);
    MStatus status;
 
@@ -196,9 +234,21 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    m_inheritCacheTxfm      = m_fnParticleSystem.findPlug("aiInheritCacheTransform").asBool();
 
    m_minPixelWidth = m_fnParticleSystem.findPlug("aiMinPixelWidth").asFloat();
-   AiNodeSetFlt(particle, "min_pixel_width", m_minPixelWidth);
+   if (renderType != PARTICLE_TYPE_BLOBBYSURFACE && renderType != PARTICLE_TYPE_CLOUD)
+      AiNodeSetFlt(particle, "min_pixel_width", m_minPixelWidth);
+   else
+   {
+      float falloffExponent = m_fnParticleSystem.findPlug("aiFalloffExponent").asFloat();
+      bool smoothStepFalloff = m_fnParticleSystem.findPlug("aiSmoothStepFalloff").asBool();
+      int implicitSamples = m_fnParticleSystem.findPlug("aiImplicitSamples").asInt();
+      AiNodeSetFlt(particle, "falloff_exponent", falloffExponent);
+      AiNodeSetBool(particle, "smooth_step", smoothStepFalloff);
+      if (renderType == PARTICLE_TYPE_BLOBBYSURFACE)
+         AiNodeSetUInt(particle, "samples", static_cast<uint32_t>(implicitSamples));
+   }
 
-   // TODO implement  streak / blobby / cloud / tube,  formats
+   // TODO implement streak and tube formats
+   bool constantUserData = false;
    switch (renderType)
    {
       case PARTICLE_TYPE_SPHERE:
@@ -209,10 +259,10 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          m_isSprite = true;
          break;
       case PARTICLE_TYPE_BLOBBYSURFACE:
-         AiNodeSetStr(particle, "mode", "sphere");
+         constantUserData = true;
          break;
       case PARTICLE_TYPE_CLOUD:
-         AiNodeSetStr(particle, "mode", "sphere");
+         constantUserData = true;
          break;
       case PARTICLE_TYPE_TUBE:
          AiNodeSetStr(particle, "mode", "sphere");
@@ -233,7 +283,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    if (renderType == PARTICLE_TYPE_MULTIPOINT || renderType == PARTICLE_TYPE_MULTISTREAK) // multiPoint/multiStreak
    {
       m_doMultiPoint = true;
-      AiNodeDeclare(particle, "particleMultiIndex", "uniform INT");
+      AiNodeDeclare(particle, "particleMultiIndex", constantUserData ? "constant ARRAY INT" : "uniform INT");
       MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
       if ( MS::kSuccess == status )
       {
@@ -260,13 +310,13 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    // get the array of rgbPPs
    if (m_hasRGB)
    {
-      AiNodeDeclare(particle, "rgbPP", "uniform RGB");
+      AiNodeDeclare(particle, "rgbPP", constantUserData ? "constant ARRAY RGB" : "uniform RGB");
    }
 
    // get the array of opacities
    if (m_hasOpacity)
    {
-      AiNodeDeclare(particle, "opacityPP", "uniform FLOAT");
+      AiNodeDeclare(particle, "opacityPP", constantUserData ? "constant ARRAY FLOAT" : "uniform FLOAT");
    }
 
    // radius is a bit more complicated.   radiusPP overrides everything except spritePP widths
@@ -274,7 +324,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    if (m_exportId)
    {
-      AiNodeDeclare(particle, "particleId", "uniform INT");
+      AiNodeDeclare(particle, "particleId", constantUserData ? "constant ARRAY INT" : "uniform INT");
    }
 
    if (!m_hasRadiusPP || m_isSprite)
@@ -328,13 +378,9 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          m_particleSize = (m_lineWidth)*0.01;
          break;
       case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
-         MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
-         AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
-         m_particleSize = m_radius;
+          m_particleSize = m_radius;
          break;
       case PARTICLE_TYPE_CLOUD:// cloud
-         MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
-         AiMsgWarning("[mtoa] Cloud particle type is not yet supported");
          m_particleSize = m_radius;
          break;
       case PARTICLE_TYPE_TUBE:// tube
@@ -1168,6 +1214,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius").asFloat();
    float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier").asFloat();
 
+   bool constantUserData = m_fnParticleSystem.renderType() == PARTICLE_TYPE_CLOUD ||
+                           m_fnParticleSystem.renderType() == PARTICLE_TYPE_BLOBBYSURFACE;
+
    m_particleCount = (*m_out_positionArrays[0]).length();
 
    AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName().asChar(), m_particleCount);
@@ -1388,7 +1437,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          }
          // memory cleanup
          delete doubleIt->second;
-         AiNodeDeclare(particle, doubleIt->first.c_str(), "uniform FLOAT");
+         AiNodeDeclare(particle, doubleIt->first.c_str(), constantUserData ? "constant ARRAY FLOAT" : "uniform FLOAT");
          AiNodeSetArray(particle, doubleIt->first.c_str(), a_attributes);
 
       }
@@ -1418,7 +1467,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          // memory cleanup
          //std::cout << "cleaning up extra Vector attr memory " << vecIt->second[s] << std::endl;
          delete vecIt->second;
-         AiNodeDeclare(particle, vecIt->first.c_str(), "uniform VECTOR");
+         AiNodeDeclare(particle, vecIt->first.c_str(), constantUserData ? "constant ARRAY VECTOR" : "uniform VECTOR");
          AiNodeSetArray(particle, vecIt->first.c_str(), a_attributes);
 
       }
@@ -1447,7 +1496,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          // memory cleanup
          //std::cout << "cleaning up extra Int attr memory " << vecIt->second[s] << std::endl;
          delete vecIt->second;
-         AiNodeDeclare(particle, intIt->first.c_str(), "uniform INT");
+         AiNodeDeclare(particle, intIt->first.c_str(), constantUserData ? "constant ARRAY INT" : "uniform INT");
          AiNodeSetArray(particle, intIt->first.c_str(), a_attributes);
       }
    }
@@ -1623,7 +1672,20 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
          ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);
+      int renderType = m_fnParticleSystem.renderType();
       ProcessParameter(particle, "step_size", AI_TYPE_FLOAT, "aiStepSize");
+      if (renderType != PARTICLE_TYPE_BLOBBYSURFACE && renderType != PARTICLE_TYPE_CLOUD)
+      {
+          // Multiply in the step_scale because the points node doesn't have a step_scale parameter
+          float stepScale = m_fnParticleSystem.findPlug("aiStepScale").asFloat();
+          float curStepSize = AiNodeGetFlt(particle, "step_size");
+          AiNodeSetFlt(particle, "step_size", curStepSize * stepScale);
+      }
+      else
+      {
+          // Set the step_scale parameter directly
+          ProcessParameter(particle, "step_scale", AI_TYPE_FLOAT, "aiStepScale");
+      }
    }
    else
    {

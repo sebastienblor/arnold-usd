@@ -910,21 +910,36 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
             multiplier = static_cast<int> (pow(4.0f, (divisions-1)));
       }
 
-      std::vector<unsigned int> shidxs;
+      std::vector<unsigned char> shidxs;
       for (unsigned int i = 0; i < indices.length(); i++)
       {
          const int subdivisions = multiplier * fnMesh.polygonVertexCount(i);
          // indices[i] == -1 when a Shading Group is not connected
-         const unsigned int indexToBePushed = (indices[i] == -1) ? 0 : indices[i];
+         const unsigned char indexToBePushed = (indices[i] == -1) ? 0 : (unsigned char)AiMin(indices[i], 255);
          shidxs.push_back(indexToBePushed);
          for (int j = 0; j < subdivisions -1; j++)
             shidxs.push_back(indexToBePushed);
       }
 
+      // Need to add per-face data for the holes as well.  Since the holes are not visible
+      // it does not matter what shader index we use so we just fill it in with 0's here.
+      // Note the geometry processing adds the holes at the end so we also add the per face data 
+      // for the holes at the end too.
+      AtArray *holesArray = AiNodeGetArray(polymesh, "polygon_holes");
+      if (holesArray != NULL)
+      {
+         // we already exported some holes here
+         int numHoles = AiArrayGetNumElements(holesArray) / 2;
+          for (int i = 0; i < numHoles; i++)
+          {
+              shidxs.push_back(0);
+          }
+      }
+
       int numFaceShaders = (int)shidxs.size();
       if (numFaceShaders > 0)
       {
-         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_UINT, &(shidxs[0])));
+         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_BYTE, &(shidxs[0])));
       }
    }
 
@@ -1139,9 +1154,34 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
 
          if (!arnoldPolygonHoles.empty())
          {
+            numFaceVertices = AiArrayGetNumElements(vidxs); // the amount of face vertices gets bigger with the holes
             AtArray *polygonHoles = AiArrayConvert(arnoldPolygonHoles.size(), 1, AI_TYPE_UINT, &arnoldPolygonHoles[0]);
             AiNodeSetArray(polymesh, "polygon_holes", polygonHoles);
+
+            // make sure shidx has the proper amount of elements
+            AtArray *shidxArray = AiNodeGetArray(polymesh, "shidxs");
+            
+            if (shidxArray != NULL)
+            {
+               unsigned int shidxCount = AiArrayGetNumElements(shidxArray);
+               unsigned int polyCount = AiArrayGetNumElements(nsides);
+
+               if (shidxCount > 0 && shidxCount < polyCount)
+               {
+                  // the "shidx" needs some extra-data here, to fill the holes...
+                  unsigned char *shidxList = (unsigned char*)AiArrayMap(shidxArray);
+                  std::vector<unsigned char> newShidxList (polyCount, 0);
+                  memcpy(&newShidxList[0], shidxList, shidxCount * sizeof(unsigned char) );
+                  AiArrayUnmap(shidxArray); // is it necessary ?
+
+                  AtArray* newShidxArray = AiArrayConvert(polyCount, 1, AI_TYPE_BYTE, &newShidxList[0]);
+                  AiNodeSetArray(polymesh, "shidxs", newShidxArray);
+
+               }
+            }
+         
          }
+
       }
       
       if (exportReferenceObjects) // TODO : use local space for this and manually transform that later, 
@@ -1321,6 +1361,9 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
+   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
+   AiNodeSetFlt(polymesh, "volume_padding", FindMayaPlug("aiVolumePadding").asFloat());
+   
    // Subdivision surfaces
    //
    const int subdivision = FindMayaPlug("aiSubdivType").asInt();
@@ -1362,7 +1405,7 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
    MBoundingBox bbox = fnMesh.boundingBox();
    AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
    AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
-   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
+   //AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
 AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
@@ -1490,10 +1533,7 @@ void CPolygonGeometryTranslator::Export(AtNode *anode)
             return;
          ExportMesh(anode, false);
       }
-      else if (strcmp(nodeType, "box") == 0)
-      {
-         ExportBBox(anode);  
-      }
+      
    } else
    {
       // This is what we used to do, we should check if it's the good thing
@@ -1574,6 +1614,14 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.min.FLT() = 0.f;
    data.hasSoftMax = true;
    data.softMax.FLT() = 1.f;
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 0.f;
+   data.name = "aiVolumePadding";
+   data.shortName = "ai_volume_padding";
+   data.channelBox = false;
+   data.hasMin = true;
+   data.min.FLT() = 0.f;
    helper.MakeInputFloat(data);
 
    data.stringDefault = "velocityPV";

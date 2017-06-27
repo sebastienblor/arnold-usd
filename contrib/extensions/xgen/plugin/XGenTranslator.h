@@ -31,5 +31,5 @@ private:
    void ExpandProcedural();
 
    std::vector<bool> m_exportedSteps;
-   XGenArnold::ProceduralWrapper *m_expandedProcedural;
+   std::vector<XGenArnold::ProceduralWrapper*> m_expandedProcedurals;
 };

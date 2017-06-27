@@ -29,30 +29,31 @@ enum ShaveHairParams
 
 node_parameters
 {
-   AiParameterSTR(       "rootcolor"        , NULL);
-   AiParameterSTR(       "tipcolor"         , NULL);
+   AiParameterStr(       "rootcolor"        , NULL);
+   AiParameterStr(       "tipcolor"         , NULL);
    AiParameterRGB(       "strand_opacity"   , 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "ambdiff"          , 1.0f);
+   AiParameterFlt(       "ambdiff"          , 1.0f);
    AiParameterRGB(       "ambient"          , 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "gloss"            , 10.0f);
+   AiParameterFlt(       "gloss"            , 10.0f);
    AiParameterRGB(       "spec_color"       , 1.0f, 1.0f, 1.0f);
-   AiParameterFLT(       "spec"             , 1.0f);
-   AiParameterFLT(       "kd_ind"           , 1.0f);
-   AiMetaDataSetFlt(mds, "kd_ind"           , "softmax", 10.0f);
-   AiMetaDataSetFlt(mds, "kd_ind"           , "min",     0.0f);
-   AiParameterFLT(       "direct_diffuse"   , 1.0f);
-   AiMetaDataSetFlt(mds, "direct_diffuse"   , "softmax", 1.0f);
-   AiMetaDataSetFlt(mds, "direct_diffuse"   , "min",     0.0f);
-   AiParameterFLT(       "indirect_diffuse" , 1.0f);
-   
-   AiParameterSTR ( "aov_direct_diffuse"             , "direct_diffuse"    );
-   AiMetaDataSetInt(mds, "aov_direct_diffuse"        , "aov.type", AI_TYPE_RGB);
-   AiParameterSTR ( "aov_direct_specular"            , "direct_specular"   );
-   AiMetaDataSetInt(mds, "aov_direct_specular"       , "aov.type", AI_TYPE_RGB);
-   AiParameterSTR ( "aov_indirect_diffuse"           , "indirect_diffuse"  );
-   AiMetaDataSetInt(mds, "aov_indirect_diffuse"      , "aov.type", AI_TYPE_RGB);
+   AiParameterFlt(       "spec"             , 1.0f);
+   AiParameterFlt(       "kd_ind"           , 1.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "shaveHair");
+   AiMetaDataSetFlt(nentry, "kd_ind"           , "softmax", 10.0f);
+   AiMetaDataSetFlt(nentry, "kd_ind"           , "min",     0.0f);
+   AiParameterFlt(       "direct_diffuse"   , 1.0f);
+   AiMetaDataSetFlt(nentry, "direct_diffuse"   , "softmax", 1.0f);
+   AiMetaDataSetFlt(nentry, "direct_diffuse"   , "min",     0.0f);
+   AiParameterFlt(       "indirect_diffuse" , 1.0f);
+   
+   AiParameterStr ( "aov_direct_diffuse"             , "direct_diffuse"    );
+   AiMetaDataSetInt(nentry, "aov_direct_diffuse"        , "aov.type", AI_TYPE_RGB);
+   AiParameterStr ( "aov_direct_specular"            , "direct_specular"   );
+   AiMetaDataSetInt(nentry, "aov_direct_specular"       , "aov.type", AI_TYPE_RGB);
+   AiParameterStr ( "aov_indirect_diffuse"           , "indirect_diffuse"  );
+   AiMetaDataSetInt(nentry, "aov_indirect_diffuse"      , "aov.type", AI_TYPE_RGB);
+
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "shaveHair");
 }
 
 typedef struct
@@ -83,30 +84,27 @@ node_finish
 
 shader_evaluate
 {
-   AtColor opacity = AiShaderEvalParamRGB(p_strand_opacity);
+   AtRGB opacity = AiShaderEvalParamRGB(p_strand_opacity);
 
    // This piece of user-data is automatically set by the curves node when
    // using auto-enlargement (min_pixel_width > 0)
    float geo_opacity;
-   if (AiUDataGetFlt("geo_opacity", &geo_opacity))
+   static AtString geo_opacityStr("geo_opacity");
+   if (AiUDataGetFlt(geo_opacityStr, geo_opacity))
       opacity *= geo_opacity;
       
-   if (AiShaderGlobalsApplyOpacity(sg, opacity))
-      return;
       
    // early out for shadow rays and totally transparent objects
-   if ((sg->Rt & AI_RAY_SHADOW) || AiColorIsZero(sg->out_opacity))
+   if (sg->Rt & AI_RAY_SHADOW)
       return;
 
    AtVector V = -sg->Rd;
-   AtVector T;
-   AiV3Normalize(T, sg->dPdv);
+   AtVector T = AiV3Normalize(sg->dPdv);
 
-   AtColor Cdiff = AI_RGB_BLACK;
-   AtColor Cspec = AI_RGB_BLACK;
+   AtRGB Cdiff = AI_RGB_BLACK;
+   AtRGB Cspec = AI_RGB_BLACK;
 
 
-   AtParamValue *params = AiNodeGetParams(node);
    float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
    float gloss      = AiShaderEvalParamFlt(p_gloss) * 2000;
    float spec       = AiShaderEvalParamFlt(p_spec);
@@ -114,20 +112,20 @@ shader_evaluate
    float direct_c   = AiShaderEvalParamFlt(p_direct_diffuse);
    float indirect_c = AiShaderEvalParamFlt(p_indirect_diffuse);
 
-   AtColor spec_color = AiShaderEvalParamRGB(p_spec_color);
-   AtColor root_color;
-   AtColor tip_color;
+   AtRGB spec_color = AiShaderEvalParamRGB(p_spec_color);
+   AtRGB root_color;
+   AtRGB tip_color;
 
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
-   AiUDataGetRGB(params[p_rootcolor].STR, &root_color);
-   AiUDataGetRGB(params[p_tipcolor].STR, &tip_color);
+
+   AiUDataGetRGB(AiShaderEvalParamStr(p_rootcolor), root_color);
+   AiUDataGetRGB(AiShaderEvalParamStr(p_tipcolor), tip_color);
 
    
 
    // mix root and tip colors
-   AtColor diff_color;
-   AiColorLerp(diff_color, sg->v, root_color, tip_color);
+   AtRGB diff_color = (sg->v * tip_color) + ((1.f - sg->v) * root_color);
    
    // Since the curves are represented as ray-facing ribbons
    // their normal is usually pointing roughly towards the incoming ray
@@ -139,22 +137,25 @@ shader_evaluate
 
    // direct lighting
    AiLightsPrepare(sg);
-   while (AiLightsGetSample(sg))
+   AtLightSample light_sample;
+   while (AiLightsGetSample(sg, light_sample))
    {
-      if (AiLightGetAffectDiffuse(sg->Lp))
+      float lDiff = AiLightGetDiffuse(light_sample.Lp);
+      if (lDiff > 0)
       {
-         float TdotL = (float)AiV3Dot(T, sg->Ld);
+         float TdotL = (float)AiV3Dot(T, light_sample.Ld);
          float d = 1 - TdotL * TdotL;
          d = d > 0 ? sqrtf(d) : 0;
          float diffterm = (1 - ambdiff) + d * ambdiff;  // limits gamut of diffuse term
          // diffuse x illumination
-         Cdiff += (sg->Li * diffterm * sg->we) * direct_c;
+         Cdiff += (light_sample.Li * diffterm) * direct_c * lDiff;
       }
 
-      if (spec > 0 && AiLightGetAffectSpecular(sg->Lp))
+      float lSpec = AiLightGetSpecular(light_sample.Lp);
+      if (spec > 0 && lSpec > 0)
       {
-         AtVector H = sg->Ld + V;
-         AiV3Normalize(H, H);
+         AtVector H = light_sample.Ld + V;
+         H = AiV3Normalize(H);
          float HdotT = (float)AiV3Dot(H, T);
          float s = 1 - HdotT * HdotT;
          if (s > 0)
@@ -164,7 +165,7 @@ shader_evaluate
             //       compensate by halving the gloss factor
             s = powf(s, gloss * 0.5f);
             // specular exponent x illumination
-            Cspec += sg->Li * s * sg->we;
+            Cspec += light_sample.Li * s * lSpec;
          }
       }
    }
@@ -179,16 +180,16 @@ shader_evaluate
    // FIXME: we should be checking for the arnold diffuse depth before we use Indirect gi
    //
    float kd_ind = AiShaderEvalParamFlt(p_kd_ind);
-   AtColor ind_diff;
+   AtRGB ind_diff;
    if (kd_ind > 0)
-      ind_diff = (kd_ind * AiIndirectDiffuse(&V,sg)) * indirect_c;
+      ind_diff = (kd_ind * AiIndirectDiffuse(V,sg, AI_RGB_WHITE)) * indirect_c;
    else
       ind_diff = AiShaderEvalParamRGB(p_ambient);
    ind_diff *= diff_color;
    AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_diffuse), ind_diff);
    Cdiff += ind_diff;
 
-   sg->out.RGB = Cdiff + Cspec;
+   sg->out.RGB() = Cdiff + Cspec;
 }
 
 node_loader

@@ -1,0 +1,108 @@
+ocio_profile_version: 1
+
+search_path: luts
+strictparsing: true
+luma: [0.2126, 0.7152, 0.0722]
+
+roles:
+  color_picking: lnf
+  color_timing: lnf
+  compositing_log: lnf
+  data: lnf
+  default: lnf
+  matte_paint: lnf
+  reference: lnf
+  scene_linear: lnf
+  texture_paint: lnf
+
+displays:
+  DCIP3:
+    - !<View> {name: Film, colorspace: vd10}
+    - !<View> {name: Log, colorspace: cpf}
+    - !<View> {name: Raw, colorspace: nc10}
+  sRGB:
+    - !<View> {name: Film, colorspace: vd10}
+    - !<View> {name: Log, colorspace: cpf}
+    - !<View> {name: Raw, colorspace: nc10}
+
+active_displays: [sRGB, DCIP3]
+active_views: [Film, Log, Raw]
+
+colorspaces:
+  - !<ColorSpace>
+    name: lnf
+    family: ln
+    equalitygroup: 
+    bitdepth: 32f
+    description: |
+      lnf :  linear show space
+    isdata: false
+    allocation: lg2
+    allocationvars: [-15, 6]
+
+  - !<ColorSpace>
+    name: lnh
+    family: ln
+    equalitygroup: 
+    bitdepth: 16f
+    description: |
+      lnh :  linear show space
+    isdata: false
+    allocation: lg2
+    allocationvars: [-15, 6]
+
+  - !<ColorSpace>
+    name: ln16
+    family: ln
+    equalitygroup: 
+    bitdepth: 16ui
+    description: |
+      ln16 : linear show space
+    isdata: false
+    allocation: lg2
+    allocationvars: [-15, 0]
+
+  - !<ColorSpace>
+    name: vd10
+    family: vd
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      vd10 :conversion from a gamma 2.2 
+    isdata: false
+    allocation: uniform
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: version_8_whitebalanced.spimtx, interpolation: unknown, direction: inverse}
+        - !<FileTransform> {src: vd10.spi1d, interpolation: nearest}
+
+  - !<ColorSpace>
+    name: cpf
+    family: cp
+    equalitygroup: 
+    bitdepth: 32f
+    description: |
+      cpf :video like conversion used for color picking 
+    isdata: false
+    allocation: uniform
+    to_reference: !<FileTransform> {src: cpf.spi1d, interpolation: linear}
+
+  - !<ColorSpace>
+    name: nc10
+    family: nc
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      nc10 :nc,Non-color used to store non-color data such as depth or surface normals
+    isdata: true
+    allocation: uniform
+
+  - !<ColorSpace>
+    name: ncf
+    family: nc
+    equalitygroup: 
+    bitdepth: 32f
+    description: |
+      ncf :nc,Non-color used to store non-color data such as depth or surface normals
+    isdata: true
+    allocation: uniform

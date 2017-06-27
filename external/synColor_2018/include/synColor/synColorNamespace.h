@@ -27,6 +27,6 @@
 #define _SYNCOLOR_NAMESPACE_H
 
 //! SynColor versioned namespace definition.
-#define SYNCOLOR SynColor_2018_0_76
+#define SYNCOLOR SynColor_2018_0_80
 
 #endif // _SYNCOLOR_NAMESPACE_H

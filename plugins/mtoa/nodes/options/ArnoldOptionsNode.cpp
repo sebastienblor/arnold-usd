@@ -48,6 +48,7 @@ MObject CArnoldOptionsNode::s_plugins_path;
 MObject CArnoldOptionsNode::s_use_sample_clamp;
 MObject CArnoldOptionsNode::s_use_sample_clamp_AOVs;
 MObject CArnoldOptionsNode::s_AA_sample_clamp;
+MObject CArnoldOptionsNode::s_indirect_sample_clamp;
 MObject CArnoldOptionsNode::s_lock_sampling_noise;
 MObject CArnoldOptionsNode::s_aa_seed;
 MObject CArnoldOptionsNode::s_filterType;
@@ -103,6 +104,7 @@ MObject CArnoldOptionsNode::s_render_unit;
 MObject CArnoldOptionsNode::s_scene_scale;
 MObject CArnoldOptionsNode::s_offset_origin;
 MObject CArnoldOptionsNode::s_origin;
+MObject CArnoldOptionsNode::s_aov_shaders;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -225,7 +227,8 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("random", 2);
    eAttr.addField("spiral", 3);
    eAttr.addField("hilbert", 4);
-   eAttr.addField("list", 5);
+   //eAttr.addField("list", 5);
+   
    eAttr.setDefault(3);
    eAttr.setKeyable(false);
    addAttribute(s_bucket_scanning);
@@ -278,6 +281,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_use_sample_clamp_AOVs);
    
    s_attributes.MakeInput("AA_sample_clamp");
+   s_attributes.MakeInput("indirect_sample_clamp");
 
    s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -633,5 +637,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_origin = mAttr.create("origin", "orig");
    mAttr.setKeyable(false);
    addAttribute(s_origin);
+
+   s_aov_shaders = mAttr.create("aovShaders","aov_shaders");
+   mAttr.setArray(1);
+   mAttr.setIndexMatters(false);
+   addAttribute(s_aov_shaders);
+
    return MS::kSuccess;
 }

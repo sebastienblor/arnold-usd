@@ -46,15 +46,14 @@ def getMaskValues():
         mask += 64
     if cmds.checkBoxGrp('oa_export_filters', q=True, value1=True):
         mask += 128
-
-    maya_version = versions.shortName()
-    if int(float(maya_version)) >= 2016:
-        # color manager
+    if cmds.checkBoxGrp('oa_export_color_manager', q=True, value1=True):
         mask += 2048
 
     return mask
 
 def setMaskValues(mask):
+    cmds.checkBoxGrp('oa_export_color_manager', edit=True, value1=(mask / 2048))
+    mask = mask % 2048
     cmds.checkBoxGrp('oa_export_filters', edit=True, value1=(mask / 128))
     mask = mask % 128
     cmds.checkBoxGrp('oa_export_drivers', edit=True, value1=(mask / 64))
@@ -187,6 +186,8 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.checkBoxGrp('oa_export_override', label1='Override Nodes', value1=True)
         cmds.checkBoxGrp('oa_export_drivers', label1='Drivers', value1=True)
         cmds.checkBoxGrp('oa_export_filters', label1='Filters', value1=True)
+        cmds.checkBoxGrp('oa_export_color_manager', label1='Color Manager', value1=True)
+
         setMaskValues(settings.get('mask', 255))
         
         cmds.text("oa_exportSeparator",label="")        

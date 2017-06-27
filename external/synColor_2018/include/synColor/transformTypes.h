@@ -22,13 +22,22 @@ SYN_VISIBILITY_PUSH
 namespace SYNCOLOR
 {
    //! Enumeration of all supported Lut3DO algorithms
-   //!   for the interpolation computation
+   //! for the interpolation computation
    enum Lut3DOpInterpolationAlgo
    {
       LUT3D_ALGO_DEFAULT = 0,     //!< Default algorithm
       LUT3D_ALGO_TRILINEAR,       //!< Trilinear interpolation's algorithm
       LUT3D_ALGO_TETRAHEDRAL,     //!< Tetrahedral interpolation's algorithm 
       LUT3D_ALGO_4PT_TETRAHEDRAL, //!< 4 points Tetrahedral interpolation's algorithm 
+   };
+
+   //! Enumeration of the CDL styles
+   enum CDLStyle
+   {
+      CDL_V1_2_FWD = 0,  //!< Forward (version 1.2) style
+      CDL_V1_2_REV,      //!< Reverse (version 1.2) style
+      CDL_NO_CLAMP_FWD,  //!< Forward no clamping style
+      CDL_NO_CLAMP_REV   //!< Reverse no clamping style
    };
 }
 

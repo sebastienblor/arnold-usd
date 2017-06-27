@@ -31,7 +31,7 @@ inline bool alembicExists(const std::string& name)
 
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {   
-   m_expandedProcedural = NULL;
+   m_expandedProcedurals.clear();
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
    return AddArnoldNode("xgen_procedural");
 }
@@ -40,21 +40,25 @@ void CXgDescriptionTranslator::Delete()
 {
    // If the procedural has been expanded at export,
    // we need to delete all the created nodes here 
-   if (m_expandedProcedural)
+   for (size_t i = 0; i < m_expandedProcedurals.size(); i++)
    {
-      int numNodes = m_expandedProcedural->NumNodes();
-      for (int i = 0; i < numNodes; ++i)
-      {
-         AtNode *node = m_expandedProcedural->GetNode(i);
-         if (node == NULL) continue; 
-         AiNodeDestroy(node);
-      }
-      m_expandedProcedural->Cleanup();
+       XGenArnold::ProceduralWrapper* expandedProcedural = m_expandedProcedurals[i];
+       if (expandedProcedural)
+       {
+          int numNodes = expandedProcedural->NumNodes();
+          for (int i = 0; i < numNodes; ++i)
+          {
+             AtNode *node = expandedProcedural->GetNode(i);
+             if (node == NULL) continue; 
+             AiNodeDestroy(node);
+          }
+          expandedProcedural->Cleanup();
 
-      delete m_expandedProcedural;
-      m_expandedProcedural = NULL;
-      m_exportedSteps.clear();
+          delete expandedProcedural;
+       }
    }
+   m_exportedSteps.clear();
+   m_expandedProcedurals.clear();
    CShapeTranslator::Delete();
 }
 
@@ -906,13 +910,15 @@ void CXgDescriptionTranslator::RequestUpdate()
 // can be updated while tweaking the XGen attributes
 void CXgDescriptionTranslator::ExpandProcedural()
 {
-   if (m_expandedProcedural)
+   if (!m_expandedProcedurals.empty())
       return;
 
    s_bCleanDescriptionCache = true;
+
    AtNode *node = GetArnoldNode();
-   m_expandedProcedural = new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ );
-   m_expandedProcedural->Init( node );
+   m_expandedProcedurals.push_back(
+       new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ ));
+   m_expandedProcedurals.back()->Init( node );
 
 #if MAYA_API_VERSION >= 201600
    MGlobal::executeCommand("xgmCache -clearPtexCache;");
@@ -932,6 +938,10 @@ void CXgDescriptionTranslator::ExpandProcedural()
       AtNode * procNode = GetArnoldNode(nameKey.asChar());
       if (procNode == NULL)
          break;
+
+      m_expandedProcedurals.push_back(
+          new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ ));
+      m_expandedProcedurals.back()->Init( procNode );
 
       AiNodeSetDisabled(procNode, true);
       i++;

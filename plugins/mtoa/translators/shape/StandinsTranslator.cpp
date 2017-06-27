@@ -202,6 +202,13 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("aiMatte");
       if (!plug.isNull()) AiNodeSetBool(node, "matte", plug.asBool());
    }
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(node, "motion_start", (float)motionStart);
+      AiNodeSetFlt(node, "motion_end", (float)motionEnd);
+   }
 }
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)

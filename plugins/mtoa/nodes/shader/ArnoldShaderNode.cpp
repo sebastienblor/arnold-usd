@@ -158,7 +158,19 @@ MStatus CArnoldShaderNode::initialize()
             helper.GetAttrData(paramName, attrData);
             MObject attr = helper.MakeInput(attrData);
             if (outputExists)
+            {
                attributeAffects(attr, outputAttr);
+               // Even though outTransparency isn't really "used", it will "work"
+               // if the user hooks it up into an arnold graph, because at
+               // translation time, mtoa will automatically replace any outgoing
+               // connections from "unknown" output attributes with the "normal"
+               // output attribute.
+               // Since outTransparency "works" when hooked up, and can end up
+               // used in artist's shader networks, we should make the attribute
+               // connections "work", so that things like, ie, exportSelected
+               // (with connections=True) will correctly gather dependencies.
+               attributeAffects(attr, s_OUT_transparency);
+            }
             /*
             // AOVs
             int aovType;

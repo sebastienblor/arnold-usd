@@ -580,6 +580,25 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
+      // FIXME this is not the ideal place to set this, but given how renderOptions/sessionOptions are currently 
+      // assembled, this is the best place to do it (#2995)
+      if ((RenderOptions()->outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
+      {
+         AiNodeSetPtr(AiUniverseGetOptions(), "color_manager", NULL);
+         // Loop over all shaders + drivers having a parameter "color_space"
+         AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHADER | AI_NODE_DRIVER);
+         static AtString colorSpaceStr("color_space");
+         while (!AiNodeIteratorFinished(nodeIter))
+         {
+            AtNode *node = AiNodeIteratorGetNext(nodeIter);
+            if (node == NULL) continue;
+            if(AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), colorSpaceStr))
+            {
+               AiNodeSetStr(node, "color_space", "");
+            }
+         }
+         AiNodeIteratorDestroy(nodeIter);
+      }
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding());

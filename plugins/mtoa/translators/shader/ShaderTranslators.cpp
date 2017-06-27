@@ -1934,6 +1934,8 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
       else
          AiNodeResetParameter(shader, AtString(attrName.asChar()));
    }
+
+   ProcessParameter(shader, "index", AI_TYPE_INT);
 }
 
 void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)

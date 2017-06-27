@@ -43,6 +43,8 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		AiNodeSetStr( newNode, "name", nodeName.c_str() );
 		AiNodeSetFlt( newNode, "min_pixel_width", 0.0f );
 		AiNodeSetBool( newNode, "opaque", false );
+		AiNodeSetFlt(newNode, "motion_start", inData->shutterStart);
+		AiNodeSetFlt(newNode, "motion_end", inData->shutterEnd);
 
 		// create a one element array which will be pointed to our data structure
 		float *posData = (float *)cPos;

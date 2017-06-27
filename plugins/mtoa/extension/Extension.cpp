@@ -2,6 +2,7 @@
 #include "PxUtils.h"
 #include "common/DynLibrary.h"
 #include "nodes/ArnoldNodeIDs.h"
+#include "utils/Universe.h"
 
 #include "translators/NodeTranslatorImpl.h"
 #include "ExtensionImpl.h"
@@ -309,12 +310,8 @@ MStatus CExtensionImpl::DoUnloadArnoldPlugin(const MString &resolved)
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      MString nentryFile = AiNodeEntryGetFilename(nentry);
-      const char* nentryFileChar = AiNodeEntryGetFilename(nentry);
-      if (nentryFileChar != 0)
-         nentryFile = nentryFileChar;
-      else
-         nentryFile = "";
+      MString nentryFile = ArnoldGetEntryFile(nentry);
+      
       if (nentryFile == resolved)
       {
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
@@ -418,12 +415,8 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
       MString nodeName = AiNodeEntryGetName(nentry);
       /*if (nodeName == "driver_deepexr")
          continue;*/
-      MString nodeFile;
-      const char* nodeFileChar = AiNodeEntryGetFilename(nentry);
-      if (nodeFileChar != 0)
-         nodeFile = nodeFileChar;
-      else
-         nodeFile = "";
+      MString nodeFile = ArnoldGetEntryFile(nentry);
+
       if (nodeFile == plugin)
       {
          // If the Arnold node is marked as a node that should be ignored
@@ -499,77 +492,6 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    return status;
 }
 
-/*
-/// Register translators for Arnold nodes provided by the given Arnold Plugin.
-///
-/// Will only handle Arnold nodes that are marked as provided by this plugin.
-///
-/// @param plugin  the resolved absolute path to an Arnold plugin
-///
-MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
-{
-   MStatus status(MStatus::kSuccess);
-
-   // Arnold api doc says AiNodeEntryGetFilename returns <buit-in> for
-   // built-in nodes, but it seems to return an empty string.
-   if (plugin.numChars() == 0)
-      AiMsgDebug("[mtoa] [%s] Registering translators for built-in nodes.", m_impl->m_extensionName.asChar());
-   else
-      AiMsgDebug("[mtoa] [%s] Registering translators for nodes provided by Arnold plugin %s.", m_impl->m_extensionName.asChar(), plugin.asChar());
-
-   // FIXME: use map instead
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
-   while (!AiNodeEntryIteratorFinished(nodeIter))
-   {
-      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* nodeName = AiNodeEntryGetName(nentry);
-      const char* nodeFile = AiNodeEntryGetFilename(nentry);
-      if (strcmp(nodeFile, plugin.asChar()) == 0)
-      {
-         // If the Arnold node is marked as a node that should be ignored
-         bool ignore;
-         if (AiMetaDataGetBool(nentry, NULL, "maya.ignore", &ignore) && ignore)
-         {
-            AiMsgDebug("[mtoa] [%s] [node %s] Marked as ignored.", m_impl->m_extensionName.asChar(), nodeName);
-            continue;
-         }
-         // AiMsgDebug("[mtoa] [%s] Arnold node %s is provided by %s and will be processed for translator registration", m_impl->m_extensionName.asChar(), nodeName, nodeFile);
-         MStatus nodeStatus;
-         nodeStatus = RegisterTranslator(nentry);
-         // Only report hard failures, ignore kNotImplemented
-         if (MStatus::kSuccess != nodeStatus
-               && MStatus::kNotImplemented != nodeStatus)
-         {
-            status = nodeStatus;
-         }
-      }
-   }
-   AiNodeEntryIteratorDestroy(nodeIter);
-
-   // Info
-   unsigned int newNodes = RegisteredNodesCount();
-   unsigned int trsNodes = TranslatedNodesCount();
-   AiMsgInfo("[mtoa] [%s] Registered a total of %i translators for %i Maya nodes (%i new and %i existing).",
-         m_impl->m_extensionName.asChar(), TranslatorCount(), trsNodes, newNodes, trsNodes - newNodes);
-
-   return status;
-}
-*/
-
-/// Register a Maya node for the given Arnold node.
-///
-/// Certain optional node-level metadata can be used to control how the
-/// node factory processes the node's registration:
-///  -# "maya.name" - the name for the generated or corresponding maya node
-///  -# "maya.id" - the maya node id to use for the generated or corresponding maya node
-///  -# "maya.class" - classification string (defaults to "shader/surface")
-///
-/// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
-///
-/// @param arnoldNodeEntry  arnold AtNodeEntry from which to generate the new Maya node
-///
-/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
-///
 
 MStatus CExtensionImpl::RegisterNode(CPxMayaNode &mayaNode,
                                  const CPxArnoldNode &arnoldNode)

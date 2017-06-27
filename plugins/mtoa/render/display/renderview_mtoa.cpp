@@ -355,8 +355,13 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
          // assign the ARV_options parameter as it is the first time since I opened this scene
          MString optParam;
          MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-
          SetFromSerialized(optParam.asChar());
+
+         bool varExists = false;
+         MString optionVarValue = MGlobal::optionVarStringValue("arv_user_options", &varExists);
+         if (varExists)
+            SetFromSerialized(optionVarValue.asChar());
+         
       }
       SetOption("Real Size", "1");
    }
@@ -569,14 +574,18 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
    if (data == NULL) return;
    CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
 
-   const char *serialized = renderViewMtoA->Serialize();
+
+   // Get Scene-dependent ARV data
+   const char *sceneSerialized = renderViewMtoA->Serialize(false, true); // Scene settings
    
    MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
-   command += serialized;
+   command += sceneSerialized;
    command +="\"";
-
    MGlobal::executeCommand(command);
 
+   const char *userSerialized = renderViewMtoA->Serialize(true, false); // user settings
+   MString arvOptionName("arv_user_options");
+   MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
 }
 void CRenderViewMtoA::ColorMgtRefreshed(void *data)
 {
@@ -824,6 +833,12 @@ void CRenderViewMtoA::RenderViewClosed()
 #endif
 
    ReceiveSelectionChanges(false);
+
+   // Saving user prefs when the render view is closed
+   const char *userSerialized = Serialize(true, false); // user settings
+   MString arvOptionName("arv_user_options");
+   MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+
    if (s_sequenceData != NULL)
    {
       SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());

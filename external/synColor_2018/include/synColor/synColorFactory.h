@@ -28,11 +28,44 @@
 #include <synColor/templateTypes.h>
 #include <synColor/stockTemplate.h>
 #include <synColor/stockTransform.h>
+#include <synColor/transformTypes.h>
 
 SYN_VISIBILITY_PUSH
 
 namespace SYNCOLOR
-{
+{ 
+  //! \brief Create a color transform from CDL SOP and Sat values.
+  //!
+  //! Utility factory method that builds a CDL color transform from the
+  //! Slope, Offset, Power and Saturation values provided.
+  //!
+  //! The ASC spec v1.2 imposes the following restrictions:
+  //!
+  //! slope >= 0, power > 0, sat >= 0, (offset unbounded).  The parameters are validated and
+  //! an error will be returned if any of them are illegal.
+  //!
+  //! \param inBitDepth Input bit depth.  See SYNCOLOR::BitDepth.
+  //! \param outBitDepth Output bit depth. See SYNCOLOR::BitDepth.
+  //! \param ccId Color correction identifier string
+  //! \param slope Slope RGB array values
+  //! \param offset Offset RGB array values
+  //! \param power Power RGB array values
+  //! \param saturation Saturation value
+  //! \param style CDL style to use
+  //! \param pTransform Returned transform.
+  //!
+  //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error occurred.
+  //!
+  SYN_EXPORT SynStatus CreateCDLTransform(BitDepth inBitDepth,
+                                          BitDepth outBitDepth,
+                                          const char* ccId,
+                                          const double slope[],
+                                          const double offset[],
+                                          const double power[],
+                                          const double saturation,
+                                          CDLStyle style,
+                                          TransformPtr& pTransform);
+  
   //! \brief Create a color transform containing a single 3x 1D LUT operator from short values.
   //!
   //! Utility factory method that builds a 1D LUT color transform from the

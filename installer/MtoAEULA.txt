@@ -1,6 +1,6 @@
 Solid Angle Software License Agreement
 
-This Software License Agreement (“SLA” or "EULA") is a legal agreement between you, an individual or other legal entity ("End User") and Solid Angle S.L., which has its registered address at C/ Gran Vía 51 5-C, 28013 and is holder of Spanish Tax Code Number B-857786455 ("Solid Angle"), which sets forth the terms and conditions of the license to use the Arnold software, plug-ins and accompanying documentation ("Arnold Software").
+This Software License Agreement ("SLA" or "EULA") is a legal agreement between you, an individual or other legal entity ("End User") and Solid Angle S.L., which has its registered address at C/ Gran Via 51 5-C, 28013 and is holder of Spanish Tax Code Number B-857786455 ("Solid Angle"), which sets forth the terms and conditions of the license to use the Arnold software, plug-ins and accompanying documentation ("Arnold Software").
 
 By downloading, installing, copying, accessing or otherwise using the Arnold Software, you agree to be bound by the terms of this EULA. If you do not agree to the terms of this EULA, do not download, install or use the Arnold Software.
 
@@ -24,7 +24,7 @@ The Arnold Software will operate in evaluation mode with a watermarked output if
 
 Licenses that are used for education purposes or have been purchased at an educational discount may only be used by the End User for training and instruction and for no other purpose.
  
-Solid Angle’s license grant (and, with that grant, End User’s right to install and use the Arnold Software) is conditioned on End User’s continuous compliance with all license limitations, restrictions and other terms in this Agreement. If End User violates any of these limitations, restrictions or other terms, Section 7 (Term and Termination) will apply. The license descriptions in Section 1 (Grant of License) and this Section 2 (Restrictions on Use) define the scope of rights that Solid Angle grants to End User. Any usage of the Arnold Software outside the scope of the applicable license grant or otherwise not in accordance with this Agreement constitutes an infringement of Solid Angle’s intellectual property rights as well as a material breach of this Agreement.
+Solid Angle's license grant (and, with that grant, End User's right to install and use the Arnold Software) is conditioned on End User's continuous compliance with all license limitations, restrictions and other terms in this Agreement. If End User violates any of these limitations, restrictions or other terms, Section 7 (Term and Termination) will apply. The license descriptions in Section 1 (Grant of License) and this Section 2 (Restrictions on Use) define the scope of rights that Solid Angle grants to End User. Any usage of the Arnold Software outside the scope of the applicable license grant or otherwise not in accordance with this Agreement constitutes an infringement of Solid Angle's intellectual property rights as well as a material breach of this Agreement.
 
 3. Ownership.
 

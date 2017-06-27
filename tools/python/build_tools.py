@@ -145,7 +145,7 @@ def get_mtoa_version(components = 4):
       version += '.' + MAJOR_VERSION
    if (components > 2):
       version += '.' + MINOR_VERSION
-   if (components > 3):
+   if (components > 3 and FIX_VERSION != ''):
       version += '.' + FIX_VERSION
    return version      
 
@@ -272,6 +272,18 @@ def get_library_extension():
       return ".dylib"
    else:
       return ""
+
+def get_library_prefix():
+   if system.os() == 'windows':
+      return ""
+   elif system.os() == 'linux':
+      return "lib"
+   elif system.os() == 'darwin':
+      return "lib"
+   else:
+      return ""
+      
+
       
 def get_executable_extension():
    if system.os() == 'windows':

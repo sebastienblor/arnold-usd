@@ -83,6 +83,7 @@
     <attr n="ai:cmpsv" s="defaultArnoldRenderOptions.use_sample_clamp" t="boolean" h="Enable sample clamping."/>
     <attr n="ai:aovsc" s="defaultArnoldRenderOptions.use_sample_clamp_AOVs" t="boolean" h="Sample campling affects AOVs."/>
     <attr n="ai:aasc" s="defaultArnoldRenderOptions.AASampleClamp" t="float" h="Sample max value."/>
+    <attr n="ai:iasc" s="defaultArnoldRenderOptions.indirectSampleClamp" t="float" h="Sample max value for indirect rays."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Depth options"/>
