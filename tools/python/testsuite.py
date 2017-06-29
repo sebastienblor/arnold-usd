@@ -165,8 +165,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     # this is a little hack to keep non-AOV tests working. a proper fix would involve
     # opening each file and ensuring that it has "testrender" as its output prefix.
     options = ''
-    if len(references) == 1:
-        options = '-im %s' % output_basename
+    #if len(references) == 1:
+        #options = '-im %s' % output_basename
 
     # verbose and log options for Render cmd : -verb -log "test.log" 
     if show_test_output:
