@@ -1,29 +1,23 @@
 import os
 import sys
-import tempfile
 
-# Compute all paths to run kick
+# This test validates kick with output transform. I've also added some not color managed textures 
+# to stress a little bit more the synColor plugin (i.e. output & input color transformations).
 
-maya_root_path    = sys.argv[1]
-mtoa_shaders_path = os.path.join(sys.argv[2], 'shaders')
-test_root_path    = sys.argv[3]
-synColor_path     = os.path.join(maya_root_path, 'synColor')
-output_file_path  = os.path.join(test_root_path, 'testrender.tif')
-
-# Build the ass file with the right synColor catalog path
-
-(fd, ass_filename) = tempfile.mkstemp('.ass')
-
-refFile = open(os.path.join(test_root_path, 'ref.ass'), 'r')
-for line in refFile:
-    if '__REPLACE__' in line.split():
-        os.write(fd, 'native_catalog_path "%s"\n' % synColor_path)
-    else:
-        os.write(fd, line)
-os.close(fd)
-refFile.close()
+# Also I've artificially increase the number of threads to stress the multi-thread mechanism used 
+# by the synColor plugin cache.
 
 # Execute the script
 
-cmd = 'kick -v 0 -t 64 -dp -dw -l %s %s -o %s' % (mtoa_shaders_path, ass_filename, output_file_path)
+maya_root_path    = sys.argv[1]
+mtoa_root_path    = sys.argv[2]
+
+shaders_path = os.path.join(mtoa_root_path, "shaders")
+synColor_path = os.path.join(maya_root_path, "synColor")
+
+cmd = 'kick -v 0 -dp -dw ref.ass -l "%s" -r 160 120 -set defaultColorMgtGlobals.native_catalog_path "%s" -t 64 -o testrender.tif' \
+ % (shaders_path, synColor_path)
+
+print cmd
+
 os.system(cmd)

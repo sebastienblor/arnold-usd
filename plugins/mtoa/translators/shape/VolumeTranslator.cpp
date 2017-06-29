@@ -235,15 +235,15 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeDeclare( volume, "motion_end", "constant FLOAT" );
       AiNodeSetFlt(volume, "motion_end", m_DagNode.findPlug("motionEnd").asFloat());
       
-      AiNodeDeclare(volume, "bounds_slack", "constant FLOAT" );
-      AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("padding").asFloat());
+      AiNodeDeclare(volume, "volume_padding", "constant FLOAT" );
+      AiNodeSetFlt(volume, "volume_padding", m_DagNode.findPlug("padding").asFloat());
 
       AiNodeDeclare( volume, "velocity_outlier_threshold", "constant FLOAT" );
       AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold").asFloat());         
          
       AiNodeSetBool(volume, "disable_ray_extents", m_DagNode.findPlug("disableRayExtents").asBool());
       AiNodeSetBool(volume, "compress", m_DagNode.findPlug("compress").asBool());
-      AiNodeSetFlt(volume, "bounds_slack", m_DagNode.findPlug("boundsSlack").asFloat());
+      AiNodeSetFlt(volume, "volume_padding", m_DagNode.findPlug("volumePadding").asFloat());
 
       const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(volume));
       if (strcmp(nodeType, "volume_implicit") == 0)

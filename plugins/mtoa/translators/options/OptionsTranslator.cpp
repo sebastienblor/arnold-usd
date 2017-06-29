@@ -642,6 +642,8 @@ static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
    CNodeTranslator *imgTranslator = NULL;
    MStatus status;
 
+   AiNodeSetPtr(options, "background", NULL);
+
    if (imagePlanePlug.numConnectedElements() == 0)
       return;
 
@@ -650,6 +652,7 @@ static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
       MPlugArray connectedPlugs;
       MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
       imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+
 
       if (status && (connectedPlugs.length() > 0))
       {

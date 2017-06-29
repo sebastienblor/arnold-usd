@@ -1,0 +1,318 @@
+00:00:00    39MB         | log started Fri Jun 23 16:19:02 2017
+00:00:00    39MB         | Arnold 5.0.1.0.wip [2a34411e] windows icc-17.0.2 oiio-1.7.15 osl-1.9.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.2.2 2017/06/23 09:09:44
+00:00:00    39MB         | running on REM8WCK8D2, pid=4584
+00:00:00    39MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00    39MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00    39MB         |  soft limit for open files raised from 512 to 2048
+00:00:00    39MB         |  
+00:00:00    39MB         | [kick] command: kick -v 0 -dp -dw ref.ass -l C:\solidangle\mtoadeploy\2017/shaders -v 6 -set defaultColorMgtGlobals.native_catalog_path C:\Program Files\Autodesk\Maya2017/synColor
+00:00:00    39MB         | loading plugins from C:\solidangle\mtoadeploy\2017/shaders ...
+00:00:00    40MB         |  bifrost_shaders.dll: bifrostFoamMaterial uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  bifrost_shaders.dll: bifrostAeroMaterial uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatConstant uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatComposite uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatCondition uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatCorrect uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatLogic uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatMask uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkFloatMath uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorComposite uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorCondition uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorConstant uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorCorrect uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorLogic uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorMask uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkColorMath uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkChannels uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkPremultiply uses Arnold 5.0.1.0.wip
+00:00:00    40MB         |  lookdevkit_shaders.dll: ldkSimplexNoise uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaClamp uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaCondition uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaReverse uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSamplerInfo1D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSamplerInfo2D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaFile uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaRamp uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaProjection uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaChecker uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaBulge uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaCloth uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaGrid uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaFractal uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaNoise uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaLuminance uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaCloud uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSnow uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaContrast uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaBrownian uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaStucco uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSetRange uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaColorToFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaVectorToFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaPointToFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaPoint2ToFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaWriteColor uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAovWriteColor uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaWriteFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAovWriteFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAnimFloat uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAnimPoint uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAnimVector uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAnimColor uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAnimMatrix uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaUserDataVector uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaUserDataColor uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaShadingEngine uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaSamplerInfo3D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAovWriteVector uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaAovWriteVector2 uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaNormalDisplacement uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaVectorDisplacement uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaUserDataBool uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaHair uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaMeshLightMaterial uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MtoaUserDataVec2 uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaBump2D uses Arnold 5.0.1.0.wip
+00:00:00    41MB         |  mtoa_shaders.dll: MayaFluid uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaMarble uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaMountain uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaWater uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaCrater uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaLeather uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaGranite uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaRock uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaSingleShadingSwitch uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaDoubleShadingSwitch uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaTripleShadingSwitch uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaQuadShadingSwitch uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaFluidData uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaFluidTexture2D uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaSurfaceLuminance uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MtoaCameraUvMapper uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  mtoa_shaders.dll: MayaFlatClosure uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  [metadata] loading metadata file: C:\solidangle\mtoadeploy\2017/shaders\mtoa_shaders.mtd
+00:00:00    42MB         |  renderSetup_shaders.dll: applyAbsFloatOverride uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  renderSetup_shaders.dll: applyAbs2FloatsOverride uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  renderSetup_shaders.dll: applyAbs3FloatsOverride uses Arnold 5.0.1.0.wip
+00:00:00    42MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 5.0.1.0.wip
+00:00:00    43MB         |  xgenSpline_shaders.dll: XGenHairMapping uses Arnold 5.0.1.0.wip
+00:00:00    43MB         | loaded 115 plugins from 7 lib(s) in 0:00.01
+00:00:00    43MB         | loading plugins from . ...
+00:00:00    43MB         | no plugins loaded
+00:00:00    43MB         | [ass] loading ref.ass ...
+00:00:00    43MB WARNING |  node entry "standard" is deprecated, and may be removed in the future
+00:00:00    43MB         | [ass] read 26480 bytes, 10 nodes in 0:00.00
+00:00:00    43MB         | [kick] applying 1 attr value override
+00:00:00    43MB         |  
+00:00:00    43MB         | authorizing ...
+00:00:00    48MB WARNING | failed authorization:
+00:00:00    48MB         |  [rlm] error initializing license system:
+00:00:00    48MB         |  [rlm]  * Can't read license data (-102)
+00:00:00    48MB         |  [clm] license server was not set (51)
+00:00:00    48MB         |  environment variables:
+00:00:00    48MB         |  [rlm]  solidangle_LICENSE    = (not set)
+00:00:00    48MB         |  [rlm]  RLM_LICENSE           = (not set)
+00:00:00    48MB         |  [clm]  ADSKFLEX_LICENSE_FILE = (not set)
+00:00:00    48MB         |  [clm]  LM_LICENSE_FILE       = (not set)
+00:00:00    48MB         | 
+00:00:00    55MB         | [color_manager_syncolor] synColor version 2017.0.69
+00:00:00    55MB         | [color_manager_syncolor] native catolog directory: C:\Program Files\Autodesk\Maya2017/synColor
+00:00:00    69MB         |  
+00:00:00    69MB         | there are 1 light and 2 objects:
+00:00:00    69MB         |       1 persp_camera
+00:00:00    69MB         |       1 distant_light
+00:00:00    69MB         |       1 utility
+00:00:00    69MB         |       1 standard
+00:00:00    69MB         |       1 driver_tiff
+00:00:00    69MB         |       1 gaussian_filter
+00:00:00    69MB         |       1 polymesh
+00:00:00    69MB         |       1 list_aggregate
+00:00:00    69MB         |       1 MayaFile
+00:00:00    69MB         |       1 MayaShadingEngine
+00:00:00    69MB         |       1 color_manager_syncolor
+00:00:00    69MB         |  
+00:00:00    69MB         | rendering image at 160 x 120, 3 AA samples
+00:00:00    69MB         |   AA sample clamp   <disabled>
+00:00:00    69MB         |   diffuse           samples  2 / depth  1
+00:00:00    69MB         |   specular          samples  2 / depth  1
+00:00:00    69MB         |   transmission      samples  2 / depth  8
+00:00:00    69MB         |   volume indirect   <disabled by depth>
+00:00:00    69MB         |   total                          depth 10
+00:00:00    69MB         |   bssrdf            samples  2
+00:00:00    69MB         |   transparency      depth 10
+00:00:00    69MB         |  initializing 12 nodes ...
+00:00:00    69MB         |   creating root object list ...
+00:00:00    69MB         |  node initialization done in 0:00.00 (single-threaded)
+00:00:00    69MB         |  updating 13 nodes ...
+00:00:00    69MB         |   directionalLightShape1: distant_light using 1 sample, 2 volume samples
+00:00:00    69MB         |   scene bounds: (-20.2663345 -11.3377581 -33.7947617) -> (2.40918446 11.3377581 -11.1192379)
+00:00:00    69MB         |  node update done in 0:00.00 (single-threaded)
+00:00:00    69MB         |  [color_manager] using color manager of type "color_manager_syncolor"
+00:00:00    69MB         |  [aov] parsing 1 output statements ...
+00:00:00    69MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00    69MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00    69MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00    69MB         |  starting 40 bucket workers of size 64x64 ...
+00:00:00    74MB         |    15% done - 9 rays/pixel
+00:00:00    76MB         |   [accel] polymesh bvh4 done - 0:00.00 - 400 prims, 1 key
+00:00:00    77MB         |    25% done - 9 rays/pixel
+00:00:00    81MB         |    45% done - 20 rays/pixel
+00:00:00    82MB         |    65% done - 44 rays/pixel
+00:00:00    82MB         |    75% done - 0 rays/pixel
+00:00:00    82MB         |   100% done - 0 rays/pixel
+00:00:00    76MB         |  bucket workers done in 0:00.11
+00:00:00    76MB         |  [driver_tiff] writing file `testrender.tif'
+00:00:00    76MB         | render done
+00:00:00    76MB         |  
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | scene creation time:
+00:00:00    76MB         |  plugin loading               0:00.01
+00:00:00    76MB         |  .ass parsing                 0:00.00
+00:00:00    76MB         |  total                        0:00.02  ( 0.00% machine utilization)
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | render time:                  (multi-threaded render, values may not be reliable)
+00:00:00    76MB         |  node init                    0:00.00
+00:00:00    76MB         |   sanity checks               0:00.00
+00:00:00    76MB         |  bucket rendering             0:00.11
+00:00:00    76MB         |   mesh processing             0:00.00
+00:00:00    76MB         |   accel. building             0:00.00
+00:00:00    76MB         |   pixel rendering             0:00.10
+00:00:00    76MB         |  unaccounted                  0:00.07
+00:00:00    76MB         |  total                        0:00.19  (31.60% machine utilization)
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | memory consumed in MB:
+00:00:00    76MB         |  at startup                35.10
+00:00:00    76MB         |  plugins                    3.17
+00:00:00    76MB         |  AOV samples               41.28
+00:00:00    76MB         |  output buffers             2.57
+00:00:00    76MB         |  node overhead              0.01
+00:00:00    76MB         |  message passing            0.08
+00:00:00    76MB         |  memory pools              35.07
+00:00:00    76MB         |  geometry                   0.01
+00:00:00    76MB         |    polymesh                 0.01
+00:00:00    76MB         |  accel. structs             0.02
+00:00:00    76MB         |  strings                   12.01
+00:00:00    76MB         |  texture cache              2.91
+00:00:00    76MB         |  unaccounted              -49.78
+00:00:00    76MB         |  total peak                82.45
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | ray counts:                      ( /pixel, /sample) (% total) (avg. hits) (max hits)
+00:00:00    76MB         |  camera                   178252 (   9.28,    1.00) ( 38.28%) (     0.18) (       1)
+00:00:00    76MB         |  shadow                    30826 (   1.61,    0.17) (  6.62%) (     0.00) (       0)
+00:00:00    76MB         |  diffuse_reflect          128777 (   6.71,    0.72) ( 27.66%) (     0.00) (       0)
+00:00:00    76MB         |  specular_reflect         127750 (   6.65,    0.72) ( 27.44%) (     0.00) (       0)
+00:00:00    76MB         |  total                    465605 (  24.25,    2.61) (100.00%) (     0.07) (       1)
+00:00:00    76MB         | by ray depth:              0     1
+00:00:00    76MB         |  total                   44.9% 55.1% 
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | shader calls                     (  /pixel,  /sample) (% total)
+00:00:00    76MB         |  primary                   97359 (    5.07,     0.55) (100.00%)
+00:00:00    76MB         |  total                     97359 (    5.07,     0.55) (100.00%)
+00:00:00    76MB         | by ray depth:              0     1
+00:00:00    76MB         |  total                   100.0%  0.0% 
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | geometry:                        (% hit ) (instances) (  init mem,  final mem)
+00:00:00    76MB         |  lists                         1 (100.0%) (        0) (      0.00,       0.00)
+00:00:00    76MB         |  polymeshes                    1 (100.0%) (        0) (      0.02,       0.01)
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | geometric elements:              (      min) (       avg.) (      max)
+00:00:00    76MB         |  polygons                    400 (      400) (      400.0) (      400)
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | triangle tessellation:           (      min) (       avg.) (      max) (/ element) (% total)
+00:00:00    76MB         |  polymeshes                  760 (      760) (      760.0) (      760) (     1.90) (100.00%)
+00:00:00    76MB         |  unique triangles            760
+00:00:00    76MB         |  memory use (in MB)         0.01
+00:00:00    76MB         |   vertices                  0.00
+00:00:00    76MB         |   vertex indices            0.00
+00:00:00    76MB         |  largest polymeshes by triangle count:
+00:00:00    76MB         |         760 tris -- pSphereShape1
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | acceleration structures:         (% total)
+00:00:00    76MB         |  list                          1 ( 50.00%)
+00:00:00    76MB         |  bvh                           1 ( 50.00%)
+00:00:00    76MB         |  total                         2 (100.00%)
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | OpenImageIO Texture statistics
+00:00:00    76MB         |   Options:  gray_to_rgb=1 flip_t=0 max_tile_channels=5 
+00:00:00    76MB         |   Queries/batches : 
+00:00:00    76MB         |     texture     :  32491 queries in 32491 batches
+00:00:00    76MB         |     texture 3d  :  0 queries in 0 batches
+00:00:00    76MB         |     shadow      :  0 queries in 0 batches
+00:00:00    76MB         |     environment :  0 queries in 0 batches
+00:00:00    76MB         |   Interpolations :
+00:00:00    76MB         |     closest  : 38
+00:00:00    76MB         |     bilinear : 159142
+00:00:00    76MB         |     bicubic  : 0
+00:00:00    76MB         |   Average anisotropic probes : 2.45
+00:00:00    76MB         |   Max anisotropy in the wild : 431
+00:00:00    76MB         | 
+00:00:00    76MB         | OpenImageIO ImageCache statistics (0000000003C38C80) ver 1.7.15
+00:00:00    76MB         |   Options:  max_memory_MB=2048.0 max_open_files=1536 autotile=64
+00:00:00    76MB         |             autoscanline=1 automip=0 forcefloat=0 accept_untiled=1
+00:00:00    76MB         |             accept_unmipped=1 read_before_insert=0 deduplicate=1
+00:00:00    76MB         |             unassociatedalpha=0 failure_retries=0 
+00:00:00    76MB         |   Images : 1 unique
+00:00:00    76MB         |     ImageInputs : 1 created, 1 current, 1 peak
+00:00:00    76MB         |     Total pixel data size of all images referenced : 33.7 MB
+00:00:00    76MB         |     Total actual file size of all images referenced : 473 KB
+00:00:00    76MB         |     Pixel data read : 3.0 MB
+00:00:00    76MB         |     File I/O time : 0.1s (0.0s average per thread)
+00:00:00    76MB         |     File open time only : 0.0s
+00:00:00    76MB         |   Tiles: 78 created, 62 current, 63 peak
+00:00:00    76MB         |     total tile requests : 168370
+00:00:00    76MB         |     micro-cache misses : 1419 (0.842787%)
+00:00:00    76MB         |     main cache misses : 78 (0.0463265%)
+00:00:00    76MB         |     redundant reads: 3 tiles, 144 KB
+00:00:00    76MB         |     Peak cache memory : 2.9 MB
+00:00:00    76MB         |   Image file statistics:
+00:00:00    76MB         |         opens   tiles    MB read   --redundant--   I/O time  res              File
+00:00:00    76MB         |       1    1       63        3.0   (    3    0.1)      0.1s  2048x1080x3.f32  texture.tx  MIP-COUNT[0,22,23,11,4,1,1,0,0,0,0,1]
+00:00:00    76MB         | 
+00:00:00    76MB         |   Tot:     1       63        3.0   (    3    0.1)      0.1s
+00:00:00    76MB         |   Broken or invalid files: 0
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         | number of warnings, warning type:
+00:00:00    76MB         |     1:  failed authorization:
+00:00:00    76MB         |     1:  node entry "%s" is deprecated, and may be removed in the future
+00:00:00    76MB         | -----------------------------------------------------------------------------------
+00:00:00    76MB         |  
+00:00:00    76MB         | releasing resources
+00:00:00    56MB         |  unloading 7 plugins
+00:00:00    56MB         |   closing bifrost_shaders.dll ...
+00:00:00    56MB         |   closing hairPhysicalShader_shaders.dll ...
+00:00:00    56MB         |   closing lookdevkit_shaders.dll ...
+00:00:00    56MB         |   closing mtoa_shaders.dll ...
+00:00:00    56MB         |   closing renderSetup_shaders.dll ...
+00:00:00    56MB         |   closing synColor_shaders.dll ...
+00:00:00    54MB         |   closing xgenSpline_shaders.dll ...
+COLOR:XML:CATALOG_MANAGER: The shared catalog directory does not exist: /tmp/shared\shared_catalog.cat
+00:00:00    53MB         |  unloading plugins done
+00:00:00    53MB         | Arnold shutdown
+kick -v 0 -dp -dw ref.ass -l "C:\solidangle\mtoadeploy\2017/shaders" -v 6 -set defaultColorMgtGlobals.native_catalog_path "C:\Program Files\Autodesk\Maya2017/synColor"

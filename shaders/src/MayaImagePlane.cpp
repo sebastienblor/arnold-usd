@@ -134,22 +134,21 @@ node_update
    idata->sourceTexture = (AtNode*)AiNodeGetPtr(node, "sourceTexture");
    idata->xres =  AiNodeGetInt(AiUniverseGetOptions(), "xres");
    idata->yres = AiNodeGetInt(AiUniverseGetOptions(), "yres");
-   
+   idata->texture_handle = NULL;
+   idata->iWidth = idata->xres;
+   idata->iHeight = idata->yres;
 
-   if (idata->sourceTexture)
-   {
-      idata->texture_handle = NULL;
-      idata->iWidth = idata->xres;
-      idata->iHeight = idata->yres;
-   }
-   else
+   if (!idata->sourceTexture)
    {
       const char *filename = AiNodeGetStr(node, "filename");
-
-      idata->texture_handle = AiTextureHandleCreate(filename, idata->color_space);
-      AiTextureGetResolution(filename, &idata->iWidth, &idata->iHeight);
+      std::string filenameStr(filename);
+      if (!filenameStr.empty())
+      {
+         idata->texture_handle = AiTextureHandleCreate(filename, idata->color_space);
+         AiTextureGetResolution(filename, &idata->iWidth, &idata->iHeight);
+      }
    }
-   
+  
    
    float angle = AiNodeGetFlt(node, "rotate");
    idata->sinAngle = sin(angle);
@@ -173,6 +172,13 @@ shader_evaluate
       sg->out.RGBA() = AI_RGBA_ZERO;
       return;
    }
+   int displayMode = AiShaderEvalParamInt(p_display_mode);
+   if (displayMode <= 1)
+   {
+      sg->out.RGBA() = AI_RGBA_ZERO;
+      return;  
+   }
+
 
    AtRGB color = AiShaderEvalParamRGB(p_color);
    AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);
@@ -182,7 +188,6 @@ shader_evaluate
    AtVector2 coverageOrigin = AiShaderEvalParamVec2(p_coverageOrigin);
    AtVector2 fit_factor = AiShaderEvalParamVec2(p_fit_factor);
    AtVector2 translate = AiShaderEvalParamVec2(p_translate);
-   int displayMode = AiShaderEvalParamInt(p_display_mode);
 
    AtRGBA result; 
    result.r = color.r;

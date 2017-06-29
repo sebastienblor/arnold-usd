@@ -57,7 +57,7 @@ private:
    static MObject s_filename;
    static MObject s_filedata;
    static MObject s_disable_ray_extents;
-   static MObject s_bounds_slack;
+   static MObject s_volume_padding;
    
    static MObject s_step_scale;
    static MObject s_step_size;

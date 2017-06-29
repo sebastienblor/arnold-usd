@@ -101,6 +101,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         self.beginLayout('Volume Attributes', collapse=True)
         self.addControl('aiStepSize', label='Step Size')
+        self.addControl('aiVolumePadding', label='Volume Padding')
         self.endLayout()
         
         # FIXME: these are not on the shape node!
@@ -557,6 +558,7 @@ class PerspCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
         self.addShutterAttributes()
+        self.addSeparator()
         self.addControl('aiRadialDistortion', label="Radial Distortion")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")

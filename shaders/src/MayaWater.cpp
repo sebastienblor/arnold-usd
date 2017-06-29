@@ -46,8 +46,7 @@ namespace
 }
 node_parameters
 {
-   AtMatrix id = AiM4Identity();
-
+   
    AiParameterInt("numWaves", 8);
    AiParameterFlt("waveTime", 0.0f);
    AiParameterFlt("waveVelocity", 1.0f);

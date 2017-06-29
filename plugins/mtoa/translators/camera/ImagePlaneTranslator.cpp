@@ -61,7 +61,6 @@ void CImagePlaneTranslator::ExportImagePlane()
    }
    double lensSqueeze = 1.f;
 
-   bool visible = false;
    if (validCamera)
    {
       MFnCamera fnCamera(pathCamera);
@@ -73,6 +72,8 @@ void CImagePlaneTranslator::ExportImagePlane()
 
    // check if the image plane should be created
    int displayMode = fnRes.findPlug("displayMode").asInt();
+   AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
+
    if (displayMode <= 1)
       return;
 
@@ -90,11 +91,7 @@ void CImagePlaneTranslator::ExportImagePlane()
    }
 
    // UV Values
-   double uMin = 0.0f;
-   double vMin = 0.0f;
-   double uMax = 1.0f;
-   double vMax = 1.0f;
-
+   
    double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
    double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
    
@@ -257,7 +254,6 @@ void CImagePlaneTranslator::ExportImagePlane()
       }
    }
 
-   AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
    AiNodeSetVec2(imagePlaneShader, "fitFactor", (float)scaleX, (float)scaleY);
    AiNodeSetVec2(imagePlaneShader, "coverage", (float)coverageX / (float)iWidth , (float)coverageY / (float)iHeight);
    AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);

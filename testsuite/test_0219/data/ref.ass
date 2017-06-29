@@ -11,12 +11,12 @@ options
  xres 960
  yres 540
  texture_per_file_stats on
- texture_searchpath "C:/Users/hodoulp/Documents/maya/projects/default/sourceimages"
+ texture_searchpath "."
  texture_automip off
  texture_specular_blur 0
  camera "perspShape"
  color_manager "defaultColorMgtGlobals"
- procedural_searchpath "C:/Users/hodoulp/Documents/maya/projects/default/"
+ procedural_searchpath "."
  GI_diffuse_depth 1
  GI_specular_depth 1
  GI_transmission_depth 8
@@ -37,7 +37,7 @@ gaussian_filter
 driver_exr
 {
  name defaultArnoldDriver@driver_exr.RGBA
- filename "C:/Users/hodoulp/Documents/maya/projects/default/images/case_1.exr"
+ filename "testrender.exr"
  compression "zip"
  half_precision off
  tiled off
@@ -50,9 +50,7 @@ driver_exr
 color_manager_syncolor
 {
  name defaultColorMgtGlobals
- __REPLACE__
  rendering_color_space "scene-linear Rec 709/sRGB"
- view_transform_space "sRGB gamma"
 }
 
 persp_camera
