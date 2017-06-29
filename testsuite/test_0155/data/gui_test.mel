@@ -41,6 +41,10 @@ $img = `pwd`;
 $img += "/testrender_5.tif";
 arnoldRenderView -option "Save Image" $img;
 
+quit -force -abort;
+
+// I can't test fit windows size for now, as there's no control on the ARV windows size anymore (maya workspaces)
+
 arnoldRenderView -option "Exposure" "0.5";
 arnoldRenderView -option "Test Resolution" "Fit Window Size";
 pause -sec 3;
@@ -53,4 +57,3 @@ $img += "/testrender_6.tif";
 arnoldRenderView -option "Save Image" $img;
 
 
-quit -force -abort;
