@@ -174,11 +174,11 @@ void CHairTranslator::Export( AtNode *curve )
          else
             visibility = visibility & ~AI_RAY_SHADOW;
 
-         const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
-         const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
-         const bool hueRandConnected = ProcessParameter(shader, "hueRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("hueRand")) != 0;
-         const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
-         const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
+         //const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
+         //const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
+         //const bool hueRandConnected = ProcessParameter(shader, "hueRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("hueRand")) != 0;
+         //const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
+         //const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
 
          
 

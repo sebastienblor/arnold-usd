@@ -356,7 +356,7 @@ namespace
             }
             else
             {
-               AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath);
+               AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath.c_str());
             }
 
             if(!colorData->m_ocioconfig_path.empty())

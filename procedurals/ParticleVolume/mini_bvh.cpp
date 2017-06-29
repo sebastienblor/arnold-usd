@@ -373,8 +373,8 @@ static unsigned int indent = 0;
 
     unsigned int examineIndex = begin;
     unsigned int swapIndex = end - 1;
-    unsigned int leftMost = begin;
-    unsigned int rightMost = begin;
+    //unsigned int leftMost = begin;
+    //unsigned int rightMost = begin;
     float leftMostCoord = splitAxis == X_AXIS ? primBBoxes[prims[begin]].min.x :
                          (splitAxis == Y_AXIS ? primBBoxes[prims[begin]].min.y :
                                                 primBBoxes[prims[begin]].min.z);
@@ -399,7 +399,7 @@ static unsigned int indent = 0;
             if (rightCoord > rightMostCoord)
             {
                 rightMostCoord = rightCoord;
-                rightMost = examineIndex;
+                //rightMost = examineIndex;
             }
 
             unsigned int tempPrim = prims[swapIndex];
@@ -416,7 +416,7 @@ static unsigned int indent = 0;
             if (leftCoord < leftMostCoord)
             {
                 leftMostCoord = leftCoord;
-                leftMost = examineIndex;
+                //leftMost = examineIndex;
             }
 
             ++examineIndex;

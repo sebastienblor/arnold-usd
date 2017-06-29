@@ -1214,8 +1214,8 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius").asFloat();
    float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier").asFloat();
 
-   bool constantUserData = m_fnParticleSystem.renderType() == PARTICLE_TYPE_CLOUD ||
-                           m_fnParticleSystem.renderType() == PARTICLE_TYPE_BLOBBYSURFACE;
+   bool constantUserData = m_fnParticleSystem.renderType() == (MFnParticleSystem::RenderType)PARTICLE_TYPE_CLOUD ||
+                           m_fnParticleSystem.renderType() == (MFnParticleSystem::RenderType)PARTICLE_TYPE_BLOBBYSURFACE;
 
    m_particleCount = (*m_out_positionArrays[0]).length();
 

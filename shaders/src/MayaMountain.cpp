@@ -31,8 +31,7 @@ namespace
 }
 node_parameters
 {
-   AtMatrix id = AiM4Identity();
-
+   
    AiParameterRGB("snowColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("rockColor", 0.262f, 0.012f, 0.0f);
    AiParameterFlt("amplitude", 1.0f);
