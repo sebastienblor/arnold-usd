@@ -330,7 +330,13 @@ void CFishEyeCameraTranslator::NodeInitializer(CAbTranslator context)
    MakeDefaultAttributes(helper);
    MakeDOFAttributes(helper);
 
-   helper.MakeInput("fov");
+   CAttrData data;
+   data.defaultValue.FLT() = 90;
+   data.name = "aiFov";
+   data.shortName = "ai_fov";
+   helper.MakeInputFloat(data);
+//   helper.MakeInput("fov");
+
    helper.MakeInput("autocrop");
    helper.MakeInput("filtermap");
 }
@@ -407,12 +413,12 @@ void CCylCameraTranslator::NodeInitializer(CAbTranslator context)
    CAttrData data;
    data.defaultValue.FLT() = 60;
    data.name = "aiHorizontalFov";
-   data.shortName = "horizontal_fov";
+   data.shortName = "ai_horizontal_fov";
    helper.MakeInputFloat(data);
 
    data.defaultValue.FLT() = 90;
    data.name = "aiVerticalFov";
-   data.shortName = "vertical_fov";
+   data.shortName = "ai_vertical_fov";
    helper.MakeInputFloat(data);
 
 }
