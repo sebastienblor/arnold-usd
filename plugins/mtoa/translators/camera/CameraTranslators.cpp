@@ -348,6 +348,7 @@ void CCylCameraTranslator::ExportFilmback(AtNode* camera, float fovs[])
    // FIXME: export the screen_min and screen_max
    fovs[0] = FindMayaPlug("aiHorizontalFov").asFloat();
    fovs[1] = FindMayaPlug("aiVerticalFov").asFloat();
+   
    SetFilmTransform(camera);
 }
 
@@ -355,7 +356,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
 {
    float fovs[2];
    ExportFilmback(camera, fovs);
-
+   
    ExportCameraData(camera);
    ExportDOF(camera);
    ExportImagePlanes();
@@ -400,9 +401,20 @@ void CCylCameraTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "cyl_camera");
    MakeDefaultAttributes(helper);
-   helper.MakeInput("horizontal_fov");
-   helper.MakeInput("vertical_fov");
+
    helper.MakeInput("projective");
+
+   CAttrData data;
+   data.defaultValue.FLT() = 60;
+   data.name = "aiHorizontalFov";
+   data.shortName = "horizontal_fov";
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.FLT() = 90;
+   data.name = "aiVerticalFov";
+   data.shortName = "vertical_fov";
+   helper.MakeInputFloat(data);
+
 }
 
 // Spherical Camera
