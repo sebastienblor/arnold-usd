@@ -42,11 +42,12 @@ typedef struct AtImageData
    AtNode *sourceTexture;
 
 } AtImageData;
-
+/*
 inline float mod(float n, float d)
 {
    return (n - (floor(n / d) * d));
 }
+*/
 
 enum DisplayMode
 {
