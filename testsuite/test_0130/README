@@ -1,5 +1,3 @@
-Support Maya Phong
+Convert Maya shaders as Standard Surface (#3092)
 
-Support Maya Phong (Ticket #1535)
-
-author: pedro.gomez
+author: sebastien.ortega
