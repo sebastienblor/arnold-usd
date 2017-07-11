@@ -27,7 +27,7 @@ pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape
 00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
 00:00:00   492MB WARNING |  node "MayaCondition" is already installed
 00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 File read in  0.25 seconds.
