@@ -366,8 +366,12 @@ class MayaTestRunner(object):
                     
                 elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
                 # If the test.py is found, we want to run mayapy with this script
+                    maya_root = test_env['MAYA_ROOT']
+                    if system.os() == 'darwin':   
+                        maya_root = maya_root.replace('/Maya.app/Contents', '')
+
                     test_script = 'mayapy ' + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
-                        % (test_env['MAYA_ROOT'], test_env['TARGET_MODULE_PATH'], test_dir) )
+                        % (maya_root, test_env['TARGET_MODULE_PATH'], test_dir) )
 
 
                 t, files = run_test(test_name,
