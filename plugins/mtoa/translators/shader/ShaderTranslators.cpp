@@ -1285,16 +1285,20 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
 
 void CMayaBlinnTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
-   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
    
-   ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularRollOff");
+   ProcessParameter(shader, "specular", AI_TYPE_FLOAT, "specularRollOff");
    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
-   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
    
-   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
-   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
+   AiNodeSetFlt(shader, "coat_roughness", 0.f);
 
+   AiNodeSetFlt(shader, "specular_IOR", 3.f);
+   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   
    MPlug transparencyPlug = FindMayaPlug("transparency");
    float colorR = transparencyPlug.child(0).asFloat();
    float colorG = transparencyPlug.child(1).asFloat();
@@ -1307,22 +1311,25 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
 
 AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard"));
+   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
 }
 
 void CMayaPhongTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
-   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
    
-   AiNodeSetFlt(shader, "Ks", 1.f);
+   AiNodeSetFlt(shader, "specular", 1.f);
+   AiNodeSetFlt(shader, "specular_IOR", 3.f);
+   AiNodeSetFlt(shader, "coat_IOR", 3.f);
    MPlug cosinePowerPlug = FindMayaPlug("cosinePower");
    float rougness = sqrtf(1.0f / (0.454f * cosinePowerPlug.asFloat() + 3.357f));
    AiNodeSetFlt(shader, "specular_roughness", rougness);
-   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
    
-   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
-   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
+   AiNodeSetFlt(shader, "coat_roughness", 0.f);
 
    MPlug transparencyPlug = FindMayaPlug("transparency");
    float colorR = transparencyPlug.child(0).asFloat();
@@ -1336,152 +1343,161 @@ void CMayaPhongTranslator::Export(AtNode* shader)
 
 AtNode* CMayaPhongTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard"));
+   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
 }
 
 void CMayaPhongETranslator::Export(AtNode* shader)
 {
-    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
-    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
 
-    AiNodeSetFlt(shader, "Ks", 1.f);
-    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "roughness");
-    ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   AiNodeSetFlt(shader, "specular", 1.f);
+   ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "roughness");
+   ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
 
-    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
-    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
+   AiNodeSetFlt(shader, "coat_roughness", 0.f);
+   
+   AiNodeSetFlt(shader, "specular_IOR", 3.f);
+   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   
+   MPlug transparencyPlug = FindMayaPlug("transparency");
+   float colorR = transparencyPlug.child(0).asFloat();
+   float colorG = transparencyPlug.child(1).asFloat();
+   float colorB = transparencyPlug.child(2).asFloat();
+   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
 
-    MPlug transparencyPlug = FindMayaPlug("transparency");
-    float colorR = transparencyPlug.child(0).asFloat();
-    float colorG = transparencyPlug.child(1).asFloat();
-    float colorB = transparencyPlug.child(2).asFloat();
-    AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
-
-    AiNodeSetFlt(shader, "emission", 1.f);
-    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
 }
 
 AtNode* CMayaPhongETranslator::CreateArnoldNodes()
 {
-    return ProcessAOVOutput(AddArnoldNode("standard"));
+    return ProcessAOVOutput(AddArnoldNode("standard_surface"));
 }
 
 void CMayaAnisotropicTranslator::Export(AtNode* shader)
 {
-    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
-    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "base_color", AI_TYPE_RGB, "color");
 
-    AiNodeSetFlt(shader, "Ks", 1.f);
-    ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   AiNodeSetFlt(shader, "specular", 1.f);
+   ProcessParameter(shader, "specular_color", AI_TYPE_RGB, "specularColor");
 
-    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
-    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   ProcessParameter(shader, "coat", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "coat_color", AI_TYPE_RGB, "reflectedColor");
+   AiNodeSetFlt(shader, "coat_roughness", 0.f);
 
-    MPlug transparencyPlug = FindMayaPlug("transparency");
-    float colorR = transparencyPlug.child(0).asFloat();
-    float colorG = transparencyPlug.child(1).asFloat();
-    float colorB = transparencyPlug.child(2).asFloat();
-    AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+   MPlug transparencyPlug = FindMayaPlug("transparency");
+   float colorR = transparencyPlug.child(0).asFloat();
+   float colorG = transparencyPlug.child(1).asFloat();
+   float colorB = transparencyPlug.child(2).asFloat();
+   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
 
-    AiNodeSetFlt(shader, "emission", 1.f);
-    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
 
-    // anisotropic parameters
-    MPlug anglePlug = FindMayaPlug("angle");
-    float angle = (anglePlug.asFloat()/360.0f);
-    AiNodeSetFlt(shader, "specular_rotation", 1.0f - angle);
+   // anisotropic parameters
+   MPlug anglePlug = FindMayaPlug("angle");
+   float angle = (anglePlug.asFloat()/360.0f);
+   AiNodeSetFlt(shader, "specular_rotation", 1.0f - angle);
 
-    MPlug spreadXPlug = FindMayaPlug("spreadX");
-    MPlug spreadYPlug = FindMayaPlug("spreadY");
-    MPlug roughnessPlug = FindMayaPlug("roughness");
+   MPlug spreadXPlug = FindMayaPlug("spreadX");
+   MPlug spreadYPlug = FindMayaPlug("spreadY");
+   MPlug roughnessPlug = FindMayaPlug("roughness");
 
-    float spreadX = spreadXPlug.asFloat();
-    float spreadY = spreadYPlug.asFloat();
-    float roughness = roughnessPlug.asFloat();
+   float spreadX = spreadXPlug.asFloat();
+   float spreadY = spreadYPlug.asFloat();
+   float roughness = roughnessPlug.asFloat();
 
-    float spread = spreadY - spreadX;
-    //float maximum = spreadY > spreadX ? spreadY : spreadX;
+   AiNodeSetFlt(shader, "specular_IOR", 3.f);
+   AiNodeSetFlt(shader, "coat_IOR", 3.f);
+   
+   float spread = spreadY - spreadX;
+   //float maximum = spreadY > spreadX ? spreadY : spreadX;
 
-    if (spreadY > spreadX)
-    {
-        roughness = roughness - (spreadY * 0.01f) * roughness;
-        if (spreadX < 3.0f)
-        {
-            spread += (3.0f - spreadX) * spread;
-        }
-        if (spread > 99.9999f)
-            spread = 99.9999f;
-    }
-    else
-    {
-        roughness = roughness - (spreadX * 0.01f) * roughness;
-        if (spreadY < 3.0f)
-        {
-            spread += (3.0f - spreadY) * spread;
-        }
-        if (spread < -99.9999f)
-            spread = -99.9999f;
-    }
+   if (spreadY > spreadX)
+   {
+      roughness = roughness - (spreadY * 0.01f) * roughness;
+      if (spreadX < 3.0f)
+         spread += (3.0f - spreadX) * spread;
+   
+      if (spread > 99.9999f)
+         spread = 99.9999f;
+   }
+   else
+   {
+      roughness = roughness - (spreadX * 0.01f) * roughness;
+      if (spreadY < 3.0f)
+         spread += (3.0f - spreadY) * spread;
+   
+      if (spread < -99.9999f)
+         spread = -99.9999f;
+   }
+   float anisotropy = 0.5f + spread * 0.005f;
 
-    float anisotropy = 0.5f + spread * 0.005f;
+   if (roughness > 1.0f)
+      roughness = 1.0f;
 
-    if (roughness > 1.0f)
-        roughness = 1.0f;
+   AiNodeSetFlt(shader, "specular_roughness", roughness);
 
-    AiNodeSetFlt(shader, "specular_roughness", roughness);
-    AiNodeSetFlt(shader, "specular_anisotropy", anisotropy);
+   // converting now anisotropy from old standard shader to new standard_surface
+   anisotropy = 2.f * std::abs(anisotropy -0.5f);
+   AiNodeSetFlt(shader, "specular_anisotropy", anisotropy);
 }
 
 AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
 {
-    return ProcessAOVOutput(AddArnoldNode("standard"));
+   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
 }
 
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {
-    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
-    ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularity");
-    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
+   ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularity");
+   ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
 
-    MColor color;
-    float reflectivity = 0.0f;
+   MColor color;
+   float reflectivity = 0.0f;
 
-    MPlug plug = FindMayaPlug("color");
-    MRampAttribute ramp(plug);
-    ramp.getColorAtPosition(0, color);
-    AiNodeSetRGB(shader, "Kd_color", color[0], color[1], color[2]);
+   MPlug plug = FindMayaPlug("color");
+   MRampAttribute ramp(plug);
+   ramp.getColorAtPosition(0, color);
+   AiNodeSetRGB(shader, "base_color", color[0], color[1], color[2]);
 
-    plug = FindMayaPlug("specularColor");
-    ramp = MRampAttribute(plug);
-    ramp.getColorAtPosition(0, color);
-    AiNodeSetRGB(shader, "Ks_color", color[0], color[1], color[2]);
+   plug = FindMayaPlug("specularColor");
+   ramp = MRampAttribute(plug);
+   ramp.getColorAtPosition(0, color);
+   AiNodeSetRGB(shader, "specular_color", color[0], color[1], color[2]);
 
-    plug = FindMayaPlug("transparency");
-    ramp = MRampAttribute(plug);
-    ramp.getColorAtPosition(0, color);
-    AiNodeSetRGB(shader, "opacity", 1.0f - color[0], 1.0f - color[1], 1.0f - color[2]);
+   plug = FindMayaPlug("transparency");
+   ramp = MRampAttribute(plug);
+   ramp.getColorAtPosition(0, color);
+   AiNodeSetRGB(shader, "opacity", 1.0f - color[0], 1.0f - color[1], 1.0f - color[2]);
 
-    AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, "emission", 1.f);
 
-    plug = FindMayaPlug("incandescence");
-    ramp = MRampAttribute(plug);
-    ramp.getColorAtPosition(0, color);
-    AiNodeSetRGB(shader, "emission_color", color[0], color[1], color[2]);
+   plug = FindMayaPlug("incandescence");
+   ramp = MRampAttribute(plug);
+   ramp.getColorAtPosition(0, color);
+   AiNodeSetRGB(shader, "emission_color", color[0], color[1], color[2]);
 
-    plug = FindMayaPlug("reflectivity");
-    ramp = MRampAttribute(plug);
-    ramp.getValueAtPosition(0, reflectivity);
-    AiNodeSetFlt(shader, "Kr", reflectivity);
+   plug = FindMayaPlug("reflectivity");
+   ramp = MRampAttribute(plug);
+   ramp.getValueAtPosition(0, reflectivity);
+   AiNodeSetFlt(shader, "coat", reflectivity);
 
-    plug = FindMayaPlug("environment");
-    ramp = MRampAttribute(plug);
-    ramp.getColorAtPosition(0, color);
-    AiNodeSetRGB(shader, "Kr_color", color[0], color[1], color[2]);
+   plug = FindMayaPlug("environment");
+   ramp = MRampAttribute(plug);
+   ramp.getColorAtPosition(0, color);
+   AiNodeSetRGB(shader, "coat_color", color[0], color[1], color[2]);
+   AiNodeSetFlt(shader, "coat_roughness", 0.f);
 }
 
 AtNode* CMayaRampShaderTranslator::CreateArnoldNodes()
 {
-    return ProcessAOVOutput(AddArnoldNode("standard"));
+   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
 }
 
 

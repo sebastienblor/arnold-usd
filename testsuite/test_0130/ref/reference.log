@@ -21,29 +21,17 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
 00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
 00:00:00   492MB WARNING |  node "MayaClamp" is already installed
 00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
 00:00:00   492MB WARNING |  node "MayaCondition" is already installed
 00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11424: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11424: setAttr: No object matches name: .dgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11425: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11425: setAttr: No object matches name: .lgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11426: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11426: setAttr: No object matches name: .sgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11427: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11427: setAttr: No object matches name: .tgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11531: The aiAOVDriver 'defaultArnoldDriver' has no '.gamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma line 11531: setAttr: No object matches name: .gamma
-Viewport 2.0 floating point render target is turned off.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.6 seconds.
-Error: line 1: Error reading file.
-Error: line 1: Error reading file.
-CArnoldSession::ExportTxFiles
+File read in  0.56 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0130/test.ma
+20 => 0.283558
 Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0130\test.ma completed.
