@@ -227,10 +227,10 @@ namespace
       return "";
    }
 
-   void logger(SYNCOLOR::LogLevel, const char*)
+/*   void logger(SYNCOLOR::LogLevel, const char*)
    {
    }
-
+*/
    // The method initializes the SynColor library only once.
    void initializeSynColor(ColorManagerData* colorData)
    {
