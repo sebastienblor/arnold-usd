@@ -1,0 +1,135 @@
+# vim: filetype=python
+
+import system, os
+from build_tools import find_files_recursive
+Import('ext_env')
+##############################################################
+## COMMON ENV
+common_env = ext_env.Clone()
+
+BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
+ROOT_DIR = common_env['ROOT_DIR']
+
+mayaRoot = common_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+if system.os() !='windows':
+    common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
+
+ext_base_dir = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'bifrost_2017')
+
+def setup(env, library):
+    '''Adds the include paths, lib paths and libs to the given environment for the given library.'''
+    def addLib(env, lib):
+        env.Append(LIBS=Split(lib + ('.lib' if system.os() =='windows' else '')))
+
+    def addBifrostApi(env):
+
+        maya_version = env['MAYA_VERSION']
+
+        if int(maya_version) >= 201800:
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids', 'bifrostapi')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids', 'bifrostcoretools')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'include', 'bifrostfluids', 'aminomath')])
+        else:
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostapi', 'api')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrostcore', 'api')])
+            env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
+
+        if system.os() == 'darwin' and int(maya_version) < 201800:
+            env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
+        else:
+            if system.os() == 'windows' and int(maya_version) >= 201800:
+                env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'sdk', 'lib')])
+            else:
+                env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
+
+        bifrostLib = 'bifrostapi'
+        if int(maya_version) >= 201800:
+            bifrostLib = bifrostLib + '_1_0'
+
+        env.Append(LIBS=Split(bifrostLib + ('.lib' if system.os() =='windows' else '')))
+
+    def addBifrostRenderCore(env):
+        # TEMPORARY
+        env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost_2017', 'bifrostrendercore', 'api')])
+        #env.Append(LIBPATH = [os.path.join(ROOT_DIR, BUILD_BASE_DIR, 'bifrost')])
+        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
+        #env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'plugins', 'bifrostrendercore', 'api')])
+        #env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin' if system.os() == 'darwin' else 'lib')])
+        #env.Append(LIBS=Split('bifrostrendercore' + ('.lib' if system.os() =='windows' else '')))
+
+    def addAi(env):
+        env.Append(LIBS=Split('ai' + '.lib' if system.os() =='windows' else ''))
+
+    def addMtoa(env):
+        env.Append(LIBS=Split('mtoa_api' + '.lib' if system.os() =='windows' else ''))
+
+    libToEnvSetup = {
+        "bifrostapi" : addBifrostApi,
+        "bifrostrendercore" : addBifrostRenderCore,
+        "ai" : addAi,
+        "mtoa_api" : addMtoa
+    }[library](env)
+
+setup(common_env, "ai")
+setup(common_env, "mtoa_api")
+
+
+##############################################################
+####  BIFROST TRANSLATORS
+
+local_env = common_env.Clone()
+setup(local_env, "bifrostapi")
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(ext_base_dir, 'plugin')
+local_env.Append(CPPPATH = os.path.join(src_base_dir, 'include'))
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+
+local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
+src_rendercore_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
+if system.os() == 'darwin':
+    local_env.Append(LIBS=Split('tbb'))
+
+local_env.Append(CPPPATH = os.path.join(src_rendercore_dir, 'api'))
+source_files  += [os.path.join(src_rendercore_dir, x) for x in find_files_recursive(src_rendercore_dir, ['.c', '.cpp'])]
+
+
+EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX= '')
+
+###########################################################3
+#### BIFROST SHADERS
+
+Import('ext_env')
+local_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(ext_base_dir, 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+EXT_SHADERS = local_env.SharedLibrary('bifrost_shaders', source_files, LIBPREFIX='')
+
+
+##########################################################
+## BIFROST PROCEDURALS
+
+local_env = common_env.Clone()
+setup(local_env, "bifrostapi")
+#setup(local_env, "bifrostrendercore")
+src_base_dir  = os.path.join(ext_base_dir, 'procedural')
+source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+local_env.Append(CPPPATH = [os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost_2017', 'procedural', 'common', 'include')])
+if system.os() == 'darwin':
+    local_env.Append(LIBS=Split('tbb'))
+local_env.Append(CPPDEFINES = Split('BIFROSTRENDERAPI') )
+src_rendercore_dir  = os.path.join(ext_base_dir, 'bifrostrendercore')
+local_env.Append(CPPPATH = os.path.join(src_rendercore_dir, 'api'))
+source_files  += [os.path.join(src_rendercore_dir, x) for x in find_files_recursive(src_rendercore_dir, ['.c', '.cpp'])]
+
+EXT_PROCS = local_env.SharedLibrary('bifrost_procedurals', source_files, LIBPREFIX='')
+EXT_PROCS.target_type = 'shader'
+
+Return('EXT EXT_SHADERS EXT_PROCS')
