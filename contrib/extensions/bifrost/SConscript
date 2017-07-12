@@ -1,7 +1,8 @@
 # vim: filetype=python
 
 import system, os
-from build_tools import find_files_recursive
+from build_tools import find_files_recursive, get_library_extension
+
 Import('ext_env')
 
 local_env = ext_env.Clone()
@@ -21,6 +22,10 @@ if system.os() !='windows':
 src_base_dir  = os.path.join(ROOT_DIR, 'contrib', 'extensions', 'bifrost', 'plugin')
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX= '')
+
+bifrost_procedural = os.path.join(local_env['EXTERNAL_PATH'], 'bifrost', 'bifrost_procedural_0_1%s' % get_library_extension())
+local_env.Install(local_env['TARGET_PROCEDURAL_PATH'], bifrost_procedural)
+
 
 if (system.os() == 'windows'):
     EXT = [EXT[0]]
