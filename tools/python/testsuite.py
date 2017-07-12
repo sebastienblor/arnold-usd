@@ -425,7 +425,7 @@ Arnold testsuite - %s
             </td>
             </tr>''' % (
                   bgcolor,
-                  test_name,
+                  test_name + '<br><br><a href="%s">log</a>' % (test_name + '.log'),
                   bgcolor,
                   os.path.exists(dif) and ''' FAILED ''' or '''OK''',
                   len(references) < 2 and

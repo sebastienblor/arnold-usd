@@ -455,11 +455,59 @@ class MayaTestRunner(object):
         arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
    
         #os.chdir(self.results_dir)
-        passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
+        passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), os.path.join(self.results_dir, 'errors.html'), arnold_version)
         return None # always succeds, jenkins will keep track of the test results not us
 
+    def write_html_header(self, outfile, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed):
+            outfile.write('''
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+        <head>
+        <title>
+        MtoA testsuite
+        </title>
+        </head>
+        <body>
+        ''')
+            outfile.write('''
+        <table border="0" cellpadding="15" cellspacing="2">
+        <tr>
+        <td>
+        <font face="Arial"><h1>MtoA %s testsuite</h1>
+        %s<br>%s</font>
+        </td>
+        <td>
+        <pre>
+        |     
+        |     patterns/tags:      %s
+        |     tests:              %-4d
+        |     passed:             %-4d (%.2f%%)
+        |     failed:             %-4d (%.2f%%)
+        |     total running time: %.2f s
+        |     
+        |     
+        </pre>
+        </td>
+        </tr>
+        </table>
+        <br>
+        ''' % (MTOA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
+                len(self.tests),
+                passed,
+                (100.0 * passed) / (passed + failed),
+                failed, (100.0 * failed) / (passed + failed),
+                self.total_running_time))
+            outfile.write('''
+        <table border="0" cellpadding="0">
+        <tr>
+        <th><font face="Arial">test</font></th>
+        <th><font face="Arial">description</font></th>
+        <th><font face="Arial">new</font></th>
+        <th><font face="Arial">ref</font></th>
+        </tr>
+        ''')   
 
-    def process_results(self, html_index, arnold_version):
+    def process_results(self, html_index, html_errors, arnold_version):
         if not os.path.exists(self.results_dir):
             os.mkdir(self.results_dir)
 
@@ -512,53 +560,12 @@ class MayaTestRunner(object):
              
         ## create testsuite html
         outfile = open(html_index, 'w')
-        outfile.write('''
-    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-    <head>
-    <title>
-    MtoA testsuite
-    </title>
-    </head>
-    <body>
-    ''')
-        outfile.write('''
-    <table border="0" cellpadding="15" cellspacing="2">
-    <tr>
-    <td>
-    <font face="Arial"><h1>MtoA %s testsuite</h1>
-    %s<br>%s</font>
-    </td>
-    <td>
-    <pre>
-    |     
-    |     patterns/tags:      %s
-    |     tests:              %-4d
-    |     passed:             %-4d (%.2f%%)
-    |     failed:             %-4d (%.2f%%)
-    |     total running time: %.2f s
-    |     
-    |     
-    </pre>
-    </td>
-    </tr>
-    </table>
-    <br>
-    ''' % (MTOA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
-            len(self.tests),
-            passed,
-            (100.0 * passed) / (passed + failed),
-            failed, (100.0 * failed) / (passed + failed),
-            self.total_running_time))
-        outfile.write('''
-    <table border="0" cellpadding="0">
-    <tr>
-    <th><font face="Arial">test</font></th>
-    <th><font face="Arial">description</font></th>
-    <th><font face="Arial">new</font></th>
-    <th><font face="Arial">ref</font></th>
-    </tr>
-    ''')
+        self.write_html_header(outfile, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+
+        if failed > 0:
+            errors_file = open(html_errors, 'w')
+            self.write_html_header(errors_file, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+        
         for test_name, test_files in zip(self.tests, self.test_results):
             test_dir = test_name
             test_results_dir = os.path.join(self.results_dir, test_dir)
@@ -575,23 +582,25 @@ class MayaTestRunner(object):
             f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
             description = f.readline() ## just one line
             f.close()
-          
+
             if not os.path.exists(test_results_dir):
                 os.mkdir(test_results_dir)
     
             copy_to_results(test_link)
-    
+        
             for new, ref, dif in test_files:
+
                 # copy images to results directory
                 new_img_dest = copy_to_results(os.path.join(test_dir, new))
                 ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
                 copy_to_results(os.path.join(test_dir, dif))
-              
+                copy_to_results(os.path.join(test_dir, test_name + '.log'))
+                
                 f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
                 status = f.readline() ## just one line
                 f.close()
                 bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
-    
+   
                 outfile.write('''
         <tr>
           <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
@@ -613,13 +622,45 @@ class MayaTestRunner(object):
                     ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
                                             or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
                     ))
-
+                if status != 'OK':
+                    errors_file.write('''
+        <tr>
+          <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
+          <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
+          <td><a href="%s">%s</a></td>
+          <td><a href="%s">%s</a></td>
+        </tr>
+              ''' % (bgcolor,
+                    test_link,
+                    test_name,
+                    bgcolor,
+                    len(test_files) < 2 and
+                       description
+                       or description+': <small>'+ref+'</small>',
+                    test_link,
+                    new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
+                    test_link,
+                    ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
+                    ))
+                
+        
         outfile.write('''
     </table>
     </body>
     </html>
        ''')
         outfile.close()
+             
+        if failed > 0:   
+            errors_file.write('''
+                </table>
+                </body>
+                </html>
+                    ''')
+            errors_file.close()
+            
         print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
         return passed, failed
 
