@@ -688,7 +688,7 @@ else:
         cmd = None
 
         if target[0] == MTOA_API[0]:
-            cmd = "install_name_tool -id @loader_path/../bin/libmtoa_api.dylib"
+            cmd = "install_name_tool -id @rpath/libmtoa_api.dylib"
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
 
