@@ -141,7 +141,8 @@ class MayaTestRunner(object):
                 output_basename        = 'testrender',     ## can be '' if the test does not generate an image
                 reference_basename     = os.path.join('ref', 'reference'),  ## can be '' if the test does not generate an image
                 force_result        = 'OK',
-                multiprocess        = True):
+                multiprocess        = True,
+                maya_version        = '2018'):
       ## save the params
         if system.os() == 'windows':
             self.script = os.path.normpath(script)
@@ -164,11 +165,10 @@ class MayaTestRunner(object):
         # test source directory, before it has been copied to build dir
         self.source_dir  = os.path.abspath(os.path.join('testsuite')) 
         self.build_dir = None
-
-        self.fill_blacklist()
+        self.fill_blacklist(maya_version)        
         self.gui_list = find_test_group('gui')
 
-    def fill_blacklist(self):
+    def fill_blacklist(self, maya_version):
         # blacklist
         self.black_list = find_test_group('ignore')
 
@@ -180,6 +180,9 @@ class MayaTestRunner(object):
         ignore_os = 'ignore_' + system.os()
 
         self.black_list.extend(find_test_group(ignore_os))
+
+        ignore_version = 'ignore_' + maya_version
+        self.black_list.extend(find_test_group(ignore_version))
 
     def add_test(self, test_dir):
         test_name = os.path.basename(test_dir)
@@ -743,7 +746,7 @@ if __name__ == 'SCons.Script':
     ## and Maya's
     prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
     
-    testRunner = MayaTestRunner(multiprocess = multiprocess)
+    testRunner = MayaTestRunner(multiprocess = multiprocess, maya_version = test_env['MAYA_VERSION_BASE'])
     testrunner_bld = Builder(action = testRunner.run)
     test_env.Append(BUILDERS = {'Testsuite' : testrunner_bld})
     
