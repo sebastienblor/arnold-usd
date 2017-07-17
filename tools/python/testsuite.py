@@ -391,6 +391,13 @@ Arnold testsuite - %s
     for new, ref, dif in results:
 
         bgcolor = os.path.exists(dif) and '#ffa0a0' or '#ececec'
+        out_img = new.replace('.jpg', '.tif')
+        out_img = out_img[4:]
+        
+        if  os.path.exists(dif) and os.path.exists(out_img):
+            test_log = test_name + '<br><br><a href="%s">Log</a><br><br><a href="%s">Download New</a>' % (test_name + '.log', out_img)
+        else:
+            test_log = test_name + '<br><br><a href="%s">Log</a>' % (test_name + '.log')
         f.write('''
             <tr>
             <td bgcolor="%s">
@@ -425,7 +432,7 @@ Arnold testsuite - %s
             </td>
             </tr>''' % (
                   bgcolor,
-                  test_name + '<br><br><a href="%s">log</a>' % (test_name + '.log'),
+                  test_log,
                   bgcolor,
                   os.path.exists(dif) and ''' FAILED ''' or '''OK''',
                   len(references) < 2 and

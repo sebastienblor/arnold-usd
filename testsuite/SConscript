@@ -616,11 +616,17 @@ class MayaTestRunner(object):
                 ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
                 copy_to_results(os.path.join(test_dir, dif))
                 copy_to_results(os.path.join(test_dir, test_name + '.log'))
-                
+
                 f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
                 status = f.readline() ## just one line
                 f.close()
                 bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
+
+                # if the test has failed, copy the new render to results
+                if status != 'OK':
+                    out_img = new.replace('.jpg', '.tif')
+                    out_img = out_img[4:]
+                    copy_to_results(os.path.join(test_dir, out_img))
    
                 outfile.write('''
         <tr>
