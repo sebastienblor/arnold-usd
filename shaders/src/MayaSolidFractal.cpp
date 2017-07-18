@@ -33,6 +33,10 @@ enum MayaSolidFractalParams
    MAYA_COLOR_BALANCE_ENUM
 };
 
+struct MayaSolidFractalData {
+   bool placementMatrixLinked;
+};
+
 static float Noise3D(const AtVector &p, bool inflection)
 {
    float noise = AiPerlin3(p);
@@ -85,18 +89,23 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaSolidFractalData());   
 }
 
 node_update
 {
+   MayaSolidFractalData* data =(MayaSolidFractalData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaSolidFractalData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaSolidFractalData* data =(MayaSolidFractalData*)AiNodeGetLocalData(node);
    float threshold = AiShaderEvalParamFlt(p_threshold);
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
    float ratio = AiShaderEvalParamFlt(p_ratio);
@@ -117,6 +126,9 @@ shader_evaluate
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
+   
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&

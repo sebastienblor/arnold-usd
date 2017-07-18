@@ -18,6 +18,9 @@ namespace
       p_placementMatrix,
       MAYA_COLOR_BALANCE_ENUM
    };
+   struct MayaSnowData {
+      bool placementMatrixLinked;
+   };
 }
 
 node_parameters
@@ -40,18 +43,24 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaSnowData());   
 }
 
 node_update
 {
+   MayaSnowData* data =(MayaSnowData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaSnowData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaSnowData* data =(MayaSnowData*)AiNodeGetLocalData(node);
+
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
@@ -104,5 +113,8 @@ shader_evaluate
    {
       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
+
    if (usePref) RestorePoints(sg, tmpPts);
 }

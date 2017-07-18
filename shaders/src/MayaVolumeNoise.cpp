@@ -75,6 +75,10 @@ static const char* FalloffTypeNames[] =
    0
 };
 
+struct MayaVolumeNoiseData{
+   bool placementMatrixLinked;
+};
+
 };
 
 node_parameters
@@ -111,18 +115,23 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaVolumeNoiseData());   
 }
 
 node_update
 {
+   MayaVolumeNoiseData* data =(MayaVolumeNoiseData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaVolumeNoiseData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaVolumeNoiseData* data =(MayaVolumeNoiseData*)AiNodeGetLocalData(node);
    float threshold = AiShaderEvalParamFlt(p_threshold);
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
    float ratio = AiShaderEvalParamFlt(p_ratio);
@@ -150,6 +159,8 @@ shader_evaluate
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&

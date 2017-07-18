@@ -52,7 +52,7 @@ public:
    typedef std::map<uint16_t, AtMatrix*> ThreadMatrixMap;
 
    P3DTData()
-      : mBeingDestroyed(false)
+      : parentMatrixLinked(false), mBeingDestroyed(false)
    {
       AiCritSecInitRecursive(&mMutex);
    }
@@ -101,6 +101,8 @@ public:
       return rv;
    }
 
+   bool parentMatrixLinked;
+
 protected:
 
   AtCritSec mMutex;
@@ -139,6 +141,8 @@ node_initialize
 
 node_update
 {
+   P3DTData *data = reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node));
+   data->parentMatrixLinked = AiNodeIsLinked(node, "parentMatrix");
 }
 
 node_finish
@@ -242,6 +246,8 @@ shader_evaluate
    {
       M = AiM4Mult(M, *parentMatrix);
    }
+   if (data->parentMatrixLinked)
+      delete parentMatrix;
 
    sg->out.pMTX() = pM;
 }

@@ -10,6 +10,9 @@ enum MayaEnvSphereParams
    p_flip,
    p_matrix
 };
+struct MayaEnvSphereData {
+   bool placementMatrixLinked;
+};
 
 };
 
@@ -29,18 +32,23 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaEnvSphereData());   
 }
 
 node_update
 {
+   MayaEnvSphereData* data =(MayaEnvSphereData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaEnvSphereData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaEnvSphereData* data =(MayaEnvSphereData*)AiNodeGetLocalData(node);
    AtVector rdir = AiReflectSafe(sg->Rd, sg->Nf, sg->Ng);
 
    AtMatrix *matrix = AiShaderEvalParamMtx(p_matrix);
@@ -48,6 +56,9 @@ shader_evaluate
    rdir = AiM4VectorByMatrixMult(AiM4RotationX(90.0), rdir);
    rdir = AiM4VectorByMatrixMult(AiM4RotationZ(90.0), rdir);
 
+   if (data->placementMatrixLinked)
+      delete matrix;
+   
    // copy original globals
    float inU = sg->u;
    float inV = sg->v;
