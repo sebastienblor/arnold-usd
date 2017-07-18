@@ -13934,7 +13934,7 @@ createNode script -n "sceneConfigurationScriptNode";
 createNode cacheFile -n "nParticleShape1Cache1";
 	rename -uid "C6155A30-42BF-C48C-846C-EC8D411CDEC9";
 	setAttr ".cn" -type "string" "nParticleShape1";
-	setAttr ".cp" -type "string" "D:/arnold/mtoa/testsuite/test_0019/data/cache";
+	setAttr ".cp" -type "string" "cache";
 	setAttr ".os" 1;
 	setAttr ".oe" 120;
 	setAttr ".ss" 1;
