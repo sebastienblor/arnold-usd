@@ -22,9 +22,6 @@ namespace
       p_local,
       p_wrap
    };
-   struct MayaCloudAlphaData {
-      bool placementMatrixLinked;
-   };
 }
 
 node_parameters
@@ -50,23 +47,18 @@ node_parameters
 
 node_initialize
 {
-   AiNodeSetLocalData(node, new MayaCloudAlphaData());   
 }
 
 node_update
 {
-   MayaCloudAlphaData* data =(MayaCloudAlphaData*)AiNodeGetLocalData(node);
-   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
-   delete (MayaCloudAlphaData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
-   MayaCloudAlphaData* data =(MayaCloudAlphaData*)AiNodeGetLocalData(node);
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
    AtVector2 depth = AiShaderEvalParamVec2(p_depth);
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
@@ -87,9 +79,6 @@ shader_evaluate
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
-
-   if (data->placementMatrixLinked)
-      delete placementMatrix;
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
