@@ -23,6 +23,11 @@ namespace
       p_placementMatrix,
       MAYA_COLOR_BALANCE_ENUM
    };
+
+   struct MayaStuccoData{
+      bool placementMatrixLinked;
+   };
+
 }
 
 node_parameters
@@ -43,18 +48,24 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaStuccoData());   
 }
 
 node_update
 {
+   MayaStuccoData* data =(MayaStuccoData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaStuccoData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaStuccoData* data =(MayaStuccoData*)AiNodeGetLocalData(node);
+   
    AtRGB channel1 = AiShaderEvalParamRGB(p_channel1);
    AtRGB channel2 = AiShaderEvalParamRGB(p_channel2);
    float shaker = AiShaderEvalParamFlt(p_shaker);
@@ -67,6 +78,9 @@ shader_evaluate
 
    AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
+   
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
                 (-1.0f <= P.z && P.z <= 1.0f)))

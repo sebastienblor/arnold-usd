@@ -29,6 +29,9 @@ namespace
       p_local,
       p_wrap
    };
+   struct MayaCloudData {
+      bool placementMatrixLinked;
+   };
 }
 
 node_parameters
@@ -63,18 +66,24 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaCloudData());   
 }
 
 node_update
 {
+   MayaCloudData* data =(MayaCloudData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaCloudData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaCloudData* data =(MayaCloudData*)AiNodeGetLocalData(node);
+   
    AtRGB color1 = AiShaderEvalParamRGB(p_color1);
    AtRGB color2 = AiShaderEvalParamRGB(p_color2);
    float contrast = AiShaderEvalParamFlt(p_contrast);
@@ -100,6 +109,8 @@ shader_evaluate
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&

@@ -371,6 +371,7 @@ typedef struct
    float    output_aspect;
    float    shutter_start;
    float    inv_shutter_length;
+   bool     placementMatrixLinked;
 } ShaderData;
 
 node_initialize
@@ -400,6 +401,7 @@ node_update
             AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
       }
    } 
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 
    AtNode *renderCamera = AiUniverseGetCamera();
    if (renderCamera)
@@ -460,13 +462,7 @@ shader_evaluate
    bool local  = (AiShaderEvalParamBool(p_local) == true);
 
    //AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_placement_matrix);
-   AtMatrix* space = AiShaderEvalParamMtx(p_placement_matrix);
-
-   // AtMatrix ispace;
-   // AiM4Invert(*space, ispace);
-   // AtMatrix *mappingCoordinate = &ispace;
-
-   AtMatrix *mappingCoordinate = space;
+   AtMatrix *mappingCoordinate = AiShaderEvalParamMtx(p_placement_matrix);
 
    AtRGBA outColor;
 
@@ -718,6 +714,8 @@ shader_evaluate
    {
       outColor = AtRGBA(AiShaderEvalParamRGB(p_default_color));
    }
+   if (data->placementMatrixLinked)
+      delete mappingCoordinate;
 
    if (usePref) RestorePoints(sg, tmpPts);
    sg->out.RGBA() = outColor;

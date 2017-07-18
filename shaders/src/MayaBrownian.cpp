@@ -20,6 +20,9 @@ enum MayaBrownianParams
    p_local,
    MAYA_COLOR_BALANCE_ENUM
 };
+struct MayaBrownianData {
+   bool placementMatrixLinked;
+};
 
 };
 
@@ -42,18 +45,24 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaBrownianData());   
 }
 
 node_update
 {
+   MayaBrownianData* data =(MayaBrownianData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaBrownianData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaBrownianData* data =(MayaBrownianData*)AiNodeGetLocalData(node);
+   
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    bool wrap = AiShaderEvalParamBool(p_wrap);
    bool local = AiShaderEvalParamBool(p_local);
@@ -62,6 +71,8 @@ shader_evaluate
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&

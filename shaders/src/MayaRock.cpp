@@ -49,6 +49,9 @@ namespace
       p_placementMatrix,
       MAYA_COLOR_BALANCE_ENUM
    };
+   struct MayaRockData {
+      bool placementMatrixLinked;
+   };
 }
 
 node_parameters
@@ -74,18 +77,24 @@ node_parameters
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaRockData());   
 }
 
 node_update
 {
+   MayaRockData* data =(MayaRockData*)AiNodeGetLocalData(node);
+   data->placementMatrixLinked = AiNodeIsLinked(node, "placementMatrix");
 }
 
 node_finish
 {
+   delete (MayaRockData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
 {
+   MayaRockData* data =(MayaRockData*)AiNodeGetLocalData(node);
+
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
@@ -96,6 +105,8 @@ shader_evaluate
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
+   if (data->placementMatrixLinked)
+      delete placementMatrix;
    
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
