@@ -248,7 +248,7 @@ shader_evaluate
    }
    if (data->parentMatrixLinked)
       delete parentMatrix;
-
-   sg->out.pMTX() = pM;
+   
+   sg->out.pMTX() = new AtMatrix(*pM);
 }
 
