@@ -1,6 +1,8 @@
 #include <ai.h>
 
 #include <map>
+#include <vector>
+#include <assert.h>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlace3DTextureMtd);
 
@@ -45,69 +47,9 @@ const char* gs_RotateOrderNames[] =
 };
 
 
-class P3DTData
+struct P3DTData
 {
-public:
-
-   typedef std::map<uint16_t, AtMatrix*> ThreadMatrixMap;
-
-   P3DTData()
-      : parentMatrixLinked(false), mBeingDestroyed(false)
-   {
-      AiCritSecInitRecursive(&mMutex);
-   }
-
-   ~P3DTData()
-   {
-      AiCritSecEnter(&mMutex);
-
-      mBeingDestroyed = true;
-
-      ThreadMatrixMap::iterator it = mThreadMatrices.begin();
-      while (it != mThreadMatrices.end())
-      {
-         AiFree(it->second);
-         ++it;
-      }
-      mThreadMatrices.clear();
-
-      AiCritSecLeave(&mMutex);
-
-      AiCritSecClose(&mMutex);
-   }
-
-   AtMatrix* getOrCreateMatrix(AtShaderGlobals *sg)
-   {
-      AtMatrix *rv = 0;
-
-      AiCritSecEnter(&mMutex);
-
-      if (!mBeingDestroyed)
-      {
-         ThreadMatrixMap::iterator it = mThreadMatrices.find(sg->tid);
-         if (it != mThreadMatrices.end())
-         {
-            rv = it->second;
-         }
-         else
-         {
-            rv = (AtMatrix*) AiMalloc(sizeof(AtMatrix));
-            mThreadMatrices[sg->tid] = rv;
-         }
-      }
-
-      AiCritSecLeave(&mMutex);
-
-      return rv;
-   }
-
-   bool parentMatrixLinked;
-
-protected:
-
-  AtCritSec mMutex;
-  ThreadMatrixMap mThreadMatrices;
-  bool mBeingDestroyed;
+   std::vector<AtMatrix> thread_mtx;
 };
 
 };
@@ -142,7 +84,7 @@ node_initialize
 node_update
 {
    P3DTData *data = reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node));
-   data->parentMatrixLinked = AiNodeIsLinked(node, "parentMatrix");
+   data->thread_mtx.resize(AiMax(1, AiNodeGetInt(AiUniverseGetOptions(), "threads")));
 }
 
 node_finish
@@ -167,15 +109,17 @@ shader_evaluate
    bool inheritsTransform = (AiShaderEvalParamBool(p_inherits_transform) == true);
    AtMatrix *parentMatrix = AiShaderEvalParamMtx(p_parent_matrix);
 
-   AtMatrix *pM = data->getOrCreateMatrix(sg);
-   if (!pM)
+   if (sg->tid >= data->thread_mtx.size())
    {
-      AiMsgWarning("[mtoa_shaders] [MayaPlace3DTexture] Trying to access node matrix data while node is being destroyed");
+      // Should never happen, unless the amount of threads ends up changing while render is in progress
+      AiMsgError("[mtoa] invalid thread id in MtoaAnimShader");
+      assert(0);
+      sg->out.pMTX() = &data->thread_mtx[0];
       return;
    }
-   
-   AtMatrix &M = *pM;
 
+   AtMatrix &M = data->thread_mtx[sg->tid];
+ 
    AtMatrix T = AiM4Translation(translate);
    AtMatrix S = AiM4Translation(scale);
 
@@ -246,9 +190,6 @@ shader_evaluate
    {
       M = AiM4Mult(M, *parentMatrix);
    }
-   if (data->parentMatrixLinked)
-      delete parentMatrix;
-   
-   sg->out.pMTX() = new AtMatrix(*pM);
+   sg->out.pMTX() = &M;
 }
 
