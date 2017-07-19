@@ -18,7 +18,7 @@
 #######################
 
 # These tests are only executed on Windows
-windows: test_0020 test_0019
+windows: 
 
 # These tests are only executed on Linux
 linux:

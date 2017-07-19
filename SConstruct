@@ -1008,6 +1008,7 @@ ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(
 ext_env.Append(LIBS = ['mtoa_api',])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
+
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
     if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or
@@ -1183,14 +1184,14 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
 
     if bifrost_ext == 'bifrost':
         PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_procedural_0_1%s' % get_library_extension()), 'procedurals'])
     else:
-        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_procedurals%s' % get_library_extension()), 'procedurals'])
-        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+        PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrost_procedurals%s' % get_library_extension()), 'procedurals'])
+        PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR,  bifrost_ext, 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
 
 
 if env['ENABLE_LOOKDEVKIT'] == 1:

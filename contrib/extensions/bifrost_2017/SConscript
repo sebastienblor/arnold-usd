@@ -48,9 +48,7 @@ def setup(env, library):
                 env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
 
         bifrostLib = 'bifrostapi'
-        if int(maya_version) >= 201800:
-            bifrostLib = bifrostLib + '_1_0'
-
+        
         env.Append(LIBS=Split(bifrostLib + ('.lib' if system.os() =='windows' else '')))
 
     def addBifrostRenderCore(env):
