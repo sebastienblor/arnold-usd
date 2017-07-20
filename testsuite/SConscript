@@ -328,6 +328,9 @@ class MayaTestRunner(object):
         ## setup program path   
         previous_path = os.environ.get('PATH')
         os.environ['PATH'] = test_env['ENV']['PATH']
+
+        # make sure we'll load the .mod file in the target mtoa foler, and thus load the right version of mtoa
+        os.environ['MAYA_MODULE_PATH'] = test_env['TARGET_MODULE_PATH']
        
         ## why this being in Maya.env doesn't work?
         previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
