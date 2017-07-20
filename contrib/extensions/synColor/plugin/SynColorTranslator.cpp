@@ -70,6 +70,9 @@ void CSynColorTranslator::Export(AtNode* node)
          {
             // Old versions of the synColor preferences were not including the catalog path
             MGlobal::executeCommand("getenv MAYA_LOCATION", nativeCatalogDir);
+#ifdef _DARWIN
+            nativeCatalogDir += "/../..";
+#endif
             nativeCatalogDir += "/synColor";
          }
 
