@@ -137,6 +137,13 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
 
     test_dir = os.path.abspath(test_dir)
 
+    # if a plugin folder is found, it's because it contains custom shaders/procedurals
+    plugin_dir = os.path.join(test_dir, 'plugin')
+    if os.path.exists(plugin_dir):
+        os.environ['ARNOLD_PLUGIN_PATH'] = plugin_dir
+    else:
+        os.unsetenv('ARNOLD_PLUGIN_PATH')
+
     ## TODO: attach valgrind to each command
     if update_reference:
         show_test_output = False
