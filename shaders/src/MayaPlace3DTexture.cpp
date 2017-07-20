@@ -1,9 +1,5 @@
 #include <ai.h>
 
-#include <map>
-#include <vector>
-#include <assert.h>
-
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlace3DTextureMtd);
 
 namespace
@@ -47,11 +43,6 @@ const char* gs_RotateOrderNames[] =
 };
 
 
-struct P3DTData
-{
-   std::vector<AtMatrix> thread_mtx;
-};
-
 };
 
 node_parameters
@@ -78,24 +69,18 @@ node_parameters
 
 node_initialize
 {
-   AiNodeSetLocalData(node, new P3DTData());
 }
 
 node_update
 {
-   P3DTData *data = reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node));
-   data->thread_mtx.resize(AiMax(1, AiNodeGetInt(AiUniverseGetOptions(), "threads")));
 }
 
 node_finish
 {
-   delete (reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node)));
 }
 
 shader_evaluate
 {
-   P3DTData *data = reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node));
-
    AtVector translate = AiShaderEvalParamVec(p_translate);
    AtVector rotate = AiShaderEvalParamVec(p_rotate);
    AtVector scale = AiShaderEvalParamVec(p_scale);
@@ -108,17 +93,6 @@ shader_evaluate
    AtVector rotatePivotTranslate = AiShaderEvalParamVec(p_rotate_pivot_translate);
    bool inheritsTransform = (AiShaderEvalParamBool(p_inherits_transform) == true);
    AtMatrix *parentMatrix = AiShaderEvalParamMtx(p_parent_matrix);
-
-   if (sg->tid >= data->thread_mtx.size())
-   {
-      // Should never happen, unless the amount of threads ends up changing while render is in progress
-      AiMsgError("[mtoa] invalid thread id in MtoaAnimShader");
-      assert(0);
-      sg->out.pMTX() = &data->thread_mtx[0];
-      return;
-   }
-
-   AtMatrix &M = data->thread_mtx[sg->tid];
  
    AtMatrix T = AiM4Translation(translate);
    AtMatrix S = AiM4Translation(scale);
@@ -180,16 +154,19 @@ shader_evaluate
    Rz = AiM4RotationZ(rotateAxis.z * AI_RTOD);
    Ro = AiM4Mult(AiM4Mult(Rx, Ry), Rz);
 
-   M = AiM4Mult(AiM4Mult(Spi, S), Sh);
-   M = AiM4Mult(AiM4Mult(M, Sp), St);
-   M = AiM4Mult(AiM4Mult(M, Rpi), Ro);
-   M = AiM4Mult(AiM4Mult(M, R), Rp);
-   M = AiM4Mult(AiM4Mult(M, Rt), T);
+   // the memory allocated here by QuickAlloc will automatically 
+   // be released at the end of this camera ray
+   AtMatrix *M = (AtMatrix*) AiShaderGlobalsQuickAlloc(sg, sizeof(AtMatrix));
+
+   *M = AiM4Mult(AiM4Mult(Spi, S), Sh);
+   *M = AiM4Mult(AiM4Mult(*M, Sp), St);
+   *M = AiM4Mult(AiM4Mult(*M, Rpi), Ro);
+   *M = AiM4Mult(AiM4Mult(*M, R), Rp);
+   *M = AiM4Mult(AiM4Mult(*M, Rt), T);
 
    if (inheritsTransform)
-   {
-      M = AiM4Mult(M, *parentMatrix);
-   }
-   sg->out.pMTX() = &M;
+      *M = AiM4Mult(*M, *parentMatrix);
+      
+   sg->out.pMTX() = M;
 }
 
