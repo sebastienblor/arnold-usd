@@ -18,13 +18,13 @@
 #######################
 
 # These tests are only executed on Windows
-windows: test_0098
+windows: test_0098 test_0167_win
 
 # These tests are only executed on Linux
-linux:
+linux: test_0167_linux
 
 # These tests are only executed on Darwin
-darwin: 
+darwin: test_0167_mac
 
 # Tests in this group will never be executed (you can use it to temporarily disable some tests and/or groups)
 # FIXME : motion blurred particles are not working properly (seems to be maya ?), temporarily disabling tests 60, 66, 74, 79 until solved
