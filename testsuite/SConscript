@@ -430,8 +430,6 @@ class MayaTestRunner(object):
                     test_script = os.path.join(test_env['MAYA_ROOT'],'bin',self.script)
 
 
-
-
                 args.append((test_name,
                             lock,
                             test_dir,
@@ -487,7 +485,8 @@ class MayaTestRunner(object):
         passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), os.path.join(self.results_dir, 'errors.html'), arnold_version)
         return None # always succeds, jenkins will keep track of the test results not us
 
-    def write_html_header(self, outfile, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed):
+    def write_html_header(self, outfile, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed):
+
             outfile.write('''
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -502,8 +501,8 @@ class MayaTestRunner(object):
         <table border="0" cellpadding="15" cellspacing="2">
         <tr>
         <td>
-        <font face="Arial"><h1>MtoA %s testsuite</h1>
-        %s<br>%s</font>
+        <font face="Arial"><h1>MtoA %s testsuite (%s / Maya %s)</h1>
+        revision: %s<br>branch: %s</font>
         </td>
         <td>
         <pre>
@@ -520,7 +519,7 @@ class MayaTestRunner(object):
         </tr>
         </table>
         <br>
-        ''' % (MTOA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
+        ''' % (MTOA_VERSION, system.os(), MAYA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
                 len(self.tests),
                 passed,
                 (100.0 * passed) / (passed + failed),
@@ -583,17 +582,18 @@ class MayaTestRunner(object):
         if len(self.tests) <= 1:
             return passed, failed
 
-        MTOA_VERSION    = '<not available>'
+        MTOA_VERSION    = env['MTOA_VERSION']
         ARNOLD_VERSION  = arnold_version
         (REVISION, URL) = get_latest_revision()
+        MAYA_VERSION = env['MAYA_VERSION']
              
         ## create testsuite html
         outfile = open(html_index, 'w')
-        self.write_html_header(outfile, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+        self.write_html_header(outfile, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
 
         if failed > 0:
             errors_file = open(html_errors, 'w')
-            self.write_html_header(errors_file, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+            self.write_html_header(errors_file, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
         
         for test_name, test_files in zip(self.tests, self.test_results):
             test_dir = test_name

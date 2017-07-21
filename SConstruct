@@ -208,6 +208,8 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
+env['MTOA_VERSION'] = MTOA_VERSION
+
 system.set_target_arch('x86_64')
 
 # Configure colored output
