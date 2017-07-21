@@ -159,6 +159,8 @@ private:
 
         // Curves mode ("thick", "ribbon", or "oriented")
         AiNodeSetStr(_curves, "mode", (_aiMode == 1) ? "thick" : "ribbon");
+        AiNodeSetFlt(_curves, "motion_start", AiNodeGetFlt(procedural, "motion_start"));
+        AiNodeSetFlt(_curves, "motion_end", AiNodeGetFlt(procedural, "motion_end"));
 
     }
 
