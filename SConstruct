@@ -1331,7 +1331,7 @@ def create_installer(target, source, env):
         excluded_files = ['libOpenColorIO.1.dylib']
         sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
-        sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA_Installer.pkgproj'))
+        sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA_Installer.pkgproj'), signed_extensions)
 
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')
         

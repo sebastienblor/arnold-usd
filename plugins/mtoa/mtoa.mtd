@@ -381,8 +381,6 @@
         max                 INT     100
         default             INT     1
         maya.channelbox     BOOL    false
-    [attr lens_radius]
-        maya.channelbox     BOOL    false
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
