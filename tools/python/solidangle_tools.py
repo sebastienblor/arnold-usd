@@ -29,3 +29,26 @@ def make_package(target, source, env):
                     zp.write(f, os.path.join(target_dir, os.path.basename(f)))
          
     return None
+
+def sign_packaged_file(sign_script, target, allowed_extensions, excluded_files = []):
+    if sign_script == '':
+        return
+    if os.path.isdir(target):
+        for root, subdirs, files in os.walk(target):
+            for file in files:
+                installedFile = os.path.join(root, file)
+                if not os.path.exists(installedFile):
+                    # can this happen ?
+                    continue
+
+                filename, file_ext = os.path.splitext(installedFile)
+                if file_ext not in allowed_extensions:
+                    continue
+                basename = os.path.basename(installedFile)
+                if basename in excluded_files:
+                    continue
+
+                os.system(sign_script + ' ' + installedFile)
+    else:
+        os.system(sign_script + ' ' + target)
+
