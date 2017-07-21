@@ -1296,7 +1296,7 @@ def create_installer(target, source, env):
 
         # run script on each of the packaged files
         signed_extensions = ['.exe', '.dll', '.lib', '.mll']
-        excluded_files = ['OpenColorIO.dll']
+        excluded_files = [] #['OpenColorIO.dll']
         sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
 
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
@@ -1336,7 +1336,7 @@ def create_installer(target, source, env):
         pitregScript.close()
 
         signed_extensions = ['.dylib', '.pkg', '.exe', '.bundle']
-        excluded_files = ['libOpenColorIO.1.dylib']
+        excluded_files = [] #['libOpenColorIO.1.dylib']
         sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA_Installer.pkgproj'), signed_extensions)
