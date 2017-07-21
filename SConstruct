@@ -161,7 +161,8 @@ vars.AddVariables(
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
-    BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False)
+    BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
+    ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
 if system.os() == 'darwin':
@@ -1284,7 +1285,15 @@ def create_installer(target, source, env):
 
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
+
+        # run script on each of the packaged files
+        signed_extensions = ['.exe', '.dll', '.lib', '.mll']
+        excluded_files = ['OpenColorIO.dll']
+        sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
+
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
+        sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA.exe'), signed_extensions)
+
         shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
     elif system.os() == "darwin":
         import zipfile
@@ -1318,7 +1327,12 @@ def create_installer(target, source, env):
         pitregScript.write('\n')
         pitregScript.close()
 
+        signed_extensions = ['.dylib', '.pkg', '.exe', '.bundle']
+        excluded_files = ['libOpenColorIO.1.dylib']
+        sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
+        sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA_Installer.pkgproj'))
+
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')
         
 
