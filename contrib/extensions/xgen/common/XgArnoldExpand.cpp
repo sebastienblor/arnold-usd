@@ -1050,7 +1050,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       string strParentName = AiNodeGetName( m_node_face );
       string strID = itoa( (int)m_nodes.size() );
       AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
-      AiNodeSetInt(nodeCurves, "id", getHash(nodeCurves));
+      AiNodeSetUInt(nodeCurves, "id", getHash(nodeCurves));
       AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
       AiNodeSetStr( nodeCurves, "basis", "b-spline" );
       AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
@@ -1251,7 +1251,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         // and a geometry instance node.
         AtNode* nodeInstance = AiNode("ginstance");
         AiNodeSetStr( nodeInstance, "name", getUniqueName(buf,( strParentName + string("_ginstance_") + strID).c_str()) );
-        AiNodeSetInt(nodeInstance, "id", getHash(nodeInstance) );
+        AiNodeSetUInt(nodeInstance, "id", getHash(nodeInstance) );
         AiNodeSetArray( nodeInstance, "matrix", matrix );
         AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
         AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
@@ -1730,7 +1730,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
          if ( archive_procedural )
          {
             AiNodeSetStr( archive_procedural, "name", uniqueName.c_str() );
-            AiNodeSetInt(archive_procedural, "id", getHash(archive_procedural ));
+            AiNodeSetUInt(archive_procedural, "id", getHash(archive_procedural ));
             AiNodeSetArray( archive_procedural, "matrix", AiArrayCopy(matrix) );
             if(materialNode != NULL)
                AiNodeSetPtr( archive_procedural, "shader", materialNode );

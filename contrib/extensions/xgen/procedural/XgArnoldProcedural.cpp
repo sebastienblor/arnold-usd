@@ -30,15 +30,10 @@ procedural_init
       *user_ptr = 0;
       return 1;
    }
-   ProceduralWrapper* ud = (ProceduralWrapper*)AiNodeGetPtr( node, "userptr" );
-
-   // Create a brand new one.
-   if( ud==NULL )
-   {
-      ud = new ProceduralWrapper( new Procedural(), false /* Won't do cleanup */ );
-      if( !ud )
-        return 0;
-   }
+   ProceduralWrapper* ud = new ProceduralWrapper( new Procedural(), false /* Won't do cleanup */ );
+   if( !ud )
+     return 0;
+   
 
    *user_ptr = (void*)ud;
 

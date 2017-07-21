@@ -755,7 +755,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
    // For now we're only expanding the procedurals during export if we are on an interactive render
    // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
    // can be updated while tweaking the XGen attributes
-   if (GetSessionOptions().IsInteractiveRender())
+   if (GetSessionOptions().GetSessionMode() != MTOA_SESSION_ASS)
    {
       // if there is no motion blur for this node, then we're good to expand the geometries
       bool hasMotion = IsMotionBlurEnabled() && RequiresMotionData();
