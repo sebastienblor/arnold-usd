@@ -102,13 +102,22 @@ EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX= '')
 ###########################################################3
 #### BIFROST SHADERS
 
-Import('ext_env')
-local_env = ext_env.Clone()
+Import('env')
+shader_env = env.Clone()
 
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(ext_base_dir, 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
-EXT_SHADERS = local_env.SharedLibrary('bifrost_shaders', source_files, LIBPREFIX='')
+
+if system.os() =='windows':
+   shader_env.Append(CPPPATH = ['.'])   
+   shader_env.Append(LIBS=Split('ai.lib'))
+else:
+   shader_env.Append(CPPPATH = ['.'])
+   shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   
+EXT_SHADERS = shader_env.SharedLibrary('bifrost_shaders', source_files, LIBPREFIX='')
 
 
 ##########################################################
