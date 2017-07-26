@@ -79,7 +79,21 @@ extern "C"
 #else
         extension.Requires ( "bifrostvisplugin" );
 #endif
-     
+
+
+#ifdef _WIN32
+        MString bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/";
+#endif
+#ifdef _LINUX
+        MString bifrostProceduralPath = "/usr/autodesk/bifrost/";
+#endif
+#ifdef _DARWIN
+        MString bifrostProceduralPath = "/Applications/Autodesk/Bifrost/";
+#endif
+        // FIXME : need to find the arnold version in the bifrost folder
+        bifrostProceduralPath += MString(AI_VERSION);
+
+        extension.LoadArnoldPlugin("bifrost_procedural_0_1", bifrostProceduralPath);
         status = extension.RegisterTranslator ( "bifrostShape", "",
                                                 BifrostTranslator::creator,
                                                 BifrostTranslator::NodeInitializer );
