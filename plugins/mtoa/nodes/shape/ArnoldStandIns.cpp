@@ -228,12 +228,14 @@ size_t CArnoldStandInGeom::VisibleGeometryCount() const
     return total;
 }
 
-CArnoldStandInShape::CArnoldStandInShape() : m_refreshAvoided(false)
+CArnoldStandInShape::CArnoldStandInShape() : m_attrChangeId(0), m_refreshAvoided(false)
 {
 }
 
 CArnoldStandInShape::~CArnoldStandInShape()
 {
+   if (m_attrChangeId != 0)
+      MMessage::removeCallback(m_attrChangeId);
 }
 
 /* override */
@@ -241,6 +243,9 @@ void CArnoldStandInShape::postConstructor()
 {
    // This call allows the shape to have shading groups assigned
    setRenderable(true);
+
+   MObject me = thisMObject();
+   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, AttrChangedCallback, this);
 }
 
 MStatus CArnoldStandInShape::compute(const MPlug& plug, MDataBlock& data)
@@ -893,7 +898,7 @@ MStatus CArnoldStandInShape::initialize()
    
    //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
    
-      data.defaultValue.BOOL() = false;
+   data.defaultValue.BOOL() = false;
    data.name = "overrideDoubleSided";
    data.shortName = "overrideDoubleSided";
    s_attributes.MakeInputBoolean(data);
@@ -1270,6 +1275,67 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    }
 
    return &fGeometry;
+}
+
+// FIXME : please remove all these hacks regarding the "override" attributes 
+// once we no longer case about pre-2.0.2 compatibility
+void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
+{
+
+   CArnoldStandInShape *node = static_cast<CArnoldStandInShape*>(clientData);
+   if (!node)
+      return; 
+
+   MFnAttribute fnAttr(plug.attribute());
+   MString attrName = fnAttr.name();
+   static MString overridePrefix("override");
+   if (overridePrefix != attrName.substringW(0, 7))
+      return;
+
+   MObject this_object = node->thisMObject();
+   MStatus status;
+   MFnDependencyNode dNode(this_object, &status);
+   if (!status)
+      return;
+
+#define STANDIN_VISIBILITY_ATTR_COUNT 7
+   static const char* overrideVisibilityAttributes[STANDIN_VISIBILITY_ATTR_COUNT] = { "overridePrimaryVisibility", 
+                                                "overrideVisibleInDiffuseReflection", 
+                                                "overrideVisibleInSpecularReflection",
+                                                "overrideVisibleInDiffuseTransmission",
+                                                "overrideVisibleInSpecularTransmission",
+                                                "overrideVisibleInVolume",
+                                                "overrideCastsShadows"};
+
+   static const MStringArray OverrideVisibilityAttributesList(overrideVisibilityAttributes, STANDIN_VISIBILITY_ATTR_COUNT);
+   
+   static const char* visibilityAttributes[STANDIN_VISIBILITY_ATTR_COUNT] = { "primaryVisibility", 
+                                                "aiVisibleInDiffuseReflection", 
+                                                "aiVisibleInSpecularReflection",
+                                                "aiVisibleInDiffuseTransmission",
+                                                "aiVisibleInSpecularTransmission",
+                                                "aiVisibleInVolume",
+                                                "castsShadows"};
+
+   static const MStringArray VisibilityAttributesList(visibilityAttributes, STANDIN_VISIBILITY_ATTR_COUNT);
+
+   for (int i = 0; i < STANDIN_VISIBILITY_ATTR_COUNT; ++i)
+   {
+      if (attrName != OverrideVisibilityAttributesList[i])
+         continue;
+      if (!plug.asBool())
+      {
+         // this will surely invoke this attrChanged callback again, but since the value 
+         // will be OFF there should be any problem
+         plug.setValue(true);
+
+         // need to set the other attribute to true, meaning that nothing will be overridden in the standin
+         MPlug basePlug = dNode.findPlug(VisibilityAttributesList[i], &status);
+         if (status)
+            basePlug.setValue(true);
+      }
+      return;
+   }
 }
 
 // UI IMPLEMENTATION

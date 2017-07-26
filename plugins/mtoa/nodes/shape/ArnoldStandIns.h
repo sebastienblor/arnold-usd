@@ -8,7 +8,7 @@
 #include <maya/MString.h>
 #include <maya/MPxSurfaceShape.h>
 #include <maya/MPxSurfaceShapeUI.h>
-
+#include <maya/MNodeMessage.h>
 #include <ai_nodes.h>
 
 #include <vector>
@@ -89,7 +89,7 @@ public:
    //bool deferStandinLoad();
 
    static MTypeId id;
-
+   static void  AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
 private:
    CArnoldStandInGeom fGeometry;
    // Attributes
@@ -108,7 +108,8 @@ private:
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
    static MObject s_drawOverride;
-
+   
+   MCallbackId m_attrChangeId;
    bool m_refreshAvoided;
 }; // class CArnoldStandInShape
 
