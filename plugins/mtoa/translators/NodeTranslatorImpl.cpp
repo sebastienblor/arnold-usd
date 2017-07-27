@@ -1276,7 +1276,7 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
       for ( ; it != itEnd; ++it)
       {
          AtNode *node = it->second;
-         if (node == NULL) continue;
+         if (node == NULL || node == m_atNode) continue;
 
          nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
          while (!AiParamIteratorFinished(nodeParam))

@@ -306,7 +306,8 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
             unordered_map<std::string, AtNode*>::iterator nodeIt;
             for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
             {
-               nodes->insert(nodeIt->second);
+               if (nodeIt->second != NULL && nodeIt->second != translator->m_impl->m_atNode)
+                  nodes->insert(nodeIt->second);
             }         
          }
       }

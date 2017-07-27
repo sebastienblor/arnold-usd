@@ -218,13 +218,20 @@ void CNodeTranslator::Delete()
       m_impl->m_session->UnRegisterProcedural(m_impl->m_atNode);
    }
    
+   AtNode *mainNode = m_impl->m_atNode;
    AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
    
    if (m_impl->m_additionalAtNodes)
    {
       for (unordered_map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
-         AiNodeDestroy(it->second);
+      {
+         // in case the translator didn't create a "main" node with no tag
+         // it might be both in m_atNode and in m_additionalAtNodes.
+         // So we must verify that we're not deleting it twice
+         if (it->second != NULL && it->second != mainNode)
+            AiNodeDestroy(it->second);
+      }
       
       delete m_impl->m_additionalAtNodes;
       m_impl->m_additionalAtNodes = NULL;
