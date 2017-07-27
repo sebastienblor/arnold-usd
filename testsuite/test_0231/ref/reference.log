@@ -1,0 +1,64 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0231\test_0231.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.78.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
+
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 576: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage1.colorManagementEnabled'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 577: 'defaultColorMgtGlobals.configFileEnabled' is already connected to 'aiImage1.colorManagementConfigFileEnabled'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 578: 'defaultColorMgtGlobals.configFilePath' is already connected to 'aiImage1.colorManagementConfigFilePath'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 579: 'defaultColorMgtGlobals.workingSpaceName' is already connected to 'aiImage1.workingSpace'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 613: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage2.colorManagementEnabled'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 614: 'defaultColorMgtGlobals.configFileEnabled' is already connected to 'aiImage2.colorManagementConfigFileEnabled'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 615: 'defaultColorMgtGlobals.configFilePath' is already connected to 'aiImage2.colorManagementConfigFilePath'.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma line 616: 'defaultColorMgtGlobals.workingSpaceName' is already connected to 'aiImage2.workingSpace'.
+File read in  0.3 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0231/test.ma
+Updating TX textures :
+-filename D:/arnold/mtoa/testsuite/test_0231/data/texture.exr
+-filename D:/arnold/mtoa/testsuite/test_0231/data/texture_with_alpha.png
+-filename D:/arnold/mtoa/testsuite/test_0231/data/test1.png
+-filename D:/arnold/mtoa/testsuite/test_0231/data/test.png
+-filename D:/arnold/mtoa/testsuite/test_0231/data/texture1.png
+-filename D:/arnold/mtoa/testsuite/test_0231/data/test2.png
+libpng warning: iCCP: known incorrect sRGB profilelibpng warning: iCCP: known incorrect sRGB profile
+
+libpng warning: iCCP: known incorrect sRGB profile
+libpng warning: iCCP: known incorrect sRGB profile
+libpng warning: iCCP: known incorrect sRGB profile
+libpng warning: iCCP: known incorrect sRGB profile
+LENGTH IS 1
+0=initialShadingGroup.dagSetMembers[0] // initialShadingGroup 320
+LENGTH IS 1
+0=aiStandard1SG.dagSetMembers[0] // aiStandard1SG 320
+LENGTH IS 1
+0=aiStandard2SG.dagSetMembers[0] // aiStandard2SG 320
+LENGTH IS 1
+0=aiUtility1SG.dagSetMembers[0] // aiUtility1SG 320
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0231\test.ma completed.
