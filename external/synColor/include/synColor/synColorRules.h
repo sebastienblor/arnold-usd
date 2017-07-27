@@ -28,23 +28,20 @@ SYN_VISIBILITY_PUSH
 namespace SYNCOLOR 
 {
   //------------------------------------------------------------------------------------------------
-  //! This class represents a generic file rule 
+  //! This class represents a generic rule 
   //
-  class SYN_EXPORT FileRule
+  class SYN_EXPORT Rule
   {
   public:
     //! Default destructor
-    virtual ~FileRule() {}
+    virtual ~Rule() {}
 
     //! All supported types of rule
     enum RuleType
     {
-      OPAQUE_RULE = 0,    //!< An opaque rule is a rule where the file pattern and the 
-                          //!< input color space are hidden
-      DEFAULT_RULE,       //!< The default rule is a rule where any type of file will
-                          //!< inherit from a default input color space
-      FILE_PATH_RULE      //!< The file path rule is a rule where the file pattern 
-                          //!< and the input color space are defined by the user
+      OPAQUE_RULE = 0,    //!< An opaque rule is a rule where the parameters are hidden
+      DEFAULT_RULE,       //!< The default rule is the fallback rule if all other rules fail
+      STANDARD_RULE       //!< The standard rule is a fully customizable and manageable rule
     };
     //! \brief Returns the type of the rule
     //! \return the rule's type
@@ -56,52 +53,52 @@ namespace SYNCOLOR
     
   protected:
     //! Default constructor
-    FileRule() {}
+    Rule() {}
 
   private:
     //! Forbidden method
-    FileRule(const FileRule&);
+    Rule(const Rule&);
     //! \brief Forbidden method
     //! \return the instance itself
-    FileRule& operator=(const FileRule&);
+    Rule& operator=(const Rule&);
   };
   
   //------------------------------------------------------------------------------------------------
   //! This class is a smart pointer on a rule
   //
-  class SYN_EXPORT FileRulePtr
+  class SYN_EXPORT RulePtr
   {
   public:
     //! Constructor
-    FileRulePtr();
+    RulePtr();
 
     //! \brief Custom Constructor
     //! \param r The pointer to a file rule to manage
-    explicit FileRulePtr(FileRule* r);
+    explicit RulePtr(Rule* r);
 
     //! \brief Copy Constructor
-    //! \param r reference to a FileRulePtr to Manage
-    FileRulePtr(const FileRulePtr& r);
+    //! \param r reference to a RulePtr to Manage
+    RulePtr(const RulePtr& r);
 
     //! Destructor
-    ~FileRulePtr();
+    ~RulePtr();
 
     //! \brief Operator =
     //! \param r The reference of the Rule that is on the RHS of the "=" operation
-    //! \return a reference to the new FileRulePtr.
-    FileRulePtr& operator=(const FileRulePtr& r);
+    //! \return a reference to the new RulePtr.
+    RulePtr& operator=(const RulePtr& r);
 
     //! \brief Operator ->
     //! \return a pointer to the Rule
-    FileRule* operator->() const;
+    Rule* operator->() const;
 
     //! \brief bool operator
     //! \return a bool, true if the Rule is defined, false otherwise
     operator bool() const;
 
-    //! \brief  Obtains a pointer to the Rule from the FileRulePtr
+    //! \brief  Obtains a pointer to the Rule from the RulePtr
     //! \return a pointer to Rule. This Rule* is not to be deleted.
-    FileRule* get() const;
+    Rule* get() const;
 
   private:
     //! Pointer to _data memory location (hiding the implementation)
@@ -122,26 +119,26 @@ namespace SYNCOLOR
                                                 const char* fileNameExtension,
                                                 const char* filePathPattern,
                                                 const char* colorSpace,
-                                                FileRulePtr& rule);
+                                                RulePtr& rule);
 
   //------------------------------------------------------------------------------------------------
   //! This class represents a rule where the file pattern and the input color space are hidden
   //
-  class SYN_EXPORT OpaqueRule : public FileRule
+  class SYN_EXPORT OpaqueFileRule : public Rule
   {
   public:
     //! \copydoc Rule::getType
-    RuleType getType() const { return FileRule::OPAQUE_RULE; }
+    RuleType getType() const { return Rule::OPAQUE_RULE; }
   };
 
   //------------------------------------------------------------------------------------------------
   //! This class represents a rule where only the input color space could be user managed
   //
-  class SYN_EXPORT DefaultRule : public FileRule
+  class SYN_EXPORT DefaultFileRule : public Rule
   {
   public:
     //! \copydoc Rule::getType
-    RuleType getType() const { return FileRule::DEFAULT_RULE; }
+    RuleType getType() const { return Rule::DEFAULT_RULE; }
 
     //! \brief Get the file name extension pattern used by the rule
     //
@@ -169,11 +166,11 @@ namespace SYNCOLOR
   //------------------------------------------------------------------------------------------------
   //! This class represents a rule where the file pattern and the input color space could be user managed
   //
-  class SYN_EXPORT FilePathRule : public FileRule
+  class SYN_EXPORT FilePathRule : public Rule
   {
   public:
     //! \copydoc Rule::getType
-    RuleType getType() const { return FileRule::FILE_PATH_RULE; }
+    RuleType getType() const { return Rule::STANDARD_RULE; }
 
     //! \brief Get the file name extension used by the rule
     //! \return the file name extension
@@ -233,9 +230,77 @@ namespace SYNCOLOR
   };
 
   //------------------------------------------------------------------------------------------------
-  //! The class contains all the rules, and the capabilities to manage them
+  //! The base class for rule containers that contain all the rules, and the capabilities to manage them
   //
-  class SYN_EXPORT FileRules
+  class SYN_EXPORT Rules
+  {
+  public:
+    //! \brief Restore the default rules
+    //
+    //! \return The status of the request. Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    //
+    virtual SynStatus restoreDefaults() = 0;
+    
+    //! \brief Load rules from preferences
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus load() = 0;
+
+    //! \brief Save the rules in the preferences
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus save() const = 0;
+
+    //! \brief Get the number of rules
+    //! \return The number of rules
+    virtual unsigned int getNumRules() const = 0;
+
+    //! \brief Get a specific rule using its position
+    //! \param position The position of the rule to get
+    //! \param rule The rule found
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus getRule(unsigned int position, RulePtr& rule) const = 0;
+
+    //! \brief Get a specific rule using its name
+    //! \param name The name of the rule
+    //! \param rule The rule found
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus getRule(const char* name, RulePtr& rule) const = 0;
+
+    //! \brief Move a rule to a new position
+    //! \param name The name of the rule to move
+    //! \param offset The offset to be applied to the current rule position
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus moveRule(const char* name, int offset) = 0;
+
+    //! \brief Remove a rule using its name
+    //! \param name The name of the rule
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus removeRule(const char* name) = 0;
+
+    //! \brief Serialize the rule container in XML
+    //! \param writer The writer to receive the ASCII string containing XML formatting
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus serialize(RuleWriter& writer) const = 0;
+    
+    //! \brief Populate the rule container
+    //! \param data The XML string
+    //! \param length The length of the string
+    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
+    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
+    virtual SynStatus populate(const char* data, unsigned int length) = 0;
+  };
+  
+  //------------------------------------------------------------------------------------------------
+  //! The class contains all the file rules, and the capabilities to manage them
+  //
+   class SYN_EXPORT FileRules : public Rules
   {
   public:
     //! \brief Get the current container (could be the native one or an OCIO one)
@@ -245,7 +310,7 @@ namespace SYNCOLOR
     //! Set the rule container to the native one
     static void setNativeMode();
     
-    //! \enum Defines the OCIO modes
+    //! \enum OCIOModes  Defines the OCIO modes
     //
     enum OCIOModes
     {
@@ -280,67 +345,6 @@ namespace SYNCOLOR
     //! \return true if the rule container is read only
     virtual bool isReadOnly() const = 0;
     
-    //! \brief Restore the default rules
-    //
-    //! \return The status of the request. Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    //
-    virtual SynStatus restoreDefaults() = 0;
-    
-    //! \brief Load rules from preferences
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus load() = 0;
-
-    //! \brief Save the rules in the preferences
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus save() const = 0;
-
-    //! \brief Get the number of rules
-    //! \return The number of rules
-    virtual unsigned int getNumRules() const = 0;
-
-    //! \brief Get a specific rule using its position
-    //! \param position The position of the rule to get
-    //! \param rule The rule found
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus getRule(unsigned int position, FileRulePtr& rule) const = 0;
-
-    //! \brief Get a specific rule using its name
-    //! \param name The name of the rule
-    //! \param rule The rule found
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus getRule(const char* name, FileRulePtr& rule) const = 0;
-
-    //! \brief Move a rule to a new position
-    //! \param name The name of the rule to move
-    //! \param offset The offset to be applied to the current rule position
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus moveRule(const char* name, int offset) = 0;
-
-    //! \brief Remove a rule using its name
-    //! \param name The name of the rule
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus removeRule(const char* name) = 0;
-
-    //! \brief Serialize the rule container in XML
-    //! \param writer The writer to receive the ASCII string containing XML formatting
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus serialize(RuleWriter& writer) const = 0;
-    
-    //! \brief Populate the rule container
-    //! \param data The XML string
-    //! \param length The length of the string
-    //! \return returns a SYNCOLOR::SynStatus.  Check the error code to
-    //!         determine if an error occurred. See SYNCOLOR::SynStatus above.
-    virtual SynStatus populate(const char* data, unsigned int length) = 0;
-
     //! \brief Evaluate the file path to find the associated color space
     //! \param filePath The file path to evaluate
     //! \return The associated color space; otherwise, a null or empty string 

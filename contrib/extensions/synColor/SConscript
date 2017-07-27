@@ -42,9 +42,6 @@ shader_env.Append(CPPPATH = ['.'])
 syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'include')
 syncolor_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os())
 maya_version = shader_env['MAYA_VERSION']
-if int(maya_version) >= 201800:
-   syncolor_include_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'include')
-   syncolor_library_path = os.path.join(shader_env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', system.os())
 
 shader_env.Append(CPPPATH = [syncolor_include_path])
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])

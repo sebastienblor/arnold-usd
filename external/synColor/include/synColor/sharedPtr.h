@@ -84,6 +84,12 @@ namespace SYNCOLOR
     //!
     T* operator->() const;
 
+    //! \brief Basic comparison operators.
+    //!
+    bool operator < (const SharedPtr& r) const;
+    bool operator == (const SharedPtr& r) const;
+    bool operator != (const SharedPtr& r) const;
+
     //! \brief Boolean operator
     //!
     //! \return True if the SharedPtr contains a non-null pointer.
