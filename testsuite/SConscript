@@ -327,6 +327,13 @@ class MayaTestRunner(object):
            
         ## setup program path   
         previous_path = os.environ.get('PATH')
+
+        path_separator = ':'
+        if system.os() == 'windows':
+            path_separator = ';'
+
+        #make sure mtoa's kick path is set *before* the arnold one
+        test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'bin') + ";" + test_env['ENV']['PATH']
         os.environ['PATH'] = test_env['ENV']['PATH']
 
         # make sure we'll load the .mod file in the target mtoa foler, and thus load the right version of mtoa

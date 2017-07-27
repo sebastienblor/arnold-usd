@@ -171,7 +171,22 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MStringArray assFileNames;
       status = MGlobal::executeCommand(cmdStr, assFileNames);
       unsigned int nfiles = assFileNames.length();
+      
+      
+      MString mtoaBinPath = "";
+      MString mtoaShaderPath = "";
+      const char* mtoaEnvVar = getenv("MTOA_PATH");
+      if (mtoaEnvVar)
+      {
+         mtoaBinPath = mtoaEnvVar;
+         mtoaBinPath += "bin/";
 
+         mtoaShaderPath = mtoaEnvVar;
+         mtoaShaderPath += "shaders";
+      }
+      // FIXME eventually use these paths in kickCmd !!
+      
+      
       if (MStatus::kSuccess == status && nfiles)
       {
          MGlobal::displayInfo("[mtoa] Exported scene to file " + assFileNames[0]);
