@@ -1,86 +1,39 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0029\test_0029.log', using stdout instead
 
-Starting "/usr/autodesk/maya2014-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.78.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
 
-00:00:00   225MB         | log started Wed Feb 19 17:18:01 2014
-00:00:00   225MB         | Arnold 4.1.3.3 linux icc130 glibc25 libstdc++348 oiio10202 rlm1012 2014/01/13 16:38:26
-00:00:00   225MB         | running on localhost.localdomain
-00:00:00   225MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   225MB         |  CentOS 6.5 (Final), Linux kernel 2.6.32-431.3.1.el6.centos.plus.x86_64
-00:00:00   225MB         |  
-00:00:00   225MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   225MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   225MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   226MB         | loaded 84 plugins from 1 lib(s) in 0:00.00
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 39 translators for 39 Maya nodes (12 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   226MB         | [mtoa] Registered extension xgen provided by xgen.
-00:00:00   226MB         | [mtoa] Loading extension shave(/work/deploy/2014/extensions/shave.so).
-00:00:00   229MB         | loading plugin: /work/deploy/2014/shaders/shave_shaders.so ...
-00:00:00   229MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   229MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
-00:00:00   229MB         | [mtoa] [shave] Generated 1 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
-00:00:00   229MB         | [mtoa] [shave] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
-00:00:00   229MB         | [mtoa] [shave] Declares a total of 1 new Maya nodes.
-00:00:00   229MB         | [mtoa] [shave] Declares a total of 1 translators for 1 Maya nodes (1 new and 0 existing).
-00:00:00   229MB         | [mtoa] Successfully loaded extension library shave(/work/deploy/2014/extensions/shave.so).
-00:00:00   229MB         | [mtoa] Loading extension FumeExtension(/work/deploy/2014/extensions/FumeExtension.so).
-00:00:00   229MB         | loading plugin: /work/deploy/2014/shaders/fume_arnold.so ...
-00:00:00   230MB         | loaded 1 plugins from 1 lib(s) in 0:00.03
-00:00:00   230MB         | [mtoa] [FumeExtension] Generated 0 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/fume_arnold.so.
-00:00:00   230MB         | [mtoa] [FumeExtension] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/2014/shaders/fume_arnold.so.
-00:00:00   230MB         | [mtoa] [FumeExtension] Declares a total of 0 new Maya nodes.
-00:00:00   230MB         | [mtoa] [FumeExtension] Declares a total of 1 translators for 1 Maya nodes (0 new and 1 existing).
-00:00:00   230MB         | [mtoa] Successfully loaded extension library FumeExtension(/work/deploy/2014/extensions/FumeExtension.so).
-00:00:00   230MB         | loading plugin: /work/deploy/shaders/TestShaders.so ...
-00:00:00   230MB WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-00:00:00   230MB         | no plugins loaded
-00:00:00   230MB         | [mtoa] [TestShaders] Generated 0 new Maya nodes for Arnold plugin /work/deploy/shaders/TestShaders.so.
-00:00:00   230MB         | [mtoa] [TestShaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/shaders/TestShaders.so.
-00:00:00   230MB         | [mtoa] Registering 6 loaded extensions:
-00:00:00   231MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   231MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   231MB WARNING | [mtoa] Extension shave(/work/deploy/2014/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-00:00:00   231MB WARNING | [mtoa] Extension FumeExtension(/work/deploy/2014/extensions/FumeExtension.so) requires Maya plugin FumeFX, registering will be deferred until plugin is loaded.
-00:00:00   231MB         | [mtoa] Registered extension TestShaders provided by /work/deploy/shaders/TestShaders.so.
-libai.so already loaded
-
-00:00:00   232MB         | Successfully imported python module 'arnold'
-00:00:00   232MB         | Successfully imported python module 'mtoa'
-pymel.internal.factories : INFO : MFnDagNode.model is deprecated
-pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, xgenToolkit, mtoa
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-00:00:01   319MB         |  
-00:00:01   319MB         | releasing resources
-00:00:01   318MB         | Arnold shutdown
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-À
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-00:00:00 ERROR   | [mtoa] Cannot register already existing Maya node shaveHair, provided by shave(/work/deploy/2014/extensions/shave.so).
-00:00:00 WARNING | [mtoa] [shave] Only managed to register 0 out of 1 new Maya nodes it declares in /work/deploy/2014/extensions/shave.so.
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-File read in 0 seconds.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type shaveBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type shaveBrushManip
-Result: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0029/test.ma
-00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
-Warning: file: /tmp/ASTMPF4bxci.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /tmp/ASTMPF4bxci.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-
-Beginning texture pre-process.
-done with lookups.
-
-Scene /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0029/test.ma completed.
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+File read in  0.2 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0029/test.ma
+LENGTH IS 1
+0=aiStandardSurface2SG.dagSetMembers[0] // aiStandardSurface2SG 320
+LENGTH IS 1
+0=aiStandardSurface1SG.dagSetMembers[0] // aiStandardSurface1SG 320
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0029\test.ma completed.
