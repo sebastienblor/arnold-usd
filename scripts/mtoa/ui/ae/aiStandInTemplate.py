@@ -164,7 +164,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
         self.addControl('overrideNodes')
-        self.addControl('motionBlur')
         self.endLayout()
         self.beginNoOptimize();
 
@@ -176,14 +175,14 @@ class AEaiStandInTemplate(ShaderAETemplate):
         # inspected will avoid confusion. We can remove this once we no longer care about
         # pre-2.0.2 compatibility
         self.addCustom('', ArnoldStandInUpdateUI, ArnoldStandInUpdateUI)
-
+        self.addControl('castsShadows', label='Casts Shadows')
+        self.addControl('motionBlur', label='Motion Blur')
         self.addControl('primaryVisibility', label='Primary Visibility')
         self.addControl('aiVisibleInDiffuseReflection', label='Visible in Diffuse Reflection')
         self.addControl('aiVisibleInSpecularReflection', label='Visible in Specular Reflection')
         self.addControl('aiVisibleInDiffuseTransmission', label='Visible in Diffuse Transmission')
         self.addControl('aiVisibleInSpecularTransmission', label='Visible in Specular Transmission')
         self.addControl('aiVisibleInVolume', label='Visible in Volume')
-        self.addControl('castsShadows', label='Casts Shadows')
         self.endLayout()
 
         self.beginLayout('StandIn Overrides', collapse=True)
