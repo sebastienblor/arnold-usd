@@ -67,6 +67,31 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
+// FIXME : please remove all these hacks regarding the "override" attributes 
+// once we no longer case about pre-2.0.2 compatibility
+static void ArnoldStandInVisibilityOverride(AtByte &visibility, MPlug overridePlug, 
+                                                MPlug visPlug, AtByte rayType)
+{
+   if (visPlug.isNull())
+      return; // nothing to do here
+
+   // FIXME to be removed once we get rid of these "override" attributes
+   if (!overridePlug.isNull() && !overridePlug.asBool())
+   {
+      // the deprecated override parameter was left to False
+      // need to set it to True so that we stop caring about it
+      overridePlug.setBool(true);
+
+      // if override was OFF and Visibility was OFF
+      // it actually meant that my Visibility was ON
+      if (!visPlug.asBool())
+         visPlug.setBool(true);
+   }
+
+   // I can only remove visibility as compared to full visibility
+   if (!visPlug.asBool())
+      visibility &= ~rayType;
+}
 /**
 *   Standins visibility override is a bit special  :
 *   The procedural visibility will determine which rays make it to the procedural node. Then, the child node 
@@ -81,77 +106,35 @@ AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
-   MPlug plug;
 
-   plug = FindMayaPlug("overrideCastsShadows");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("castsShadows");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SHADOW;
-      }
-   }
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideCastsShadows"), 
+                                                FindMayaPlug("castsShadows"), 
+                                                AI_RAY_SHADOW);
 
-   plug = FindMayaPlug("overridePrimaryVisibility");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("primaryVisibility");
-      MString plugName = plug.name();
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_CAMERA;
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInDiffuseReflection");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInDiffuseReflection");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
-      }
-   }
-   
-   plug = FindMayaPlug("overrideVisibleInSpecularReflection");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInSpecularReflection");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~(AI_RAY_SPECULAR_REFLECT);
-      }
-   }
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overridePrimaryVisibility"), 
+                                                FindMayaPlug("primaryVisibility"), 
+                                                AI_RAY_CAMERA);
 
-   plug = FindMayaPlug("overrideVisibleInDiffuseTransmission");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInDiffuseTransmission");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
-      }
-   }
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInDiffuseReflection"), 
+                                                FindMayaPlug("aiVisibleInDiffuseReflection"), 
+                                                AI_RAY_DIFFUSE_REFLECT);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInSpecularReflection"), 
+                                                FindMayaPlug("aiVisibleInSpecularReflection"), 
+                                                AI_RAY_SPECULAR_REFLECT);
    
-   plug = FindMayaPlug("overrideVisibleInSpecularTransmission");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInSpecularTransmission");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~(AI_RAY_SPECULAR_TRANSMIT);
-      }
-   }
-   plug = FindMayaPlug("overrideVisibleInVolume");
-   if (plug.isNull() || plug.asBool())
-   {
-      plug = FindMayaPlug("aiVisibleInVolume");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~(AI_RAY_VOLUME);
-      }
-   }
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInDiffuseTransmission"), 
+                                                FindMayaPlug("aiVisibleInDiffuseTransmission"), 
+                                                AI_RAY_DIFFUSE_TRANSMIT);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInSpecularTransmission"), 
+                                                FindMayaPlug("aiVisibleInSpecularTransmission"), 
+                                                AI_RAY_SPECULAR_TRANSMIT);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInVolume"), 
+                                                FindMayaPlug("aiVisibleInVolume"), 
+                                                AI_RAY_VOLUME);
+
    return visibility;
 }
 
