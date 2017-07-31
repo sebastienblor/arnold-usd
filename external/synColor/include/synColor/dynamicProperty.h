@@ -46,6 +46,7 @@ namespace SYNCOLOR
     {
       Exposure,      //!< Image exposure value (double floating point value).
       Contrast,      //!< Image contrast value (double floating point value).
+      Gamma,         //!< Image gamma value (double floating point value).
       Bypass         //!< Bypass color transform section, typically a look sub-transform
                      //!  also known as the LOOK_SWITCH property (boolean value).
     };

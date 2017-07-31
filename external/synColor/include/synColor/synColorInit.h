@@ -61,9 +61,9 @@ namespace SYNCOLOR
   //
   SYN_EXPORT const char* getVersionString();
  
-  //! \brief Refresh the synColor instance
+  //! \brief Refresh the SynColor instance
   //
-  //! The refresh implies to flush any caches used by SynColor
+  //! The refresh flushes any caches used by SynColor
   //
   //! \return returns a SYNCOLOR::SynStatus. Check the error code to
   //!         determine if an error occurred. See SYNCOLOR::SynStatus in

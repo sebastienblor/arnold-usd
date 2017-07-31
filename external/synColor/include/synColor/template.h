@@ -22,6 +22,7 @@
 #include <synColor/synExport.h>
 #include <synColor/synColorNamespace.h>
 
+#include <synColor/colorSpaceTypes.h>
 #include <synColor/templateTypes.h>
 
 #include <synColor/sharedPtr.h>
@@ -82,7 +83,7 @@ namespace SYNCOLOR
     //! \return Parameter value for the specified key, or NULL if the index is
     //!         out of bounds.  This string is not be deleted.
     //!
-    virtual const char* getValueForKey(const unsigned index, TemplateParameterValueKey key) const = 0;
+    virtual const char* getValueForKey(const unsigned index, ColorSpaceAttributeKey key) const = 0;
 
     //! \brief Select a parameter value based on its index.
     //!
@@ -124,7 +125,7 @@ namespace SYNCOLOR
     //!
     //! \return Selected value string for the specified key or NULL if no selection has been done.
     //!
-    virtual const char* getSelectedValueForKey(TemplateParameterValueKey key) const = 0;
+    virtual const char* getSelectedValueForKey(ColorSpaceAttributeKey key) const = 0;
   };
   
   //! Helper shared pointer

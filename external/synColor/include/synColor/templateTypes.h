@@ -46,22 +46,14 @@ namespace SYNCOLOR
   //!
   enum TemplateParameterId
   {
-    WorkingSpace = 0,  //!< Working color space parameter.
-    ViewTransform,     //!< View transform parameter.
-    InputSpace,        //!< Input color space parameter.
-    MixingSpace,       //!< Mixing color space parameter.
-    MixingEncoding     //!< Mixing space encoding representation (eg. RGB or HSV).
-  };
-
-  //! List of possible template parameters value key.
-  //!
-  //! \sa SYNCOLOR::TemplateParameter::getValueForKey
-  //!
-  enum TemplateParameterValueKey
-  {
-    NameKey = 0,      //!< Name.
-    HierarchyKey,     //!< Hierarchy.
-    UserFacingNameKey //!< User facing name.
+    InputSpace = 0,        //!< Input color space parameter.
+    WorkingSpace,          //!< Working color space parameter.
+    TagOnlyOrWorkingSpace, //!< Input and working color space parameter.
+    ViewTransform,         //!< View (i.e view and display) transform parameter.
+    PureViewTransform,     //!< Pure view (i.e view only) transform parameter.
+    DisplaySpace,          //!< Display color space parameter.
+    MixingSpace,           //!< Mixing color space parameter.
+    MixingEncoding         //!< Mixing space encoding representation (eg. RGB or HSV).
   };
 
   //! \brief List of template types.
@@ -70,9 +62,10 @@ namespace SYNCOLOR
   //!
   enum TemplateType
   {
-    ViewingTemplate = 0, //!< Viewing transform template.
-    InputTemplate,       //!< Input to working space transform template.
-    MixingTemplate       //!< Color mixing transform template.
+    InputTemplate = 0,      //!< Input to working space transform template.
+    ViewingTemplate,        //!< Viewing transform template.
+    ViewingDisplayTemplate, //!< Viewing display template.
+    MixingTemplate          //!< Color mixing transform template.
   };
 
   //! \brief List of transform directions.

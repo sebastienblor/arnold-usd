@@ -66,12 +66,14 @@
 #include <synColor/bitdepth.h>
 #include <synColor/dynamicProperty.h>
 #include <synColor/errorIds.h>
+#include <synColor/ioFormat.h>
 #include <synColor/loggerTypes.h>
 #include <synColor/pixelFormat.h>
 #include <synColor/roi.h>
 #include <synColor/optimizer.h>
 #include <synColor/resolveFlags.h>
 #include <synColor/GPUAdaptor.h>
+#include <synColor/sharedPtr.h>
 #include <synColor/synStatus.h>
 #include <synColor/stockTemplate.h>
 
@@ -200,7 +202,7 @@ namespace SYNCOLOR
 
     //! \brief Destructor.
     //!
-   virtual ~Transform();
+    virtual ~Transform();
 
     //! \brief Clone the Transform.
     //!
@@ -266,8 +268,10 @@ namespace SYNCOLOR
     //! If more than one description entry is present in the file, the
     //! entries are separated by newlines in the returned string.
     //!
-    //! \return Concatenated descriptions string. This char* is not
-    //!         to be deleted.
+    //! \return Concatenated descriptions string. This char* is not to be deleted.
+    //!         The char* is owned by a static string shared by all calls made to
+    //!         getDescriptions(). Returned value should be copied inside a new string
+    //!         if it needs to be preserved.
     //!
     virtual const char *getDescriptions() const = 0;
 
@@ -400,16 +404,16 @@ namespace SYNCOLOR
     //! calling sequence is as follows:
     //!
     //! 	beginEntry("Transform")
-    //!     haveAttribute("Transform attribute tag 1", "Transform attribute value 1")
-    //!     haveAttribute("Transform attribute tag 2", "Transform attribute value 2")
+    //!     haveAttribute("Transform attribute tag 1", "Transform attribute value 1", false)
+    //!     haveAttribute("Transform attribute tag 2", "Transform attribute value 2", false)
     //! 	...
     //! 		beginEntry("Operator 1")
-    //!     	haveAttribute("Operator 1 attribute tag 1", "Operator 1 attribute value 1")
+    //!     	haveAttribute("Operator 1 attribute tag 1", "Operator 1 attribute value 1", false)
     //! 		...
     //! 		endEntry()
     //!
     //! 		beginEntry("Operator 2")
-    //!     	haveAttribute("Operator 2 attribute tag 1", "Operator 2 attribute value 1")
+    //!     	haveAttribute("Operator 2 attribute tag 1", "Operator 2 attribute value 1", false)
     //!			...
     //! 		endEntry()
     //! 	...
@@ -435,7 +439,8 @@ namespace SYNCOLOR
       //! \brief Provides an attribute/value pair of metadata information.
       //! \param tag Attribute name.
       //! \param value Attribute value.
-      virtual void haveAttribute(const char* tag, const char* value) = 0;
+      //! \param isDynamic Attribute is dynamic.
+      virtual void haveAttribute(const char* tag, const char* value, bool isDynamic) = 0;
     };
 
     //! \brief Color transform metadata extraction.
@@ -568,6 +573,37 @@ namespace SYNCOLOR
                                const SYNCOLOR::Vertices& screenCoords) const =0;
   };
 
+  //! \brief Color transform list class.
+  //!
+  //! Contains a list of transform shared pointers.
+  //!
+  class SYN_EXPORT TransformList
+  {
+  public:
+    //! \brief Default Destructor.
+    //!
+    virtual ~TransformList();
+
+    //! \brief Number of transforms.
+    //!
+    //! \return Number of transforms.
+    //!
+    virtual unsigned size() const = 0;
+
+    //! \brief I-th transforms.
+    //!
+    //! \param index Element index.
+    //! \param pTransform TransformPtr at specified index.
+    //!
+    //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
+    //!         occurred.
+    //!
+    virtual SynStatus at(const unsigned index, TransformPtr& pTransform) const = 0;
+  };
+
+  //! Helper shared pointer
+  typedef SharedPtr<TransformList> TransformListPtr;
+   
   //! \brief Message logging callback registration.
   //!
   //! \param logFunc Logging function pointer. If NULL, logging is set to the standard output.
@@ -637,7 +673,7 @@ namespace SYNCOLOR
                                 SYNCOLOR::GPUAdaptorPtr& pAdaptor,
                                 TransformPtr& finalizedTransform);
 
-  //! \brief Read a color transform from a CTF file.
+  //! \brief Read a single color transform from any of the file formats supported by SynColor.
   //!
   //! For details about the CTF file XML format, please see the _Autodesk Color Management_ Guide
   //! included with this SDK.
@@ -645,15 +681,35 @@ namespace SYNCOLOR
   //! If the file is missing, does not contain a color transform or there is a
   //! catastrophic error reading the XML, the transform handle returned is null.
   //!
-  //! \param fileName CTF/XML file name.
-  //! \param  pTransform Returned transform.
+  //! Based on the file extension, this function will try various parsers in addition to the CTF
+  //! one (e.g. OCIO, ICC, CDL, VLT).
+  //!
+  //! \param filePath Path of the file to be read.
+  //! \param pTransform Returned transform.
   //!
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
   //!         occurred.
   //!
-  SYN_EXPORT SynStatus loadColorTransform(const char *fileName,
+  SYN_EXPORT SynStatus loadColorTransform(const char *filePath,
                                           TransformPtr& pTransform);
 
+  //! \brief Read a list of color transforms from any of the file formats supported by SynColor,
+  //!        particularly those that may return more than a single transform (for example, a .ccc
+  //!        file that may contain more than one ASC CDL transform). When loading a format that
+  //!        only supports single transforms, a list with one entry is returned.
+  //!
+  //! If the file is missing, does not contain a color transform or there is a
+  //! catastrophic error reading the XML, the transform list handle returned is null.
+  //!
+  //! \param filePath Path of the file to be read.
+  //! \param pTransformList Returned transform list.
+  //!
+  //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
+  //!         occurred.
+  //!
+  SYN_EXPORT SynStatus loadColorTransformList(const char *filePath,
+                                              TransformListPtr& pTransformList);
+   
   //! \brief Read a color transform from a memory buffer.
   //!
   //! For details about the CTF file XML format, please see the _Autodesk Color Management_ Guide
@@ -662,14 +718,21 @@ namespace SYNCOLOR
   //! If the buffer does not contain a color transform or there is a
   //! catastrophic error parsing the xml, the transform handle returned is 0.
   //!
+  //! Unlike loadColorTransform, this function will only try the one parser specified in the
+  //! format argument.  Hence this function is for more specialized purposes and should not
+  //! be considered an equivalent of loadColorTransform.
+  //!
   //! \param xmlBuffer Memory buffer containing the color transform XML description.
   //! \param pTransform Returned transform.
+  //! \param format Format of the buffer to be loaded. Currently only supports
+  //!               IO_FORMAT_CTF and IO_FORMAT_CC.
   //!
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
   //!         occurred.
   //!
   SYN_EXPORT SynStatus loadColorTransformFromBuffer(const char* xmlBuffer,
-                                                    TransformPtr& pTransform);
+                                                    TransformPtr& pTransform,
+                                                    IOFormat format = IO_FORMAT_CTF);
 
   //! \brief Writes a color transform XML to file.
   //!
@@ -682,13 +745,15 @@ namespace SYNCOLOR
   //!                 color transform file is '.ctf'.
   //! \param saveResolvedTransform Whether reference operators are resolved prior to writing to file.
   //! \param pTransform Transform to be written.
+  //! \param format Transform will be serialized using this format type.
   //!
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
   //!         occurred.
   //!
   SYN_EXPORT SynStatus saveColorTransform(const char *fileName,
                                           bool saveResolvedTransform,
-                                          const TransformPtr& pTransform);
+                                          const TransformPtr& pTransform,
+                                          IOFormat format = IO_FORMAT_CTF);
 
   //! \brief Callback class for writing color transform xml to a memory buffer.
   //!
@@ -714,13 +779,14 @@ namespace SYNCOLOR
   //!
   //! \param writerCallback Callback instance to use. See SYNCOLOR::TransformWriterCallback.
   //! \param pTransform Transform to be written.
+  //! \param format Transform will be serialized using this format type.
   //!
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
   //!         occurred.
   //!
-  SYN_EXPORT SynStatus saveColorTransformToBuffer(
-    TransformWriterCallback& writerCallback,
-    const TransformPtr& pTransform);
+  SYN_EXPORT SynStatus saveColorTransformToBuffer(TransformWriterCallback& writerCallback,
+                                                  const TransformPtr& pTransform,
+                                                  IOFormat format = IO_FORMAT_CTF);
 
   //! \brief Check if a file can be loaded as a color transform.
   //!
@@ -733,7 +799,10 @@ namespace SYNCOLOR
   //!
   SYN_EXPORT bool isFileSupported(const char *fileName);
 
-  //! \brief Callback class for obtaining the list of supported file extensions.
+  //! \brief Callback class for obtaining the list of supported file extensions
+  //!        that may be read. Clients will need to implement this class and use this implementation
+  //!        as the callback for retrieving supported extensions through getSupportedFileExtensions().
+  //!
   class SYN_EXPORT SupportedExtensionsCallBack
   {
   public:
@@ -754,12 +823,44 @@ namespace SYNCOLOR
   //! file type supported by the OCIO version supplied with this SDK.
   //!
   //! \param extensionsCallback Callback instance to use. See SYNCOLOR::SupportedExtensionsCallBack.
-  //!
+  //!                           For each supported extension, the add() method of the callback
+  //!                           will be invoked.
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
   //!         occurred.
   //!
   SYN_EXPORT SynStatus getSupportedFileExtensions(SupportedExtensionsCallBack& extensionsCallback);
 
+  //! \brief Callback class for obtaining the list of supported output formats for a specific
+  //!        transform. Clients will need to implement this class and use this implementation
+  //!        as the callback for retrieving supported formats through getSupportedOutputFormats().
+  class SYN_EXPORT SupportedOutputFormatsCallBack
+  {
+  public:
+    //! Destructor.
+    virtual ~SupportedOutputFormatsCallBack();
+
+    //! \brief Supported file output formats.
+    //!
+    //! \param format Supported output format.
+    //! \param extension Output format extension.
+    //! \param description brief Output format description
+    //!
+    virtual void add(IOFormat format, const char* extension, const char* description) = 0;
+  };
+  
+  //! \brief Obtain the list of supported output formats for a specified transform.
+  //!        Only formats that may losslessly represent the provided transform will be returned.
+  //!
+  //! \param pTransform Transform used to determine all possible output formats.
+  //! \param outputFormatsCallback Callback to use. See SYNCOLOR::SupportedOutputFormatsCallBack.
+  //!                              For each supported format, the add() method of the callback
+  //!                              will be invoked.
+  //!
+  //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error
+  //!         occurred.
+  //!
+  SYN_EXPORT SynStatus getSupportedOutputFormats(
+     const TransformPtr& pTransform, SupportedOutputFormatsCallBack& exportFormatsCallback);
 };
 
 SYN_VISIBILITY_POP

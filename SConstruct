@@ -767,14 +767,13 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
             dylibs.remove(dylibElem)
        
     # install syncolor packages 
-    if int(maya_version) >= 201800:
-        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', system.os())
-        if (system.os() == 'linux'):
-            # on linux the version number is after ".so."
-            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
-        else:
-            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
-    
+    syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os())
+    if (system.os() == 'linux'):
+        # on linux the version number is after ".so."
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
+    else:
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
+
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
@@ -1143,18 +1142,18 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
 
-    # for Maya 2018, we also need to copy the syncolor dylib, for syncolor extension
-    if (int(maya_version) >= 201800):
-        syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', system.os())
-        if (system.os() == 'linux'):
-            # on linux the syncolor version number is after ".so."
-            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
-        else:
-            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
+    # we also need to copy the syncolor dylib, for syncolor extension
+    # FIXME couldn't this be done in the extension script ?
+    syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os())
+    if (system.os() == 'linux'):
+        # on linux the syncolor version number is after ".so."
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
+    else:
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 
-        for syncolor_file in syncolor_2018_files:
-            PACKAGE_FILES.append([syncolor_file, 'bin'])
-            
+    for syncolor_file in syncolor_files:
+        PACKAGE_FILES.append([syncolor_file, 'bin'])
+        
 
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
