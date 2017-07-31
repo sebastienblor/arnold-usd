@@ -1265,15 +1265,23 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 
    MDGModifier dgMod;
    stat = dgMod.addExtensionAttribute(m_class, attrib);
-   if (MStatus::kSuccess != stat)
+
+   if (stat == MStatus::kSuccess)
    {
-      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      // FIXME : find a solution to keep a handle on the plugin MObject.
+      // Is it safe to keep a static MObject and initialize it once ?
+      MObject pluginNode = MFnPlugin::findPlugin(MString("mtoa"));
+      if (!pluginNode.isNull())
+         stat = dgMod.linkExtensionAttributeToPlugin(pluginNode, attrib);
    }
-   else
+   
+   if (stat == MStatus::kSuccess)
    {
       AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
       stat = dgMod.doIt();
-   }
+   } else
+      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+   
    CHECK_MSTATUS(stat);
    return stat;
 }
