@@ -162,6 +162,7 @@ vars.AddVariables(
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
+    BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
@@ -631,26 +632,33 @@ if system.os() == 'windows':
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
    
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
-   
-    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+
+    if env['PREBUILT_MTOA']:       
+        MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
+        MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
+        MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders.dll')]
+    else:
+        MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                                             duplicate = 0,
                                             exports   = 'maya_env')
-   
-    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
+
+        MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                                         variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                                         duplicate   = 0,
                                         exports     = 'maya_env')
+        
+        MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
+                                                    variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                                    duplicate   = 0,
+                                                    exports     = 'env')
 
-    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                                variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
-                                                duplicate   = 0,
-                                                exports     = 'env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                                 duplicate   = 0,
                                                 exports     = 'env')
+    
 else:
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -668,20 +676,28 @@ else:
 
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
-    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                              variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+    if env['PREBUILT_MTOA']:       
+        MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'libmtoa_api' + get_library_extension())]
+        if system.os() == 'darwin':
+            MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.bundle')]
+        else:
+            MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
+        MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders' + get_library_extension())]
+    else:
+        MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
+
+        MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                               duplicate   = 0,
                               exports     = 'maya_env')
 
-    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
-                          duplicate   = 0,
-                          exports     = 'maya_env')
-
-    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
-                                  duplicate   = 0,
-                                  exports     = 'env')
+        MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
+                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                      duplicate   = 0,
+                                      exports     = 'env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
