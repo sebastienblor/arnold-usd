@@ -82,18 +82,22 @@ extern "C"
 
 
 #ifdef _WIN32
-        MString bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/";
+        MString bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/1.0.11/Arnold-5.0.0.0/bin";
+        extension.LoadArnoldPlugin("bifrost_procedural_0_1", bifrostProceduralPath);
 #endif
 #ifdef _LINUX
-        MString bifrostProceduralPath = "/usr/autodesk/bifrost/";
+        MString bifrostProceduralPath = "/usr/autodesk/bifrost/1.0.11/Arnold-5.0.0.0";
+        extension.LoadArnoldPlugin("libbifrost_procedural_0_1", bifrostProceduralPath);
 #endif
 #ifdef _DARWIN
-        MString bifrostProceduralPath = "/Applications/Autodesk/Bifrost/";
+        MString bifrostProceduralPath = "/Applications/Autodesk/Bifrost/1.0.11/arnold-5.0.0.0";
+        extension.LoadArnoldPlugin("libbifrost_procedural_0_1", bifrostProceduralPath);  
 #endif
-        // FIXME : need to find the arnold version in the bifrost folder
-        bifrostProceduralPath += MString(AI_VERSION);
+        
+        // check in bifrostProceduralPath which folders exist
+        // use the one which has the closest version of arnold
 
-        extension.LoadArnoldPlugin("bifrost_procedural_0_1", bifrostProceduralPath);
+        
         status = extension.RegisterTranslator ( "bifrostShape", "",
                                                 BifrostTranslator::creator,
                                                 BifrostTranslator::NodeInitializer );
