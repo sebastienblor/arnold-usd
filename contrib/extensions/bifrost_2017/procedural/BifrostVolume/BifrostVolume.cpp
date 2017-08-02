@@ -808,7 +808,15 @@ volume_sample
 	pos[1] = sg->P.y;
 	pos[2] = sg->P.z;
 
-	int samplerIndexStart = volData->channelSamplerIndexes[ channel ];
+    std::map<AtString, int>::iterator channelIt = volData->channelSamplerIndexes.find(channel);
+    if (channelIt == volData->channelSamplerIndexes.end())
+    {
+        value->FLT() = 0.f;
+        return false;
+    }
+
+    int samplerIndexStart = channelIt->second;
+	
 	Bifrost::API::VoxelSampler *threadSampler = volData->channelSamplers[ samplerIndexStart + sg->tid ];
 
 	if (threadSampler == 0) {
