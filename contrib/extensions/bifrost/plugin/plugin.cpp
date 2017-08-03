@@ -82,15 +82,15 @@ extern "C"
 
 
 #ifdef _WIN32
-        MString bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/1.0.11/Arnold-5.0.0.0/bin";
+        MString bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/bin";
         extension.LoadArnoldPlugin("bifrost_procedural_0_1", bifrostProceduralPath);
 #endif
 #ifdef _LINUX
-        MString bifrostProceduralPath = "/usr/autodesk/bifrost/1.0.11/Arnold-5.0.0.0";
+        MString bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.0.0.0";
         extension.LoadArnoldPlugin("libbifrost_procedural_0_1", bifrostProceduralPath);
 #endif
 #ifdef _DARWIN
-        MString bifrostProceduralPath = "/Applications/Autodesk/Bifrost/1.0.11/arnold-5.0.0.0";
+        MString bifrostProceduralPath = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.0.0.0";
         extension.LoadArnoldPlugin("libbifrost_procedural_0_1", bifrostProceduralPath);  
 #endif
         
