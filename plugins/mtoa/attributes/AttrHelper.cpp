@@ -1271,8 +1271,10 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
       // FIXME : find a solution to keep a handle on the plugin MObject.
       // Is it safe to keep a static MObject and initialize it once ?
       MObject pluginNode = MFnPlugin::findPlugin(MString("mtoa"));
-      if (!pluginNode.isNull())
+      if ((!pluginNode.isNull()) && fnAttr.parent().isNull())
+      {
          stat = dgMod.linkExtensionAttributeToPlugin(pluginNode, attrib);
+      }
    }
    
    if (stat == MStatus::kSuccess)
