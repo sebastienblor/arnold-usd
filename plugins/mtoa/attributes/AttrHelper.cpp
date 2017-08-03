@@ -678,7 +678,8 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
 
    attrib = tAttr.create(data.name, data.shortName, MFnData::kString);
    MFnStringData strData;
-   MObject defObj = strData.create(data.stringDefault);
+   MString stringDefault(data.stringDefault);
+   MObject defObj = strData.create(stringDefault);
    tAttr.setDefault(defObj);
    tAttr.setArray(data.isArray);
    tAttr.setKeyable(data.keyable);
