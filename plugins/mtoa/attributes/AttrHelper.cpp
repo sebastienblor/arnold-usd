@@ -29,17 +29,18 @@ MString toMayaStyle(MString s)
       }
       else if (capitalize)
       {
-         name += c.toUpperCase();
+         c = c.toUpperCase();
+         name += c;
          capitalize = false;
       }
-      else
+      else if (c.length() > 0)
       {
          // always go to lower case
          // this avoids ugly things like GI_diffuse_samples --> GIDiffuseSamples
          // and instead produces the slightly nicer giDiffuseSamples
          // TODO : but then ai_remapColor will yield aiRemapcolor
          // name += c.toLowerCase();
-         name += c;
+         name = name + c;
       }
    }
    return name;
@@ -66,9 +67,16 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 {
    AtString attrName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
-      return MString(attrName);
+   {
+      MString attrNameStr(attrName.c_str());
+      return attrNameStr;
+   }
    else
-      return toMayaStyle(m_prefix + paramName);
+   {
+      MString paramNameStr(paramName);
+      paramNameStr = m_prefix + paramNameStr;
+      return toMayaStyle(paramNameStr);
+   }
 }
 
 // uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
