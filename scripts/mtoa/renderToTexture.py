@@ -42,6 +42,7 @@ class MtoARenderToTexture(object):
         all_udims = cmds.checkBox('all_udims', q=True, v=True)
         filter_width = cmds.floatFieldGrp('filterWidth', q=True, v1=True)
         shader = cmds.textFieldGrp('shader', q=True, tx=True)
+        uv_set = cmds.textFieldGrp('uv_set', q=True, tx=True)
         udims = cmds.textFieldGrp('udims', q=True, tx=True)
 
         selList = cmds.ls(sl=1)
@@ -50,7 +51,7 @@ class MtoARenderToTexture(object):
             cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims )
+        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set )
 
         cmds.deleteUI(self.window)
         return True
@@ -140,6 +141,8 @@ class MtoARenderToTexture(object):
 
         cmds.rowLayout(numberOfColumns=1, columnAlign1='both')
         cmds.textFieldGrp('shader', label='Shader Override', ct2=('left', 'left'), cw2=(90,110), text="", w=380)
+        cmds.setParent("..")
+        cmds.textFieldGrp('uv_set', label='UV Set', ct2=('left', 'left'), cw2=(90,110), text="", w=280)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))

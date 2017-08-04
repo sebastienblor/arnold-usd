@@ -43,6 +43,7 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("afw", "filter_width", MSyntax::kDouble);
    syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
    syntax.addFlag("ud", "udims", MSyntax::kString);
+   syntax.addFlag("uvs", "uv_set", MSyntax::kString);
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -261,6 +262,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       }
    }
 
+   MString uvSet = "";
+   if (argDB.isFlagSet("uv_set"))
+      argDB.getFlagArgument("uv_set", 0, uvSet);
+
+
    // create a driver that will write the output texture
    AtNode *driver = AiNode("driver_exr");
    AiNodeSetStr(driver, "name", "defaultArnoldDriver@cameraMapperOutput");
@@ -477,6 +483,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             AiNodeSetStr(camera, "polymesh", meshName);
             AiNodeSetFlt(camera, "u_offset", -(float)u_offset);
             AiNodeSetFlt(camera, "v_offset", -(float)v_offset);
+            AiNodeSetStr(camera, "uv_set", uvSet.asChar());
             AiNodeSetPtr(options_node, "camera", camera);
             AiNodeSetStr(driver, "filename", ss_filename.str().c_str());
 
@@ -507,6 +514,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AiNodeSetStr(camera, "name", "cameraUvBaker");
          AiNodeSetStr(camera, "polymesh", meshName);
          AiNodeSetPtr(options_node, "camera", camera);
+         AiNodeSetStr(camera, "uv_set", uvSet.asChar());
          AiNodeSetStr(driver, "filename", filename.asChar());
 
          AiRender();

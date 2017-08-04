@@ -142,6 +142,8 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       int gridSize = AiNodeGetInt(camera_node, "grid_size");
       float u_offset = AiNodeGetFlt(camera_node, "u_offset");
       float v_offset = AiNodeGetFlt(camera_node, "v_offset");
+      AtString uv_set = AiNodeGetStr(camera_node, "uv_set");
+      
       mGrid = new Grid2DAccel(gridSize);
 
       const unsigned int gridCount = gridSize * gridSize;
@@ -170,8 +172,9 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       // looping over triangles in (subdivided/displaced) mesh
       while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
       {
-         if (!AiShaderGlobalsGetVertexUVs(sg, AtString(""), uv))
+         if (!AiShaderGlobalsGetVertexUVs(sg, uv_set, uv))
          {
+
             // If I don't have any UVs, how can I ever render this as a texture ?
             // let's skip this polygon, hoping other ones will have UVs
             no_uvs = true;
@@ -267,6 +270,8 @@ node_parameters
    AiParameterInt("grid_size", 16);
    AiParameterFlt("u_offset", 0.0f);
    AiParameterFlt("v_offset", 0.0f);
+   AiParameterStr("uv_set", "");
+   
 
    AiMetaDataSetStr(nentry, NULL, "_synonym", "cameraUvMapper");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiCameraUvMapper");
