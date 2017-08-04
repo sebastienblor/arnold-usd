@@ -297,7 +297,9 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             const char* enumStr = AiEnumGetString(AiParamGetEnum(paramEntry), ei);
             if (!enumStr)
                break;
-            data.enums.append(enumStr);
+
+            MString enumMString(enumStr);
+            data.enums.append(enumMString);
          }
          break;
       }
