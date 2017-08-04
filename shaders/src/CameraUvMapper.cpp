@@ -167,7 +167,8 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 
       unsigned int triangleIndex = 0;
       unsigned int vertexIndex = 0;
-      bool no_uvs = false;
+      bool no_uvs = true;
+
 
       // looping over triangles in (subdivided/displaced) mesh
       while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
@@ -177,7 +178,6 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 
             // If I don't have any UVs, how can I ever render this as a texture ?
             // let's skip this polygon, hoping other ones will have UVs
-            no_uvs = true;
             sg->fi = ++triangleIndex;
             continue;
          }
@@ -205,6 +205,8 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
             // let's assign the same geometric normal to 3 vertices
             localNormal[1] = localNormal[2] = localNormal[0];
          }
+         no_uvs = false;
+
          mTriangles.push_back(BakeTriangle(vertexIndex, vertexIndex + 1, vertexIndex + 2));
 
          // Please God forgive me for duplicating the vertices at each triangle :-/
@@ -242,7 +244,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       }
 
       AiShaderGlobalsDestroy(sg);
-      if (triangleIndex == 0)
+      if (triangleIndex == 0 || no_uvs)
       {
          std::string errLog = "CameraUvMapper : Polymesh";
          errLog += AiNodeGetName(node);
@@ -251,6 +253,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          else         errLog += "is empty or hasn't been properly initialized";
 
          AiMsgError("%s", errLog.c_str());
+
       }
    }
    else
