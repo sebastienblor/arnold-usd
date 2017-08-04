@@ -1277,6 +1277,8 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    MDGModifier dgMod;
    stat = dgMod.addExtensionAttribute(m_class, attrib);
 
+   // FIXME this is causing lots of instabilities, commenting it for now
+   /*
    if (stat == MStatus::kSuccess)
    {
       // FIXME : find a solution to keep a handle on the plugin MObject.
@@ -1287,6 +1289,7 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
          stat = dgMod.linkExtensionAttributeToPlugin(pluginNode, attrib);
       }
    }
+   */
    
    if (stat == MStatus::kSuccess)
    {
