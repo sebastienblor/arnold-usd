@@ -295,6 +295,9 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("shadow_color");
    helper.MakeInput("filename");
+
+   // Register this parameter so that it appears in file path editor
+   MGlobal::executeCommand("filePathEditor -registerType aiPhotometricLight.aiFilename -typeLabel \"IES\"");
 }
 
 // Mesh AreaLight
