@@ -39,6 +39,7 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("s", "shader", MSyntax::kString);
    syntax.addFlag("r", "resolution", MSyntax::kUnsigned);
    syntax.addFlag("as", "aa_samples", MSyntax::kUnsigned);
+   syntax.addFlag("nof", "normal_offset", MSyntax::kDouble);
    syntax.addFlag("af", "filter", MSyntax::kString);
    syntax.addFlag("afw", "filter_width", MSyntax::kDouble);
    syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
@@ -231,6 +232,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    double filterWidth = 2.0f;
    if (argDB.isFlagSet("filter_width")) argDB.getFlagArgument("filter_width", 0, filterWidth);
    AiNodeSetFlt(filterNode, "width", (float)filterWidth);
+
+   double normalOffset = 0.1;
+   if (argDB.isFlagSet("normal_offset")) argDB.getFlagArgument("normal_offset", 0, normalOffset);
 
    // handle udims
    bool allUdims = false;
@@ -437,7 +441,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), ':', '_'); // replace all ':' to '_'
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), '/', '_'); // replace all '/' to '_'
       }
-
+      AtByte sidedness = AiNodeGetByte(mesh, "sidedness");
+      // remove camera sidedness since we're offsetting towards the normal's direction
+      // this could remove some artefacts caused by the normal offset
+      sidedness &= ~AI_RAY_CAMERA; 
+      AiNodeSetByte(mesh, "sidedness", sidedness);
+      AiNodeSetBool(mesh, "opaque", true); // force opaque to true since a transparent material wouldn't work at all
 
       if (allUdims || udimsSet.size()>0)
       {
@@ -477,6 +486,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             AiNodeSetStr(camera, "polymesh", meshName);
             AiNodeSetFlt(camera, "u_offset", -(float)u_offset);
             AiNodeSetFlt(camera, "v_offset", -(float)v_offset);
+            AiNodeSetFlt(camera, "offset", normalOffset);
+            // need to adjust the near plane to make sure it's not bigger than the offset
+            AiNodeSetFlt(camera, "near_plane", AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
             AiNodeSetPtr(options_node, "camera", camera);
             AiNodeSetStr(driver, "filename", ss_filename.str().c_str());
 
@@ -506,8 +518,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
          AiNodeSetStr(camera, "polymesh", meshName);
+         AiNodeSetFlt(camera, "offset", normalOffset);
+         // need to adjust the near plane to make sure it's not bigger than the offset
+         AiNodeSetFlt(camera, "near_plane", AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
          AiNodeSetPtr(options_node, "camera", camera);
          AiNodeSetStr(driver, "filename", filename.asChar());
+
 
          AiRender();
 

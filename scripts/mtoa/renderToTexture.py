@@ -43,6 +43,7 @@ class MtoARenderToTexture(object):
         filter_width = cmds.floatFieldGrp('filterWidth', q=True, v1=True)
         shader = cmds.textFieldGrp('shader', q=True, tx=True)
         udims = cmds.textFieldGrp('udims', q=True, tx=True)
+        normalOffset = cmds.floatFieldGrp('normalOffset', q=True, v1=True)
 
         selList = cmds.ls(sl=1)
 
@@ -50,7 +51,7 @@ class MtoARenderToTexture(object):
             cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims )
+        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, normal_offset=normalOffset )
 
         cmds.deleteUI(self.window)
         return True
@@ -145,7 +146,9 @@ class MtoARenderToTexture(object):
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
         cmds.textFieldGrp('udims', label='Udims', ct2=('left', 'left'), cw2=(90,110), text="", w=280)
         cmds.checkBox( 'all_udims',label='All Udims', value=False )
+        cmds.setParent("..")
 
+        cmds.floatFieldGrp('normalOffset', label='Normal Offset', w=380, ct2=('left', 'left'), cw2=(90,110), value1=0.1)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))
