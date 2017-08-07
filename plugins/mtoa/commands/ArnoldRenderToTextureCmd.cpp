@@ -316,7 +316,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // AOVs have to be added to my outputs list      
       for (unsigned int p = 0; p < AiArrayGetNumElements(prevOutputs); ++p)
       {
-         MString aovElem = AiArrayGetStr(prevOutputs, p);
+         AtString aovStr = AiArrayGetStr(prevOutputs, p);
+         MString aovElem(aovStr.c_str());
          MStringArray aovElemSplit;
          aovElem.split(' ', aovElemSplit);
          if (aovElemSplit.length() <= 1)
