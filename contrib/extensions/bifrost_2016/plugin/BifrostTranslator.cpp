@@ -2,7 +2,9 @@
 //#include "utils/time.h"
 
 #include <maya/MFileObject.h>
+#include <maya/MFileIO.h>
 #include <maya/MTime.h>
+#include <maya/MDGMessage.h>
 #include <maya/MGlobal.h>
 
 #include <maya/MTypes.h>
@@ -25,6 +27,60 @@
 #include <vector>
 #include <iostream>
 
+ namespace
+ {
+     // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
+     MCallbackId s_addedCbId = 0, s_connectionCbId = 0;
+
+     void removeCallback(MCallbackId& id)
+     {
+         if(id != 0) MMessage::removeCallback(id);
+         id = 0;
+     }
+     void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
+     {
+         if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
+                 MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
+         {
+             // connection to shading engine made => replace shader
+             int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
+             bool isVolume = renderType==0 || renderType==3; // Aero or Foam
+             MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
+
+             MFnDependencyNode shadingGroup(otherPlug.node());
+
+             MPlug surfaceShaderPlug = shadingGroup.findPlug("surfaceShader");
+
+             MPlugArray plugArray;              
+             surfaceShaderPlug.connectedTo(plugArray,  true, false);
+             
+             if (plugArray.length() > 0)
+             {
+                 MString oldShader = MFnDependencyNode(plugArray[0].node()).name();// oddly, even aero has a surfaceShader
+
+                 MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+                 command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
+                 if(isVolume)
+                 {
+                     command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+                 }
+                 command += "select $sel;undoInfo -closeChunk;";
+                 MGlobal::executeCommandOnIdle(command);
+             }
+             removeCallback(s_connectionCbId);
+         }
+     }
+     void bifrostShapeAdded(MObject& obj, void*)
+     {
+         removeCallback(s_connectionCbId);
+         if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
+         { // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
+             // must wait until shaging engine is connected to shape, otherwise shader assignment will be overridden by the old bifrost material
+             // => registering temporary attribute change callback and removing it after material assignment
+             s_connectionCbId = MNodeMessage::addAttributeChangedCallback(obj, bifrostShapeAttributeChanged);
+         }
+     }
+ }
 
 AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
 {
@@ -484,6 +540,13 @@ void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "procedural");
    CShapeTranslator::MakeCommonAttributes(helper);
    CShapeTranslator::MakeMayaVisibilityFlags(helper);
+
+   s_addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
+}
+
+void CBfDescriptionTranslator::ClearCallbacks()
+{
+   removeCallback(s_addedCbId);
 }
 
 void CBfDescriptionTranslator::ExportBifrostShader()
