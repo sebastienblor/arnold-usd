@@ -103,12 +103,20 @@ namespace {
    }
    void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
    {
-      AiMsgError("bifrostShapeAttrChangezd");
       if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
       MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
       {
          // connection to shading engine made => replace shader
          int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
+
+         MPlug render_as = MFnDependencyNode(plug.node()).findPlug("render_as");
+         std::cerr << "RENDER TYPE: " << renderType << std::endl;
+         switch(renderType){
+         case 0: render_as.setInt(2); break; // Aero => Volume
+         case 3: render_as.setInt(1); break; // Foam => Points
+         default: render_as.setInt(0); // Surface
+         }
+
          bool isVolume = renderType==0 || renderType==3; // Aero or Foam
          MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
 
@@ -146,7 +154,6 @@ namespace {
    }
    void bifrostShapeAdded(MObject& obj, void*)
    {
-      AiMsgError("bifrostShapeAdded");
       removeCallback(connectionCbId);
       if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
       {  // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
@@ -308,14 +315,33 @@ void BifrostTranslator::ExportPoints(MFnDagNode &dagNode, AtNode *shape)
    EXPORT_BOOL("enable_radius_channel");
    EXPORT_INT("radius_channel");
 
-
-   if(dagNode.findPlug("points_volumetric").asBool()){
-      EXPORT2_FLT("points_step_size", "step_size");
-      AiNodeSetInt(shape, "mode", 1); // spheres
-   }else{
-      AiNodeSetFlt(shape, "points_step_size", 0);
-      EXPORT2_INT("points_type", "mode");
+   bool hasVolume = false;
+   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
+   if(!shadingGroupPlug.isNull()){
+       MFnDependencyNode engine(shadingGroupPlug.node());
+       if(!engine.findPlug("aiSurfaceShader").isDestination() && !engine.findPlug("surfaceShader").isDestination()){
+            hasVolume = true;
+       }
    }
+   float step_size = dagNode.findPlug("points_step_size").asFloat();
+   int mode = dagNode.findPlug("points_type").asInt();
+
+   if(hasVolume){
+      if(step_size <= 0){
+         AiMsgWarning("[BIFROST TRANSLATOR] Points step size value '%f' is invalid for rendering bifrost points shape '%s' with a volume shader. Should be > 0, using 0.1.",
+                      step_size, m_dagPath.fullPathName().asChar());
+         step_size = 0.1f;
+      }
+      if(mode != 1){
+         AiMsgWarning("[BIFROST TRANSLATOR] Points type can only be rendered as 'Spheres' when rendering bifrost points shape '%s' with a volume shader. Ignoring point type, using 'Spheres'.",
+                      m_dagPath.fullPathName().asChar());
+         mode = 1; // spheres
+      }
+   }else{
+      step_size = 0;
+   }
+   AiNodeSetFlt(shape, "step_size", step_size);
+   AiNodeSetInt(shape, "mode", mode); // spheres
 }
 
 MMatrix BifrostTranslator::getRelativeMatrix(const MPlug &source){
@@ -380,7 +406,7 @@ void BifrostTranslator::ExportMotion( AtNode* shape ){
 }
 
 void BifrostTranslator::ExportBifrostShader(){
-   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
+   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
    if ( !shadingGroupPlug.isNull() ) {
       AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL) {
@@ -650,7 +676,6 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
    ADD_DFLT("volume_step_size", 0.1f);
 
    // points
-   ADD_DBOOL("points_volumetric", true);
    ADD_DFLT("radius", 0.01f);
    ADD_DPOINTS_TYPE("points_type");
    ADD_DFLT("points_step_size", 0.025f);

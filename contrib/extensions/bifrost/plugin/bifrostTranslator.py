@@ -78,11 +78,6 @@ def PointsControls():
 def VolumeControls():
     return ("density_channel",)
 
-def CheckPointsVolumetric( nodeName ):
-    volumetric = cmds.getAttr(nodeName+".points_volumetric")
-    dimControls(nodeName, ('points_step_size',), not volumetric)
-    dimControls(nodeName, ('points_type',), volumetric)
-
 def CheckRenderAs( nodeName ):
     render_as = cmds.getAttr(nodeName+".render_as")
     if render_as == 0:
@@ -167,13 +162,12 @@ class BifrostTemplate(ShapeTranslatorTemplate):
         self.endLayout()
 
         self.beginLayout("Points Controls", collapse=False)
+        self.addControl("points_type", label="Type")
         self.addControl("radius")
         self.addSeparator()
         self.addControl("enable_radius_channel")
         self.addControl("radius_channel")
         self.addSeparator()
-        self.addControl("points_volumetric", label="Volumetric", changeCommand=CheckPointsVolumetric)
-        self.addControl("points_type", label="Type")
         self.addControl("points_step_size", label="Step Size")
         self.addControl("chunk_size");
         self.endLayout()
