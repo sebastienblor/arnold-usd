@@ -64,6 +64,18 @@ namespace {
       if (s_loadedProcedural)
          return true;
 
+      MString bifrostEnvVar;
+      MGlobal::executeCommand("getenv BIFROST_ARNOLD_PATH", bifrostEnvVar);
+      if (bifrostEnvVar.length() > 0)
+      {
+         MString firstChar = bifrostEnvVar.substringW(0, 0);
+         // eventually remove quotes from the path
+         if (firstChar == "\"")
+            bifrostEnvVar = bifrostEnvVar.substringW(1, bifrostEnvVar.length() -2);
+         
+         s_bifrostProceduralPath = bifrostEnvVar;
+      }
+      
       CExtension *extension = CExtensionsManager::GetExtensionByName("bifrostTranslator");
       if (extension)
       {
