@@ -368,7 +368,7 @@ class MayaTestRunner(object):
                     if not ' ' in test_env['MAYA_ROOT']:
                         mayabatch_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', mayabatch_cmd)
 
-                    test_script = mayabatch + '  -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+                    test_script = mayabatch_cmd + ' -file %file% -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
                 # If a file gui_test.mel is found, we want to run maya with this script
                 # As above, it's up to the script to load a maya scene
                 elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
@@ -434,7 +434,7 @@ class MayaTestRunner(object):
                 # Note that we won't be loading the scene because it seems that the script is called before scene load.
                 # So it's the script itself that loads whatever scene it wants
                 if os.path.exists(os.path.join(test_dir, 'test.mel')):
-                    test_script = maya_root +'/bin/mayabatch  -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+                    test_script = maya_root +'/bin/mayabatch -file %file% -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
                 # If a file gui_test.mel is found, we want to run maya with this script
                 # As above, it's up to the script to load a maya scene
                 elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
