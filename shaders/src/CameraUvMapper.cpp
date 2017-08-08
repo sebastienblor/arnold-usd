@@ -142,6 +142,8 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       int gridSize = AiNodeGetInt(camera_node, "grid_size");
       float u_offset = AiNodeGetFlt(camera_node, "u_offset");
       float v_offset = AiNodeGetFlt(camera_node, "v_offset");
+      float u_scale = AiNodeGetFlt(camera_node, "u_scale");
+      float v_scale = AiNodeGetFlt(camera_node, "v_scale");
       mGrid = new Grid2DAccel(gridSize);
 
       const unsigned int gridCount = gridSize * gridSize;
@@ -178,12 +180,20 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
             sg->fi = ++triangleIndex;
             continue;
          }
+
          uv[0].x += u_offset;
          uv[1].x += u_offset;
          uv[2].x += u_offset;
          uv[0].y += v_offset;
          uv[1].y += v_offset;
          uv[2].y += v_offset;
+         uv[0].x *= u_scale;
+         uv[1].x *= u_scale;
+         uv[2].x *= u_scale;
+         uv[0].y *= v_scale;
+         uv[1].y *= v_scale;
+         uv[2].y *= v_scale;
+
          if (!AiShaderGlobalsGetVertexNormals(sg, 0, localNormal))
          {
             // no normals (should that happen ?)
@@ -267,6 +277,9 @@ node_parameters
    AiParameterInt("grid_size", 16);
    AiParameterFlt("u_offset", 0.0f);
    AiParameterFlt("v_offset", 0.0f);
+   AiParameterFlt("u_scale", 1.0f);
+   AiParameterFlt("v_scale", 1.0f);
+   
 
    AiMetaDataSetStr(nentry, NULL, "_synonym", "cameraUvMapper");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiCameraUvMapper");

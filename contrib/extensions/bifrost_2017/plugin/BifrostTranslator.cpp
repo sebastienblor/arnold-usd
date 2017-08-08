@@ -5,7 +5,9 @@
 #include <maya/MGlobal.h>
 #include <maya/MObject.h>
 #include <maya/MFileObject.h>
+#include <maya/MFileIO.h>
 #include <maya/MTime.h>
+#include <maya/MDGMessage.h>
 
 #include <bifrostapi/bifrost_component.h>
 #include <bifrostapi/bifrost_pointchannel.h>
@@ -38,7 +40,63 @@
 #define EXPORT2_STR(aiName, name) AiNodeSetStr(shape, aiName, bifrostDesc.findPlug(name).asString().asChar())
 
 using namespace Bifrost::RenderCore;
+namespace{
+    // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
+    MCallbackId s_addedCbId = 0, s_connectionCbId = 0;
 
+    void removeCallback(MCallbackId& id)
+    {
+        if(id != 0) MMessage::removeCallback(id);
+        id = 0;
+    }
+    void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
+    {
+        if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
+            MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
+        {
+            // connection to shading engine made => replace shader
+            int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
+            bool isVolume = renderType==0 || renderType==3; // Aero or Foam
+            MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
+
+            MFnDependencyNode shadingGroup(otherPlug.node());
+            MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
+
+            MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+            command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
+            if(renderType == 0){ // Aero => set density channel to smoke
+                command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
+            }
+            if(isVolume){
+                command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+            }
+            MString preset;
+            if(renderType==0) { // aero
+                preset = "aiStandardVolume/Smoke.mel";
+            }else if(renderType==1 || renderType==2){ // liquid
+                preset = "aiStandardSurface/Deep_Water.mel";
+            }else{ // foam
+                preset = "aiStandardVolume/Foam.mel";
+            }
+
+            command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
+
+            command += "select $sel;undoInfo -closeChunk;";
+            MGlobal::executeCommandOnIdle(command);
+            removeCallback(s_connectionCbId);
+        }
+    }
+    void bifrostShapeAdded(MObject& obj, void*)
+    {
+        removeCallback(s_connectionCbId);
+        if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
+        { // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
+            // must wait until shaging engine is connected to shape, otherwise shader assignment will be overridden by the old bifrost material
+            // => registering temporary attribute change callback and removing it after material assignment
+            s_connectionCbId = MNodeMessage::addAttributeChangedCallback(obj, bifrostShapeAttributeChanged);
+        }
+    }
+}
 // This is a replica of CDagTranslator::ExportMatrix to have spacescale injected into the output matrix attribute
 void BifrostTranslator::ExportMatrixWithSpaceScale(AtNode* node, float spaceScale)
 {
@@ -851,7 +909,7 @@ namespace{
 
 void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
-    CExtensionAttrHelper helper(context.maya, "standard");
+    CExtensionAttrHelper helper(context.maya, "standard_surface");
     CAttrData data;
 
     AddAeroAttributes(helper, data);
@@ -860,4 +918,11 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
 
     ADD_DINT("debug", 1);
     ADD_DINT("silent", 0);
+
+    s_addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
+}
+
+void BifrostTranslator::ClearCallbacks()
+{
+    removeCallback(s_addedCbId);
 }

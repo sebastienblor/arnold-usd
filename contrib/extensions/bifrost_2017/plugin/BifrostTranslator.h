@@ -39,6 +39,8 @@ class BifrostTranslator : public CShapeTranslator
 
 		static void NodeInitializer( CAbTranslator context );
 
+		static void ClearCallbacks();
+
 	private:
 
 		virtual void ExportBifrostShader();

@@ -45,6 +45,10 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
    syntax.addFlag("ud", "udims", MSyntax::kString);
    syntax.addFlag("aov", "enable_aovs", MSyntax::kBoolean);
+   syntax.addFlag("ust", "u_start", MSyntax::kDouble);
+   syntax.addFlag("usc", "u_scale", MSyntax::kDouble);
+   syntax.addFlag("vst", "v_start", MSyntax::kDouble);
+   syntax.addFlag("vsc", "v_scale", MSyntax::kDouble);
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -137,6 +141,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    bool enableAovs = false;
    if (argDB.isFlagSet("enable_aovs")) argDB.getFlagArgument("enable_aovs", 0, enableAovs);
 
+
    // Set a default export camera
    // This is currently needed because the AOVs are set after we call SetExportCamera
    // and here we don't have any cam
@@ -228,7 +233,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    }
 
    // create a filter
-   MString filterType = "gaussian";
+   MString filterType = "gaussian_filter";
    if (argDB.isFlagSet("filter"))
    {
       argDB.getFlagArgument("filter", 0, filterType);
@@ -246,12 +251,21 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    static std::string filterName("defaultArnoldFilter@cameraMapperFilter");
    AiNodeSetStr(filterNode, "name", filterName.c_str());
 
-   double filterWidth = 2.0f;
+   double filterWidth = 2.0;
    if (argDB.isFlagSet("filter_width")) argDB.getFlagArgument("filter_width", 0, filterWidth);
    AiNodeSetFlt(filterNode, "width", (float)filterWidth);
 
    double normalOffset = 0.1;
    if (argDB.isFlagSet("normal_offset")) argDB.getFlagArgument("normal_offset", 0, normalOffset);
+
+   double uStart = 0.0;
+   if (argDB.isFlagSet("u_start")) argDB.getFlagArgument("u_start", 0, uStart);
+   double uScale = 1.0;
+   if (argDB.isFlagSet("u_scale")) argDB.getFlagArgument("u_scale", 0, uScale);
+   double vStart = 0.0;
+   if (argDB.isFlagSet("v_start")) argDB.getFlagArgument("v_start", 0, vStart);
+   double vScale = 1.0;
+   if (argDB.isFlagSet("v_scale")) argDB.getFlagArgument("v_scale", 0, vScale);
 
    // handle udims
    bool allUdims = false;
@@ -302,7 +316,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // AOVs have to be added to my outputs list      
       for (unsigned int p = 0; p < AiArrayGetNumElements(prevOutputs); ++p)
       {
-         MString aovElem = AiArrayGetStr(prevOutputs, p);
+         AtString aovStr = AiArrayGetStr(prevOutputs, p);
+         MString aovElem(aovStr.c_str());
          MStringArray aovElemSplit;
          aovElem.split(' ', aovElemSplit);
          if (aovElemSplit.length() <= 1)
@@ -560,8 +575,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
             AiNodeSetStr(camera, "polymesh", meshName);
-            AiNodeSetFlt(camera, "u_offset", -(float)u_offset);
-            AiNodeSetFlt(camera, "v_offset", -(float)v_offset);
+            AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
+            AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
+
+            AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
+            AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
+
             AiNodeSetFlt(camera, "offset", (float)normalOffset);
             // need to adjust the near plane to make sure it's not bigger than the offset
             AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
@@ -603,6 +622,13 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
          AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
+
+         AiNodeSetFlt(camera, "u_offset", (float)(-uStart));
+         AiNodeSetFlt(camera, "v_offset", (float)(-vStart));
+
+         AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
+         AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
+
          AiNodeSetPtr(options_node, "camera", camera);
          AiNodeSetStr(driver, "filename", filename.asChar());
 
