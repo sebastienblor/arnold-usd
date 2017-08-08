@@ -15,6 +15,7 @@ public:
 
     static void NodeInitializer( CAbTranslator context );
 
+    static void ClearCallbacks();
 private:
     // common
     void ExportShape(MFnDagNode& dagNode, AtNode *shape);
