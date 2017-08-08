@@ -184,23 +184,19 @@ void BifrostTranslator::ExportPoints(MFnDagNode &dagNode, AtNode *shape)
 {
     ExportShape(dagNode, shape);
     EXPORT_FLT("radius");
-    EXPORT2_INT("points_type", "mode");
 
     EXPORT_BOOL("enable_radius_channel");
     EXPORT_INT("radius_channel");
 
-    EXPORT_BOOL("enable_multi_pointing");
-    EXPORT_INT("mp_samples");
-    EXPORT_FLT2("mp_radius");
-    EXPORT_FLT("mp_surface_attract");
-    EXPORT_FLT2("mp_falloff_range");
-    EXPORT_FLT("mp_displacement");
-    EXPORT_FLT("mp_displacement_noise_frequency");
-
     EXPORT_FLT("skip");
-    EXPORT_UINT("chunk_size");
 
-    EXPORT2_FLT("points_step_size", "step_size");
+    if(dagNode.findPlug("points_volumetric").asBool()){
+        EXPORT2_FLT("points_step_size", "step_size");
+        AiNodeSetInt(shape, "mode", 1); // spheres
+    }else{
+        AiNodeSetFlt(shape, "points_step_size", 0);
+        EXPORT2_INT("points_type", "mode");
+    }
 }
 
 MMatrix BifrostTranslator::getRelativeMatrix(const MPlug &source){
@@ -260,7 +256,8 @@ void BifrostTranslator::ExportMotion( AtNode* shape ){
 }
 
 void BifrostTranslator::ExportBifrostShader(){
-    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
+    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
+    std::cerr << shadingGroupPlug.name().asChar() << std::endl;
     if ( !shadingGroupPlug.isNull() ) {
         AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
         if (rootShader != NULL) {
@@ -524,27 +521,14 @@ void BifrostTranslator::NodeInitializer( CAbTranslator context )
     ADD_DFLT("volume_step_size", .1);
 
     // points
+    ADD_DBOOL("points_volumetric", true);
     ADD_DFLT("radius", 0.01);
     ADD_DPOINTS_TYPE("points_type");
 
     ADD_DBOOL("enable_radius_channel", false);
     ADD_DSTR("radius_channel", "density");
 
-    ADD_DBOOL("enable_multi_pointing", false);
-    ADD_DINT("mp_samples", 1);
-    ADD_DFLT2("mp_radius", 0, 1);
-    ADD_DFLT("mp_surface_attract", 1);
-    ADD_DFLT2("mp_falloff_range", 0, 1);
-    ADD_DFLT("mp_displacement", 0);
-    ADD_DFLT("mp_displacement_noise_frequency", 8);
-
-    ADD_DFLT("skip", 0);
     ADD_DINT("chunk_size", 100000);
-
-    //ADD_DBOOL("enable_camera_radius", false);
-    //ADD_DFLT2("camera_distance", 0, 1);
-    //ADD_DFLT2("camera_factor", 0, 1);
-    //ADD_DFLT("camera_factor_exponent", 1);
 
     ADD_DFLT("points_step_size", 0.025);
 }
