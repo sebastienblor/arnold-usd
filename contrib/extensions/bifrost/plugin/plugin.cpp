@@ -5,110 +5,100 @@
 #include <maya/MDGMessage.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MFileIO.h>
+#include <maya/MFileObject.h>
 #include <maya/MGlobal.h>
 
 // TODO: remove this comment
 
 extern "C"
 {
-    namespace{
-        // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
-        MCallbackId addedCbId = 0, connectionCbId = 0;
 
-        void removeCallback(MCallbackId& id)
-        {
-            if(id != 0) MMessage::removeCallback(id);
-            id = 0;
-        }
-        void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
-        {
-            if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
-                MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
+   namespace
+   {
+      // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
+      MCallbackId addedCbId = 0, connectionCbId = 0;
+
+      void removeCallback(MCallbackId& id)
+      {
+         if(id != 0) MMessage::removeCallback(id);
+         id = 0;
+      }
+      void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
+      {
+         if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
+         MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
+         {
+            // connection to shading engine made => replace shader
+            int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
+            bool isVolume = renderType==0 || renderType==3; // Aero or Foam
+            MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
+
+            MFnDependencyNode shadingGroup(otherPlug.node());
+            MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
+
+            MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+            command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
+            if(renderType == 0)
+            { // Aero => set density channel to smoke
+               command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
+            }
+            if(isVolume)
             {
-                // connection to shading engine made => replace shader
-                int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
-                bool isVolume = renderType==0 || renderType==3; // Aero or Foam
-                MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
-
-                MFnDependencyNode shadingGroup(otherPlug.node());
-                MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
-
-                MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
-                command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
-                if(renderType == 0){ // Aero => set density channel to smoke
-                    command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
-                }
-                if(isVolume){
-                    command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
-                }
-                MString preset;
-                if(renderType==0) { // aero
-                    preset = "aiStandardVolume/Smoke.mel";
-                }else if(renderType==1 || renderType==2){ // liquid
-                    preset = "aiStandardSurface/Deep_Water.mel";
-                }else{ // foam
-                    preset = "aiStandardVolume/Foam.mel";
-                }
-
-                command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
-
-                command += "select $sel;undoInfo -closeChunk;";
-                MGlobal::executeCommandOnIdle(command);
-                removeCallback(connectionCbId);
+               command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
             }
-        }
-        void bifrostShapeAdded(MObject& obj, void*)
-        {
+
+            MString preset;
+            if(renderType==0) 
+            { // aero
+               preset = "aiStandardVolume/Smoke.mel";
+            } else if(renderType==1 || renderType==2)
+            { // liquid
+               preset = "aiStandardSurface/Deep_Water.mel";
+            } else { // foam
+               preset = "aiStandardVolume/Foam.mel";
+            }
+
+            command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
+
+            command += "select $sel;undoInfo -closeChunk;";
+            MGlobal::executeCommandOnIdle(command);
             removeCallback(connectionCbId);
-            if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
-            { // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
-                // must wait until shaging engine is connected to shape, otherwise shader assignment will be overridden by the old bifrost material
-                // => registering temporary attribute change callback and removing it after material assignment
-                connectionCbId = MNodeMessage::addAttributeChangedCallback(obj, bifrostShapeAttributeChanged);
-            }
-        }
-    }
+         }
+      }
+      void bifrostShapeAdded(MObject& obj, void*)
+      {
+         removeCallback(connectionCbId);
+         if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
+         {  // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
+            // must wait until shaging engine is connected to shape, otherwise shader assignment will be overridden by the old bifrost material
+            // => registering temporary attribute change callback and removing it after material assignment
+            connectionCbId = MNodeMessage::addAttributeChangedCallback(obj, bifrostShapeAttributeChanged);
+         }
+      }
 
-#ifdef ENABLE_BIFROST
-    DLLEXPORT void initializeExtension ( CExtension& extension )
-    {
-        MStatus status;
+   } // namespace
 
-#if MAYA_API_VERSION < 201650
-        extension.Requires ( "BifrostMain" );
-#else
-        extension.Requires ( "bifrostvisplugin" );
-#endif
+   #ifdef ENABLE_BIFROST
+   DLLEXPORT void initializeExtension ( CExtension& extension )
+   {
+      MStatus status;
 
+      extension.Requires ( "bifrostvisplugin" );
 
-#ifdef _WIN32
-        MString bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/bin";
-        extension.LoadArnoldPlugin("bifrost_procedural_0_1", bifrostProceduralPath);
-#endif
-#ifdef _LINUX
-        MString bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.0.0.0";
-        extension.LoadArnoldPlugin("libbifrost_procedural_0_1", bifrostProceduralPath);
-#endif
-#ifdef _DARWIN
-        MString bifrostProceduralPath = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.0.0.0";
-        extension.LoadArnoldPlugin("libbifrost_procedural_0_1", bifrostProceduralPath);  
-#endif
-        
-        // check in bifrostProceduralPath which folders exist
-        // use the one which has the closest version of arnold
+      status = extension.RegisterTranslator ( "bifrostShape", "",
+                              BifrostTranslator::creator,
+                              BifrostTranslator::NodeInitializer );
 
-        
-        status = extension.RegisterTranslator ( "bifrostShape", "",
-                                                BifrostTranslator::creator,
-                                                BifrostTranslator::NodeInitializer );
+      addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
+   }
 
-        addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
-    }
+   DLLEXPORT void deinitializeExtension ( CExtension& extension )
+   {
+      removeCallback(addedCbId);
+   }
 
-    DLLEXPORT void deinitializeExtension ( CExtension& extension )
-    {
-        removeCallback(addedCbId);
-    }
-
-#endif
+   #endif
 }
+
+
+
