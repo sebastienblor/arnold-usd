@@ -233,7 +233,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    }
 
    // create a filter
-   MString filterType = "gaussian";
+   MString filterType = "gaussian_filter";
    if (argDB.isFlagSet("filter"))
    {
       argDB.getFlagArgument("filter", 0, filterType);
