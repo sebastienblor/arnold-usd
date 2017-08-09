@@ -732,6 +732,10 @@ void COptionsTranslator::Export(AtNode *options)
          {
             CNodeTranslator::ProcessParameter(options, "GI_sss_samples", AI_TYPE_INT);
          }
+         else if (strcmp(paramName, "indirect_specular_blur") == 0)
+         {
+            CNodeTranslator::ProcessParameter(options, "indirect_specular_blur", AI_TYPE_FLOAT, "indirectSpecularBlur");
+         }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
             int bucket_scanning = AiMin(FindMayaPlug("bucketScanning").asInt(), 4); // old scenes might have a bigger value

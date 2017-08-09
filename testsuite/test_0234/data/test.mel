@@ -10,6 +10,9 @@ setAttr "perspShape.renderable" 0;
 
 setAttr ("pSphere1.aiOpaque") 0;
 
+file -rename "ref1.ma";
+file -force -type "mayaAscii" -save;
+
 // create a hair shader
 shadingNode -asShader aiStandardHair -name "hairShader";
 
@@ -21,15 +24,24 @@ defaultNavigation -connectToExisting -source $shader -destination $shadingGroup;
 select -r pSphere1;
 sets -e -forceElement $shadingGroup;
 
+file -rename "ref2.ma";
+file -force -type "mayaAscii" -save;
+
 setAttr ($shader+".specularIOR") 5;
 // create a skydome
 $skydomeLight = `createNode "aiSkyDomeLight"`;
 setAttr ($skydomeLight+".format") 1;
 
+file -rename "ref3.ma";
+file -force -type "mayaAscii" -save;
+
 // copy the ok file to confirm there hasn't been any crash so far
 $format = `getAttr($skydomeLight+".format")`;
 $ior = `getAttr($shader+".specularIOR")`;
 $opaque = `getAttr("pSphereShape1.aiOpaque")`;
+
+file -rename "ref4.ma";
+file -force -type "mayaAscii" -save;
 
 if ($format == 1 && $ior == 5 && $opaque == 0)
 {
