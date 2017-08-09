@@ -1145,6 +1145,7 @@ PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
+[os.path.join(ARNOLD, 'osl'), 'osl'],
 ]
 
 for p in presetfiles:
