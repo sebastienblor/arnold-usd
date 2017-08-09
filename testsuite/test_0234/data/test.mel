@@ -1,0 +1,40 @@
+loadPlugin("mtoa");
+polySphere -r 1 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1;
+file -rename "ref.ma";
+file -force -type "mayaAscii" -save;
+camera -centerOfInterest 5 -focalLength 35 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.41732 -horizontalFilmOffset 0 -verticalFilmAperture 0.94488 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.1 -farClipPlane 10000 -orthographic 0 -orthographicWidth 30 -panZoomEnabled 0 -horizontalPan 0 -verticalPan 0 -zoom 1; objectMoveCommand; cameraMakeNode 1 "";
+move -r 0 0 6.274539 ;
+defaultDirectionalLight(1, 1,1,1, "0", 0,0,0, 0);
+setAttr "cameraShape1.renderable" 1;
+setAttr "perspShape.renderable" 0;
+
+setAttr ("pSphere1.aiOpaque") 0;
+
+// create a hair shader
+shadingNode -asShader aiStandardHair -name "hairShader";
+
+// create a standard surface shader and assign it to my sphere
+string $shader = `shadingNode -asShader aiStandardSurface`;
+string $shadingGroup = ($shader + "SG");
+sets -renderable true -noSurfaceShader true -empty -name $shadingGroup;
+defaultNavigation -connectToExisting -source $shader -destination $shadingGroup;
+select -r pSphere1;
+sets -e -forceElement $shadingGroup;
+
+setAttr ($shader+".specularIOR") 5;
+// create a skydome
+$skydomeLight = `createNode "aiSkyDomeLight"`;
+setAttr ($skydomeLight+".format") 1;
+
+// copy the ok file to confirm there hasn't been any crash so far
+$format = `getAttr($skydomeLight+".format")`;
+$ior = `getAttr($shader+".specularIOR")`;
+$opaque = `getAttr("pSphereShape1.aiOpaque")`;
+
+if ($format == 1 && $ior == 5 && $opaque == 0)
+{
+	sysFile -copy  "testrender.tif" "ok.tif";
+}else
+{
+	print "FAIL";
+}
