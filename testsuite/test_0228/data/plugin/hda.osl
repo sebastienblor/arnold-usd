@@ -1,3 +1,6 @@
+#include "stdosl.h"
+#include "oslutil.h"
+
 shader hda_01(
     color Cin = color(0, 0, 0),
     float exponent = 1,
