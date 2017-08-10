@@ -1436,7 +1436,7 @@ void CArnoldSession::DoUpdate()
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    size_t objectsToUpdateCount;
-   bool dagFound, newDag, exportMotion, motionBlur, mbRequiresFrameChange;
+   bool newDag, exportMotion, motionBlur, mbRequiresFrameChange;
    int currentFrameIndex;
    MString hashCode;
    std::string hashStr;
@@ -1527,8 +1527,6 @@ UPDATE_BEGIN:
    if (!m_proceduralsToUpdate.empty())
       UpdateProceduralReferences();
 
-
-   dagFound   = false;
    newDag = false;
    
    m_motionStep = 0;
@@ -1631,7 +1629,7 @@ UPDATE_BEGIN:
                if (frameChanged || translator->m_impl->m_animArrays) 
                   mbRequiresFrameChange = true;
             }
-            if (translator->m_impl->IsMayaTypeDag()) dagFound = true;
+            
             translatorsToUpdate.push_back(translator);
          }
       } else
@@ -1665,7 +1663,6 @@ UPDATE_BEGIN:
                name = path.partialPathName();
                AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
                newDag = true;
-               dagFound = true;
                translatorsToUpdate.push_back(dagTr);
                if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
                {
@@ -1691,7 +1688,7 @@ UPDATE_BEGIN:
                      name = shapePath.partialPathName();
                      AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
                      newDag = true;
-                     dagFound = true;
+                     
                      translatorsToUpdate.push_back(dagTr);
                      if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
                      {
@@ -1711,12 +1708,6 @@ UPDATE_BEGIN:
    bool isLightLinksDirty = IsLightLinksDirty();
    if (newDag || isLightLinksDirty)
       UpdateLightLinks();
-   
-   // Need something finer to determine if the changes have an influence
-   // FIXME Arnold5 make sure we remove "dagFound" once Arnold-5.0 branch is merged
-   //if (dagFound)
-   //   AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
-   
    
    // Now update all the translators in our list
 
@@ -2426,7 +2417,7 @@ void CArnoldSession::ExportTxFiles()
       {
 
          // shouldn't happen, until last texture
-         if (index + 1 >= listTextures.size() )
+         if (index + 1 >= (int)listTextures.size() )
             continue;
 
          // FIXME use basename instead         

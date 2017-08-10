@@ -29,17 +29,18 @@ MString toMayaStyle(MString s)
       }
       else if (capitalize)
       {
-         name += c.toUpperCase();
+         c = c.toUpperCase();
+         name += c;
          capitalize = false;
       }
-      else
+      else if (c.length() > 0)
       {
          // always go to lower case
          // this avoids ugly things like GI_diffuse_samples --> GIDiffuseSamples
          // and instead produces the slightly nicer giDiffuseSamples
          // TODO : but then ai_remapColor will yield aiRemapcolor
          // name += c.toLowerCase();
-         name += c;
+         name = name + c;
       }
    }
    return name;
@@ -66,9 +67,16 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 {
    AtString attrName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
-      return MString(attrName);
+   {
+      MString attrNameStr(attrName.c_str());
+      return attrNameStr;
+   }
    else
-      return toMayaStyle(m_prefix + paramName);
+   {
+      MString paramNameStr(paramName);
+      paramNameStr = m_prefix + paramNameStr;
+      return toMayaStyle(paramNameStr);
+   }
 }
 
 // uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
@@ -297,7 +305,9 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             const char* enumStr = AiEnumGetString(AiParamGetEnum(paramEntry), ei);
             if (!enumStr)
                break;
-            data.enums.append(enumStr);
+
+            MString enumMString(enumStr);
+            data.enums.append(enumMString);
          }
          break;
       }
@@ -678,7 +688,8 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
 
    attrib = tAttr.create(data.name, data.shortName, MFnData::kString);
    MFnStringData strData;
-   MObject defObj = strData.create(data.stringDefault);
+   MString stringDefault(data.stringDefault);
+   MObject defObj = strData.create(stringDefault);
    tAttr.setDefault(defObj);
    tAttr.setArray(data.isArray);
    tAttr.setKeyable(data.keyable);
@@ -1265,15 +1276,28 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 
    MDGModifier dgMod;
    stat = dgMod.addExtensionAttribute(m_class, attrib);
-   if (MStatus::kSuccess != stat)
+
+   // FIXME this is causing lots of instabilities, commenting it for now
+   /*
+   if (stat == MStatus::kSuccess)
    {
-      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      // FIXME : find a solution to keep a handle on the plugin MObject.
+      // Is it safe to keep a static MObject and initialize it once ?
+      MObject pluginNode = MFnPlugin::findPlugin(MString("mtoa"));
+      if ((!pluginNode.isNull()) && fnAttr.parent().isNull())
+      {
+         stat = dgMod.linkExtensionAttributeToPlugin(pluginNode, attrib);
+      }
    }
-   else
+   */
+   
+   if (stat == MStatus::kSuccess)
    {
       AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
       stat = dgMod.doIt();
-   }
+   } else
+      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+   
    CHECK_MSTATUS(stat);
    return stat;
 }

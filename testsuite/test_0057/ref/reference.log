@@ -22,12 +22,12 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   493MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   493MB WARNING |  node "MayaClamp" is already installed
-00:00:00   493MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   493MB WARNING |  node "MayaCondition" is already installed
-00:00:00   493MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
+00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   492MB WARNING |  node "MayaClamp" is already installed
+00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   492MB WARNING |  node "MayaCondition" is already installed
+00:00:00   492MB WARNING |  node "MayaReverse" is already installed
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0057/test.ma line 7: RuntimeError: file <maya console> line 1: Plug-in, "Mayatomr", was not found on MAYA_PLUG_IN_PATH.
@@ -45,8 +45,7 @@ Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/tes
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0057/test.ma line 606: Unrecognized node type 'mentalrayFramebuffer'; preserving node information during this session.
 Viewport 2.0 floating point render target is turned off.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  0.65 seconds.
+File read in  0.69 seconds.
 Error: line 1: Error reading file.
 Error: line 1: Error reading file.
-CArnoldSession::ExportTxFiles
 Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0057\test.ma completed.

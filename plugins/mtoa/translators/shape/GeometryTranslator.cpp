@@ -554,7 +554,7 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
             {
                // polygon on which this hole lies
                holeFaceIndex = holeInfoArray[holeIndex];
-               if (holeFaceIndex >= polygonHoleVertices.size())
+               if (holeFaceIndex >= (int)polygonHoleVertices.size())
                {
                   // resize dynamically the polygonHoleVertices table
                   polygonHoleVertices.resize(holeFaceIndex + 1, 0);
@@ -564,7 +564,7 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
             }
          }         
 
-         if (faceIndex < polygonHoleVertices.size())
+         if (faceIndex < (int)polygonHoleVertices.size())
          {
             // substracting the amount of hole-vertices in this face
             numPolygonVertexCount -= polygonHoleVertices[faceIndex];

@@ -141,7 +141,8 @@ class MayaTestRunner(object):
                 output_basename        = 'testrender',     ## can be '' if the test does not generate an image
                 reference_basename     = os.path.join('ref', 'reference'),  ## can be '' if the test does not generate an image
                 force_result        = 'OK',
-                multiprocess        = True):
+                multiprocess        = True,
+                maya_version        = '2018'):
       ## save the params
         if system.os() == 'windows':
             self.script = os.path.normpath(script)
@@ -164,11 +165,10 @@ class MayaTestRunner(object):
         # test source directory, before it has been copied to build dir
         self.source_dir  = os.path.abspath(os.path.join('testsuite')) 
         self.build_dir = None
-
-        self.fill_blacklist()
+        self.fill_blacklist(maya_version)        
         self.gui_list = find_test_group('gui')
 
-    def fill_blacklist(self):
+    def fill_blacklist(self, maya_version):
         # blacklist
         self.black_list = find_test_group('ignore')
 
@@ -180,6 +180,9 @@ class MayaTestRunner(object):
         ignore_os = 'ignore_' + system.os()
 
         self.black_list.extend(find_test_group(ignore_os))
+
+        ignore_version = 'ignore_' + maya_version
+        self.black_list.extend(find_test_group(ignore_version))
 
     def add_test(self, test_dir):
         test_name = os.path.basename(test_dir)
@@ -273,14 +276,16 @@ class MayaTestRunner(object):
         # we used to have index.html instead of dummy.html. But we don't actually want previous index.html 
         # files to be removed (which happens when you fix independent tests after running a whole testsuite)
         job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'dummy.html')),
-                                MTOA + MTOA_SHADERS + self.install_files, # + SHADERS,
+                                self.install_files, # MTOA + MTOA_SHADERS  were removed, I no longer want to trigger a rebuild during the testsuite
                                 PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
                                 chdir = 1
                                 )
         test_env.AlwaysBuild(job)
-        
-        test_env.Depends(job, MTOA)
-        test_env.Depends(job, MTOA_SHADERS)
+    
+        # MTOA + MTOA_SHADERS  were removed, I no longer want to trigger a rebuild during the testsuite
+        # This way we can run the tests on an installed package
+        #test_env.Depends(job, MTOA)
+        #test_env.Depends(job, MTOA_SHADERS)
         return job
 
     def _setup_sig_handler(self):
@@ -322,7 +327,17 @@ class MayaTestRunner(object):
            
         ## setup program path   
         previous_path = os.environ.get('PATH')
+
+        path_separator = ':'
+        if system.os() == 'windows':
+            path_separator = ';'
+
+        #make sure mtoa's kick path is set *before* the arnold one
+        test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'bin') + ";" + test_env['ENV']['PATH']
         os.environ['PATH'] = test_env['ENV']['PATH']
+
+        # make sure we'll load the .mod file in the target mtoa foler, and thus load the right version of mtoa
+        os.environ['MAYA_MODULE_PATH'] = test_env['TARGET_MODULE_PATH']
        
         ## why this being in Maya.env doesn't work?
         previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
@@ -349,17 +364,46 @@ class MayaTestRunner(object):
                 # Note that we won't be loading the scene because it seems that the script is called before scene load.
                 # So it's the script itself that loads whatever scene it wants
                 if os.path.exists(os.path.join(test_dir, 'test.mel')):
-                    test_script = 'mayabatch  -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+                    if system.os() == 'windows':
+                        mayabatch_cmd = 'mayabatch'
+                    else:
+                        mayabatch_cmd = 'maya -batch'
+                    if not ' ' in test_env['MAYA_ROOT']:
+                        mayabatch_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', mayabatch_cmd)
+
+                    test_script = mayabatch_cmd + ' -file %file% -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
                 # If a file gui_test.mel is found, we want to run maya with this script
                 # As above, it's up to the script to load a maya scene
                 elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
-                    test_script = 'maya  -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
+
+                    maya_cmd = 'maya'
+                    if not ' ' in test_env['MAYA_ROOT']:
+                        maya_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', maya_cmd)
+
+                    test_script = maya_cmd + ' -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
                 elif os.path.exists(os.path.join(test_dir, 'test.py')):
-                    test_script = os.path.join(test_dir, 'test.py "%s" "%s"' % (test_env['MAYA_ROOT'], test_env['TARGET_MODULE_PATH']) )   
+
+                    maya_root = test_env['MAYA_ROOT']
+                    test_script = ''
+                    if system.os() == 'darwin':   
+                        test_script = 'python '
+                        maya_root = maya_root.replace('/Maya.app/Contents', '')
+
+                    test_script += os.path.join(test_dir, 'test.py "%s" "%s"' % (maya_root, test_env['TARGET_MODULE_PATH']) )
+                    
                 elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
                 # If the test.py is found, we want to run mayapy with this script
-                    test_script = 'mayapy ' + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
-                        % (test_env['MAYA_ROOT'], test_env['TARGET_MODULE_PATH'], test_dir) )
+                    maya_root = test_env['MAYA_ROOT']
+                    mayapy_cmd = 'mayapy '
+                    if system.os() == 'darwin':   
+                        maya_root = maya_root.replace('/Maya.app/Contents', '')
+
+                    if not ' ' in test_env['MAYA_ROOT']:
+                        mayapy_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', mayapy_cmd)
+
+
+                    test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
+                        % (maya_root, test_env['TARGET_MODULE_PATH'], test_dir) )
 
 
                 t, files = run_test(test_name,
@@ -387,9 +431,28 @@ class MayaTestRunner(object):
             args = []
             for test_name in self.tests:
                 test_dir       = os.path.join(self.build_dir, test_name)
-                test_script = test_env['MAYA_ROOT']
-                test_script += '/bin/'
-                test_script += self.script
+                maya_root = test_env['MAYA_ROOT']
+
+                # if a file test.mel is found, we want to run mayabatch with this script
+                # Note that we won't be loading the scene because it seems that the script is called before scene load.
+                # So it's the script itself that loads whatever scene it wants
+                if os.path.exists(os.path.join(test_dir, 'test.mel')):
+                    test_script = maya_root +'/bin/maya -batch -file %file% -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+                # If a file gui_test.mel is found, we want to run maya with this script
+                # As above, it's up to the script to load a maya scene
+                elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
+                    test_script = maya_root + '/bin/maya  -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
+                elif os.path.exists(os.path.join(test_dir, 'test.py')):
+                    test_script = 'python '+ os.path.join(test_dir, 'test.py "%s" "%s"' % (maya_root, test_env['TARGET_MODULE_PATH']) )
+                    
+                elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
+                # If the test.py is found, we want to run mayapy with this script
+                   
+                    test_script = maya_root + '/bin/mayapy ' + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
+                        % (maya_root, test_env['TARGET_MODULE_PATH'], test_dir) )
+                else:
+                    test_script = os.path.join(test_env['MAYA_ROOT'],'bin',self.script)
+
 
                 args.append((test_name,
                             lock,
@@ -443,11 +506,60 @@ class MayaTestRunner(object):
         arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
    
         #os.chdir(self.results_dir)
-        passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
+        passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), os.path.join(self.results_dir, 'errors.html'), arnold_version)
         return None # always succeds, jenkins will keep track of the test results not us
 
+    def write_html_header(self, outfile, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed):
 
-    def process_results(self, html_index, arnold_version):
+            outfile.write('''
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+        <head>
+        <title>
+        MtoA testsuite
+        </title>
+        </head>
+        <body>
+        ''')
+            outfile.write('''
+        <table border="0" cellpadding="15" cellspacing="2">
+        <tr>
+        <td>
+        <font face="Arial"><h1>MtoA %s testsuite (%s / Maya %s)</h1>
+        revision: %s<br>branch: %s</font>
+        </td>
+        <td>
+        <pre>
+        |     
+        |     patterns/tags:      %s
+        |     tests:              %-4d
+        |     passed:             %-4d (%.2f%%)
+        |     failed:             %-4d (%.2f%%)
+        |     total running time: %.2f s
+        |     
+        |     
+        </pre>
+        </td>
+        </tr>
+        </table>
+        <br>
+        ''' % (MTOA_VERSION, system.os(), MAYA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
+                len(self.tests),
+                passed,
+                (100.0 * passed) / (passed + failed),
+                failed, (100.0 * failed) / (passed + failed),
+                self.total_running_time))
+            outfile.write('''
+        <table border="0" cellpadding="0">
+        <tr>
+        <th><font face="Arial">test</font></th>
+        <th><font face="Arial">description</font></th>
+        <th><font face="Arial">new</font></th>
+        <th><font face="Arial">ref</font></th>
+        </tr>
+        ''')   
+
+    def process_results(self, html_index, html_errors, arnold_version):
         if not os.path.exists(self.results_dir):
             os.mkdir(self.results_dir)
 
@@ -494,59 +606,19 @@ class MayaTestRunner(object):
         if len(self.tests) <= 1:
             return passed, failed
 
-        MTOA_VERSION    = '<not available>'
+        MTOA_VERSION    = env['MTOA_VERSION']
         ARNOLD_VERSION  = arnold_version
         (REVISION, URL) = get_latest_revision()
+        MAYA_VERSION = env['MAYA_VERSION']
              
         ## create testsuite html
         outfile = open(html_index, 'w')
-        outfile.write('''
-    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-    <head>
-    <title>
-    MtoA testsuite
-    </title>
-    </head>
-    <body>
-    ''')
-        outfile.write('''
-    <table border="0" cellpadding="15" cellspacing="2">
-    <tr>
-    <td>
-    <font face="Arial"><h1>MtoA %s testsuite</h1>
-    %s<br>%s</font>
-    </td>
-    <td>
-    <pre>
-    |     
-    |     patterns/tags:      %s
-    |     tests:              %-4d
-    |     passed:             %-4d (%.2f%%)
-    |     failed:             %-4d (%.2f%%)
-    |     total running time: %.2f s
-    |     
-    |     
-    </pre>
-    </td>
-    </tr>
-    </table>
-    <br>
-    ''' % (MTOA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
-            len(self.tests),
-            passed,
-            (100.0 * passed) / (passed + failed),
-            failed, (100.0 * failed) / (passed + failed),
-            self.total_running_time))
-        outfile.write('''
-    <table border="0" cellpadding="0">
-    <tr>
-    <th><font face="Arial">test</font></th>
-    <th><font face="Arial">description</font></th>
-    <th><font face="Arial">new</font></th>
-    <th><font face="Arial">ref</font></th>
-    </tr>
-    ''')
+        self.write_html_header(outfile, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+
+        if failed > 0:
+            errors_file = open(html_errors, 'w')
+            self.write_html_header(errors_file, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+        
         for test_name, test_files in zip(self.tests, self.test_results):
             test_dir = test_name
             test_results_dir = os.path.join(self.results_dir, test_dir)
@@ -563,23 +635,31 @@ class MayaTestRunner(object):
             f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
             description = f.readline() ## just one line
             f.close()
-          
+
             if not os.path.exists(test_results_dir):
                 os.mkdir(test_results_dir)
     
             copy_to_results(test_link)
-    
+        
             for new, ref, dif in test_files:
+
                 # copy images to results directory
                 new_img_dest = copy_to_results(os.path.join(test_dir, new))
                 ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
                 copy_to_results(os.path.join(test_dir, dif))
-              
+                copy_to_results(os.path.join(test_dir, test_name + '.log'))
+
                 f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
                 status = f.readline() ## just one line
                 f.close()
                 bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
-    
+
+                # if the test has failed, copy the new render to results
+                if status != 'OK':
+                    out_img = new.replace('.jpg', '.tif')
+                    out_img = out_img[4:]
+                    copy_to_results(os.path.join(test_dir, out_img))
+   
                 outfile.write('''
         <tr>
           <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
@@ -601,13 +681,45 @@ class MayaTestRunner(object):
                     ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
                                             or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
                     ))
-
+                if status != 'OK':
+                    errors_file.write('''
+        <tr>
+          <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
+          <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
+          <td><a href="%s">%s</a></td>
+          <td><a href="%s">%s</a></td>
+        </tr>
+              ''' % (bgcolor,
+                    test_link,
+                    test_name,
+                    bgcolor,
+                    len(test_files) < 2 and
+                       description
+                       or description+': <small>'+ref+'</small>',
+                    test_link,
+                    new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
+                    test_link,
+                    ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
+                    ))
+                
+        
         outfile.write('''
     </table>
     </body>
     </html>
        ''')
         outfile.close()
+             
+        if failed > 0:   
+            errors_file.write('''
+                </table>
+                </body>
+                </html>
+                    ''')
+            errors_file.close()
+            
         print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
         return passed, failed
 
@@ -663,7 +775,7 @@ if __name__ == 'SCons.Script':
     ## and Maya's
     prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
     
-    testRunner = MayaTestRunner(multiprocess = multiprocess)
+    testRunner = MayaTestRunner(multiprocess = multiprocess, maya_version = test_env['MAYA_VERSION_BASE'])
     testrunner_bld = Builder(action = testRunner.run)
     test_env.Append(BUILDERS = {'Testsuite' : testrunner_bld})
     

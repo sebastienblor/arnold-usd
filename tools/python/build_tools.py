@@ -204,19 +204,22 @@ def get_maya_version(path):
 
 def get_latest_revision():
    '''
-   This function will give us the information we need about the latest snv revision of the root arnold directory
+   This function will give us the information we need about the latest git revision of the root arnold directory
    '''
-   p = subprocess.Popen('hg summary', shell=True, stdout = subprocess.PIPE)
-   retcode = p.wait()
-  
    revision = 'not found'
    branch   = 'not found'
-   
+
+   p = subprocess.Popen('git rev-parse --short HEAD', shell=True, stdout = subprocess.PIPE)
+   retcode = p.wait()
    for line in p.stdout:
-      if line.startswith('branch:'):
-         branch = line[8:].strip()
-      elif line.startswith('parent:'):
-         revision = line[8:].strip()
+      revision = line
+      break
+
+   p = subprocess.Popen('git rev-parse --abbrev-ref HEAD', shell=True, stdout = subprocess.PIPE)
+   retcode = p.wait()
+   for line in p.stdout:
+      branch = line
+      break
 
    return (revision, branch)
 

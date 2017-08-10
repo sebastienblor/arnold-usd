@@ -106,7 +106,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MObject node;
    list.add("defaultArnoldRenderOptions");
    bool expandProcedurals = false;
-   float displayGamma = 2.2f;
    MString kickRenderFlags = "";
    if (list.length() > 0)
    {
@@ -119,14 +118,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
       progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
-#ifdef MTOA_ENABLE_GAMMA
-      displayGamma = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
    }
-#else
-   }
-   displayGamma = 1.f;
-#endif
-
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
       // FIXME: actual export code should be shared so we don't have to do this dirty call
@@ -179,7 +171,22 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MStringArray assFileNames;
       status = MGlobal::executeCommand(cmdStr, assFileNames);
       unsigned int nfiles = assFileNames.length();
+      
+      
+      MString mtoaBinPath = "";
+      MString mtoaShaderPath = "";
+      const char* mtoaEnvVar = getenv("MTOA_PATH");
+      if (mtoaEnvVar)
+      {
+         mtoaBinPath = mtoaEnvVar;
+         mtoaBinPath += "bin/";
 
+         mtoaShaderPath = mtoaEnvVar;
+         mtoaShaderPath += "shaders";
+      }
+      // FIXME eventually use these paths in kickCmd !!
+      
+      
       if (MStatus::kSuccess == status && nfiles)
       {
          MGlobal::displayInfo("[mtoa] Exported scene to file " + assFileNames[0]);

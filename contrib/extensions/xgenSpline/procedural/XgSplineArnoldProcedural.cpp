@@ -202,7 +202,7 @@ private:
             const unsigned int* primitiveInfos = splineIt.primitiveInfos();
             const SgVec3f*      positions      = splineIt.positions(0);
             const float*        width          = splineIt.width();
-            const SgVec2f*      texcoords      = splineIt.texcoords();
+            //const SgVec2f*      texcoords      = splineIt.texcoords();
             const SgVec2f*      patchUVs       = splineIt.patchUVs();
 
             for (unsigned int p = 0; p < primitiveCount; p++)

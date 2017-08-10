@@ -272,7 +272,7 @@ procedural_get_node
    AiNodeSetBool(instance, "inherit_xform", false);
    int steps = AiArrayGetNumKeys(partArray);
 
-   AtMatrix instancerMatrix = AiNodeGetMatrix(node, "matrix");
+   //AtMatrix instancerMatrix = AiNodeGetMatrix(node, "matrix");
 
    AtArray* matrices = AiArrayAllocate(1, steps, AI_TYPE_MATRIX);
 

@@ -423,10 +423,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          appendToResult(curfilename);
 
          // TODO: package all of this in a method
-         // FIXME: is there a reason not to preserve_scene_data?  CMayaScene::End() below will destroy the scene.
-         if (cameras.length() > 1 || writeBox)
-            // Use preserve_scene_data = true only when necessary as this value will be set also to true in the exported file
-            AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
+         // This is no longer necessary in arnold side, see #814
+//         if (cameras.length() > 1 || writeBox)
+            //AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
          
          renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed);

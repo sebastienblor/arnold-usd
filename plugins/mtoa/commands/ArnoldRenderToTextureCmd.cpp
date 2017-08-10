@@ -39,10 +39,16 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("s", "shader", MSyntax::kString);
    syntax.addFlag("r", "resolution", MSyntax::kUnsigned);
    syntax.addFlag("as", "aa_samples", MSyntax::kUnsigned);
+   syntax.addFlag("nof", "normal_offset", MSyntax::kDouble);
    syntax.addFlag("af", "filter", MSyntax::kString);
    syntax.addFlag("afw", "filter_width", MSyntax::kDouble);
    syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
    syntax.addFlag("ud", "udims", MSyntax::kString);
+   syntax.addFlag("aov", "enable_aovs", MSyntax::kBoolean);
+   syntax.addFlag("ust", "u_start", MSyntax::kDouble);
+   syntax.addFlag("usc", "u_scale", MSyntax::kDouble);
+   syntax.addFlag("vst", "v_start", MSyntax::kDouble);
+   syntax.addFlag("vsc", "v_scale", MSyntax::kDouble);
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -132,9 +138,24 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    renderSession->SetForceTranslateShadingEngines(true);
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
 
+   bool enableAovs = false;
+   if (argDB.isFlagSet("enable_aovs")) argDB.getFlagArgument("enable_aovs", 0, enableAovs);
+
+
+   // Set a default export camera
+   // This is currently needed because the AOVs are set after we call SetExportCamera
+   // and here we don't have any cam
+   if (enableAovs)
+   {
+      MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
+      MDagPath cameraPath;
+      dagIter.getPath(cameraPath);
+      arnoldSession->SetExportCamera(cameraPath);
+   }
+
    CMayaScene::Export();
    AtNode *shaderNode = 0;
-
+   
    if (argDB.isFlagSet("shader"))
    {
       MString shaderName = "";
@@ -212,7 +233,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    }
 
    // create a filter
-   MString filterType = "gaussian";
+   MString filterType = "gaussian_filter";
    if (argDB.isFlagSet("filter"))
    {
       argDB.getFlagArgument("filter", 0, filterType);
@@ -226,11 +247,25 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       MGlobal::displayWarning(errLog.asChar());
       filterNode = AiNode("gaussian_filter");
    }
-   AiNodeSetStr(filterNode, "name", "defaultArnoldFilter@cameraMapperFilter");
 
-   double filterWidth = 2.0f;
+   static std::string filterName("defaultArnoldFilter@cameraMapperFilter");
+   AiNodeSetStr(filterNode, "name", filterName.c_str());
+
+   double filterWidth = 2.0;
    if (argDB.isFlagSet("filter_width")) argDB.getFlagArgument("filter_width", 0, filterWidth);
    AiNodeSetFlt(filterNode, "width", (float)filterWidth);
+
+   double normalOffset = 0.1;
+   if (argDB.isFlagSet("normal_offset")) argDB.getFlagArgument("normal_offset", 0, normalOffset);
+
+   double uStart = 0.0;
+   if (argDB.isFlagSet("u_start")) argDB.getFlagArgument("u_start", 0, uStart);
+   double uScale = 1.0;
+   if (argDB.isFlagSet("u_scale")) argDB.getFlagArgument("u_scale", 0, uScale);
+   double vStart = 0.0;
+   if (argDB.isFlagSet("v_start")) argDB.getFlagArgument("v_start", 0, vStart);
+   double vScale = 1.0;
+   if (argDB.isFlagSet("v_scale")) argDB.getFlagArgument("v_scale", 0, vScale);
 
    // handle udims
    bool allUdims = false;
@@ -261,9 +296,72 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       }
    }
 
+   std::vector<std::string> outputsList;
+
+   std::vector<AtNode*> aovDrivers;
+   std::vector<std::string> aovNames;
+
+   outputsList.push_back("RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput");
+
    // create a driver that will write the output texture
    AtNode *driver = AiNode("driver_exr");
-   AiNodeSetStr(driver, "name", "defaultArnoldDriver@cameraMapperOutput");
+   static std::string uvMapperDriverName ("defaultArnoldDriver@cameraMapperOutput");
+
+   AiNodeSetStr(driver, "name", uvMapperDriverName.c_str());
+
+   AtArray *prevOutputs = AiNodeGetArray(options_node, "outputs");
+   if (enableAovs && prevOutputs && AiArrayGetNumElements(prevOutputs) > 1)
+   {
+      MString mainFilter;
+      // AOVs have to be added to my outputs list      
+      for (unsigned int p = 0; p < AiArrayGetNumElements(prevOutputs); ++p)
+      {
+         AtString aovStr = AiArrayGetStr(prevOutputs, p);
+         MString aovElem(aovStr.c_str());
+         MStringArray aovElemSplit;
+         aovElem.split(' ', aovElemSplit);
+         if (aovElemSplit.length() <= 1)
+            continue;
+
+         MString aovName = aovElemSplit[0];
+         MString aovFilter = aovElemSplit[2];
+         
+         if (aovName == "RGBA")
+         {
+            mainFilter = aovFilter;
+            continue;
+         }
+         if (aovName == "Z")
+            continue; // Z not supported
+
+         MString newAovElem = aovName;
+         newAovElem += " ";
+         newAovElem += aovElemSplit[1];
+
+         newAovElem += " ";
+
+         if (aovFilter == mainFilter)
+            newAovElem += filterName.c_str();  // need to set the main filter that was chosen here
+         else
+            newAovElem += aovFilter;  // keep the existing filter
+
+         newAovElem += " ";
+
+         AtNode *aovDriver = AiNodeClone(driver);
+         std::string aovDriverName = uvMapperDriverName;
+         aovDriverName += ".";
+         aovDriverName += aovName.asChar();
+
+         AiNodeSetStr(aovDriver, "name", aovDriverName.c_str());
+         newAovElem += aovDriverName.c_str();
+
+         aovDrivers.push_back(aovDriver);
+         aovNames.push_back(aovName.asChar());
+
+         outputsList.push_back(newAovElem.asChar());
+
+      }
+   }
 
    AtArray *outputs = 0;
 
@@ -272,20 +370,17 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       AtNode* render_view = AiNode("progress_driver");
       AiNodeSetStr(render_view, "name", "progress_display");
 
-
       AtNode* driverFilterNode = AiNode("box_filter");
       AiNodeSetStr(driverFilterNode, "name", "progress_driver_filter");
 
-
-      outputs = AiArray(2, 1, AI_TYPE_STRING,
-            "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput", 
-            "Z FLOAT progress_driver_filter progress_display" );
-   } else
-   {
-      outputs = AiArray(1, 1, AI_TYPE_STRING,
-            "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput");
-
+      outputsList.push_back("Z FLOAT progress_driver_filter progress_display");      
    }
+
+   outputs = AiArrayAllocate(outputsList.size(), 1, AI_TYPE_STRING);
+
+   for (size_t aov = 0; aov < outputsList.size(); ++aov)
+      AiArraySetStr(outputs, aov, outputsList[aov].c_str());
+
    // assign it to the render options
    AiNodeSetArray(options_node, "outputs", outputs);
 
@@ -437,7 +532,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), ':', '_'); // replace all ':' to '_'
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), '/', '_'); // replace all '/' to '_'
       }
-
+      AtByte sidedness = AiNodeGetByte(mesh, "sidedness");
+      // remove camera sidedness since we're offsetting towards the normal's direction
+      // this could remove some artefacts caused by the normal offset
+      sidedness &= ~AI_RAY_CAMERA; 
+      AiNodeSetByte(mesh, "sidedness", sidedness);
+      AiNodeSetBool(mesh, "opaque", true); // force opaque to true since a transparent material wouldn't work at all
 
       if (allUdims || udimsSet.size()>0)
       {
@@ -475,14 +575,27 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
             AiNodeSetStr(camera, "polymesh", meshName);
-            AiNodeSetFlt(camera, "u_offset", -(float)u_offset);
-            AiNodeSetFlt(camera, "v_offset", -(float)v_offset);
+            AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
+            AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
+
+            AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
+            AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
+
+            AiNodeSetFlt(camera, "offset", (float)normalOffset);
+            // need to adjust the near plane to make sure it's not bigger than the offset
+            AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
             AiNodeSetPtr(options_node, "camera", camera);
-            AiNodeSetStr(driver, "filename", ss_filename.str().c_str());
+            std::string filename = ss_filename.str();
+            AiNodeSetStr(driver, "filename", filename.c_str());
+
+            for (size_t aov = 0; aov < aovDrivers.size(); ++aov)
+            {
+               std::string aovFilename = filename.substr(0, filename.length() - 4) + "." + aovNames[aov] + ".exr";
+               AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.c_str());
+            }
 
             AiRender();
-
-            MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + MString(ss_filename.str().c_str()));
+            MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + MString(filename.c_str()));
 
             AiNodeDestroy(camera);
          }
@@ -506,8 +619,27 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
          AiNodeSetStr(camera, "polymesh", meshName);
+         AiNodeSetFlt(camera, "offset", (float)normalOffset);
+         // need to adjust the near plane to make sure it's not bigger than the offset
+         AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
+
+         AiNodeSetFlt(camera, "u_offset", (float)(-uStart));
+         AiNodeSetFlt(camera, "v_offset", (float)(-vStart));
+
+         AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
+         AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
+
          AiNodeSetPtr(options_node, "camera", camera);
          AiNodeSetStr(driver, "filename", filename.asChar());
+
+         for (size_t aov = 0; aov < aovDrivers.size(); ++aov)
+         {
+            MString aovFilename = filename.substring(0, filename.length() - 5);
+            aovFilename +=  ".";
+            aovFilename += aovNames[aov].c_str();
+            aovFilename += ".exr";
+            AiNodeSetStr(aovDrivers[aov], "filename", aovFilename.asChar());
+         }
 
          AiRender();
 

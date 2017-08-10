@@ -21,29 +21,19 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
 00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
 00:00:00   492MB WARNING |  node "MayaClamp" is already installed
 00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
 00:00:00   492MB WARNING |  node "MayaCondition" is already installed
 00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.1.0.wip_latest-windows\bin
+00:00:00   492MB WARNING |  unable to load dynamic library C:/solidangle/mtoadeploy/2017/procedurals\bifrost_procedural_0_1.dll: The specified module could not be found.
+
+ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
 
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 213: Specified default value '12950' is out of the range of minValue and maxValue; defaultValue ignored.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 466: The aiOptions 'defaultArnoldRenderOptions' has no '.dgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 466: setAttr: No object matches name: .dgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 467: The aiOptions 'defaultArnoldRenderOptions' has no '.lgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 467: setAttr: No object matches name: .lgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 468: The aiOptions 'defaultArnoldRenderOptions' has no '.sgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 468: setAttr: No object matches name: .sgamma
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 469: The aiOptions 'defaultArnoldRenderOptions' has no '.tgamma' attribute.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma line 469: setAttr: No object matches name: .tgamma
-Viewport 2.0 floating point render target is turned off.
 Warning: line 1: particleShape1: No cache file found for this object, runup may be needed. Check your workspace particles directory.
 Warning: line 1: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.63 seconds.
-Error: line 1: Error reading file.
-Error: line 1: Error reading file.
+File read in  0.28 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0098/test.ma
 Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0098\test.ma completed.

@@ -137,6 +137,13 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
 
     test_dir = os.path.abspath(test_dir)
 
+    # if a plugin folder is found, it's because it contains custom shaders/procedurals
+    plugin_dir = os.path.join(test_dir, 'plugin')
+    if os.path.exists(plugin_dir):
+        os.environ['ARNOLD_PLUGIN_PATH'] = plugin_dir
+    else:
+        os.unsetenv('ARNOLD_PLUGIN_PATH')
+
     ## TODO: attach valgrind to each command
     if update_reference:
         show_test_output = False
@@ -165,8 +172,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     # this is a little hack to keep non-AOV tests working. a proper fix would involve
     # opening each file and ensuring that it has "testrender" as its output prefix.
     options = ''
-    if len(references) == 1:
-        options = '-im %s' % output_basename
+    #if len(references) == 1:
+        #options = '-im %s' % output_basename
 
     # verbose and log options for Render cmd : -verb -log "test.log" 
     if show_test_output:
@@ -391,6 +398,13 @@ Arnold testsuite - %s
     for new, ref, dif in results:
 
         bgcolor = os.path.exists(dif) and '#ffa0a0' or '#ececec'
+        out_img = new.replace('.jpg', '.tif')
+        out_img = out_img[4:]
+        
+        if  os.path.exists(dif) and os.path.exists(out_img):
+            test_log = test_name + '<br><br><a href="%s">Log</a><br><br><a href="%s">Download New</a>' % (test_name + '.log', out_img)
+        else:
+            test_log = test_name + '<br><br><a href="%s">Log</a>' % (test_name + '.log')
         f.write('''
             <tr>
             <td bgcolor="%s">
@@ -425,7 +439,7 @@ Arnold testsuite - %s
             </td>
             </tr>''' % (
                   bgcolor,
-                  test_name,
+                  test_log,
                   bgcolor,
                   os.path.exists(dif) and ''' FAILED ''' or '''OK''',
                   len(references) < 2 and

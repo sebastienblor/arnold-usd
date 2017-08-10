@@ -78,6 +78,8 @@ namespace SYNCOLOR {
   //!
   //! \warning This method must be called prior to any SynColor SDK function or transform creation
   //!          that requires access to the aliases.
+  //
+  //! \note This method can be called as many time as you want as it only reads configuration files.
   //!
   //! \param configPath Absolute path to the SynColor configuration file including the file name.
   //!
@@ -93,7 +95,7 @@ namespace SYNCOLOR {
   //!
   SYN_EXPORT const char* getColorTransformFileExtension();
 
-  //! \brief Shared color transform directory.
+  //! \brief Active shared color transform directory.
 
   //! \param pBuffer Return reference to the shared path string.
   //!
@@ -101,13 +103,32 @@ namespace SYNCOLOR {
   //!
   SYN_EXPORT SynStatus getSharedColorTransformPath( const char *& pBuffer );
 
-  //! \brief Set the Shared color transform directory.
+  //! \brief Shared color transform directory from config file.  This directory may
+  //!        differ from the active shared directory (see overrideSharedColorTransformsDir()).
+
+  //! \param pBuffer Return reference to the shared path string.
+  //!
+  //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error occurred.
+  //!
+  SYN_EXPORT SynStatus getSavedSharedColorTransformPath( const char *& pBuffer );
+
+  //! \brief Set the shared color transform directory and, indirectly, the
+  //!        path to the policy collection (always a sibling of the transforms
+  //!        directory).  This directory is saved to the config file.
   //!
   //! \param path Absolute path to the shared color transform directory.
   //!
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error occurred.
   //!
   SYN_EXPORT SynStatus setSharedColorTransformPath(const char* path);
+
+  //! \brief Overrides the saved shared color transform directory.
+  //!
+  //! \param dir Absolute path to a shared color transform directory.
+  //!
+  //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error occurred.
+  //!
+  SYN_EXPORT SynStatus overrideSharedColorTransformsDir(const char* dir);
 
   //! \brief Default shared color transform directory.
   //!
@@ -179,10 +200,17 @@ namespace SYNCOLOR {
   //! If set to true, SynColor will use the monitor profile used by the operating system as the graphicsMonitor alias.
   //!
   //! \param newSetting Whether to use the OS monitor profile as the graphicsMonitor alias.
+  //! \param wrapInUserDisplayTransform Whether to wrap the OS monitor profile in a user display transform.
   //!
   //! \return Returns a SYNCOLOR::SynStatus. Check the error code to determine if an error occurred.
   //!
-  SYN_EXPORT SynStatus setAutoConfigureMonitorProfile(bool newSetting);
+  SYN_EXPORT SynStatus setAutoConfigureMonitorProfile(bool newSetting, bool wrapInUserDisplayTransform);
+
+  //! \brief Policy collection directory.
+  //!
+  //! \return Returns the path to the policy collection directory.
+  //!
+  SYN_EXPORT const char* getPoliciesDir();
 };
 
 SYN_VISIBILITY_POP

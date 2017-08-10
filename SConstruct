@@ -162,6 +162,7 @@ vars.AddVariables(
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
     BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
+    BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
@@ -207,6 +208,8 @@ if env['TARGET_MODULE_PATH'] == '.':
 env.Append(BUILDERS = {'MakeModule' : make_module})
 
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
+
+env['MTOA_VERSION'] = MTOA_VERSION
 
 system.set_target_arch('x86_64')
 
@@ -298,6 +301,8 @@ if int(maya_version_base) >= 2014:
         env['REQUIRE_DXSDK'] = 1
 
 if int(maya_version) >= 201700:
+    bifrost_ext = 'bifrost_2017'
+if int(maya_version) >= 201800:
     bifrost_ext = 'bifrost'
 
 
@@ -627,26 +632,33 @@ if system.os() == 'windows':
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
    
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
-   
-    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+
+    if env['PREBUILT_MTOA']:       
+        MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.dll'), os.path.join(BUILD_BASE_DIR, 'api', 'mtoa_api.lib')]
+        MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.dll'), os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.lib')]
+        MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders.dll')]
+    else:
+        MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                                             duplicate = 0,
                                             exports   = 'maya_env')
-   
-    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
+
+        MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                                         variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                                         duplicate   = 0,
                                         exports     = 'maya_env')
+        
+        MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
+                                                    variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                                    duplicate   = 0,
+                                                    exports     = 'env')
 
-    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                                variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
-                                                duplicate   = 0,
-                                                exports     = 'env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                                 duplicate   = 0,
                                                 exports     = 'env')
+    
 else:
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -664,20 +676,28 @@ else:
 
     maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
-    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                              variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+    if env['PREBUILT_MTOA']:       
+        MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'libmtoa_api' + get_library_extension())]
+        if system.os() == 'darwin':
+            MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.bundle')]
+        else:
+            MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
+        MTOA_SHADERS = [os.path.join(BUILD_BASE_DIR, 'shaders', 'mtoa_shaders' + get_library_extension())]
+    else:
+        MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                                  duplicate   = 0,
+                                  exports     = 'maya_env')
+
+        MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
+                              variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                               duplicate   = 0,
                               exports     = 'maya_env')
 
-    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                          variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
-                          duplicate   = 0,
-                          exports     = 'maya_env')
-
-    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
-                                  duplicate   = 0,
-                                  exports     = 'env')
+        MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
+                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                      duplicate   = 0,
+                                      exports     = 'env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
@@ -763,14 +783,13 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
             dylibs.remove(dylibElem)
        
     # install syncolor packages 
-    if int(maya_version) >= 201800:
-        syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor_2018', 'lib', system.os())
-        if (system.os() == 'linux'):
-            # on linux the version number is after ".so."
-            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
-        else:
-            env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
-    
+    syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os())
+    if (system.os() == 'linux'):
+        # on linux the version number is after ".so."
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
+    else:
+        env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
+
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
@@ -1007,6 +1026,7 @@ ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(
 ext_env.Append(LIBS = ['mtoa_api',])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
+
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
     if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or
@@ -1125,6 +1145,7 @@ PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
+[os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 ]
 
 for p in presetfiles:
@@ -1138,18 +1159,18 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
 
-    # for Maya 2018, we also need to copy the syncolor dylib, for syncolor extension
-    if (int(maya_version) >= 201800):
-        syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor_2018', 'lib', system.os())
-        if (system.os() == 'linux'):
-            # on linux the syncolor version number is after ".so."
-            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
-        else:
-            syncolor_2018_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
+    # we also need to copy the syncolor dylib, for syncolor extension
+    # FIXME couldn't this be done in the extension script ?
+    syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os())
+    if (system.os() == 'linux'):
+        # on linux the syncolor version number is after ".so."
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
+    else:
+        syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension())
 
-        for syncolor_file in syncolor_2018_files:
-            PACKAGE_FILES.append([syncolor_file, 'bin'])
-            
+    for syncolor_file in syncolor_files:
+        PACKAGE_FILES.append([syncolor_file, 'bin'])
+        
 
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
@@ -1182,10 +1203,15 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedurals%s' % get_library_extension()), 'procedurals'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
-    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
+
+    if bifrost_ext != 'bifrost':
+         #PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_procedural_0_1%s' % get_library_extension()), 'procedurals'])
+    #else:
+        PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrost_procedurals%s' % get_library_extension()), 'procedurals'])
+        PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR,  bifrost_ext, 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+
 
 if env['ENABLE_LOOKDEVKIT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
@@ -1288,7 +1314,7 @@ def create_installer(target, source, env):
 
         # run script on each of the packaged files
         signed_extensions = ['.exe', '.dll', '.lib', '.mll']
-        excluded_files = ['OpenColorIO.dll']
+        excluded_files = [] #['OpenColorIO.dll']
         sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
 
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
@@ -1328,7 +1354,7 @@ def create_installer(target, source, env):
         pitregScript.close()
 
         signed_extensions = ['.dylib', '.pkg', '.exe', '.bundle']
-        excluded_files = ['libOpenColorIO.1.dylib']
+        excluded_files = [] #['libOpenColorIO.1.dylib']
         sign_packaged_file(env['SIGN_COMMAND'], tempdir, signed_extensions, excluded_files)
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA_Installer.pkgproj'), signed_extensions)

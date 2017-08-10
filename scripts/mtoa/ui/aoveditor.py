@@ -589,23 +589,6 @@ class ArnoldAOVEditor(object):
 
         self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
-        # global drivers
-        pm.cmds.frameLayout('arnoldDisplayDriverFrame', label='Default Drivers',
-                            width=WIDTH, collapsable=True, collapse=True)
-        pm.cmds.columnLayout(adj=True)
-        for attr in self.renderOptions.node.drivers:
-            driver = attr.inputs()
-            if driver:
-                pm.cmds.rowLayout(nc=2, columnAttach2=['both', 'right'], adjustableColumn=1, rowAttach=[2, 'top', 5])
-                pm.cmds.columnLayout(adj=True)
-                templates.createTranslatorMenu(driver[0], 
-                                     label=utils.prettify(driver[0].name()),
-                                     nodeType='aiAOVDriver')
-                pm.cmds.setParent('..')
-                pm.cmds.symbolButton(image="navButtonConnected.png",
-                                      command=Callback(pm.select, driver))
-        pm.cmds.setParent('..')
-
         pm.setParent(self.mainCol)
         self.aovShadersFrame = pm.cmds.frameLayout('arnoldAOVShadersFrame', label='AOV Shaders', width=WIDTH,
                             collapsable=True, collapse=True)

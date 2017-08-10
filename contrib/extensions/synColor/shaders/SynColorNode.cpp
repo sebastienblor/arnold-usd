@@ -5,9 +5,7 @@
 #include <maya/MTypes.h>
 #include <ai.h>
 
-#if MAYA_API_VERSION >= 201800
 #include <synColor/config.h>
-#endif
 #include <synColor/synColorInit.h>
 #include <synColor/synColorPrefs.h>
 #include <synColor/synColor.h>
@@ -110,10 +108,8 @@ public:
    // Enforce to initialize the synColor library only once and only when needed
    static bool m_initialization_library_done;
 
-#if MAYA_API_VERSION >= 201800
    // The synColor current configuration
    SYNCOLOR::Config::Ptr m_config;
-#endif
 
    // The way to correctly initialize the synColor engine
    AtString m_native_catalog_path;
@@ -227,10 +223,10 @@ namespace
       return "";
    }
 
-   void logger(SYNCOLOR::LogLevel, const char*)
+/*   void logger(SYNCOLOR::LogLevel, const char*)
    {
    }
-
+*/
    // The method initializes the SynColor library only once.
    void initializeSynColor(ColorManagerData* colorData)
    {
@@ -259,7 +255,6 @@ namespace
          const AtString sharedPath(
             colorData->m_custom_catalog_path.empty() ? "/tmp/shared" : colorData->m_custom_catalog_path);
 
-#if MAYA_API_VERSION >= 201800
          if(useEnvVariable)
          {
             status 
@@ -298,50 +293,7 @@ namespace
                   colorData->m_ocioconfig_path.c_str(), 
                   colorData->m_config);
          }
-#else
-         if(useEnvVariable)
-         {
-            filename = envVariableValue;
-         }
-         else
-         {
-            filename = std::tmpnam(0x0);
 
-            std::ofstream ofs(filename, std::ofstream::out);
-
-            ofs   << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                  << "<SynColorConfig version=\"2.0\">\n"
-                  << "   <AutoConfigure graphicsMonitor=\"false\" />\n"
-                  << "   <TransformsHome dir=\"" << nativePath << "\" />\n"
-                  << "   <SharedHome dir=\"" << sharedPath << "\" />\n"
-                  << "   <ReferenceTable>\n"
-                  << "   <Ref alias=\"OutputToSceneBridge\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                  << "   <Ref alias=\"SceneToOutputBridge\" path=\"RRT+ODT/ACES_to_CIE-XYZ_v0.1.1.ctf\" basePath=\"Autodesk\" />\n"
-                  << "   <Ref alias=\"broadcastMonitor\" path=\"display/broadcast/CIE-XYZ_to_HD-video.ctf\" basePath=\"Autodesk\" />\n"
-                  << "   <Ref alias=\"defaultLook\" path=\"misc/identity.ctf\" basePath=\"Autodesk\" />\n"
-                  << "   <Ref alias=\"graphicsMonitor\" path=\"interchange/sRGB/CIE-XYZ_to_sRGB.ctf\" basePath=\"Autodesk\" />\n"
-                  << "   </ReferenceTable>\n"
-                  << "</SynColorConfig>\n";
-
-            ofs.close();
-         }
-
-         status = SYNCOLOR::configureAsStandalone(filename.c_str());
-         if(status.getErrorCode()==SYNCOLOR::ERROR_SYN_COLOR_PREFS_ALREADY_LOADED)
-         {
-            // When using the Maya syncolor library, the initialization was already done.
-            status = SYNCOLOR::SynStatus();
-         }
-
-         if(!status)
-         {
-            // Try to survive to unexpected issue by creating the preferences from scratch.
-            // It should never happen within Maya; however it could happen if used 
-            // with kick (a tool without its own synColor catalog installation).
-            status 
-               = SYNCOLOR::configurePaths(nativePath, filename.c_str(), sharedPath);
-         }
-#endif
          if(!useEnvVariable)
          {
             std::remove(filename.c_str());
@@ -356,7 +308,7 @@ namespace
             }
             else
             {
-               AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath);
+               AiMsgInfo("[color_manager_syncolor] native catolog directory: %s", nativePath.c_str());
             }
 
             if(!colorData->m_ocioconfig_path.empty())
@@ -382,32 +334,12 @@ namespace
 
          if(status)
          {
-#if MAYA_API_VERSION >= 201800
             colorData->m_config->getTemplate(SYNCOLOR::InputTemplate, colorData->m_input_template);
             if(status)
             {
                status = colorData->m_config->getTemplate(SYNCOLOR::ViewingTemplate, colorData->m_output_template);
             }
-#else
-            if(!colorData->m_ocioconfig_path.empty())
-            {
-               status = SYNCOLOR::loadOCIOTemplate(
-                  SYNCOLOR::InputTemplate, colorData->m_ocioconfig_path, colorData->m_input_template);
-               if(status)
-               {
-                  status = SYNCOLOR::loadOCIOTemplate(
-                     SYNCOLOR::ViewingTemplate, colorData->m_ocioconfig_path, colorData->m_output_template);
-               }
-            }
-            else
-            {
-               status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::InputTemplate, colorData->m_input_template);
-               if(status)
-               {
-                  status = SYNCOLOR::loadNativeTemplate(SYNCOLOR::ViewingTemplate, colorData->m_output_template);
-               }
-            }
-#endif
+
          }
 
          colorData->m_initialization_done = (bool)status;
@@ -716,7 +648,6 @@ namespace
 
    bool isInputColorSpace(ColorManagerData* colorData, const AtString& color_space)
    {
-#if MAYA_API_VERSION >= 201800
       const unsigned mum_color_spaces
          = colorData->m_config->getNumColorSpaces(SYNCOLOR::Config::InputColorSpaces);
 
@@ -728,22 +659,6 @@ namespace
             return true;
          }
       }
-#else      
-      SYNCOLOR::TemplateParameterPtr in_param;
-      SYNCOLOR::SynStatus status 
-      = colorData->m_input_template->getParameter(SYNCOLOR::InputSpace, in_param);
-      if(status)
-      {
-         const unsigned mum_color_spaces = in_param->getNumValues();
-         for(unsigned idx=0; idx<mum_color_spaces; ++idx)
-         {
-            if(0==strcmp(color_space.c_str(), in_param->getValue(idx)))
-            {
-               return true;
-            }
-         }
-      }
-#endif
 
       return false;
    }
@@ -904,8 +819,6 @@ color_manager_get_chromaticities
 
    if(!colorData->m_initialization_done) return false;
 
-#if MAYA_API_VERSION >= 201800
-
    SYNCOLOR::ColorSpace::Ptr pColorSpace;
    SYNCOLOR::SynStatus status = colorData->m_config->getColorSpace(space.c_str(), pColorSpace);
    if(status)
@@ -927,8 +840,6 @@ color_manager_get_chromaticities
       }
    }
 
-#endif
-
    return false;
 }
 
@@ -943,12 +854,7 @@ color_manager_get_num_color_spaces
 
    if(!colorData->m_initialization_done) return 0;
 
-   return 
-#if MAYA_API_VERSION >= 201800
-   colorData->m_config->getNumColorSpaces(SYNCOLOR::Config::AllColorSpaces);
-#else
-   0;
-#endif
+   return colorData->m_config->getNumColorSpaces(SYNCOLOR::Config::AllColorSpaces);
 }
 
 color_manager_get_color_space_name_by_index
@@ -960,12 +866,7 @@ color_manager_get_color_space_name_by_index
       return AtString("");
    }
 
-   return 
-#if MAYA_API_VERSION >= 201800
-   AtString(colorData->m_config->getColorSpaceName(SYNCOLOR::Config::AllColorSpaces, i));
-#else
-   AtString("");
-#endif
+   return AtString(colorData->m_config->getColorSpaceName(SYNCOLOR::Config::AllColorSpaces, i));
 }
 
 node_finish

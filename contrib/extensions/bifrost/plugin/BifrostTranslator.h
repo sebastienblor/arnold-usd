@@ -4,48 +4,37 @@
 
 class BifrostTranslator : public CShapeTranslator
 {
-	public:
-		enum RenderType {
-			NONE,
-			AERO,
-			LIQUID_POLYMESH,
-			LIQUID_IMPLICIT,
-			POINT
-		};
+public:
+    AtNode* CreateArnoldNodes() override;
+    void Export( AtNode *shape ) override;
+    void ExportMotion( AtNode *shape ) override;
 
-		enum BIFType {
-			VOXEL,
-			PARTICLE
-		};
+    void RequestUpdate() override;
 
+    static void* creator() { return new BifrostTranslator(); }
 
-		AtNode* CreateArnoldNodes();
-		virtual void Export( AtNode *shape );
-		void ExportMotion( AtNode *shape );
+    static void NodeInitializer( CAbTranslator context );
 
-        void ExportLiquidAttributes( MFnDagNode& bifrostDesc, AtNode *shape );
-		void ExportPoint(AtNode *shape);
-		void ExportAero(AtNode *shape);
-		void ExportLiquidPolyMesh(AtNode *shape);
-		void ExportLiquidImplicit(AtNode *shape);
+    static void ClearCallbacks();
+private:
+    // common
+    void ExportShape(MFnDagNode& dagNode, AtNode *shape);
 
-		void ExportMatrixWithSpaceScale(AtNode *shape, float spaceScale);
+    // surface
+    void ExportSurface(MFnDagNode& dagNode, AtNode *shape);
+    void ExportPolymesh(MFnDagNode& dagNode, AtNode *shape);
+    void ExportImplicit(MFnDagNode& dagNode, AtNode *shape);
+    void ExportClipping(const MFnDagNode& dagNode, AtNode *shape);
+    void ExportOceanPlane(const MFnDagNode& dagNode, AtNode *shape);
 
-		void RequestUpdate();
+    // volume
+    void ExportVolume(MFnDagNode& dagNode, AtNode *shape);
 
-		static void* creator() {
-            return new BifrostTranslator();
-		}
+    // points
+    void ExportPoints(MFnDagNode& dagNode, AtNode *shape);
 
-		static void NodeInitializer( CAbTranslator context );
+    MMatrix getRelativeMatrix(const MPlug& src);
 
-	private:
-
-		virtual void ExportBifrostShader();
-        virtual void ExportDisplacement();
-   
-		RenderType c_renderType;
-		BIFType c_bifType;
-		std::string c_object;
-		std::string c_file;
+    void ExportBifrostShader();
+    void ExportDisplacement();
 };

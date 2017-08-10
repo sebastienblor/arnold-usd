@@ -437,7 +437,7 @@ void CArnoldStandInSubSceneOverride::update(
     // arrays of elements each to handle selected, unselected, and lead items
     const bool test[] = {anyInstanceUnselected, anyInstanceSelected, hasLeadItem};
     MHWRender::MRenderItem** items[] = {&unselectedItem, &selectedItem, &leadItem};
-    MHWRender::MRenderItem** deferItems[] = { &unselectedDeferItem, &selectedDeferItem, &leadDeferItem };
+    //MHWRender::MRenderItem** deferItems[] = { &unselectedDeferItem, &selectedDeferItem, &leadDeferItem };
     const MString itemNames[] = { unselectedItemName_, selectedItemName_, leadItemName_};
     const MHWRender::MShaderInstance* shaders[] = { mSolidUIShader, mSelectedSolidUIShader, mLeadSolidUIShader };
 
@@ -479,7 +479,7 @@ void CArnoldStandInSubSceneOverride::update(
 
                 if (testType[i])
                 {
-                    bool isDeferBox = (i == 4);
+                    //bool isDeferBox = (i == 4);
                     thisItem = findRenderItem(container, itemName, mReuseBuffers);
                     if (!thisItem)
                     {
