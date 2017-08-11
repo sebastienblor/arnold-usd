@@ -138,21 +138,37 @@ def convertAiStandard(inShd):
     convertAttr(inShd, 'KsColor', outNode, 'specularColor')
     convertAttr(inShd, 'specularRoughness', outNode, 'specularRoughness')
 
-    fresnel = cmds.getAttr(inShd + '.Fresnel')
-    fresnel_use_ior = cmds.getAttr(inShd + '.Fresnel_use_IOR')
-    specular_Fresnel = cmds.getAttr(inShd + '.specular_Fresnel')
+    reflectionFresnel = cmds.getAttr(inShd + '.Fresnel')
+    fresnel_use_ior = cmds.getAttr(inShd + '.FresnelUseIOR')
+    specularFresnel = cmds.getAttr(inShd + '.specular_Fresnel')
 
-    if int(fresnel) > 0:
+    if int(specularFresnel) > 0:
         if int(fresnel_use_ior) > 0:
             convertAttr(inShd, 'IOR', outNode, 'specular_IOR')
         else:
-            convertAttr(inShd, 'Krn', outNode, 'specular_IOR', krnToIorRemap)
+            convertAttr(inShd, 'Ksn', outNode, 'specular_IOR', krnToIorRemap)
+    else:
+        # what to do when there is no fresnel ? new shaders will always apply a 
+        # fresnel using IOR no matter what. So we want to set specular_IOR to a very high 
+        # value, to simulate a no-fresnel effect.
+        Kt = cmds.getAttr(inShd + '.Kt')
+        KtColorR = cmds.getAttr(inShd + '.KtColorR') * Kt
+        KtColorG = cmds.getAttr(inShd + '.KtColorG') * Kt
+        KtColorB = cmds.getAttr(inShd + '.KtColorB') * Kt
+        if KtColorR < 0.001 and KtColorG < 0.001 and KtColorB < 0.001:
+            cmds.setAttr(outNode +  ".specular_IOR", 10)
 
-    if int(specular_Fresnel) > 0:
+
+
+    if int(reflectionFresnel) > 0:
         if int(fresnel_use_ior) > 0:
             convertAttr(inShd, 'IOR', outNode, 'coat_IOR')
         else:
-            convertAttr(inShd, 'Ksn', outNode, 'coat_IOR', krnToIorRemap)
+            convertAttr(inShd, 'Krn', outNode, 'coat_IOR', krnToIorRemap)
+    else:
+        # apparently coat_IOR isn't used during refractions, so I can safely set whichever value I want
+        cmds.setAttr(outNode + ".coat_IOR", 10)
+
 
     convertAttr(inShd, 'specularAnisotropy', outNode, 'specularAnisotropy', anisotropyRemap)
 
