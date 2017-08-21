@@ -244,7 +244,9 @@ previousFiles = [
 'shaders/mtoa_ParticleInstancer_proc.so',
 'shaders/xgenSpline_procedural.so',
 'shaders/mtoa_shaders.mtd',
-'shaders/xgenSpline_shaders.so'
+'shaders/xgenSpline_shaders.so',
+'osl/oslutil.h',
+'osl/stdosl.h'
 ]
 
 for previousFile in previousFiles:

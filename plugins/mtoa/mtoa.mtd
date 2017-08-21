@@ -515,6 +515,8 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    true
+    [attr filename]
+        maya.usedAsFilename BOOL    true    
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0

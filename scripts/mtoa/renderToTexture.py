@@ -44,6 +44,13 @@ class MtoARenderToTexture(object):
         shader = cmds.textFieldGrp('shader', q=True, tx=True)
         uv_set = cmds.textFieldGrp('uv_set', q=True, tx=True)
         udims = cmds.textFieldGrp('udims', q=True, tx=True)
+        normalOffset = cmds.floatFieldGrp('normalOffset', q=True, v1=True)
+        enableAovs = cmds.checkBox('enableAovs', q=True, v=True)
+        uStart = cmds.floatFieldGrp('uStart', q=True, v1=True)
+        uScale = cmds.floatFieldGrp('uScale', q=True, v1=True)
+        vStart = cmds.floatFieldGrp('vStart', q=True, v1=True)
+        vScale = cmds.floatFieldGrp('vScale', q=True, v1=True)
+
 
         selList = cmds.ls(sl=1)
 
@@ -51,7 +58,7 @@ class MtoARenderToTexture(object):
             cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set )
+        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale )
 
         cmds.deleteUI(self.window)
         return True
@@ -119,20 +126,14 @@ class MtoARenderToTexture(object):
         cmds.menuItem( label='blackman_harris' )
         cmds.menuItem( label='box' )
         cmds.menuItem( label='catrom' )
-        cmds.menuItem( label='catrom2d' )
         cmds.menuItem( label='closest' )
-        cmds.menuItem( label='cone' )
-        cmds.menuItem( label='cook' )
-        cmds.menuItem( label='cubic' )
-        cmds.menuItem( label='disk' )
         cmds.menuItem( label='farthest' )
         cmds.menuItem( label='gaussian' )
         cmds.menuItem( label='heatmap' )
         cmds.menuItem( label='mitnet' )
-        cmds.menuItem( label='sync' )
+        cmds.menuItem( label='sinc' )
         cmds.menuItem( label='triangle' )
         cmds.menuItem( label='variance' )
-        cmds.menuItem( label='video' )
 
         cmds.optionMenuGrp('filter', e=True, w=230, ct2=('left', 'left'), cw2=(90,110), v='gaussian')
 
@@ -148,7 +149,22 @@ class MtoARenderToTexture(object):
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
         cmds.textFieldGrp('udims', label='Udims', ct2=('left', 'left'), cw2=(90,110), text="", w=280)
         cmds.checkBox( 'all_udims',label='All Udims', value=False )
+        cmds.setParent("..")
 
+        cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
+        cmds.floatFieldGrp('uStart', label='U Start', value1= 0, ct2=('left', 'left'),  cw2=(90,110), w=230)
+        cmds.floatFieldGrp('uScale', label='U Scale', value1= 1.0, cw2=(150,60), w=200)
+        cmds.setParent("..")
+        cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
+        cmds.floatFieldGrp('vStart', label='V Start', value1= 0, ct2=('left', 'left'),  cw2=(90,110), w=230)
+        cmds.floatFieldGrp('vScale', label='V Scale', value1= 1.0, cw2=(150,60), w=200)
+        cmds.setParent("..")
+        
+
+
+        cmds.checkBox( 'enableAovs',label='Enable AOVs', value=False )
+        
+        cmds.floatFieldGrp('normalOffset', label='Normal Offset', w=380, ct2=('left', 'left'), cw2=(90,110), value1=0.1)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))

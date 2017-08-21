@@ -29,7 +29,7 @@ public:
       return new CBfDescriptionTranslator();
    }
    static void NodeInitializer(CAbTranslator context);
-
+   static void ClearCallbacks();
 
 private:
 

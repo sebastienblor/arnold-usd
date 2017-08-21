@@ -537,6 +537,12 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.sssUseAutobump',
                         annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
     
+    pm.separator()
+    pm.attrControlGrp('ss_indirect_specular_blur',
+                        label="Indirect Specular Blur",
+                        attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
+
+
     pm.frameLayout(label='Clamping', collapse=True)
 
     pm.checkBoxGrp('ss_clamp_sample_values',

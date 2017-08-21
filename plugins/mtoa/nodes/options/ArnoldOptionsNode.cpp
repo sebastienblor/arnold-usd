@@ -288,6 +288,8 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_lock_sampling_noise);
 
    s_attributes.MakeInput("sss_use_autobump");
+   s_attributes.MakeInput("indirect_specular_blur");
+
       
    s_aa_seed = uAttr.create("AA_seed", "aaseed", MFnUnitAttribute::kTime);
    uAttr.setStorable(false);

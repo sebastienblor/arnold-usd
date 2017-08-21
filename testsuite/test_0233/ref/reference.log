@@ -1,0 +1,654 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0233\test_0233.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.78.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   529MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   529MB WARNING |  node "MayaClamp" is already installed
+00:00:00   529MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   529MB WARNING |  node "MayaCondition" is already installed
+00:00:00   529MB WARNING |  node "MayaReverse" is already installed
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0233/test.ma line 9: line 1: Cannot find procedure "nodeEdRefreshVnnNodeTreeListers".
+File read in  0.96 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0233/test.ma
+00:00:00   603MB         | log started Wed Aug  9 12:24:28 2017
+00:00:00   603MB         | Arnold 5.0.2.0.wip [335c4500] windows icc-17.0.2 oiio-1.7.15 osl-1.9.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.2.2 2017/07/12 17:12:39
+00:00:00   603MB         | host application: MtoA 2.0.2.wip 6f55ea73 (develop) Maya 2017
+00:00:00   603MB         | running on REM8WCK8D2, pid=9308
+00:00:00   603MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   603MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   603MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   603MB         |  
+00:00:00   603MB         | loading plugins from C:/solidangle/mtoadeploy/2017/shaders ...
+00:00:00   603MB         |  bifrost_shaders.dll: bifrostFoamMaterial uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  bifrost_shaders.dll: bifrostAeroMaterial uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatConstant uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatComposite uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatCondition uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatCorrect uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatLogic uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatMask uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkFloatMath uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorComposite uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorCondition uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorConstant uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorCorrect uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorLogic uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorMask uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkColorMath uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkChannels uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkPremultiply uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  lookdevkit_shaders.dll: ldkSimplexNoise uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaClamp uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCondition uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaReverse uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSamplerInfo1D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSamplerInfo2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFile uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRamp uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaProjection uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaChecker uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBulge uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCloth uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaGrid uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFractal uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaNoise uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLuminance uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCloud uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSnow uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaContrast uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBrownian uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaStucco uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSetRange uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaColorToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaVectorToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaPointToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaPoint2ToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaWriteColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaWriteFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimPoint uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimVector uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimMatrix uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataVector uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaShadingEngine uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSamplerInfo3D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteVector uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteVector2 uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaNormalDisplacement uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaVectorDisplacement uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataBool uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaHair uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaMeshLightMaterial uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataVec2 uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBump2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFluid uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaMarble uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaMountain uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaWater uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCrater uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLeather uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaGranite uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRock uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSingleShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaDoubleShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaTripleShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaQuadShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFluidData uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFluidTexture2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSurfaceLuminance uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaCameraUvMapper uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFlatClosure uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  [metadata] loading metadata file: C:/solidangle/mtoadeploy/2017/shaders\mtoa_shaders.mtd
+00:00:00   603MB         |  renderSetup_shaders.dll: applyAbsFloatOverride uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  renderSetup_shaders.dll: applyAbs2FloatsOverride uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  renderSetup_shaders.dll: applyAbs3FloatsOverride uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  xgenSpline_shaders.dll: XGenHairMapping uses Arnold 5.0.2.0.wip
+00:00:00   603MB         | loading plugins from C:/solidangle/mtoadeploy/2017/procedurals ...
+00:00:00   603MB         |  bifrost_procedurals.dll: bifrostPolymesh uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  bifrost_procedurals.dll: bifrostPrimitives uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  bifrost_procedurals.dll: bifrostVolume uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  bifrost_procedurals.dll: bifrostImplicits uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_ParticleInstancer_proc.dll: particleInstancer uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_ParticleVolume_proc.dll: volume_particle uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_ParticleVolume_proc.dll: implicit_particle uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  xgenSpline_procedural.dll: xgenProcedural uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  xgen_procedural.dll: xgen_procedural uses Arnold 5.0.2.0.wip
+00:00:00   603MB         | loaded 124 plugins from 12 lib(s) in 0:00.01
+00:00:00   603MB         | loading plugin: C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.dll ...
+00:00:00   603MB         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 5.0.2.0.wip
+00:00:00   603MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   603MB         |  mtoa_shaders.dll: MayaClamp uses Arnold 5.0.2.0.wip
+00:00:00   603MB WARNING |  node "MayaClamp" is already installed
+00:00:00   603MB         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 5.0.2.0.wip
+00:00:00   603MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCondition uses Arnold 5.0.2.0.wip
+00:00:00   603MB WARNING |  node "MayaCondition" is already installed
+00:00:00   603MB         |  mtoa_shaders.dll: MayaReverse uses Arnold 5.0.2.0.wip
+00:00:00   603MB WARNING |  node "MayaReverse" is already installed
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSamplerInfo1D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSamplerInfo2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFile uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRamp uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaProjection uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaChecker uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBulge uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCloth uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaGrid uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFractal uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaNoise uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLuminance uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCloud uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSnow uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaContrast uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBrownian uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaStucco uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSetRange uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaColorToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaVectorToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaPointToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaPoint2ToFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaWriteColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaWriteFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimFloat uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimPoint uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimVector uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAnimMatrix uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataVector uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataColor uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaShadingEngine uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSamplerInfo3D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteVector uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaAovWriteVector2 uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaNormalDisplacement uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaVectorDisplacement uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataBool uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaHair uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaMeshLightMaterial uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaUserDataVec2 uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaBump2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFluid uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaMarble uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaMountain uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaWater uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaCrater uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaLeather uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaGranite uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaRock uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSingleShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaDoubleShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaTripleShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaQuadShadingSwitch uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFluidData uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFluidTexture2D uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaSurfaceLuminance uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MtoaCameraUvMapper uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  mtoa_shaders.dll: MayaFlatClosure uses Arnold 5.0.2.0.wip
+00:00:00   603MB         |  [metadata] loading metadata file: C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.mtd
+00:00:00   603MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
+00:00:00   603MB         | [metadata] loading metadata file: C:/solidangle/mtoadeploy/2017/plug-ins/mtoa.mtd
+00:00:00   603MB         | [mtoa] Exporting scene
+00:00:00   603MB         | [mtoa.session]     Initializing at frame 34.000000
+00:00:00   603MB         | [mtoa] Exporting Arnold options 'defaultArnoldRenderOptions'
+00:00:00   603MB         | [mtoa.ext]  aiOptions Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   603MB         |  [mtoa.session]     defaultArnoldRenderOptions     | Exporting plug defaultArnoldRenderOptions.message for type aiOptions
+00:00:00   603MB         |  [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exported 0 override sets.
+00:00:00   603MB         |  [mtoa.translator]  defaultArnoldRenderOptions     | Exporting on plug message (<built-in>)
+00:00:00   603MB         |   [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+00:00:00   603MB         |   [mtoa.translator]  defaultArnoldFilter            | gaussian: Exported 0 override sets.
+00:00:00   603MB         |   [mtoa.translator]  defaultArnoldFilter            | Exporting on plug message (gaussian)
+00:00:00   603MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   603MB         |   [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+00:00:00   603MB         |  [mtoa] [aov beauty] Setting AOV output: filter and driver.
+00:00:00   603MB         |   [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+00:00:00   603MB         |   [mtoa.translator]  defaultArnoldDriver            | tif: Exported 0 override sets.
+00:00:00   603MB         |   [mtoa.translator]  defaultArnoldDriver            | Exporting on plug message (tif)
+00:00:00   603MB         |   [mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+00:00:00   603MB         |   [mtoa.translator]  tif: Parameter color_space is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+00:00:00   603MB         |   [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+00:00:00   603MB         |   [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
+00:00:00   603MB         | [mtoa.ext]  colorManagementGlobals Using translator synColorTranslator, provided by synColorTranslator(C:/solidangle/mtoadeploy/2017/extensions/synColorTranslator.dll).
+00:00:00   603MB         |  [mtoa.session]     defaultColorMgtGlobals         | Exporting plug defaultColorMgtGlobals.message for type colorManagementGlobals
+00:00:00   603MB         |  [mtoa.translator]  defaultColorMgtGlobals         | synColorTranslator: Exported 0 override sets.
+00:00:00   603MB         |  [mtoa.translator]  defaultColorMgtGlobals         | Exporting on plug message (synColorTranslator)
+00:00:00   603MB         |  [mtoa.session]     perspShape                     | Exporting DAG node of type camera
+00:00:00   603MB         |  [mtoa.session]     perspShape                     | Initializing DAG node of type camera
+00:00:00   603MB         |  [mtoa.ext]  directionalLight Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   603MB         |  [mtoa.session]     directionalLightShape1         | Exporting DAG node of type directionalLight
+00:00:00   603MB         |  [mtoa.session]     directionalLightShape1         | Initializing DAG node of type directionalLight
+00:00:00   603MB         |  [mtoa.ext]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   603MB         |   [mtoa.session]     defaultLightSet                | Exporting plug defaultLightSet.message for type objectSet
+00:00:00   603MB         |   [mtoa.translator]  defaultLightSet                | <built-in>: Exported 0 override sets.
+00:00:00   603MB         |   [mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> returned an empty Arnold root node.
+00:00:00   603MB         |   [mtoa.translator]  defaultLightSet                | Export requested but no Arnold node was created by this translator (<built-in>)
+00:00:00   603MB         |  [mtoa.ext]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   603MB         |   [mtoa.session]     defaultLightSet                | Exporting plug defaultLightSet.message for type objectSet
+00:00:00   603MB         |   [mtoa.session]     defaultLightSet                | Reusing previous export of node of type objectSet
+00:00:00   603MB         |   [mtoa.translator]  defaultLightSet                | <built-in>: Exported 0 override sets.
+00:00:00   603MB         |   [mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> returned an empty Arnold root node.
+00:00:00   603MB         |   [mtoa.translator]  defaultLightSet                | Export requested but no Arnold node was created by this translator (<built-in>)
+00:00:00   603MB         | [mtoa.ext]  lightLinker Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   603MB         |  [mtoa.session]     lightLinker1                   | Exporting plug lightLinker1.message for type lightLinker
+00:00:00   603MB         |  [mtoa.translator]  lightLinker1                   | <built-in>: Exported 0 override sets.
+00:00:00   603MB         |  [mtoa.translator]  lightLinker1 (lightLinker): Translator <built-in> returned an empty Arnold root node.
+00:00:00   603MB         |  [mtoa.translator]  lightLinker1                   | Export requested but no Arnold node was created by this translator (<built-in>)
+00:00:00   603MB         | [mtoa] Parsed light linking information for 1 lights
+00:00:00   603MB         |  [mtoa.session]     pSphere1                       | Ignoring DAG node of type transform
+00:00:00   603MB         |  [mtoa.session]     pSphereShape1                  | Exporting DAG node of type mesh
+00:00:00   603MB         |  [mtoa.session]     pSphereShape1                  | Initializing DAG node of type mesh
+00:00:00   603MB         |  [mtoa.session]     bifrostAero1                   | Ignoring DAG node of type transform
+00:00:00   603MB         |  [mtoa.session]     bifrostAeroContainer1          | Ignoring DAG node of type bifrostContainer
+00:00:00   603MB         |  [mtoa.session]     aero1                          | Ignoring DAG node of type transform
+00:00:00   603MB         |  [mtoa.ext]  bifrostShape Using translator bifrostTranslator, provided by bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll).
+00:00:00   603MB         |  [mtoa.session]     aeroShape1                     | Exporting DAG node of type bifrostShape
+00:00:00   603MB         |  [mtoa.session]     aeroShape1                     | Initializing DAG node of type bifrostShape
+00:00:00   648MB         |  [mtoa.session]     bifrostAeroProperties1         | Ignoring DAG node of type transform
+00:00:00   648MB         |  [mtoa.session]     bifrostAeroPropertiesContainer1 | Ignoring DAG node of type bifrostContainer
+00:00:00   648MB         |  [mtoa.session]     bifrostAero1Mesh               | Ignoring DAG node of type transform
+00:00:00   648MB         |  [mtoa.session]     bifrostAero1MeshShape          | Exporting DAG node of type mesh
+00:00:00   648MB         |  [mtoa.session]     bifrostAero1MeshShape          | Initializing DAG node of type mesh
+00:00:00   648MB         |  [mtoa.session]     bifrostEmitterProps1           | Ignoring DAG node of type transform
+00:00:00   648MB         |  [mtoa.session]     emitterProps1                  | Ignoring DAG node of type bifrostContainer
+00:00:00   648MB         |  [mtoa.session]     pPlane1                        | Ignoring DAG node of type transform
+00:00:00   648MB         |  [mtoa.session]     pPlaneShape1                   | Exporting DAG node of type mesh
+00:00:00   648MB         |  [mtoa.session]     pPlaneShape1                   | Initializing DAG node of type mesh
+00:00:00   648MB         |  [mtoa.session]     directionalLight1              | Ignoring DAG node of type transform
+00:00:00   648MB         |  [mtoa.ext]  directionalLight Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   648MB         |  [mtoa.session]     directionalLightShape1         | Exporting DAG node of type directionalLight
+00:00:00   648MB         |  [mtoa.session]     directionalLightShape1         | Reusing previous export of DAG node of type directionalLight
+00:00:00   648MB         | [mtoa.translator]  defaultColorMgtGlobals         | Exporting on plug message (synColorTranslator)
+00:00:00   648MB         | [mtoa.translator]  pSphereShape1                  | Exporting (polymesh)
+00:00:00   648MB         | [mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.dll).
+00:00:00   648MB         |  [mtoa.session]     initialShadingGroup            | Exporting plug initialShadingGroup.dagSetMembers[0] for type shadingEngine
+00:00:00   648MB         |  [mtoa.translator]  initialShadingGroup            | mtoa_shaders: Exported 0 override sets.
+00:00:00   648MB         |  [mtoa.translator]  initialShadingGroup            | Exporting on plug dagSetMembers (mtoa_shaders)
+00:00:00   648MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug initialShadingGroup.surfaceShader
+00:00:00   648MB         |  [mtoa.ext]  lambert Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.dll).
+00:00:00   648MB         |   [mtoa.session]     lambert1                       | Exporting plug lambert1.outColor for type lambert
+00:00:00   648MB         |   [mtoa.translator]  lambert1                       | mtoa_shaders: Exported 0 override sets.
+00:00:00   648MB         |   [mtoa] Shader lambert1 does not output a supported AOV data type
+00:00:00   648MB         |   [mtoa.translator]  lambert1                       | Exporting on plug outColor (mtoa_shaders)
+00:00:00   648MB         |  [mtoa] CShadingEngineTranslator::Export found volumeShader plug initialShadingGroup.volumeShader
+00:00:00   648MB         | [mtoa.translator]  defaultLightSet                | Export requested but no Arnold node was created by this translator (<built-in>)
+00:00:00   648MB         | [mtoa.translator]  defaultArnoldRenderOptions     | Exporting on plug message (<built-in>)
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
+00:00:00   648MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   648MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+00:00:00   648MB         | [mtoa] [aov beauty] Setting AOV output: filter and driver.
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
+00:00:00   648MB         | [mtoa.translator]  defaultArnoldFilter            | Exporting on plug message (gaussian)
+00:00:00   648MB         | [mtoa.translator]  defaultArnoldDriver            | Exporting on plug message (tif)
+00:00:00   648MB         | [mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+00:00:00   648MB         | [mtoa.translator]  tif: Parameter color_space is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
+00:00:00   648MB         | [mtoa.translator]  perspShape                     | Exporting (perspective)
+00:00:00   648MB         | [mtoa.translator]  directionalLightShape1         | Exporting (<built-in>)
+00:00:00   648MB         | [mtoa.translator]  lightLinker1                   | Export requested but no Arnold node was created by this translator (<built-in>)
+00:00:00   648MB         | [mtoa.translator]  aeroShape1                     | Exporting (bifrostTranslator)
+00:00:00   648MB WARNING | aeroShape1: could not set INT parameter "silent"
+00:00:00   648MB         | [mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.dll).
+00:00:00   648MB         |  [mtoa.session]     bifrostAeroMaterial1SG         | Exporting plug bifrostAeroMaterial1SG.dagSetMembers[0] for type shadingEngine
+00:00:00   648MB         |  [mtoa.translator]  bifrostAeroMaterial1SG         | mtoa_shaders: Exported 0 override sets.
+00:00:00   648MB         |  [mtoa.translator]  bifrostAeroMaterial1SG         | Exporting on plug dagSetMembers (mtoa_shaders)
+00:00:00   648MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug bifrostAeroMaterial1SG.surfaceShader
+00:00:00   648MB WARNING |  [mtoa] [translator mtoa_shaders] ShadingGroup bifrostAeroMaterial1SG has no surfaceShader input
+00:00:00   648MB         |  [mtoa] CShadingEngineTranslator::Export found volumeShader plug bifrostAeroMaterial1SG.volumeShader
+00:00:00   648MB         |  [mtoa.ext]  aiStandardVolume Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00   648MB         |   [mtoa.session]     aiStandardVolume1              | Exporting plug aiStandardVolume1.outColor for type aiStandardVolume
+00:00:00   648MB         |   [mtoa.translator]  aiStandardVolume1              | <built-in>: Exported 0 override sets.
+00:00:00   648MB         |   [mtoa] Shader aiStandardVolume1 does not output a supported AOV data type
+00:00:00   648MB         |   [mtoa.translator]  aiStandardVolume1              | Exporting on plug outColor (<built-in>)
+00:00:00   648MB         | [mtoa.translator]  bifrostAero1MeshShape          | Exporting (polymesh)
+00:00:00   648MB         | [mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.dll).
+00:00:00   648MB         |  [mtoa.session]     bifrostAeroMaterial1SG         | Exporting plug bifrostAeroMaterial1SG.dagSetMembers[1] for type shadingEngine
+00:00:00   648MB         |  [mtoa.session]     bifrostAeroMaterial1SG         | Reusing previous export of node of type shadingEngine
+00:00:00   648MB         | [mtoa.translator]  pPlaneShape1                   | Exporting (polymesh)
+00:00:00   648MB         | [mtoa.ext]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2017/shaders/mtoa_shaders.dll).
+00:00:00   648MB         |  [mtoa.session]     initialShadingGroup            | Exporting plug initialShadingGroup.dagSetMembers[1] for type shadingEngine
+00:00:00   648MB         |  [mtoa.session]     initialShadingGroup            | Reusing previous export of node of type shadingEngine
+00:00:00   648MB         | [mtoa.session] Setting export camera to "perspShape"
+00:00:00   648MB         |  [mtoa.session]     perspShape                     | Exporting DAG node of type camera
+00:00:00   648MB         |  [mtoa.session]     perspShape                     | Reusing previous export of DAG node of type camera
+00:00:00   648MB         | [mtoa.translator]  defaultArnoldRenderOptions     | Exporting on plug message (<built-in>)
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
+00:00:00   648MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   648MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
+00:00:00   648MB         | [mtoa] [aov beauty] Setting AOV output: filter and driver.
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
+00:00:00   648MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
+00:00:00   648MB         | [mtoa] [aov RGBA] output line: RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA
+00:00:00   648MB         |  
+00:00:00   648MB         | authorizing ...
+00:00:01   651MB         | [clm] authorized for "86985ARNOL_2018_0F" in 0:00.81
+00:00:01   651MB         | [clm] expiration date: permanent, in use: 2/50
+00:00:01   651MB         | 
+00:00:01   651MB         | [color_manager] using color manager of type "color_manager_syncolor"
+00:00:01   652MB         | [color_manager_syncolor] synColor version 2018.0.80
+00:00:01   652MB         | [color_manager_syncolor] native catolog directory: C:/Program Files/Autodesk/Maya2017/synColor
+00:00:01   652MB         | [color_manager_syncolor] optional custom catalog directory: C:/Users/blaines/Documents/maya/synColor/Shared/
+00:00:01   657MB         |  
+00:00:01   657MB         | there are 1 light and 5 objects:
+00:00:01   657MB         |       1 persp_camera
+00:00:01   657MB         |       1 distant_light
+00:00:01   657MB         |       1 utility
+00:00:01   657MB         |       1 lambert
+00:00:01   657MB         |       1 standard_volume
+00:00:01   657MB         |       1 driver_tiff
+00:00:01   657MB         |       1 gaussian_filter
+00:00:01   657MB         |       3 polymesh
+00:00:01   657MB         |       1 list_aggregate
+00:00:01   657MB         |       2 MayaShadingEngine
+00:00:01   657MB         |       1 color_manager_syncolor
+00:00:01   657MB         |       1 bifrostVolume
+00:00:01   657MB         |  
+00:00:01   657MB         | rendering image at 160 x 120, 3 AA samples
+00:00:01   657MB         |   AA sample clamp   <disabled>
+00:00:01   657MB         |   diffuse           samples  2 / depth  1
+00:00:01   657MB         |   specular          samples  2 / depth  1
+00:00:01   657MB         |   transmission      samples  2 / depth  8
+00:00:01   657MB         |   volume indirect   <disabled by depth>
+00:00:01   657MB         |   total                          depth 10
+00:00:01   657MB         |   bssrdf            samples  2
+00:00:01   657MB         |   transparency      depth 10
+00:00:01   657MB         |  initializing 16 nodes ...
+
+---------------------------------------
+[BIFROST VOLUME] START OUTPUT
+---------------------------------------
+
+
+Avaliable channels:
+	density, 1
+	smoke, 1
+	smoke_distance, 1
+	temperature, 1
+	transition, 1
+	velocity_u, 1
+	velocity_v, 1
+	velocity_w, 1
+
+Processing PRIMVARS List...
+
+	Final list of Primvars to Export:
+		temperature, 1
+
+	MaxElementCount: 1
+
+
+	Final list of channels to load:
+		temperature
+		smoke
+
+Parameters for the Plugin:
+	inputChannel: smoke
+	primVarNames: temperature
+	channelScale: 1.000000
+	velocityScale: 0.041667 fps: 24.000000
+	spaceScale: 1.000000
+
+	smoothing: OFF
+
+	clipBox: OFF
+
+	DEBUG: 1
+
+
+Load time:0.000000 secs
+
+File Info:
+	filename: C:/Users/blaines/AppData/Local/Temp/5d-02-3f-62/AeroObject_volume.0034.bif
+	frame: 0 version: 9 compression: 0
+
+	Component 1: AeroObject-volume
+	Layout: AeroObject-volumeLayout
+		VoxelScale: 0.5
+		MaxDepth: 7
+		Total TileCount: 289
+			TileCount 0: 1
+			TileCount 1: 19
+			TileCount 2: 19
+			TileCount 3: 19
+			Til00:00:01   662MB         |   [volume] aeroShape1: auto bounds from volume plugin: [ -8.500000 -8.500000 -8.500000 ] -> [ 9.000000 11.500000 9.000000 ]
+00:00:01   662MB         |   [volume] aeroShape1: using volume plugin reported step size of 0.500000
+00:00:01   662MB         |   creating root object list ...
+00:00:01   662MB         |  node initialization done in 0:00.08 (single-threaded)
+00:00:01   662MB         |  updating 17 nodes ...
+eCount 4: 19
+			TileCount 5: 19
+			TileCount 6: 28
+			TileCount 7: 165
+
+THIS IS A VOXEL CACHE!
+
+Rendering Channel is: AeroObject.AeroObject-volume.smoke...
+
+Processing PRIMVARS List...
+	Final list of Primvars to Export:
+		temperature
+
+MotionBlur: OFF
+
+
+Channel Min-Max Values:
+	Channel: temperature
+	Min:0.00, Max: 1012.77
+
+
+---------------------------------------
+[BIFROST VOLUME] END OUTPUT
+---------------------------------------
+
+smoke - 0 - 0
+temperature - 256 - 0
+00:00:01   662MB         |   directionalLightShape1: distant_light using 1 sample, 2 volume samples
+00:00:01   662MB         |   scene bounds: (-46.1235313 -8.5 -46.1235313) -> (46.1235313 11.5 46.1235313)
+00:00:01   662MB         |  node update done in 0:00.03 (single-threaded)
+00:00:01   662MB         |  [aov] parsing 1 output statements ...
+00:00:01   662MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:01   662MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:01   662MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:01   663MB         |  starting 40 bucket workers of size 64x64 ...
+00:00:01   667MB         |   [accel] list_aggregate bvh4 done - 0:00.00 - 3 prims, 1 key
+00:00:01   667MB         |   [accel] polymesh bvh4 done - 0:00.00 - 100 prims, 1 key
+00:00:01   672MB         |   [accel] polymesh bvh4 done - 0:00.00 - 400 prims, 1 key
+00:00:01   673MB         |    20% done - 78 rays/pixel
+00:00:02   673MB         |    40% done - 72 rays/pixel
+00:00:02   673MB         |    50% done - 82 rays/pixel
+00:00:02   673MB         |    65% done - 77 rays/pixel
+00:00:02   673MB         |    90% done - 70 rays/pixel
+00:00:03   673MB         |   100% done - 57 rays/pixel
+00:00:03   673MB         |  bucket workers done in 0:01.55
+00:00:03   673MB         |  [driver_tiff] writing file `D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0233/testrender.tif'
+00:00:03   673MB         | render done
+00:00:03   673MB         |  
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | scene creation time:
+00:00:03   673MB         |  plugin loading               0:00.01
+00:00:03   673MB         |  unaccounted                  0:00.42
+00:00:03   673MB         |  total                        0:00.44  ( 5.06% machine utilization)
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | render time:                  (multi-threaded render, values may not be reliable)
+00:00:03   673MB         |  node init                    0:00.12
+00:00:03   673MB         |   sanity checks               0:00.00
+00:00:03   673MB         |  bucket rendering             0:01.55
+00:00:03   673MB         |   mesh processing             0:00.00
+00:00:03   673MB         |   accel. building             0:00.00
+00:00:03   673MB         |   pixel rendering             0:01.54
+00:00:03   673MB         |  unaccounted                  0:00.91
+00:00:03   673MB         |  total                        0:02.59  (56.78% machine utilization)
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | memory consumed in MB:
+00:00:03   673MB         |  at startup               597.77
+00:00:03   673MB         |  plugins                    3.38
+00:00:03   673MB         |  AOV samples               41.28
+00:00:03   673MB         |  output buffers             2.57
+00:00:03   673MB         |  node overhead              0.01
+00:00:03   673MB         |  message passing            0.08
+00:00:03   673MB         |  memory pools              35.07
+00:00:03   673MB         |  geometry                   0.02
+00:00:03   673MB         |    polymesh                 0.02
+00:00:03   673MB         |  accel. structs             0.03
+00:00:03   673MB         |  strings                   12.01
+00:00:03   673MB         |  texture cache              0.00
+00:00:03   673MB         |  unaccounted              -18.49
+00:00:03   673MB         |  total peak               673.73
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | ray counts:                      ( /pixel, /sample) (% total) (avg. hits) (max hits)
+00:00:03   673MB         |  camera                   177892 (   9.27,    1.00) ( 12.37%) (     1.00) (       1)
+00:00:03   673MB         |  shadow                   183882 (   9.58,    1.03) ( 12.79%) (     0.02) (       1)
+00:00:03   673MB         |  volume_shadow            364780 (  19.00,    2.05) ( 25.37%) (     0.03) (       1)
+00:00:03   673MB         |  diffuse_reflect          711533 (  37.06,    4.00) ( 49.48%) (     0.02) (       1)
+00:00:03   673MB         |  total                   1438087 (  74.90,    8.08) (100.00%) (     0.14) (       1)
+00:00:03   673MB         | by ray depth:              0     1
+00:00:03   673MB         |  total                   43.8% 56.2% 
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | ray marching samples:            ( /ray  ) (% total) (segments)
+00:00:03   673MB         |  camera                  5568926 (  31.31) ( 23.51%) (   36.49)
+00:00:03   673MB         |  shadow                  2888743 (  27.42) ( 12.19%) (   27.42)
+00:00:03   673MB         |  volume_shadow           7148109 (  20.22) ( 30.17%) (   20.22)
+00:00:03   673MB         |  diffuse_reflect         8086233 (  21.00) ( 34.13%) (   21.95)
+00:00:03   673MB         |  total                  23692011 (  23.19) (100.00%) (   24.45)
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | shader calls                     (  /pixel,  /sample) (% total)
+00:00:03   673MB         |  primary                  383762 (   19.99,     2.16) (  0.80%)
+00:00:03   673MB         |  volume                 47383568 ( 2467.89,   266.36) ( 99.20%)
+00:00:03   673MB         |  total                  47767330 ( 2487.88,   268.52) (100.00%)
+00:00:03   673MB         | by ray depth:              0     1
+00:00:03   673MB         |  total                   58.2% 41.8% 
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | geometry:                        (% hit ) (instances) (  init mem,  final mem)
+00:00:03   673MB         |  lists                         1 (100.0%) (        0) (      0.00,       0.00)
+00:00:03   673MB         |  procs                         1 (  0.0%) (        0) (      0.00,       0.00)
+00:00:03   673MB         |  polymeshes                    2 (100.0%) (        0) (      0.02,       0.02)
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | geometric elements:              (      min) (       avg.) (      max)
+00:00:03   673MB         |  objects (procs)               1 (        1) (        1.0) (        1)
+00:00:03   673MB         |  polygons                    500 (      100) (      250.0) (      400)
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | triangle tessellation:           (      min) (       avg.) (      max) (/ element) (% total)
+00:00:03   673MB         |  polymeshes                  960 (      200) (      480.0) (      760) (     1.92) (100.00%)
+00:00:03   673MB         |  unique triangles            960
+00:00:03   673MB         |  memory use (in MB)         0.02
+00:00:03   673MB         |   vertices                  0.01
+00:00:03   673MB         |   vertex indices            0.00
+00:00:03   673MB         |  largest polymeshes by triangle count:
+00:00:03   673MB         |         760 tris -- pSphereShape1
+00:00:03   673MB         |         200 tris -- pPlaneShape1
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | acceleration structures:         (% total)
+00:00:03   673MB         |  bvh                           3 (100.00%)
+00:00:03   673MB         |  total                         3 (100.00%)
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         | number of warnings, warning type:
+00:00:03   673MB         |     1:  %s: could not set %s parameter "%s"
+00:00:03   673MB         |     3:  [mtoa.ext]  %s Found no translator named "%s"
+00:00:03   673MB         |     1:  [mtoa] [translator %s] ShadingGroup %s has no surfaceShader input
+00:00:03   673MB         |    86:  node "%s" is already installed
+00:00:03   673MB         | -----------------------------------------------------------------------------------
+00:00:03   673MB         |  
+00:00:03   673MB         | releasing resources
+00:00:03   659MB         |  unloading 13 plugins
+00:00:03   659MB         |   closing bifrost_shaders.dll ...
+00:00:03   659MB         |   closing hairPhysicalShader_shaders.dll ...
+00:00:03   659MB         |   closing lookdevkit_shaders.dll ...
+00:00:03   659MB         |   closing mtoa_shaders.dll ...
+00:00:03   659MB         |   closing renderSetup_shaders.dll ...
+00:00:03   659MB         |   closing synColor_shaders.dll ...
+00:00:03   656MB         |   closing xgenSpline_shaders.dll ...
+00:00:03   656MB         |   closing bifrost_procedurals.dll ...
+00:00:03   656MB         |   closing mtoa_ParticleInstancer_proc.dll ...
+00:00:03   656MB         |   closing mtoa_ParticleVolume_proc.dll ...
+00:00:03   656MB         |   closing xgenSpline_procedural.dll ...
+00:00:03   656MB         |   closing xgen_procedural.dll ...
+00:00:03   655MB         |   closing mtoa_shaders.dll ...
+00:00:03   655MB         |  unloading plugins done
+00:00:03   655MB         | Arnold shutdown
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0233\test.ma completed.

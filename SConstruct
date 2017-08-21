@@ -272,7 +272,7 @@ arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_ver
 if not env['MAYA_MAINLINE_2018']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
-    maya_version = '201800'
+    maya_version = '201900'
 
 maya_version_base = maya_version[0:4]
 
@@ -794,6 +794,7 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
 env.Install(env['TARGET_BINARIES'], dylibs)
+env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 
 OCIO_DYLIBPATH =""
 
@@ -803,7 +804,10 @@ if int(maya_version) < 201500:
 
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+    arv_lib = maya_version_base
+    if int(arv_lib) > 2018:
+        arv_lib = "2018"
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', arv_lib, RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
@@ -1145,6 +1149,7 @@ PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
+[os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
 ]
 
 for p in presetfiles:
