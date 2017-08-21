@@ -7,3 +7,4 @@ arnoldRenderToTexture -f "." -r 160 -aov 1  testrenderAov; // test AOVs
 arnoldRenderToTexture -f "." -r 160 -ust 0.5 -usc 0.5 -vst 0.2 -vsc 2  testrenderTorus1; // test AOVs
 arnoldRenderToTexture -f "." -r 160 -aud 1  testrenderTorus2;
 arnoldRenderToTexture -f "." -r 160 -ud "0:0,1:1"  testrenderTorus3;
+arnoldRenderToTexture -f "." -r 160 -uvs "toto"  testrenderSphere3; // test uv set

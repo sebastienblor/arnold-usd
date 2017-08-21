@@ -39,4 +39,6 @@ os.system(cmd)
 cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1SG_testrenderTorus3Shape_1012.exr"), os.path.join(test_root_path, "testrender12.tif"))
 os.system(cmd)
 
+cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "testrenderSphere3Shape.exr"), os.path.join(test_root_path, "testrender13.tif"))
+os.system(cmd)
 
