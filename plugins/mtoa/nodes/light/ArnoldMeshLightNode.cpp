@@ -317,7 +317,6 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    nAttr.setMin(0);
-   nAttr.setSoftMin(0);
    nAttr.setSoftMax(10);
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
