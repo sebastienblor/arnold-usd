@@ -413,6 +413,12 @@ def createArnoldRenderSettings():
     pm.setParent('..')
 
     pm.frameLayout(label='Callbacks', collapse=True)
+    
+    pm.attrControlGrp(
+            'os_postTranslationCallback',
+            label='Post Translation',
+            attribute='defaultArnoldRenderOptions.PostTranslation')
+    pm.separator()
 
     pm.attrControlGrp(
             'os_iprRefinementStartedCallback',
