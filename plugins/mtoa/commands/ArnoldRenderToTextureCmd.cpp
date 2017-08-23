@@ -426,8 +426,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          continue;
       }
 
-      const char *typeName = AiNodeEntryGetName(AiNodeGetNodeEntry(node));
-      if(strcmp(typeName, "procedural") == 0) 
+      const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(node);
+      const char *typeName = AiNodeEntryGetName(nodeEntry);
+
+      if(AiNodeEntryGetDerivedType(nodeEntry) == AI_NODE_SHAPE_PROCEDURAL) 
       {
          // this is a procedural node...
          // need to get all the children nodes
