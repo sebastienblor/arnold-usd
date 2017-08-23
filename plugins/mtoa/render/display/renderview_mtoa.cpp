@@ -116,6 +116,10 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
 }
 CRenderViewMtoA::~CRenderViewMtoA()
 {
+#if MAYA_API_VERSION >= 201900
+   MColorPickerUtilities::unregisterFromColorPicking(GetRenderView());
+#endif
+
    if (m_rvSceneSaveCb)
    {
       MMessage::removeCallback(m_rvSceneSaveCb);
@@ -162,6 +166,7 @@ CRenderViewMtoA::~CRenderViewMtoA()
       m_colorMgtRefreshCb = 0;
    }
 }
+
 // Return all renderable cameras
 static int GetRenderCamerasList(MDagPathArray &cameras)
 {
@@ -419,7 +424,25 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
 #endif
 
+#if MAYA_API_VERSION >= 201900
+
+   MColorPickerUtilities::doRegisterToColorPicking(
+      GetRenderView(), &CRenderViewMtoA::ColorPickingCallback);
+
 }
+
+MColor CRenderViewMtoA::ColorPickingCallback(
+   QWidget* /* registered widget */, 
+   QWidget* /* selected widget */, 
+   const QPoint& /* point in window coordinate */, 
+   bool /* request the color in view transform (true) or in rendering color space (false) */)
+{
+   return MColor(2, -2, 0, 1);
+
+#endif
+
+}
+
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
