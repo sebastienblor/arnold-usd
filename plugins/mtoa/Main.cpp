@@ -626,11 +626,17 @@ namespace // <anonymous>
          else
             SetEnv("MTOA_EXTENSIONS_PATH", moduleExtensionPath);
       }
-      
-      shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", PLUGIN_SEARCH, &status);
+
+      status = CExtensionsManager::LoadExtensions(EXTENSION_SEARCH);
       CHECK_MSTATUS(status);
-      // Overrides for mtoa_shaders if load was successful
-      if (MStatus::kSuccess == status)
+
+      // Will load all found plugins and try to register nodes and translators
+      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
+      CHECK_MSTATUS(status);
+
+      // I need to retrieve the mtoa_shaders extension, so that I can register its translators
+      shaders = CExtensionsManager::GetExtensionByName("mtoa_shaders"); 
+      if (shaders)
       {
          // Register nodes built into mtoa (display driver)
          InstallNodes();
@@ -733,13 +739,7 @@ namespace // <anonymous>
                                        "",
                                        CFluidTexture2DTranslator::creator);
       }
-      
-      // Will load all found plugins and try to register nodes and translators
 
-
-      // for the new Arnold node each create. A CExtension is initialized.
-      status = CExtensionsManager::LoadExtensions(EXTENSION_SEARCH);
-      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
       // Finally register all nodes from the loaded extensions with Maya in load order
       status = CExtensionsManager::RegisterExtensions();
 
