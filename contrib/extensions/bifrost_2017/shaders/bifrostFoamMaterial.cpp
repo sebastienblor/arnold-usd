@@ -101,6 +101,7 @@ node_parameters
 
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "bifrostFoamMaterial");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81424a18);   
 }
 
 
