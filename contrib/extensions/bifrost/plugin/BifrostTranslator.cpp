@@ -1,23 +1,19 @@
-#include <string>
-#include <vector>
-#include <iostream>
+#include "BifrostTranslator.h"
 
-#include <maya/MGlobal.h>
 #include <maya/MObject.h>
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
 #include <maya/MMatrix.h>
 #include <maya/MFnTransform.h>
 #include <maya/MBoundingBox.h>
-#include <maya/MDGModifier.h>
 #include <maya/MFnMeshData.h>
-#include <maya/MFileIO.h>
 
 #include <ai.h>
 
 #include "extension/Extension.h"
 #include "extension/ExtensionsManager.h"
-#include "BifrostTranslator.h"
+#include "compatibility.h"
+#include "helpers.h"
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define DL std::cerr << __FILENAME__ << ":" << __LINE__ << std::endl
@@ -92,77 +88,6 @@ namespace {
       
       return false;
    }
-
-   // Workaround to replace old auto-assigned bifrost material with standard (surface/volume) arnold shaders
-   MCallbackId addedCbId = 0, connectionCbId = 0;
-
-   void removeCallback(MCallbackId& id)
-   {
-      if(id != 0) MMessage::removeCallback(id);
-      id = 0;
-   }
-   void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*)
-   {
-      if(msg & MNodeMessage::kConnectionMade && MFnAttribute(plug.attribute()).name()=="instObjGroups" && 
-      MFnAttribute(otherPlug.attribute()).name()=="dagSetMembers")
-      {
-         // connection to shading engine made => replace shader
-         int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
-
-         MPlug render_as = MFnDependencyNode(plug.node()).findPlug("render_as");
-         std::cerr << "RENDER TYPE: " << renderType << std::endl;
-         switch(renderType){
-         case 0: render_as.setInt(2); break; // Aero => Volume
-         case 3: render_as.setInt(1); break; // Foam => Points
-         default: render_as.setInt(0); // Surface
-         }
-
-         bool isVolume = renderType==0 || renderType==3; // Aero or Foam
-         MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
-
-         MFnDependencyNode shadingGroup(otherPlug.node());
-         MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
-
-         MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
-         command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
-         if(renderType == 0)
-         { // Aero => set density channel to smoke
-            command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
-         }
-         if(isVolume)
-         {
-            command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
-         }
-
-         MString preset;
-         if(renderType==0) 
-         { // aero
-            preset = "aiStandardVolume/Smoke.mel";
-         } else if(renderType==1 || renderType==2)
-         { // liquid
-            preset = "aiStandardSurface/Deep_Water.mel";
-         } else { // foam
-            preset = "aiStandardVolume/Foam.mel";
-         }
-
-         command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
-
-         command += "select $sel;undoInfo -closeChunk;";
-         MGlobal::executeCommandOnIdle(command);
-         removeCallback(connectionCbId);
-      }
-   }
-   void bifrostShapeAdded(MObject& obj, void*)
-   {
-      removeCallback(connectionCbId);
-      if(!MFileIO::isReadingFile() && !MGlobal::isUndoing())
-      {  // && !MGlobal::isRedoing() => Temporary: Redoing bifrostShape creation is clearing redo stack anyway (which is wrong), so replace shader again...
-         // must wait until shaging engine is connected to shape, otherwise shader assignment will be overridden by the old bifrost material
-         // => registering temporary attribute change callback and removing it after material assignment
-         connectionCbId = MNodeMessage::addAttributeChangedCallback(obj, bifrostShapeAttributeChanged);
-      }
-   }
-
 } // namespace
 
 
@@ -260,7 +185,7 @@ void BifrostTranslator::ExportSurface( MFnDagNode&  dagNode, AtNode *shape )
    ExportShape(dagNode, shape);
    EXPORT_INT("render_component");
 
-   EXPORT2_STR("distance_channel", "field_channel");
+   AiNodeSetStr(shape, "field_channel", "distance");
 
    EXPORT_FLT("levelset_droplet_reveal_factor");
    EXPORT_FLT("levelset_surface_radius");
@@ -389,9 +314,10 @@ void BifrostTranslator::ExportOceanPlane(const MFnDagNode &dagNode, AtNode *shap
       center = (bbox.max() + bbox.min())*.5;
       dimensions = (bbox.max() - bbox.min());
    }
-   height += dagNode.findPlug("ocean_blending_offsetsY").asFloat();
-   dimensions.x += dagNode.findPlug("ocean_blending_offsetsX").asFloat();
-   dimensions.z += dagNode.findPlug("ocean_blending_offsetsZ").asFloat();
+   const float3& offsets = dagNode.findPlug("ocean_blending_offsets").asMDataHandle().asFloat3();
+   height += offsets[1];
+   dimensions.x += offsets[0];
+   dimensions.z += offsets[2];
 
    AiNodeSetFlt(shape,"ocean_blending_height", height);
    AiNodeSetVec2(shape, "ocean_blending_center", (float)center.x, (float)center.z);
@@ -461,239 +387,37 @@ void BifrostTranslator::RequestUpdate()
    CShapeTranslator::RequestUpdate();
 }
 
-// ***************
-//  ALL THE CODE BELLOW SHOULD BE REMOVED WHEN THESE ATTRIBUTES BECOME PART OF
-//  BIFROST SHAPE IN MAYA 2018
-// ***************
-
-#define ADD_DSTR(longName, value) \
-   data.name = data.shortName = longName;\
-   data.stringDefault = MString(value); \
-   helper.MakeInputString(data);
-
-#define ADD_DFLT(longName, value) \
-   data.name = data.shortName = longName;\
-   data.hasSoftMin = data.hasSoftMax = true; \
-   data.softMin.FLT() = 0.f;\
-   data.softMax.FLT() = 1.f; \
-   data.hasMin = data.hasMax = false; \
-   data.defaultValue.FLT() = value;\
-   helper.MakeInputFloat(data);
-
-#define ADD_DINT(longName, value) \
-   data.name = data.shortName = longName;\
-   data.hasSoftMin = data.hasSoftMax = true; \
-   data.softMin.INT() = 0;\
-   data.softMax.INT() = 1; \
-   data.hasMin = data.hasMax = false; \
-   data.defaultValue.INT() = value;\
-   helper.MakeInputInt(data);
-
-#define ADD_DINT_HARDMIN(longName, value, minValue) \
-   data.name = data.shortName = longName; \
-   data.hasSoftMin = data.hasSoftMax = data.hasMin = true;\
-   data.hasMax = false;\
-   data.min.INT() = minValue; \
-   data.softMin.INT() = minValue; \
-   data.softMax.INT() = 2*value-minValue;\
-   data.defaultValue.INT() = value;\
-   helper.MakeInputInt(data);
-
-#define ADD_DBOOL(longName, value) \
-   data.name = data.shortName = longName;\
-   data.defaultValue.BOOL() = value;\
-   helper.MakeInputBoolean(data);
-
-#define ADD_DFLT3(longName, x, y, z) \
-   data.name = data.shortName = longName;\
-   data.defaultValue.VEC() = AtVector(x,y,z);\
-   helper.MakeInputVector(data);
-
-#define ADD_DFLT2(longName, x, y) \
-   data.name = data.shortName = longName;\
-   data.defaultValue.VEC2() = AtVector2(x,y);\
-   helper.MakeInputVector2(data);
-
-#define ADD_DSMOOTH_ENUM(longName) \
-   data.name = data.shortName = longName;\
-   {\
-      MStringArray enums;\
-      enums.append("Laplacian Flow");\
-      enums.append("Curvature Flow");\
-      data.enums = enums;\
-   }\
-   helper.MakeInputEnum(data);
-
-#define ADD_DFALLOFF_ENUM(longName) \
-   data.name = data.shortName = longName;\
-   {\
-      MStringArray enums;\
-      enums.append("Linear");\
-      enums.append("Smooth");\
-      enums.append("Smoother");\
-      enums.append("None");\
-      data.enums = enums;\
-   }\
-   helper.MakeInputEnum(data);
-
-#define ADD_DDATA_ENUM(longName) \
-   data.name = data.shortName = longName;\
-   {\
-      MStringArray enums;\
-      enums.append("Voxels");\
-      enums.append("Particles");\
-      data.enums = enums;\
-   }\
-   helper.MakeInputEnum(data);
-
-#define ADD_DRENDER_AS_ENUM(longName) \
-   data.name = data.shortName = longName;\
-   {\
-      MStringArray enums;\
-      enums.append("Surface");\
-      enums.append("Points");\
-      enums.append("Volume");\
-      data.enums = enums;\
-   }\
-   helper.MakeInputEnum(data);
-
-#define ADD_DSURFACE_TYPE_AS_ENUM(longName) \
-   data.name = data.shortName = longName;\
-   {\
-      MStringArray enums;\
-      enums.append("Mesh");\
-      enums.append("Implicit");\
-      data.enums = enums;\
-   }\
-   helper.MakeInputEnum(data);
-
-#define ADD_DPOINTS_TYPE(longName) \
-   data.name = data.shortName = longName;\
-   {\
-      MStringArray enums;\
-      enums.append("Points");\
-      enums.append("Spheres");\
-      data.enums = enums;\
-      data.defaultValue.INT() = 1;\
-   }\
-   helper.MakeInputEnum(data);
-
-
 void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
-   CExtensionAttrHelper helper(context.maya, "standard");
-   CAttrData data;
-
-   ADD_DBOOL("tile_mode", false);
+   ArnoldBifrost::MAttrData extData(context.maya, "bifrostShape");
 
    // common
-   ADD_DBOOL("opaque", true);
-   ADD_DBOOL("matte", false);
-   ADD_DBOOL("smoothing", true);
-   ADD_DINT_HARDMIN("subdivisions", 1, 0);
-
-   ADD_DRENDER_AS_ENUM("render_as");
-   // TODO: remove the following attributes (non arnold specific)
-   ADD_DDATA_ENUM("render_component");
-
-   ADD_DFLT("velocity_scale", 1.f);
-   ADD_DFLT("space_scale", 1.f);
-
-   ADD_DSTR("channels", "vorticity");
+   extData.setup("opaque",   "opaque", false).makeInput();
+   extData.setup("matte",    "matte", false).makeInput();
+   extData.setup("tileMode", "tile_mode", false).makeInput();
 
    // surface
-   ADD_DSURFACE_TYPE_AS_ENUM("surface_type");
-
-   ADD_DFLT("implicit_step_size", 0.01f);
-   ADD_DINT("implicit_samples", 5);
-
-   ADD_DSTR("distance_channel", "distance");
-
-   ADD_DFLT("levelset_droplet_reveal_factor",3);
-   ADD_DFLT("levelset_surface_radius", 1.4f);
-   ADD_DFLT("levelset_droplet_radius", 1.2f);
-   ADD_DFLT("levelset_resolution_factor",1);
-   ADD_DFLT("levelset_max_volume_of_holes_to_close", 8);
-
-   ADD_DFLT("dilate", 0.f);
-   ADD_DFLT("smooth", 0.f);
-   ADD_DSMOOTH_ENUM("smooth_mode");
-   ADD_DINT_HARDMIN("smooth_iterations", 1, 1);
-   ADD_DFLT("erode", 0.f);
-
-   ADD_DBOOL("export_laplacian", false);
-   ADD_DBOOL("export_curvature", false);
-
-   ADD_DBOOL("clip", false);
-   {
-      MStatus status;
-      MFnTypedAttribute typeAttr;
-      MObject obj = typeAttr.create("clip_box", "clip_box", MFnData::kMesh, &status);
-      typeAttr.setStorable(false);
-      typeAttr.setKeyable(true);
-      typeAttr.setDisconnectBehavior(MFnAttribute::kReset);
-      CHECK_MSTATUS(status);
-
-      MDGModifier dgMod;
-      if (dgMod.addExtensionAttribute(MString("bifrostShape"), obj) != MStatus::kSuccess)
-      {
-         AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
-      } else
-      {
-         AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
-         CHECK_MSTATUS(dgMod.doIt());
-      }
-   }
-
-   ADD_DBOOL("enable_ocean_blending", false);
-   {
-      MStatus status;
-      MFnTypedAttribute typeAttr;
-      MObject obj = typeAttr.create("ocean_plane", "ocean_plane", MFnData::kMesh, &status);
-      typeAttr.setStorable(false);
-      typeAttr.setKeyable(true);
-      typeAttr.setDisconnectBehavior(MFnAttribute::kReset);
-      CHECK_MSTATUS(status);
-
-      MDGModifier dgMod;
-      if (dgMod.addExtensionAttribute(MString("bifrostShape"), obj) != MStatus::kSuccess)
-      {
-         AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
-      } else
-      {
-         AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", "bifrostShape", typeAttr.name().asChar());
-         CHECK_MSTATUS(dgMod.doIt());
-      }
-   }
-   ADD_DFLT("ocean_blending_radius", 0);
-   ADD_DFLT3("ocean_blending_offsets", 0, 0, 0);
-   ADD_DSTR("ocean_blending_out_channel", "");
-
-   // volume
-   ADD_DSTR("density_channel", "density");
-   ADD_DFLT("volume_smooth", 0);
-   ADD_DINT("volume_smooth_iterations", 1);
-   ADD_DFLT("volume_step_size", 0.1f);
+   extData.setup("surfaceType",      "surface_type",       std::initializer_list<const char*>{"Mesh","Implicit"}).makeInput();
+   extData.setup("smoothing",        "smoothing",          true).makeInput();
+   extData.setup("subdivisions",     "subdivisions",       1).setSoft(1,5).setMin(1).makeInput();
+   extData.setup("implicitStepSize", "implicit_step_size", 0.025f).setSoft(0.f,1.f).setMin(0.f).makeInput();
+   extData.setup("implicitSamples",  "implicit_samples",   4).setSoft(1,10).setMin(1).makeInput();
 
    // points
-   ADD_DFLT("radius", 0.01f);
-   ADD_DPOINTS_TYPE("points_type");
-   ADD_DFLT("points_step_size", 0.025f);
+   extData.setup("pointsType",     "points_type",      std::initializer_list<const char*>{"Points","Spheres"}).setDefault(1).makeInput();
+   extData.setup("pointsStepSize", "points_step_size", 0.025f).setSoft(0.f,1.f).setMin(0.f).makeInput();
+   extData.setup("chunkSize",      "chunk_size",       100000).setMin(1).makeInput();
 
-   ADD_DBOOL("enable_radius_channel", false);
-   ADD_DSTR("radius_channel", "density");
+   // volume
+   extData.setup("volumeStepSize", "volume_step_size", 0.025f).setSoft(0.f,1.f).setMin(0.f).makeInput();
 
-   ADD_DINT("chunk_size", 100000);
+   ArnoldBifrost::Compatibility::NodeInitializer(context);
 
    if (!LoadBifrostProcedural())
       AiMsgWarning("Bifrost to Arnold package not installed in %s" , s_bifrostProceduralPath.asChar());
-
-
-   // add callback when a bifrost shape is created, so that we can assign the right material
-   addedCbId = MDGMessage::addNodeAddedCallback(bifrostShapeAdded, "bifrostShape");
 }
 
-void BifrostTranslator::ClearCallbacks()
+void BifrostTranslator::Uninitialize()
 {
-   removeCallback(addedCbId);
+   ArnoldBifrost::Compatibility::Uninitialize();
 }
