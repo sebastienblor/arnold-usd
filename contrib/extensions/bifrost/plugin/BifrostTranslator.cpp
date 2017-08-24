@@ -20,19 +20,16 @@
 #define DUMP(v) std::cerr << __FILENAME__ << ":" << __LINE__ << ": " << #v << " = " << (v) << std::endl
 
 #define EXPORT_BOOL(name) AiNodeSetBool(shape, name, dagNode.findPlug(name).asBool())
-#define EXPORT_INT(name) AiNodeSetInt(shape, name, dagNode.findPlug(name).asInt())
+#define EXPORT_INT(name)  AiNodeSetInt(shape, name, dagNode.findPlug(name).asInt())
 #define EXPORT_UINT(name) AiNodeSetUInt(shape, name, dagNode.findPlug(name).asInt())
-#define EXPORT_FLT(name) AiNodeSetFlt(shape, name, dagNode.findPlug(name).asFloat())
-#define EXPORT_FLT2(name) AiNodeSetVec2(shape, name, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat())
-#define EXPORT_FLT3(name) AiNodeSetVec(shape, name, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
-#define EXPORT_STR(name) AiNodeSetStr(shape, name, dagNode.findPlug(name).asString().asChar())
+#define EXPORT_FLT(name)  AiNodeSetFlt(shape, name, dagNode.findPlug(name).asFloat())
+#define EXPORT_STR(name)  AiNodeSetStr(shape, name, dagNode.findPlug(name).asString().asChar())
 
 #define EXPORT2_BOOL(name, aiName) AiNodeSetBool(shape, aiName, dagNode.findPlug(name).asBool())
-#define EXPORT2_INT(name, aiName) AiNodeSetInt(shape, aiName, dagNode.findPlug(name).asInt())
+#define EXPORT2_INT(name,  aiName) AiNodeSetInt(shape, aiName, dagNode.findPlug(name).asInt())
 #define EXPORT2_UINT(name, aiName) AiNodeSetUInt(shape, aiName, dagNode.findPlug(name).asInt())
-#define EXPORT2_FLT(name, aiName) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name).asFloat())
-#define EXPORT2_FLT3(name, aiName) AiNodeSetVec(shape, aiName, dagNode.findPlug(name "X").asFloat(), dagNode.findPlug(name "Y").asFloat(), dagNode.findPlug(name "Z").asFloat())
-#define EXPORT2_STR(name, aiName) AiNodeSetStr(shape, aiName, dagNode.findPlug(name).asString().asChar())
+#define EXPORT2_FLT(name,  aiName) AiNodeSetFlt(shape, aiName, dagNode.findPlug(name).asFloat())
+#define EXPORT2_STR(name,  aiName) AiNodeSetStr(shape, aiName, dagNode.findPlug(name).asString().asChar())
 
 namespace {
     AtArray* Convert(const MStringArray& array){
