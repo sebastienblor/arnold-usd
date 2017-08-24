@@ -27,8 +27,9 @@ def doExportStandIn():
     #Save the defaultType
     core.createOptions()
     default = cmds.optionVar(q='defaultFileExportActiveType')
-    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
-    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
+    # no longer force the asstoc export during standins, since it's now in the .ass metadata
+    #defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
+    #cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
     try:
         #Change it to ASS
         cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
@@ -36,17 +37,18 @@ def doExportStandIn():
     finally:
         cmds.optionVar(sv=('defaultFileExportActiveType', default))
 
-    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
+    #cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
 def doExportOptionsStandIn():
     core.createOptions()
-    defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
-    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
+    # no longer force the asstoc export during standins, since it's now in the .ass metadata
+    #defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
+    #cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
 
     pm.mel.eval('ExportSelectionOptions')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
 
-    cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
+    #cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
 def doCreateCurveCollector():
     # Get selection and group the curves ?
