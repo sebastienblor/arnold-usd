@@ -18,24 +18,17 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, mayaCharacterization, fbxmaya
-Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-00:00:00   527MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   528MB WARNING |  node "MayaClamp" is already installed
-00:00:00   528MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   528MB WARNING |  node "MayaCondition" is already installed
-00:00:00   528MB WARNING |  node "MayaReverse" is already installed
-00:00:00   529MB WARNING | [mtoa] [bifrost_shaders] [node bifrostFoamMaterial] Assigning temporary node id 1138176 to associated Maya type name bifrostFoamMaterial.
-00:00:00   529MB WARNING | [mtoa] [bifrost_shaders] [node bifrostAeroMaterial] Assigning temporary node id 1138177 to associated Maya type name bifrostAeroMaterial.
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
-00:00:00   534MB WARNING | [mtoa] Extension bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll) requires Maya plugin bifrostvisplugin, registering will be deferred until plugin is loaded.
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, mayaCharacterization, fbxmaya
+00:00:00   475MB WARNING |  node "MayaMultiplyDivide" is already installed
+00:00:00   475MB WARNING |  node "MayaClamp" is already installed
+00:00:00   475MB WARNING |  node "MayaGammaCorrect" is already installed
+00:00:00   475MB WARNING |  node "MayaCondition" is already installed
+00:00:00   475MB WARNING |  node "MayaReverse" is already installed
+00:00:00   476MB WARNING | [mtoa] [bifrost_shaders] [node bifrostFoamMaterial] Assigning temporary node id 1138176 to associated Maya type name bifrostFoamMaterial.
+00:00:00   476MB WARNING | [mtoa] [bifrost_shaders] [node bifrostAeroMaterial] Assigning temporary node id 1138177 to associated Maya type name bifrostAeroMaterial.
+00:00:00   481MB WARNING | [mtoa] Extension bifrostTranslator(C:/solidangle/mtoadeploy/2017/extensions/bifrostTranslator.dll) requires Maya plugin bifrostvisplugin, registering will be deferred until plugin is loaded.
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-File read in  0.67 seconds.
+File read in  0.089 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0232/test.ma
 Running Render to Texture[mtoa] Render to Texture : Rendering polymesh testrenderSphereShape
 [mtoa] Render to Texture : Rendered to ./testrenderSphereShape.exr
@@ -57,3 +50,5 @@ Running Render to Texture[mtoa] Render to Texture : Rendering polymesh testrende
 [mtoa] Render to Texture : Rendered to ./aiStandardSurface1SG_testrenderTorus3Shape_1001.exr
 [mtoa] Render to Texture : UDIM 1:1 Rendered to ./aiStandardSurface1SG_testrenderTorus3Shape_1012.exr
 [mtoa] Render to Texture : Rendered to ./aiStandardSurface1SG_testrenderTorus3Shape_1012.exr
+[mtoa] Render to Texture : Rendering polymesh testrenderSphere3Shape
+[mtoa] Render to Texture : Rendered to ./testrenderSphere3Shape.exr
