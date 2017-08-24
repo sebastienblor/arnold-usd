@@ -561,6 +561,7 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
    assert(AiUniverseIsActive());
 
    MString fileName;
+   AtNode *options = AiUniverseGetOptions();
 
    // if no custom fileName is given, use the default one in the environment variable
    if (customFileName.length() > 0)
@@ -584,7 +585,7 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
       // assembled, this is the best place to do it (#2995)
       if ((RenderOptions()->outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {
-         AiNodeSetPtr(AiUniverseGetOptions(), "color_manager", NULL);
+         AiNodeSetPtr(options, "color_manager", NULL);
          // Loop over all shaders + drivers having a parameter "color_space"
          AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHADER | AI_NODE_DRIVER);
          static AtString colorSpaceStr("color_space");
@@ -599,9 +600,43 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
          }
          AiNodeIteratorDestroy(nodeIter);
       }
+
+      // Now save the metadata
+      AtMetadataStore *mds = AiMetadataStore();
+      AtBBox bBox = GetBoundingBox();
+      MString boundsStr;
+      boundsStr += bBox.min.x;
+      boundsStr += " ";
+      boundsStr += bBox.min.y;
+      boundsStr += " ";
+      boundsStr += bBox.min.z;
+      boundsStr += " ";
+      boundsStr += bBox.max.x;
+      boundsStr += " ";
+      boundsStr += bBox.max.y;
+      boundsStr += " ";
+      boundsStr += bBox.max.z;
+      AiMetadataStoreSetStr(mds, AtString("bounds"), boundsStr.asChar());
+
+      if (AiNodeLookUpUserParameter(options, "frame"))
+         AiMetadataStoreSetFlt(mds, AtString("frame"), AiNodeGetFlt(options, "frame"));
+
+      if (AiNodeLookUpUserParameter(options, "fps"))
+         AiMetadataStoreSetFlt(mds, AtString("fps"), AiNodeGetFlt(options, "fps"));
+
+      if (AiNodeLookUpUserParameter(options, "render_layer"))
+         AiMetadataStoreSetStr(mds, AtString("render_layer"), AiNodeGetStr(options, "render_layer"));
+
+      MString sceneFileName;
+      MGlobal::executeCommand("file -q -sn", sceneFileName);
+      if(sceneFileName.length() > 0)
+         AiMetadataStoreSetStr(mds, AtString("scene"), sceneFileName.asChar());
+
+
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
-      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding());
+      AiASSWriteWithMetadata(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding(), mds);
+      AiMetadataStoreDestroy(mds);
    }
 }
 
