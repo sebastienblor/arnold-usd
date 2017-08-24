@@ -667,8 +667,40 @@ bool CArnoldStandInShape::LoadBoundingBox()
 
    MString path_val = geom->filename;
 
+   // First check if this ass file has metadata
+   AtMetadataStore *mds = AiMetadataStore();
+   AtString boundsStr;
+   if (AiMetadataStoreLoadFromASS(mds, path_val.asChar()) && 
+       AiMetadataStoreGetStr(mds, AtString("bounds"), &boundsStr))
+   {
+      MString bounds(boundsStr.c_str());
+      MStringArray boundsElems;
+      if ((bounds.split(' ', boundsElems) == MS::kSuccess) && boundsElems.length() >= 6)
+      {
+         double xmin = convertToFloat(boundsElems[0].asChar());
+         double ymin = convertToFloat(boundsElems[1].asChar());
+         double zmin = convertToFloat(boundsElems[2].asChar());
+         double xmax = convertToFloat(boundsElems[3].asChar());
+         double ymax = convertToFloat(boundsElems[4].asChar());
+         double zmax = convertToFloat(boundsElems[5].asChar());
+         if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
+         {
+            MPoint min(xmin, ymin, zmin);
+            MPoint max(xmax, ymax, zmax);
+            geom->bbox = MBoundingBox(min, max);
+         } 
+         else
+            geom->bbox = MBoundingBox();
+
+         AiMetadataStoreDestroy(mds);   
+         return true;
+      }
+   }
+   AiMetadataStoreDestroy(mds);
+  
+   // if the ass file doesn't have any metadata (old file),
+   // then check the asstoc
    MString fileBase = "";
-   
    if(path_val.rindexW(".ass.gz") != -1)
    {
       fileBase = path_val.substringW(0, path_val.rindexW(".ass.gz") - 1);
