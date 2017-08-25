@@ -186,6 +186,8 @@ class CMeshLightNewTranslator : public CMeshLightTranslator
 public:
    CMeshLightNewTranslator() : CMeshLightTranslator() {}
    virtual MObject GetMeshObject() const;
+   static void NodeInitializer(CAbTranslator context);
+   
 
    static void* creator()
    {

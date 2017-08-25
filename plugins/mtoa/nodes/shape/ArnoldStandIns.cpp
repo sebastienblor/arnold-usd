@@ -667,8 +667,86 @@ bool CArnoldStandInShape::LoadBoundingBox()
 
    MString path_val = geom->filename;
 
-   MString fileBase = "";
+//#define STANDIN_USE_METADATA
+
+#ifdef STANDIN_USE_METADATA
+   if (AiMetadataStoreLoadFromASS(mds, path_val.asChar()) && 
+       AiMetadataStoreGetStr(mds, AtString("bounds"), &boundsStr))
+   {
+      MString bounds(boundsStr.c_str());
+      MStringArray boundsElems;
+      if ((bounds.split(' ', boundsElems) == MS::kSuccess) && boundsElems.length() >= 6)
+      {
+         double xmin = convertToFloat(boundsElems[0].asChar());
+         double ymin = convertToFloat(boundsElems[1].asChar());
+         double zmin = convertToFloat(boundsElems[2].asChar());
+         double xmax = convertToFloat(boundsElems[3].asChar());
+         double ymax = convertToFloat(boundsElems[4].asChar());
+         double zmax = convertToFloat(boundsElems[5].asChar());
+         if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
+         {
+            MPoint min(xmin, ymin, zmin);
+            MPoint max(xmax, ymax, zmax);
+            geom->bbox = MBoundingBox(min, max);
+         } 
+         else
+            geom->bbox = MBoundingBox();
+
+         AiMetadataStoreDestroy(mds);   
+         return true;
+      }
+   }
+   AiMetadataStoreDestroy(mds);
+#else
+   // Manually parsing the ass file to extract the bounds.
    
+   // First check if this ass file has metadata
+   std::ifstream assfile(path_val.asChar());
+   std::string assline;
+   if (assfile.is_open())
+   {  
+      while(true)
+      {    
+         std::getline(assfile, assline);
+
+         // we're assuming the metadatas are stored at the top of the ass file
+         if (assline.length() > 0 && assline[0] != '#')
+            break;
+
+         if (assline.substr(0, 11) == "### bounds:")
+         {
+            assline = assline.substr(10);
+            char *str = new char[assline.length() + 1];
+            strcpy(str, assline.c_str());
+            strtok(str, " ");
+            double xmin = convertToFloat(strtok(NULL, " "));
+            double ymin = convertToFloat(strtok(NULL, " "));
+            double zmin = convertToFloat(strtok(NULL, " "));
+            double xmax = convertToFloat(strtok(NULL, " "));
+            double ymax = convertToFloat(strtok(NULL, " "));
+            double zmax = convertToFloat(strtok(NULL, " "));
+            
+            if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
+            {
+               MPoint min(xmin, ymin, zmin);
+               MPoint max(xmax, ymax, zmax);
+               geom->bbox = MBoundingBox(min, max);
+            } 
+            else
+               geom->bbox = MBoundingBox();
+
+            delete []str;
+            return true;
+         }
+      }
+      assfile.close();
+   }
+#endif
+
+
+   // if the ass file doesn't have any metadata (old file),
+   // then check the asstoc
+   MString fileBase = "";
    if(path_val.rindexW(".ass.gz") != -1)
    {
       fileBase = path_val.substringW(0, path_val.rindexW(".ass.gz") - 1);

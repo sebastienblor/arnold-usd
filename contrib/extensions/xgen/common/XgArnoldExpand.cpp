@@ -1283,33 +1283,45 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 {
    string strParentName = AiNodeGetName( m_node_face );
 
-    AtArray* knots = AiArrayAllocate( 7, 1, AI_TYPE_FLOAT );
-    float* pKnots = (float*)AiArrayMap(knots);
-    pKnots[0] = 0;
-    pKnots[1] = 0;
-    pKnots[2] = 0;
-    pKnots[3] = 2;
-    pKnots[4] = 4;
-    pKnots[5] = 4;
-    pKnots[6] = 4;
+   // Create a NURBS surface node for each card primitive. Properties are:
+   // #span = 1,1, #degree = 3,3, #CVs = 4x4, #knots = 8,8
+   // 
 
-    unsigned int cacheCount = pc->get( PC(CacheCount) );
-    unsigned int numSamples = pc->get( PC(NumMotionSamples) );
+   unsigned int cacheCount = pc->get( PC(CacheCount) );
+   unsigned int numSamples = pc->get( PC(NumMotionSamples) );
 
-    static bool s_bFirst = true;
-    if( !s_bFirst )
-       return;
-    s_bFirst = false;
-    for ( unsigned int j=0; j<cacheCount; j++ ) {
+   for (unsigned int j=0; j < cacheCount; j++)
+   {
       // Add the points.
       XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points.");
-      AtVector* pointPtr = (AtVector *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
 
-      AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
-      void *cvsData = AiArrayMap(cvs);
-      if (cvsData)
-         memcpy( cvsData, pointPtr, sizeof(AtVector)*16*numSamples );
+      // NURBS CVs : 16 * (x,y,z,w) in Arnold
+      float *cvsData = new float[16*4*numSamples]; 
 
+      for (unsigned int i=0; i<numSamples; i++)
+      {
+         // Offset to the i-th motion sample of the j-th primitive
+         const vec3* pointPtr = pc->get( PC(Points), i ) + j*16;
+         
+         float* cvsPtr = cvsData + i*16*4;
+
+         // Copy points to Arnold array for i-th motion sample
+         for ( int p = 0; p < 16; p++, pointPtr++ ) 
+         {
+             *cvsPtr++ = pointPtr->x;
+             *cvsPtr++ = pointPtr->y;
+             *cvsPtr++ = pointPtr->z;
+             *cvsPtr++ = 1.0f;
+         }      
+      }
+      AtArray *cvs = AiArrayConvert(16*4, numSamples, AI_TYPE_FLOAT, cvsData);
+
+      // NURBS knots : 1 (span) + 2 * 3 (degree) + 1 = 8 floats
+      AtArray* knotsU = AiArray( 8, 1, AI_TYPE_FLOAT,
+          0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f );
+      AtArray* knotsV = AiArray( 8, 1, AI_TYPE_FLOAT,
+          0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f );
+ 
       string strID = itoa( (int)m_nodes.size() );
 
       char buf[512];
@@ -1320,10 +1332,10 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AiNodeSetInt(nodeCard, "id", getHash(nodeCard ));
       AiNodeSetArray( nodeCard, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
 
-      AiNodeSetInt( nodeCard, "degree_u", 4 );
-      AiNodeSetInt( nodeCard, "degree_v", 4 );
-      AiNodeSetArray( nodeCard, "knots_u", AiArrayCopy( knots ) );
-      AiNodeSetArray( nodeCard, "knots_v", AiArrayCopy( knots ) );
+      AiNodeSetInt( nodeCard, "degree_u", 3 );
+      AiNodeSetInt( nodeCard, "degree_v", 3 );
+      AiNodeSetArray( nodeCard, "knots_u", knotsU );
+      AiNodeSetArray( nodeCard, "knots_v", knotsV );
       AiNodeSetArray( nodeCard, "cvs", cvs );
 
       // Transmitting parent node parameters to child nodes (#2752)
@@ -1342,7 +1354,6 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       // Keep our new nodes.
       m_nodes.push_back( nodeCard );
     }
-    AiArrayUnmap(knots);
 
 }
 

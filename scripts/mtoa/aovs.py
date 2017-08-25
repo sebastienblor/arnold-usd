@@ -7,6 +7,7 @@ import arnold.ai_params
 import maya.api.OpenMaya as om
 import pymel.versions as versions
 import maya.mel as mel
+import maya.cmds
 
 BUILTIN_AOVS = (
                 ('P',                   'vector'),
@@ -78,6 +79,24 @@ def nextAvailableIndex(attr):
             return lastIndex +1
         lastIndex = currIndex
     return lastIndex +1
+
+# Return a list of nreq free indices that do not appear in
+# the sorted list logIdxList
+def listAvailableIndices(logIdxList, nreq):
+    free = []
+    last = -1
+    for idx in logIdxList:
+        if idx > last+1:
+            rem = min(nreq-len(free), idx-(last+1))
+            if rem <= 0:
+                return free
+            for i in xrange(0, rem):
+                free.append(last+1+i)
+        last = idx
+    rem = nreq-len(free)
+    for i in xrange(0, rem):
+        free.append(last+1+i)
+    return free
 
 def getShadingGroupAOVMap(nodeAttr):
     '''
@@ -503,21 +522,23 @@ def createAliases(sg):
         if alias_list.exists() and not sg.listAliases() :
             print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg.name()
             alias_list.delete()
-        
-    aovList = getAOVs()
-    sgAttr = sg.aiCustomAOVs
+
+    aovList = getAOVNodes(True)
+    sgPlug = sg.name()+".aiCustomAOVs"
+    
+    sgLogIdx = maya.cmds.getAttr(sgPlug, mi=True) or []
+    s = set([maya.cmds.getAttr("%s[%d].aovName" % (sgPlug, i)) for i in sgLogIdx])
+    free = listAvailableIndices(sgLogIdx, len(aovList))
+    n = 0
     for aov in aovList:
-        exists = False
-        for at in sgAttr:
-            if at.aovName.get() == aov.name:
-                exists = True
-        if not exists:
-            i = nextAvailableIndex(sgAttr)
-            at = sgAttr[i]
-            at.aovName.set(aov.name)
-       
+        if aov[0] not in s:
+            maya.cmds.setAttr("%s[%d].aovName" % (sgPlug, free[n]), aov[0], typ="string")
+            n += 1
+
     if pm.referenceQuery(sg.name(), isNodeReferenced=True):
         return
+
+    sgAttr = sg.aiCustomAOVs
     for at in sgAttr:
         name = at.aovName.get()
         try:

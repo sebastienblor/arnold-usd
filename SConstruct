@@ -794,6 +794,7 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
 env.Install(env['TARGET_BINARIES'], dylibs)
+env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 
 OCIO_DYLIBPATH =""
 

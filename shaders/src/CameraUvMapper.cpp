@@ -142,6 +142,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       int gridSize = AiNodeGetInt(camera_node, "grid_size");
       float u_offset = AiNodeGetFlt(camera_node, "u_offset");
       float v_offset = AiNodeGetFlt(camera_node, "v_offset");
+      AtString uv_set = AiNodeGetStr(camera_node, "uv_set");
       float u_scale = AiNodeGetFlt(camera_node, "u_scale");
       float v_scale = AiNodeGetFlt(camera_node, "v_scale");
       mGrid = new Grid2DAccel(gridSize);
@@ -167,16 +168,17 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 
       unsigned int triangleIndex = 0;
       unsigned int vertexIndex = 0;
-      bool no_uvs = false;
+      bool no_uvs = true;
+
 
       // looping over triangles in (subdivided/displaced) mesh
       while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
       {
-         if (!AiShaderGlobalsGetVertexUVs(sg, AtString(""), uv))
+         if (!AiShaderGlobalsGetVertexUVs(sg, uv_set, uv))
          {
+
             // If I don't have any UVs, how can I ever render this as a texture ?
             // let's skip this polygon, hoping other ones will have UVs
-            no_uvs = true;
             sg->fi = ++triangleIndex;
             continue;
          }
@@ -212,6 +214,8 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
             // let's assign the same geometric normal to 3 vertices
             localNormal[1] = localNormal[2] = localNormal[0];
          }
+         no_uvs = false;
+
          mTriangles.push_back(BakeTriangle(vertexIndex, vertexIndex + 1, vertexIndex + 2));
 
          // Please God forgive me for duplicating the vertices at each triangle :-/
@@ -249,7 +253,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       }
 
       AiShaderGlobalsDestroy(sg);
-      if (triangleIndex == 0)
+      if (triangleIndex == 0 || no_uvs)
       {
          std::string errLog = "CameraUvMapper : Polymesh";
          errLog += AiNodeGetName(node);
@@ -258,6 +262,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          else         errLog += "is empty or hasn't been properly initialized";
 
          AiMsgError("%s", errLog.c_str());
+
       }
    }
    else
@@ -277,9 +282,9 @@ node_parameters
    AiParameterInt("grid_size", 16);
    AiParameterFlt("u_offset", 0.0f);
    AiParameterFlt("v_offset", 0.0f);
+   AiParameterStr("uv_set", "");
    AiParameterFlt("u_scale", 1.0f);
    AiParameterFlt("v_scale", 1.0f);
-   
 
    AiMetaDataSetStr(nentry, NULL, "_synonym", "cameraUvMapper");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiCameraUvMapper");

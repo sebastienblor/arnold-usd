@@ -2113,23 +2113,29 @@ def changeArnoldMelCallbacks(control, attr):
     oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    val = pm.textFieldGrp(control, query=True, text=True)
+    val = pm.scrollField(control, query=True, text=True)
     pm.setAttr(attr, val, type="string")
 
     pm.setParent(oldParent)
 
 
 def updateArnoldMelCallbacks(*args):
+    for attr in ['preMel','postMel','preRenderLayerMel', 'postRenderLayerMel', 'preRenderMel', 'postRenderMel']:
+        control = attr + 'SwGrp'
+        plug = 'defaultRenderGlobals.' + attr
+        updateArnoldMelCallback(control, plug)
 
-    oldParent = pm.setParent(query=True)
-    setParentToArnoldCommonTab()
 
-    pm.textFieldGrp('preRenderLayerMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.preRenderLayerMel'))
-    pm.textFieldGrp('postRenderLayerMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.postRenderLayerMel'))
-    pm.textFieldGrp('preRenderMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.preRenderMel'))
-    pm.textFieldGrp('postRenderMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.postRenderMel'))
+def updateArnoldMelCallback(control, attr):
+  oldParent = pm.setParent(query=True)
+  setParentToArnoldCommonTab()
 
-    pm.setParent(oldParent)
+  value = pm.getAttr(attr)
+  if value is None:
+      value = ''
+  
+  pm.scrollField(control, edit=True, text=value)
+  pm.setParent(oldParent)
 
 
 # ----------------------------------------------------------------------------
@@ -2142,56 +2148,35 @@ def createArnoldCommonRenderOptions():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-
     pm.columnLayout(adjustableColumn=True)
+    pm.separator(style='none', height=10)
 
-    pm.attrControlGrp('preMelSwGrp',
-                        attribute='defaultRenderGlobals.preMel',
-                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderMEL"),
-                        preventOverride=True)
-
-    pm.attrControlGrp('postMelSwGrp',
-                        attribute='defaultRenderGlobals.postMel',
-                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderMEL"),
-                        preventOverride=True)
-
-    pm.textFieldGrp('preRenderLayerMelSwGrp',
-                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderLayerMEL"),
-                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "preRenderLayerMelSwGrp", "defaultRenderGlobals.preRenderLayerMel"))
-
-    pm.textFieldGrp('postRenderLayerMelSwGrp',
-                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderLayerMEL"),
-                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "postRenderLayerMelSwGrp", "defaultRenderGlobals.postRenderLayerMel"))
-
-    pm.textFieldGrp('preRenderMelSwGrp',
-                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderFrameMEL"),
-                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "preRenderMelSwGrp", "defaultRenderGlobals.preRenderMel"))
-
-    pm.textFieldGrp('postRenderMelSwGrp',
-                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderFrameMEL"),
-                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "postRenderMelSwGrp", "defaultRenderGlobals.postRenderMel"))
-
-    pm.connectControl('preRenderLayerMelSwGrp', 'defaultRenderGlobals.preRenderLayerMel', index=1)
-    pm.connectControl('postRenderLayerMelSwGrp', 'defaultRenderGlobals.postRenderLayerMel', index=1)
-    pm.connectControl('preRenderMelSwGrp', 'defaultRenderGlobals.preRenderMel', index=1)
-    pm.connectControl('postRenderMelSwGrp', 'defaultRenderGlobals.postRenderMel', index=1)
-
-    if pm.about(evalVersion=True):
-        pm.attrControlGrp('preMelSwGrp', e=True, enable=False)
-        pm.attrControlGrp('postMelSwGr', e=True, enable=False)
-        pm.textFieldGrp('preRenderLayerMelSwGrp', e=True, enable=False)
-        pm.textFieldGrp('postRenderLayerMelSwGrp', e=True, enable=False)
-        pm.textFieldGrp('preRenderMelSwGrp', e=True, enable=False)
-        pm.textFieldGrp('postRenderMelSwGrp', e=True, enable=False)
-
-    updateArnoldMelCallbacks()
+    def makeMelRenderCB(attr, ui, scriptJob=False):
+        plug = 'defaultRenderGlobals.' + attr
+        pm.text(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab." + ui))
+        control = attr + 'SwGrp'
+        pm.scrollField(control,
+                       preventOverride=True,
+                       height=50,
+                       changeCommand=pm.Callback(changeArnoldMelCallbacks,
+                                                 control,
+                                                 plug))
+        updateArnoldMelCallback(control, plug)
+  
+        pm.scriptJob(parent=parent,
+                     attributeChange=(plug, Callback(updateArnoldMelCallback,
+                                                     control, plug)))
 
     # Set up script jobs for those attributes which require updating of
     # multiple controls.
     # This is especially important when a user changes render layers.
-    for attr in ['preRenderLayerMel', 'preRenderLayerMel', 'preRenderMel', 'postRenderMel']:
-        plug = 'defaultRenderGlobals.' + attr
-        pm.scriptJob(parent = pm.setParent(query=True), attributeChange=(plug, updateArnoldMelCallbacks))
+    for attr, ui, scriptJob in [ ('preMel', 'kPreRenderMEL', False),
+                                 ('postMel', 'kPostRenderMEL', False),
+                                 ('preRenderLayerMel', 'kPreRenderLayerMEL', True),
+                                 ('postRenderLayerMel', 'kPostRenderLayerMEL', True),
+                                 ('preRenderMel', 'kPreRenderFrameMEL', True),
+                                 ('postRenderMel', 'kPostRenderFrameMEL', True)]:
+        makeMelRenderCB(attr, ui, scriptJob)
 
     pm.setParent(parent)
     pm.setUITemplate(popTemplate=True)

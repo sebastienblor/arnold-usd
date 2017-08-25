@@ -95,6 +95,7 @@ MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_export_all_shading_groups;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
+MObject CArnoldOptionsNode::s_postTranslationCallback;
 MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
 MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
 MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
@@ -587,6 +588,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Disable Load", 3);
    eAttr.setDefault(0);
    addAttribute(s_enable_standin_draw);
+
+   s_postTranslationCallback = tAttr.create("PostTranslation", "post_translation", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_postTranslationCallback);
 
    s_IPRRefinementStartedCallback = tAttr.create("IPRRefinementStarted", "ipr_refinement_started", MFnData::kString);
    tAttr.setKeyable(false);
