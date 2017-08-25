@@ -226,7 +226,7 @@ AtBBox CRenderSession::GetBoundingBox()
    {
       // FIXME: we need to start a render to have it actually initialize the bounding box
       // (in free mode, does nothing but setting the scene up for future ray requests)
- //     AiRender(AI_RENDER_MODE_FREE);
+      AiRender(AI_RENDER_MODE_FREE);
       bbox = AiUniverseGetSceneBounds();
    }
    else
@@ -604,7 +604,9 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
       // Now save the metadata
       AtMetadataStore *mds = AiMetadataStore();
 
-      AtBBox bBox = GetBoundingBox();
+      // FIXME this will return an empty box as there is no active scene.
+      // Calling GetBoundingBox will crash (see #3108)
+      AtBBox bBox = AiUniverseGetSceneBounds();//GetBoundingBox();
       MString boundsStr;
       boundsStr += bBox.min.x;
       boundsStr += " ";

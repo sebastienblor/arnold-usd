@@ -668,7 +668,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
    MString path_val = geom->filename;
 
 //#define STANDIN_USE_METADATA
-
+/* FIXME Commenting all this because of the issues described in #3108
 #ifdef STANDIN_USE_METADATA
    if (AiMetadataStoreLoadFromASS(mds, path_val.asChar()) && 
        AiMetadataStoreGetStr(mds, AtString("bounds"), &boundsStr))
@@ -742,7 +742,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
       assfile.close();
    }
 #endif
-
+*/
 
    // if the ass file doesn't have any metadata (old file),
    // then check the asstoc
