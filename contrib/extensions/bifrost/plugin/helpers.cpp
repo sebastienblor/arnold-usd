@@ -12,15 +12,9 @@ MAttrData& MAttrData::setup(const char* longName, const char* shortName, T value
    this->shortName = shortName;
    hasMin = hasMax = hasSoftMin = hasSoftMax = false;
    type = AI_TYPE_UNDEFINED;
-   return setDefault(value);
+   return setDefault(value); 
 }
 
-template MAttrData& MAttrData::setup(const char* longName, const char* shortName, float value);
-template MAttrData& MAttrData::setup(const char* longName, const char* shortName, int value);
-template MAttrData& MAttrData::setup(const char* longName, const char* shortName, MString value);
-template MAttrData& MAttrData::setup(const char* longName, const char* shortName, bool value);
-template MAttrData& MAttrData::setup(const char* longName, const char* shortName, AtVector value);
-template MAttrData& MAttrData::setup(const char* longName, const char* shortName, std::initializer_list<const char*> value);
 
 void MAttrData::makeInput(){
    switch(type){
@@ -108,5 +102,12 @@ template<> MAttrData& MAttrData::setMin<int>  (int min)  {
    this->min.INT() = min;
    return *this;
 }
+
+template MAttrData& MAttrData::setup(const char* longName, const char* shortName, float value);
+template MAttrData& MAttrData::setup(const char* longName, const char* shortName, int value);
+template MAttrData& MAttrData::setup(const char* longName, const char* shortName, MString value);
+template MAttrData& MAttrData::setup(const char* longName, const char* shortName, bool value);
+template MAttrData& MAttrData::setup(const char* longName, const char* shortName, AtVector value);
+template MAttrData& MAttrData::setup(const char* longName, const char* shortName, std::initializer_list<const char*> value);
 
 }
