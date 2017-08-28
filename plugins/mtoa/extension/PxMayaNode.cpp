@@ -12,7 +12,7 @@
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
 #include "nodes/shader/ArnoldStandardHairNode.h"
 #include "nodes/ArnoldNodeIDs.h"
-
+#include "utils/MtoaLog.h"
 #include <ai_metadata.h>
 
 // A Maya node class proxy
@@ -292,7 +292,8 @@ void CPxMayaNode::RegisterAOV(const MString &aovName,
    data.attribute = aovAttr;
    data.name = aovName;
    data.type = dataType;
-   AiMsgDebug("[mtoa] [%s] [node %s] Registered AOV \"%s\"",
-             provider.asChar(), name.asChar(), aovName.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+provider+"] [node "+name+"] Registered AOV \""+aovName+"\"");
+   
    m_aovs.push_back(data);
 }

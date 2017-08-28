@@ -5,6 +5,7 @@
 #include "translators/camera/ImagePlaneTranslator.h"
 
 #include "utils/MayaUtils.h"
+#include "utils/MtoaLog.h"
 
 #include <ai_universe.h>
 #include <ai_msg.h>
@@ -75,8 +76,6 @@ void COptionsTranslator::ProcessAOVs()
       m_aovs.insert(aov);
    }
 
-   if (!m_aovsEnabled)
-      AiMsgDebug("[mtoa] [aovs] disabled");
 }
 
 /// Set the filenames for all output drivers
@@ -109,7 +108,8 @@ void COptionsTranslator::ExportAOVs()
          if (GetOutput(pDisplays[i], pFilter, output))
             globalOutputs.push_back(output);
       }
-      AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", name.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] [aov "+name+"] Setting AOV output: filter and driver.");
 
       GetOutputArray(*it, aovData.outputs);
 
@@ -444,7 +444,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                sprintf(str, "%s %s %s %s", aovName.asChar(), AiParamGetTypeName(aovData.type),
                        AiNodeGetName(output.filter), AiNodeGetName(output.driver));
             }
-            AiMsgDebug("[mtoa] [aov %s] output line: %s", aovName.asChar(), str);
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa] [aov "+aovName+"] output line: "+MString(str));
 
             outputs.append(MString(str));
 
@@ -775,11 +776,6 @@ void COptionsTranslator::Export(AtNode *options)
             {
                ProcessParameter(options, paramName, AiParamGetType(paramEntry), plug);
             }
-            else
-            {
-               // AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
-               //      GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
-            }
          }
       }
    }
@@ -892,8 +888,7 @@ void COptionsTranslator::Export(AtNode *options)
          AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
          AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
          AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
-
-         //AiMsgInfo("Exporting overscan : %f %f %f %f", overscanL, overscanT, overscanB, overscanR);
+         
       }
    }
 

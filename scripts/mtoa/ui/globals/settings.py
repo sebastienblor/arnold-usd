@@ -1186,7 +1186,11 @@ def createArnoldLogSettings():
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
     pm.setParent('..')
-
+    pm.checkBoxGrp('mtoa_translation_info',
+                    label='MtoA Translation Info')
+    pm.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=1)
+    pm.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=2)
+    
     pm.setUITemplate(popTemplate=True)
     
 def createArnoldErrorHandlingSettings():

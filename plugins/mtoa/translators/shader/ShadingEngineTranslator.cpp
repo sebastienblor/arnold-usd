@@ -2,6 +2,7 @@
 #include "ShadingEngineTranslatorImpl.h"
 #include "../DagTranslator.h"
 #include "scene/MayaScene.h"
+#include "utils/MtoaLog.h"
 
 CShadingEngineTranslator::~CShadingEngineTranslator()
 {
@@ -83,7 +84,8 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    if (connections.length() == 0)
    {
       shaderPlug = FindMayaPlug("surfaceShader");
-      AiMsgDebug("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug %s", shaderPlug.name().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug "+ shaderPlug.name());
       shaderPlug.connectedTo(connections, true, false);
    }
    if (connections.length() > 0)
@@ -142,7 +144,8 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    if (connections.length() == 0)
    {
       volumeShaderPlug = FindMayaPlug("volumeShader");
-      AiMsgDebug("[mtoa] CShadingEngineTranslator::Export found volumeShader plug %s", volumeShaderPlug.name().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found volumeShader plug "+ volumeShaderPlug.name());
       volumeShaderPlug.connectedTo(connections, true, false);
    }
    if (connections.length() > 0)

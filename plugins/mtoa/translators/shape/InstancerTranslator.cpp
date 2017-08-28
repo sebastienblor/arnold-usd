@@ -2,6 +2,7 @@
 #include <maya/MFnDagNode.h>
 #include <scene/MayaScene.h>
 #include "utils/time.h"
+#include "utils/MtoaLog.h"
 
 
 
@@ -156,8 +157,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    if (particleShape.apiType() == MFn::kParticle || particleShape.apiType() == MFn::kNParticle )
    {
       m_fnParticleSystem.setObject(particleShape);
-      AiMsgDebug("[mtoa] Instancer %s for particle instancer %s exporting instances for step %i",
-            m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), step);
+      if (MtoaTranslationInfo())
+      {
+         MString log = "[mtoa] Instancer "+m_fnMayaInstancer.partialPathName()+" for particle instancer "+m_fnParticleSystem.partialPathName()+" exporting instances for step ";
+         log += step;
+         MtoaDebugLog(log);
+      }
       m_fnParticleSystem.particleIds(partIds);
       m_fnParticleSystem.velocity(velocities);
       
@@ -561,13 +566,26 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                }
             }
          }
-         AiMsgDebug("[mtoa] Instancer %s export for particle system %s found a %i new particles for step %i",
-                  m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
+         if (MtoaTranslationInfo())
+         {
+            MString log = "[mtoa] Instancer "+m_fnMayaInstancer.partialPathName()+" export for particle system "+m_fnParticleSystem.partialPathName()+" found a ";
+            log += newParticleCount;
+            log += " new particles for step ";
+            log += step;
+            MtoaDebugLog(log);
+         }
       }
       if ((!m_vec_matrixArrays.empty()) && tempMap.size() > 0)
       {
-         AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
-            m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
+         if (MtoaTranslationInfo())
+         {
+            MString log = "[mtoa] Instancer "+m_fnMayaInstancer.partialPathName()+" export for particle system "+m_fnParticleSystem.partialPathName()+" found ";
+            log += (int)tempMap.size();
+            log += " particles that died for step ";
+            log += step;
+            log += ", computing velocity...";
+            MtoaDebugLog(log);
+         }
 
          int previousStep = step - 1;
          if (previousStep < 0)

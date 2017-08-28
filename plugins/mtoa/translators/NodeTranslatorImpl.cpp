@@ -40,7 +40,7 @@
 
 #include <ai_universe.h>
 #include <assert.h>
-
+#include "utils/MtoaLog.h"
 #include "utils/time.h"
 
 #ifdef _DEBUG
@@ -59,20 +59,23 @@ AtNode* CNodeTranslatorImpl::DoExport()
    m_isExported = false; 
    if (node == NULL)
    {
-      AiMsgDebug("[mtoa.translator]  %-30s | Export requested but no Arnold node was created by this translator (%s)",
-                   m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | Export requested but no Arnold node was created by this translator ("+ m_tr.GetTranslatorName() +")");
+                    
       return NULL;
    }
    if (m_overrideSetsDirty) ExportOverrideSets();
 
    if (!m_session->IsExportingMotion())
    {
-      if (outputAttr != "")
-         AiMsgDebug("[mtoa.translator]  %-30s | Exporting on plug %s (%s)",
-                    m_tr.GetMayaNodeName().asChar(), outputAttr.asChar(), m_tr.GetTranslatorName().asChar());
-      else
-         AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
-                    m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
+      if (MtoaTranslationInfo())
+      {
+         if (outputAttr != "")
+            MtoaDebugLog("[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | Exporting on plug "+outputAttr+" ("+m_tr.GetTranslatorName()+")");
+         else
+            MtoaDebugLog("[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | Exporting ("+m_tr.GetTranslatorName()+")");
+                       
+      }
 
       ComputeAOVs();
       m_tr.Export(node);
@@ -81,13 +84,13 @@ AtNode* CNodeTranslatorImpl::DoExport()
    }
    else if (m_tr.RequiresMotionData())
    {
-      if (outputAttr != "")
-         AiMsgDebug("[mtoa.translator]  %-30s | Exporting Motion on plug %s (%s)",
-                    m_tr.GetMayaNodeName().asChar(), outputAttr.asChar(), m_tr.GetTranslatorName().asChar());
-      else
-         AiMsgDebug("[mtoa.translator]  %-30s | Exporting Motion (%s)",
-                    m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
-
+      if (MtoaTranslationInfo())
+      {
+         if (outputAttr != "")
+            MtoaDebugLog("[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | Exporting Motion on plug "+outputAttr+" ("+m_tr.GetTranslatorName()+")");
+         else
+            MtoaDebugLog("[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | Exporting Motion ("+m_tr.GetTranslatorName()+")");
+      }
       m_tr.ExportMotion(node);
    }
 
@@ -105,15 +108,14 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
    
    if (node == NULL)
    {
-      AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
-                   m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
       return NULL;
    }
    
-   AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
-              m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar(),
-              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-              node);
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | "+
+         m_tr.GetTranslatorName()+": Updating Arnold "+MString(AiNodeGetName(node))+
+         "("+MString(AiNodeEntryGetName(AiNodeGetNodeEntry(node)))+")");
+              
 
    if (m_overrideSetsDirty) ExportOverrideSets();
 
@@ -186,11 +188,7 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    if (m_atRoot == NULL)
       m_atRoot = m_atNode;
    
-   if (m_atNode == NULL)
-      AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
-            m_tr.GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
-
-   else if (AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(m_atNode)) == AI_NODE_SHAPE_PROCEDURAL)
+   if (m_atNode != NULL && (AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(m_atNode)) == AI_NODE_SHAPE_PROCEDURAL))
    {
       // FIXME : make sure we get rid of this once a DG is implemented in arnold
       
@@ -199,6 +197,44 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
       m_isProcedural = true;
       // need to register to arnold session, that will keep track of it
       m_session->RegisterProcedural(m_atNode, &m_tr);
+   }
+
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa.translator]  "+m_tr.GetMayaNodeName()+" ("+GetMayaNodeTypeName()+"): ";
+      if (m_isProcedural)
+         log += "Procedural ";
+
+      log += "Translator "+m_tr.GetTranslatorName();
+      if (m_atNode == NULL)
+         log += " didn't create any node";
+      else
+      {
+         log += " created arnold node ";
+         log += AiNodeGetName(m_atNode);
+         if (m_additionalAtNodes != NULL)
+         {
+            // note that the "root" m_atNode can be registered as a tagged node as well,
+            // so this should be double-checked in the counting here
+            int totalAdditionalNodes = 0;
+            unordered_map<std::string, AtNode*>::const_iterator it = m_additionalAtNodes->begin();
+            unordered_map<std::string, AtNode*>::const_iterator itEnd = m_additionalAtNodes->end();
+
+            for ( ; it != itEnd; ++it)
+            {
+               AtNode *node = it->second;
+               if (node != NULL && node != m_atNode)
+                  totalAdditionalNodes++;
+            }
+            if (totalAdditionalNodes > 0)
+            {
+               log += ", plus ";
+               log += totalAdditionalNodes;
+               log += " additional nodes";
+            }
+         }
+      }
+      MtoaDebugLog(log);
    }
 }
 
@@ -489,8 +525,13 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
       fnSet.setObject(overrideSetObjs[i]);
       m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
    }
-   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
-              m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar(), ns);
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa.translator]  "+m_tr.GetMayaNodeName()+" | "+m_tr.GetTranslatorName()+": Exported ";
+      log += ns;
+      log += " override sets.";
+      MtoaDebugLog(log);
+   }
 
    m_overrideSetsDirty = false;
    return status;
@@ -613,12 +654,16 @@ void CNodeTranslatorImpl::WriteAOVUserAttributes(AtNode* atNode)
 {
    if (m_upstreamAOVs.size() && AiNodeDeclare(atNode, "mtoa_aovs", "constant ARRAY STRING"))
    {
-      AiMsgDebug("[mtoa] [aovs] %s writing accumulated AOVs", m_tr.GetMayaNodeName().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] [aovs] "+m_tr.GetMayaNodeName()+" writing accumulated AOVs");
+
       AtArray *ary = AiArrayAllocate(m_upstreamAOVs.size(), 1, AI_TYPE_STRING);
       unsigned int i=0;
       for (AOVSet::iterator it=m_upstreamAOVs.begin(); it!=m_upstreamAOVs.end(); ++it)
       {
-         AiMsgDebug("[mtoa] [aovs]     %s", it->GetName().asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] [aovs]     "+it->GetName());
+         
          AiArraySetStr(ary, i, it->GetName().asChar());
          ++i;
       }

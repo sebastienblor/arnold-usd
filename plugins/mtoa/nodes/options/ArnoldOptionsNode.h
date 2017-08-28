@@ -94,6 +94,7 @@ public:
    static MObject s_log_filename;
    static MObject s_log_max_warnings;
    static MObject s_log_verbosity;
+   static MObject s_mtoa_translation_info;
 
    static MObject s_background;
    static MObject s_atmosphere;

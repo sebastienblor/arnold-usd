@@ -8,6 +8,7 @@
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
 #include "scene/MayaScene.h"
+#include "utils/MtoaLog.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -332,9 +333,8 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
    
    if (m_impl->m_session->IsExportingMotion() && m_impl->m_session->IsInteractiveRender()) return;
 
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: translator %s, providing Arnold %s(%s): %p",
-              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-              m_impl->GetArnoldNodeName(), m_impl->GetArnoldTypeName(), GetArnoldNode());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.translator.ipr] "+GetMayaNodeName()+" | NodeChanged: translator "+GetTranslatorName()+", providing Arnold "+m_impl->GetArnoldNodeName()+"("+m_impl->GetArnoldTypeName()+")");
 
    // name of the attribute that emitted a signal
    MString plugName = plug.partialName(false, false, false, false, false, true);
@@ -354,9 +354,7 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 // callbacks by default. Since this method is virtual - you can
 // add whatever callbacks you need to trigger a fresh.
 void CNodeTranslator::AddUpdateCallbacks()
-{
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add update callbacks for translator %p",
-      GetMayaNodeName().asChar(), GetTranslatorName().asChar(), this);
+{   
    MStatus status;
    MCallbackId id;
 
@@ -401,8 +399,8 @@ void CNodeTranslator::RegisterUpdateCallback(const MCallbackId id)
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 {
    MFnDependencyNode dnode(node);
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: plug that fired: %s, client data: %p.",
-         dnode.name().asChar(), plug.name().asChar(), clientData);
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.translator.ipr] "+dnode.name()+" | NodeDirtyCallback from plug "+ plug.name());
 
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
@@ -423,9 +421,8 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    if (translator != NULL)
    {
       translator->m_impl->SetArnoldNodeName(translator->GetArnoldNode());
-      AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: %p",
-                 translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 translator->GetArnoldNode());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr]  "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": NameChangedCallback");
    }
    else
    {
@@ -442,8 +439,9 @@ void CNodeTranslator::NodeAboutToBeDeletedCallback(MObject& node, MDGModifier& m
    CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Node deleted, deleting processed translator instance, client data: %p.",
-                 translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), clientData);
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": Node deleted, deleting processed translator instance");
+                 
 
       // we're now always requesting an update when a node is deleted
 //      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
@@ -488,11 +486,6 @@ void CNodeTranslator::RequestUpdate()
    // we're changing the frame to evaluate motion blur, so we don't want more 
    // updates now
    if (m_impl->m_session->IsInteractiveRender() && m_impl->m_session->IsExportingMotion()) return;
-
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
-              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-              m_impl->GetArnoldNodeName(), m_impl->GetArnoldTypeName(), GetArnoldNode());
-
 
    m_impl->m_session->QueueForUpdate(this);   
 
@@ -942,9 +935,10 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       MFnDependencyNode fnNode(GetMayaObject());
       if (helper.IsHidden(arnoldParamName))
       {
-         AiMsgDebug("[mtoa.translator]  %s: Parameter %s is hidden on Arnold node %s(%s).",
-            GetTranslatorName().asChar(), arnoldParamName,
-            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa.translator]  "+GetTranslatorName()+": Parameter "+
+                        arnoldParamName+" is hidden on Arnold node "+MString(AiNodeGetName(arnoldNode))+
+                        "("+MString(AiNodeEntryGetName(arnoldNodeEntry))+").");
          return NULL;
       }
 

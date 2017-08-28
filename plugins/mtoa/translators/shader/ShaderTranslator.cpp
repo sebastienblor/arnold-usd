@@ -7,6 +7,7 @@
 #include <maya/MFnCompoundAttribute.h>
 
 #include "common/UnorderedContainer.h"
+#include "utils/MtoaLog.h"
 
 static unordered_map<CShaderTranslator *, int> s_bump_instances;
 size_t s_bump_instance_count = 0;
@@ -55,8 +56,9 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    MString nodeType = GetAOVNodeType(outType);
    if (!nodeType.numChars())
    {
-      AiMsgDebug("[mtoa] Shader %s does not output a supported AOV data type",
-                   GetMayaNodeName().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Shader "+GetMayaNodeName()+" does not output a supported AOV data type");
+                   
       return shader;
    }
    unordered_map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
@@ -108,8 +110,9 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
    {
       const char* aovName = it->first.c_str();
-      AiMsgDebug("[mtoa.translator.aov] %-30s | adding AOV write node for \"%s\"",
-                 GetMayaNodeName().asChar(), aovName);
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.aov] "+GetMayaNodeName()+" | adding AOV write node for \""+MString(aovName)+"\"");
+                 
       AtNode* writeNode = AddArnoldNode(nodeType.asChar(), aovName);
 
       AiNodeSetStr(writeNode, "aov_name", aovName);

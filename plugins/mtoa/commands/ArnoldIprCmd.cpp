@@ -2,7 +2,7 @@
 #include "ArnoldIprCmd.h"
 #include "scene/MayaScene.h"
 #include "render/OutputDriver.h"
-
+#include "utils/MtoaLog.h"
 #include <ai_universe.h>
 
 #include <maya/MGlobal.h>
@@ -135,8 +135,10 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Same deal for the camera.
       MDagPath camera = CMayaScene::GetRenderSession()->GetCamera();
       MString panel = CMayaScene::GetRenderSession()->GetRenderViewPanelName();
-      AiMsgDebug ("[mtoa] IPR refresh using last rendered camera '%s' in panel '%s'",
-                  camera.partialPathName().asChar(), panel.asChar());
+
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] IPR refresh using last rendered camera '"+camera.partialPathName()+"' in panel '"+panel+"'");
+                  
 
       // End and restart a new render session re-using saved resolution and camera
       CMayaScene::End();

@@ -173,10 +173,10 @@ class MakeTxThread (threading.Thread):
             
             if (status[i] == AiTxUpdated):
                 self.filesCreated += 1
-                AiMsgInfo("%d: %s was updated", i, source_files[i])
+                AiMsgInfo("[mtoa.tx] %d: %s was updated", i, source_files[i])
             elif (status[i] == AiTxError):
                 self.createdErrors += 1
-                AiMsgInfo("%d: %s could not be updated", i, source_files[i])
+                AiMsgWarning("[mtoa.tx] %d: %s could not be updated", i, source_files[i])
             
 
             # need to invalidate the TX texture from the cache
@@ -771,10 +771,10 @@ def UpdateAllTx(force):
        
         if (status[i] == AiTxUpdated):
             filesCreated += 1
-            AiMsgInfo("%d: %s was updated", i, source_files[i])
+            AiMsgInfo("[mtoa.tx] %d: %s was updated", i, source_files[i])
         elif (status[i] == AiTxError):
             createdErrors += 1
-            AiMsgError("%d: %s could not be updated", i, source_files[i])
+            AiMsgError("[mtoa.tx] %d: %s could not be updated", i, source_files[i])
 
         # need to invalidate the TX texture from the cache
         outputTx = os.path.splitext(source_files[i])[0] + '.tx'

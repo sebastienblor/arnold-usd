@@ -117,7 +117,8 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
    }
    else
    {
-      AiMsgInfo("[mtoa] There is already an extension of name %s", file.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] There is already an extension of name " + file);
    }
 
    if (NULL != returnStatus) *returnStatus = status;
@@ -173,18 +174,23 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
 
    if (MStatus::kSuccess == status)
    {
-      AiMsgDebug("[mtoa.ext]  Found extension file %s as %s.", file.asChar(), resolved.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.ext]  Found extension file "+file+" as "+resolved);
+
       // Create a CExtension to represent loaded extension
       // TODO : store Library handle for unload
       while (NULL == extension)
       {
          extension = NewExtension(resolved);
-         AiMsgInfo("[mtoa] Loading extension %s(%s).", extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] Loading extension "+ extension->GetExtensionName() +"("+extension->GetExtensionFile()+").");
 
          void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
          if (pluginLib == NULL)
          {
-            AiMsgDebug("[mtoa] Error loading extension library: %s.", LibraryLastError());
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa] Error loading extension library: "+ MString(LibraryLastError()));
+
             DeleteExtension(extension);
             status = MStatus::kFailure;
             break;
@@ -193,7 +199,9 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
          if (initializer == NULL)
          {
-            AiMsgDebug("[mtoa] Error initializing extension library: %s.", LibraryLastError());
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa] Error initializing extension library: " + MString(LibraryLastError()));
+
             LibraryUnload(pluginLib);
             DeleteExtension(extension);
             status = MStatus::kFailure;
@@ -217,13 +225,26 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             unsigned int trsNodes = extension->TranslatedNodesCount();
             unsigned int trsCount = extension->TranslatorCount();
 
-            AiMsgInfo("[mtoa] [%s] Declares a total of %i new Maya nodes.",
-                  extension->GetExtensionName().asChar(), newNodes);
-            AiMsgInfo("[mtoa] [%s] Declares a total of %i translators for %i Maya nodes (%i new and %i existing).",
-                  extension->GetExtensionName().asChar(), trsCount, trsNodes, newNodes, trsNodes - newNodes);
+            if (MtoaTranslationInfo())
+            {
+               MString log = "[mtoa] ["+ extension->GetExtensionName()+" declares a total of ";
+               log += newNodes;
+               log += " new Maya nodes.";
+               MtoaDebugLog(log);
 
-            AiMsgInfo("[mtoa] Successfully loaded extension library %s(%s).",
-                  extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+               log = "[mtoa] [" + extension->GetExtensionName() + " declares a total of ";
+               log += trsCount;
+               log += " translators for ";
+               log += trsNodes;
+               log += " Maya nodes (";
+               log += newNodes;
+               log += " new and ";
+               log += (trsNodes - newNodes);
+               log += " existing).";
+               MtoaDebugLog(log);
+
+               MtoaDebugLog("[mtoa] Successfully loaded extension library " + extension->GetExtensionName() + "("+extension->GetExtensionFile() +")");
+            }
          }
          else
          {
@@ -268,7 +289,8 @@ MStatus CExtensionsManager::LoadExtensions(const MString &path)
          }
          else
          {
-            AiMsgDebug("[mtoa.ext]  MtoA extension %s already loaded, ignored.", resolved.asChar());
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa.ext]  MtoA extension "+resolved+" already loaded, ignored.");
          }
       }
    }
@@ -282,8 +304,8 @@ MStatus CExtensionsManager::UnloadExtension(CExtension* extension)
    MStatus status = DoUnloadExtension(extension);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("[mtoa] Unloaded extension %s(%s).",
-         extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Unloaded extension "+extension->GetExtensionName()+"("+extension->GetExtensionFile()+").");         
       // Remove from list
       status = DeleteExtension(extension);
    } 
@@ -300,8 +322,8 @@ MStatus CExtensionsManager::DoUnloadExtension(CExtension* extension)
 
    MString extensionName = extension->GetExtensionName();
    MString extensionFile = extension->GetExtensionFile();
-   AiMsgDebug("[mtoa] Unloading extension %s(%s).",
-               extensionName.asChar(), extensionFile.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] Unloading extension "+extensionName+"("+extensionFile+").");
 
    if (extension->IsRegistered())
    {
@@ -384,8 +406,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    if (extension->IsRegistered())
    {
-      AiMsgInfo("[mtoa] Already registered extension %s, provided by %s.",
-            extName.asChar(), extFile.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Already registered extension "+extName+", provided by "+extFile);            
       return MStatus::kFailure;
    }
 
@@ -415,8 +437,9 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    // and register the new Maya nodes provided by this extension with Maya
 
    // Add all Maya nodes registered by this extension to the global set
-   AiMsgDebug("[mtoa.ext] [%s] Registering new Maya nodes provided by %s.",
-         extName.asChar(), extFile.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.ext] ["+extName+"] Registering new Maya nodes provided by "+extFile);
+
    const CPxMayaNode* mayaNode;
    const CPxMayaNode* existingMayaNode;
    MayaNodesSet::iterator rnodeIt;
@@ -429,10 +452,9 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       if (NULL != existingMayaNode)
       {
          // TODO : allow node overriding?
-         AiMsgInfo("[mtoa] [%s] Tried to replace Maya node %s, provided by %s(%s) with Maya node %s, provided by %s(%s).",
-               extName.asChar(),
-               mayaNode->name.asChar(), mayaNode->provider.asChar(), mayaNode->file.asChar(),
-               existingMayaNode->name.asChar(), existingMayaNode->provider.asChar(), existingMayaNode->file.asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] ["+extName+"] Tried to replace Maya node "+mayaNode->name+", provided by "+mayaNode->provider+"("+mayaNode->file+") with Maya node "+existingMayaNode->name+", provided by "+existingMayaNode->provider+"("+existingMayaNode->file+").");
+                
          status = MStatus::kFailure;
          continue;
       }
@@ -468,8 +490,9 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    // TODO currently translators can be overriden, including builting ones
    // do we want that or only allow to add new ones, or only to specialise
    // translators (overriding for subclasses of a node class only)
-   AiMsgDebug("[mtoa] [%s] Registering new translators provided by %s.",
-         extName.asChar(), extFile.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+extName+"] Registering new translators provided by "+extFile);
+
    MayaNodeToTranslatorsOldMap::iterator tnodeIt;
    for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
          tnodeIt != extension->m_impl->m_registeredTranslators.end();
@@ -498,24 +521,14 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             ret = oldTrans->insert(translator);
             if (true == ret.second)
             {
-               AiMsgDebug("[mtoa] [%s] [maya %s] Added translator %s to arnold %s, provided by %s(%s).",
-                     extName.asChar(),
-                     mayaNode->name.asChar(),
-                     translator.name.asChar(),
-                     translator.arnold.asChar(),
-                     translator.provider.asChar(), translator.file.asChar());
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Added translator "+translator.name+" to arnold "+translator.arnold+", provided by "+translator.provider+"("+translator.file+").");
             }
             else
             {
-               AiMsgDebug("[mtoa] [%s] [maya %s] Replaced translator %s to arnold %s, provided by %s(%s) with translator %s to arnold %s, provided by %s(%s).",
-                     extName.asChar(),
-                     mayaNode->name.asChar(),
-                     translator.name.asChar(),
-                     translator.arnold.asChar(),
-                     translator.provider.asChar(), translator.file.asChar(),
-                     ret.first->name.asChar(),
-                     ret.first->arnold.asChar(),
-                     ret.first->provider.asChar(), ret.first->file.asChar());
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Replaced translator "+translator.name+" to arnold "+translator.arnold+", provided by "+translator.provider+"("+translator.file+") with translator "+ret.first->name+" to arnold "+ret.first->arnold+", provided by "+ret.first->provider+"("+ret.first->file+").");
+
                oldTrans->erase(ret.first);
                oldTrans->insert(translator);
                // TODO : remove old additionnal attributes before we add new ones ?
@@ -523,12 +536,9 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             if (NULL != translator.initialize)
             {
                MString mayaName = mayaNode->name;
-               AiMsgDebug("[mtoa] [%s] [maya %s] Calling initialize function for translator %s to arnold %s, provided by %s(%s).",
-                     extName.asChar(),   
-                     mayaNode->name.asChar(),
-                     translator.name.asChar(),
-                     translator.arnold.asChar(),
-                     translator.provider.asChar(), translator.file.asChar());
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Calling initialize function for translator "+translator.name+" to arnold "+translator.arnold+", provided by "+translator.provider+"("+translator.file+").");
+                     
                translator.initialize(CAbTranslator(translator.name, translator.arnold, mayaNode->name, translator.provider));
             }
             regTrsCount++;
@@ -538,8 +548,9 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             CExtensionAttrHelper helper(mayaNode->name);
             if (helper.GetMayaNodeTypeId() != MTypeId(MFn::kInvalid))
             {
-               AiMsgDebug("[mtoa] [%s] [maya %s] Multiple translators, adding \"aiTranslator\" attribute to Maya node",
-                  extName.asChar(), mayaNode->name.asChar());
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Multiple translators, adding \"aiTranslator\" attribute to Maya node");
+                  
                CAttrData data;
                data.name = "aiTranslator";
                data.shortName = "ai_translator";
@@ -547,8 +558,9 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             } 
             else
             {
-               AiMsgDebug("[mtoa] [%s] [maya %s] Multiple translators, but inexistant Maya node type",
-                  extName.asChar(), mayaNode->name.asChar());
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa] ["+extName+"] [maya "+mayaNode->name+"] Multiple translators, but inexistant Maya node type");
+                  
             }
          }
       }
@@ -561,8 +573,16 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    if (regNewNodes == declNewNodes)
    {
-      AiMsgDebug("[mtoa] [%s] Successfully registered %i out of %i new Maya nodes it declares in %s.",
-         extName.asChar(), regNewNodes, declNewNodes, extFile.asChar());
+      if (MtoaTranslationInfo())
+      {
+         MString log ="[mtoa] ["+ extName+"] Successfully registered ";
+         log += regNewNodes;
+         log += " out of ";
+         log += declNewNodes;
+         log += " new Maya nodes it declares in ";
+         log += extFile;
+         MtoaDebugLog(log);
+      }
    }
    else
    {
@@ -571,8 +591,16 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    }
    if (regTrsCount == declTrsCount)
    {
-      AiMsgDebug("[mtoa] [%s] Successfully registered %i out of %i translators it declares in %s.",
-         extName.asChar(), regTrsCount, declTrsCount, extFile.asChar());
+      if (MtoaTranslationInfo())
+      {
+         MString log = "[mtoa] ["+extName+"] Successfully registered ";
+         log += regTrsCount;
+         log += " out of ";
+         log += declTrsCount;
+         log +=" translators it declares in ";
+         log += extFile;
+         MtoaDebugLog(log);
+      }
    }
    else
    {
@@ -583,7 +611,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    // Final status
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("[mtoa] Registered extension %s provided by %s.", extName.asChar(), extFile.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Registered extension "+extName+" provided by "+extFile);
 
       extension->m_impl->m_registered = true;
       extension->m_impl->m_deferred = false;
@@ -618,7 +647,14 @@ MStatus CExtensionsManager::RegisterExtensions()
    MStatus status = MStatus::kSuccess;
 
    // s_extensions is a std::list of extensions (ordered in load order)
-   AiMsgInfo("[mtoa] Registering %i loaded extensions:", (int)s_extensions.size());
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] Registering ";
+      log += (int)s_extensions.size();
+      log += "  loaded extensions";
+      MtoaDebugLog(log);
+   }
+
    ExtensionsList::iterator extIt;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
@@ -655,8 +691,9 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    MStatus status = MStatus::kSuccess;
 
    // Unregister all Maya nodes this extensions has registered
-   AiMsgDebug("[mtoa] Deregistering new Maya nodes provided by %s(%s).",
-         extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] Deregistering new Maya nodes provided by "+extension->GetExtensionName()+"("+extension->GetExtensionFile()+").");
+
    MayaNodesSet::iterator rnodeIt;
    rnodeIt = s_registeredMayaNodes.begin();
    while (rnodeIt != s_registeredMayaNodes.end())
@@ -679,8 +716,9 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    }
 
    // remove translators from the list
-   AiMsgDebug("[mtoa.ext]  Deregistering translators provided by %s(%s).",
-         extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.ext]  Deregistering translators provided by "+extension->GetExtensionName()+"("+extension->GetExtensionFile()+").");
+
    MayaNodeToTranslatorsOldMap::iterator tnodeIt;
    for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
          tnodeIt != extension->m_impl->m_registeredTranslators.end();
@@ -705,7 +743,9 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
 
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("[mtoa] Deregistered extension %s(%s).", extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Deregistered extension "+extension->GetExtensionName()+"("+ extension->GetExtensionFile()+").");
+
       extension->m_impl->m_registered = false;
    }
 
@@ -804,9 +844,9 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
    else
    {
       foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
-      AiMsgDebug("[mtoa.ext]  %s Using translator %s, provided by %s(%s).",
-         mayaNode.name.asChar(), foundTrs->name.asChar(),
-         foundTrs->provider.asChar(), foundTrs->file.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.ext]  "+mayaNode.name+" Using translator "+foundTrs->name+", provided by "+foundTrs->provider+"("+foundTrs->file+").");
+         
    }
 
    // Instanciate a new translator using proxy info
@@ -1128,9 +1168,9 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
 
    if (MFnPlugin::isNodeRegistered(mayaNode.name))
    {
-      AiMsgInfo("[mtoa] Cannot register already existing Maya node %s, provided by %s(%s).",
-            mayaNode.name.asChar(),
-            mayaNode.provider.asChar(), mayaNode.file.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Cannot register already existing Maya node "+mayaNode.name+", provided by "+mayaNode.provider+"("+mayaNode.file+").");
+            
       return MStatus::kFailure;
    }
    // Construct the abstract to store in the MPx class's static s_abstract member,
@@ -1157,9 +1197,9 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgDebug("[mtoa] Registered Maya node %s provided by %s(%s).",
-            mayaNode.name.asChar(),
-            mayaNode.provider.asChar(), mayaNode.file.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Registered Maya node "+mayaNode.name+" provided by "+mayaNode.provider +"("+mayaNode.file+").");
+            
    }
    else
    {
@@ -1186,9 +1226,9 @@ MStatus CExtensionsManager::DeregisterMayaNode(const CPxMayaNode &mayaNode)
    status = MFnPlugin(s_plugin).deregisterNode(mayaNode.id);
    if (MStatus::kSuccess == status)
    {
-      AiMsgDebug("[mtoa.ext]  Successfully deregistered node %s provided by %s(%s).",
-            mayaNode.name.asChar(),
-            mayaNode.provider.asChar(), mayaNode.file.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.ext]  Successfully deregistered node "+mayaNode.name+" provided by "+mayaNode.provider+"("+mayaNode.file+").");
+            
    }
    else
    {

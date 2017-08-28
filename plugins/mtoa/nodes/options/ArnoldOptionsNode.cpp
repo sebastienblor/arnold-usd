@@ -78,6 +78,7 @@ MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
 MObject CArnoldOptionsNode::s_log_verbosity;
+MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_atmosphereShader;
@@ -484,6 +485,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
    eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
+
+   s_mtoa_translation_info = nAttr.create("mtoa_translation_info", "mtrinf", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_mtoa_translation_info);
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);

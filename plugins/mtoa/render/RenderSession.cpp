@@ -411,7 +411,14 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
-      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA of %d AA", sampling, num_aa_samples);
+      if (MtoaTranslationInfo())
+      {
+         MString log = "[mtoa] Beginning progressive sampling at ";
+         log += sampling;
+         log += " AA of ";
+         log += num_aa_samples;
+         MtoaDebugLog(log);
+      }
       CMayaScene::ExecuteScript(IPRStepStarted, false, true);
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       CMayaScene::ExecuteScript(IPRStepFinished, false, true);
@@ -579,7 +586,8 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
    }
    else
    {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Exporting Maya scene to file \""+ fileName +"\"");
 
       // FIXME this is not the ideal place to set this, but given how renderOptions/sessionOptions are currently 
       // assembled, this is the best place to do it (#2995)

@@ -1,5 +1,6 @@
 #include "ParticleTranslator.h"
 #include "attributes/AttrHelper.h"
+#include "utils/MtoaLog.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
@@ -223,7 +224,12 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 {
    int renderType = m_fnParticleSystem.renderType();
    
-   AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName().asChar(), renderType);
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] Exporting particle system "+ m_fnParticleSystem.partialPathName() + " with particleType ";
+      log += renderType;
+      MtoaDebugLog(log);
+   }
    MStatus status;
 
    // Particle shape extra attributes
@@ -655,7 +661,13 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
 void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
 {
-   AiMsgDebug("[mtoa] Particle system %s exporting step %i", m_fnParticleSystem.partialPathName().asChar(), step);
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] Particle system "+m_fnParticleSystem.partialPathName()+" exporting step";
+      log += step;
+      MtoaDebugLog(log);
+   }
+
 
    int numParticles = m_fnParticleSystem.count();
 
@@ -821,16 +833,30 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
       }
    }
 
-   AiMsgDebug("[mtoa] Particle system %s export found %i new particles for step %i",
-      m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] Particle system "+m_fnParticleSystem.partialPathName()+" export found ";
+      log += newParticleCount;
+      log += " new particles for step ";
+      log += step;
+      MtoaDebugLog(log);
+   }
 
    // if we still have entries in tempMap, that means the particle died in this frameStep and we need to update
    // the value for position based on velocity only.. all other attributes, since they were copied over at the beginning
    // can just stay the same. This  seems faster than iterating thru every  particle attribute  again here...
    if (tempMap.size() > 0)
    {
-      AiMsgDebug("[mtoa] Particle system %s export found %i particles that died for step %i, computing velocity...",
-         m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
+
+      if (MtoaTranslationInfo())
+      {
+         MString log = "[mtoa] Particle system "+m_fnParticleSystem.partialPathName()+" export found ";
+         log +=  (int)tempMap.size();
+         log += " particles that died for step ";
+         log += step;
+         log += ", computing velocity...";
+         MtoaDebugLog(log);
+      }
 
       for (it = tempMap.begin(); it != tempMap.end(); it++)
       {
@@ -859,8 +885,13 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
 
 void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int step)
 {
-   AiMsgDebug("[mtoa] Particle system %s interpolating step %i", m_fnParticleSystem.partialPathName().asChar(), step);
-
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] Particle system "+m_fnParticleSystem.partialPathName()+" interpolating step ";
+      log += step;
+      MtoaDebugLog(log);
+   }
+   
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
@@ -913,8 +944,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    MDoubleArray*   spriteScaleYPP1 = new MDoubleArray;
 
    MStatus status;
-
-   AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName().asChar());
 
    MTime curTime = MAnimControl::currentTime();
 
@@ -1219,7 +1248,12 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    m_particleCount = (*m_out_positionArrays[0]).length();
 
-   AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName().asChar(), m_particleCount);
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] Writing particle system " + m_fnParticleSystem.partialPathName() + " count: ";
+      log += m_particleCount;
+      MtoaDebugLog(log);
+   }
 
    /// Finally set the  position and  radius/aspect values with their cache values minus Transform position
    AtVector a_v;
@@ -1334,8 +1368,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
       }// end m_particleIDMap  iteration
 
-      // CLEAN UP MEMORY
-      AiMsgDebug("[mtoa] Particle system %s export cleaning up memory.", m_fnParticleSystem.partialPathName().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Particle system "+ m_fnParticleSystem.partialPathName() +" export cleaning up memory.");
+      
       delete m_out_positionArrays[s];
       if (m_isSprite)
       {

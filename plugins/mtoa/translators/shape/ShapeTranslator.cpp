@@ -99,8 +99,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
    MString nodeType = helper.GetMayaNodeTypeName();
-   AiMsgDebug("[mtoa] Creating common Arnold shape attributes on Maya \"%s\" nodes", nodeType.asChar());
-
+   
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");
    helper.MakeInput("matte");

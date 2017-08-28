@@ -1,4 +1,5 @@
 #include "LightLinkerTranslator.h"
+#include "utils/MtoaLog.h"
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MSelectionList.h>
@@ -21,9 +22,9 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
    CLightLinkerTranslator * translator = static_cast< CLightLinkerTranslator* >(clientData);
    if (translator != NULL)
    {
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: LightLinkerAttributeChangedCallback %s to or from %s, attributeMessage %i, clientData %p.",
-                 translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 plug.name().asChar(), otherPlug.name().asChar(), msg, clientData);
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": LightLinkerAttributeChangedCallback "+plug.name()+" to or from "+otherPlug.name());
+
       // No need for full update when an object is added / removed from the linker
       // But needs a full update when a light is
       if (msg & (MNodeMessage::kConnectionMade | MNodeMessage::kConnectionBroken))
@@ -86,22 +87,18 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
             } // else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
             else
             {
-               AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Connection made or broken on %s->%s is ignored.",
-                          translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                          otherPlug.name().asChar(), plug.name().asChar());
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa.translator.ipr] "+ translator->GetMayaNodeName()+"| "+
+                     translator->GetTranslatorName()+": Connection made or broken on "+otherPlug.name()+"->"+plug.name()+" is ignored.");
             }
          }
          else
          {
-            AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Not an incoming connection on %s, ignored.",
-                          translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": Not an incoming connection on "+plug.name()+", ignored.");
          }
       }
-      else
-      {
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Not a made or broken on %s, ignored.",
-                    translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
-      }
+
    }
    else
    {
@@ -114,8 +111,6 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
 /// Sets have extra specific callback addLightLinkerAttributeChangedCallback
 void CLightLinkerTranslator::AddUpdateCallbacks()
 {
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add update callbacks on translator %p",
-         GetMayaNodeName().asChar(), GetTranslatorName().asChar(), this);
    MStatus status;
    MCallbackId id;
 
@@ -157,8 +152,9 @@ void CLightLinkerTranslator::RequestUpdate()
    const CSessionOptions &options = GetSessionOptions();
 
    // Update means all members should be updated
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate for light linker updates all objects in light linker.",
-              GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.translator.ipr] "+GetMayaNodeName()+" | "+GetTranslatorName()+": RequestUpdate for light linker updates all objects in light linker.");
+
    MFnDependencyNode fnDep(GetMayaObject());
 
    MSelectionList list;
