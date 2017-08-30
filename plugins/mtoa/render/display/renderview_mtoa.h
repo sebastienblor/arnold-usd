@@ -100,8 +100,11 @@ public:
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
+
 #if MAYA_API_VERSION >= 201900
-   static MColor ColorPickingCallback(QWidget*, QWidget*, const QPoint&, bool);
+   class CustomCallback;
+   CustomCallback* m_colorPickingCallback;
+   MColor ColorPickingCallback(QWidget*, QWidget*, const QPoint&, bool);
 #endif
 
    MCallbackId m_rvSelectionCb;

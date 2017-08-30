@@ -95,6 +95,35 @@ static CARVSequenceData *s_sequenceData = NULL;
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
 
+#if MAYA_API_VERSION >= 201900
+
+class CRenderViewMtoA::CustomCallback : public MColorPickerCallback
+{
+public:
+   CustomCallback(QWidget* key, CRenderViewMtoA* renderView)
+      : MColorPickerCallback(key)
+      , m_renderView(renderView)
+   {
+   }
+
+   MColor getColor(QWidget* pickedWidget, const QPoint& pt, bool viewTransform) const
+   {
+      if(pickedWidget && getKey()==m_renderView->GetRenderView())
+      {
+         const QPoint localPt = getKey()->mapFromGlobal(pt);
+         const AtRGBA color 
+            = m_renderView->getColorAtPosition(pickedWidget, localPt.x(), localPt.y(), viewTransform);
+         return MColor(color.r, color.g, color.b, color.a);
+      }
+      return MColor(0., 0., 0., 1.);
+   }
+
+private:
+   CRenderViewMtoA* m_renderView;
+};
+
+#endif
+
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -113,10 +142,14 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasProgressiveRenderFinished(false)
 
 {   
+#if MAYA_API_VERSION >= 201900
+   m_colorPickingCallback = 0x0;
+#endif
 }
 CRenderViewMtoA::~CRenderViewMtoA()
 {
 #if MAYA_API_VERSION >= 201900
+   delete m_colorPickingCallback;
    MColorPickerUtilities::unregisterFromColorPicking(GetRenderView());
 #endif
 
@@ -425,22 +458,12 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 #endif
 
 #if MAYA_API_VERSION >= 201900
-
-   MColorPickerUtilities::doRegisterToColorPicking(
-      GetRenderView(), &CRenderViewMtoA::ColorPickingCallback);
-
-}
-
-MColor CRenderViewMtoA::ColorPickingCallback(
-   QWidget* /* registered widget */, 
-   QWidget* /* selected widget */, 
-   const QPoint& /* point in window coordinate */, 
-   bool /* request the color in view transform (true) or in rendering color space (false) */)
-{
-   return MColor(2, -2, 0, 1);
-
+   if(!m_colorPickingCallback)
+   {
+      m_colorPickingCallback = new CustomCallback(GetRenderView(), this);
+      MColorPickerUtilities::doRegisterToColorPicking(GetRenderView(), m_colorPickingCallback);
+   }
 #endif
-
 }
 
 /**
