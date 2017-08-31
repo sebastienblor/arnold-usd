@@ -17,6 +17,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDGModifier.h>
 #include <maya/MDGMessage.h>
+#include <maya/MGlobal.h>
 
 MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
@@ -655,5 +656,11 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setIndexMatters(false);
    addAttribute(s_aov_shaders);
 
+   // Need to call attrCompatibility for the attributes that disappeared in Arnold 5 (#3161)
+   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
+   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
+   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_refraction_samples\" ;";
+   MGlobal::executeCommand(compatCmd);
+   
    return MS::kSuccess;
 }
