@@ -180,9 +180,15 @@ static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug &
    // Shading assignments are done with the instObjGroups attr, so we only
    // need to update when that is the attr that changes.
 
+   MString plugName = plug.partialName();
+   std::string plugNameStr = plugName.asChar();
+
+   // Need to also consider the per-face shading asssignments that can return a plug.partialName()="iog[0].og[0]"
+   bool isIog = (plugNameStr == "iog") || 
+               ((plugNameStr.length() >= 9) && (plugNameStr.substr(0, 4) == "iog[") && (plugNameStr.find("].og") != std::string::npos));
+
    // We're only interested in connection changes. We had to add kConnectionBroken because of #3140
-   if (((msg & MNodeMessage::kConnectionMade) || (msg & MNodeMessage::kConnectionBroken)) &&
-       (plug.partialName() == "iog"))
+   if (isIog &&((msg & MNodeMessage::kConnectionMade) || (msg & MNodeMessage::kConnectionBroken)))
    {
       CShapeTranslator * translator = static_cast< CShapeTranslator* >(clientData);
       translator->RequestUpdate();
