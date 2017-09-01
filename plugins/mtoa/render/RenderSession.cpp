@@ -612,9 +612,11 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
       // Now save the metadata
       AtMetadataStore *mds = AiMetadataStore();
 
-      // FIXME this will return an empty box as there is no active scene.
-      // Calling GetBoundingBox will crash (see #3108)
-      AtBBox bBox = AiUniverseGetSceneBounds();//GetBoundingBox();
+      // FIXME this will for arnold to evaluate the bounding boxes so it might be time consuming
+      // do we rather want to get maya's bounding boxes ?
+      // the result won't be totally exact (we might miss subdivision / displacement )
+      // but this is only meant to show the boxes in standins viewport display
+      AtBBox bBox = GetBoundingBox();
       MString boundsStr;
       boundsStr += bBox.min.x;
       boundsStr += " ";
