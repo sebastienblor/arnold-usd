@@ -711,11 +711,18 @@ void COptionsTranslator::Export(AtNode *options)
             if (FindMayaPlug("use_sample_clamp").asBool())
             {
                CNodeTranslator::ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
-            }
-            if (FindMayaPlug("use_sample_clamp_AOVs").asBool())
+            } else
+               AiNodeResetParameter(options, "AA_sample_clamp");
+            
+         }
+         else if (strcmp(paramName, "AA_sample_clamp_affects_aovs") == 0)
+         {
+            if (FindMayaPlug("use_sample_clamp").asBool())
             {
-               CNodeTranslator::ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
-            }
+               CNodeTranslator::ProcessParameter(options, "AA_sample_clamp_affects_aovs", AI_TYPE_BOOLEAN, "use_sample_clamp_AOVs");
+            } else
+               AiNodeResetParameter(options, "AA_sample_clamp_affects_aovs");
+
          }
          else if (strcmp(paramName, "indirect_sample_clamp") == 0)
          {
