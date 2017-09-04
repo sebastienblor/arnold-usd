@@ -31,7 +31,8 @@ CAOV::CAOV()
      m_prefix(""),
      m_imageformat(""),
      m_object(MObject::kNullObj),
-     m_lightGroups(false)
+     m_lightGroups(false),
+     m_globalAov(true)
 {
 }
 
@@ -46,7 +47,9 @@ CAOV::CAOV(const CAOV &rhs)
      m_filters(rhs.m_filters),
      m_extensions(rhs.m_extensions),
      m_lightPathExpression(rhs.m_lightPathExpression),
-     m_lightGroups(rhs.m_lightGroups)
+     m_lightGroups(rhs.m_lightGroups),
+     m_globalAov(rhs.m_globalAov),
+     m_lightGroupsList(rhs.m_lightGroupsList)
 {
 }
 
@@ -68,6 +71,8 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_extensions = rhs.m_extensions;
       m_lightPathExpression = rhs.m_lightPathExpression;
       m_lightGroups = rhs.m_lightGroups;
+      m_lightGroupsList = rhs.m_lightGroupsList;
+      m_globalAov = rhs.m_globalAov;
    }
    return *this;
 }
@@ -148,5 +153,7 @@ bool CAOV::FromMaya(MObject &AOVNode)
 
    m_lightGroups = fnNode.findPlug("lightGroups").asBool();
    m_lightPathExpression = fnNode.findPlug("lightPathExpression").asString();
+   m_lightGroupsList = fnNode.findPlug("lightGroupsList").asString();
+   m_globalAov = fnNode.findPlug("globalAov").asBool();
    return true;
 }

@@ -36,5 +36,6 @@ public:
 
    static MObject s_lightPathExpression;
    static MObject s_lightGroups;   
-
+   static MObject s_globalAOV;   
+   static MObject s_lightGroupsList;
 };  // class CArnoldAOVNode

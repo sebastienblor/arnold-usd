@@ -8,7 +8,8 @@ class CDriverTranslator;
 struct CAOVOutput
 {
    CAOVOutput() : driver(NULL), filter(NULL), mergeAOVs(false), 
-      singleLayer(false), raw(false),  lightGroups(false), driverTranslator(NULL) {}
+      singleLayer(false), raw(false),
+      driverTranslator(NULL) {}
    AtNode* driver;
    AtNode* filter;
    bool mergeAOVs; // whether or not to split AOVs
@@ -16,16 +17,18 @@ struct CAOVOutput
    bool raw;
    MString prefix;
    MString lpe;
-   bool lightGroups;
    CDriverTranslator *driverTranslator;
 };
 
 struct CAOVOutputArray
 {
+   CAOVOutputArray() : type(0) {}
    MString name;
    int type;
    MString tokens;
+   MString aovSuffix;
    std::vector<CAOVOutput> outputs;
+
 };
 
 

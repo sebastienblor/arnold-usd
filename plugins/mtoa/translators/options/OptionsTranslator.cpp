@@ -98,6 +98,15 @@ void COptionsTranslator::ExportAOVs()
       CAOVOutputArray aovData;
       aovData.type = it->GetDataType();
 
+      bool lightGroups = it->HasLightGroups();
+      bool globalAov = it->HasGlobalAov();
+      MString lightGroupsList = it->GetLightGroupsList();
+      MStringArray lgList;
+      if (lightGroupsList.length() > 0)
+         lightGroupsList.split(' ', lgList);
+
+      MString lpe =  it->GetLightPathExpression();
+
       // Global drivers
       std::vector<CAOVOutput> globalOutputs;
       MPlug pFilter = FindMayaPlug("filter");
@@ -117,11 +126,15 @@ void COptionsTranslator::ExportAOVs()
       for (unsigned int i=0; i < globalOutputs.size(); ++i)
       {
          if (!globalOutputs[i].singleLayer || name == displayAOV)
+         {
+            globalOutputs[i].lpe = lpe;
             aovData.outputs.push_back(globalOutputs[i]);
+         }
       }
 
-
+      // This token is added to the arguments in command mtoa.utils.getFileName()
       aovData.tokens = MString("RenderPass=") + name;
+      aovData.name = name;
 
       if (name == "beauty")
       {
@@ -134,17 +147,108 @@ void COptionsTranslator::ExportAOVs()
          // RGBA/RGB AOVs are a special case because the AOV name and the data type are linked.
          // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
          // pass determines whether we use the name "RGBA" or "RGB".
-         name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
+         aovData.name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
       } else
       {
-         // fill light groups and light path expression for AOVs only (not for beauty)
-         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+
+         std::vector<CAOVOutputArray> aovDataList;
+         
+         if (globalAov)
+            aovDataList.push_back(aovData);
+         
+         if (lightGroups)
          {
-            aovData.outputs[i].lpe = it->GetLightPathExpression();
-            aovData.outputs[i].lightGroups = it->HasLightGroups();
+            if (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS)
+            {
+               CAOVOutputArray aovDataLg = aovData;
+
+               aovDataLg.name += "_*";
+               aovDataLg.aovSuffix = "_lgroups";
+
+               aovDataList.push_back(aovDataLg);
+            } else
+            {
+               // expand all light groups in the maya scene
+
+               unordered_set<std::string> lightGroupsSet;
+               
+               MStatus status;
+               MDagPath path;
+               MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight, &status);
+
+               for (; (!dagIterLights.isDone()); dagIterLights.next())
+               {
+                  if (dagIterLights.getPath(path))
+                  {
+                     // Only check for lights being visible, not templated and in render layer
+                     // FIXME: does a light need to be in layer to render actually in Maya?
+                     MFnDependencyNode depFn(path.node());
+                     MStatus stat;
+                     MPlug lgroups = depFn.findPlug("aiAov");
+                     if (!lgroups.isNull())
+                     {
+                        MString lgroupStr = lgroups.asString();
+                        if (lgroupStr.length() > 0)
+                           lightGroupsSet.insert(lgroupStr.asChar());
+                     }
+                  }
+               }
+
+               MString           classification;
+               MItDag            dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode, &status);
+               for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+               {
+
+                  MFnDependencyNode depFn(dagIterPlugin.currentItem());
+                  std::string classification(MFnDependencyNode::classification(depFn.typeName()).asChar());
+                  if (classification.find("rendernode/arnold/light") != std::string::npos)
+                  {
+                     if (dagIterPlugin.getPath(path))
+                     {
+                        MFnDagNode node(path.node());
+                        MStatus stat;
+                        MPlug lgroups = depFn.findPlug("aiAov");
+                        if (!lgroups.isNull())
+                        {
+                           MString lgroupStr = lgroups.asString();
+                           if (lgroupStr.length() > 0)
+                              lightGroupsSet.insert(lgroupStr.asChar());
+                        }
+                     }
+                  }
+               }
+
+               for (unordered_set<std::string>::iterator it = lightGroupsSet.begin(); it != lightGroupsSet.end(); ++it)
+               {
+                  std::string lgName(*it);
+                  CAOVOutputArray aovDataLg = aovData;
+                  aovDataLg.name = aovData.name + MString("_") + MString(lgName.c_str());
+                  aovDataLg.aovSuffix = MString("_") + MString(lgName.c_str());
+                  aovDataList.push_back(aovDataLg);
+               }
+
+            }
+         } else if (lgList.length() > 0)
+         {
+            // can't have both "light groups" and seperate light groups simultaneously
+            for (unsigned int i = 0; i < lgList.length(); ++i)
+            {
+               CAOVOutputArray aovDataLg = aovData;
+               aovDataLg.name = aovData.name + MString("_") + lgList[i];
+               aovDataLg.aovSuffix = MString("_") + lgList[i];
+               aovDataList.push_back(aovDataLg);
+            }
+         }
+         if (!aovDataList.empty())
+         {
+            aovData = aovDataList.back();
+            aovDataList.pop_back();
+
+            for (size_t i = 0; i < aovDataList.size(); ++i)
+               m_aovData.push_back(aovDataList[i]);
+
          }
       }
-      aovData.name = name;
       m_aovData.push_back(aovData);
    }
 }
@@ -307,6 +411,16 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                &strictAOVs,
                                                eyeToken);
 
+               // Eventually add a suffix to the filename (for light groups)
+               if (aovData.aovSuffix.length() > 0)
+               {
+                  int dotPos = filename.rindexW('.');
+                  if (dotPos > 0)
+                  {
+                     filename = filename.substringW(0, dotPos - 1) + aovData.aovSuffix + filename.substringW(dotPos, filename.length() -1);
+                  }
+               }
+
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
                unordered_map<std::string, AtNode*>::iterator it;
 
@@ -336,25 +450,33 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   }
                   MString driverName = (output.driverTranslator) ? output.driverTranslator->GetBaseName() : AiNodeGetName(output.driver);
 
+                  // for light group AOVs, replace '_*' by '_lgroups' in the driver name
+                  std::string aovNameStr(aovData.name.asChar());
+                  if ((!aovNameStr.empty()) && aovNameStr.back() == '*')
+                  {
+                     aovNameStr.pop_back();
+                     aovNameStr += "lgroups";
+                  }
+
                   if (found && stereo && eye  > 0)
                   {
                      // For Stereo we don't want to add the aov name to the driver's name (we could, but names would become confusing), 
                      // so we're just adding th suffix ".Right"
                      // we could also add it for the left eye (without testing eye > 0), but I'm trying to minimize the possible issues
-                     static AtString s_rgbaStr("RGBA");
-                     if (aovData.name != s_rgbaStr)
+                     
+                     if (aovNameStr != "RGBA")
                      {
-                        driverNodeToken = aovData.name.asChar();
+                        driverNodeToken = aovNameStr;
                         driverNodeToken += ".";
                      }
                      driverNodeToken += eyeToken.asChar();
                      
                   } else
-                     driverNodeToken = aovData.name.asChar();
+                     driverNodeToken = aovNameStr;
                   
                   driverName += ".";
                   driverName += driverNodeToken.c_str();
-                  
+
                   if (found)
                   {
                      if (output.driverTranslator)
@@ -363,8 +485,6 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                         output.driver = AiNodeClone(output.driver);
 
                   }
-
-
 
                   AiNodeSetStr(output.driver, "name", driverName.asChar());
 
@@ -385,12 +505,13 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   // Check that it's the same driver.
                   if (output.driver != it->second)
                   {
+                     
                      // NOTE: it could be possible to merge the output of multiple drivers of the same type, but if their settings differ
                      // it will be unclear to the user which node's settings should be used
                      AiMsgWarning("[mtoa] Two drivers produced the same output path. AOV merging is only supported using a single driver node: \"%s\", \"%s\"",
                                   AiNodeGetName(output.driver), AiNodeGetName(it->second));
                      // skip this output
-                     continue;
+                     continue;                     
                   }
                }
 
@@ -411,12 +532,6 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                }
             }
 
-            MString aovName = aovData.name;
-
-            // if light groups are enabled, add the suffix "_*" at the end of the aov name. This will write one image per light group
-            if (output.lightGroups && (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS))
-               aovName += "_*";
-
             // output statement
             char str[1024];
             if (output.raw)
@@ -429,23 +544,23 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                {
                   // output image : we need both eyes
                   // Setting the <Eye> token for Stereo rendering
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovName.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                }
                else if (eye == 0)
                {
                   // display driver, we only output one eye (left)
                   cameraToken = leftCameraName;
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovName.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                } 
             } else
             {
-               sprintf(str, "%s %s %s %s", aovName.asChar(), AiParamGetTypeName(aovData.type),
+               sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
                        AiNodeGetName(output.filter), AiNodeGetName(output.driver));
             }
             if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa] [aov "+aovName+"] output line: "+MString(str));
+               MtoaDebugLog("[mtoa] [aov "+aovData.name+"] output line: "+MString(str));
 
             outputs.append(MString(str));
 
