@@ -193,7 +193,16 @@ class AOVBrowser(object):
 
 
     def addCustomAOV(self, *args):
-        aovName, aovNode = shaderTemplate.newAOVPrompt()
+        global _updating
+        
+        aovName = ""
+        _updating = True
+        try:
+            aovName, aovNode = shaderTemplate.newAOVPrompt()    
+        finally:
+            _updating = False
+        
+        self.updateActiveAOVs()
         pm.textScrollList(self.activeLst, edit=True,selectItem=aovName)
         self.selectAOV()
 
@@ -224,7 +233,6 @@ class AOVBrowser(object):
         aovList = aovs.getBuiltinAOVs()
 
         for group in self.nodeTypes:
-            print group
             for x in aovs.getRegisteredAOVs(nodeType=group) :
                 if x:
                     aovLabel = x + ' ('
