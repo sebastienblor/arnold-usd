@@ -131,7 +131,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
         tokens = attr.split('.')
         nodeName = tokens[0]       
         controlName = 'CtrlLightPathExpression'
-        aeUtils.attrColorSliderGrp(controlName, edit=True, attribute=attr)
+        aeUtils.attrTextFieldGrp(controlName, edit=True, attribute=attr)
 
 
     def setup(self):
