@@ -157,7 +157,22 @@ void COptionsTranslator::ExportAOVs()
          
          if (lightGroups)
          {
-            if (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS)
+            // We can merge the light groups in a single AOV for batch sessions
+            // AND if the output image is exr (it's saved as multi-layer exr)
+            bool mergeLightGroups = (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS);
+            if (mergeLightGroups)
+            {
+               for (size_t i = 0; i < aovData.outputs.size(); ++i)
+               {
+                  AtNode *driver = aovData.outputs[i].driver;
+                  if(driver && !AiNodeIs(driver, AtString("driver_exr")))
+                  {
+                     mergeLightGroups = false;
+                     break;
+                  }
+               }
+            }
+            if (mergeLightGroups)
             {
                CAOVOutputArray aovDataLg = aovData;
 
