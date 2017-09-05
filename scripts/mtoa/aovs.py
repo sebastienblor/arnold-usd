@@ -54,6 +54,36 @@ BUILTIN_AOVS = (
 
                 )
 
+# FIXME is there a way to avoid hardcoding this list ?
+LIGHTING_AOVS = ['RGBA',         
+                'direct',       
+                'indirect',        
+                'emission',        
+                'diffuse',         
+                'specular',        
+                'transmission',    
+                'sss',             
+                'volume',          
+                'diffuse_direct',  
+                'diffuse_indirect',
+                'diffuse_albedo',  
+                'specular_direct',  
+                'specular_indirect', 
+                'specular_albedo',
+                'coat',      
+                'coat_direct',
+                'coat_indirect',
+                'coat_albedo',
+                'transmission_direct', 
+                'transmission_indirect',
+                'transmission_albedo', 
+                'sss_direct',
+                'sss_indirect',
+                'sss_albedo',
+                'volume_direct', 
+                'volume_indirect',
+                'shadow_matte']
+                
 TYPES = (
     ("int",    arnold.ai_params.AI_TYPE_INT),
     ("uint",    arnold.ai_params.AI_TYPE_UINT),
@@ -465,6 +495,9 @@ def getRegisteredAOVs(builtin=False, nodeType=None):
 
 def getBuiltinAOVs():
     return [x[0] for x in BUILTIN_AOVS]
+
+def getLightingAOVs():
+    return LIGHTING_AOVS
 
 def getNodeGlobalAOVData(nodeType):
     "returns a list of registered (name, attribute, data type) pairs for the given node type"

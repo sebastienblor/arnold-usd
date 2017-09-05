@@ -1,11 +1,12 @@
 ﻿import pymel.core as pm
+import mtoa.aovs as aovs
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiAOVTemplate(ShaderAETemplate):
 
     def defaultValueNew(self, nodeAttr):
         pm.attrNavigationControlGrp('aiAOVDefaultValue',
-                                    label='Default Shader',
+                                    label='Shader Output',
                                     at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def defaultValueReplace(self, nodeAttr):
@@ -30,6 +31,25 @@ class AEaiAOVTemplate(ShaderAETemplate):
                                         "", "AEreplaceCompound",
                                         attr.getArrayIndices())
 
+    def updateLightGroupsVisibility(self, nodeName):
+        nameAttr = '%s.%s' % (nodeName, 'name')
+        nameValue = pm.getAttr(nameAttr)
+
+        aovLightingList = aovs.getLightingAOVs()
+        lightGroupsAttr = (nameValue in aovLightingList)
+
+        pm.editorTemplate(dimControl=(nodeName, 'globalAov', not lightGroupsAttr))
+        pm.editorTemplate(dimControl=(nodeName, 'lightGroups', not lightGroupsAttr))
+        pm.editorTemplate(dimControl=(nodeName, 'lightGroupsList', not lightGroupsAttr))
+
+        builtinAOVs = aovs.getBuiltinAOVs()
+        customAOV = not (nameValue in builtinAOVs)
+
+        pm.editorTemplate(dimControl=(nodeName, 'defaultValue', not customAOV))
+        pm.editorTemplate(dimControl=(nodeName, 'lightPathExpression', not customAOV))
+        
+         
+
     def setup(self):
         #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
@@ -38,15 +58,25 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
         #self.beginLayout("Primary Controls", collapse=False)
         self.addControl('enabled')
-        self.addControl('name')
+        self.addControl('name', changeCommand=self.updateLightGroupsVisibility)
         self.addControl('type', label='Data Type')
+
+        self.beginLayout("Light Groups", collapse=False)
+        self.beginNoOptimize()
+
+        self.addControl('globalAov', label='Global AOV')
+        self.addControl('lightGroups', label='All Light Groups')
+        self.addControl('lightGroupsList', label='Light Groups List')
+        self.endNoOptimize()
+        self.endLayout()
+        self.beginLayout("Custom AOV", collapse=False)
         self.addCustom('defaultValue', self.defaultValueNew, self.defaultValueReplace)
-        self.addSeparator()
-        self.addControl('lightGroups', label='Light Groups')
         self.addSeparator()
         self.addControl('lightPathExpression', label='Light Path Expression')
         self.endLayout()
+        self.endLayout()
 
+        
         self.addCustom('outputs', self.outputsNew, self.outputsReplace)
 
         # include/call base class/node attributes
@@ -59,3 +89,5 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.suppress('imageFormat')
         self.suppress('filterType')
         self.suppress('prefix')
+
+        self.updateLightGroupsVisibility(self.nodeName)

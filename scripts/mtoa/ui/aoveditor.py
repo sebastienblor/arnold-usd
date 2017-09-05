@@ -150,6 +150,8 @@ class AOVBrowser(object):
                 _updating = False
             self.updateActiveAOVs()
 
+            pm.textScrollList(self.activeLst, edit=True,selectItem=sel[0].split()[0])
+            self.selectAOV()
     def removeAOVs(self, *args):
         '''
         delete the selected AOVs
@@ -192,7 +194,9 @@ class AOVBrowser(object):
 
     def addCustomAOV(self, *args):
         aovName, aovNode = shaderTemplate.newAOVPrompt()
-        
+        pm.textScrollList(self.activeLst, edit=True,selectItem=aovName)
+        self.selectAOV()
+
 
     def updateActiveAOVs(self):
         '''
