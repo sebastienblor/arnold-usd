@@ -100,25 +100,24 @@ class AOVBrowser(object):
 
         pm.formLayout(self.form, edit=True, attachPosition=[
                                     (availableLbl, 'left', 1, 1),
-                                    (availableLbl, 'right', 1, 40),
-                                    (activeLbl, 'left', 1, 40),
-                                    (activeLbl, 'right', 1, 70),
-                                    (detailsLbl, 'left', 1, 70),
+                                    (availableLbl, 'right', 1, 45),
+                                    (activeLbl, 'left', 1, 45),
+                                    (activeLbl, 'right', 1, 75),
+                                    (detailsLbl, 'left', 1, 75),
 
                                     
                                     (self.availableLst, 'left', 1, 1),
-                                    (self.availableLst, 'right', 1, 40),
-                                    (self.activeLst, 'left', 1, 40),
-                                    (self.activeLst, 'right', 1, 70),
-                                    (detailsFieldLbl, 'left', 1, 70),
-
+                                    (self.availableLst, 'right', 1, 45),
+                                    (self.activeLst, 'left', 1, 45),
+                                    (self.activeLst, 'right', 1, 75),
+                                    (detailsFieldLbl, 'left', 1, 75),
                                     
                                     (addBtn, 'left', 1, 1),
-                                    (addBtn, 'right', 1, 40),
-                                    (remBtn, 'left', 1, 40),
-                                    (remBtn, 'right', 1, 50),
-                                    (addCustomBtn, 'left', 1, 50),
-                                    (addCustomBtn, 'right', 1, 70),                                    
+                                    (addBtn, 'right', 1, 45),
+                                    (remBtn, 'left', 1, 45),
+                                    (remBtn, 'right', 1, 55),
+                                    (addCustomBtn, 'left', 1, 55),
+                                    (addCustomBtn, 'right', 1, 75),                                    
                                     
 
                                 ])

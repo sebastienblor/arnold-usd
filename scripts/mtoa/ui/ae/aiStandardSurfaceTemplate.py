@@ -81,7 +81,6 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 
         presets={ 'Cornea': 1.37, 'Diamond': 2.42, 'Ethanol': 1.36, 'Flint glass': 1.6, 'Glass': 1.5, 'Ice' : 1.31, 'Olive Oil': 1.47, 'Plastic': 1.55, 'Saphire': 1.77, 'Skin': 1.4, 'Water': 1.33}
         for k in sorted(presets):
-            print pm.Callback(setFloatValue, controlName, presets[k])
             pm.menuItem(label=k, command=pm.Callback(setFloatValue, controlName, presets[k]))
 
 
