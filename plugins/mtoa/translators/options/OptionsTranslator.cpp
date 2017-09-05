@@ -466,9 +466,9 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                   // for light group AOVs, replace '_*' by '_lgroups' in the driver name
                   std::string aovNameStr(aovData.name.asChar());
-                  if ((!aovNameStr.empty()) && aovNameStr.back() == '*')
+                  if ((!aovNameStr.empty()) && aovNameStr[aovNameStr.length() -1] == '*')
                   {
-                     aovNameStr.pop_back();
+                     aovNameStr = aovNameStr.substr(0, aovNameStr.length() - 1);
                      aovNameStr += "lgroups";
                   }
 
