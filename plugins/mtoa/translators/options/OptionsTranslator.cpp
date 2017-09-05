@@ -105,8 +105,8 @@ void COptionsTranslator::ExportAOVs()
       if (lightGroupsList.length() > 0)
          lightGroupsList.split(' ', lgList);
 
-      MString lpe =  it->GetLightPathExpression();
-
+      aovData.lpe =  it->GetLightPathExpression();
+      
       // Global drivers
       std::vector<CAOVOutput> globalOutputs;
       MPlug pFilter = FindMayaPlug("filter");
@@ -127,7 +127,6 @@ void COptionsTranslator::ExportAOVs()
       {
          if (!globalOutputs[i].singleLayer || name == displayAOV)
          {
-            globalOutputs[i].lpe = lpe;
             aovData.outputs.push_back(globalOutputs[i]);
          }
       }
@@ -525,9 +524,9 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                // FIXME: isn't this already handled by getImageName?
                CreateFileDirectory(filename);
 
-               if (eye == 0 && output.lpe.length() > 0)
+               if (eye == 0 && aovData.lpe.length() > 0)
                {
-                  MString lpe = aovData.name + " " + output.lpe.asChar();
+                  MString lpe = aovData.name + " " + aovData.lpe.asChar();
                   lightPathExpressions.insert(lpe.asChar());
                }
             }

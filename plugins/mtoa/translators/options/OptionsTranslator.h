@@ -16,7 +16,6 @@ struct CAOVOutput
    bool singleLayer;
    bool raw;
    MString prefix;
-   MString lpe;
    CDriverTranslator *driverTranslator;
 };
 
@@ -27,6 +26,7 @@ struct CAOVOutputArray
    int type;
    MString tokens;
    MString aovSuffix;
+   MString lpe;
    std::vector<CAOVOutput> outputs;
 
 };
