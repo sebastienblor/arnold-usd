@@ -47,8 +47,7 @@ class AOVBrowser(object):
         self.allAOVs = set([])
         self.renderOptions = aovs.AOVInterface() if renderOptions is None else renderOptions
         self.allNodeTypes = set(aovs.getNodeTypesWithAOVs())
-        self.customAOVs = []
-
+        
         if nodeTypes:
             self.setNodeTypes(nodeTypes)
         else:
@@ -163,9 +162,17 @@ class AOVBrowser(object):
                 self.renderOptions.removeAOVs(sel)
                 for aov in sel:
 
-                    if aov in self.customAOVs:
-                        self.customAOVs.remove(aov)
-                    else:
+                    # need to check if the AOV we're removing is part of the allAOVs list
+                    # but since this list contain the eventual shader owner , eg (aiShadowMatte)
+                    # we need to take this into account
+                    found = False
+                    for allAOVs in self.allAOVs:
+                        aovName = allAOVs.split()[0]
+                        if aovName == aov:
+                            found = True
+                            break
+
+                    if found:
                         pm.textScrollList(self.availableLst, edit=True, append=aov)
                     pm.textScrollList(self.activeLst, edit=True, removeItem=aov)
             finally:
@@ -185,8 +192,7 @@ class AOVBrowser(object):
 
     def addCustomAOV(self, *args):
         aovName, aovNode = shaderTemplate.newAOVPrompt()
-        self.customAOVs.append(aovName)
-
+        
 
     def updateActiveAOVs(self):
         '''
@@ -223,17 +229,16 @@ class AOVBrowser(object):
                     aovList.append(aovLabel)
         
         self.allAOVs.update(aovList)
+
         for aovFullName in aovList:
             aovName = aovFullName.split()[0]
             if aovName not in activeAOVs:
                 if aovName not in availableList:
                     availableList.append(aovFullName)
-            else:
-                if aovName not in activeList:
-                    activeList.append(aovName)
+            
+        for activeAOV in activeAOVs:
+            activeList.append(activeAOV.name)
 
-        for customAOV in self.customAOVs:
-            activeList.append(customAOV)
 
         # update sorted and not duplicated available AOVs
         availableList.sort()
