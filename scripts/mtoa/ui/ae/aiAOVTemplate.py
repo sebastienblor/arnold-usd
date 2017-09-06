@@ -8,7 +8,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
     def defaultValueNew(self, nodeAttr):
         pm.attrNavigationControlGrp('aiAOVDefaultValue',
-                                    label='Shader Output',
+                                    label='Shader',
                                     at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def defaultValueReplace(self, nodeAttr):
