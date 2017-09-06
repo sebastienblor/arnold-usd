@@ -22,6 +22,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteVector");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteVector");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "aov.shader", true);
 
    AiParameterVec("input", 0.0f, 0.0f, 0.0f);
    AiParameterStr("aov_name", "");

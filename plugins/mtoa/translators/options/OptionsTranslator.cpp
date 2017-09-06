@@ -106,7 +106,15 @@ void COptionsTranslator::ExportAOVs()
          lightGroupsList.split(' ', lgList);
 
       aovData.lpe =  it->GetLightPathExpression();
-      
+      MPlug shaderPlug = it->GetShaderPlug();
+
+      if (!shaderPlug.isNull())
+      {
+         // there is a shader assigned to this AOV (attribute "defaultValue", weird name...)
+         m_impl->ExportConnectedNode(shaderPlug, true, &aovData.shaderTranslator);
+      } else
+         aovData.shaderTranslator = NULL;
+
       // Global drivers
       std::vector<CAOVOutput> globalOutputs;
       MPlug pFilter = FindMayaPlug("filter");
@@ -358,7 +366,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          CAOVOutputArray& aovData = (eye > 0) ? stereoAovData[i] : m_aovData[i];
 
          MString cameraToken = nameCamera;
-
+         
          // loop through outputs
          unsigned int nOutputs = aovData.outputs.size();
          for (unsigned int j=0; j < nOutputs; ++j)
@@ -1099,6 +1107,47 @@ void COptionsTranslator::Export(AtNode *options)
          if (aovShaderNode)
             aovShaders.insert(aovShaderNode);
       }
+   }
+
+   // I also need to add the shaders the are assigned to specific AOVs 
+   for (size_t i = 0; i < m_aovData.size(); ++i)
+   {
+      CAOVOutputArray &aovData = m_aovData[i];
+      if (aovData.shaderTranslator == NULL)
+         continue;
+   
+      // This AOV has a shader assigned to it. I want to check if this is an AOV shader or not (based on its metadata)
+      // - If it's an AOV shader => add it to the "aov_shaders" list
+      // - If it's not -> insert an MtoaAovWriteColor in between
+      AtNode *shaderNode = aovData.shaderTranslator->GetArnoldNode();
+      if (shaderNode == NULL)
+         continue;
+
+      const AtNodeEntry *shaderNodeEntry = AiNodeGetNodeEntry(shaderNode);
+      bool isAovShader = false;
+      if (shaderNodeEntry && AiMetaDataGetBool(shaderNodeEntry, NULL, "aov.shader", &isAovShader) &&isAovShader)
+      {
+         // aov shader -> insert it directly to the AOV shaders list
+         aovShaders.insert(shaderNode);
+      } else
+      {
+         // not an AOV shader, it cannot fill the aov. We need to create an "aov_write_" node
+         // and insert it in the middle
+
+         // first get the type of the AOV
+         MString aovWriteType = GetAOVNodeType(aovData.type);
+         std::string shaderTag = "aov_shader_" + std::string(aovData.name.asChar());
+         AtNode *aovWriteNode = AddArnoldNode(aovWriteType.asChar(), shaderTag.c_str());
+         std::string aovWriteName = AiNodeGetName(shaderNode);
+         aovWriteName += "@aov_shader";
+         AiNodeSetStr(aovWriteNode, "name", aovWriteName.c_str());
+         if (aovWriteNode)
+         {
+            aovShaders.insert(aovWriteNode);
+            AiNodeLink(shaderNode, "input", aovWriteNode);
+            AiNodeSetStr(aovWriteNode, "aov_name", aovData.name.asChar());
+         }
+      }      
    }
 
    AiNodeResetParameter(options, "aov_shaders");

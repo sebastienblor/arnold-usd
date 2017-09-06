@@ -21,12 +21,13 @@ struct CAOVOutput
 
 struct CAOVOutputArray
 {
-   CAOVOutputArray() : type(0) {}
+   CAOVOutputArray() : type(0), shaderTranslator(NULL) {}
    MString name;
    int type;
    MString tokens;
    MString aovSuffix;
    MString lpe;
+   CNodeTranslator *shaderTranslator;
    std::vector<CAOVOutput> outputs;
 
 };

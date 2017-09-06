@@ -2041,6 +2041,7 @@
     maya.name               STRING  "aiWriteFloat"
     maya.id                 INT     0x00115D11
     maya.classification     STRING  "utility/aov"
+    aov.shader              BOOL    true
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
@@ -2055,6 +2056,8 @@
     maya.name               STRING  "aiWriteColor"
     maya.id                 INT     0x00115D10
     maya.classification     STRING  "utility/aov"
+    aov.shader              BOOL    true
+
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
