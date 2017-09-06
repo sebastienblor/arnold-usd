@@ -962,6 +962,18 @@ void CExtensionsManager::GetAOVs(MStringArray& result)
    }
 }
 
+void CExtensionsManager::GetAOVShaders(MStringArray& result)
+{
+   MayaNodeToTranslatorsMap::iterator transIt;
+   for (transIt = s_registeredTranslators.begin();
+         transIt != s_registeredTranslators.end();
+         transIt++)
+   {
+      if (transIt->first.m_aovShader)
+         result.append(transIt->first.name);
+   }
+}
+
 void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& result)
 {
    CPxMayaNode mayaType(mayaTypeName);
