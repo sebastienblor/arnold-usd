@@ -28,6 +28,24 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
    return options;
 }
 
+// One of the active AOVs is changing during IPR session, so we need to re-export
+void COptionsTranslator::AovChangedCallback(MNodeMessage::AttributeMessage msg,
+                                                    MPlug& plug, MPlug& otherPlug,
+                                                    void* clientData)
+{
+   COptionsTranslator * translator = static_cast< COptionsTranslator* >(clientData);
+   if (translator != NULL)
+      translator->RequestUpdate();
+}
+
+void COptionsTranslator::ClearAovCallbacks()
+{
+   for (size_t i = 0; i < m_aovCallbacks.size(); ++i)
+      MNodeMessage::removeCallback(m_aovCallbacks[i]);
+
+   m_aovCallbacks.clear();
+}
+
 /// For each active AOV add a CAOV class to m_aovs
 void COptionsTranslator::ProcessAOVs()
 {
@@ -40,6 +58,8 @@ void COptionsTranslator::ProcessAOVs()
 
    m_aovs.clear();
 
+   ClearAovCallbacks();
+
    MPlug pAOVs = FindMayaPlug("aovs");
    for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
    {
@@ -49,6 +69,7 @@ void COptionsTranslator::ProcessAOVs()
          MObject oAOV = conns[0].node();
          if (aov.FromMaya(oAOV))
          {
+
             if (aov.GetName() == "beauty")
             {
                m_aovs.insert(aov);
@@ -61,6 +82,10 @@ void COptionsTranslator::ProcessAOVs()
                if (m_aovsEnabled && aov.IsEnabled())
                   m_aovs.insert(aov);
             }
+
+            // We want to be adverted when one of the AOV nodes changes (light groups, lpe, etc...)
+            if (GetSessionOptions().IsInteractiveRender())
+               m_aovCallbacks.push_back(MNodeMessage::addAttributeChangedCallback(oAOV, AovChangedCallback, this));
          }
          else
          {
@@ -95,6 +120,7 @@ void COptionsTranslator::ExportAOVs()
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       MString name = it->GetName();
+
       CAOVOutputArray aovData;
       aovData.type = it->GetDataType();
 
@@ -150,61 +176,83 @@ void COptionsTranslator::ExportAOVs()
          ExportDriver(FindMayaPlug("driver"), output);
          output.filter = ExportFilter(FindMayaPlug("filter"));
          aovData.outputs.push_back(output);
-
+         globalAov = true;
          // RGBA/RGB AOVs are a special case because the AOV name and the data type are linked.
          // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
          // pass determines whether we use the name "RGBA" or "RGB".
          aovData.name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
-      } else
-      {
+      } //else
 
-         std::vector<CAOVOutputArray> aovDataList;
-         
-         if (globalAov)
-            aovDataList.push_back(aovData);
-         
-         if (lightGroups)
+      std::vector<CAOVOutputArray> aovDataList;
+      
+      if (globalAov)
+         aovDataList.push_back(aovData);
+      
+      if (lightGroups)
+      {
+         // We can merge the light groups in a single AOV for batch sessions
+         // AND if the output image is exr (it's saved as multi-layer exr)
+         bool mergeLightGroups = (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS);
+         if (mergeLightGroups)
          {
-            // We can merge the light groups in a single AOV for batch sessions
-            // AND if the output image is exr (it's saved as multi-layer exr)
-            bool mergeLightGroups = (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS);
-            if (mergeLightGroups)
+            for (size_t i = 0; i < aovData.outputs.size(); ++i)
             {
-               for (size_t i = 0; i < aovData.outputs.size(); ++i)
+               AtNode *driver = aovData.outputs[i].driver;
+               if(driver && !AiNodeIs(driver, AtString("driver_exr")))
                {
-                  AtNode *driver = aovData.outputs[i].driver;
-                  if(driver && !AiNodeIs(driver, AtString("driver_exr")))
+                  mergeLightGroups = false;
+                  break;
+               }
+            }
+         }
+         if (mergeLightGroups)
+         {
+            CAOVOutputArray aovDataLg = aovData;
+
+            aovDataLg.name += "_*";
+            aovDataLg.aovSuffix = "_lgroups";
+
+            aovDataList.push_back(aovDataLg);
+         } else
+         {
+            // expand all light groups in the maya scene
+
+            unordered_set<std::string> lightGroupsSet;
+            
+            MStatus status;
+            MDagPath path;
+            MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight, &status);
+
+            for (; (!dagIterLights.isDone()); dagIterLights.next())
+            {
+               if (dagIterLights.getPath(path))
+               {
+                  // Only check for lights being visible, not templated and in render layer
+                  // FIXME: does a light need to be in layer to render actually in Maya?
+                  MFnDependencyNode depFn(path.node());
+                  MStatus stat;
+                  MPlug lgroups = depFn.findPlug("aiAov");
+                  if (!lgroups.isNull())
                   {
-                     mergeLightGroups = false;
-                     break;
+                     MString lgroupStr = lgroups.asString();
+                     if (lgroupStr.length() > 0)
+                        lightGroupsSet.insert(lgroupStr.asChar());
                   }
                }
             }
-            if (mergeLightGroups)
+
+            MString           classification;
+            MItDag            dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode, &status);
+            for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
             {
-               CAOVOutputArray aovDataLg = aovData;
 
-               aovDataLg.name += "_*";
-               aovDataLg.aovSuffix = "_lgroups";
-
-               aovDataList.push_back(aovDataLg);
-            } else
-            {
-               // expand all light groups in the maya scene
-
-               unordered_set<std::string> lightGroupsSet;
-               
-               MStatus status;
-               MDagPath path;
-               MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight, &status);
-
-               for (; (!dagIterLights.isDone()); dagIterLights.next())
+               MFnDependencyNode depFn(dagIterPlugin.currentItem());
+               std::string classification(MFnDependencyNode::classification(depFn.typeName()).asChar());
+               if (classification.find("rendernode/arnold/light") != std::string::npos)
                {
-                  if (dagIterLights.getPath(path))
+                  if (dagIterPlugin.getPath(path))
                   {
-                     // Only check for lights being visible, not templated and in render layer
-                     // FIXME: does a light need to be in layer to render actually in Maya?
-                     MFnDependencyNode depFn(path.node());
+                     MFnDagNode node(path.node());
                      MStatus stat;
                      MPlug lgroups = depFn.findPlug("aiAov");
                      if (!lgroups.isNull())
@@ -215,61 +263,37 @@ void COptionsTranslator::ExportAOVs()
                      }
                   }
                }
-
-               MString           classification;
-               MItDag            dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode, &status);
-               for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
-               {
-
-                  MFnDependencyNode depFn(dagIterPlugin.currentItem());
-                  std::string classification(MFnDependencyNode::classification(depFn.typeName()).asChar());
-                  if (classification.find("rendernode/arnold/light") != std::string::npos)
-                  {
-                     if (dagIterPlugin.getPath(path))
-                     {
-                        MFnDagNode node(path.node());
-                        MStatus stat;
-                        MPlug lgroups = depFn.findPlug("aiAov");
-                        if (!lgroups.isNull())
-                        {
-                           MString lgroupStr = lgroups.asString();
-                           if (lgroupStr.length() > 0)
-                              lightGroupsSet.insert(lgroupStr.asChar());
-                        }
-                     }
-                  }
-               }
-
-               for (unordered_set<std::string>::iterator it = lightGroupsSet.begin(); it != lightGroupsSet.end(); ++it)
-               {
-                  std::string lgName(*it);
-                  CAOVOutputArray aovDataLg = aovData;
-                  aovDataLg.name = aovData.name + MString("_") + MString(lgName.c_str());
-                  aovDataLg.aovSuffix = MString("_") + MString(lgName.c_str());
-                  aovDataList.push_back(aovDataLg);
-               }
-
             }
-         } else if (lgList.length() > 0)
-         {
-            // can't have both "light groups" and seperate light groups simultaneously
-            for (unsigned int i = 0; i < lgList.length(); ++i)
+
+            for (unordered_set<std::string>::iterator it = lightGroupsSet.begin(); it != lightGroupsSet.end(); ++it)
             {
+               std::string lgName(*it);
                CAOVOutputArray aovDataLg = aovData;
-               aovDataLg.name = aovData.name + MString("_") + lgList[i];
-               aovDataLg.aovSuffix = MString("_") + lgList[i];
+               aovDataLg.name = aovData.name + MString("_") + MString(lgName.c_str());
+               aovDataLg.aovSuffix = MString("_") + MString(lgName.c_str());
                aovDataList.push_back(aovDataLg);
             }
+
          }
-         if (!aovDataList.empty())
+      } else if (lgList.length() > 0)
+      {
+         // can't have both "light groups" and seperate light groups simultaneously
+         for (unsigned int i = 0; i < lgList.length(); ++i)
          {
-            aovData = aovDataList.back();
-            aovDataList.pop_back();
-
-            for (size_t i = 0; i < aovDataList.size(); ++i)
-               m_aovData.push_back(aovDataList[i]);
-
+            CAOVOutputArray aovDataLg = aovData;
+            aovDataLg.name = aovData.name + MString("_") + lgList[i];
+            aovDataLg.aovSuffix = MString("_") + lgList[i];
+            aovDataList.push_back(aovDataLg);
          }
+      }
+      if (!aovDataList.empty())
+      {
+         aovData = aovDataList.back();
+         aovDataList.pop_back();
+
+         for (size_t i = 0; i < aovDataList.size(); ++i)
+            m_aovData.push_back(aovDataList[i]);
+
       }
       m_aovData.push_back(aovData);
    }
@@ -474,6 +498,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                   // for light group AOVs, replace '_*' by '_lgroups' in the driver name
                   std::string aovNameStr(aovData.name.asChar());
+
                   if ((!aovNameStr.empty()) && aovNameStr.back() == '*')
                   {
                      aovNameStr.pop_back();
