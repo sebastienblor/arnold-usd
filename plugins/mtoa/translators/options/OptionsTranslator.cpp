@@ -1125,7 +1125,7 @@ void COptionsTranslator::Export(AtNode *options)
 
       const AtNodeEntry *shaderNodeEntry = AiNodeGetNodeEntry(shaderNode);
       bool isAovShader = false;
-      if (shaderNodeEntry && AiMetaDataGetBool(shaderNodeEntry, NULL, "aov.shader", &isAovShader) &&isAovShader)
+      if (shaderNodeEntry && AiMetaDataGetBool(shaderNodeEntry, NULL, "aov_shader", &isAovShader) &&isAovShader)
       {
          // aov shader -> insert it directly to the AOV shaders list
          aovShaders.insert(shaderNode);

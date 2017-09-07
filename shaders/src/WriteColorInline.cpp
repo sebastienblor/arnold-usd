@@ -22,7 +22,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteColor");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteColor");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
-   AiMetaDataSetBool(nentry, NULL, "aov.shader", true);
+   AiMetaDataSetBool(nentry, NULL, "aov_shader", true);
 
    AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterStr("aov_name", "");

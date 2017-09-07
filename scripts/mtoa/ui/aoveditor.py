@@ -148,7 +148,7 @@ class AOVBrowser(object):
                     aovList = aovFullName.split()
                     aovName = aovList[0] # splits on whitespace
                     aovShaderName = None
-                    if len(aovList) > 0:
+                    if len(aovList) > 1:
                         shaderName = aovList[1]
                         if shaderName[:1] == "(" and shaderName[-1:] == ")":
                             shaderName = shaderName[1:-1]

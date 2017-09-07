@@ -160,7 +160,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    AiParamIteratorDestroy(paramIt);
 
    bool aovShader = m_aovShader = false;
-   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "aov.shader", &aovShader))
+   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "aov_shader", &aovShader))
       m_aovShader = true;
    
 
