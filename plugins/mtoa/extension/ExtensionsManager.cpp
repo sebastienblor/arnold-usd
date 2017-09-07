@@ -129,7 +129,7 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
 ///
 MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
 {
-   MStatus status = MStatus::kNotFound;
+   MStatus status = MStatus::kSuccess;
 
    // Let Arnold search for plugins in path
    AiLoadPlugins(path.expandEnvironmentVariablesAndTilde().asChar());
@@ -146,7 +146,7 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
       {
          MStatus pluginStatus;
          LoadArnoldPlugin(filename, path, &pluginStatus, true);
-         if (MStatus::kSuccess != pluginStatus) status = pluginStatus;
+         if (MStatus::kSuccess != pluginStatus && MStatus::kNotFound != pluginStatus) status = pluginStatus;
       }
    }
 
@@ -272,7 +272,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
 ///
 MStatus CExtensionsManager::LoadExtensions(const MString &path)
 {
-   MStatus status = MStatus::kNotFound;
+   MStatus status = MStatus::kSuccess;
 
    MStringArray extensions;
    extensions = CExtensionImpl::FindLibraries(path, &status);
@@ -408,7 +408,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    {
       if (MtoaTranslationInfo())
          MtoaDebugLog("[mtoa] Already registered extension "+extName+", provided by "+extFile);            
-      return MStatus::kFailure;
+      return MStatus::kNotFound;
    }
 
    MStatus status = MStatus::kSuccess;
@@ -422,7 +422,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       MObject plugin = MFnPlugin::findPlugin(pluginName);
       if (plugin.isNull())
       {
-         AiMsgWarning("[mtoa] Extension %s(%s) requires Maya plugin %s, registering will be deferred until plugin is loaded.",
+         AiMsgInfo("[mtoa] Extension %s(%s) requires Maya plugin %s, registering will be deferred until plugin is loaded.",
                extName.asChar(), extFile.asChar(), pluginName.asChar());
          extension->m_impl->m_deferred = true;
          return MStatus::kNotFound;
