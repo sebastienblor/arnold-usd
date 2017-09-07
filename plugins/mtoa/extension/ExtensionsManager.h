@@ -62,7 +62,7 @@ public:
    static void GetAOVs(MStringArray& result);
    static void GetNodeAOVs(const MString &mayaType, MStringArray& result);
    static void GetNodeTypesWithAOVs(MStringArray& result);
-   static void CExtensionsManager::GetAOVShaders(MStringArray& result);
+   static void GetAOVShaders(MStringArray& result);
 
 
    static CExtension* GetExtension(const MString &extensionFile);
