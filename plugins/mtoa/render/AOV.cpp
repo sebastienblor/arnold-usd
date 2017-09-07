@@ -49,7 +49,8 @@ CAOV::CAOV(const CAOV &rhs)
      m_lightPathExpression(rhs.m_lightPathExpression),
      m_lightGroups(rhs.m_lightGroups),
      m_globalAov(rhs.m_globalAov),
-     m_lightGroupsList(rhs.m_lightGroupsList)
+     m_lightGroupsList(rhs.m_lightGroupsList),
+     m_shaderPlug(rhs.m_shaderPlug)
 {
 }
 
@@ -73,6 +74,7 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_lightGroups = rhs.m_lightGroups;
       m_lightGroupsList = rhs.m_lightGroupsList;
       m_globalAov = rhs.m_globalAov;
+      m_shaderPlug = rhs.m_shaderPlug;
    }
    return *this;
 }
@@ -155,5 +157,13 @@ bool CAOV::FromMaya(MObject &AOVNode)
    m_lightPathExpression = fnNode.findPlug("lightPathExpression").asString();
    m_lightGroupsList = fnNode.findPlug("lightGroupsList").asString();
    m_globalAov = fnNode.findPlug("globalAov").asBool();
+
+   m_shaderPlug = MPlug();
+   MPlugArray connections;
+   fnNode.findPlug("defaultValue").connectedTo(connections, true, false);
+
+   if (connections.length() > 0)
+      m_shaderPlug = connections[0];
+   
    return true;
 }

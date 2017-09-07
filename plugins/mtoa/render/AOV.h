@@ -70,6 +70,8 @@ public:
    inline const MString& GetLightPathExpression() const { return m_lightPathExpression; }
    inline const MString& GetLightGroupsList() const { return m_lightGroupsList; }
 
+   inline const MPlug &GetShaderPlug() const {return m_shaderPlug;}
+
 
 protected:
 
@@ -94,4 +96,5 @@ protected:
    MString m_lightGroupsList;
    bool m_lightGroups;
    bool m_globalAov;
+   MPlug m_shaderPlug;
 };

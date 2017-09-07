@@ -141,8 +141,6 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
    {
       // register this AtNode in our Translator, so that it is properly cleared later
       shadingEngine = AddArnoldNode("MayaShadingEngine", "SG");
-      std::vector<AtNode*> aovShaders;
-      m_impl->AddAOVDefaults(shadingEngine, aovShaders);
    }
 
    AiNodeLink(rootShader, "beauty", shadingEngine);

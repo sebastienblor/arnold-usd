@@ -24,6 +24,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteColor_rgba");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "aov_shader", true);
 
    AiParameterRGBA("passthrough", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGB("aov_input", 0.0f, 0.0f, 0.0f);

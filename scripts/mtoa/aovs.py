@@ -370,7 +370,7 @@ class AOVInterface(object):
         elif matches:
             return matches[0].node
 
-    def addAOV(self, aovName, aovType=None):
+    def addAOV(self, aovName, aovType=None, aovShader=None):
         '''
         add an AOV to the active list for this AOV node
 
@@ -401,6 +401,34 @@ class AOVInterface(object):
         aovNode.message.connect(nextPlug)
         aov = SceneAOV(aovNode, nextPlug)
         addAliases([aov])
+
+        if aovShader:
+            # this is an AOV shader, we need to do some magic here
+            outShader = None
+            
+            # first, check amongst active AOVs, to see  if one of them 
+            # is assigned to a shader of this type. If so, we can reuse it as output shader
+            allActiveAOVs = getAOVs()
+            for activeAOV in allActiveAOVs:
+                conns = maya.cmds.listConnections(activeAOV.node+".defaultValue", d=False, s=True, type=aovShader )
+                if conns and len(conns) > 0 and conns[0]:
+                    outShader = conns[0]
+                    break
+            
+            if outShader == None:
+                # second, see if shaders of this type already exist in the scene
+                existingShaders = maya.cmds.ls(type=aovShader)
+                if existingShaders and len(existingShaders) > 0:
+                    outShader = existingShaders[len(existingShaders) - 1]
+                else:
+                    # to finish, let's create a new shader in the scene if none was found
+                    aiName = "_aov_"+aovShader
+                    outShader = maya.cmds.shadingNode(aovShader, name=aiName, asShader=True)
+
+            # connect the output shader to 'defaultValue'
+            pm.connectAttr(("%s.outColor"%outShader), ("%s.defaultValue"%aovNode))
+            pm.select(outShader)
+
         return aov
 
     def removeAOV(self, aov):
@@ -507,6 +535,9 @@ def getNodeGlobalAOVData(nodeType):
 
 def getNodeTypesWithAOVs():
     return sorted(pm.cmds.arnoldPlugins(listAOVNodeTypes=True))
+
+def getAOVShaders():
+    return sorted(pm.cmds.arnoldPlugins(listAOVShaders=True))
 
 _aovTypeMap = None
 def getAOVTypeMap():

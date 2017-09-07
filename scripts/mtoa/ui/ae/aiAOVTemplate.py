@@ -8,7 +8,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
     def defaultValueNew(self, nodeAttr):
         pm.attrNavigationControlGrp('aiAOVDefaultValue',
-                                    label='Shader Output',
+                                    label='Shader',
                                     at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def defaultValueReplace(self, nodeAttr):
@@ -33,16 +33,20 @@ class AEaiAOVTemplate(ShaderAETemplate):
                                         "", "AEreplaceCompound",
                                         attr.getArrayIndices())
 
+    
     def updateLightGroupsVisibility(self, nodeName):
         nameAttr = '%s.%s' % (nodeName, 'name')
         nameValue = pm.getAttr(nameAttr)
 
+        lightGroupsAttr = '%s.%s' % (nodeName, 'lightGroups')
+        lightGroupsValue = pm.getAttr(lightGroupsAttr)
+        
         aovLightingList = aovs.getLightingAOVs()
-        lightGroupsAttr = (nameValue in aovLightingList)
+        lightGroupsEnabled = (nameValue in aovLightingList)
 
-        pm.editorTemplate(dimControl=(nodeName, 'globalAov', not lightGroupsAttr))
-        pm.editorTemplate(dimControl=(nodeName, 'lightGroups', not lightGroupsAttr))
-        pm.editorTemplate(dimControl=(nodeName, 'lightGroupsList', not lightGroupsAttr))
+        pm.editorTemplate(dimControl=(nodeName, 'globalAov', not lightGroupsEnabled))
+        pm.editorTemplate(dimControl=(nodeName, 'lightGroups', not lightGroupsEnabled))
+        pm.editorTemplate(dimControl=(nodeName, 'lightGroupsList', (not lightGroupsEnabled) or lightGroupsValue))
 
         builtinAOVs = aovs.getBuiltinAOVs()
         customAOV = not (nameValue in builtinAOVs)
@@ -134,6 +138,86 @@ class AEaiAOVTemplate(ShaderAETemplate):
         aeUtils.attrTextFieldGrp(controlName, edit=True, attribute=attr)
 
 
+
+    def lgFieldEdit(self, nodeName, mPath) :
+        self.updateLgList(mPath)
+        cmds.setAttr(nodeName, mPath, type='string')
+        
+
+    def lgListEdit(self, nodeName) :
+        
+        selectedList = cmds.textScrollList(self.lgroupsListPath, query=True, si=True);
+        listValue = ''
+        addSpace = False
+
+        if selectedList:
+            for item in selectedList:
+                if addSpace:
+                    listValue += ' '
+                
+                addSpace = True
+                listValue += item
+
+        cmds.setAttr(nodeName, listValue, type='string')
+        cmds.textField(self.lgroupsListTextPath, edit=True, text=listValue)
+
+    def updateLgList(self, lgListValue):
+
+        cmds.textScrollList(self.lgroupsListPath, edit=True, deselectAll=True)
+        if not lgListValue:
+            return
+
+        lgList = lgListValue.split(' ')
+        for lg in lgList:
+            cmds.textScrollList(self.lgroupsListPath, edit=True, selectItem=lg)
+            
+
+    def lightGroupsListNew(self, nodeName) :
+
+        textLabel = 'Light Groups List '
+        labelWidth = 92
+    
+        # 2 Columns (Left with label+line edit, Right with list)
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,320),(2,100)], columnAlign=[(1, 'right'),(2, 'left')], columnAttach=[(1, 'right', 0), (2, 'left', 5)]) 
+        # 2 Rows (to get an empty space below the label)
+        cmds.rowColumnLayout( numberOfRows=2, rowHeight=[(1,20),(2,20)] )
+        # 2 Columns : label and line edit
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,labelWidth),(2,175)] )
+
+        
+        cmds.text(label=textLabel)
+        self.lgroupsListTextPath = cmds.textField( 'lightGroupsList', height=20)
+
+        cmds.setParent('..')
+        cmds.setParent('..')
+
+        self.lgroupsListPath = cmds.textScrollList(height=50,allowMultiSelection=True)
+        cmds.setParent('..')
+
+        self.lightGroupsListReplace(nodeName)
+        
+        
+    def lightGroupsListReplace(self, nodeName) :
+ 
+        
+        cmds.textField(self.lgroupsListTextPath, edit=True, changeCommand=lambda *args: self.lgFieldEdit(nodeName, *args))
+        cmds.textScrollList(self.lgroupsListPath, edit=True, removeAll=True,selectCommand=lambda *args: self.lgListEdit(nodeName, *args))
+        lgParam = cmds.getAttr(nodeName)
+        
+        # loop over all light groups in the scene
+        lights = cmds.ls(type="light")
+
+        print "Lights are %s" % lights
+        for light in lights:
+            print light
+            lightGroup = cmds.getAttr(light+".aiAov")
+            if lightGroup != "":
+                cmds.textScrollList(self.lgroupsListPath, edit=True, append=str(lightGroup))
+
+        cmds.textField(self.lgroupsListTextPath, edit=True, text=lgParam)
+        self.updateLgList(lgParam)        
+        
+
     def setup(self):
         #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
@@ -147,10 +231,14 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
         self.beginLayout("Light Groups", collapse=False)
         self.beginNoOptimize()
+        self.lgroupsListTextPath = ''
+        self.lgroupsListPath = ''
 
         self.addControl('globalAov', label='Global AOV')
-        self.addControl('lightGroups', label='All Light Groups')
-        self.addControl('lightGroupsList', label='Light Groups List')
+        self.addControl('lightGroups', label='All Light Groups', changeCommand=self.updateLightGroupsVisibility)
+
+        self.addCustom('lightGroupsList', self.lightGroupsListNew, self.lightGroupsListReplace)
+        
         self.endNoOptimize()
         self.endLayout()
         self.beginLayout("Custom AOV", collapse=False)

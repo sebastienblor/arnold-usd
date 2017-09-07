@@ -160,7 +160,9 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       AiNodeUnlink(shadingEngine, "volume");
    }
 
-   m_impl->AddAOVDefaults(shadingEngine, aovShaders); // modifies aovShaders list
+   if (aovShaders.size() > 0)
+      AiNodeSetArray(shadingEngine, "aov_inputs", AiArrayConvert(aovShaders.size(), 1, AI_TYPE_NODE, &aovShaders[0]));
+   
 }
 
 void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)

@@ -95,12 +95,6 @@ public :
    }
    void Init(CArnoldSession* session, const CNodeAttrHandle& object);
 
-
-   // export the shading engine AOVS. This is mainly called when exporting MayaShadingEngine.
-   // But the Shape translators that also create their own shader (when it doesn't exist in Maya)
-   // call ExportRootShader, which call CreateShadingGroupShader, which call AddAOVDefaults
-   void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
-   
    virtual MStatus ExportOverrideSets();
    static void DirtyOverrideSets(CNodeTranslator *tr);
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;

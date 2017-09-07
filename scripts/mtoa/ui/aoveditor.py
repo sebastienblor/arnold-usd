@@ -138,19 +138,33 @@ class AOVBrowser(object):
         AOV attributes for any nodes in the scene.
         '''
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
+        aovShaderName = None
+
         if sel:
             global _updating
             _updating = True
             try:
                 for aovFullName in sel:
-                    aovName = aovFullName.split()[0] # splits on whitespace
-                    aov = self.renderOptions.addAOV(aovName)
+                    aovList = aovFullName.split()
+                    aovName = aovList[0] # splits on whitespace
+                    aovShaderName = None
+                    if len(aovList) > 1:
+                        shaderName = aovList[1]
+                        if shaderName[:1] == "(" and shaderName[-1:] == ")":
+                            shaderName = shaderName[1:-1]
+                            aovShadersList = aovs.getAOVShaders()
+                            if shaderName in aovShadersList:
+                                aovShaderName = shaderName
+
+                    aov = self.renderOptions.addAOV(aovName, aovShader=aovShaderName)
             finally:
                 _updating = False
             self.updateActiveAOVs()
 
             pm.textScrollList(self.activeLst, edit=True,selectItem=sel[0].split()[0])
-            self.selectAOV()
+
+            if not aovShaderName:
+                self.selectAOV()
     def removeAOVs(self, *args):
         '''
         delete the selected AOVs
