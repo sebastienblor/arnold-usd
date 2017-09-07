@@ -23,8 +23,6 @@ InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
 ;Request application privileges for Windows Vista
 RequestExecutionLevel admin
 
-Var StartMenuFolder
-
 !define MUI_ICON "SA.ico"
 !define MUI_UNICON "SA.ico"
 
@@ -39,7 +37,6 @@ Var StartMenuFolder
 !insertmacro MUI_PAGE_LICENSE "MtoAEULA.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
-!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -91,17 +88,9 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
     Delete "$R1\maya\RSTemplates\RenderLayerExample-Arnold.json"
     ${EndIf}
     
-    IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
-    deleteMayaEnv:
-    Delete "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
-    CopyFiles "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
-    RMDir /r "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup"
-    
-    removeMenu:
-    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-      Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-      RMDir "$SMPROGRAMS\$StartMenuFolder"
-    
+    Delete "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%\Uninstall.lnk"
+    RMDir "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%"
+  
     SetRegView 64
     DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayName"
     DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
@@ -139,13 +128,9 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-    
-    ;Create shortcuts
-    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-  
-  !insertmacro MUI_STARTMENU_WRITE_END
+  ;Create shortcuts
+  CreateDirectory "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%"
+  CreateShortCut "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   
   SetRegView 64
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
@@ -259,17 +244,9 @@ Section "Uninstall"
   Delete "$R1\maya\RSTemplates\RenderLayerExample-Arnold.json"
   ${EndIf}
   
-  IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
-  deleteMayaEnv:
-  Delete "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
-  CopyFiles "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
-  RMDir /r "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup"
-  
-  removeMenu:
-  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-    Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-    RMDir "$SMPROGRAMS\$StartMenuFolder"
-  
+  Delete "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%\Uninstall.lnk"
+  RMDir "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%"
+
   SetRegView 64
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayName"
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
