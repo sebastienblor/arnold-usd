@@ -101,22 +101,24 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    float shutterStart = 0.f;
    float shutterEnd = 1.f;
 
+   double motionStart, motionEnd;
+   GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+   AiNodeSetFlt(camera, "motion_start", (float)motionStart);
+   AiNodeSetFlt(camera, "motion_end", (float)motionEnd);
+
    if (FindMayaPlug("aiUseGlobalShutter").asBool())
-   {
-      double shutterStartDbl, shutterEndDbl;
-      GetSessionOptions().GetMotionRange(shutterStartDbl, shutterEndDbl);
-      shutterStart = (float)shutterStartDbl;
-      shutterEnd = (float)shutterEndDbl;
+   {      
+      // Use the Global motion range as shutter (default)
+      AiNodeSetFlt(camera, "shutter_start", (float)motionStart);
+      AiNodeSetFlt(camera, "shutter_end", (float)motionEnd);
    } else
    {
-      shutterStart = FindMayaPlug("aiShutterStart").asFloat();
-      shutterEnd = FindMayaPlug("aiShutterEnd").asFloat();
+      // Use the camera's shutter. Note that camera motion will 
+      // still be exported in the range [motion_start/motion_end]
+      AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
+      AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
    }
-   AiNodeSetFlt(camera, "shutter_start", shutterStart);
-   AiNodeSetFlt(camera, "shutter_end", shutterEnd);
-   AiNodeSetFlt(camera, "motion_start", shutterStart);
-   AiNodeSetFlt(camera, "motion_end", shutterEnd);
-
+   
    AiNodeSetInt(camera, "shutter_type", FindMayaPlug("aiShutterType").asInt());
    
    ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
