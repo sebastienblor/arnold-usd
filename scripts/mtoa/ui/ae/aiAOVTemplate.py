@@ -169,7 +169,9 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
         lgList = lgListValue.split(' ')
         for lg in lgList:
-            cmds.textScrollList(self.lgroupsListPath, edit=True, selectItem=lg)
+            if lg != '':
+                cmds.textScrollList(self.lgroupsListPath, edit=True, selectItem=lg)
+            
             
 
     def lightGroupsListNew(self, nodeName) :
