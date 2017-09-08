@@ -145,6 +145,7 @@ void COptionsTranslator::ExportAOVs()
       std::vector<CAOVOutput> globalOutputs;
       MPlug pFilter = FindMayaPlug("filter");
       MPlug pDisplays = FindMayaPlug("drivers");
+
       for (unsigned int i=0; i < pDisplays.numElements(); ++i)
       {
          CAOVOutput output;
@@ -155,16 +156,21 @@ void COptionsTranslator::ExportAOVs()
          MtoaDebugLog("[mtoa] [aov "+name+"] Setting AOV output: filter and driver.");
 
       GetOutputArray(*it, aovData.outputs);
+      
+      // Keep a copy of the outputs before I eventually add the global ones (renderview).
+      // If I want to output light groups for this AOV, I don't want the global ones 
+      // to be copied as well
+      std::vector<CAOVOutput> localAOVOutputs = aovData.outputs;      
 
       // Add global outputs
       for (unsigned int i=0; i < globalOutputs.size(); ++i)
       {
          if (!globalOutputs[i].singleLayer || name == displayAOV)
-         {
             aovData.outputs.push_back(globalOutputs[i]);
-         }
+         
       }
 
+      
       // This token is added to the arguments in command mtoa.utils.getFileName()
       aovData.tokens = MString("RenderPass=") + name;
       aovData.name = name;
@@ -175,7 +181,23 @@ void COptionsTranslator::ExportAOVs()
          CAOVOutput output;
          ExportDriver(FindMayaPlug("driver"), output);
          output.filter = ExportFilter(FindMayaPlug("filter"));
-         aovData.outputs.push_back(output);
+
+         // search if I already have the same output driver + filter
+         bool foundOutput = false;
+         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+         {
+            if (aovData.outputs[i].driver == output.driver && aovData.outputs[i].filter == output.filter)
+            {
+               foundOutput = true;
+               break; 
+            }
+         }
+         if (!foundOutput)
+         {
+            aovData.outputs.push_back(output);
+            localAOVOutputs.push_back(output);
+         }
+
          globalAov = true;
          // RGBA/RGB AOVs are a special case because the AOV name and the data type are linked.
          // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
@@ -188,6 +210,9 @@ void COptionsTranslator::ExportAOVs()
       if (globalAov)
          aovDataList.push_back(aovData);
       
+      // now get rid of the global outputs (renderview)
+      aovData.outputs = localAOVOutputs;
+
       if (lightGroups)
       {
          // We can merge the light groups in a single AOV for batch sessions
@@ -393,6 +418,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          
          // loop through outputs
          unsigned int nOutputs = aovData.outputs.size();
+
          for (unsigned int j=0; j < nOutputs; ++j)
          {
             CAOVOutput& output = aovData.outputs[j];
@@ -407,6 +433,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                continue;
             }
             const AtNodeEntry* driverEntry = AiNodeGetNodeEntry(output.driver);
+
 
             // is this driver an output file image (otherwise it could be a display driver)
             bool outputImageDriver = (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL);
@@ -458,13 +485,11 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                eyeToken);
 
                // Eventually add a suffix to the filename (for light groups)
-               if (aovData.aovSuffix.length() > 0)
+               if ((!output.mergeAOVs) && aovData.aovSuffix.length() > 0)
                {
                   int dotPos = filename.rindexW('.');
                   if (dotPos > 0)
-                  {
                      filename = filename.substringW(0, dotPos - 1) + aovData.aovSuffix + filename.substringW(dotPos, filename.length() -1);
-                  }
                }
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
@@ -551,7 +576,6 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   // Check that it's the same driver.
                   if (output.driver != it->second)
                   {
-                     
                      // NOTE: it could be possible to merge the output of multiple drivers of the same type, but if their settings differ
                      // it will be unclear to the user which node's settings should be used
                      AiMsgWarning("[mtoa] Two drivers produced the same output path. AOV merging is only supported using a single driver node: \"%s\", \"%s\"",
@@ -608,7 +632,21 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             if (MtoaTranslationInfo())
                MtoaDebugLog("[mtoa] [aov "+aovData.name+"] output line: "+MString(str));
 
-            outputs.append(MString(str));
+            bool foundAOV = false;
+            for (unsigned int o = 0; o < outputs.length(); ++o)
+            {
+               if (outputs[o] == MString(str))
+               {
+                  foundAOV = true;
+                  break;
+               }
+            }  
+
+            // I don't want to dump twice the same line as it wouldn't make sense
+            // it can happen if you have a RGBA AOV
+            if (!foundAOV)
+               outputs.append(MString(str));
+            
 
          }
       }
@@ -727,6 +765,7 @@ bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
    ExportDriver(driverPlug, output);
    if (output.driver == NULL)
       return false;
+
    return true;
 }
 

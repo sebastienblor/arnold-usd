@@ -205,14 +205,14 @@ class AEaiAOVTemplate(ShaderAETemplate):
         lgParam = cmds.getAttr(nodeName)
         
         # loop over all light groups in the scene
-        lights = cmds.ls(type="light")
+        lights =cmds.ls(exactType=['pointLight', 'directionalLight', 'spotLight', 'areaLight', 'aiAreaLight', 'aiSkyDomeLight', 'aiMeshLight', 'aiPhotometricLight'])
 
-        print "Lights are %s" % lights
+        existingLightGroups = []
         for light in lights:
-            print light
             lightGroup = cmds.getAttr(light+".aiAov")
-            if lightGroup != "":
+            if lightGroup != "" and not lightGroup in existingLightGroups:
                 cmds.textScrollList(self.lgroupsListPath, edit=True, append=str(lightGroup))
+                existingLightGroups.append(lightGroup)
 
         cmds.textField(self.lgroupsListTextPath, edit=True, text=lgParam)
         self.updateLgList(lgParam)        
