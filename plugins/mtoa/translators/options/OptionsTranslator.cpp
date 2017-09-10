@@ -133,6 +133,7 @@ void COptionsTranslator::ExportAOVs()
 
       aovData.lpe =  it->GetLightPathExpression();
       MPlug shaderPlug = it->GetShaderPlug();
+      MString camera = it->GetCamera();
 
       if (!shaderPlug.isNull())
       {
@@ -140,6 +141,34 @@ void COptionsTranslator::ExportAOVs()
          m_impl->ExportConnectedNode(shaderPlug, true, &aovData.shaderTranslator);
       } else
          aovData.shaderTranslator = NULL;
+
+      if (camera.length() > 0)
+      {
+         MSelectionList cameraSelList;
+         cameraSelList.add(camera);
+
+         MDagPath camObject;
+         cameraSelList.getDagPath(0,camObject);
+
+         if (camObject.isValid())
+         {
+            camObject.extendToShape();
+            MFnDependencyNode fnNode(camObject.node());
+            MPlug dummyPlug = fnNode.findPlug("matrix"); // I need a dummy plug from the camera node
+            if (!dummyPlug.isNull())
+            {
+               AtNode *res = m_impl->ExportConnectedNode(dummyPlug, true, &aovData.cameraTranslator);
+            }
+         }
+          else
+         {
+            AiMsgError("[mtoa.aov] Camera %s not found", camera);
+         }
+         
+
+         
+      } else
+         aovData.cameraTranslator = NULL;
 
       // Global drivers
       std::vector<CAOVOutput> globalOutputs;
@@ -414,7 +443,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
       {
          CAOVOutputArray& aovData = (eye > 0) ? stereoAovData[i] : m_aovData[i];
 
-         MString cameraToken = nameCamera;
+         MString aovCamera = nameCamera;
+
+         if (aovData.cameraTranslator)
+         {
+            // replace the camera name by the one specified in the AOV itself
+            MDagPath aovCameraPath = static_cast<CDagTranslator*>(aovData.cameraTranslator)->GetMayaDagPath();
+            MFnDagNode aovCamDagTransform(aovCameraPath);
+            aovCamera = aovCamDagTransform.name();
+         }
          
          // loop through outputs
          unsigned int nOutputs = aovData.outputs.size();
@@ -462,18 +499,18 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   if (eye == 0)
                   {
                      eyeToken = "Left";
-                     cameraToken = leftCameraName;
+                     aovCamera = leftCameraName;
                   } else
                   {
                      eyeToken = "Right";
-                     cameraToken = rightCameraName;
+                     aovCamera = rightCameraName;
                   }
                }
 
                MString filename = getFileName( pathType,
                                                fileFrameNumber,
                                                sceneFileName,
-                                               nameCamera,
+                                               nameCamera, // always use the export camera, even if this AOV is using a different one
                                                ext.c_str(),
                                                renderLayer,
                                                tokens,
@@ -602,35 +639,31 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                }
             }
 
+            if (stereo && (!outputImageDriver)) // display driver in stereo rendering
+            {
+               if (eye != 0)
+                  continue; // nothing to do here, we just want one eye for display
+
+               aovCamera = leftCameraName; // the display camera will be the left one                  
+            }
+
             // output statement
             char str[1024];
             if (output.raw)
             {
                sprintf(str, "%s", AiNodeGetName(output.driver));
             }
-            else if (stereo)
+            else
             {
-               if (outputImageDriver)
+               if (aovCamera != nameCamera)
                {
-                  // output image : we need both eyes
-                  // Setting the <Eye> token for Stereo rendering
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s", aovCamera.asChar(),  aovData.name.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                }
-               else if (eye == 0)
-               {
-                  // display driver, we only output one eye (left)
-                  cameraToken = leftCameraName;
-                  sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));
-               } 
-            } else
-            {
-               sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                       AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+               else
+                  sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));     
             }
-            if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa] [aov "+aovData.name+"] output line: "+MString(str));
 
             bool foundAOV = false;
             for (unsigned int o = 0; o < outputs.length(); ++o)
@@ -645,9 +678,12 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             // I don't want to dump twice the same line as it wouldn't make sense
             // it can happen if you have a RGBA AOV
             if (!foundAOV)
-               outputs.append(MString(str));
-            
+            {
+               if (MtoaTranslationInfo())
+                  MtoaDebugLog("[mtoa] [aov "+aovData.name+"] output line: "+MString(str));
 
+               outputs.append(MString(str));
+            }
          }
       }
    }

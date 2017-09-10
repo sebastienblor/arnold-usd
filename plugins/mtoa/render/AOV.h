@@ -71,6 +71,7 @@ public:
    inline const MString& GetLightGroupsList() const { return m_lightGroupsList; }
 
    inline const MPlug &GetShaderPlug() const {return m_shaderPlug;}
+   inline const MString &GetCamera() const {return m_camera;}
 
 
 protected:
@@ -97,4 +98,5 @@ protected:
    bool m_lightGroups;
    bool m_globalAov;
    MPlug m_shaderPlug;
+   MString m_camera;
 };

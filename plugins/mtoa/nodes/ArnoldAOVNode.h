@@ -38,4 +38,5 @@ public:
    static MObject s_lightGroups;   
    static MObject s_globalAOV;   
    static MObject s_lightGroupsList;
+   static MObject s_camera;
 };  // class CArnoldAOVNode

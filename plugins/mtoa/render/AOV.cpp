@@ -50,7 +50,7 @@ CAOV::CAOV(const CAOV &rhs)
      m_lightGroupsList(rhs.m_lightGroupsList),
      m_lightGroups(rhs.m_lightGroups),
      m_globalAov(rhs.m_globalAov),
-     m_shaderPlug(rhs.m_shaderPlug)
+     m_camera(rhs.m_camera)
 {
 }
 
@@ -75,6 +75,7 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_lightGroupsList = rhs.m_lightGroupsList;
       m_globalAov = rhs.m_globalAov;
       m_shaderPlug = rhs.m_shaderPlug;
+      m_camera = rhs.m_camera;
    }
    return *this;
 }
@@ -165,5 +166,7 @@ bool CAOV::FromMaya(MObject &AOVNode)
    if (connections.length() > 0)
       m_shaderPlug = connections[0];
    
+   m_camera = fnNode.findPlug("camera").asString();
+
    return true;
 }
