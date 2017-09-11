@@ -27,7 +27,6 @@ def doExportStandIn():
     #Save the defaultType
     core.createOptions()
     default = cmds.optionVar(q='defaultFileExportActiveType')
-    # FIXME no longer force the asstoc export during standins, since it's now in the .ass metadata
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
     try:
@@ -41,7 +40,6 @@ def doExportStandIn():
 
 def doExportOptionsStandIn():
     core.createOptions()
-    # FIXME no longer force the asstoc export during standins, since it's now in the .ass metadata
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
 

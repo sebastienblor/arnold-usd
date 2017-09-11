@@ -7,6 +7,7 @@
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
 
@@ -35,6 +36,7 @@
 #include <maya/MFileObject.h>
 #include <maya/M3dView.h>
 #include <maya/MAtomic.h>
+#include <maya/MBoundingBox.h>
 
 #include <cstdio>
 #include <assert.h>
@@ -221,20 +223,46 @@ void CRenderSession::DeleteRenderView()
 
 AtBBox CRenderSession::GetBoundingBox()
 {
-   AtBBox bbox;
-   if (AiUniverseIsActive())
-   {
-      // FIXME: we need to start a render to have it actually initialize the bounding box
-      // (in free mode, does nothing but setting the scene up for future ray requests)
-      AiRender(AI_RENDER_MODE_FREE);
-      bbox = AiUniverseGetSceneBounds();
-   }
-   else
-   {
-      AiMsgError("[mtoa] RenderSession is not active.");
-   }
+   // We're no longer asking Arnold to dump the bounding box, because it required to start 
+   // a render in "free" mode, so that subdivision and displacement were applied.
+   // This gave us an exact bounding box, and it used to be necessary when load_at_init = false.
+   // Now that load_at_init was removed, this bounding box information is just used for viewport display,
+   // so we don't need it to be perfectly accurate, and we don't want its computation to be expensive.
+   // So I'm now changing this, so that bounding boxes are computed by what Maya returns us.
 
-   return bbox;
+   const ObjectToTranslatorMap &processedTranslators = CMayaScene::GetArnoldSession()->GetProcessedTranslators();
+   ObjectToTranslatorMap::const_iterator it = processedTranslators.begin();
+   ObjectToTranslatorMap::const_iterator itEnd = processedTranslators.end();
+
+   MBoundingBox globalBox = MBoundingBox(); // creates an empty bounding box 
+   for (; it != itEnd; ++it)
+   {
+      CNodeTranslator *translator = it->second;
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldNode();
+      if (node == NULL) continue;
+
+      if (AiNodeEntryGetType(AiNodeGetNodeEntry(node)) != AI_NODE_SHAPE) continue; // only consider shapes
+
+      CDagTranslator *dagTranslator = static_cast<CDagTranslator*>(translator);
+      const MDagPath &dagPath = dagTranslator->GetMayaDagPath();
+      if (!dagPath.isValid()) continue;
+
+      MStatus status;
+      MFnDagNode fnNode(dagPath, &status);
+      if (status != MS::kSuccess) continue;
+
+      MBoundingBox box = fnNode.boundingBox (&status);
+      if (status != MS::kSuccess) continue;
+
+      box.transformUsing(dagPath.inclusiveMatrix());
+
+      globalBox.expand(box);
+   }
+   AtVector boxmin((float)globalBox.min()[0], (float)globalBox.min()[1], (float)globalBox.min()[2]);
+   AtVector boxmax((float)globalBox.max()[0], (float)globalBox.max()[1], (float)globalBox.max()[2]);
+   return AtBBox(boxmin, boxmax);
 }
 
 // FIXME: will probably get removed when we have proper bounding box format support
@@ -563,7 +591,7 @@ MString CRenderSession::GetAssName(const MString& customName,
    return assFileName;
 }
 
-void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
+void CRenderSession::DoAssWrite(MString customFileName, const bool compressed, bool writeBox)
 {
    assert(AiUniverseIsActive());
 
@@ -612,24 +640,25 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
       // Now save the metadata
       AtMetadataStore *mds = AiMetadataStore();
 
-      // FIXME this will for arnold to evaluate the bounding boxes so it might be time consuming
-      // do we rather want to get maya's bounding boxes ?
-      // the result won't be totally exact (we might miss subdivision / displacement )
-      // but this is only meant to show the boxes in standins viewport display
-      AtBBox bBox = GetBoundingBox();
-      MString boundsStr;
-      boundsStr += bBox.min.x;
-      boundsStr += " ";
-      boundsStr += bBox.min.y;
-      boundsStr += " ";
-      boundsStr += bBox.min.z;
-      boundsStr += " ";
-      boundsStr += bBox.max.x;
-      boundsStr += " ";
-      boundsStr += bBox.max.y;
-      boundsStr += " ";
-      boundsStr += bBox.max.z;
-      AiMetadataStoreSetStr(mds, AtString("bounds"), boundsStr.asChar());
+      // we're still adding this as an option because it could be expensive on big scenes
+      AtBBox bBox = AI_BBOX_ZERO;
+      if (writeBox)
+      {
+         bBox = GetBoundingBox();
+         MString boundsStr;
+         boundsStr += bBox.min.x;
+         boundsStr += " ";
+         boundsStr += bBox.min.y;
+         boundsStr += " ";
+         boundsStr += bBox.min.z;
+         boundsStr += " ";
+         boundsStr += bBox.max.x;
+         boundsStr += " ";
+         boundsStr += bBox.max.y;
+         boundsStr += " ";
+         boundsStr += bBox.max.z;
+         AiMetadataStoreSetStr(mds, AtString("bounds"), boundsStr.asChar());
+      }
 
       if (AiNodeLookUpUserParameter(options, "frame"))
          AiMetadataStoreSetFlt(mds, AtString("frame"), AiNodeGetFlt(options, "frame"));
@@ -650,6 +679,18 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWriteWithMetadata(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding(), mds);
       AiMetadataStoreDestroy(mds);
+
+      if (writeBox && getenv("MTOA_EXPORT_ASSTOC"))
+      {
+         int extPos = fileName.rindexW('.');
+         if (extPos < 0)
+            fileName += ".asstoc";
+         else
+            fileName = fileName.substringW(0, extPos) + MString("asstoc");
+
+         WriteAsstoc(fileName, bBox);
+      }
+
    }
 }
 

@@ -428,24 +428,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
             //AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
          
          renderSession->SetUseBinaryEncoding(asciiAss);
-         renderSession->DoAssWrite(curfilename, compressed);
-
-         if (writeBox)
-         {
-            // getting ass toc file name
-            tocfilename = renderSession->GetAssName(customFileName,
-                                                    renderGlobals,
-                                                    curframe,
-                                                    sceneName,
-                                                    cameraName,
-                                                    "asstoc",
-                                                    renderLayer,
-                                                    createDirectory,
-                                                    isSequence,
-                                                    subFrames,
-                                                    batch, &status);
-            renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-         }
+         renderSession->DoAssWrite(curfilename, compressed, writeBox);
       }
       CMayaScene::End();
 

@@ -197,6 +197,8 @@ public:
    void UnRegisterProcedural(AtNode *node);
    void ExportTxFiles();
 
+   const ObjectToTranslatorMap &GetProcessedTranslators() const {return m_processedTranslators;}
+
 private:
 
    CArnoldSession()
