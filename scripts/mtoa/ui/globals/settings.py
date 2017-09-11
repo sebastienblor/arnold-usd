@@ -1091,7 +1091,7 @@ def createArnoldLicensingSettings():
                         attribute='defaultArnoldRenderOptions.abortOnLicenseFail')
 
     pm.attrControlGrp('os_skip_license_check',
-                        label="Skip License Check",
+                        label="Render with Watermarks (Skip License Check)",
                         attribute='defaultArnoldRenderOptions.skip_license_check')
 
     pm.setParent('..')
