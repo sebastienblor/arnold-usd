@@ -133,5 +133,7 @@ public:
    static MObject s_offset_origin;
    static MObject s_origin;
    static MObject s_aov_shaders;
+   static MObject s_legacy_gi_glossy_samples;
+   static MObject s_legacy_gi_refraction_samples;
    
 };  // class CArnoldOptionsNode

@@ -106,6 +106,9 @@ MObject CArnoldOptionsNode::s_scene_scale;
 MObject CArnoldOptionsNode::s_offset_origin;
 MObject CArnoldOptionsNode::s_origin;
 MObject CArnoldOptionsNode::s_aov_shaders;
+MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
+MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
+
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -267,7 +270,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_transmission_samples");
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
-   
+
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
@@ -646,11 +649,28 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setIndexMatters(false);
    addAttribute(s_aov_shaders);
 
-   // Need to call attrCompatibility for the attributes that disappeared in Arnold 5 (#3161)
-   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
-   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
-   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_refraction_samples\" ;";
-   MGlobal::executeCommand(compatCmd);
+
    
+   // we need to re-introduce the attributes that disappeared in Arnold 5 (see #3161)
+   // because maya's attrCompatibility command isn't working properly
+   s_legacy_gi_glossy_samples = nAttr.create("GI_glossy_samples", "GI_glossy_samples", MFnNumericData::kInt, 1);
+   nAttr.setKeyable(false);
+   nAttr.setHidden(true);
+   nAttr.setStorable(false);
+   nAttr.setWritable(false);
+   addAttribute(s_legacy_gi_glossy_samples);
+   s_legacy_gi_refraction_samples = nAttr.create("GI_refraction_samples", "GI_refraction_samples", MFnNumericData::kInt, 1);
+   nAttr.setKeyable(false);
+   nAttr.setHidden(true);
+   nAttr.setStorable(false);
+   nAttr.setWritable(false);
+   addAttribute(s_legacy_gi_glossy_samples);
+
+//   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
+//   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
+//   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_refraction_samples\" ;";
+//   MGlobal::executeCommand(compatCmd);
+
+
    return MS::kSuccess;
 }
