@@ -669,6 +669,13 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed, b
       if (AiNodeLookUpUserParameter(options, "render_layer"))
          AiMetadataStoreSetStr(mds, AtString("render_layer"), AiNodeGetStr(options, "render_layer"));
 
+      MString currentUser;
+      MGlobal::executePythonCommand("import getpass; getpass.getuser();", currentUser);
+      if (currentUser.length() > 0)
+         AiMetadataStoreSetStr(mds, AtString("user"), currentUser.asChar());
+
+
+
       MString sceneFileName;
       MGlobal::executeCommand("file -q -sn", sceneFileName);
       if(sceneFileName.length() > 0)
