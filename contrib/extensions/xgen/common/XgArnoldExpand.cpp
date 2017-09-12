@@ -273,13 +273,13 @@ bool Procedural::render()
    m_mutex->leave();
    return true;
 }
-
+/*
 const char* Procedural::getUniqueName( char* buf, const char* basename )
 {
    static unsigned int g_counter = 0;
    sprintf( buf, "%s__%X", basename, g_counter++ );
    return buf;
-}
+}*/
 
 int Procedural::Init(AtNode* node)
 {
@@ -288,7 +288,6 @@ int Procedural::Init(AtNode* node)
    _fmode = _O_BINARY;
 #endif
 
-   char buf[512];
    AtString parameters = AiNodeGetStr( node, "data" );
    
    m_options = AiUniverseGetOptions();
@@ -319,7 +318,8 @@ int Procedural::Init(AtNode* node)
       // Create a sphere shape node
       {
          m_sphere = AiNode("sphere");
-         AiNodeSetStr( m_sphere, "name", getUniqueName(buf,( strParentName + string("_sphere_shape") ).c_str() ) );
+         string nodeName = strParentName + string("_sphere_shape");
+         AiNodeSetStr( m_sphere, "name", nodeName.c_str());
          AiNodeSetFlt( m_sphere, "radius", 0.5f );
          AiNodeSetVec( m_sphere, "center", 0.0f, 0.0f, 0.0f );
          AiNodeSetByte( m_sphere, "visibility", 0 );
@@ -1039,8 +1039,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
          }
        }
     }
-    char buf[512];
-
+    
    // Create only one node, all arrays get merged into it at the end
    if ( !m_merged_data )
    {
@@ -1049,7 +1048,9 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       AtNode* nodeCurves = AiNode("curves");
       string strParentName = AiNodeGetName( m_node_face );
       string strID = itoa( (int)m_nodes.size() );
-      AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
+      string nodeName = strParentName + string("_curves_") + strID;
+      AiNodeSetStr( nodeCurves, "name", nodeName.c_str()) ;
+
       AiNodeSetUInt(nodeCurves, "id", getHash(nodeCurves));
       AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
       AiNodeSetStr( nodeCurves, "basis", "b-spline" );
@@ -1246,11 +1247,11 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
         string strID = itoa( (int)m_nodes.size() );
 
-        char buf[512];
-
+        
         // and a geometry instance node.
         AtNode* nodeInstance = AiNode("ginstance");
-        AiNodeSetStr( nodeInstance, "name", getUniqueName(buf,( strParentName + string("_ginstance_") + strID).c_str()) );
+        string nodeName = strParentName + string("_ginstance_") + strID;
+        AiNodeSetStr( nodeInstance, "name", nodeName.c_str());
         AiNodeSetUInt(nodeInstance, "id", getHash(nodeInstance) );
         AiNodeSetArray( nodeInstance, "matrix", matrix );
         AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
@@ -1324,11 +1325,10 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
  
       string strID = itoa( (int)m_nodes.size() );
 
-      char buf[512];
-
       // and a geometry instance node.
       AtNode* nodeCard = AiNode( "nurbs" );
-      AiNodeSetStr( nodeCard, "name", getUniqueName(buf,( strParentName + string("_nurbs_") + strID).c_str()));
+      string nodeName = strParentName + string("_nurbs_") + strID;
+      AiNodeSetStr( nodeCard, "name", nodeName.c_str());
       AiNodeSetInt(nodeCard, "id", getHash(nodeCard ));
       AiNodeSetArray( nodeCard, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
 
