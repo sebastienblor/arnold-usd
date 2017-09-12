@@ -97,7 +97,7 @@ def addSpreadSheetHooks():
     arnoldAttrList += "\"overrideLightLinking\", \"overrideShaders\", \"overrideReceiveShadows\", \"overrideSelfShadows\", \"overrideOpaque\", \"overrideMatte\", "
     arnoldAttrList += "\"aiColorTemperature\", \"aiExposure\", \"aiAngle\", \"aiSamples\", \"aiNormalize\", \"aiCastShadows\", \"aiShadowDensity\", "
     arnoldAttrList += "\"aiCastVolumetricShadows\", \"aiVolumeSamples\", \"aiDiffuse\", \"aiSpecular\", \"aiSss\", \"aiIndirect\", \"aiVolume\", "
-    arnoldAttrList += "\"aiColor\", \"aiIntensity\", \"aiExposure\", \"aiSpread\", \"aiResolution\", \"aiSoftEdge\", \"aiSamples\", \"aiNormalize\", "
+    arnoldAttrList += "\"colorR\", \"colorG\", \"colorB\", \"intensity\", \"aiExposure\", \"aiSpread\", \"aiResolution\", \"aiSoftEdge\", \"aiSamples\", \"aiNormalize\", "
     arnoldAttrList += "\"aiFormat\", \"aiPortalMode\"}"
         
     if pm.optionVar(exists='SSEitem1'):
