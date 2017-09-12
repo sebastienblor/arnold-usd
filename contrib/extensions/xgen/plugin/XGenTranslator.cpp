@@ -492,7 +492,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          ProcessRenderFlags(otherInstance);*/
       }
 
-      AiNodeSetStr(shape, "name", NodeUniqueName(shape, buf));
+      //AiNodeSetStr(shape, "name", NodeUniqueName(shape, buf));
       
       ProcessRenderFlags(shape);
 
