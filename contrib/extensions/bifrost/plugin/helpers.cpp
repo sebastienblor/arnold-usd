@@ -3,8 +3,8 @@
 
 namespace ArnoldBifrost{
 
-MAttrData::MAttrData(MString mayaNodeClassName, const MString &arnoldNodeEntryName)
-   : CAttrData(), m_helper(mayaNodeClassName, arnoldNodeEntryName){}
+MAttrData::MAttrData(MString mayaNodeClassName)
+   : CAttrData(), m_helper(mayaNodeClassName){}
 
 template<typename T>
 MAttrData& MAttrData::setup(const char* longName, const char* shortName, T value){

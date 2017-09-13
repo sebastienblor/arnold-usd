@@ -88,7 +88,7 @@ void NodeInitializer(CAbTranslator &context){
       // in Maya 2018 Update 2+ these attributes are added to the shape by bifrostvisplugin
       // (since they aren't renderer specific)
 
-      MAttrData extData(context.maya, "bifrostShape");
+      MAttrData extData(context.maya);
 
       extData.setup("renderAs", "render_as", std::initializer_list<const char*>{"Surface", "Points", "Volume"}).makeInput();
       extData.setup("renderComponent", "render_component", std::initializer_list<const char*>{"Voxels", "Particles"}).makeInput();

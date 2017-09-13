@@ -7,7 +7,7 @@ namespace ArnoldBifrost{
 
 class MAttrData : public CAttrData{
 public:
-   MAttrData(MString mayaNodeClassName, const MString& arnoldNodeEntryName);
+   MAttrData(MString mayaNodeClassName);
 
    template<typename T>
    MAttrData& setup(const char* longName, const char* shortName, T value);

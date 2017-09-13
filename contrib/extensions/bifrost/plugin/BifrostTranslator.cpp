@@ -386,7 +386,7 @@ void BifrostTranslator::RequestUpdate()
 
 void BifrostTranslator::NodeInitializer( CAbTranslator context )
 {
-   ArnoldBifrost::MAttrData extData(context.maya, "bifrostShape");
+   ArnoldBifrost::MAttrData extData(context.maya);
 
    // common
    extData.setup("opaque",   "opaque", false).makeInput();
