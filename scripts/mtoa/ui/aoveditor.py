@@ -63,7 +63,7 @@ class AOVBrowser(object):
 
         self.availableLst = pm.textScrollList(_uiName('availableLst'), numberOfRows=10, allowMultiSelection=True,
                           doubleClickCommand=self.addAOVs)
-        self.activeLst = pm.textScrollList(_uiName('activeLst'), numberOfRows=10, allowMultiSelection=False,
+        self.activeLst = pm.textScrollList(_uiName('activeLst'), numberOfRows=10, allowMultiSelection=True,
                           selectCommand=self.selectAOV)
 
         addBtn = pm.button(_uiName('addBtn'), label='>>', command=self.addAOVs)
@@ -196,12 +196,13 @@ class AOVBrowser(object):
 
     def selectAOV(self, *args):
         sel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
+        pm.select(clear=True)
         if sel:
             for aov in sel:
                 for aovName, aovList in self.renderOptions.getAOVs(group=True):
                     if aovName == aov and aovList and len(aovList):
-                        pm.select(aovList[0].node)
-                        return
+                        pm.select(aovList[0].node, add=True)
+                        break
                     
 
 
