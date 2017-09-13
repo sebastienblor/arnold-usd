@@ -674,7 +674,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setHidden(true);
    nAttr.setStorable(false);
    nAttr.setWritable(false);
-   addAttribute(s_legacy_gi_glossy_samples);
+   addAttribute(s_legacy_gi_refraction_samples);
 
 //   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
