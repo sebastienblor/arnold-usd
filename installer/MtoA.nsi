@@ -128,7 +128,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   FileWrite $0 "PATH +:= bin$\r$\n"
   FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
   FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
-  FileWrite $0 "MAYA_RENDER_DESC_PATH = $INSTDIR$\r$\n"
+  FileWrite $0 "MAYA_RENDER_DESC_PATH +:= $INSTDIR$\r$\n"
   
   FileClose $0
   
@@ -177,7 +177,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     FileWrite $0 "PATH +:= bin$\r$\n"
     FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
     FileWrite $0 "MAYA_SCRIPT_PATH +:= scripts/mtoa/mel$\r$\n"
-    FileWrite $0 "MAYA_RENDER_DESC_PATH = $INSTDIR$\r$\n"
+    FileWrite $0 "MAYA_RENDER_DESC_PATH +:= $INSTDIR$\r$\n"
     FileClose $0
     
     ${If} "$%MAYA_VERSION%" < "2018"
