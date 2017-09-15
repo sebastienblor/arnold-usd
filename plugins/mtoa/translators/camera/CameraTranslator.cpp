@@ -68,12 +68,12 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    }
    else
    {
-      AiNodeSetFlt(camera, "focus_distance", 1.f);
-      AiNodeSetFlt(camera, "aperture_size", 0.f);
-      AiNodeSetInt(camera, "aperture_blades", 0);
-      AiNodeSetFlt(camera, "aperture_rotation", 0.f);
-      AiNodeSetFlt(camera, "aperture_blade_curvature", 0.f);
-      AiNodeSetFlt(camera, "aperture_aspect_ratio", 1.0f);
+      AiNodeResetParameter(camera, "focus_distance");
+      AiNodeResetParameter(camera, "aperture_size");
+      AiNodeResetParameter(camera, "aperture_blades");
+      AiNodeResetParameter(camera, "aperture_rotation");
+      AiNodeResetParameter(camera, "aperture_blade_curvature");
+      AiNodeResetParameter(camera, "aperture_aspect_ratio");
    }
 }
 
