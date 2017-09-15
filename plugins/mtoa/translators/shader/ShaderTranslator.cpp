@@ -43,11 +43,43 @@ void CShaderTranslator::CreateImplementation()
 // Auto shader translator
 //
 
-/// Add all AOV outputs for this node
-/// This is accomplished by detecting connections from the current node to the aiCustomAOV
-/// attribute of a shadingEngine node.  We then create an AOV writing node for each connection.
+// This function should be renamed once we can break binary compatibility
+// We no longer need it to process AOVs, but instead we need it to eventually 
+// insert a matte shader at the root of the shading tree.
+// Maybe we should totally remove this function, and instead derive ShaderTranslatorImpl::DoCreateArnoldNodes()
+// so that the necessary things are always done, otherwise all shaders need to call 
+// ProcessAOVOutput during CreateArnoldNodes()
 AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
 {
+   MStatus status;
+   MPlug mattePlug = FindMayaPlug("aiEnableMatte", &status);
+   if (status != MS::kSuccess || (!mattePlug.asBool()))
+      return shader; // matte is disabled (or parameter doesn't exist)
+
+
+   MPlug matteColorPlug = FindMayaPlug("aiMatteColor", &status); 
+   if (status != MS::kSuccess ) return shader;
+
+   MPlug matteColorAPlug = FindMayaPlug("aiMatteColorA", &status); 
+   if (status != MS::kSuccess ) return shader;
+
+   // Matte is enabled, I need to insert a matte shader at the root of my shading tree
+   AtNode *matteShader = GetArnoldNode("_matte");
+   if (matteShader == NULL)
+      matteShader = AddArnoldNode("matte", "_matte");
+
+   AiNodeSetRGBA(matteShader, "color",
+                matteColorPlug.child(0).asFloat(),
+                matteColorPlug.child(1).asFloat(),
+                matteColorPlug.child(2).asFloat(),
+                matteColorAPlug.asFloat());
+
+   AiNodeLink(shader, "passthrough", matteShader); 
+
+   return matteShader;
+
+
+   /*
    // FIXME: add early bail out if AOVs are not enabled
    AtNode* currNode = shader;
    MStatus stat;
@@ -117,8 +149,8 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
 
       AiNodeSetStr(writeNode, "aov_name", aovName);
 
-      MPlugArray plugs = it->second;
-      /*
+      MPlugArray plugs = it->second;*/
+      /*  (begin comment)
        * this is the more "pure" way of doing things, because we set a node pointer
        * instead of a node name as a string (as below).  however, in order to get the
        * node pointer we must export all shading engines here (otherwise we have no
@@ -130,8 +162,8 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
          MPlug plug = fnNode.findPlug("dagSetMembers");
          AtNode* node = m_session->ExportNode(plug);
          AiArraySetPtr(sets, i, node);
-      }
-      */
+      } (end comment)
+      */ /*
       AtArray* sets = AiArrayAllocate(plugs.length(), 1, AI_TYPE_STRING);
       for (unsigned int i = 0; i < plugs.length(); i++)
       {
@@ -145,7 +177,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
       AiNodeLink(currNode, "input", writeNode);
       currNode = writeNode;
    }
-   return currNode;
+   return currNode;*/
 }
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
@@ -186,24 +218,15 @@ bool CShaderTranslator::RequiresMotionData()
 
 void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   CNodeTranslator::NodeChanged(node, plug);
-
    // if my connection to "normalCamera" changes, for example if I disconnect a bump node,
    // I not only need to re-export myself, but I also need to advert the node which is connected to the bump
    // (for example the ShadingEngine). Otherwise it will keep its connection to the bump
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   // Bump, as well as matte parameters will affect the shading engine in back reference
-   if (/*plugName == "normalCamera" || */plugName == "aiEnableMatte" || plugName == "aiMatteColor")
-   {
-      // FIXME can we remove all this ??
-      // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
-      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
-      {
-         (*it)->RequestUpdate();
-      }
-      
-   }
+   if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
+      SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
+
+   CNodeTranslator::NodeChanged(node, plug);
 
 }
 

@@ -766,10 +766,9 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    if (!shadingGroupPlug.isNull())
    {
       // SURFACE MATERIAL EXPORT
-      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
+      AtNode *shader = ExportShadingGroup(shadingGroupPlug);
       if (shader != NULL)
       {
-         // Push the shader in the vector to be assigned later to mtoa_shading_groups
          meshShaders.push_back(shader);
          AiNodeSetPtr(polymesh, "shader", shader);
       }
@@ -832,7 +831,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                if (shadingGroups[J] == connections[j].node())
                {
                   // connections[j] is the MPlug to shadingGroups[J]
-                  AtNode *shader = ExportConnectedNode(connections[j]);
+                  AtNode *shader = ExportShadingGroup(connections[j]);
                   if (shader != NULL)
                   {
                     meshShaders.push_back(shader);
@@ -952,14 +951,6 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       AiNodeSetFlt(polymesh, "disp_padding", AiMax(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
       AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
       AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
-   }
-
-   // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
-   if (meshShaders.size() > 0)
-   {
-      AiNodeDeclare(polymesh, "mtoa_shading_groups", "constant ARRAY NODE");
-      AiNodeSetArray(polymesh, "mtoa_shading_groups",
-         AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
    }
 }
 
@@ -1505,10 +1496,6 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
 
          AtNode* shader = ExportConnectedNode(shadingGroupPlug);
          AiNodeSetPtr(instance, "shader", shader);
-         // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
-         AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
-         AiNodeSetArray(instance, "mtoa_shading_groups",
-               AiArrayConvert(1, 1, AI_TYPE_NODE, &shader));
       }
    }
    // Export light linking per instance

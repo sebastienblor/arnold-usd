@@ -606,29 +606,6 @@ void CNodeTranslatorImpl::WriteAOVUserAttributes(AtNode* atNode)
          ++i;
       }
       AiNodeSetArray(atNode, "mtoa_aovs", ary);
-      /*
-      const CRenderOptions* renderOptions = CRenderSession::GetInstance()->RenderOptions();
-      std::vector<std::string> activeAOVs;
-      for (AOVSet::iterator it=m_localAOVs.begin(); it!=m_localAOVs.end(); ++it)
-      {
-         CAOV aov = *it;
-         if (renderOptions->IsActiveAOV(aov))
-         {
-            activeAOVs.push_back(aov.GetName().asChar());
-         }
-      }
-      unsigned int size = activeAOVs.size();
-      if (size)
-      {
-         cout << GetFnNode().name() << ": " << size << " active AOVs" << endl;
-         AtArray *ary = AiArrayAllocate(size, 1, AI_TYPE_STRING);
-         for (unsigned int i=0; i < size; ++i)
-         {
-            cout << "   " << activeAOVs[i] << endl;
-            AiArraySetStr(ary, i, activeAOVs[i].c_str());
-         }
-         AiNodeSetArray(atNode, "mtoa_aovs", ary);
-      }*/
    }
 }
 

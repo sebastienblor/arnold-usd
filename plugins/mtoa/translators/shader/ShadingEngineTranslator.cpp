@@ -16,9 +16,50 @@ void CShadingEngineTranslator::Init()
    CNodeTranslator::Init();
 }
 
+static MString GetAOVWriteNodeType(int type)
+{
+   MString nodeType = "";
+   switch (type)
+   {
+   case AI_TYPE_FLOAT:
+      nodeType = "aov_write_float";
+      break;
+   case AI_TYPE_INT:
+   case AI_TYPE_UINT:
+   case AI_TYPE_BYTE:
+      nodeType = "aov_write_int";
+      break;
+   default:
+   case AI_TYPE_RGB:
+   case AI_TYPE_RGBA:
+   case AI_TYPE_VECTOR:
+   case AI_TYPE_VECTOR2:
+      nodeType = "aov_write_rgb";
+      break;
+   }
+   return nodeType;
+}
+
 AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaShadingEngine");
+   MPlugArray connections;
+   MPlug arrayPlug = FindMayaPlug("aiCustomAOVs");
+
+   for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
+   {
+      MPlug msgPlug = arrayPlug[i].child(1);
+      msgPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode *aovNode = ExportConnectedNode(connections[0]);
+         if (aovNode == NULL) continue;
+
+         MString aovNodeName = GetAOVWriteNodeType(AiNodeEntryGetOutputType(AiNodeGetNodeEntry(aovNode)));
+
+         return AddArnoldNode(aovNodeName.asChar()); // do not set the connections yet
+      }
+   }
+   return NULL;
 }
 
 void CShadingEngineTranslator::CreateImplementation()
@@ -60,109 +101,54 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputRGB(data);
 }
 
-/// Find and export the surfaceShader and custom AOVs for the passed shadingGroup, and add the global AOV defaults.
-///
-/// Nodes to be written to AOVs are connected to a special attribute on the shading group called aiCustomAOVs.
-/// The simplest solution to exporting these custom AOVs would be to branch them in at the root of the network.
-/// However, because Arnold lacks output caching, and considering that the nodes connected to aiCustomAOVs may
-/// appear elsewhere in the shape's shading network, we must take great pains to build linear node networks in
-/// order to avoid entire sub-networks from being evaluated multiple times during render (i.e., we must avoid a
-/// node's output being connected to more than one node). So instead of a simple branching design, we must insert the
-/// AOV write nodes within the body of the network, immediately following the node whose output needs to be written.
-/// AOVs that are exported within the shading network are handled by CShaderTranslator::ProcessAOVOutput, while
-/// the remaining custom AOVs are processed by CShadingEngineTranslator::Export.
-void CShadingEngineTranslator::Export(AtNode *shadingEngine)
+/// Shading Engine translator no longer exports MayaShadingEngine shader.
+/// Now, it only needs to create AtNodes if it has custom AOVs plugged.
+/// In that case, it will return a chained list of aovWrite nodes.
+void CShadingEngineTranslator::Export(AtNode *node)
 {
-   
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) == 0)
+   // general case : no custom AOVs
+   if (node == NULL)
       return;
-   std::vector<AtNode*> aovShaders;
-   AtNode* rootShader = NULL;
-   MPlugArray        connections;
-   MPlug shaderPlug = FindMayaPlug("aiSurfaceShader");
-   shaderPlug.connectedTo(connections, true, false);
-   if (connections.length() == 0)
-   {
-      shaderPlug = FindMayaPlug("surfaceShader");
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug "+ shaderPlug.name());
-      shaderPlug.connectedTo(connections, true, false);
-   }
-   if (connections.length() > 0)
-   {
-      // export the root shading network, this fills m_shaders
-      CNodeTranslator* shaderNodeTranslator = 0;
-      // here we call the private implementation function as we need the output translator
-      rootShader = m_impl->ExportConnectedNode(connections[0], true, &shaderNodeTranslator);
-      if (rootShader)
-      {
-         AiNodeLink(rootShader, "beauty", shadingEngine);
-      
-         if (shaderNodeTranslator)
-         {
-            MStatus status;
-            MPlug mattePlug = shaderNodeTranslator->FindMayaPlug("aiEnableMatte", &status);
-            if (status)
-               ProcessParameter(shadingEngine, "enable_matte", AI_TYPE_BOOLEAN, mattePlug);
-            MPlug matteColorPlug = shaderNodeTranslator->FindMayaPlug("aiMatteColor", &status);
-            if (status)
-               ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, matteColorPlug);
-         }
-      }
 
-      // loop through and export custom AOV networks
-      CShadingEngineTranslatorImpl *trImpl = static_cast<CShadingEngineTranslatorImpl*>(m_impl);
-      for (unsigned int i = 0; i < trImpl->m_customAOVPlugs.length(); i++)
+   MPlugArray connections;
+   MPlug arrayPlug = FindMayaPlug("aiCustomAOVs");
+
+   std::vector<AtNode*> aovWriteNodes;
+
+   for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
+   {
+      MPlug msgPlug = arrayPlug[i].child(1);
+      msgPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
       {
-         // by passing false we avoid tracking shaders and aovs.
-         // we need to call the private implementation function to prevent shaders tracking
-         AtNode* writeNode = m_impl->ExportConnectedNode(trImpl->m_customAOVPlugs[i], false);
+         AtNode *aovNode = ExportConnectedNode(connections[0]);
+         if (aovNode == NULL) continue; // no shader connected 
+
+         MString aovNodeName = GetAOVWriteNodeType(AiNodeEntryGetOutputType(AiNodeGetNodeEntry(aovNode)));
          
-         // since we know this maya node is connected to aiCustomAOVs it will have a write node
-         // inserted after it by CShaderTranslator::ProcessAOVOutput (assuming the node is translated by
-         // CShaderTranslator)
-         // TODO: check shader type: rootShader should always be an aov write node, unless it is a conversion node
+         MString aovValue = arrayPlug[i].child(0).asString();
+         if (aovValue.length() == 0) continue; // no AOV name
 
-         // if the node is not yet in the shading network for this shape, then branch it in.
-         // m_shaders contains all the arnold nodes in a shape's shading network.
-         if (!m_impl->m_shaders->count(writeNode))
+         MString tag("");
+         if (!aovWriteNodes.empty())
          {
-            aovShaders.push_back(writeNode);
+            tag += "aov";
+            tag += i;
          }
+
+         AtNode *aovWriteNode = GetArnoldNode(tag.asChar());
+         if (aovWriteNode == NULL)
+            aovWriteNode = AddArnoldNode(aovNodeName.asChar(), tag.asChar()); 
+
+         AiNodeSetStr(aovWriteNode, "aov_name", aovValue.asChar());
+         AiNodeLink(aovNode, "aov_input", aovWriteNode);
+         
+         if (!aovWriteNodes.empty())
+            AiNodeLink(aovWriteNode, "passthrough", aovWriteNodes.back());
+         
+         aovWriteNodes.push_back(aovWriteNode);
       }
    }
-   else
-   {
-      AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-            GetTranslatorName().asChar(), GetMayaNodeName().asChar());
-      AiNodeUnlink(shadingEngine, "beauty");
-   }
-   
-   connections.clear();
-   MPlug volumeShaderPlug = FindMayaPlug("aiVolumeShader");
-   volumeShaderPlug.connectedTo(connections, true, false);
-   if (connections.length() == 0)
-   {
-      volumeShaderPlug = FindMayaPlug("volumeShader");
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found volumeShader plug "+ volumeShaderPlug.name());
-      volumeShaderPlug.connectedTo(connections, true, false);
-   }
-   if (connections.length() > 0)
-   {
-      // export the root shading network, this fills m_shaders
-      MFnDependencyNode shaderNode(connections[0].node());
-      MStatus status;
-      rootShader = ExportConnectedNode(connections[0]);
-      AiNodeLink(rootShader, "volume", shadingEngine);
-   } else
-   {
-      AiNodeUnlink(shadingEngine, "volume");
-   }
-
-   if (aovShaders.size() > 0)
-      AiNodeSetArray(shadingEngine, "aov_inputs", AiArrayConvert(aovShaders.size(), 1, AI_TYPE_NODE, &aovShaders[0]));
-   
 }
 
 void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
@@ -235,6 +221,10 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
          }
       }
    }
+
+   if (plugName == "aiCustomAOVs")
+      SetUpdateMode(AI_RECREATE_NODE);
+
    CNodeTranslator::NodeChanged(node, plug);
 }
 

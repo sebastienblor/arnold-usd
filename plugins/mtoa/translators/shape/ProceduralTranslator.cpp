@@ -191,12 +191,7 @@ void CArnoldProceduralTranslator::ExportShaders()
                fnDGNode.name().asChar());*/
          AiNodeSetPtr(procedural, "shader", NULL);
       }
-      if (meshShaders.size() > 0)
-      {
-         AiNodeDeclare(procedural, "mtoa_shading_groups", "constant ARRAY NODE");
-         AiNodeSetArray(procedural, "mtoa_shading_groups",
-                        AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
-      }
+
    }
 
 }
