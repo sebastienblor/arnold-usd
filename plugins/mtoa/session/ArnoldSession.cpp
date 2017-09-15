@@ -187,7 +187,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
 
 // Export a plug (dependency node output attribute)
 //
-CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
+CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, 
                                    bool initOnly, int instanceNumber, MStatus *stat)
 {
    //instanceNumber is currently used only for bump. We provide a specific instance number
@@ -283,7 +283,6 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    if (arnoldNode == NULL)
    {
       status = MStatus::kSuccess;
-      translator->m_impl->SetShadersList(nodes);
       translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true), instanceNumber);
       if (it != m_processedTranslators.end())
       {
@@ -301,28 +300,6 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       }
       if (!initOnly)
          arnoldNode = translator->m_impl->DoExport();
-   }
-   if (arnoldNode != NULL)
-   {
-      if (nodes != NULL)
-      {
-         nodes->insert(translator->m_impl->m_atNode);
-
-         if (translator->m_impl->m_additionalAtNodes)
-         {
-            unordered_map<std::string, AtNode*>::iterator nodeIt;
-            for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
-            {
-               if (nodeIt->second != NULL && nodeIt->second != translator->m_impl->m_atNode)
-                  nodes->insert(nodeIt->second);
-            }         
-         }
-      }
-      if (aovs != NULL)
-      {
-         // only ShadingEngine doesn't TrackAOVs as it's the root of the shading tree
-         translator->m_impl->TrackAOVs(aovs);
-      }
    }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
@@ -635,7 +612,7 @@ AtNode* CArnoldSession::ExportOptions()
       MtoaDebugLog("[mtoa] Exporting Arnold options "+ fnNode.name());
 
    MPlug optPlug = fnNode.findPlug("message");
-   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, false);
+   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
 
    ExportColorManager();
 
@@ -659,7 +636,7 @@ AtNode *CArnoldSession::ExportColorManager()
       activeList.getDependNode(0,colorMgtObject);
       MFnDependencyNode fnSNode(colorMgtObject);
       MPlug mgtPlug = fnSNode.findPlug("message");
-      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, NULL, NULL, false);
+      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, false);
 
       if(syncolorTr)
          return syncolorTr->GetArnoldNode();

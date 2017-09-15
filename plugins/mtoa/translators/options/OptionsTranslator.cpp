@@ -857,7 +857,7 @@ static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
 
       if (status && (connectedPlugs.length() > 0))
       {
-         imgTranslator = session->ExportNode(connectedPlugs[0], NULL, NULL, true);
+         imgTranslator = session->ExportNode(connectedPlugs[0], true);
          CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
 
          if (imgPlaneTranslator)

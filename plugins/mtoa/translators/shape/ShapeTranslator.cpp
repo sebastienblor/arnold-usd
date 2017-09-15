@@ -233,7 +233,7 @@ AtNode *CShapeTranslator::ExportShadingGroup(const MPlug &shadingGroupPlug)
    MPlugArray        connections;
 
    MString shaderName = (volumeShading) ? "volumeShader" : "surfaceShader";
-   MString aiShaderName = MString("ai") + shaderName;
+   MString aiShaderName =  (volumeShading) ? "aiVolumeShader" : "aiSurfaceShader";
 
    MPlug shaderPlug = shadingGroupTranslator->FindMayaPlug(aiShaderName);
    shaderPlug.connectedTo(connections, true, false);
@@ -246,7 +246,6 @@ AtNode *CShapeTranslator::ExportShadingGroup(const MPlug &shadingGroupPlug)
    }
    CNodeTranslator* shaderNodeTranslator = 0;
 
-   // export the root shading network, this fills m_shaders
    if (connections.length() > 0)
       rootShader = m_impl->ExportConnectedNode(connections[0], true, &shaderNodeTranslator);
    

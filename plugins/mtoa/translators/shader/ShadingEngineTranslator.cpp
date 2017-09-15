@@ -6,13 +6,11 @@
 
 CShadingEngineTranslator::~CShadingEngineTranslator()
 {
-   if (m_impl)
-      delete m_impl->m_shaders;
 }
 
+// FIXME to be removed in next ABI-breaking version
 void CShadingEngineTranslator::Init()
 {
-   m_impl->m_shaders = new unordered_set<AtNode*>;//AtNodeSet;
    CNodeTranslator::Init();
 }
 

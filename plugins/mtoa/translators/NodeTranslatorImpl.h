@@ -45,9 +45,6 @@ public :
       m_atRoot(NULL),
       m_isProcedural(false),
       m_overrideSets(),
-      m_localAOVs(),
-      m_upstreamAOVs(),
-      m_shaders(NULL),
       m_inUpdateQueue(false),
       m_animArrays(false),
       m_isExported(false),
@@ -56,12 +53,10 @@ public :
    virtual ~CNodeTranslatorImpl() {}
 
    virtual bool IsMayaTypeDag() const {return false;}
-   virtual void ComputeAOVs();
    
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    
-   virtual void TrackAOVs(AOVSet* aovs);
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
 
    
@@ -99,9 +94,6 @@ public :
    static void DirtyOverrideSets(CNodeTranslator *tr);
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
-   void WriteAOVUserAttributes(AtNode* atNode);
-   virtual void SetShadersList(AtNodeSet *nodes);
-   
    AtNode* ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
    void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
    void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
@@ -134,10 +126,6 @@ public :
    bool m_isProcedural;
    
    std::vector<CNodeTranslator*> m_overrideSets;
-
-   AOVSet m_localAOVs;
-   AOVSet m_upstreamAOVs;
-   AtNodeSet* m_shaders;
 
    // This stores callback IDs for the callbacks this
    // translator creates.

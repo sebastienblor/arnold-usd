@@ -77,10 +77,8 @@ AtNode* CNodeTranslatorImpl::DoExport()
                        
       }
 
-      ComputeAOVs();
       m_tr.Export(node);
       ExportUserAttribute(node);
-      WriteAOVUserAttributes(node);
    }
    else if (m_tr.RequiresMotionData())
    {
@@ -480,33 +478,6 @@ bool CNodeTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &reso
    resolvedOutputPlug=outputPlug;
    return true;
 }
-/// gather up the active AOVs for the current node and add them to m_AOVs
-void CNodeTranslatorImpl::ComputeAOVs()
-{
-   // FIXME: add early bail out if AOVs are not enabled
-
-   MStringArray aovAttrs;
-
-   MString typeName = GetMayaNodeTypeName();
-   CExtensionsManager::GetNodeAOVs(typeName, aovAttrs);
-   // FIXME: use more efficient insertion method
-   MStatus stat;
-   MPlug plug;
-   for (unsigned int i=1; i < aovAttrs.length(); i+=3)
-   {
-      plug = m_tr.FindMayaPlug(aovAttrs[i], &stat);
-      if (stat == MS::kSuccess)
-      {
-         CAOV aov;
-         MString value = plug.asString();
-         aov.SetName(value);
-         if (m_session->IsActiveAOV(aov))
-         {
-            m_localAOVs.insert(aov);
-         }
-      }
-   }
-}
 
 /// gather the active override sets containing this node
 MStatus CNodeTranslatorImpl::ExportOverrideSets()
@@ -544,28 +515,6 @@ void CNodeTranslatorImpl::DirtyOverrideSets(CNodeTranslator *tr)
    tr->m_impl->m_overrideSetsDirty = true;
    tr->RequestUpdate();
 }
-void CNodeTranslatorImpl::SetShadersList(AtNodeSet* nodes)
-{
-   // by default m_impl->m_shaders is null, and thus we just copy the AtNodeSet pointer.
-   // However, ShadingEngineTranslator allocates m_shaders in its constructor, and it must NOT
-   // copy the pointer in that case. 
-   //So we copy the pointer only if m_shaders hasn't been allocated yet
-   if (m_shaders == NULL) m_shaders = nodes;
-
-}
-
-void CNodeTranslatorImpl::TrackAOVs(AOVSet* aovs)
-{
-   // create union
-   AOVSet tempSet;
-   std::set_union(m_localAOVs.begin(), m_localAOVs.end(),
-                  m_upstreamAOVs.begin(), m_upstreamAOVs.end(),
-                  std::inserter(tempSet, tempSet.begin()));
-   std::set_union(tempSet.begin(), tempSet.end(),
-                  aovs->begin(), aovs->end(),
-                  std::inserter(tempSet, tempSet.begin()));
-   aovs->swap(tempSet);
-}
 
 /// Get the override plug for the passed maya plug
 /// if there is one, otherwise, returns the passed maya plug.
@@ -586,27 +535,6 @@ MPlug CNodeTranslatorImpl::GetOverridePlug(const MPlug &plug, MStatus* ReturnSta
 
    if (ReturnStatus != NULL) *ReturnStatus = status;
    return resultPlug;
-}
-
-void CNodeTranslatorImpl::WriteAOVUserAttributes(AtNode* atNode)
-{
-   if (m_upstreamAOVs.size() && AiNodeDeclare(atNode, "mtoa_aovs", "constant ARRAY STRING"))
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa] [aovs] "+m_tr.GetMayaNodeName()+" writing accumulated AOVs");
-
-      AtArray *ary = AiArrayAllocate(m_upstreamAOVs.size(), 1, AI_TYPE_STRING);
-      unsigned int i=0;
-      for (AOVSet::iterator it=m_upstreamAOVs.begin(); it!=m_upstreamAOVs.end(); ++it)
-      {
-         if (MtoaTranslationInfo())
-            MtoaDebugLog("[mtoa] [aovs]     "+it->GetName());
-         
-         AiArraySetStr(ary, i, it->GetName().asChar());
-         ++i;
-      }
-      AiNodeSetArray(atNode, "mtoa_aovs", ary);
-   }
 }
 
 /// Export value for a plug with no direct connections (may have child or element connections).
@@ -992,7 +920,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
    CNodeTranslator* translator = NULL;
    
    if (track)
-      translator = m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);
+      translator = m_session->ExportNode(outputPlug);
    else
       translator = m_session->ExportNode(outputPlug);
    if (translator != NULL)

@@ -137,7 +137,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          CMayaScene::Begin(MTOA_SESSION_SWATCH);
          CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
          arnoldSession->ExportOptions();
-         arnoldSession->ExportNode(plug, NULL, &aovs, true, -1, &status);
+         arnoldSession->ExportNode(plug, true, -1, &status);
 
          CHECK_MSTATUS(status);
          CMayaScene::End();
