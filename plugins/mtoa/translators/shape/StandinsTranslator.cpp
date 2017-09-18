@@ -470,6 +470,12 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
       AiNodeSetBool(procedural, "override_nodes", m_DagNode.findPlug("overrideNodes").asBool());
+
+      MString nsName = m_DagNode.findPlug("nsName").asString();
+      if (nsName.length() > 0)
+         AiNodeSetStr(procedural, "ns_name", nsName.asChar());
+      else
+         AiNodeResetParameter(procedural, "ns_name");
    }
    return procedural;
 }

@@ -62,6 +62,7 @@ MObject CArnoldStandInShape::s_overrideNodes;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 MObject CArnoldStandInShape::s_drawOverride;
+MObject CArnoldStandInShape::s_namespaceName;
    
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -918,6 +919,10 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_overrideNodes);
 
+   s_namespaceName = tAttr.create("nsName", "ns_name", MFnData::kString);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(s_namespaceName);
 
    /*s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 1);
    nAttr.setHidden(false);
