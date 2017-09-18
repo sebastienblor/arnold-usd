@@ -44,6 +44,7 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("afw", "filter_width", MSyntax::kDouble);
    syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
    syntax.addFlag("ud", "udims", MSyntax::kString);
+   syntax.addFlag("uvs", "uv_set", MSyntax::kString);
    syntax.addFlag("aov", "enable_aovs", MSyntax::kBoolean);
    syntax.addFlag("ust", "u_start", MSyntax::kDouble);
    syntax.addFlag("usc", "u_scale", MSyntax::kDouble);
@@ -295,6 +296,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          }
       }
    }
+
+   MString uvSet = "";
+   if (argDB.isFlagSet("uv_set"))
+      argDB.getFlagArgument("uv_set", 0, uvSet);
 
    std::vector<std::string> outputsList;
 
@@ -577,6 +582,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
             AiNodeSetStr(camera, "polymesh", meshName);
+            AiNodeSetStr(camera, "uv_set", uvSet.asChar());
             AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
             AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
 
@@ -632,6 +638,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
 
          AiNodeSetPtr(options_node, "camera", camera);
+         AiNodeSetStr(camera, "uv_set", uvSet.asChar());
          AiNodeSetStr(driver, "filename", filename.asChar());
 
          for (size_t aov = 0; aov < aovDrivers.size(); ++aov)
