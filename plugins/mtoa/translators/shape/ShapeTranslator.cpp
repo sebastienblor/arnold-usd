@@ -213,7 +213,7 @@ bool CShapeTranslator::RequiresShaderExport()
 
 AtNode *CShapeTranslator::ExportShadingGroup(const MPlug &shadingGroupPlug)
 {
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) == 0)
+   if (!RequiresShaderExport())
       return NULL;
 
    AtNode *node = GetArnoldNode();
