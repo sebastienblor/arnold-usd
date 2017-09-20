@@ -942,15 +942,47 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          // I shouldn't have to do guesses based on the attribute name.
          MFnDependencyNode sgNode(outputPlug.node());
          
+         AtNode *node = m_tr.GetArnoldNode();
          bool isVolume = false;
-         MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
-         MPlug stepSizePlug = fnDGNode.findPlug("stepSize");
-         if (stepSizePlug.isNull())
-            stepSizePlug = fnDGNode.findPlug("aiStepSize");
+         static const AtString polymeshStr("polymesh");
+         static const AtString pointsStr("points");
+         static const AtString sphereStr("sphere");
+         static const AtString boxStr("box");
+         static const AtString proceduralStr("procedural");
 
-         if (!stepSizePlug.isNull())
-            isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
+         if (AiNodeIs(node, polymeshStr) || AiNodeIs(node, pointsStr) || AiNodeIs(node, boxStr) || AiNodeIs(node, sphereStr))
+         {
+            MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
+            MPlug stepSizePlug = fnDGNode.findPlug("stepSize");
+            if (stepSizePlug.isNull())
+               stepSizePlug = fnDGNode.findPlug("aiStepSize");
 
+            if (!stepSizePlug.isNull())
+               isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
+
+         }
+         else if (AiNodeIs(node, proceduralStr)) // standins
+            isVolume = false;
+         else
+         {
+            // FIXME verify that native shapes like "volume" and "volume_implicit"
+            // have derived types as well
+            switch (AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(node)))
+            {
+               case AI_NODE_SHAPE_VOLUME:
+                  isVolume = true;
+               break;
+               case AI_NODE_SHAPE_IMPLICIT:
+                  isVolume = false;
+               break;
+               case AI_NODE_SHAPE_PROCEDURAL:
+                  isVolume = false;
+               break;
+               default:
+               break;
+            }
+         } 
+         
          MStringArray shaderAttrNames;
 
          // change the order of priority used to check the shader inputs
