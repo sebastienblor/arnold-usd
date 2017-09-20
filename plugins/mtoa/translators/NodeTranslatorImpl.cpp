@@ -915,14 +915,13 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
 }
 
 // Export (and eventually create) the AtNode based on the connection to this outputPlug
+// FIXME note that "track" isn't needed anymore
 AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool track, CNodeTranslator** outTranslator)
 {
    CNodeTranslator* translator = NULL;
-   
-   if (track)
-      translator = m_session->ExportNode(outputPlug);
-   else
-      translator = m_session->ExportNode(outputPlug);
+
+   translator = m_session->ExportNode(outputPlug);
+
    if (translator != NULL)
    {
       if (outTranslator != NULL)
@@ -931,6 +930,65 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
 #ifdef NODE_TRANSLATOR_REFERENCES 
       AddReference(translator);
 #endif
+
+      if (translator->m_impl->m_atRoot == NULL && outputPlug.node().hasFn(MFn::kShadingEngine))
+      {
+         // I've exported a shading engine, but it returned a null result. 
+         // This happens because there isn't any custom AOV.
+         // In that case, to avoid breaking API compatibility for 3rd party extensions, 
+         // I'm doing a passthrough and returning the connected shader here
+         
+         // FIXME when compatibility can be broken, we should refactor this,
+         // I shouldn't have to do guesses based on the attribute name.
+         MFnDependencyNode sgNode(outputPlug.node());
+         
+         bool isVolume = false;
+         MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
+         MPlug stepSizePlug = fnDGNode.findPlug("stepSize");
+         if (stepSizePlug.isNull())
+            stepSizePlug = fnDGNode.findPlug("aiStepSize");
+
+         if (!stepSizePlug.isNull())
+            isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
+
+         MStringArray shaderAttrNames;
+
+         // change the order of priority used to check the shader inputs
+         // depending on whether we're supposed to render a volume or not
+         if (isVolume)
+         {
+            shaderAttrNames.append("aiVolumeShader");
+            shaderAttrNames.append("volumeShader");
+            shaderAttrNames.append("aiSurfaceShader");
+            shaderAttrNames.append("surfaceShader");
+         } else
+         {
+            shaderAttrNames.append("aiSurfaceShader");
+            shaderAttrNames.append("surfaceShader");
+            shaderAttrNames.append("aiVolumeShader");
+            shaderAttrNames.append("volumeShader");
+         }
+         MPlugArray connections;
+         MPlug shaderPlug;
+         
+         for (unsigned int i = 0; i < 4; ++i)
+         {
+            MPlug plug = sgNode.findPlug(shaderAttrNames[i]);
+            if (plug.isNull()) continue;
+            
+            connections.clear();
+            plug.connectedTo(connections, true, false);
+            if (connections.length() > 0)
+            {
+               shaderPlug = connections[0];
+               break;
+            }
+         }
+
+         if (!shaderPlug.node().hasFn(MFn::kShadingEngine)) // ensuring we're not entering a possible infinite loop
+            return ExportConnectedNode(shaderPlug);
+         
+      }
 
       return translator->m_impl->m_atRoot; // return the node that is at the root of this translator
    }

@@ -153,7 +153,8 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
 
 
 MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
-{
+{   
+   MPlug shadingGroupPlug;
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
 
@@ -166,7 +167,9 @@ MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
       MPlug sgPlug = connections[k];
       if (sgPlug.node().apiType() == MFn::kShadingEngine)
       {
-         return sgPlug;
+         // this is my Shading Engine plug. 
+         // However, what I want now is the corresponding shader
+         return sgPlug; 
       }
    }
    return MPlug();
@@ -210,66 +213,3 @@ bool CShapeTranslator::RequiresShaderExport()
    return (renderOptions->outputAssMask() & AI_NODE_SHADER) ||
        renderOptions->forceTranslateShadingEngines();
 }
-
-AtNode *CShapeTranslator::ExportShadingGroup(const MPlug &shadingGroupPlug)
-{
-   if (!RequiresShaderExport())
-      return NULL;
-
-   AtNode *node = GetArnoldNode();
-   bool volumeShading = false;
-   static AtString polymeshStr("polymesh");
-   if (node != NULL && AiNodeIs(node, polymeshStr))
-      volumeShading = (AiNodeGetFlt(node, "step_size") > AI_EPSILON);
-
-   CNodeTranslator *shadingGroupTranslator = NULL;
-   AtNode *shadingEngineNode = m_impl->ExportConnectedNode(shadingGroupPlug, true, &shadingGroupTranslator);
-
-   if (shadingGroupTranslator == NULL)
-      return NULL;
-
-   std::vector<AtNode*> aovShaders;
-   AtNode* rootShader = NULL;
-   MPlugArray        connections;
-
-   MString shaderName = (volumeShading) ? "volumeShader" : "surfaceShader";
-   MString aiShaderName =  (volumeShading) ? "aiVolumeShader" : "aiSurfaceShader";
-
-   MPlug shaderPlug = shadingGroupTranslator->FindMayaPlug(aiShaderName);
-   shaderPlug.connectedTo(connections, true, false);
-   if (connections.length() == 0)
-   {
-      shaderPlug = shadingGroupTranslator->FindMayaPlug(shaderName);
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug "+ shaderPlug.name());
-      shaderPlug.connectedTo(connections, true, false);
-   }
-   CNodeTranslator* shaderNodeTranslator = 0;
-
-   if (connections.length() > 0)
-      rootShader = m_impl->ExportConnectedNode(connections[0], true, &shaderNodeTranslator);
-   
-   if (shadingEngineNode == NULL)
-      return rootShader;
-
-   // if Shading Engine translator returned a shader, this is the one we need to return
-   // (it will be assigned as the mesh shader)
-   // I just need to connect it to our rootShader
-   AtNode *aovShader = shadingEngineNode;
-   while(aovShader)
-   {
-      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(aovShader), "passthrough");
-      if (!paramEntry)
-         return rootShader; // something didn't work right
-
-      if (!AiNodeIsLinked(aovShader, "passthrough"))
-      {
-         AiNodeLink(rootShader, "passthrough", aovShader);
-         break;
-      }
-      aovShader = AiNodeGetLink(aovShader, "passthrough");   // this aovWrite node is linked     
-   }
-   
-   return shadingEngineNode;   
-}
-

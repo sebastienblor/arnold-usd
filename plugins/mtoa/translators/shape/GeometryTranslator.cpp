@@ -4,7 +4,7 @@
 #include <maya/MBoundingBox.h>
 #include <maya/MUintArray.h>
 #include <maya/MItMeshEdge.h>
-
+#include "utils/MtoaLog.h"
 #include <algorithm>
 
 #include "utils/time.h"
@@ -21,17 +21,6 @@ namespace
       memcpy(vectorList, data, AiArrayGetKeySize(arr));
       AiArrayUnmap(arr);      
    }
-}
-
-MObject CPolygonGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
-{
-   MPlugArray        connections;
-   MObject shadingGroup = CShapeTranslator::GetNodeShadingGroup(dagNode, instanceNum);
-   MFnDependencyNode fnDGNode(shadingGroup);
-   MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
-   shaderPlug.connectedTo(connections, true, false);
-
-   return connections[0].node();
 }
 
 bool CPolygonGeometryTranslator::GetVertices(const MObject& geometry,
@@ -744,7 +733,58 @@ void CPolygonGeometryTranslator::GetDisplacement(MObject& obj,
          enableAutoBump = enableAutoBump || plug.asBool();
    }
 }
+// It eventually returns the MPlug of the assigned surface/volume shader
+static MPlug MtoaGetAssignedShaderPlug(const MPlug &shadingGroupPlug, bool isVolume)
+{
+   if (shadingGroupPlug.isNull())
+      return MPlug();
 
+   MStatus status;
+   MFnDependencyNode sgNode(shadingGroupPlug.node(), &status);
+   if (status != MS::kSuccess)
+      return MPlug();
+
+   
+   // check if it has custom AOVs
+   bool hasCustomAovs = false;
+   MPlugArray connections;
+   MPlug arrayPlug = sgNode.findPlug("aiCustomAOVs");
+
+   for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
+   {
+      MPlug msgPlug = arrayPlug[i].child(1);
+      msgPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         hasCustomAovs = true;
+         break;
+      }
+   }
+
+   if (hasCustomAovs && !isVolume)
+      return shadingGroupPlug;
+
+   // shading group doesn't have any custom AOV, 
+   // in that case I must find the surface shader plug myself
+   std::vector<AtNode*> aovShaders;
+   AtNode* rootShader = NULL;
+
+   MString shaderName = (isVolume) ? "volumeShader" : "surfaceShader";
+   MString aiShaderName =  (isVolume) ? "aiVolumeShader" : "aiSurfaceShader";
+
+   connections.clear();
+   MPlug shaderPlug = sgNode.findPlug(aiShaderName);
+   shaderPlug.connectedTo(connections, true, false);
+   if (connections.length() == 0)
+   {
+      shaderPlug = sgNode.findPlug(shaderName);
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug "+ shaderPlug.name());
+      shaderPlug.connectedTo(connections, true, false);
+   }
+   
+   return (connections.length() > 0) ? connections[0] : shadingGroupPlug;
+}
 void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                                             const MDagPath &path)
 {
@@ -755,7 +795,20 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    std::vector<AtNode*> meshShaders;
    std::vector<AtNode*> meshDisps;
 
+   // First check if we need volume shading or not
+   bool isVolume = false;
+   // FIXME when compatibility can be broken, we should refactor this,
+   // I shouldn't have to do guesses based on the attribute name.
+   // What's even worse is that GetNodeShadingGroup is static so I can't get the AtNode
+   // => verify if this works with fluids
+   MFnDependencyNode fnDGNode(path.node());
+   MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize");
+   if (!stepSizePlug.isNull())
+      isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
+
+
    MPlug shadingGroupPlug = GetNodeShadingGroup(path.node(), instanceNum);
+
    m_displaced = false;
    
    float maximumDisplacementPadding = -AI_BIG;
@@ -766,10 +819,9 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    if (!shadingGroupPlug.isNull())
    {
       // SURFACE MATERIAL EXPORT
-      AtNode *shader = ExportShadingGroup(shadingGroupPlug);
+      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
-         meshShaders.push_back(shader);
          AiNodeSetPtr(polymesh, "shader", shader);
       }
       else
@@ -809,7 +861,6 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       for (int J = 0; (J < (int) shadingGroups.length()); J++)
       {
          // SURFACE MATERIAL EXPORT
-
          // We have an array of Shading Groups in shadingGroups, but we need the MPlugs to them
          // MPlugs to Shader Groups must be exported in the same order they appear in "shadingGroups"
          MFnDependencyNode fnDGNode(m_dagPath.node());
@@ -831,11 +882,15 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                if (shadingGroups[J] == connections[j].node())
                {
                   // connections[j] is the MPlug to shadingGroups[J]
-                  AtNode *shader = ExportShadingGroup(connections[j]);
-                  if (shader != NULL)
+         
+                  if (!connections[j].isNull())
                   {
-                    meshShaders.push_back(shader);
-                    exported = true;
+                     AtNode *shader = ExportConnectedNode(connections[j]);
+                     if (shader != NULL)
+                     {
+                        meshShaders.push_back(shader);
+                        exported = true;
+                     }
                   }
                }
             }
@@ -1476,10 +1531,13 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
 
       if (shadersDifferent)
       {
+         MPlug stepSizePlug = meshNode.findPlug("aiStepSize");
+         bool isVolume = (stepSizePlug.isNull()) ? false : (stepSizePlug.asFloat() > AI_EPSILON); 
          MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
+         MPlug shaderPlug = MtoaGetAssignedShaderPlug(shadingGroupPlug, isVolume);
 
          // In case Instance has per face assignment, use first SG assigned to it
-         if(shadingGroupPlug.isNull())
+         if(shaderPlug.isNull())
          {
             MPlugArray        connections;
             MFnDependencyNode fnDGNode(m_geometry);
@@ -1489,12 +1547,11 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
             plug = plug.child(obGr);
             plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
             if(connections.length() > 0)
-            {
-               shadingGroupPlug = connections[0];
-            }
+               shaderPlug = MtoaGetAssignedShaderPlug(connections[0], isVolume);
+            
          }
 
-         AtNode* shader = ExportConnectedNode(shadingGroupPlug);
+         AtNode* shader = ExportConnectedNode(shaderPlug);
          AiNodeSetPtr(instance, "shader", shader);
       }
    }

@@ -113,6 +113,9 @@ void CShadingEngineTranslator::Export(AtNode *node)
 
    std::vector<AtNode*> aovWriteNodes;
 
+   // first, get the list of custom AOVs, export each of them,
+   // and if there's more than a single one, connect them in a chained list
+   // though attribute "passthrough"
    for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
    {
       MPlug msgPlug = arrayPlug[i].child(1);
@@ -147,6 +150,42 @@ void CShadingEngineTranslator::Export(AtNode *node)
          aovWriteNodes.push_back(aovWriteNode);
       }
    }
+
+   if (aovWriteNodes.empty()) return; // if there's no custom AOV, there's nothing more to do 
+
+   // If I've exported aov write nodes, then I need to export the connected surface shader,
+   // and connect it to my aovWrite list
+   connections.clear();
+
+   MStringArray shaderNames;
+   shaderNames.append("aiSurfaceShader");
+   shaderNames.append("surfaceShader");
+   shaderNames.append("aiVolumeShader");
+   shaderNames.append("volumeShader");
+   
+   MPlug shaderPlug;
+   for (unsigned int i = 0; i < 4; ++i)
+   {
+      MPlug plug = FindMayaPlug(shaderNames[i]);
+      if(plug.isNull()) continue;
+
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         shaderPlug = connections[0];
+         break;
+      }
+   }
+   
+   if (shaderPlug.isNull()) return; // no shader assigned
+
+   // Now export the assigned surface shader
+   AtNode *assignedShader = ExportConnectedNode(shaderPlug);
+   
+   if(assignedShader == NULL) return; // no shader exported
+
+   // connect the assigned shader to the latest aovWrite node
+   AiNodeLink(assignedShader, "passthrough", aovWriteNodes.back());
 }
 
 void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
