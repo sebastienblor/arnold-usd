@@ -83,7 +83,6 @@ protected:
          float& dispPadding, 
          bool& enableAutoBump);
 
-   MObject GetNodeShader(MObject dagNode, int instanceNum);
    void ExportMeshShaders(AtNode* polymesh, const MDagPath& path);
    virtual void ExportShaders();
 

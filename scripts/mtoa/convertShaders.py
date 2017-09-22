@@ -111,7 +111,6 @@ def assignToNewShader(oldShd, newShd):
 def setupConnections(inShd, fromAttr, outShd, toAttr):
     conns = cmds.listConnections( inShd + '.' + fromAttr, d=False, s=True, plugs=True )
     if conns:
-        print 'has connections'
         cmds.connectAttr(conns[0], outShd + '.' + toAttr, force=True)
         return True
 

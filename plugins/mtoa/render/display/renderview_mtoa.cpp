@@ -394,13 +394,14 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
          MString optParam;
          MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
          SetFromSerialized(optParam.asChar());
-
-         bool varExists = false;
-         MString optionVarValue = MGlobal::optionVarStringValue("arv_user_options", &varExists);
-         if (varExists)
-            SetFromSerialized(optionVarValue.asChar());
-         
       }
+
+      bool varExists = false;
+      MString optionVarValue = MGlobal::optionVarStringValue("arv_user_options", &varExists);
+      if (varExists)
+         SetFromSerialized(optionVarValue.asChar());
+      
+   
       SetOption("Real Size", "1");
    }
 

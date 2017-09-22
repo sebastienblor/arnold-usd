@@ -75,6 +75,7 @@ node_parameters
    AiParameterArray("emissionColorRemap_interp", AiArrayAllocate(0, 1, AI_TYPE_INT));
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "bifrostAeroMaterial");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81424a19);   
 }
 
 typedef struct

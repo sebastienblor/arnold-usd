@@ -66,7 +66,12 @@ public:
    bool FromMaya(MObject &o);
 
    inline bool HasLightGroups() const { return m_lightGroups; }
+   inline bool HasGlobalAov() const { return m_globalAov; }
    inline const MString& GetLightPathExpression() const { return m_lightPathExpression; }
+   inline const MString& GetLightGroupsList() const { return m_lightGroupsList; }
+
+   inline const MPlug &GetShaderPlug() const {return m_shaderPlug;}
+
 
 protected:
 
@@ -88,5 +93,8 @@ protected:
    std::vector<AtNode*>  m_filters;
    MStringArray m_extensions;
    MString m_lightPathExpression;
+   MString m_lightGroupsList;
    bool m_lightGroups;
+   bool m_globalAov;
+   MPlug m_shaderPlug;
 };

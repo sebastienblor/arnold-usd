@@ -63,12 +63,6 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
         }
     }
 
-    // Set node name
-    {
-        char buf[512];
-        AiNodeSetStr(procedural, "name", NodeUniqueName(procedural, buf));
-    }
-
     // Set procedural parameters
     {
         AiNodeSetBool(procedural, "load_at_init", true);

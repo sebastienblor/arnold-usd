@@ -163,7 +163,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
+        self.addSeparator()
         self.addControl('overrideNodes')
+        self.addControl('nsName', label='Namespace')
         self.endLayout()
         self.beginNoOptimize();
 

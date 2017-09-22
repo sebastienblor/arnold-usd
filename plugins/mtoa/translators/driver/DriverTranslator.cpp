@@ -162,6 +162,7 @@ AtNode *CDriverTranslator::GetChildDriver(const std::string &token)
 
    const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(childDriver);
 
+   static AtString s_nameStr("name");
    static AtString s_filenameStr("filename");
    // Now need to copy all parameters
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
@@ -169,7 +170,7 @@ AtNode *CDriverTranslator::GetChildDriver(const std::string &token)
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       AtString paramName(AiParamGetName(paramEntry));
-      if (paramName == s_filenameStr)
+      if (paramName == s_filenameStr || paramName == s_nameStr)
          continue;
 
       switch(AiParamGetType(paramEntry))

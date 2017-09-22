@@ -3,6 +3,7 @@
 #include "common/DynLibrary.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "utils/Universe.h"
+#include "utils/MtoaLog.h"
 
 #include "translators/NodeTranslatorImpl.h"
 #include "ExtensionImpl.h"
@@ -112,7 +113,9 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    resolved = m_impl->FindFileInPath(searchFile, path, &status);
    if (MStatus::kSuccess == status && resolved.numChars() > 0)
    {
-      AiMsgDebug("[mtoa] [%s] Found Arnold plugin file %s as %s.", m_impl->m_extensionName.asChar(), file.asChar(), resolved.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+m_impl->m_extensionName+"] Found Arnold plugin file "+file+" as "+ resolved);
+
       status = m_impl->NewArnoldPlugin(resolved);
       if (MStatus::kSuccess == status)
       {
@@ -254,7 +257,8 @@ MStatus CExtensionImpl::setFile(const MString &file)
 /// Unload all Arnold plugins this extensions has loaded
 MStatus CExtensionImpl::UnloadArnoldPlugins()
 {
-   AiMsgDebug("[mtoa] [%s] Unloading all Arnold plugins", m_extensionName.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+m_extensionName+"] Unloading all Arnold plugins");
 
    MStatus status = MStatus::kSuccess;
 
@@ -305,7 +309,9 @@ MStatus CExtensionImpl::UnloadArnoldPlugin(const MString &resolved)
 
 MStatus CExtensionImpl::DoUnloadArnoldPlugin(const MString &resolved)
 {
-   AiMsgDebug("[mtoa] [%s] Unloading Arnold plugin %s", m_extensionName.asChar(), resolved.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+m_extensionName+"] Unloading Arnold plugin "+ resolved);
+
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
@@ -317,7 +323,9 @@ MStatus CExtensionImpl::DoUnloadArnoldPlugin(const MString &resolved)
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
          // remove from arnold
          AiNodeEntryUninstall(arnoldNodeName);
-         AiMsgDebug("[mtoa] [%s] Uninstalled Arnold node %s", m_extensionName.asChar(), arnoldNodeName);
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] ["+m_extensionName+"] Uninstalled Arnold node "+ arnoldNodeName);
+
          // TODO: unregister as well?
          // DeregisterNode(arnoldNodeName);
       }
@@ -348,7 +356,9 @@ MStatus CExtensionImpl::NewArnoldPlugin(const MString &file)
    }
    else
    {
-      AiMsgDebug("[mtoa] [%s] Loads Arnold plugin: %s", m_extensionName.asChar(), file.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+m_extensionName+"] Loads Arnold plugin: "+ file);
+
       CExtensionImpl::s_allLoadedArnoldPlugins.insert(file_str);
       m_ownLoadedArnoldPlugins.insert(file_str);
       return MStatus::kSuccess;
@@ -393,7 +403,8 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    MStatus status(MStatus::kSuccess);
 
    MString pluginName = (plugin.numChars()==0) ? "built-in nodes" : MString("plugin ") + plugin;
-   AiMsgDebug("[mtoa] [%s] Generating new Maya nodes and translators for Arnold %s.", m_impl->m_extensionName.asChar(), pluginName.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+m_impl->m_extensionName+"] Generating new Maya nodes and translators for Arnold "+ pluginName);
 
    unsigned int prevNewNodes = RegisteredNodesCount();
    unsigned int prevTrsNodes = TranslatedNodesCount();
@@ -423,7 +434,8 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          bool hide;
          if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
          {
-            AiMsgDebug("[mtoa] [%s] [node %s] Marked as hidden.", m_impl->m_extensionName.asChar(), nodeName.asChar());
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa] ["+m_impl->m_extensionName+"] [node "+nodeName+"] Marked as hidden.");
             continue;
          }
 
@@ -484,10 +496,25 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    unsigned int trsNodes = TranslatedNodesCount() - prevTrsNodes;
    unsigned int trsCount = TranslatorCount() - prevTrsCount;
 
-   AiMsgInfo("[mtoa] [%s] Generated %i new Maya nodes for Arnold %s.",
-         m_impl->m_extensionName.asChar(), newNodes, pluginName.asChar());
-   AiMsgInfo("[mtoa] [%s] Generated %i translators for %i Maya nodes (%i new and %i existing) for Arnold %s.",
-         m_impl->m_extensionName.asChar(), trsCount, trsNodes, newNodes, trsNodes - newNodes, pluginName.asChar());
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa] ["+m_impl->m_extensionName+"] Generated ";
+      log += newNodes;
+      log += " new Maya nodes for Arnold "+ pluginName;
+      MtoaDebugLog(log);
+
+      log = "[mtoa] [" + m_impl->m_extensionName + "] Generated ";
+      log += trsCount;
+      log += " translators for ";
+      log += trsNodes;
+      log += " nodes(";
+      log += newNodes;
+      log += " new and ";
+      log += trsNodes - newNodes;
+      log += " existing) for Arnold ";
+      log += pluginName;
+      MtoaDebugLog(log);
+   }
 
    return status;
 }
@@ -514,7 +541,8 @@ MStatus CExtensionImpl::RegisterNode(CPxMayaNode &mayaNode,
    {
       // No error or warning message, because there are many Arnold nodes that are not meant to be associated
       status = MStatus::kNotImplemented;
-      AiMsgDebug("[mtoa] [%s] [node %s] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.", m_extensionName.asChar(), arnoldNode.name.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+m_extensionName+"] [node "+arnoldNode.name+"] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.");
    }
 
    return status;
@@ -544,8 +572,9 @@ MStatus CExtensionImpl::RegisterTranslator(const CPxTranslator &translator,
    if (NULL == translator.creator || mayaNode.IsNull())
    {
       status = MStatus::kNotImplemented;
-      AiMsgDebug("[mtoa] [%s] [node %s] Not enough metadata information to automatically register a translator, ignored.",
-            m_extensionName.asChar(), arnoldNode.name.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+m_extensionName+"] [node "+arnoldNode.name+"] Not enough metadata information to automatically register a translator, ignored.");
+            
    }
    else
    {
@@ -633,15 +662,17 @@ MStatus CExtensionImpl::NewMayaNode(const CPxMayaNode &mayaNode)
    ret = m_registeredMayaNodes.insert(mayaNode);
    if (false == ret.second)
    {
-      AiMsgDebug("[mtoa] [%s] Overriding it's own registration of Maya node %s.",
-            mayaNode.provider.asChar(), mayaNode.name.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+mayaNode.provider+"] Overriding it's own registration of Maya node "+mayaNode.name);
+            
       m_registeredMayaNodes.erase(ret.first);
       m_registeredMayaNodes.insert(mayaNode);
    }
    else
    {
-      AiMsgDebug("[mtoa] [%s] Registered new Maya node %s.",
-            mayaNode.provider.asChar(), mayaNode.name.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+mayaNode.provider+"] Registered new Maya node "+mayaNode.name);
+
    }
 
    return MStatus::kSuccess;
@@ -666,8 +697,9 @@ MStatus CExtensionImpl::MapMayaNode(const CPxMayaNode &mayaNode,
    {
       if ((*it).second == mayaNode)
       {
-         AiMsgDebug("[mtoa] [%s] [node %s] Overriding it's own association of Maya node %s.",
-            mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] ["+mayaNode.provider+"] [node "+arnoldNode.name+"] Overriding it's own association of Maya node "+ mayaNode.name);
+            
          (*it).second = mayaNode;
          // TODO: clean translators if we did a override?
          // AiMsgWarning("[mtoa] [%s] [node %s] Failed to associate existing Maya node %s.", m_impl->m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
@@ -685,7 +717,9 @@ MStatus CExtensionImpl::MapMayaNode(const CPxMayaNode &mayaNode,
       m_registeredTranslators[mayaNode] = TranslatorsSet();
    }
 
-   AiMsgDebug("[mtoa] [%s] [node %s] Is associated with existing Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+m_extensionName+"] [node "+arnoldNode.name+"] Is associated with existing Maya node "+ mayaNode.name);
+
    return MStatus::kSuccess;
 }
 
@@ -738,14 +772,16 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
       if (0 == nbPrevTrs)
       {
          // First translator to be created 
-         AiMsgDebug("[mtoa] [%s] [node %s] Registered the translator %s for associated Maya node %s.",
-               trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] ["+trsProxy.provider+"] [node "+trsProxy.arnold+"] Registered the translator "+trsProxy.name+" for associated Maya node " + mayaNode.name);
+               
       }
       else
       {
          // There was already at least one
-         AiMsgDebug("[mtoa] [%s] [node %s] Registered an alternative translator %s for associated Maya node %s.",
-               trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa] ["+trsProxy.provider+"] [node "+trsProxy.arnold+"] Registered an alternative translator "+trsProxy.name+" for associated Maya node "+ mayaNode.name);
+                
       }
    }
    else
@@ -753,8 +789,9 @@ MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
       // We can only override our own translators (if using the same name),
       nodeTranslators.erase(ret.first);
       nodeTranslators.insert(trsProxy);
-      AiMsgDebug("[mtoa] [%s] [node %s] Replaced translator %s for associated Maya node %s.",
-            trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] ["+trsProxy.provider+"] [node "+trsProxy.arnold+"] Replaced translator "+trsProxy.name+" for associated Maya node "+ mayaNode.name);
+            
       
    }
    m_registeredTranslators[mayaNode] = nodeTranslators;

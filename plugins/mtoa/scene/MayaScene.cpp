@@ -324,11 +324,7 @@ MObject CMayaScene::GetSceneArnoldRenderOptionsNode()
    {
       list.getDependNode(0, ArnoldRenderOptionsNode);
    }
-   else
-   {
-      AiMsgDebug("[mtoa] could not find defaultArnoldRenderOptions");
-   }
-
+   
    return ArnoldRenderOptionsNode;
 }
 
@@ -556,8 +552,9 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 
    
    MString name = depNodeFn.name();
-   AiMsgDebug("[mtoa] IPRNewNodeCallback on %s(%s)", name.asChar(), type.asChar());
-
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.ipr] IPRNewNodeCallback on "+ MString(name.asChar())+" ("+MString(type.asChar())+")");
+      
    CArnoldSession* arnoldSession = GetArnoldSession();
 
    MFnDagNode dagNodeFn(node);

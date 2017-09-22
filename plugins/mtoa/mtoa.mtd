@@ -1420,10 +1420,10 @@
     maya.name               STRING  "aiColorJitter"
     maya.classification     STRING  "utility/shader"
     [attr data_gain_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr data_gain_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr data_hue_min]
         softmin             FLOAT   -1.0
@@ -1432,16 +1432,16 @@
         softmin             FLOAT   -1.0
         softmax             FLOAT   1.0
     [attr data_saturation_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr data_saturation_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr proc_gain_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr proc_gain_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr proc_hue_min]
         softmin             FLOAT   -1.0
@@ -1450,16 +1450,16 @@
         softmin             FLOAT   -1.0
         softmax             FLOAT   1.0
     [attr proc_saturation_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr proc_saturation_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr obj_gain_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr obj_gain_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr obj_hue_min]
         softmin             FLOAT   -1.0
@@ -1468,16 +1468,16 @@
         softmin             FLOAT   -1.0
         softmax             FLOAT   1.0
     [attr obj_saturation_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr obj_saturation_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr face_gain_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr face_gain_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr face_hue_min]
         softmin             FLOAT   -1.0
@@ -1486,14 +1486,11 @@
         softmin             FLOAT   -1.0
         softmax             FLOAT   1.0
     [attr face_saturation_min]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr face_saturation_max]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
-
-
-
 
 
 
@@ -2041,6 +2038,7 @@
     maya.name               STRING  "aiWriteFloat"
     maya.id                 INT     0x00115D11
     maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
@@ -2055,6 +2053,8 @@
     maya.name               STRING  "aiWriteColor"
     maya.id                 INT     0x00115D10
     maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]

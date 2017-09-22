@@ -68,6 +68,7 @@ private:
    MString arnold;
    CAbMayaNode *abstract;
    std::vector<CAOVData> m_aovs;
+   bool m_aovShader;
 };
 
 

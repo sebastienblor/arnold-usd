@@ -422,7 +422,6 @@ bool CMaterialView::BeginSession()
    if (m_active)
    {
       // We are already active. We should never get here.
-      AiMsgDebug("[mtoa] Material View: Session already active!");
       return true;
    }
 
@@ -457,11 +456,8 @@ void CMaterialView::EndSession()
    CCritSec::CScopedLock sc(m_sceneLock);
 
    if (!m_active)
-   {
-      AiMsgDebug("[mtoa] Material View: Session already ended!");
       return;
-   }
-
+   
    // Make sure we are not rendering
    InterruptRender(true);
 
@@ -687,7 +683,8 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    if (arnoldNode)
    {
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-      AiMsgDebug("[mtoa] %-30s | Exported as %s(%s)",  MFnDependencyNode(node).name().asChar(), AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] "+MFnDependencyNode(node).name()+" | Exported as "+MString(AiNodeGetName(arnoldNode))+"("+MString(AiNodeEntryGetTypeName(nodeEntry))+")");
    }
    else
    {
@@ -731,7 +728,8 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       AiNodeSetByte(arnoldNode, "visibility", visibility);
 
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-      AiMsgDebug("[mtoa] %-30s | Exported as %s(%s)",  MFnDagNode(node).fullPathName().asChar(), AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] "+MFnDagNode(node).fullPathName()+" | Exported as "+MString(AiNodeGetName(arnoldNode))+"("+MString(AiNodeEntryGetTypeName(nodeEntry))+")");
    }
    else
    {
@@ -800,7 +798,14 @@ unsigned int CMaterialView::RenderThread(void* data)
          {
             AiNodeSetInt(options, "AA_samples", sampleRate[i]);
 
-            AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA of %d AA", sampleRate[i], sampleRate[numIterations-1]);
+            if (MtoaTranslationInfo())
+            {
+               MString log = "[mtoa] Beginning progressive sampling at ";
+               log += sampleRate[i];
+               log += " AA of ";
+               log += sampleRate[numIterations-1];
+               MtoaDebugLog(log);
+            }
 
             // Start the render if not interrupted already
             status = view->m_interrupted ? AI_INTERRUPT : AiRender(AI_RENDER_MODE_CAMERA);

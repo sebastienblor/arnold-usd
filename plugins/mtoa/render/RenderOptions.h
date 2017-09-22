@@ -214,6 +214,12 @@ public:
       m_force_translate_shading_engines = force_translate_shading_engines;
    }
 
+   bool mtoaTranslationInfo() const
+   {
+      return m_mtoa_translation_info;
+   }
+
+   
    MStatus GetFromMaya();
 
    void SetupLog() const;
@@ -290,4 +296,5 @@ private:
    bool m_progressive_rendering;
    bool m_isAnimated;
    bool m_multiCameraRender;  
+   bool m_mtoa_translation_info;
 };

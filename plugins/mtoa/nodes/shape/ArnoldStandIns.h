@@ -102,13 +102,13 @@ private:
    static MObject s_frameOffset;
    static MObject s_data;
    static MObject s_overrideNodes;
-   
+   static MObject s_namespaceName;
    //static MObject s_deferStandinLoad;
    static MObject s_scale;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
    static MObject s_drawOverride;
-   
+
    MCallbackId m_attrChangeId;
    bool m_refreshAvoided;
 }; // class CArnoldStandInShape

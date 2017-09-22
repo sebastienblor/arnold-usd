@@ -197,6 +197,12 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
 
 
 def createOptions():
+    mtoaLoaded = pm.pluginInfo('mtoa', query=True,loaded=True)
+    
+    if not mtoaLoaded:
+        pm.error("MtoA plugin isn't loaded")
+        return
+        
     """
     override this with your own function to set defaults
     """

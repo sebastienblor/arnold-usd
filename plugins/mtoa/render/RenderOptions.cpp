@@ -183,6 +183,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
       m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
+      m_mtoa_translation_info = fnArnoldRenderOptions.findPlug("mtoa_translation_info").asBool();
       
       m_autotx = fnArnoldRenderOptions.findPlug("autotx").asBool();
 

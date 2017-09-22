@@ -282,12 +282,6 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
                fnDGNode.name().asChar());*/
          AiNodeSetPtr(procedural, "shader", NULL);
       }
-      if (meshShaders.size() > 0)
-      {
-         AiNodeDeclare(procedural, "mtoa_shading_groups", "constant ARRAY NODE");
-         AiNodeSetArray(procedural, "mtoa_shading_groups",
-                        AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
-      }
    }
 }
 /*
@@ -476,6 +470,12 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
       AiNodeSetBool(procedural, "override_nodes", m_DagNode.findPlug("overrideNodes").asBool());
+
+      MString nsName = m_DagNode.findPlug("nsName").asString();
+      if (nsName.length() > 0)
+         AiNodeSetStr(procedural, "ns_name", nsName.asChar());
+      else
+         AiNodeResetParameter(procedural, "ns_name");
    }
    return procedural;
 }

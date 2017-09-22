@@ -12,7 +12,7 @@
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
 #include "nodes/shader/ArnoldStandardHairNode.h"
 #include "nodes/ArnoldNodeIDs.h"
-
+#include "utils/MtoaLog.h"
 #include <ai_metadata.h>
 
 // A Maya node class proxy
@@ -38,6 +38,7 @@ CPxMayaNode::CPxMayaNode(const MString &typeName,
    abstract = NULL;
    type = typeNode;
    classification = classif;
+   m_aovShader = false;
 }
 
 /// Read metadata for this Maya node from an arnold node
@@ -157,6 +158,11 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
    }
    AiParamIteratorDestroy(paramIt);
+
+   bool aovShader = m_aovShader = false;
+   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "aov_shader", &aovShader))
+      m_aovShader = true;
+   
 
    // Class methods to use to create the Maya node, if none were specified
    // TODO : use some map to make less hardcoded (BuiltinMayaNodes or BuiltinMayaTranslators)
@@ -292,7 +298,8 @@ void CPxMayaNode::RegisterAOV(const MString &aovName,
    data.attribute = aovAttr;
    data.name = aovName;
    data.type = dataType;
-   AiMsgDebug("[mtoa] [%s] [node %s] Registered AOV \"%s\"",
-             provider.asChar(), name.asChar(), aovName.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+provider+"] [node "+name+"] Registered AOV \""+aovName+"\"");
+   
    m_aovs.push_back(data);
 }

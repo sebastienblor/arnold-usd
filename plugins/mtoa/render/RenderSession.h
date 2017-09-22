@@ -90,7 +90,7 @@ public:
                       MStatus *ReturnStatus=NULL) const;
    /// Export and ass file.
    /// \param customFileName file to export too.
-   void DoAssWrite(MString customFileName, const bool compressed=false);
+   void DoAssWrite(MString customFileName, const bool compressed=false, const bool writeBox=false);
    /// Get the translated scene bounding box.
    AtBBox GetBoundingBox();
    MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);

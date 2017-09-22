@@ -94,6 +94,7 @@ public:
    static MObject s_log_filename;
    static MObject s_log_max_warnings;
    static MObject s_log_verbosity;
+   static MObject s_mtoa_translation_info;
 
    static MObject s_background;
    static MObject s_atmosphere;
@@ -135,5 +136,7 @@ public:
    static MObject s_offset_origin;
    static MObject s_origin;
    static MObject s_aov_shaders;
+   static MObject s_legacy_gi_glossy_samples;
+   static MObject s_legacy_gi_refraction_samples;
    
 };  // class CArnoldOptionsNode

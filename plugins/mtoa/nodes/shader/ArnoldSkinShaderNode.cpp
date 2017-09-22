@@ -40,8 +40,6 @@ MStatus CArnoldSkinShaderNode::initialize()
     MString provider = s_abstract.provider;
     const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-    AiMsgDebug("[mtoa] Initializing ArnoldCustomShader as Maya node %s, from Arnold node %s metadata, provided by %s",
-         maya.asChar(), arnold.asChar(), provider.asChar());
     CStaticAttrHelper helper(CArnoldSkinShaderNode::addAttribute, nodeEntry);
 
     s_normal_camera = nAttr.createPoint( "normalCamera", "n" );

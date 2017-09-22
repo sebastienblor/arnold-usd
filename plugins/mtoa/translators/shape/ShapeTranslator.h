@@ -63,6 +63,7 @@ protected:
    /// Returns true if the Shader Export is enabled in the Global Options.
    /// Don't call ExportShaders if this method returns false
    static bool RequiresShaderExport();
+   
 protected:
    bool m_motion;
    bool m_motionDeform;

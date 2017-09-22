@@ -7,6 +7,7 @@
 #include <maya/MFnCompoundAttribute.h>
 
 #include "common/UnorderedContainer.h"
+#include "utils/MtoaLog.h"
 
 static unordered_map<CShaderTranslator *, int> s_bump_instances;
 size_t s_bump_instance_count = 0;
@@ -42,107 +43,40 @@ void CShaderTranslator::CreateImplementation()
 // Auto shader translator
 //
 
-/// Add all AOV outputs for this node
-/// This is accomplished by detecting connections from the current node to the aiCustomAOV
-/// attribute of a shadingEngine node.  We then create an AOV writing node for each connection.
+// This function should be renamed once we can break binary compatibility
+// We no longer need it to process AOVs, but instead we need it to eventually 
+// insert a matte shader at the root of the shading tree.
+// Maybe we should totally remove this function, and instead derive ShaderTranslatorImpl::DoCreateArnoldNodes()
+// so that the necessary things are always done, otherwise all shaders need to call 
+// ProcessAOVOutput during CreateArnoldNodes()
 AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
 {
-   // FIXME: add early bail out if AOVs are not enabled
-   AtNode* currNode = shader;
-   MStatus stat;
-   MObject node;
-   int outType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(shader));
-   MString nodeType = GetAOVNodeType(outType);
-   if (!nodeType.numChars())
-   {
-      AiMsgDebug("[mtoa] Shader %s does not output a supported AOV data type",
-                   GetMayaNodeName().asChar());
-      return shader;
-   }
-   unordered_map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
-   MFnDependencyNode fnNode(GetMayaObject());
-   MPlugArray destPlugs;
-   MPlugArray sourcePlugs;
-   fnNode.getConnections(sourcePlugs);
-   // loop through the source plugs of all connections on this node
-   for (unsigned int i=0; i < sourcePlugs.length(); ++i)
-   {
-      // TODO: determine if the following two checks make performance faster or slower:
-      MPlug resolvedPlug;
-      if (!m_impl->ResolveOutputPlug(sourcePlugs[i], resolvedPlug)) continue;
-      // if (sourcePlugs[i].isDestination()) continue;
+   MStatus status;
+   MPlug mattePlug = FindMayaPlug("aiEnableMatte", &status);
+   if (status != MS::kSuccess || (!mattePlug.asBool()))
+      return shader; // matte is disabled (or parameter doesn't exist)
 
-      sourcePlugs[i].connectedTo(destPlugs, false, true);
-      // loop through the destinations, looking for connections to shadingEngines
-      for (unsigned int j=0; j < destPlugs.length(); ++j)
-      {
-         MPlug sgPlug = destPlugs[j];
-         if (!sgPlug.node().hasFn(MFn::kShadingEngine))
-            continue;
-         // ensure that our special aiCustomAOV shading plug is destination
-         MStatus status;
-         MPlug parent =  sgPlug.parent(&status);
-         if (status != MS::kSuccess)
-            continue;
-         if (parent.isElement() && parent.array().partialName(false, false, false, false, false, true) == "aiCustomAOVs")
-         {
-            // aiCustomAOVs is a compound with two children: "name" is child 0, "input" is child 1
-            MString aovName = parent.child(0).asString();
-            if (aovName == "")
-            {
-               AiMsgError("[mtoa.aov] %-30s | %s is set to empty string",
-                          GetMayaNodeName().asChar(), parent.child(0).partialName(true, false, false, false, false, true).asChar());
-               continue;
-            }
-            CAOV aov;
-            aov.SetName(aovName);
-            if (!m_impl->m_session->IsActiveAOV(aov))
-               continue;
-            m_impl->m_localAOVs.insert(aov);
-            aovShadingGroups[aovName.asChar()].append(sgPlug);
-         }
-      }
-   }
-   // at this stage, we only care about the aov names, which are the key in the map
-   unordered_map<std::string, MPlugArray>::const_iterator it;
-   for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
-   {
-      const char* aovName = it->first.c_str();
-      AiMsgDebug("[mtoa.translator.aov] %-30s | adding AOV write node for \"%s\"",
-                 GetMayaNodeName().asChar(), aovName);
-      AtNode* writeNode = AddArnoldNode(nodeType.asChar(), aovName);
 
-      AiNodeSetStr(writeNode, "aov_name", aovName);
+   MPlug matteColorPlug = FindMayaPlug("aiMatteColor", &status); 
+   if (status != MS::kSuccess ) return shader;
 
-      MPlugArray plugs = it->second;
-      /*
-       * this is the more "pure" way of doing things, because we set a node pointer
-       * instead of a node name as a string (as below).  however, in order to get the
-       * node pointer we must export all shading engines here (otherwise we have no
-       * guarantee that a node pointer even exists yet), which causes problems.
-      AtArray* sets = AiArrayAllocate(plugs.length(), 1, AI_TYPE_NODE);
-      for (unsigned int i = 0; i < plugs.length(); i++)
-      {
-         MFnDependencyNode fnNode(plugs[i].node());
-         MPlug plug = fnNode.findPlug("dagSetMembers");
-         AtNode* node = m_session->ExportNode(plug);
-         AiArraySetPtr(sets, i, node);
-      }
-      */
-      AtArray* sets = AiArrayAllocate(plugs.length(), 1, AI_TYPE_STRING);
-      for (unsigned int i = 0; i < plugs.length(); i++)
-      {
-         MFnDependencyNode fnNode(plugs[i].node());
-         MString nodeName = fnNode.name();
-         AiArraySetStr(sets, i, nodeName.asChar());
-      }
-      AiNodeSetArray(writeNode, "sets", sets);
+   MPlug matteColorAPlug = FindMayaPlug("aiMatteColorA", &status); 
+   if (status != MS::kSuccess ) return shader;
 
-      // link output of currNode to input of writeNode
-      AiNodeLink(currNode, "input", writeNode);
-      currNode = writeNode;
-   }
-   return currNode;
+   // Matte is enabled, I need to insert a matte shader at the root of my shading tree
+   AtNode *matteShader = GetArnoldNode("_matte");
+   if (matteShader == NULL)
+      matteShader = AddArnoldNode("matte", "_matte");
+
+   AiNodeSetRGBA(matteShader, "color",
+                matteColorPlug.child(0).asFloat(),
+                matteColorPlug.child(1).asFloat(),
+                matteColorPlug.child(2).asFloat(),
+                matteColorAPlug.asFloat());
+
+   AiNodeLink(shader, "passthrough", matteShader); 
+
+   return matteShader;
 }
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
@@ -183,24 +117,15 @@ bool CShaderTranslator::RequiresMotionData()
 
 void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   CNodeTranslator::NodeChanged(node, plug);
-
    // if my connection to "normalCamera" changes, for example if I disconnect a bump node,
    // I not only need to re-export myself, but I also need to advert the node which is connected to the bump
    // (for example the ShadingEngine). Otherwise it will keep its connection to the bump
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   // Bump, as well as matte parameters will affect the shading engine in back reference
-   if (/*plugName == "normalCamera" || */plugName == "aiEnableMatte" || plugName == "aiMatteColor")
-   {
-      // FIXME can we remove all this ??
-      // We should advert our back references to re-export, as they need to update their connection with m_sourceTranslator 
-      for (unordered_set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
-      {
-         (*it)->RequestUpdate();
-      }
-      
-   }
+   if (plugName == "aiEnableMatte" || plugName == "aiMatteColor" || plugName == "aiMatteColorA" )
+      SetUpdateMode(AI_RECREATE_NODE); // I need to re-generate the shaders, so that they include the matte at the root of the shading tree
+
+   CNodeTranslator::NodeChanged(node, plug);
 
 }
 

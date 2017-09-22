@@ -5,6 +5,7 @@
 
 #include <ai_universe.h>
 #include "utils/MakeTx.h"
+#include "utils/MtoaLog.h"
 
 #include "scene/MayaScene.h"
 
@@ -39,7 +40,8 @@ static void FlushInvalidateConnectedTextures(AtNode *node)
       MStringArray expandedFilenames = expandFilename(filename);
       for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
       {
-         AiMsgDebug("[mtoa.flush] Flushing texture %s", expandedFilenames[i].asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa.flush] Flushing texture "+ expandedFilenames[i]);
          AiTextureInvalidate(expandedFilenames[i].asChar());
       }
       
@@ -137,7 +139,9 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
                MStringArray expandedFilenames = expandFilename(filename);
                for (unsigned int i = 0; i < expandedFilenames.length(); ++i)
                {
-                  AiMsgDebug("[mtoa.flush] Flushing texture %s", expandedFilenames[i].asChar());
+                  if (MtoaTranslationInfo())
+                     MtoaDebugLog("[mtoa.flush] Flushing texture " + expandedFilenames[i]);
+
                   AiTextureInvalidate(expandedFilenames[i].asChar());
                }
             }

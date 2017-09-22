@@ -85,6 +85,47 @@ def _addAEHooks():
     hooks.append(procName)
     pm.melGlobals['AEshapeHooks'] = hooks
 
+def addSpreadSheetHooks():
+
+    arnoldAttrList = "{\"aiOpaque\", \"aiMatte\", \"aiVisibleInDiffuseReflection\", \"aiVisibleInSpecularReflection\", \"aiVisibleInSpecularTransmission\", "
+    arnoldAttrList += "\"aiVisibleInDiffuseTransmission\", \"aiVisibleInVolume\", \"aiSelfShadows\", \"aiExportTangents\", \"aiExportColors\", "
+    arnoldAttrList += "\"aiExportRefPoints\", \"aiExportRefNormals\", \"aiExportRefTangents\", \"aiMotionVectorScale\", \"aiSubdivType\", \"aiSubdivIterations\", "
+    arnoldAttrList += "\"aiSubdivAdaptiveMetric\", \"aiSubdivPixelError\", \"aiSubdivAdaptiveSpace\", \"aiSubdivUvSmoothing\", \"aiSubdivSmoothDerivs\", "
+    arnoldAttrList += "\"aiDispHeight\", \"aiDispPadding\", \"aiDispZeroValue\", \"aiDispAutobump\", \"aiStepSize\", \"aiVolumePadding\", "
+    arnoldAttrList += "\"aiSampleRate\", \"aiCurveWidth\", \"aiCurveShader\", \"aiExportRefPoints\", \"aiMinPixelWidth\", \"aiMode\", "
+    arnoldAttrList += "\"standInDrawOverride\", \"overrideNodes\", "
+    arnoldAttrList += "\"overrideLightLinking\", \"overrideShaders\", \"overrideReceiveShadows\", \"overrideSelfShadows\", \"overrideOpaque\", \"overrideMatte\", "
+    arnoldAttrList += "\"aiColorTemperature\", \"aiExposure\", \"aiAngle\", \"aiSamples\", \"aiNormalize\", \"aiCastShadows\", \"aiShadowDensity\", "
+    arnoldAttrList += "\"aiCastVolumetricShadows\", \"aiVolumeSamples\", \"aiDiffuse\", \"aiSpecular\", \"aiSss\", \"aiIndirect\", \"aiVolume\", "
+    arnoldAttrList += "\"colorR\", \"colorG\", \"colorB\", \"intensity\", \"aiExposure\", \"aiSpread\", \"aiResolution\", \"aiSoftEdge\", \"aiSamples\", \"aiNormalize\", "
+    arnoldAttrList += "\"aiFormat\", \"aiPortalMode\"}"
+        
+    if pm.optionVar(exists='SSEitem1'):
+        previousSSEitem1 = pm.optionVar(q='SSEitem1')
+        previousSSEitem2 = pm.optionVar(q='SSEitem2')
+
+        ind = 0
+        for item in previousSSEitem1:
+            if item != "Arnold":
+                ind = ind+1
+                continue
+
+            attrList = previousSSEitem2[ind]
+            if attrList == arnoldAttrList:
+                # same attributes, we can get out of here
+                return
+
+            # the attribute list is different, let's remove the items
+            pm.optionVar(removeFromArray=("SSEitem1", ind))
+            pm.optionVar(removeFromArray=("SSEitem2", ind))
+            pm.optionVar(removeFromArray=("SSEitem3", ind))
+            break
+        
+    pm.optionVar(stringValueAppend=("SSEitem1", "Arnold"))
+    pm.optionVar(stringValueAppend=("SSEitem2", arnoldAttrList))
+    pm.optionVar(intValueAppend=("SSEitem3", 1))
+    
+
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
 def updateMayaImageFormatControl():
@@ -310,6 +351,10 @@ def registerArnoldRenderer():
                         pass
             if not pm.about(batch=True):
                 pm.evalDeferred(arnoldShelf.createArnoldShelf)
+
+            addSpreadSheetHooks()
+
+
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)

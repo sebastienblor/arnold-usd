@@ -77,7 +77,7 @@ public:
 
    // Called by translators
    CDagTranslator* ExportDagPath(const MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
-   CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
+   CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug,
                       bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
    AtNode* ExportColorManager();
@@ -196,6 +196,8 @@ public:
    void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
    void UnRegisterProcedural(AtNode *node);
    void ExportTxFiles();
+
+   const ObjectToTranslatorMap &GetProcessedTranslators() const {return m_processedTranslators;}
 
 private:
 
