@@ -771,7 +771,28 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          shgElem.add(shadingGroups[shg]);
          MPlug shgPlug;
          shgElem.getPlug(0, shgPlug);
-         ExportNode(shgPlug);
+         // Since we no longer export MayaShadingEngine, we actually want to export the assigned shaders
+         MFnDependencyNode shEngineNode(shgPlug.node());
+         MPlugArray connections;
+         MStringArray shaderAttrs;
+         shaderAttrs.append("aiSurfaceShader");
+         shaderAttrs.append("surfaceShader");
+         shaderAttrs.append("aiVolumeShader");
+         shaderAttrs.append("volumeShader");
+         for (unsigned int a = 0; a < 4; a++)
+         {
+            MPlug shaderPlug = shEngineNode.findPlug(shaderAttrs[a]);
+            if (!shaderPlug.isNull())
+            {
+               shaderPlug.connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  ExportNode(connections[0]);
+                  if (a == 0 || a == 2) 
+                     a++; // if an "ai" connection was found, skip the maya native one
+               }
+            }
+         }
       }
    }
 
