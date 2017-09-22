@@ -112,7 +112,7 @@ public:
       {
          const QPoint localPt = getKey()->mapFromGlobal(pt);
          const AtRGBA color 
-            = m_renderView->getColorAtPosition(pickedWidget, localPt.x(), localPt.y(), viewTransform);
+            = m_renderView->GetWidgetColorAtPosition(localPt.x(), localPt.y(), viewTransform, pickedWidget);
          return MColor(color.r, color.g, color.b, color.a);
       }
       return MColor(0., 0., 0., 1.);

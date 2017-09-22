@@ -154,6 +154,9 @@ public:
    virtual void ProgressiveRenderStarted() {}
    virtual void ProgressiveRenderFinished() {}
 
+   // Function used by Maya color picking.
+   AtRGBA GetWidgetColorAtPosition(unsigned posX, unsigned posY, bool viewTransform, QWidget* pickedWidget = NULL);
+
 private:
 
    // internal method, used to avoid linking issues with
