@@ -2292,12 +2292,21 @@ desc STRING "Multiplies the curvature by this factor."
     [attr scale]
         min                 FLOAT   0.0
         softmax             FLOAT   100.0
-    [attr size]
+    [attr density]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
+    [attr depth]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr step]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr IOR]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
     [attr normal_randomize]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
 
 [node float_to_int]
     maya.id                 INT     0x00115D67
