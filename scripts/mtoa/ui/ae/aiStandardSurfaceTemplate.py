@@ -61,6 +61,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         pm.editorTemplate(dimControl=(nodeName, 'transmissionScatterAnisotropy', dim_transmission_interior))
         pm.editorTemplate(dimControl=(nodeName, 'transmissionDispersion', dim_transmission_interior))
         pm.editorTemplate(dimControl=(nodeName, 'transmissionExtraRoughness', dim_transmission_interior))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionTransparent', dim_transmission))
 
         dim_subsurface = metal_1 or transmission_1 or subsurface_0
         dim_subsurface_radius = dim_subsurface or thin_walled
@@ -169,6 +170,8 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addCustom("transmissionDispersion", self.createAbbe, self.updateAbbe)
         self.addControl("transmissionExtraRoughness", label="Extra Roughness", annotation="Transmission Extra Roughness")
+        self.addSeparator()
+        self.addControl("transmissionTransparent", label="AOV Transparent")
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)
