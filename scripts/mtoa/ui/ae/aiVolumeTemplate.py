@@ -6,6 +6,7 @@ from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 import pymel.core as pm
 import os
+import os.path
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 def ArnoldVolumeAutoStepChange(nodeName):
@@ -190,26 +191,28 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         cmds.textField(gridTextField, edit=True, changeCommand=lambda *args: self.gridsEdit(nodeName, isVelocity, *args))
         cmds.textScrollList(gridListField, edit=True, removeAll=True,selectCommand=lambda *args: self.gridsListEdit(nodeName, isVelocity, *args))
         gridsParam = cmds.getAttr(nodeName)
-        
 
         filename = cmds.getAttr(attrName)
-        if filename is not None and os.path.isfile(filename):
-            gridsList = ai.AiVolumeFileGetChannels(filename);
-            
-            numGrids = ai.AiArrayGetNumElements(gridsList)
-            for i in range(0, numGrids):
-                cmds.textScrollList(gridListField, edit=True, append=str(ai.AiArrayGetStr(gridsList, i)))
 
-            # if parameter 'grids' wasn't previously set, choose the first in the file list
-            # FIXME do we really want to do that, or do we want to have a hardcoded default ?
-            # note that nothing will happen until the node is shown in AE
-            if not gridsParam:
-                if numGrids > 0:
-                    if not isVelocity:
-                        cmds.textScrollList(gridListField, edit=True, selectIndexedItem=1)
-                        cmds.setAttr(nodeName, str(ai.AiArrayGetStr(gridsList,0)), type='string')
-            else:
-                self.updateList(gridsParam, isVelocity)
+        if filename is not None:
+            filename = os.path.expandvars(filename)
+            if os.path.isfile(filename):
+                gridsList = ai.AiVolumeFileGetChannels(filename);
+                
+                numGrids = ai.AiArrayGetNumElements(gridsList)
+                for i in range(0, numGrids):
+                    cmds.textScrollList(gridListField, edit=True, append=str(ai.AiArrayGetStr(gridsList, i)))
+
+                # if parameter 'grids' wasn't previously set, choose the first in the file list
+                # FIXME do we really want to do that, or do we want to have a hardcoded default ?
+                # note that nothing will happen until the node is shown in AE
+                if not gridsParam:
+                    if numGrids > 0:
+                        if not isVelocity:
+                            cmds.textScrollList(gridListField, edit=True, selectIndexedItem=1)
+                            cmds.setAttr(nodeName, str(ai.AiArrayGetStr(gridsList,0)), type='string')
+                else:
+                    self.updateList(gridsParam, isVelocity)
 
         cmds.textField(gridTextField, edit=True, text=cmds.getAttr(nodeName))
         
