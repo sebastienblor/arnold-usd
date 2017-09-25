@@ -2493,9 +2493,9 @@ maya.swatch             BOOL    false
         aov.type                INT     0x05
     [attr aov_indirect_diffuse]
         aov.type                INT     0x05
-    [attr aov_reflection]
+    [attr aov_indirect_specular]
         aov.type                INT     0x05
-
+    
 [node sign]
     maya.id                 INT     0x00115D77
     maya.name               STRING  "aiSign"
