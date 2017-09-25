@@ -277,7 +277,13 @@ void CPhotometricLightTranslator::Export(AtNode* light)
    CLightTranslator::Export(light);
    AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
-   AiNodeSetStr(light, "filename", FindMayaPlug("aiFilename").asString().asChar());
+
+   MString filename = FindMayaPlug("aiFilename").asString();
+
+   filename = filename.expandEnvironmentVariablesAndTilde();
+   GetSessionOptions().FormatTexturePath(filename);
+   
+   AiNodeSetStr(light, "filename", filename.asChar());
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
    if (!shadowColorPlug.isNull())
    {
