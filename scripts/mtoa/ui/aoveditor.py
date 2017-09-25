@@ -245,7 +245,7 @@ class AOVBrowser(object):
 
 
         aovList = aovs.getBuiltinAOVs()
-
+        aovList.sort()
         for group in self.nodeTypes:
             for x in aovs.getRegisteredAOVs(nodeType=group) :
                 if x:
@@ -264,10 +264,7 @@ class AOVBrowser(object):
             
         for activeAOV in activeAOVs:
             activeList.append(activeAOV.name)
-
-
-        # update sorted and not duplicated available AOVs
-        availableList.sort()
+        
         for aovName in availableList:
             pm.textScrollList(self.availableLst, edit=True, append=aovName)
             if aovName in availableSel:
