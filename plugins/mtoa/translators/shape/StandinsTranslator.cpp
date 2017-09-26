@@ -471,11 +471,11 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       }
       AiNodeSetBool(procedural, "override_nodes", m_DagNode.findPlug("overrideNodes").asBool());
 
-      MString nsName = m_DagNode.findPlug("nsName").asString();
+      MString nsName = m_DagNode.findPlug("aiNamespace").asString();
       if (nsName.length() > 0)
-         AiNodeSetStr(procedural, "ns_name", nsName.asChar());
+         AiNodeSetStr(procedural, "namespace", nsName.asChar());
       else
-         AiNodeResetParameter(procedural, "ns_name");
+         AiNodeResetParameter(procedural, "namespace");
    }
    return procedural;
 }

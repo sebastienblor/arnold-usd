@@ -919,7 +919,7 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_overrideNodes);
 
-   s_namespaceName = tAttr.create("nsName", "ns_name", MFnData::kString);
+   s_namespaceName = tAttr.create("aiNamespace", "ai_namespace", MFnData::kString);
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(s_namespaceName);
