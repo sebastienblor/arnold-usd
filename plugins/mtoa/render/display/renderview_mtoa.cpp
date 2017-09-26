@@ -95,7 +95,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
 
-#if MAYA_API_VERSION >= 201900
+#if MAYA_API_VERSION >= 20190000
 
 class CRenderViewMtoA::CustomCallback : public MColorPickerCallback
 {
@@ -142,13 +142,13 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasProgressiveRenderFinished(false)
 
 {   
-#if MAYA_API_VERSION >= 201900
+#if MAYA_API_VERSION >= 20190000
    m_colorPickingCallback = 0x0;
 #endif
 }
 CRenderViewMtoA::~CRenderViewMtoA()
 {
-#if MAYA_API_VERSION >= 201900
+#if MAYA_API_VERSION >= 20190000
    delete m_colorPickingCallback;
    MColorPickerUtilities::unregisterFromColorPicking(GetRenderView());
 #endif
@@ -458,7 +458,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
 #endif
 
-#if MAYA_API_VERSION >= 201900
+#if MAYA_API_VERSION >= 20190000
    if(!m_colorPickingCallback)
    {
       m_colorPickingCallback = new CustomCallback(GetRenderView(), this);
