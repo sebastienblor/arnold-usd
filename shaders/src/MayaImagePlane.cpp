@@ -168,11 +168,6 @@ shader_evaluate
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
 
-   if (sg->bounces > 1)
-   {
-      sg->out.RGBA() = AI_RGBA_ZERO;
-      return;
-   }
    int displayMode = AiShaderEvalParamInt(p_display_mode);
    if (displayMode <= 1)
    {
