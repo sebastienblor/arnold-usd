@@ -1340,7 +1340,7 @@ def create_installer(target, source, env):
         mtoaMod.write('PATH +:= bin\n')
         mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
-        mtoaMod.write('MAYA_RENDER_DESC_PATH +:= %s\n' % installPath)
+        mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installPath)
         mtoaMod.close()
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')

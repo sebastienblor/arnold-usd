@@ -276,7 +276,7 @@ mtoaMod.write('+ mtoa any %s\n' % installDir)
 mtoaMod.write('PATH +:= bin\n')
 mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
 mtoaMod.write('MAYA_SCRIPT_PATH +:= scripts/mtoa/mel\n')
-mtoaMod.write('MAYA_RENDER_DESC_PATH +:= %s\n' % installDir)
+mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
