@@ -293,7 +293,13 @@ def _doSetDefaultTranslator(obj):
         return
     try:
         default = getDefaultTranslator(obj)
-        pm.api.MFnDependencyNode(obj).findPlug('aiTranslator').setString(default)
+        plug = pm.api.MFnDependencyNode(obj).findPlug('aiTranslator')
+
+        # we're also being called when an object is duplicated. In that case the attribute 
+        # translator is already set to a given value. For newly created objects this value is empty
+        if not plug.isNull() and plug.asString() == "":
+            plug.setString(default)
+
     except RuntimeError:
         pm.warning("failed to set default translator for %s" % pm.api.MFnDependencyNode(obj).name())
 
