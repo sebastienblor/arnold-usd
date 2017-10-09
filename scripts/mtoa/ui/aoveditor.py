@@ -639,21 +639,6 @@ class ArnoldAOVEditor(object):
         self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
         pm.setParent(self.mainCol)
-        self.aovShadersFrame = pm.cmds.frameLayout('arnoldAOVShadersFrame', label='AOV Shaders', width=WIDTH,
-                            collapsable=True, collapse=True)
-        
-        pm.scriptJob(parent=self.aovShadersFrame, attributeChange=['defaultArnoldRenderOptions.aov_shaders', self.updateAovShaders], dri=True, alc=True, per=True )
-
-        pm.cmds.rowLayout('arnoldAOVShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
-        pm.cmds.text(label='')
-        pm.cmds.button(label='Add', c=lambda *args: self.addAovShader())
-        pm.setParent('..') # rowLayout
-
-        pm.setParent(self.aovShadersFrame)
-
-        self.updateAovShaders()
-
-        pm.setParent(self.mainCol)
 
         pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH,
                             collapsable=True, collapse=False, height=200)
@@ -701,73 +686,7 @@ class ArnoldAOVEditor(object):
                                       lambda *args: pm.evalDeferred(self.refresh)])
 
 
-    def updateAovShaders(self, *args):
-
-        for row in self.aovShaders:
-            row.delete()
-
-        self.aovShaders = []
-
-        pm.setParent(self.aovShadersFrame)
-        shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
-        
-        for i in range(shadersSize):
-
-            frame = pm.frameLayout(collapsable=False, labelVisible=False)
-            self.aovShaders.append(frame)
-
-            rowName = 'arnoldAOVShadersRow%d' % i
-            pm.cmds.rowLayout(rowName, nc=2, columnWidth2=[350, 50], columnAttach2=['both', 'right'])
-            aovCtrlName = 'aov_shaders%d' % i
-            aovShaderName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
-            
-            pm.attrNavigationControlGrp(aovCtrlName,
-                                    label='',
-                                    at=aovShaderName, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+aovShaderName+"\" \"\"")
-
-            aovShaderDelete = 'arnoldAOVShaderDelete%d' % i
-            pm.cmds.symbolButton(aovShaderDelete, image="SP_TrashIcon.png", command=pm.Callback(self.deleteAovShader, i))
-            pm.setParent(self.aovShadersFrame)
-
-        pm.setParent(self.mainCol)
-
-
-    def deleteAovShader(self, index):
-        if self.aovShaders is None:
-            return
-
-        shadersLength = len(self.aovShaders)
-
-        if index < 0 or index >= shadersLength:
-            return 
-
-        if index <= shadersLength - 2:
-            for i in range(index, shadersLength - 1):
-                aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
-                elemConnection = pm.listConnections(aovShaderElem,p=True, d=False,s=True)
-                if (not elemConnection is None):
-                    for elem in elemConnection:
-                        pm.disconnectAttr(elem, aovShaderElem)
-
-
-                aovShaderNextElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (i+1)
-                nextElemConnection = pm.listConnections(aovShaderNextElem,p=True, d=False,s=True)
-                if (not nextElemConnection is None) and len(nextElemConnection) > 0:
-                    pm.connectAttr(nextElemConnection[0], aovShaderElem)
-
-        aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (shadersLength - 1)
-        pm.removeMultiInstance(aovShaderElem , b=True)
-
-        self.updateAovShaders()
-
-    def addAovShader(self, *args):
-
-        shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
-        attrName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % shadersSize
-
-        melCmd = "createRenderNode -all \"defaultNavigation -force true -connectToExisting -destination "+attrName+" -source %node\" \"\""
-        mel.eval(melCmd);
-        self.updateAovShaders()
+    
 
     def removeAOVCallbacks(self, *args):
         for attr in AOV_CALLBACK_ATTRS:
@@ -876,7 +795,88 @@ def arnoldAOVBrowser(**kwargs):
     return browser
 
 
+global _aovDisplayCtrl
 _aovDisplayCtrl= None
+global _aovShadersFrame
+_aovShadersFrame = None
+global _aovShaders
+_aovShaders = []
+
+def updateAovShaders(*args):
+
+    global _aovShaders
+    global _aovShadersFrame
+
+    for row in _aovShaders:
+        row.delete()
+
+    _aovShaders = []
+
+    pm.setParent(_aovShadersFrame)
+    shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
+    
+    for i in range(shadersSize):
+
+        frame = pm.frameLayout(collapsable=False, labelVisible=False)
+        _aovShaders.append(frame)
+
+        rowName = 'arnoldAOVShadersRow%d' % i
+        pm.cmds.rowLayout(rowName, nc=2, columnWidth2=[350, 50], columnAttach2=['both', 'right'])
+        aovCtrlName = 'aov_shaders%d' % i
+        aovShaderName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
+        
+        pm.attrNavigationControlGrp(aovCtrlName,
+                                label='',
+                                at=aovShaderName, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+aovShaderName+"\" \"\"")
+
+        aovShaderDelete = 'arnoldAOVShaderDelete%d' % i
+        pm.cmds.symbolButton(aovShaderDelete, image="SP_TrashIcon.png", command=pm.Callback(deleteAovShader, i))
+        pm.setParent(_aovShadersFrame)
+
+    pm.setParent('..')
+    #pm.setParent(pm.cmds.columnLayout('arnoldAOVMainColumn', query=True))
+
+
+def deleteAovShader(index):
+    global _aovShaders
+    global _aovShadersFrame
+
+    if _aovShaders is None:
+        return
+
+    shadersLength = len(_aovShaders)
+
+    if index < 0 or index >= shadersLength:
+        return 
+
+    if index <= shadersLength - 2:
+        for i in range(index, shadersLength - 1):
+            aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
+            elemConnection = pm.listConnections(aovShaderElem,p=True, d=False,s=True)
+            if (not elemConnection is None):
+                for elem in elemConnection:
+                    pm.disconnectAttr(elem, aovShaderElem)
+
+
+            aovShaderNextElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (i+1)
+            nextElemConnection = pm.listConnections(aovShaderNextElem,p=True, d=False,s=True)
+            if (not nextElemConnection is None) and len(nextElemConnection) > 0:
+                pm.connectAttr(nextElemConnection[0], aovShaderElem)
+
+    aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (shadersLength - 1)
+    pm.removeMultiInstance(aovShaderElem , b=True)
+
+    updateAovShaders()
+
+def addAovShader(*args):
+
+    shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
+    attrName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % shadersSize
+
+    melCmd = "createRenderNode -all \"defaultNavigation -force true -connectToExisting -destination "+attrName+" -source %node\" \"\""
+    mel.eval(melCmd);
+    updateAovShaders()
+
 
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
@@ -885,6 +885,9 @@ def createArnoldAOVTab():
     pm.columnLayout('enableAOVs', adjustableColumn=True)
     
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+
+    legacyFrame = pm.cmds.frameLayout('legacyFrame', label='Legacy', width=WIDTH,
+                            collapsable=True, collapse=True)
 
     mayaRenderViewFrame = pm.cmds.frameLayout('mayaRenderViewFrame', label='Maya Render View', width=WIDTH,
                             collapsable=True, collapse=True)
@@ -906,6 +909,23 @@ def createArnoldAOVTab():
     _aovDisplayCtrl._setToChildMode()
     _aovDisplayCtrl._doSetup(aovNode.node.name() + '.displayAOV')
     
+    pm.setParent('..')
+
+    # aov shader
+    global _aovShadersFrame
+    _aovShadersFrame = pm.cmds.frameLayout('arnoldAOVShadersFrame', label='AOV Shaders', width=WIDTH,
+                        collapsable=True, collapse=True)
+    
+    pm.scriptJob(parent=_aovShadersFrame, attributeChange=['defaultArnoldRenderOptions.aov_shaders', updateAovShaders], dri=True, alc=True, per=True )
+
+    pm.cmds.rowLayout('arnoldAOVShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
+    pm.cmds.text(label='')
+    pm.cmds.button(label='Add', c=lambda *args: addAovShader())
+    pm.setParent('..') # rowLayout
+
+    pm.setParent(_aovShadersFrame)
+    updateAovShaders()
+
     pm.setParent('..')
     pm.setParent(parentForm)
 
