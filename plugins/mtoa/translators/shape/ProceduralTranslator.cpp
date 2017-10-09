@@ -136,14 +136,12 @@ void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
 void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
 {
    MDagPath masterInstance = GetMasterInstance();
-   CNodeTranslator *masterTr = GetTranslator(masterInstance);
-
+   MFnDependencyNode masterDepNode(masterInstance.node());
+   MPlug dummyPlug = masterDepNode.findPlug("matrix");
    // in case master instance wasn't exported (#648)
-   if (masterTr == NULL)
-      masterTr = CDagTranslator::ExportDagPath(masterInstance);
+   // and also to create the reference between both translators
+   AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
    
-   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
-
    AiNodeSetStr(instance, "name", GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
