@@ -402,16 +402,13 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          if (!fnDag.isIntermediateObject())
          {
             // Check if the node is in the scene already.
+            MFnDependencyNode masterDepNode(dagPathMaster.node());
+            MPlug dummyPlug = masterDepNode.findPlug("matrix");
+            // in case master instance wasn't exported (#648)
+            // and also to create the reference between both translators
+            if (!dummyPlug.isNull())
+               ExportConnectedNode(dummyPlug);
 
-            CNodeTranslator *masterTr = GetTranslator(dagPathMaster);
-            AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
-
-            // if not, we export it
-            if (!masterNode)
-            {
-               // FIXME: check if the object will not be exported a second time later !
-               ExportDagPath(dagPathMaster);
-            }
          }
          m_objectNames.append(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
          m_objectDagPaths.append(dagPathMaster);

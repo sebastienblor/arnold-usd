@@ -1428,11 +1428,11 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    CNodeTranslator *masterTr = GetTranslator(masterInstance);
+   MFnDependencyNode masterDepNode(masterInstance.node());
+   MPlug dummyPlug = masterDepNode.findPlug("matrix");
    // in case master instance wasn't exported (#648)
-   if (masterTr == NULL)
-      masterTr = CDagTranslator::ExportDagPath(masterInstance);
-   
-   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
+   // and also to create the reference between both translators
+   AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
 
    int instanceNum = m_dagPath.instanceNumber();
 

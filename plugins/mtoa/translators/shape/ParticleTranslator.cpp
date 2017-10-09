@@ -1600,12 +1600,12 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    CNodeTranslator *masterTr = GetTranslator(masterInstance);
+   MFnDependencyNode masterDepNode(masterInstance.node());
+   MPlug dummyPlug = masterDepNode.findPlug("matrix");
    // in case master instance wasn't exported (#648)
-   if (masterTr == NULL)
-      masterTr = CDagTranslator::ExportDagPath(masterInstance);
+   // and also to create the reference between both translators
+   AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
    
-   AtNode *masterNode = (masterTr) ? masterTr->GetArnoldNode() : NULL;
-
    int instanceNum =  m_dagPath.instanceNumber();
 
    AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
