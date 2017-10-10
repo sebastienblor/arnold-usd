@@ -226,7 +226,10 @@ try:
             self.sceneObservableRegistered = False
 
         def __del__(self):
-            self._unregister()
+            try:
+                self._unregister()
+            except:
+                pass
 
         def encode(self):
             aovsJSON = {}
