@@ -102,6 +102,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    bool useBinaryEncoding = true;
    bool forceTranslateShadingEngines = false;
    bool progressiveRefinement = true;
+   bool exportAllShadingGroups = false;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -118,6 +119,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
       progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      exportAllShadingGroups = fnArnoldRenderOptions.findPlug("exportAllShadingGroups").asBool();
    }
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
@@ -146,6 +148,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          cmdStr += " -forceTranslateShadingEngines";
       }
+      if (exportAllShadingGroups)
+         cmdStr += " -shg";
+
       
       if (renderGlobals.isAnimated())
       {     
