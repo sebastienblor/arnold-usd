@@ -779,7 +779,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          shaderAttrs.append("surfaceShader");
          shaderAttrs.append("aiVolumeShader");
          shaderAttrs.append("volumeShader");
-         for (unsigned int a = 0; a < 4; a++)
+         shaderAttrs.append("displacementShader");
+         for (unsigned int a = 0; a < shaderAttrs.length(); a++)
          {
             MPlug shaderPlug = shEngineNode.findPlug(shaderAttrs[a]);
             if (!shaderPlug.isNull())
@@ -788,7 +789,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
                if (connections.length() > 0)
                {
                   ExportNode(connections[0]);
-                  if (a == 0 || a == 2) 
+                  if (shaderAttrs[a] == MString("aiSurfaceShader") ||
+                     shaderAttrs[a] == MString("aiVolumeShader"))
                      a++; // if an "ai" connection was found, skip the maya native one
                }
             }
