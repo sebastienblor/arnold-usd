@@ -197,7 +197,8 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.checkBoxGrp('oa_forceTranslateShadingEngines',
                          label1='Force Translate Shading Engines',
                          value1=settings.get('forceTranslateShadingEngines', False))
-        cmds.checkBoxGrp('oa_export_all_shading_groups', label1='Export All Shading Groups', value1=False)
+        cmds.checkBoxGrp('oa_export_all_shading_groups', label1='Export All Shading Groups', 
+                        value1=settings.get('exportAllShadingGroups', False))
         
         cmds.text("oa_exportSeparatorOther",label="")
         lightsOn = cmds.checkBoxGrp('oa_export_lights', query=True, value1=True)
