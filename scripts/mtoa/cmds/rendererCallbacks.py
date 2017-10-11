@@ -226,7 +226,13 @@ try:
             self.sceneObservableRegistered = False
 
         def __del__(self):
-            self._unregister()
+            # This try/except block was added to resolve FB-3203.
+            # It avoids a crash on quitting mayapy.exe that is caused by calling _unregister after
+            # Maya standalone has been uninitialized.
+            try:
+                self._unregister()
+            except:
+                pass
 
         def encode(self):
             aovsJSON = {}
