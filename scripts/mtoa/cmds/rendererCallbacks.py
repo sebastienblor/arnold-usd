@@ -226,7 +226,13 @@ try:
             self.sceneObservableRegistered = False
 
         def __del__(self):
-            self._unregister()
+            # This try/except block was added to resolve FB-3203.
+            # It avoids a crash on quitting mayapy.exe that is caused by calling _unregister after
+            # Maya standalone has been uninitialized.
+            try:
+                self._unregister()
+            except:
+                pass
 
         def encode(self):
             aovsJSON = {}
@@ -383,7 +389,17 @@ try:
                         # So store a mapping between the old filter name and our new name if they are different.
                         newFilterName = filterName
                         if filterName != self.DEFAULT_ARNOLD_FILTER_NAME:
-                            newFilterName = cmds.createNode("aiAOVFilter", name=filterName)
+                            # If a filter was already created for this aiAOV node, then use the existing filter
+                            connections = cmds.listConnections("aiAOV_" + aovName)
+                            connectionFound = False
+                            for connection in connections:
+                                if cmds.nodeType(connection) == u'aiAOVFilter':
+                                    newFilterName = connection
+                                    connectionFound = True
+                                    break
+                            # If such a filter was not found, then create one
+                            if not connectionFound:
+                                newFilterName = cmds.createNode(u"aiAOVFilter", name=filterName)
                             if newFilterName != filterName:
                                 filterNewNameMap[filterName] = newFilterName
 

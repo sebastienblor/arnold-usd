@@ -1,24 +1,33 @@
 import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
+
 class AEaiShadowMatteTemplate(ShaderAETemplate):
-    
+
+    def updateBackground(self, nodeName):
+            
+        backgroundAttr = '%s.%s' % (nodeName, 'background')
+        value = pm.getAttr(backgroundAttr)
+        pm.editorTemplate(dimControl=(nodeName, 'backgroundColor', not value))
+                
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
-        self.addControl("background", label="Background")
-        #self.addControl("backgroundType", label="Background Type")
-        self.addControl("offscreenColor", label="Offscreen Color")
-
+        self.beginLayout("Background", collapse=False)
+        self.addControl("background", changeCommand=self.updateBackground, label="Background")
+        self.addControl("backgroundColor", label="Background Color")
+        
         self.beginLayout("Shadows", collapse=False)
         self.addControl("shadowColor", label="Shadow Color")
         self.addControl("shadowOpacity", label="Shadow Opacity")
         self.addControl("backlighting", label="Backlighting")
         self.addControl("enableTransparency", label="Enable Transparency")
         self.addControl("shadowTransparency", label="Shadow Transparency")
+        self.addControl("alphaMask", label="Alpha Mask")
+        
         self.endLayout()
 
         self.beginLayout("Diffuse", collapse=True)

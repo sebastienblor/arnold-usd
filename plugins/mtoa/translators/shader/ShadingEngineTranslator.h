@@ -22,6 +22,12 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    virtual void Init();
 
+   virtual void AddUpdateCallbacks();
+
+   static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
+                                        MPlug& plug, MPlug& otherPlug,
+                                        void* clientData);
+
 private:
    // internal use only : do not override it
    virtual void CreateImplementation();

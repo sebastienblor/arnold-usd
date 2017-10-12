@@ -298,15 +298,16 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // or the first found renderable camera in batch mode
    // FIXME if you're exporting in selected mode to reuse in a standing
    // you probably don't want a camera anyway, remove this search and warnings in that case?
+
    MDagPathArray cameras;
+
    if (camera.isValid())
-   {
       cameras.append(camera);
-   }
-   else
-   {
+   else if (mask == -1 || (mask & AI_NODE_CAMERA))
       GetRenderCameras(cameras);
-   }
+   else
+      cameras.append(MDagPath());
+        
 
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
@@ -404,9 +405,15 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          // It is ok to set the camera here, because if camera is no set at export time,
          // all the cameras are exported during the export.
-         arnoldSession->SetExportCamera(cameras[arrayIter]);
-         fnCam.setObject(cameras[arrayIter].transform());
-         cameraName = fnCam.name();
+         if (cameras[arrayIter].isValid())
+         {
+            arnoldSession->SetExportCamera(cameras[arrayIter]);
+            fnCam.setObject(cameras[arrayIter].transform());
+            cameraName = fnCam.name();
+         } else
+         {
+            cameraName = "";
+         }
          // getting ass file name
          curfilename = renderSession->GetAssName(customFileName,
                                                  renderGlobals,

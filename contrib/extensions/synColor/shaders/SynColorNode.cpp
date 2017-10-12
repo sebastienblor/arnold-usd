@@ -875,15 +875,6 @@ node_finish
    delete colorData;
 }
 
-color_manager_get_num_families
-{
-   return 0;
-}
-static AtString emptyStr("");
-color_manager_get_family_name_by_index
-{
-   return emptyStr;
-}
 node_loader
 {
    if (i > 0)

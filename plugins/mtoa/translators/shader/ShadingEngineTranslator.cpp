@@ -265,3 +265,50 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
    CNodeTranslator::NodeChanged(node, plug);
 }
 
+
+void CShadingEngineTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
+                                                    MPlug& plug, MPlug& otherPlug,
+                                                    void* clientData)
+{
+   CShadingEngineTranslator * translator = static_cast< CShadingEngineTranslator* >(clientData);
+   if (translator != NULL)
+   {
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": ShadingEngineAttributeChangedCallback "+plug.name()+" to or from "+otherPlug.name());
+
+      // No need for full update when an object is added / removed from the linker
+      // But needs a full update when a light is
+      if ((msg & (MNodeMessage::kConnectionMade | MNodeMessage::kConnectionBroken)) && 
+         (msg & MNodeMessage::kIncomingDirection))
+      {
+         MString plugName = plug.partialName(false, false, false, false, false, true);
+         if ((plugName == "surfaceShader") || (plugName == "aiSurfaceShader") ||
+            (plugName == "volumeShader") || (plugName == "aiVolumeShader"))
+         {
+            // we need to tell all back references (shapes) that the shader has chagned
+            for (unordered_set<CNodeTranslator*>::iterator it = translator->m_impl->m_backReferences.begin(); it != translator->m_impl->m_backReferences.end(); ++it)
+               (*it)->RequestUpdate();
+         }
+      }
+   }
+   else
+   {
+      // No translator in client data
+      AiMsgError("[mtoa.translator.ipr] ShadingEngineAttributeChangedCallback: no translator in client data: %p.", clientData);
+   }
+}
+
+
+/// Sets have extra specific callback addLightLinkerAttributeChangedCallback
+void CShadingEngineTranslator::AddUpdateCallbacks()
+{   
+   CNodeTranslator::AddUpdateCallbacks();
+   MObject object = GetMayaObject();
+
+   MStatus status;
+   MCallbackId id= MNodeMessage::addAttributeChangedCallback(object,
+                                                  AttributeChangedCallback,
+                                                  this,
+                                                  &status);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
+}
