@@ -686,8 +686,8 @@ def getCameraDefault(obj):
     default = 'orthographic' if isOrtho else 'perspective'
     return default
 
-templates.registerDefaultTranslator('camera', getCameraDefault)
-templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
+#templates.registerDefaultTranslator('camera', getCameraDefault)
+#templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
 callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
