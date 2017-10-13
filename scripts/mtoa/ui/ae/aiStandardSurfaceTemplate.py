@@ -171,7 +171,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addCustom("transmissionDispersion", self.createAbbe, self.updateAbbe)
         self.addControl("transmissionExtraRoughness", label="Extra Roughness", annotation="Transmission Extra Roughness")
         self.addSeparator()
-        self.addControl("transmissionTransparent", label="AOV Transparent")
+        self.addControl("transmitAovs", label="Transmit AOVs")
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)
