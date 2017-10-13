@@ -51,3 +51,13 @@ void CApplyRelOverrideTranslator<T>::Export(AtNode* node){
     transfer<T>(mnode, "offset",   node);
     transfer<bool>(mnode, "enabled", node);
 }
+
+template class CApplyAbsOverrideTranslator<float>;
+template class CApplyAbsOverrideTranslator<float2>;
+template class CApplyAbsOverrideTranslator<float3>;
+template class CApplyAbsOverrideTranslator<int>;
+
+template class CApplyRelOverrideTranslator<float>;
+template class CApplyRelOverrideTranslator<float2>;
+template class CApplyRelOverrideTranslator<float3>;
+template class CApplyRelOverrideTranslator<int>;
