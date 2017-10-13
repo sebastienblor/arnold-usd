@@ -68,15 +68,17 @@ MStatus CArnoldProceduralNode::initialize()
 
    CStaticAttrHelper helper(CArnoldProceduralNode::addAttribute, nodeEntry);
 
-
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
+      std::string paramNameStr(paramName);
+
       // skip the special "name" parameter
-      if (strcmp(paramName, "name") != 0)
+      // Also skip the parameters existing natively in maya shapes (receive_shadows, visibility, matrix)
+      if (paramNameStr != "name" && paramNameStr != "receive_shadows" && paramNameStr != "visibility" && paramNameStr != "matrix")
       {
          bool hide = false;
          if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
