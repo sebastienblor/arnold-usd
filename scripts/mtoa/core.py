@@ -244,6 +244,14 @@ def createOptions():
         hooks.setupDefaultAOVs(aovs.AOVInterface(options))
         hooks.setupOptions(options)
         pm.setAttr('defaultArnoldRenderOptions.version', str(cmds.pluginInfo( 'mtoa', query=True, version=True)))
+        try:
+            pm.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
+        except:
+            pass
+        try:
+            pm.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
+        except:
+            pass
     else:
         options = pm.PyNode('defaultArnoldRenderOptions')
         if displayDriverNode:
@@ -259,14 +267,6 @@ def createOptions():
         displayDriverNode.message.connect(options.drivers, nextAvailable=True)
     elif not options.drivers.inputs():
         pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
-    try:
-        pm.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
-    except:
-        pass
-    try:
-        pm.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
-    except:
-        pass
     
 
 # If the current node is a surface shader then create the shading group for it and connect it.
