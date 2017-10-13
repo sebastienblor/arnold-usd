@@ -4,23 +4,23 @@
 namespace
 {
     template<typename T>
-    inline void transfer(MFnDependencyNode mnode, const char* name, AtNode* node);
+    inline void transfer(const MFnDependencyNode& mnode, const char* name, AtNode* node);
 
-    template<> void transfer<bool>(MFnDependencyNode mnode, const char* name, AtNode* node){
+    template<> void transfer<bool>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         AiNodeSetBool(node, name, mnode.findPlug(name).asBool());
     }
-    template<> void transfer<float>(MFnDependencyNode mnode, const char* name, AtNode* node){
+    template<> void transfer<float>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         AiNodeSetFlt(node, name, mnode.findPlug(name).asFloat());
     }
-    template<> void transfer<float2>(MFnDependencyNode mnode, const char* name, AtNode* node){
+    template<> void transfer<float2>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         const float2& v = mnode.findPlug(name).asMDataHandle().asFloat2();
         AiNodeSetVec2(node, name, v[0], v[1]);
     }
-    template<> void transfer<float3>(MFnDependencyNode mnode, const char* name, AtNode* node){
+    template<> void transfer<float3>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         const float3& v = mnode.findPlug(name).asMDataHandle().asFloat3();
         AiNodeSetVec(node, name, v[0], v[1], v[2]);
     }
-    template<> void transfer<int>(MFnDependencyNode mnode, const char* name, AtNode* node){
+    template<> void transfer<int>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         AiNodeSetInt(node, name, mnode.findPlug(name).asInt());
     }
 }
