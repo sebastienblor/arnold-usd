@@ -686,8 +686,9 @@ def getCameraDefault(obj):
     default = 'orthographic' if isOrtho else 'perspective'
     return default
 
-#templates.registerDefaultTranslator('camera', getCameraDefault)
-#templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
+# FIXME: this is modifying the scene on plugin load and it shouldn't
+templates.registerDefaultTranslator('camera', getCameraDefault)
+templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
 callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
