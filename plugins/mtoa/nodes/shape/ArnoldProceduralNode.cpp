@@ -7,6 +7,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "attributes/Metadata.h"
 #include "render/AOV.h"
+#include <extension/ExtensionsManager.h>
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MRenderUtil.h>
@@ -37,8 +38,6 @@ void CArnoldProceduralNode::postConstructor()
    // (and saved before a new register overwrites it)
    m_abstract = s_abstract;
 
-   // should we do another Node for aiImage instead ?
-
 }
 
 MStatus CArnoldProceduralNode::compute(const MPlug& plug, MDataBlock& data)
@@ -55,9 +54,13 @@ MStatus CArnoldProceduralNode::initialize()
 {
    MFnAttribute fnAttr;
    MFnNumericAttribute nAttr;
-
  
    MString maya = s_abstract.name;
+
+   // Register this node as being a custom Arnold shape.
+   // This way it will appear in the dedicated menu #3212
+   CExtensionsManager::AddCustomShape(maya);
+
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
