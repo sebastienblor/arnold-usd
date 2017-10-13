@@ -38,6 +38,7 @@ DefaultTranslatorMap CExtensionsManager::s_defaultTranslators;
 MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
+CustomShapesMap CExtensionsManager::s_customShapes;
 
 static unordered_set<std::string>  s_deferredExtensions;
 
@@ -971,6 +972,20 @@ void CExtensionsManager::GetAOVShaders(MStringArray& result)
    {
       if (transIt->first.m_aovShader)
          result.append(transIt->first.name);
+   }
+}
+
+void CExtensionsManager::AddCustomShape(const MString &shape)
+{
+   std::string shapeStr(shape.asChar());
+   s_customShapes.insert(shapeStr);
+}
+void CExtensionsManager::GetCustomShapes(MStringArray& result)
+{
+   for (CustomShapesMap::const_iterator it = s_customShapes.begin(); it != s_customShapes.end(); ++it)
+   {
+      MString shapeName((*it).c_str());
+      result.append(shapeName);
    }
 }
 

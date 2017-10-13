@@ -7,6 +7,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "attributes/Metadata.h"
 #include "render/AOV.h"
+#include <extension/ExtensionsManager.h>
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MRenderUtil.h>
@@ -37,8 +38,6 @@ void CArnoldProceduralNode::postConstructor()
    // (and saved before a new register overwrites it)
    m_abstract = s_abstract;
 
-   // should we do another Node for aiImage instead ?
-
 }
 
 MStatus CArnoldProceduralNode::compute(const MPlug& plug, MDataBlock& data)
@@ -55,9 +54,13 @@ MStatus CArnoldProceduralNode::initialize()
 {
    MFnAttribute fnAttr;
    MFnNumericAttribute nAttr;
-
  
    MString maya = s_abstract.name;
+
+   // Register this node as being a custom Arnold shape.
+   // This way it will appear in the dedicated menu #3212
+   CExtensionsManager::AddCustomShape(maya);
+
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
    MString provider = s_abstract.provider;
@@ -65,15 +68,17 @@ MStatus CArnoldProceduralNode::initialize()
 
    CStaticAttrHelper helper(CArnoldProceduralNode::addAttribute, nodeEntry);
 
-
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
+      std::string paramNameStr(paramName);
+
       // skip the special "name" parameter
-      if (strcmp(paramName, "name") != 0)
+      // Also skip the parameters existing natively in maya shapes (receive_shadows, visibility, matrix)
+      if (paramNameStr != "name" && paramNameStr != "receive_shadows" && paramNameStr != "visibility" && paramNameStr != "matrix")
       {
          bool hide = false;
          if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)

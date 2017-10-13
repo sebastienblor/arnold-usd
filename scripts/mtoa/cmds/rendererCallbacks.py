@@ -212,7 +212,7 @@ try:
                 self.selectionChanged()
    
         def onConnectionChanged(self, **kwargs):
-            if cmds.nodeType(kwargs['srcPlug']) == "aiAOV" and cmds.nodeType(kwargs['dstPlug']) in ["aiAOVDriver", "aiAOVFilter"]:
+            if OpenMaya.MFnDependencyNode(kwargs['srcPlug'].node()).typeName == "aiAOV" and OpenMaya.MFnDependencyNode(kwargs['dstPlug'].node()).typeName in ["aiAOVDriver", "aiAOVFilter"]:
                 self.selectionChanged()
 
 

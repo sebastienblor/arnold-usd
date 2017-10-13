@@ -576,7 +576,11 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 
    // new cameras shouldn't restart IPR
    if (node.hasFn(MFn::kCamera)) 
+   {
+      // add this camera to the renderview list
+      s_renderSession->SetRenderViewOption(MString("Add Camera"), CDagTranslator::GetArnoldNaming(path));
       return;
+   }
 
    arnoldSession->RequestUpdate();
 }

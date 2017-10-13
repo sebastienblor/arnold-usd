@@ -277,6 +277,9 @@ def _register():
                                                     [('string', 'renderPanel')])
     pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
 
+    if int(float(maya_version)) > 2018:
+        pm.renderer('arnold', edit=True, supportColorManagement=True)
+
     aiRenderSettingsBuiltCallback("arnold")
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
