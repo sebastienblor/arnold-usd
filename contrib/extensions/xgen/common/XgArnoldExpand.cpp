@@ -184,6 +184,7 @@ Procedural::Procedural()
 , m_shaders( NULL )
 , m_patch( NULL )
 , m_merged_data ( NULL )
+, m_initArnoldFunc( NULL )
 #ifdef XGEN_RENDER_API_PARALLEL
 , m_parallel ( NULL )
 #endif
@@ -1700,11 +1701,13 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
       {
          std::string filename = vecFilenames[i];
          std::string materialName = vecMaterials[i];
-
          std::string uniqueName = instance_name + "_" + itoa((int)i);
 
          AtNode* materialNode = AiNodeLookUpByName(materialName.c_str());
-
+         if (materialNode == NULL && m_initArnoldFunc != NULL)
+         {
+            materialNode = m_initArnoldFunc(materialName.c_str());            
+         }
          std::string ext3 = filename.size() > 3 ? filename.substr(filename.size() - 3) : "";
          std::string ext6 = filename.size() > 7 ? filename.substr(filename.size() - 6) : "";
          if (!(ext3 == "ass") && !(ext6 == "ass.gz"))
@@ -1718,13 +1721,13 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                pos = filename.find("${FRAME}",pos+1);
             }
          }
-
+/*
          bbox arcbox;
          if( !getArchiveBoundingBox( filename.c_str(), arcbox ) )
          {
             std::cerr << "ERROR: XgArnoldProcedural: Unable to get asset information for " << archivesAbsolute[jj] << "\n";
             continue;
-         }
+         }*/
 
          // Scale the bbox by the archive bbox
          /*
@@ -1737,7 +1740,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
          */
 
 
-         AtNode* archive_procedural = getArchiveProceduralNode( filename.c_str(), instance_name.c_str(), arcbox, archivesFrame[j] );
+         AtNode* archive_procedural = getArchiveProceduralNode( filename.c_str(), instance_name.c_str(), /*arcbox,*/ archivesFrame[j] );
          if ( archive_procedural )
          {
             AiNodeSetStr( archive_procedural, "name", uniqueName.c_str() );
@@ -1856,7 +1859,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 }
 
 // Get info from archive file and create procedural node
-AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char* instance_name, const bbox& arcbox, double frame )
+AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char* instance_name, /*const bbox& arcbox,*/ double frame )
 {
    // Assuming the archive is exported at 24fps
    /*frame /= 24.0;
@@ -1880,8 +1883,8 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
    AtNode* abcProc = AiNode("procedural");
    AiNodeSetStr( abcProc, "filename", dso.c_str() );
    //AiNodeSetStr( abcProc, "data", dso_data.c_str() );
-   AiNodeSetVec( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
-   AiNodeSetVec( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );
+   //AiNodeSetVec( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
+   //AiNodeSetVec( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );
 
    return abcProc;
 }

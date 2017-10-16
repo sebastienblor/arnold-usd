@@ -8,6 +8,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MFnCamera.h>
 #include <maya/MMatrix.h>
+#include <maya/MSelectionList.h>
 
 #include "XGenTranslator.h"
 
@@ -21,6 +22,33 @@ static void SetEnv(const MString& env, const MString& val)
 #endif      
 }
 
+CNodeTranslator *s_exportTranslator = NULL;
+
+// Callback used in case a node isn't found in the arnold node (#3213).
+// During interactive renders, Init() might be called in the middle of the scene export,
+// and thus all nodes might not have been exported yet. This is implemented in a hacky 
+// way, but it allows to keep XgArnoldProcedural.cpp independent of Maya
+AtNode *ExportMissingNode(const char *name)
+{
+   if (s_exportTranslator == NULL)
+      return NULL;
+
+   MSelectionList sList;
+   MString nameStr(name);
+   sList.add(nameStr);
+
+   MObject shaderObj;
+   MStatus status = sList.getDependNode(0, shaderObj);
+   if (status != MS::kSuccess)
+      return NULL;
+   
+   MFnDependencyNode shaderDepNode(shaderObj);
+   MPlug plug = shaderDepNode.findPlug("message");
+   if (plug.isNull())
+      return NULL;
+
+   return s_exportTranslator->ExportConnectedNode(plug);
+}
 //#define DEBUG_MTOA 1
 
 inline bool alembicExists(const std::string& name)
@@ -915,9 +943,13 @@ void CXgDescriptionTranslator::ExpandProcedural()
 
    s_bCleanDescriptionCache = true;
 
+   // setting this global variable to the current translator so that it is known by the callback.
+   s_exportTranslator = this;
    AtNode *node = GetArnoldNode();
    m_expandedProcedurals.push_back(
        new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ ));
+
+   m_expandedProcedurals.back()->SetInitCallback(&ExportMissingNode);
    m_expandedProcedurals.back()->Init( node );
 
 #if MAYA_API_VERSION >= 201600
@@ -941,9 +973,13 @@ void CXgDescriptionTranslator::ExpandProcedural()
 
       m_expandedProcedurals.push_back(
           new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ ));
+      m_expandedProcedurals.back()->SetInitCallback(&ExportMissingNode);
       m_expandedProcedurals.back()->Init( procNode );
 
       AiNodeSetDisabled(procNode, true);
       i++;
    }
+
+   // reset the global translator pointer
+   s_exportTranslator = NULL;
 }
