@@ -549,14 +549,29 @@ def aiExportFrame( self, frame, objFilename ):
     #            file=objFilename + ".mi" )
     self.log( "assExport " + objFilename + ".ass.gz")
 
-def aiExportAppendFile( self, assFilename, material, obj, lod ):
+def aiExportAppendFile( self, assFilename, materialNS, material, obj, lod ):
+    
+    # get the surface shaders from the ShadingEngine
+    shaderName = materialNS + material
+    if cmds.objectType(material) == 'shadingEngine':
+        # the shader is a shading engine, which is no longer exported to .ass
+        # we want to get the assigned surface shader
+
+        # first do .surfaceShader plug, so that it's eventually overridden by .aiSurfaceShader later
+        conns = cmds.listConnections(material+".surfaceShader", d=False, s=True )
+        if conns and len(conns) > 0 and conns[0]:
+            shaderName = materialNS + conns[0]
+
+        conns = cmds.listConnections(material+".aiSurfaceShader", d=False, s=True )
+        if conns and len(conns) > 0 and conns[0]:
+            shaderName = materialNS + conns[0]
+    
     lodList = self.tweakLodAppend( self.curFiles, lod  )
     for l in lodList:
-        self.addArchiveFile( "ass", assFilename, material, "", l, 3 )
+        self.addArchiveFile( "ass", assFilename, shaderName, "", l, 3 )
         
 def aiExport( self, objs, filename, lod, materialNS ):
     filename = self.nestFilenameInDirectory( filename, "ass" )
-    
     lastProgress = self.progress
     self.splitProgress( len(objs) )
     
@@ -591,7 +606,7 @@ def aiExport( self, objs, filename, lod, materialNS ):
             materials = self.getSGsFromObj( obj )
             if materials and len(materials)>0 :
                 assFilename = objFilename + frameToken + ".ass.gz"
-                aiExportAppendFile( self, assFilename, materialNS+materials[0], obj, lod )
+                aiExportAppendFile( self, assFilename, materialNS, materials[0], obj, lod )
         self.incProgress()
     
     #cmds.currentUnit( linear=prevUnits )
