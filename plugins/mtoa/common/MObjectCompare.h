@@ -177,8 +177,8 @@ public:
       // So we're also using maya's UUID value for this dependency node. This value is stored in 
       // the scene, which is why we can't only rely on it : If a scene is referenced multiple times,
       // several nodes might have the same uuid (as per maya devs). So I'm combining both hashCode and
-      // uuid, which makes overlaps so rare that this should never happen, even after 100 years of SolidAngle
-      // reigning over the world.
+      // uuid, which makes collisions so rare that this should never happen, even after 100 years of SolidAngle
+      // reigning over the world. (see #3181)
       MUuid uuid = MFnDependencyNode(m_nodeHandle.objectRef()).uuid();
       hashCode += "/"+ uuid.asString();
    }
