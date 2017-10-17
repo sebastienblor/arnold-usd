@@ -7,7 +7,8 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "attributes/Metadata.h"
 #include "render/AOV.h"
-#include <extension/ExtensionsManager.h>
+#include "extension/ExtensionsManager.h"
+#include "common/UnorderedContainer.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MRenderUtil.h>
@@ -26,6 +27,8 @@ CAbMayaNode CArnoldProceduralNode::s_abstract;
 
 std::vector<CStaticAttrHelper> CArnoldProceduralNode::s_nodeHelpers;
 
+static unordered_map<std::string, std::vector<std::string> >  s_proceduralParameters;
+
 // FIXME to be implemented properly
 void CArnoldProceduralNode::postConstructor()
 {
@@ -38,6 +41,35 @@ void CArnoldProceduralNode::postConstructor()
    // (and saved before a new register overwrites it)
    m_abstract = s_abstract;
 
+   MObject me = thisMObject();    
+   MFnDependencyNode node(me);
+
+   // First disable all Maya native parameters
+   unsigned int attrs = node.attributeCount();
+   for (unsigned int i = 0; i < attrs; ++i)
+   {
+      MObject attrObj = node.attribute(i);
+      MStatus status;
+      MFnAttribute attr(attrObj, &status);
+      if (status != MS::kSuccess)
+         continue;
+
+      attr.setHidden(true);
+   }
+
+   // Now re-enable Arnold attributes 
+   const std::vector<std::string> &nodeParameters = s_proceduralParameters[m_abstract.name.asChar()];
+
+   for (size_t i = 0; i < nodeParameters.size(); ++i)
+   {
+      MObject attrObj = node.attribute(MString(nodeParameters[i].c_str()));
+      MStatus status;
+      MFnAttribute attr(attrObj, &status);
+      if (status != MS::kSuccess)
+         continue;
+
+      attr.setHidden(false);
+   }
 }
 
 MStatus CArnoldProceduralNode::compute(const MPlug& plug, MDataBlock& data)
@@ -57,6 +89,8 @@ MStatus CArnoldProceduralNode::initialize()
  
    MString maya = s_abstract.name;
 
+   std::vector<std::string> &nodeParameters = s_proceduralParameters[maya.asChar()];
+
    // Register this node as being a custom Arnold shape.
    // This way it will appear in the dedicated menu #3212
    CExtensionsManager::AddCustomShape(maya);
@@ -75,13 +109,15 @@ MStatus CArnoldProceduralNode::initialize()
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
       std::string paramNameStr(paramName);
-
-      // skip the special "name" parameter
-      // Also skip the parameters existing natively in maya shapes (receive_shadows, visibility, matrix)
-      if (paramNameStr != "name" && paramNameStr != "receive_shadows" && paramNameStr != "visibility" && paramNameStr != "matrix")
+      
+      bool hide = false;
+      if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
       {
-         bool hide = false;
-         if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+         nodeParameters.push_back(paramNameStr);
+
+         // skip the special "name" parameter
+         // Also skip the parameters existing natively in maya shapes (receive_shadows, visibility, matrix)
+         if (paramNameStr != "name" && paramNameStr != "receive_shadows" && paramNameStr != "visibility" && paramNameStr != "matrix")
          {
             CAttrData attrData;
             helper.GetAttrData(paramName, attrData);
