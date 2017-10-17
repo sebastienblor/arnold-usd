@@ -170,7 +170,19 @@ public:
       {
          hashCode += ":" + m_attrName;
       }
+
+      // The "hashCode" value returned by maya isn't enough unfortunately.
+      // Although maya returns the object pointer in this value, it casts it from a pointer
+      // to an 'unsigned int', loosing precision in 64-bits architectures.
+      // So we're also using maya's UUID value for this dependency node. This value is stored in 
+      // the scene, which is why we can't only rely on it : If a scene is referenced multiple times,
+      // several nodes might have the same uuid (as per maya devs). So I'm combining both hashCode and
+      // uuid, which makes overlaps so rare that this should never happen, even after 100 years of SolidAngle
+      // reigning over the world.
+      MUuid uuid = MFnDependencyNode(m_nodeHandle.objectRef()).uuid();
+      hashCode += "/"+ uuid.asString();
    }
+
 private :
    MObjectHandle m_nodeHandle;
    MString m_attrName;
