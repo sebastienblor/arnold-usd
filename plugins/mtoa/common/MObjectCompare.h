@@ -8,6 +8,7 @@
 #include <maya/MFnAttribute.h>
 #include <maya/MString.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/MUuid.h>
 #include <common/UnorderedContainer.h>
 
 namespace std {
