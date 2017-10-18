@@ -864,7 +864,8 @@ MStatus CArnoldStandInShape::initialize()
 
    s_attributes.SetNode("procedural");
 
-   CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
+   // Why did we need to do that here ? this is invoked in translator's initialize
+   //CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
    s_dso = tAttr.create("dso", "dso", MFnData::kString);
    tAttr.setHidden(false);
@@ -913,30 +914,6 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_data);
 
-   s_overrideNodes = nAttr.create("overrideNodes", "override_nodes",
-         MFnNumericData::kBoolean, 0);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   addAttribute(s_overrideNodes);
-
-   s_namespaceName = tAttr.create("aiNamespace", "ai_namespace", MFnData::kString);
-   nAttr.setHidden(false);
-   nAttr.setStorable(true);
-   addAttribute(s_namespaceName);
-
-   /*s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 1);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   addAttribute(s_deferStandinLoad);
-*/
-   /*s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
-   nAttr.setHidden(false);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   nAttr.setAffectsAppearance(true);
-   addAttribute(s_scale);*/
-
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -960,6 +937,18 @@ MStatus CArnoldStandInShape::initialize()
    eAttr.setDefault(0);
    addAttribute(s_drawOverride);
    
+   s_overrideNodes = nAttr.create("overrideNodes", "override_nodes",
+         MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_overrideNodes);
+
+   s_namespaceName = tAttr.create("aiNamespace", "ai_namespace", MFnData::kString);
+   nAttr.setHidden(false);
+   nAttr.setStorable(true);
+   addAttribute(s_namespaceName);
+
+
    // atributes that are used only by translation
    CAttrData data;
    

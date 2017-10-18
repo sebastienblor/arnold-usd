@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ShapeTranslator.h"
+#include "ProceduralTranslator.h"
 
-class CArnoldStandInsTranslator : public CShapeTranslator
+class CArnoldStandInsTranslator : public CProceduralTranslator
 {
 public:
    static void* creator()
@@ -10,27 +10,17 @@ public:
       return new CArnoldStandInsTranslator();
    }
    virtual AtNode* CreateArnoldNodes();
-   virtual void ProcessRenderFlags(AtNode* node);
+   
+   static void NodeInitializer(CAbTranslator context)
+      {CProceduralTranslator::NodeInitializer(context);}
 
-   static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode);
    
 protected:
    CArnoldStandInsTranslator() :
-      CShapeTranslator()
+      CProceduralTranslator()
    {}
+
+   void ExportStandInFilename(AtNode *node);
    
-   //void ExportBoundingBox(AtNode* procedural);
-
-   void ExportStandinsShaders(AtNode* procedural);
-   virtual void ExportShaders();
-
-   AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
-   AtNode* ExportProcedural(AtNode* procedural, bool update);
-   AtByte ComputeOverrideVisibility();
-   virtual void RequestUpdate();
-
-protected:
-   MFnDagNode m_DagNode;
 };

@@ -32,6 +32,9 @@ static unordered_map<std::string, std::vector<std::string> >  s_proceduralParame
 // FIXME to be implemented properly
 void CArnoldProceduralNode::postConstructor()
 {
+   // This call allows the shape to have shading groups assigned
+   setRenderable(true);
+
    // TODO: use a metadata to define this
    setExistWithoutInConnections(true);
    setExistWithoutOutConnections(true);
@@ -52,6 +55,19 @@ void CArnoldProceduralNode::postConstructor()
       MStatus status;
       MFnAttribute attr(attrObj, &status);
       if (status != MS::kSuccess)
+         continue;
+
+      MString attrName = attr.name();
+      // These are Maya attributes we want to keep for our export
+      if (attrName == MString("visibility") || attrName == MString("primaryVisibility") || attrName == MString("castsShadows"))
+         continue;
+
+      // These parameters are created in CProceduralTranslator::NodeInitializer
+      // and they don't have the "ai" prefix
+      if (attrName == "overrideLightLinking" || attrName == "overrideShaders")
+         continue;
+
+      if (attrName.length() > 2 && attrName.substringW(0, 1) == MString("ai"))
          continue;
 
       attr.setHidden(true);
@@ -102,6 +118,37 @@ MStatus CArnoldProceduralNode::initialize()
 
    CStaticAttrHelper helper(CArnoldProceduralNode::addAttribute, nodeEntry);
 
+   static unordered_set<std::string> s_ignoredArnoldParams;
+   if (s_ignoredArnoldParams.empty())
+   {
+      // skip all parameters belonging to common procedural parameters
+      // so that we only keep those defined by the user
+      // FIXME is there a better way to do this ? we should rather 
+      // create a dummy procedural class to find out if the attribute exists in there
+      s_ignoredArnoldParams.insert("name");
+      s_ignoredArnoldParams.insert("receive_shadows");
+      s_ignoredArnoldParams.insert("visibility");
+      s_ignoredArnoldParams.insert("matrix");
+      s_ignoredArnoldParams.insert("matte");
+      s_ignoredArnoldParams.insert("opaque");
+      s_ignoredArnoldParams.insert("sidedness");
+      s_ignoredArnoldParams.insert("self_shadows");
+      s_ignoredArnoldParams.insert("shader");
+      s_ignoredArnoldParams.insert("light_group");
+      s_ignoredArnoldParams.insert("trace_sets");
+      s_ignoredArnoldParams.insert("shadow_group");
+      s_ignoredArnoldParams.insert("invert_normals");
+      s_ignoredArnoldParams.insert("ray_bias");
+      s_ignoredArnoldParams.insert("transform_type");
+      s_ignoredArnoldParams.insert("use_light_group");
+      s_ignoredArnoldParams.insert("use_shadow_group");
+      s_ignoredArnoldParams.insert("motion_start");
+      s_ignoredArnoldParams.insert("motion_end");
+      s_ignoredArnoldParams.insert("id");
+      s_ignoredArnoldParams.insert("override_nodes");
+      s_ignoredArnoldParams.insert("namespace");
+   }
+
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
@@ -115,9 +162,8 @@ MStatus CArnoldProceduralNode::initialize()
       {
          nodeParameters.push_back(paramNameStr);
 
-         // skip the special "name" parameter
-         // Also skip the parameters existing natively in maya shapes (receive_shadows, visibility, matrix)
-         if (paramNameStr != "name" && paramNameStr != "receive_shadows" && paramNameStr != "visibility" && paramNameStr != "matrix")
+         // check if this parameter is in the ignore list
+         if (s_ignoredArnoldParams.find(paramNameStr) == s_ignoredArnoldParams.end())
          {
             CAttrData attrData;
             helper.GetAttrData(paramName, attrData);
@@ -126,9 +172,62 @@ MStatus CArnoldProceduralNode::initialize()
       }
    }
    AiParamIteratorDestroy(nodeParam);
+
+   CAttrData data;
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideReceiveShadows";
+   data.shortName = "overrideReceiveShadows";
+   helper.MakeInputBoolean(data);
+   nodeParameters.push_back(data.name.asChar());
+   
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideDoubleSided";
+   data.shortName = "overrideDoubleSided";
+   helper.MakeInputBoolean(data);
+   nodeParameters.push_back(data.name.asChar());
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideSelfShadows";
+   data.shortName = "overrideSelfShadows";
+   helper.MakeInputBoolean(data);
+   nodeParameters.push_back(data.name.asChar());
+   
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideOpaque";
+   data.shortName = "overrideOpaque";
+   helper.MakeInputBoolean(data);
+   nodeParameters.push_back(data.name.asChar());
+
+   data.defaultValue.BOOL() = false;
+   data.name = "overrideMatte";
+   data.shortName = "overrideMatte";
+   helper.MakeInputBoolean(data);
+   nodeParameters.push_back(data.name.asChar());
+
    s_nodeHelpers.push_back(helper);
 
    return MS::kSuccess;
+}
+
+MBoundingBox CArnoldProceduralNode::boundingBox() const
+{
+   MBoundingBox box;
+   box.expand(MPoint(1.f, 1.f, 1.f));
+   box.expand(MPoint(-1.f, -1.f, -1.f));
+   return box;
+}
+MSelectionMask CArnoldProceduralNode::getShapeSelectionMask() const
+//
+// Description
+//     This method is overriden to support interactive object selection in Viewport 2.0
+//
+// Returns
+//
+//    The selection mask of the shape
+//
+{
+   MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
+    return MSelectionMask( selType );
 }
 
 

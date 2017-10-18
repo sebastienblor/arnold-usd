@@ -171,6 +171,8 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    // might be useful to extensions anyway.
    MString drawdbClassification = "";
    
+   bool isAutoProcedural = false;
+
    AtString drawdbClassificationMtd;
    if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.drawdb", &drawdbClassificationMtd))
    {
@@ -239,19 +241,13 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "shape")
       {
-         bool createProcedural = false;
-         if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.procedural", &createProcedural) && createProcedural)
+         if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.procedural", &isAutoProcedural) && isAutoProcedural)
          {
             creator    = CArnoldProceduralNode::creator;
             initialize = CArnoldProceduralNode::initialize;
             abstract   = &CArnoldProceduralNode::s_abstract;
          }
-
-         // TODO : can be expanded to allow base custom shape too
-         // can easily add this to CPxMayaNode
-         // MCreatorFunction     uiCreatorFunction,
       }
-      // No default strategy to create the rest
    }
    // classification string if none is stored
    if (classification.numChars() == 0)
@@ -273,9 +269,9 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          }
       }
       // should we use swatch to preview this node
-      bool doSwatch;
-      if (!AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch))
-         doSwatch = true;
+      bool doSwatch = (!isAutoProcedural); // we don't want swatches on procedurals by default
+      AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch); 
+      
       if (strlen(classificationMtd))
       {
          classification = MString(classificationMtd);

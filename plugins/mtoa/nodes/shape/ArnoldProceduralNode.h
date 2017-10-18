@@ -10,6 +10,9 @@
 
 #include <vector>
 
+/**
+ *    This class is meant for procedural nodes created automatically by arnold procedural dlls
+ **/
 class CArnoldProceduralNode
    :  public MPxSurfaceShape
 {
@@ -19,6 +22,9 @@ public:
    virtual void postConstructor();
 
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
+   virtual bool isBounded() const {return true;}
+   virtual MBoundingBox boundingBox() const;
+   virtual MSelectionMask getShapeSelectionMask() const;
 
    CAbMayaNode m_abstract;
 
