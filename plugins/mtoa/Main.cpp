@@ -82,7 +82,7 @@
 #include "translators/shape/CurveTranslator.h"
 #include "translators/shape/CurveCollectorTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
-#include "translators/shape/ProceduralTranslator.h"
+#include "translators/shape/MeshProceduralTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
@@ -499,8 +499,8 @@ namespace // <anonymous>
                                     CMeshLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("mesh",
                                     "procedural",
-                                    CArnoldProceduralTranslator::creator,
-                                    CArnoldProceduralTranslator::NodeInitializer);
+                                    CMeshProceduralTranslator::creator,
+                                    CMeshProceduralTranslator::NodeInitializer);
       builtin->RegisterTranslator("nurbsSurface",
                                     "",
                                     CNurbsSurfaceTranslator::creator,

@@ -348,6 +348,8 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
 
+/*
+   Can I stop creating these Arnold 4 attributes now ?
    data.defaultValue.BOOL() = true;
    data.name = "visibleInReflections";
    data.shortName = "vir";
@@ -357,6 +359,7 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
    data.name = "visibleInRefractions";
    data.shortName = "vif";
    helper.MakeInputBoolean(data);
+   */
 }
 
 // create arnold visibility attributes with standardized render flag names
