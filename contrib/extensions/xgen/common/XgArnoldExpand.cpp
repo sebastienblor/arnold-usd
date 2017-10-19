@@ -1631,25 +1631,6 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             multiply( xP, xP, tmp );
 
 
-/*
-        // NOTE: Ported from renderMan procedural code and the following is not activated yet
-
-        // Begin motion block if necessary.
-        if ( numSamples > 1 ) {
-            RiMotionBeginV( shutterSize, shutter );
-            if ( (j==0) && (XGDebugLevel > 2) ) {
-                string msg("MotionBegin [");
-                for ( unsigned int i=0; i<shutterSize; i++ )
-                    msg += ftoa(shutter[i]," %lf");
-                msg += " ]";
-                XGRenderAPIDebug(//msg::C|msg::RENDERER|,
-                                msg);
-            }
-        }
-*/
-
-            //std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
-
             if(i == 0)
                xP0 = xP;
 
@@ -1659,18 +1640,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
                             {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
             AiArraySetMtx( matrix, i, tmp );
-
-            //std::cout << "Procedural::flushArchives: Transform: " << instance_name << ": " << float(xPi[12])<< ": " <<float(xPi[13])<< ": " <<float(xPi[14])<< ": " <<float(xPi[15]) << "\n";
         }
-
-/*
-        // NOTE: Ported from renderMan procedural code and the following is not activated yet
-
-        // End motion block if necessary.
-        if ( numSamples > 1 ) {
-            RiMotionEnd();
-        }
-*/
 
         // Add custom parameters.
         pc->inverseXformParams( j, xP0, xN );
@@ -1708,6 +1678,28 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
          {
             materialNode = m_initArnoldFunc(materialName.c_str());            
          }
+         
+         if (materialNode == NULL)
+         {
+            // still haven't found the material.
+            // In pre-2.1.0 versions, the material was the shading engine.
+            // But since it no longer exists now, we cannot find it anymore.
+            // In most frequent cases, the shading engine has the same name as the 
+            // material, with a suffix 'SG'. Let's try to consider this case to minimize 
+            // incompatibilities.
+            size_t materialNameLength = materialName.length();
+            if (materialNameLength > 2 && materialName[materialNameLength - 2] == 'S' && materialName[materialNameLength - 1] == 'G')
+            {
+               materialName = materialName.substr(0, materialNameLength - 2);
+               materialNode = AiNodeLookUpByName(materialName.c_str());
+               if (materialNode == NULL && m_initArnoldFunc != NULL)
+                  materialNode = m_initArnoldFunc(materialName.c_str());            
+            }
+         }
+
+         if (materialNode == NULL)
+            AiMsgWarning("[xgen] Material %s not found in the arnold scene", materialName.c_str());
+
          std::string ext3 = filename.size() > 3 ? filename.substr(filename.size() - 3) : "";
          std::string ext6 = filename.size() > 7 ? filename.substr(filename.size() - 6) : "";
          if (!(ext3 == "ass") && !(ext6 == "ass.gz"))
@@ -1758,99 +1750,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             m_nodes.push_back( archive_procedural );
          }
       }
-/*
-      // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
-        std::vector<std::string> stringdata;
-        std::vector<RtString> stringhandles;
-        pushParams( stringdata, stringhandles, j, geomName, pc );
-        RtToken *tokenPtr = &(_tokens[0]);
-        RtPointer *paramPtr = &(_params[0]);
-        RiAttributeV( const_cast<char*>("user"), _tokens.size(),
-                      tokenPtr, paramPtr );
-
-
-        // Start with the unit cube
-        RtBound box = {-0.5, 0.5, 0.0, 1.0, -0.5, 0.5};
-        int count = 0;
-
-        // Accomodate DRA bboxes
-        bool rib_bbox = false;
-
-
-        // Find the largest LOD's bounding box
-        for (RtInt k=0; k < 3; k++) {
-            if ( useLevel[k] ) {
-
-               const char* filename = archivesAbsolute[jj+count];
-
-                bbox arcbox;
-                if( pc->getArchiveBoundingBox( filename, arcbox ) )
-                {
-               box[0] = std::min( box[0], (float)arcbox.xmin );
-               box[1] = std::max( box[1], (float)arcbox.xmax );
-
-               box[2] = std::min( box[2], (float)arcbox.ymin );
-               box[3] = std::max( box[3], (float)arcbox.ymax );
-
-               box[4] = std::min( box[4], (float)arcbox.zmin );
-               box[5] = std::max( box[5], (float)arcbox.zmax );
-
-                    rib_bbox = true;
-                }
-                count++;
-            }
-        }
-
-        // Set a bounding box around all LODs
-        if ( lodLevels > 1 ) {
-            RiDetail(box);
-        }
-
-        count = 0;
-
-
-
-        // hard-coded to 3 per the original code
-        for ( RtInt i=0; i < 3; i++ ) {
-            if ( useLevel[i] ) {
-                if ( lodLevels > 1 ) {
-                    RiDetailRange(minVis[i] * bbox_scale,
-                                  loTrans[i] * bbox_scale,
-                                  upTrans[i] * bbox_scale,
-                                  maxVis[i] * bbox_scale);
-                }
-
-                // The user archive will be referenced into the rib through a
-                // delayed read archive call. This will REQUIRE the user build
-                // the archive within the -.5,.5,0,1,-.5,.5 cube
-                // or provide an embedded "## BBOX ..." comment in the file.
-                RtString *data=static_cast<RtString*>(malloc(sizeof(RtString)));
-                data[0] = strdup(archives[jj+count]);
-
-                RtBound procbox = {-0.5, 0.5, 0.0, 1.0, -0.5, 0.5};
-
-                const char* filename = archivesAbsolute[jj+count];
-                bbox arcbox;
-                if( pc->getArchiveBoundingBox( filename, arcbox ) )
-                {
-                   // Convert to float RtBound
-                   for( unsigned int bbi=0; bbi<6; ++bbi )
-                      procbox[bbi] = (float)(((double*)&arcbox)[bbi]);
-                }
-
-                // Make archive call.
-                RiProcedural(data, procbox, RiProcDelayedReadArchive, FreeStringData);
-                count++;
-            }
-        }
-
-        RiAttributeEnd();
-
-        // Clear out tokens and params for next primitive.
-        _tokens.clear();
-        _params.clear();
-*/
       AiArrayDestroy(matrix);
     }
     
