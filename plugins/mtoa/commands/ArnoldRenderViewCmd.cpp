@@ -167,6 +167,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
          CRenderSession *renderSession = CMayaScene::GetRenderSession();
          renderSession->UpdateRenderOptions();
+         renderSession->RenderOptions()->UpdateImageDimensions();
          renderSession->StartRenderView();
          s_arvExists = true;
          renderSession->SetRenderViewOption("Run IPR", "0");
