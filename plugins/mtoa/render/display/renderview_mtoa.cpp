@@ -1690,20 +1690,11 @@ void CRenderViewMtoA::Resize(int width, int height)
    if (isFloating)
    {
       MString workspaceCmd = "workspaceControl -edit";
-      workspaceCmd += " -iw ";
+      workspaceCmd += " -rsw ";
       workspaceCmd += width;
-      workspaceCmd += " -ih ";
+      workspaceCmd += " -rsh ";
       workspaceCmd += height;
       workspaceCmd += " \"ArnoldRenderView\"";
-      MGlobal::executeCommand(workspaceCmd);
-
-      // this is supposed to resize the workspace control, but apparenlty it isn't working
-      workspaceCmd = "workspaceControl -edit";
-      workspaceCmd += " -wp \"fixed\" -hp \"fixed\" \"ArnoldRenderView\" ";
-      MGlobal::executeCommand(workspaceCmd);
-
-      workspaceCmd = "workspaceControl -edit";
-      workspaceCmd += " -wp \"free\" -hp \"free\" \"ArnoldRenderView\" ";
       MGlobal::executeCommand(workspaceCmd);
    }
 
