@@ -62,6 +62,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    
    MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
    MString filename;
+   MString nodeName = m_dagPath.fullPathName();
 
    int frame = FindProceduralPlug("frameNumber").asInt();
    float frameOffset = FindProceduralPlug("frameOffset").asFloat();
@@ -112,7 +113,6 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    {
       newDso = dso;
    }
-
    if (subFrames || useSubFrame || (subFramePadding != 0))
    {
       int fullFrame = (int) floor(framestep);
@@ -127,14 +127,15 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
       sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
       sprintf(frameExt, "%0*d", framePadding, (int) framestep);
    }
+
    frameNumber = frameExtWithDot;
 
-   resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, filename);
+   resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, nodeName, filename);
 
    if (!resolved)
    {
       frameNumber = frameExtWithHash;
-      resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, filename);
+      resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, nodeName, filename);
    }
 
    if (!resolved)
@@ -144,7 +145,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
       if (start >= 0)
       {
          MString baseName = dso.substring(0,start-1) + frameExt + dso.substring(end+1,dso.length());
-         resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, filename);
+         resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, nodeName, filename);
       }
    }
 
@@ -152,7 +153,15 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    if (resolved)
       resolvedName = filename.asChar();
    else
+   {
       resolvedName = dso.asChar();
+
+      if (start >= 0)
+      {
+         MString expandedFile = dso.substring(0,start-1) + MString(frameExt) + dso.substring(end+1,dso.length());
+         resolvedName = expandedFile.asChar();
+      }
+   }
    
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
