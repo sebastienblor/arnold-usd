@@ -120,7 +120,7 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
 
    MPlug plug;
    
-   plug = FindMayaPlug("overrideSelfShadows");
+   plug = FindProceduralPlug("overrideSelfShadows");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("aiSelfShadows");
@@ -128,21 +128,21 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
    }
 
    // for standins, we check
-   plug = FindMayaPlug("overrideOpaque");
+   plug = FindProceduralPlug("overrideOpaque");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("aiOpaque");
       if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
    }
    
-   plug = FindMayaPlug("overrideReceiveShadows");
+   plug = FindProceduralPlug("overrideReceiveShadows");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("receiveShadows");
       if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
    }
    
-   plug = FindMayaPlug("overrideDoubleSided");
+   plug = FindProceduralPlug("overrideDoubleSided");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("doubleSided");
@@ -154,7 +154,7 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
    }
    
    // for standins, we check
-   plug = FindMayaPlug("overrideMatte");
+   plug = FindProceduralPlug("overrideMatte");
    if (plug.isNull() || plug.asBool())
    {
       plug = FindMayaPlug("aiMatte");
@@ -213,12 +213,12 @@ AtNode* CProceduralTranslator::ExportInstance(AtNode *instance, const MDagPath& 
 
    m_DagNode.setObject(masterInstance);
    
-   if (m_DagNode.findPlug("overrideShaders").asBool() &&
+   if (FindProceduralPlug("overrideShaders").asBool() &&
       RequiresShaderExport())
    {
       ExportShaders();
    }
-   if (m_DagNode.findPlug("overrideLightLinking").asBool())
+   if (FindProceduralPlug("overrideLightLinking").asBool())
    {
       ExportLightLinking(instance);
    }
@@ -258,13 +258,13 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
 
    ExportMatrix(procedural);
    ProcessRenderFlags(procedural);
-   if (m_DagNode.findPlug("overrideShaders").asBool())
+   if (FindProceduralPlug("overrideShaders").asBool())
       ExportShaders();
    
-   if (m_DagNode.findPlug("overrideLightLinking").asBool())
+   if (FindProceduralPlug("overrideLightLinking").asBool())
       ExportLightLinking(procedural);
    
-   AiNodeSetBool(procedural, "override_nodes", m_DagNode.findPlug("overrideNodes").asBool());
+   AiNodeSetBool(procedural, "override_nodes", FindProceduralPlug("overrideNodes").asBool());
 
    MString nsName = m_DagNode.findPlug("aiNamespace").asString();
    if (nsName.length() > 0)
@@ -281,4 +281,22 @@ void CProceduralTranslator::RequestUpdate()
    SetUpdateMode(AI_RECREATE_NODE);
    CShapeTranslator::RequestUpdate();
    // this should propagate a request update on all other procedurals, standins, referencing me
+}
+
+MPlug CProceduralTranslator::FindProceduralPlug(const char *name)
+{
+   MString attrName(name);
+   if (attrName.length() == 0)
+      return MPlug();
+
+   MPlug result = m_DagNode.findPlug(MString(name));
+   if (!result.isNull())
+      return result;
+
+   MString prefix = attrName.substringW(0, 0);
+   attrName = MString ("ai") + prefix.toUpperCase() + attrName.substringW(1, attrName.length() - 1);
+
+   result = m_DagNode.findPlug(attrName);
+   return result;
+
 }

@@ -35,64 +35,81 @@ void CMeshProceduralTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputString(data);
 
    data.defaultValue.BOOL() = true;
-   data.name = "overrideLightLinking";
-   data.shortName = "oll";
+   data.name = "aiOverrideLightLinking";
+   data.shortName = "ai_override_light_linking";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
    
    data.defaultValue.BOOL() = true;
-   data.name = "overrideShaders";
-   data.shortName = "osh";
+   data.name = "aiOverrideShaders";
+   data.shortName = "ai_override_shaders";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "useFrameExtension";
-   data.shortName = "useFrameExtension";
+   data.name = "aiUseFrameExtension";
+   data.shortName = "ai_use_frame_extension";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.INT() = 0;
-   data.name = "frameNumber";
-   data.shortName = "frameNumber";
+   data.name = "aiFrameNumber";
+   data.shortName = "ai_frame_number";
+   data.channelBox = false;
    helper.MakeInputInt(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "useSubFrame";
-   data.shortName = "useSubFrame";
+   data.name = "aiUseSubFrame";
+   data.shortName = "ai_use_sub_frame";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.FLT() = 0.f;
-   data.name = "frameOffset";
-   data.shortName = "frameOffset";
+   data.name = "aiFrameOffset";
+   data.shortName = "ai_frame_offset";
+   data.channelBox = false;
    helper.MakeInputFloat(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "overrideNodes";
-   data.shortName = "override_nodes";
+   data.name = "aiOverrideNodes";
+   data.shortName = "ai_override_nodes";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
+
+   data.name = "aiNamespace";
+   data.shortName = "ai_namespace";
+   data.channelBox = false;
+   helper.MakeInputString(data);
       
    data.defaultValue.BOOL() = false;
-   data.name = "overrideReceiveShadows";
-   data.shortName = "overrideReceiveShadows";
+   data.name = "aiOverrideReceiveShadows";
+   data.shortName = "ai_override_receive_shadows";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
    
    
    data.defaultValue.BOOL() = false;
-   data.name = "overrideDoubleSided";
-   data.shortName = "overrideDoubleSided";
+   data.name = "aiOverrideDoubleSided";
+   data.shortName = "ai_override_double_sided";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "overrideSelfShadows";
-   data.shortName = "overrideSelfShadows";
+   data.name = "aiOverrideSelfShadows";
+   data.shortName = "ai_override_self_shadows";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "overrideOpaque";
-   data.shortName = "overrideOpaque";
+   data.name = "aiOverrideOpaque";
+   data.shortName = "ai_override_opaque";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL() = false;
-   data.name = "overrideMatte";
-   data.shortName = "overrideMatte";
+   data.name = "aiOverrideMatte";
+   data.shortName = "ai_override_matte";
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 
 }

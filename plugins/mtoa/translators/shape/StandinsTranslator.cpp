@@ -63,10 +63,10 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
    MString filename;
 
-   int frame = m_DagNode.findPlug("frameNumber").asInt();
-   float frameOffset = m_DagNode.findPlug("frameOffset").asFloat();
-   bool useFrameExtension = m_DagNode.findPlug("useFrameExtension").asBool();
-   bool useSubFrame = m_DagNode.findPlug("useSubFrame").asBool();
+   int frame = FindProceduralPlug("frameNumber").asInt();
+   float frameOffset = FindProceduralPlug("frameOffset").asFloat();
+   bool useFrameExtension = FindProceduralPlug( "useFrameExtension").asBool();
+   bool useSubFrame = FindProceduralPlug("useSubFrame").asBool();
 
    MString frameNumber = "0";
 

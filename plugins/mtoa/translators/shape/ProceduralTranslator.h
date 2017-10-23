@@ -32,6 +32,8 @@ protected:
    AtByte ComputeOverrideVisibility();
    virtual void RequestUpdate();
 
+   MPlug FindProceduralPlug(const char *attrName);
+
 protected:
    MFnDagNode m_DagNode;
 };

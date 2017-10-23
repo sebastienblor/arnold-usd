@@ -135,17 +135,17 @@ def ProceduralDsoEdit(nodeName, mPath, replace=False) :
         # Single file
         if not m_groups[2]:
             mArchivePath = mPath
-            cmds.setAttr(nodeName+'.useFrameExtension',False)
+            cmds.setAttr(nodeName+'.aiUseFrameExtension',False)
         # Sequence without subframes    
         elif not m_groups[3]:
-            cmds.setAttr(nodeName+'.useFrameExtension',True)
+            cmds.setAttr(nodeName+'.aiUseFrameExtension',True)
             mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
-            cmds.setAttr(nodeName+'.useSubFrame',False)
+            cmds.setAttr(nodeName+'.aiUseSubFrame',False)
         # Sequence with subframes
         else:
-            cmds.setAttr(nodeName+'.useFrameExtension',True)
+            cmds.setAttr(nodeName+'.aiUseFrameExtension',True)
             mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
-            cmds.setAttr(nodeName+'.useSubFrame',True)
+            cmds.setAttr(nodeName+'.aiUseSubFrame',True)
     # Other
     else:
         mArchivePath = mPath
@@ -163,43 +163,44 @@ def ProceduralTemplateDsoNew(nodeName) :
 def ProceduralTemplateDsoReplace(plugName) :
     cmds.textField( 'proceduralDsoPath', edit=True, changeCommand=lambda *args: ProceduralDsoEdit(plugName, *args))
     cmds.textField( 'proceduralDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.symbolButton('proceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadProceduralButtonPush(plugName))
+    cmds.symbolButton('ProceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadProceduralButtonPush(plugName))
 
 class ProceduralTemplate(templates.ShapeTranslatorTemplate):
 
     def setup(self):
 
-        self.commonShapeAttributes()
-
         self.beginLayout('File/Frame', collapse=False)   
         self.addCustom('dso', ProceduralTemplateDsoNew, ProceduralTemplateDsoReplace)
 
         self.addSeparator()
-        self.addControl('frameNumber', label='Frame')
-        self.addControl('frameOffset')
-        self.addSeparator()
-        self.addControl('overrideNodes')
-        
+        self.addControl('aiFrameNumber', label='Frame')
+        self.addControl('aiFrameOffset')
+
         self.endLayout()
 
         self.beginLayout('StandIn Overrides', collapse=False)
-        self.addControl('overrideLightLinking', label='Override StandIn Light Linking')
-        self.addControl('overrideShaders', label='Override StandIn Shaders')
+        self.addControl('aiOverrideLightLinking', label='Override StandIn Light Linking')
+        self.addControl('aiOverrideShaders', label='Override StandIn Shaders')
         self.addSeparator()
-        self.addControl('overrideReceiveShadows', label='Override Receive Shadows')
+        self.addControl('aiOverrideReceiveShadows', label='Override Receive Shadows')
         self.addControl('receiveShadows', label='   Receive Shadows')
-        self.addControl('overrideSelfShadows',  label='Override Self Shadows')
+        self.addControl('aiOverrideSelfShadows',  label='Override Self Shadows')
         self.addControl('aiSelfShadows', label='   Self Shadows')
-        self.addControl('overrideOpaque', label='Override Opaque')
+        self.addControl('aiOverrideOpaque', label='Override Opaque')
         self.addControl('aiOpaque', label='   Opaque')
-        self.addControl('overrideDoubleSided',  label='Override Double-Sided')
+        self.addControl('aiOverrideDoubleSided',  label='Override Double-Sided')
         self.addControl('doubleSided', label='   Double-Sided')
-        self.addControl('overrideMatte', label='Override Matte')
+        self.addControl('aiOverrideMatte', label='Override Matte')
         self.addControl('aiMatte', label='   Matte')
         self.endLayout()
 
+        self.commonShapeAttributes()
+
 #        self.addControl('deferStandinLoad', label='Defer Procedural Load')
+        self.addControl('aiOverrideNodes')
+        self.addControl('aiNamespace')
         self.addControl("aiUserOptions", label="User Options")
+        
 
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
