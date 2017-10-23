@@ -36,6 +36,7 @@ def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
             cmds.setAttr(nodeName+'.useFrameExtension',True)
             mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
             cmds.setAttr(nodeName+'.useSubFrame',False)
+            cmds.setAttr(nodeName+'.frameNumber', int(m_groups[2])) 
         # Sequence with subframes
         else:
             cmds.setAttr(nodeName+'.useFrameExtension',True)

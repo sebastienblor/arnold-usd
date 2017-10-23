@@ -141,6 +141,7 @@ def ProceduralDsoEdit(nodeName, mPath, replace=False) :
             cmds.setAttr(nodeName+'.aiUseFrameExtension',True)
             mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
             cmds.setAttr(nodeName+'.aiUseSubFrame',False)
+            cmds.setAttr(nodeName+'.aiFrameNumber', int(m_groups[2])) 
         # Sequence with subframes
         else:
             cmds.setAttr(nodeName+'.aiUseFrameExtension',True)
