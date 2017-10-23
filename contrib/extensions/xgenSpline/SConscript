@@ -24,7 +24,7 @@ local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
 maya_version = ext_env['MAYA_VERSION']
 if int(maya_version) >= 201800:
-    ext_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
+    local_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
 
 if system.os() =='windows':
    local_env.Append(CPPPATH = ['.'])   
