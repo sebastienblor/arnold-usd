@@ -488,13 +488,24 @@ void CNodeTranslator::RequestUpdate()
    if (m_impl->m_session->IsInteractiveRender() && m_impl->m_session->IsExportingMotion()) return;
 
    m_impl->m_session->QueueForUpdate(this);   
+   static AtString namespaceStr("namespace");
 
    if (m_impl->m_isProcedural && m_impl->m_updateMode >= AI_RECREATE_NODE)
    {
-      // If this is a procedural being re-generated, we must
-      // advert the arnold session so that it checks for all 
-      // lost connections
-      m_impl->m_session->QueueProceduralUpdate(this);
+      AtNode *procNode = GetArnoldNode();
+      if (procNode && AiNodeEntryLookUpParameter (AiNodeGetNodeEntry(procNode), namespaceStr ))
+      {
+         AtString namespaceVal = AiNodeGetStr(procNode, namespaceStr);
+         // only namespaces in procedurals can allow to produce inter-procedural connections
+         if (!namespaceVal.empty())
+         {
+            // If this is a procedural being re-generated, we must
+            // advert the arnold session so that it checks for all 
+            // lost connections
+            m_impl->m_session->QueueProceduralUpdate(this);
+         }
+      }
+
    }
    
    // Pass the update request to the export session
