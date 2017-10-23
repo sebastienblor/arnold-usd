@@ -153,29 +153,8 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
       resolvedName = filename.asChar();
    else
       resolvedName = dso.asChar();
-
-   unsigned int nchars = resolvedName.numChars();
-   if (nchars > 3 && resolvedName.substringW(nchars-3, nchars) == ".so")
-   {
-      resolvedName = resolvedName.substringW(0, nchars-4)+LIBEXT;
-   }
-   else if (nchars > 4 && resolvedName.substringW(nchars-4, nchars) == ".dll")
-   {
-      resolvedName = resolvedName.substringW(0, nchars-5)+LIBEXT;
-   }
-   else if (nchars > 6 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
-   {
-      resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
-   }
    
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
-
-   MPlug data = m_DagNode.findPlug("data");
-   int sizeData = strlen(data.asString().asChar());
-   if (sizeData != 0)
-   {
-      AiNodeSetStr(node, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
-   }
-
+   
 }

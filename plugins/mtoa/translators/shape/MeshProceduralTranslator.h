@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ShapeTranslator.h"
+#include "StandinsTranslator.h"
 
-class CMeshProceduralTranslator : public CShapeTranslator
+class CMeshProceduralTranslator : public CArnoldStandInsTranslator
 {
 public:
 
@@ -11,27 +11,4 @@ public:
       return new CMeshProceduralTranslator();
    }
    static void NodeInitializer(CAbTranslator context);
-
-//------- Derived from CNodeTranslator   
-   virtual AtNode* CreateArnoldNodes();
-   virtual void Export(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode);
-
-protected:
-   CMeshProceduralTranslator() :
-      CShapeTranslator()
-   {}
-   
-   // Method used to set the min/max parameters for this procedural
-   //void ExportBoundingBox(AtNode* procedural);
-   // Export this node as an instance (if IsMasterInstance() is false)
-   void ExportInstance(AtNode *instance);
-   
-//-------- Derived from CDagTranslator
-   // Export the shaders for this Geometry
-   virtual void ExportShaders();
-
-   virtual void NodeChanged(MObject& node, MPlug& plug);
-
-
 };
