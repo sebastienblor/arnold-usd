@@ -40,15 +40,18 @@ namespace {
         return out;
     }
 #ifdef _WIN32
-   static MString s_bifrostProceduralPath = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/bin";
+   static MString s_bifrostProceduralPath = "C:/Program Files/Autodesk/bifrost/1.5.0/Arnold-5.0.0.0/bin";
+   static MString s_bifrostProceduralPathUpper = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/bin";
    static MString s_bifrostProcedural = "bifrost_procedural_0_1";
 #endif
 #ifdef _LINUX
    static MString s_bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.0.0.0/lib";
+   static MString s_bifrostProceduralPathUpper = "/usr/autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/lib";
    static MString s_bifrostProcedural = "libbifrost_procedural_0_1";
 #endif
 #ifdef _DARWIN
-   static MString s_bifrostProceduralPath = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.0.0.0/lib";
+   static MString s_bifrostProceduralPath = "/Applications/Autodesk/bifrost/1.5.0/arnold-5.0.0.0/lib";
+   static MString s_bifrostProceduralPathUpper = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.0.0.0/lib";
    static MString s_bifrostProcedural = "libbifrost_procedural_0_1";  
 #endif
    static bool s_loadedProcedural = false;
@@ -80,6 +83,18 @@ namespace {
             extension->LoadArnoldPlugin(s_bifrostProcedural, s_bifrostProceduralPath);
             s_loadedProcedural = true;
             return true;
+         } else if (bifrostEnvVar.length() == 0) // this is actually only a problem on Mac
+         {
+            // try with upper case
+            fo.setRawFullName(s_bifrostProceduralPathUpper);
+            if (fo.exists())
+            {
+               extension->LoadArnoldPlugin(s_bifrostProcedural, s_bifrostProceduralPathUpper);
+               s_loadedProcedural = true;
+               return true;
+            } 
+
+
          }
       }
       
