@@ -98,9 +98,6 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
    AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
 
-   float shutterStart = 0.f;
-   float shutterEnd = 1.f;
-
    double motionStart, motionEnd;
    GetSessionOptions().GetMotionRange(motionStart, motionEnd);
    AiNodeSetFlt(camera, "motion_start", (float)motionStart);

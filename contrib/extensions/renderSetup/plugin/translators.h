@@ -7,18 +7,18 @@ template<typename T>
 class CApplyAbsOverrideTranslator : public CShaderTranslator
 {
 public:
-    AtNode* CreateArnoldNodes() override;
-    void Export(AtNode* shape) override;
-    static void* creator(){ return new CApplyAbsOverrideTranslator<T>(); }
+   virtual AtNode* CreateArnoldNodes();
+   virtual void Export(AtNode* shape);
+   static void* creator(){ return new CApplyAbsOverrideTranslator<T>(); }
 };
 
 template<typename T>
 class CApplyRelOverrideTranslator : public CShaderTranslator
 {
 public:
-    AtNode* CreateArnoldNodes() override;
-    void Export(AtNode* shape) override;
-    static void* creator(){ return new CApplyRelOverrideTranslator<T>(); }
+   virtual AtNode* CreateArnoldNodes();
+   virtual void Export(AtNode* shape);
+   static void* creator(){ return new CApplyRelOverrideTranslator<T>(); }
 };
 
 #endif // TRANSLATORS_H

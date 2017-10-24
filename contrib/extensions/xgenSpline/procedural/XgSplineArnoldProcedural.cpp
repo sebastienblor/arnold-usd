@@ -198,8 +198,9 @@ private:
             pointInterpoCount += splineIt.vertexCount() + splineIt.primitiveCount() * 2;
         }
 
+#ifdef XGEN_ARNOLD_ORIENTATIONS
         bool orient = (AiNodeGetInt(procedural, "ai_mode") == 2);
-        
+#endif        
         // Get the number of motion samples
         const unsigned int steps = _splines.sampleCount();
 

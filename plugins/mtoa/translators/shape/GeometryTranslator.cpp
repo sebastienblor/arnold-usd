@@ -767,8 +767,7 @@ static MPlug MtoaGetAssignedShaderPlug(const MPlug &shadingGroupPlug, bool isVol
    // shading group doesn't have any custom AOV, 
    // in that case I must find the surface shader plug myself
    std::vector<AtNode*> aovShaders;
-   AtNode* rootShader = NULL;
-
+   
    MString shaderName = (isVolume) ? "volumeShader" : "surfaceShader";
    MString aiShaderName =  (isVolume) ? "aiVolumeShader" : "aiSurfaceShader";
 
@@ -1473,7 +1472,6 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 
 AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   CNodeTranslator *masterTr = GetTranslator(masterInstance);
    MFnDependencyNode masterDepNode(masterInstance.node());
    MPlug dummyPlug = masterDepNode.findPlug("matrix");
    // in case master instance wasn't exported (#648)

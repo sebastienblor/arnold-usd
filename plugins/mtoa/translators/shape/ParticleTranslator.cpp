@@ -1634,7 +1634,6 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
 
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   CNodeTranslator *masterTr = GetTranslator(masterInstance);
    MFnDependencyNode masterDepNode(masterInstance.node());
    MPlug dummyPlug = masterDepNode.findPlug("matrix");
    // in case master instance wasn't exported (#648)

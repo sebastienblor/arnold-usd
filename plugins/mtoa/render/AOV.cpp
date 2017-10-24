@@ -47,9 +47,9 @@ CAOV::CAOV(const CAOV &rhs)
      m_filters(rhs.m_filters),
      m_extensions(rhs.m_extensions),
      m_lightPathExpression(rhs.m_lightPathExpression),
+     m_lightGroupsList(rhs.m_lightGroupsList),
      m_lightGroups(rhs.m_lightGroups),
      m_globalAov(rhs.m_globalAov),
-     m_lightGroupsList(rhs.m_lightGroupsList),
      m_shaderPlug(rhs.m_shaderPlug)
 {
 }
