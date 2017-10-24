@@ -101,6 +101,10 @@ MStatus CSessionOptions::GetFromMaya()
       else
          m_exportAllShadingGroups = false;
 
+      plug = fnArnoldRenderOptions.findPlug("exportFullPaths");
+      if (!plug.isNull())
+         m_exportFullPath = plug.asBool();
+      
 
       plug = fnArnoldRenderOptions.findPlug("texture_searchpath");
       if (!plug.isNull())

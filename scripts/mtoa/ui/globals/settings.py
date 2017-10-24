@@ -374,6 +374,10 @@ def createArnoldRenderSettings():
                         label='Export All Shading Groups',
                         attribute='defaultArnoldRenderOptions.exportAllShadingGroups')
 
+    pm.attrControlGrp('os_exportFullPaths',
+                        label='Export Full Paths',
+                        attribute='defaultArnoldRenderOptions.exportFullPaths')
+
     pm.separator()
 
     enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2

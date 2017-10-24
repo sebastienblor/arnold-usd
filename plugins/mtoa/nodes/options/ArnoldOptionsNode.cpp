@@ -95,6 +95,7 @@ MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_export_all_shading_groups;
+MObject CArnoldOptionsNode::s_export_full_paths;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
 MObject CArnoldOptionsNode::s_postTranslationCallback;
@@ -585,6 +586,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(false);
    addAttribute(s_export_all_shading_groups);
+
+   s_export_full_paths = nAttr.create("exportFullPaths", "export_full_paths", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_export_full_paths);
    
    s_version = tAttr.create("version", "version", MFnData::kString);
    tAttr.setKeyable(false);

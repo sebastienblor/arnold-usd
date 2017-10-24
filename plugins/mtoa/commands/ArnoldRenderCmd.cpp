@@ -103,6 +103,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    bool forceTranslateShadingEngines = false;
    bool progressiveRefinement = true;
    bool exportAllShadingGroups = false;
+   bool exportFullPaths = false;
+   
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -120,6 +122,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
       progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       exportAllShadingGroups = fnArnoldRenderOptions.findPlug("exportAllShadingGroups").asBool();
+      exportFullPaths = fnArnoldRenderOptions.findPlug("exportFullPaths").asBool();
    }
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
@@ -151,7 +154,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (exportAllShadingGroups)
          cmdStr += " -shg";
 
-      
+      if (exportFullPaths)
+         cmdStr += " -fp";
+
       if (renderGlobals.isAnimated())
       {     
          if (!((renderType == MTOA_RENDER_EXPORTASS_AND_KICK) && !batch))

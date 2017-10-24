@@ -124,6 +124,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
         settings.setdefault('expandProcedurals', cmds.getAttr('%s.expandProcedurals' % optionsNode))
         settings.setdefault('exportAllShadingGroups', cmds.getAttr('%s.exportAllShadingGroups' % optionsNode))
+        settings.setdefault('fullPath', cmds.getAttr('%s.exportFullPaths' % optionsNode))
         settings.setdefault('forceTranslateShadingEngines', cmds.getAttr('%s.forceTranslateShadingEngines' % optionsNode))
         
     return settings
@@ -217,7 +218,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, select=1+settings.get('shadowLinks', 0)) 
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, enable=lightsOn)
         
-        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=False)
+        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=settings.get('fullPath', False))
         cmds.textFieldGrp("oa_export_prefix", label="Prefix ", text="")
 
         cmds.setParent('..')      
