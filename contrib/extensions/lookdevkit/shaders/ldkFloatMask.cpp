@@ -19,7 +19,8 @@ node_parameters
    AiParameterFlt("mask", 0.0f);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "floatMask");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81624);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81624);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

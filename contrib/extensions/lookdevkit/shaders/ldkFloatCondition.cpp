@@ -21,7 +21,8 @@ node_parameters
    AiParameterBool("condition", false);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "floatCondition");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x816832 );
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x816832 );
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

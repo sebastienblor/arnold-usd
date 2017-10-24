@@ -42,7 +42,8 @@ node_parameters
    AiParameterEnum("operation", OP_EQUAL, OperationStrings);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "colorLogic");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81638);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81638);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

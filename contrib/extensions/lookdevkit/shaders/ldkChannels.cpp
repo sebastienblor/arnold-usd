@@ -44,7 +44,8 @@ node_parameters
    AiParameterEnum("channelA", CHANNEL_A, OperationNames);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "channels");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81648);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81648);
 }
 
 node_initialize

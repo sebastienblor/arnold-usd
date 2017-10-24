@@ -44,7 +44,8 @@ node_parameters
    AiParameterEnum("operation", OP_ADD, enum_operation);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "floatMath");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x816840);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x816840);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

@@ -59,7 +59,8 @@ node_parameters
    AiParameterFlt("alphaClampMax", 1.0f);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "colorCorrect");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81652);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81652);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
