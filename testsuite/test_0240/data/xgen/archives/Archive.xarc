@@ -1,0 +1,8 @@
+#ArchiveGroup 0 name="Archive" description="No description." thumbnail="Archive.png" materials="${PROJECT}/xgen/archives/materials/Archive.ma" color=[1,0,0]
+0 "${PROJECT}/xgen/archives/abc/Archive.abc" material=Archive:aiStandardSurface1SG objects=|pCone1
+1 "${PROJECT}/xgen/archives/abc/Archive.abc" material=Archive:aiStandardSurface1SG objects=|pCone1
+2 "${PROJECT}/xgen/archives/abc/Archive.abc" material=Archive:aiStandardSurface1SG objects=|pCone1
+3 "${PROJECT}/xgen/archives/ass/Archive__pCone1.ass.gz" material=Archive:aiStandardSurface1 objects=|pCone1
+4 "${PROJECT}/xgen/archives/ass/Archive__pCone1.ass.gz" material=Archive:aiStandardSurface1 objects=|pCone1
+5 "${PROJECT}/xgen/archives/ass/Archive__pCone1.ass.gz" material=Archive:aiStandardSurface1 objects=|pCone1
+
