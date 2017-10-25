@@ -1678,6 +1678,10 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 void CRenderViewMtoA::Resize(int width, int height)
 {
    CRenderViewInterface::Resize(width, height);
+
+   if(MGlobal::apiVersion() < 201760) // this option was only implemented in Maya 2017 Update 4
+      return;
+
    if (s_creatingARV)
       return;
 
