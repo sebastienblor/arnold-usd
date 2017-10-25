@@ -57,6 +57,12 @@ AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
          return AddArnoldNode(aovNodeName.asChar()); // do not set the connections yet
       }
    }
+
+   // If we want shading engines to be exported, we export a passthrough shader that will have the 
+   // same name as maya's SG node
+   if (CMayaScene::GetRenderSession()->RenderOptions()->GetExportShadingEngine())
+      return AddArnoldNode("passthrough");
+
    return NULL;
 }
 
@@ -150,8 +156,8 @@ void CShadingEngineTranslator::Export(AtNode *node)
          aovWriteNodes.push_back(aovWriteNode);
       }
    }
-
-   if (aovWriteNodes.empty()) return; // if there's no custom AOV, there's nothing more to do 
+   bool exportShadingEngine = CMayaScene::GetRenderSession()->RenderOptions()->GetExportShadingEngine();
+   if ((!exportShadingEngine) && aovWriteNodes.empty()) return; // if there's no custom AOV, there's nothing more to do 
 
    // If I've exported aov write nodes, then I need to export the connected surface shader,
    // and connect it to my aovWrite list
@@ -184,8 +190,11 @@ void CShadingEngineTranslator::Export(AtNode *node)
    
    if(assignedShader == NULL) return; // no shader exported
 
-   // connect the assigned shader to the latest aovWrite node
-   AiNodeLink(assignedShader, "passthrough", aovWriteNodes.back());
+
+   if (!aovWriteNodes.empty()) // connect the assigned shader to the latest aovWrite node
+      AiNodeLink(assignedShader, "passthrough", aovWriteNodes.back());
+   else if (exportShadingEngine) // connect the assigned shader to the shading engine (if any)
+      AiNodeLink(assignedShader, "passthrough", GetArnoldNode());
 }
 
 void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)

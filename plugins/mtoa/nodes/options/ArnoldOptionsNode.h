@@ -117,7 +117,8 @@ public:
    static MObject s_force_translate_shading_engines;
    static MObject s_export_all_shading_groups;
    static MObject s_export_full_paths;
-   
+   static MObject s_export_shading_engine;
+
    static MObject s_version;
    static MObject s_enable_standin_draw;
 

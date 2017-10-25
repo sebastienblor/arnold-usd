@@ -377,6 +377,9 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_exportFullPaths',
                         label='Export Full Paths',
                         attribute='defaultArnoldRenderOptions.exportFullPaths')
+    pm.attrControlGrp('os_exportShadingEngine',
+                        label='Export Shading Engine (Legacy)',
+                        attribute='defaultArnoldRenderOptions.exportShadingEngine')
 
     pm.separator()
 

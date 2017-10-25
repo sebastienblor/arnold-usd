@@ -235,6 +235,11 @@ public:
    int GetLogConsoleVerbosity() const;
    int GetLogFileVerbosity() const;
 
+   // ideally this parameter should be in SessionOptions, but it's a temporary option
+   // to workaround the MayaShadingEngine removal in MtoA 2.1.0, without breaking 
+   // the binary compatibility
+   bool GetExportShadingEngine() const {return m_exportShadingEngine;}
+
 private:
 
    MStatus ProcessCommonRenderOptions();
@@ -297,4 +302,5 @@ private:
    bool m_isAnimated;
    bool m_multiCameraRender;  
    bool m_mtoa_translation_info;
+   bool m_exportShadingEngine;
 };
