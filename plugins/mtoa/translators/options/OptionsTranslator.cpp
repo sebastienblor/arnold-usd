@@ -157,12 +157,12 @@ void COptionsTranslator::ExportAOVs()
             MPlug dummyPlug = fnNode.findPlug("matrix"); // I need a dummy plug from the camera node
             if (!dummyPlug.isNull())
             {
-               AtNode *res = m_impl->ExportConnectedNode(dummyPlug, true, &aovData.cameraTranslator);
+               m_impl->ExportConnectedNode(dummyPlug, true, &aovData.cameraTranslator);
             }
          }
           else
          {
-            AiMsgError("[mtoa.aov] Camera %s not found", camera);
+            AiMsgError("[mtoa.aov] Camera %s not found", camera.asChar());
          }
          
 
@@ -454,7 +454,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             aovCamera = aovCamDagTransform.name();
             if (GetSessionOptions().IsInteractiveRender() && (aovCamera != nameCamera))
             {
-               AiMsgWarning("[mtoa.aov] Per-camera AOV %s is skipped during interactive renders", aovData.name);
+               AiMsgWarning("[mtoa.aov] Per-camera AOV %s is skipped during interactive renders", aovData.name.asChar());
                continue;
             }
          }
