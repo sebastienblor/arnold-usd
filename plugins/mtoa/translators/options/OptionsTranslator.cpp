@@ -449,8 +449,14 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          {
             // replace the camera name by the one specified in the AOV itself
             MDagPath aovCameraPath = static_cast<CDagTranslator*>(aovData.cameraTranslator)->GetMayaDagPath();
+
             MFnDagNode aovCamDagTransform(aovCameraPath);
             aovCamera = aovCamDagTransform.name();
+            if (GetSessionOptions().IsInteractiveRender() && (aovCamera != nameCamera))
+            {
+               AiMsgWarning("[mtoa.aov] Per-camera AOV %s is skipped during interactive renders", aovData.name);
+               continue;
+            }
          }
          
          // loop through outputs
@@ -637,14 +643,17 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   MString lpe = aovData.name + " " + aovData.lpe.asChar();
                   lightPathExpressions.insert(lpe.asChar());
                }
-            }
-
-            if (stereo && (!outputImageDriver)) // display driver in stereo rendering
+            } else // here outputImageDriver == NULL
             {
-               if (eye != 0)
-                  continue; // nothing to do here, we just want one eye for display
+               // no image driver -> possibly a display driver
+               // we want to skip specific-cameras AOVs
+               if (stereo) // display driver in stereo rendering
+               {
+                  if (eye != 0)
+                     continue; // nothing to do here, we just want one eye for display
 
-               aovCamera = leftCameraName; // the display camera will be the left one                  
+                  aovCamera = leftCameraName; // the display camera will be the left one                  
+               }                   
             }
 
             // output statement
