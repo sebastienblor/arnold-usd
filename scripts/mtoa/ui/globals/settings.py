@@ -1016,7 +1016,7 @@ def createArnoldOverrideSettings():
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
 
     pm.attrControlGrp('force_translate_shading_engines',
-                       attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Translation of Shading Engines')
+                       attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
 
     pm.setParent('..')
 
