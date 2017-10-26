@@ -1,5 +1,3 @@
-# vim: filetype=python
-
 import system, os
 from build_tools import find_files_recursive
 
@@ -8,30 +6,76 @@ Import('ext_env')
 local_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'test')
-source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
-include_files = find_files_recursive(src_base_dir, ['.h'])
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'test', 'plugin')
 
-EXT = local_env.SharedLibrary('test', source_files, LIBPREFIX='')
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
-if system.os() == 'windows':
-   local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')
-   EXT_PRJ = local_env.MSVSProject(target = 'test' + local_env['MSVS']['PROJECTSUFFIX'],
-                                    srcs = source_files + include_files,
-                                    incs = [],
-                                    buildtarget = 'test',
-                                    cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
-                                               '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
-                                               '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
-                                               '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
-                                    variant = ['Debug_MSVC|Win32',
-                                               'Debug_ICC|Win32',
-                                               'Opt_MSVC|Win32',
-                                               'Opt_ICC|Win32'],
-                                    auto_build_solution = 0,
-                                    nokeep = 1)
-   local_env.AlwaysBuild(EXT_PRJ)
-   
-   Return('EXT EXT_PRJ')
+mayaRoot = local_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+
+if system.os() =='windows':
+   local_env.Append(CPPPATH = ['.'])   
+   local_env.Append(LIBS=Split('ai.lib'))
 else:
-   Return('EXT')
+   local_env.Append(CPPPATH = ['.'])
+   local_env.Append(LIBS=Split('ai'))
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+EXT = local_env.SharedLibrary('mtoaTestTranslator', source_files, LIBPREFIX='')
+
+###########################################################3
+#### XGEN SHADERS
+# import build env
+Import('env')
+shader_env = env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'test', 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+if system.os() =='windows':
+   shader_env.Append(CPPPATH = ['.'])   
+   shader_env.Append(LIBS=Split('ai.lib'))
+else:
+   shader_env.Append(CPPPATH = ['.'])
+   shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+EXT_SHADERS = shader_env.SharedLibrary('mtoaTest_shaders', source_files, LIBPREFIX='')
+
+##########################################################
+## XGEN  PROCEDURAL
+# import build env
+Import('env')
+proc_env = env.Clone()
+
+src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'contrib', 'extensions', 'test','procedural')
+source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+mayaRoot = proc_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+if system.os() =='windows':
+    proc_env.Append(CPPPATH = ['.'])   
+    proc_env.Append(LIBS=Split('ai.lib'))
+else:
+    proc_env.Append(CPPPATH = ['.'])
+    proc_env.Append(LIBS=Split('ai'))
+    proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+    if system.os() == 'darwin':
+        proc_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        proc_env.Append(LINKFLAGS = Split('-lc++'))
+
+EXT_PROCS = proc_env.SharedLibrary('mtoaTest_procedural', source_files, LIBPREFIX='')
+EXT_PROCS.target_type = 'shader'
+
+Return('EXT EXT_SHADERS EXT_PROCS')

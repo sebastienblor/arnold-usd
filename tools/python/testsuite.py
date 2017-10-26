@@ -144,6 +144,13 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     else:
         os.unsetenv('ARNOLD_PLUGIN_PATH')
 
+    extension_dir = os.path.join(test_dir, 'extension')
+    if os.path.exists(extension_dir):
+        os.environ['MTOA_EXTENSIONS_PATH'] = extension_dir
+    else:
+        os.unsetenv('MTOA_EXTENSIONS_PATH')
+
+
     ## TODO: attach valgrind to each command
     if update_reference:
         show_test_output = False
