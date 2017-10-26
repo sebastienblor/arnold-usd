@@ -1,7 +1,8 @@
 #include <ai.h>
 
-#include <XGen/SgCurve.h>
-#include <XGen/XgSplineAPI.h>
+
+#include <SgCurve.h>
+#include <XgSplineAPI.h>
 
 #include <cstring>
 #include <string>
