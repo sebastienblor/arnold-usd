@@ -72,9 +72,10 @@ void CArnoldProceduralNode::postConstructor()
 
       attr.setHidden(true);
    }
-
+   MString nodeType = typeName();
+   
    // Now re-enable Arnold attributes 
-   const std::vector<std::string> &nodeParameters = s_proceduralParameters[m_abstract.name.asChar()];
+   const std::vector<std::string> &nodeParameters = s_proceduralParameters[nodeType.asChar()];
 
    for (size_t i = 0; i < nodeParameters.size(); ++i)
    {

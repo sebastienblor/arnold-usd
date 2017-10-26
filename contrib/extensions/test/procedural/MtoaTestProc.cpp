@@ -14,7 +14,8 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(MtoaTestProcProceduralMtd);
 // FIXME move the parameters here !
 node_parameters
 {
-    AiParameterBool  ("enableTest", false);
+    AiParameterBool  ("enableTest", true);
+    AiParameterBool  ("renderCone", false);
     
 }
 
@@ -29,14 +30,17 @@ procedural_cleanup
 }
 procedural_num_nodes
 {
-    return 1;
+    if (AiNodeGetBool(node, "enableTest"))
+        return 1;
+
+    return 0;
 }
 
 procedural_get_node
 {
-    AtNode *sphere = AiNode("sphere");
-    AiNodeSetStr(sphere, "name", "yepeeTest" );
-    return sphere;  
+    AtNode *child = (AiNodeGetBool(node, "renderCone")) ? AiNode("cone") : AiNode("sphere");
+    AiNodeSetStr(child, "name", "yepeeTest" );
+    return child;  
 }
 
 
