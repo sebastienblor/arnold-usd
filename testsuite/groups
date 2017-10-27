@@ -33,8 +33,7 @@ ignore: test_0004 test_0005 test_0006 test_0007 test_0060 test_0066 test_0074 te
 
 ignore_windows:
 
-#this should be fixed, scenes are crashing and preventing the testsuite to finish
-ignore_linux: 
+ignore_linux: test_0167_linux
 ignore_darwin:
 
 # ignore type test + bifrost in older versions of maya 
