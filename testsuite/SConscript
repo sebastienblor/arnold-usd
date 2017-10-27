@@ -342,6 +342,7 @@ class MayaTestRunner(object):
         ## why this being in Maya.env doesn't work?
         previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
         os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
+        os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
     
         show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') \
             or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
