@@ -194,8 +194,18 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiOverrideMatte', label='Override Matte')
         self.addControl('aiMatte', label='   Matte')
         self.endLayout()
-
-        self.commonShapeAttributes()
+        
+        self.beginLayout("Visibility", collapse=False)
+        self.addControl("primaryVisibility", label="Primary Visibility")
+        self.addControl("castsShadows", label="Casts Shadows")
+        self.addControl("aiVisibleInDiffuseReflection", label="Diffuse Reflection")
+        self.addControl("aiVisibleInSpecularReflection", label="Specular Reflection")
+        self.addControl("aiVisibleInDiffuseTransmission", label="Diffuse Transmission")
+        self.addControl("aiVisibleInSpecularTransmission", label="Specular Transmission")
+        self.addControl("aiVisibleInVolume", label="Volume")
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiTraceSets", label="Trace Sets")
+        self.endLayout()        
 
 #        self.addControl('deferStandinLoad', label='Defer Procedural Load')
         self.addControl('aiOverrideNodes')
