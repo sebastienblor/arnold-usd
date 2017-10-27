@@ -22,11 +22,6 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   490MB WARNING | [metadata] (C:/solidangle/mtoadeploy/2017/plug-ins/mtoa.mtd:2852) Node entry does not exist
-00:00:00   490MB WARNING | [metadata] (C:/solidangle/mtoadeploy/2017/plug-ins/mtoa.mtd:2859) Found attribute outside a node
-00:00:00   490MB WARNING | [metadata] (C:/solidangle/mtoadeploy/2017/plug-ins/mtoa.mtd:2862) Found attribute outside a node
-00:00:00   490MB WARNING | [metadata] (C:/solidangle/mtoadeploy/2017/plug-ins/mtoa.mtd:2865) Found attribute outside a node
-00:00:00   490MB WARNING | [metadata] (C:/solidangle/mtoadeploy/2017/plug-ins/mtoa.mtd:2868) Found attribute outside a node
 00:00:00   495MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
 00:00:00   495MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name v5proc_procedural.
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
