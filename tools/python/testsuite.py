@@ -255,10 +255,15 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
         # Maya 2018 and above
         if test_name == 'test_0123':
             diff_fail = 1
-        elif test_name == 'test_0142' or test_name == 'test_0193' or test_name == 'test_0223' or test_name == 'test_0231':
-            diff_fail = 0.02
+        elif test_name == 'test_0169':
+            diff_fail = 0.2
+        elif test_name == 'test_0142' or test_name == 'test_0232':
+            diff_fail = 0.03        
+        elif test_name == 'test_0193' or test_name == 'test_0231':
+            diff_fail = 0.08
+        elif test_name == 'test_0223':
+            diff_fail = 0.04
 
-            
     use_shell = (not is_windows)
     has_diff = False
     cause = None
