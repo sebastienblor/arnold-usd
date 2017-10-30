@@ -129,6 +129,7 @@
 #define ARNOLD_NODEID_SHADER_COLOR_JITTER       0x00115D89
 #define ARNOLD_NODEID_SHADER_TRIPLANAR          0x00115D8A
 #define ARNOLD_NODEID_SHADER_CAR_PAINT          0x00115D8B
+#define ARNOLD_NODEID_SHADER_TOON               0x00115D8C
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
