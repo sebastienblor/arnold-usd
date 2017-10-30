@@ -33,8 +33,8 @@ ignore: test_0004 test_0005 test_0006 test_0007 test_0060 test_0066 test_0074 te
 
 ignore_windows:
 
-ignore_linux: test_0167_linux
-ignore_darwin:
+ignore_linux: test_0167_linux test_0248
+ignore_darwin: test_0248
 
 # ignore type test + bifrost in older versions of maya 
 ignore_2015: test_0167_win test_0167_linux test_0167_mac test_0180 test_0181 test_0185 test_0188 test_0209 test_0221_win test_0221_linux test_0221_mac test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0229 test_0237 test_0242
