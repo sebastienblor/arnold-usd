@@ -18,25 +18,27 @@ namespace
     }
     template<> void transfer<float3>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         const float3& v = mnode.findPlug(name).asMDataHandle().asFloat3();
-        AiNodeSetVec(node, name, v[0], v[1], v[2]);
+        AiNodeSetRGB(node, name, v[0], v[1], v[2]);
+
     }
     template<> void transfer<int>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
         AiNodeSetInt(node, name, mnode.findPlug(name).asInt());
     }
 }
 
-template<> AtNode* CApplyAbsOverrideTranslator<float>::CreateArnoldNodes()  { return AiNode("applyAbsFloatOverride");   }
-template<> AtNode* CApplyAbsOverrideTranslator<float2>::CreateArnoldNodes() { return AiNode("applyAbs2FloatsOverride"); }
-template<> AtNode* CApplyAbsOverrideTranslator<float3>::CreateArnoldNodes() { return AiNode("applyAbs3FloatsOverride"); }
-template<> AtNode* CApplyAbsOverrideTranslator<int>::CreateArnoldNodes()    { return AiNode("applyAbsIntOverride");     }
+template<> AtNode* CApplyAbsOverrideTranslator<float>::CreateArnoldNodes()  { return AddArnoldNode("applyAbsFloatOverride");   }
+template<> AtNode* CApplyAbsOverrideTranslator<float2>::CreateArnoldNodes() { return AddArnoldNode("applyAbs2FloatsOverride"); }
+template<> AtNode* CApplyAbsOverrideTranslator<float3>::CreateArnoldNodes() { return AddArnoldNode("applyAbs3FloatsOverride"); }
+template<> AtNode* CApplyAbsOverrideTranslator<int>::CreateArnoldNodes()    { return AddArnoldNode("applyAbsIntOverride");     }
 
-template<> AtNode* CApplyRelOverrideTranslator<float>::CreateArnoldNodes()  { return AiNode("applyRelFloatOverride");   }
-template<> AtNode* CApplyRelOverrideTranslator<float2>::CreateArnoldNodes() { return AiNode("applyRel2FloatsOverride"); }
-template<> AtNode* CApplyRelOverrideTranslator<float3>::CreateArnoldNodes() { return AiNode("applyRel3FloatsOverride"); }
-template<> AtNode* CApplyRelOverrideTranslator<int>::CreateArnoldNodes()    { return AiNode("applyRelIntOverride");     }
+template<> AtNode* CApplyRelOverrideTranslator<float>::CreateArnoldNodes()  { return AddArnoldNode("applyRelFloatOverride");   }
+template<> AtNode* CApplyRelOverrideTranslator<float2>::CreateArnoldNodes() { return AddArnoldNode("applyRel2FloatsOverride"); }
+template<> AtNode* CApplyRelOverrideTranslator<float3>::CreateArnoldNodes() { return AddArnoldNode("applyRel3FloatsOverride"); }
+template<> AtNode* CApplyRelOverrideTranslator<int>::CreateArnoldNodes()    { return AddArnoldNode("applyRelIntOverride");     }
 
 template<typename T>
-void CApplyAbsOverrideTranslator<T>::Export(AtNode* node){
+void CApplyAbsOverrideTranslator<T>::Export(AtNode* node)
+{
     MFnDependencyNode mnode(this->GetMayaObject());
     transfer<T>(mnode, "original", node);
     transfer<T>(mnode, "value", node);
@@ -44,7 +46,8 @@ void CApplyAbsOverrideTranslator<T>::Export(AtNode* node){
 }
 
 template<typename T>
-void CApplyRelOverrideTranslator<T>::Export(AtNode* node){
+void CApplyRelOverrideTranslator<T>::Export(AtNode* node)
+{
     MFnDependencyNode mnode(this->GetMayaObject());
     transfer<T>(mnode, "original", node);
     transfer<T>(mnode, "multiply", node);
