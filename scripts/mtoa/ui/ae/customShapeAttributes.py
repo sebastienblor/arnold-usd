@@ -610,9 +610,18 @@ class CameraTemplate(templates.AttributeTemplate):
                 pm.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
 
     
+    def cameraFilterMapNew(self, nodeAttr):
+        pm.attrNavigationControlGrp('aiCameraFilterMap',
+                                    label='Filtermap',
+                                    at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+
+    def cameraFilterMapReplace(self, nodeAttr):
+        pm.attrNavigationControlGrp('aiCameraFilterMap', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+
     def addCommonAttributes(self):
         self.addControl("aiExposure")
-        self.addControl("aiFiltermap")
+        self.addCustom('aiFiltermap', self.cameraFilterMapNew, self.cameraFilterMapReplace)
+
         self.addSeparator()
         self.addControl("aiRollingShutter")
         self.addControl("aiRollingShutterDuration")
