@@ -67,8 +67,8 @@ class AOVBrowser(object):
                           selectCommand=self.selectAOV)
 
         addBtn = pm.button(_uiName('addBtn'), label='>>', command=self.addAOVs)
-        remBtn = pm.button(_uiName('remBtn'), label='<<', command=self.removeAOVs)
         addCustomBtn = pm.button(_uiName('addCustomBtn'), label='Add Custom', command=self.addCustomAOV)
+        remBtn = pm.button(_uiName('remBtn'), label='<<', command=self.removeAOVs)
 
         pm.formLayout(self.form, edit=True, attachForm=[
                                     (availableLbl, 'top', 1),
@@ -92,10 +92,10 @@ class AOVBrowser(object):
                                     (detailsFieldLbl, 'top', 1, detailsLbl),
                                     
                                     (self.activeLst, 'bottom', 1, addBtn),
-                                    (self.availableLst, 'bottom', 1, remBtn),
+                                    (self.availableLst, 'bottom', 1, addCustomBtn),
                                     
-                                    (addBtn, 'right', 1, remBtn),
-                                    (remBtn, 'right', 1, addCustomBtn),
+                                    (addBtn, 'right', 1, addCustomBtn),
+                                    (addCustomBtn, 'right', 1, remBtn),
                                 ])
 
         pm.formLayout(self.form, edit=True, attachPosition=[
@@ -114,10 +114,10 @@ class AOVBrowser(object):
                                     
                                     (addBtn, 'left', 1, 1),
                                     (addBtn, 'right', 1, 50),
-                                    (remBtn, 'left', 1, 50),
-                                    (remBtn, 'right', 1, 75),
-                                    (addCustomBtn, 'left', 1, 75),
-                                    (addCustomBtn, 'right', 1, 100),                                    
+                                    (addCustomBtn, 'left', 1, 50),
+                                    (addCustomBtn, 'right', 1, 75),
+                                    (remBtn, 'left', 1, 75),
+                                    (remBtn, 'right', 1, 100),                                    
                                     
 
                                 ])
