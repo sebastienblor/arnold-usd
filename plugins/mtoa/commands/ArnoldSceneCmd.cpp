@@ -21,12 +21,15 @@
 #include <maya/MAnimControl.h>
 #include <maya/MBoundingBox.h>
 
+#include "../common/UnorderedContainer.h"
+
 #include <math.h>
 
 MSyntax CArnoldSceneCmd::newSyntax()
 {
    MSyntax syntax;
    syntax.addFlag("m", "mode", MSyntax::kString);
+   syntax.addFlag("lo", "listObjects");
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
@@ -38,6 +41,25 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
+   MStringArray result;
+
+   bool listObjects = args.isFlagSet("listObjects");
+
+   unordered_set<std::string> previousObjects;
+   if (listObjects && AiUniverseIsActive())
+   {
+      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
+      while (!AiNodeIteratorFinished(nodeIter))
+      {
+         AtNode *node = AiNodeIteratorGetNext(nodeIter);
+         if (node == NULL) continue;
+         std::string nodeName = AiNodeGetName(node);
+         if (nodeName.empty()) continue;
+
+         previousObjects.insert(nodeName);
+      }
+      AiNodeIteratorDestroy(nodeIter);
+   }
 
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "create";
 
@@ -50,11 +72,14 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       // are properly initialized
       MSelectionList list;
       CMayaScene::Export(&list);
+      listObjects = false;
    }
    else if (mode == "destroy")
    {
       if (CMayaScene::IsActive())
          CMayaScene::End();
+
+      listObjects = false;
    }
    else if (mode == "convert_scene")
    {
@@ -82,5 +107,22 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       CMayaScene::Export(&sList);
 
    }
+   if (listObjects)
+   {
+      AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
+      while (!AiNodeIteratorFinished(nodeIter))
+      {
+         AtNode *node = AiNodeIteratorGetNext(nodeIter);
+         if (node == NULL || AiNodeIsDisabled(node)) continue;
+         std::string nodeName = AiNodeGetName(node);
+         if (nodeName.empty()) continue;
+         // if this node wasn't already in the previous list, add it
+         if (previousObjects.find(nodeName) == previousObjects.end())
+            result.append(nodeName.c_str());
+
+      }
+      AiNodeIteratorDestroy(nodeIter);
+   }
+   setResult(result);
    return MS::kSuccess;
 }
