@@ -2,6 +2,9 @@
 #include "ArnoldSceneCmd.h"
 #include "scene/MayaScene.h"
 #include "utils/MakeTx.h"
+#include "../common/UnorderedContainer.h"
+#include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -21,7 +24,6 @@
 #include <maya/MAnimControl.h>
 #include <maya/MBoundingBox.h>
 
-#include "../common/UnorderedContainer.h"
 
 #include <math.h>
 
@@ -29,7 +31,8 @@ MSyntax CArnoldSceneCmd::newSyntax()
 {
    MSyntax syntax;
    syntax.addFlag("m", "mode", MSyntax::kString);
-   syntax.addFlag("lo", "listObjects");
+   syntax.addFlag("l", "list",  MSyntax::kString);
+
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
@@ -43,11 +46,26 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
    MStringArray result;
 
-   bool listObjects = args.isFlagSet("listObjects");
+   bool listAllNewNodes = false;
+   bool listRootNodes = false;
+   bool listAllNodes = false;
+
+   MString listValue = (args.isFlagSet("list")) ? args.flagArgumentString("list", 0) : "";
+   MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "create";
+
+   if (listValue == "new_nodes")
+      listAllNewNodes = true;
+   else if (listValue == "nodes" && mode == "convert_selected")
+      listRootNodes = true;
+   else if (listValue == "all_nodes")
+      listAllNodes = true;
+
 
    unordered_set<std::string> previousObjects;
-   if (listObjects && AiUniverseIsActive())
+   if (listAllNewNodes && AiUniverseIsActive())
    {
+      // if requested, loop over previously existing arnold nodes in the scene, so
+      // that we can find out the newly created nodes after export
       AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
       while (!AiNodeIteratorFinished(nodeIter))
       {
@@ -61,8 +79,6 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       AiNodeIteratorDestroy(nodeIter);
    }
 
-   MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "create";
-
    if (mode == "create")
    {
       if (!CMayaScene::IsActive())
@@ -72,14 +88,12 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       // are properly initialized
       MSelectionList list;
       CMayaScene::Export(&list);
-      listObjects = false;
    }
    else if (mode == "destroy")
    {
       if (CMayaScene::IsActive())
          CMayaScene::End();
 
-      listObjects = false;
    }
    else if (mode == "convert_scene")
    {
@@ -90,11 +104,14 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    }
    else if (mode == "convert_selected")
    {
+      if (!CMayaScene::IsActive())
+         CMayaScene::Begin(MTOA_SESSION_ASS);
       MSelectionList sList;
       MStringArray sListStrings;
       args.getObjects(sListStrings);   
 
       const unsigned int sListStringsLength = sListStrings.length();
+
 
       sList.clear();
       if (sListStringsLength > 0)
@@ -104,10 +121,50 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       }
       else
          MGlobal::getActiveSelectionList(sList);
+
+      MSelectionList sel(sList);
+
       CMayaScene::Export(&sList);
+      CArnoldSession *session = CMayaScene::GetArnoldSession();
+
+      // Now loop over sList nodes and get the associated arnold nodes
+      if (session && listRootNodes)
+      {
+         unordered_set<std::string> newNodes;
+         for (unsigned int i = 0; i < sel.length(); ++i)
+         {
+
+            MStatus listStatus;
+            MDagPath dag;
+            MObject objNode;
+            CNodeTranslator *tr = NULL;
+            if (sel.getDagPath(i, dag) == MS::kSuccess)
+            {
+               dag.extendToShape();
+               tr = session->ExportDagPath(dag, false);
+            } else if (sel.getDependNode(i, objNode) == MS::kSuccess)
+            {
+               MPlug shaderPlug = MFnDependencyNode(objNode).findPlug("message");
+               if (!shaderPlug.isNull())
+               {
+                 tr = session->ExportNode(shaderPlug, 
+                                false, 0);
+               }
+            }
+            if (tr)
+            {
+               AtNode *trNode = tr->GetArnoldNode();
+               if (trNode)
+                  newNodes.insert(AiNodeGetName(trNode));
+            }            
+         }
+         for (unordered_set<std::string>::iterator it = newNodes.begin(); it != newNodes.end(); ++it)
+            result.append((*it).c_str());
+         
+      }
 
    }
-   if (listObjects)
+   if (listAllNewNodes || listAllNodes)
    {
       AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
       while (!AiNodeIteratorFinished(nodeIter))
@@ -117,12 +174,12 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
          std::string nodeName = AiNodeGetName(node);
          if (nodeName.empty()) continue;
          // if this node wasn't already in the previous list, add it
-         if (previousObjects.find(nodeName) == previousObjects.end())
+         if (listAllNodes || previousObjects.find(nodeName) == previousObjects.end())
             result.append(nodeName.c_str());
 
       }
       AiNodeIteratorDestroy(nodeIter);
-   }
+   } 
    setResult(result);
    return MS::kSuccess;
 }
