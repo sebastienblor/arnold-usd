@@ -235,6 +235,18 @@ void CImagePlaneTranslator::ExportImagePlane()
       }
       AiNodeSetPtr(imagePlaneShader, "sourceTexture", NULL);
 
+      ProcessParameter(imagePlaneShader, "offscreenColor", AI_TYPE_RGBA);
+      /* TODO: in case we want to force an opaque alpha for non-zero colors
+      if (!AiNodeIsLinked(imagePlaneShader, "offscreenColor"))
+      {
+         AtRGBA offscreenColor = AiNodeGetRGBA(imagePlaneShader, "offscreenColor");
+         if (offscreenColor.r > AI_EPSILON || offscreenColor.g > AI_EPSILON || offscreenColor.b > AI_EPSILON)
+         {
+            AiNodeSetRGBA(imagePlaneShader, "offscreenColor", offscreenColor.r, offscreenColor.g, offscreenColor.b, 1.f);
+         }
+
+      }*/
+
       if (requestUpdateTx)
       {
          m_impl->m_session->RequestUpdateTx();
@@ -283,6 +295,7 @@ void CImagePlaneTranslator::ExportImagePlane()
 
    float rotate = fnRes.findPlug("rotate", &status).asFloat();
    AiNodeSetFlt(imagePlaneShader, "rotate", rotate);
+
    
 }
 
@@ -294,6 +307,13 @@ void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiAutoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
+
+   data.defaultValue.RGBA() = AI_RGBA_ZERO;
+   data.keyable = true;
+   data.linkable = true;
+   data.name = "aiOffscreenColor";
+   data.shortName = "ai_offrscreen_color";
+   helper.MakeInputRGBA(data);
 }
 
 AtNode*  CImagePlaneTranslator::CreateArnoldNodes()
