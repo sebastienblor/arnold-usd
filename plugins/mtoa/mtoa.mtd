@@ -1315,6 +1315,9 @@
     [attr subsurface_scale]
         min             FLOAT   0.0
         softmax         FLOAT   10.0
+    [attr subsurface_anisotropy]
+        min             FLOAT   -1.0
+        max             FLOAT   1.0
     [attr coat]
         min             FLOAT   0.0
         max             FLOAT   1.0
