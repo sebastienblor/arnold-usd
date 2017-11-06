@@ -1424,6 +1424,7 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetInt(polymesh, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+      AiNodeSetBool(polymesh, "subdiv_frustum_ignore", FindMayaPlug("aiSubdivFrustumIgnore").asBool());
    }
 }
 
@@ -1605,6 +1606,7 @@ void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("subdiv_adaptive_space");
    helper.MakeInput("subdiv_uv_smoothing");
    helper.MakeInput("subdiv_smooth_derivs");
+   helper.MakeInput("subdiv_frustum_ignore");
 
    helper.MakeInput("disp_height");
    helper.MakeInput("disp_padding");

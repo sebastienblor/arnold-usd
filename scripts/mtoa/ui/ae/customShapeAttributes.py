@@ -91,6 +91,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         # TODO: add dicing camera UI
         self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
+        self.addControl("aiSubdivFrustumIgnore ", label="Ignore Frustum")
+        
         self.endLayout()
         
         self.beginLayout('Displacement Attributes', collapse=True)

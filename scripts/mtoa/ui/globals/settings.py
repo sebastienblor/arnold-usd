@@ -871,6 +871,10 @@ def createArnoldSubdivSettings():
                         label="Max. Subdivisions",
                         attribute='defaultArnoldRenderOptions.maxSubdivisions')
 
+    pm.attrControlGrp('sub_frustum_culling',
+                        label="Frustum Culling",
+                        attribute='defaultArnoldRenderOptions.subdivFrustumCulling')
+
     pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
     pm.text('es_subdiv_dicing_camera_text', label="Dicing Camera")
     pm.connectControl('es_subdiv_dicing_camera_text', 'defaultArnoldRenderOptions.subdivDicingCamera')
