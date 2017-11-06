@@ -1,6 +1,6 @@
 //Maya ASCII 2017ff05 scene
 //Name: test.ma
-//Last modified: Mon, Nov 06, 2017 07:57:35 PM
+//Last modified: Mon, Nov 06, 2017 08:34:17 PM
 //Codeset: 1252
 requires maya "2017ff05";
 requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiSkyDomeLight"
@@ -156,6 +156,7 @@ createNode aiCarPaint -n "aiCarPaint1";
 	setAttr ".specular_roughness" 0.5;
 	setAttr ".specular_IOR" 6;
 	setAttr ".flake_color" -type "float3" 0.23100001 0.53305042 1 ;
+	setAttr ".flake_scale" 0.0010000000474974513;
 	setAttr ".flake_density" 0.40000000596046448;
 	setAttr ".flake_normal_randomize" 0.30000001192092896;
 	setAttr ".coat_roughness" 0.0099999997764825821;

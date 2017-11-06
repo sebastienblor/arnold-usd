@@ -40,7 +40,7 @@ blendAttr "flakeLightFacingB" 1;
 blendAttr "flakeFalloff" 1; 
 blendAttr "flakeRoughness" 0.400000006; 
 blendAttr "flakeIOR" 100; 
-blendAttr "flakeScale" 1000; 
+blendAttr "flakeScale" 0.001; 
 blendAttr "flakeDensity" 0; 
 blendAttr "flakeLayers" 1; 
 blendAttr "flakeNormalRandomize" 0.3000000119; 
