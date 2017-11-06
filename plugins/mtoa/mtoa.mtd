@@ -2890,9 +2890,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr specular_color]
         min             FLOAT   0
         max             FLOAT   1
-    [attr specular_ramp]
-        min             FLOAT   0
-        max             FLOAT   1
     [attr specular_light_facing]
         min             FLOAT   0
         max             FLOAT   1
@@ -2905,15 +2902,10 @@ desc STRING "Apply a gamma correction to the color."
     [attr specular_IOR]
         min             FLOAT   0
         softmax         FLOAT   3
-
     [attr transmission_color]
         min             FLOAT   0
         max             FLOAT   1
-
     [attr flake_color]
-        min             FLOAT   0
-        max             FLOAT   1
-    [attr flake_ramp]
         min             FLOAT   0
         max             FLOAT   1
     [attr flake_light_facing]
@@ -2935,7 +2927,7 @@ desc STRING "Apply a gamma correction to the color."
     [attr flake_density]
         min             FLOAT   0
         max             FLOAT   1
-    [attr flake_layer]
+    [attr flake_layers]
         min             INT   1
         softmax         INT   4
     [attr flake_normal_randomize]
