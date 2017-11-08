@@ -6,6 +6,8 @@ class AEaiCarPaintTemplate(ShaderAETemplate):
         self.addSwatch()
         self.beginScrollLayout()
         
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+        
         self.beginLayout("Base", collapse=False)
         self.addControl("base",  label="Weight", annotation="Label Weight")
         self.addControl("base_color", label='Color', annotation="Label Color")
