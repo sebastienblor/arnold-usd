@@ -181,9 +181,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          MDagPath activeCameraPath;
          MStatus viewStatus;
          view = M3dView::active3dView(&viewStatus);
-         if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
-            camerasList = CDagTranslator::GetArnoldNaming(activeCameraPath);
+         MString viewCam;
 
+         if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+            camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
+         
          MDagPath path;
          MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
          
@@ -192,13 +194,25 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          {
             if (dagIterCameras.getPath(path))
             {
+               // we're exporting the cameras if they're *either* accepted by the filter status
+               // *or* if they're set as renderable
                if(arnoldSession->FilteredStatus(path) != MTOA_EXPORT_ACCEPTED)
-                  continue;
+               {
+                  // this camera is hidden, check if it's renderable
+                  MStatus stat;
+                  MFnDagNode cameraNode(path);
+                  MPlug renderable = cameraNode.findPlug("renderable", false, &stat);
+
+                  if (stat != MS::kSuccess || (!renderable.asBool()))
+                     continue;
+               }
+               MString camName = CDagTranslator::GetArnoldNaming(path);
+               if (camName == viewCam) continue; // we've already set this camera in the list
 
                if (camerasList.length() > 0)
                   camerasList += ";";
 
-               camerasList += CDagTranslator::GetArnoldNaming(path);
+               camerasList += camName;
             }
          }
          // giving ARV the list of cameras

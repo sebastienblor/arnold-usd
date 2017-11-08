@@ -975,6 +975,8 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
             
             MStatus stat;
             cameraNode.setObject(path);
+            // Note that some non-renderable cameras are still exported in 
+            // ExportDag, if their filteredStatus is "accepted"
             renderable = cameraNode.findPlug("renderable", false, &stat);
             if (stat == MS::kSuccess && renderable.asBool())
                ExportDagPath(path, true, &stat);
