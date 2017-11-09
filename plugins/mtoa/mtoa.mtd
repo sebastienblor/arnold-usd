@@ -2921,8 +2921,7 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         softmax         FLOAT   100
     [attr flake_scale]
-        min             FLOAT   0
-        softmin         FLOAT   1
+        min             FLOAT   0.000001
         softmax         FLOAT   100
     [attr flake_density]
         min             FLOAT   0
