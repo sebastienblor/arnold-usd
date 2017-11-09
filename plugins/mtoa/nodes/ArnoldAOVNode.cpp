@@ -25,9 +25,12 @@ MObject CArnoldAOVNode::s_filterType;
 MObject CArnoldAOVNode::s_outputs;
 MObject CArnoldAOVNode::s_driver;
 MObject CArnoldAOVNode::s_filter;
+MObject CArnoldAOVNode::s_camera;
 
 MObject CArnoldAOVNode::s_lightPathExpression;
 MObject CArnoldAOVNode::s_lightGroups;
+MObject CArnoldAOVNode::s_globalAOV;
+MObject CArnoldAOVNode::s_lightGroupsList;
 
 
 
@@ -114,6 +117,19 @@ MStatus CArnoldAOVNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_lightGroups);
 
+   s_globalAOV = nAttr.create("globalAov", "ga", MFnNumericData::kBoolean, true);
+   nAttr.setKeyable(false);
+   addAttribute(s_globalAOV);
 
+   s_lightGroupsList = tAttr.create("lightGroupsList", "lgl", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create(""));
+   addAttribute(s_lightGroupsList);
+
+   s_camera = tAttr.create("camera", "cam", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create(""));
+   addAttribute(s_camera);
+  
    return MStatus::kSuccess;
 }

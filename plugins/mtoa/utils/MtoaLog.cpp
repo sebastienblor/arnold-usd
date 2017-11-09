@@ -1,4 +1,5 @@
 #include "MtoaLog.h"
+#include "scene/MayaScene.h"
 #include "render/RenderOptions.h"
 
 #include <maya/MGlobal.h>
@@ -102,4 +103,18 @@ DLLEXPORT void MtoaSetupLogging(int logFlags)
    // AiMsgSetCallback(MtoaLogCallback);
 }
 
+DLLEXPORT bool MtoaTranslationInfo()
+{
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   if (renderSession == NULL)
+      return false;
 
+   return renderSession->RenderOptions()->mtoaTranslationInfo();
+}
+
+DLLEXPORT void MtoaDebugLog(MString log)
+{
+   // Do we want to dump this as a Maya log or as an arnold log ??
+   MGlobal::displayInfo(log);
+   clog<<log.asChar()<<endl;
+}

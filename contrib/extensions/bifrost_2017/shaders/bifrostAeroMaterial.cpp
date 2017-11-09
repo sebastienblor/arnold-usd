@@ -208,7 +208,8 @@ shader_evaluate
       //get Scatter
       AtRGB scatter = AiShaderEvalParamRGB(p_scattering_color) *  AiShaderEvalParamFlt(p_scattering_intensity);
       // offset and density cutoff
-      float directionality = AiShaderEvalParamFlt(p_scattering_directionality);
+      // directionality isn't used ??
+      //float directionality = AiShaderEvalParamFlt(p_scattering_directionality);
       // get Absorb
       AtRGB absorb = AiShaderEvalParamRGB(p_absorption_color) *  AiShaderEvalParamFlt(p_absorption_intensity);
 

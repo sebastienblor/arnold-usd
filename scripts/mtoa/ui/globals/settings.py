@@ -374,6 +374,13 @@ def createArnoldRenderSettings():
                         label='Export All Shading Groups',
                         attribute='defaultArnoldRenderOptions.exportAllShadingGroups')
 
+    pm.attrControlGrp('os_exportFullPaths',
+                        label='Export Full Paths',
+                        attribute='defaultArnoldRenderOptions.exportFullPaths')
+    pm.attrControlGrp('os_exportShadingEngine',
+                        label='Export Shading Engine (Legacy)',
+                        attribute='defaultArnoldRenderOptions.exportShadingEngine')
+
     pm.separator()
 
     enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2
@@ -413,6 +420,12 @@ def createArnoldRenderSettings():
     pm.setParent('..')
 
     pm.frameLayout(label='Callbacks', collapse=True)
+    
+    pm.attrControlGrp(
+            'os_postTranslationCallback',
+            label='Post Translation',
+            attribute='defaultArnoldRenderOptions.PostTranslation')
+    pm.separator()
 
     pm.attrControlGrp(
             'os_iprRefinementStartedCallback',
@@ -858,6 +871,10 @@ def createArnoldSubdivSettings():
                         label="Max. Subdivisions",
                         attribute='defaultArnoldRenderOptions.maxSubdivisions')
 
+    pm.attrControlGrp('sub_frustum_culling',
+                        label="Frustum Culling",
+                        attribute='defaultArnoldRenderOptions.subdivFrustumCulling')
+
     pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
     pm.text('es_subdiv_dicing_camera_text', label="Dicing Camera")
     pm.connectControl('es_subdiv_dicing_camera_text', 'defaultArnoldRenderOptions.subdivDicingCamera')
@@ -1003,7 +1020,7 @@ def createArnoldOverrideSettings():
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
 
     pm.attrControlGrp('force_translate_shading_engines',
-                       attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Translation of Shading Engines')
+                       attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
 
     pm.setParent('..')
 
@@ -1180,7 +1197,11 @@ def createArnoldLogSettings():
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
     pm.setParent('..')
-
+    pm.checkBoxGrp('mtoa_translation_info',
+                    label='MtoA Translation Info')
+    pm.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=1)
+    pm.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=2)
+    
     pm.setUITemplate(popTemplate=True)
     
 def createArnoldErrorHandlingSettings():

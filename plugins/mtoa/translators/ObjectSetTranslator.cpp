@@ -6,6 +6,7 @@
 #include <maya/MObjectSetMessage.h>
 #include <maya/MItDependencyGraph.h>
 #include <maya/MSelectionList.h>
+#include "utils/MtoaLog.h"
 
 void CObjectSetTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -35,8 +36,8 @@ void CObjectSetTranslator::Export(AtNode *set)
    // do we want to fill the member translators here ?
    // FillMembersTranslators();
 
-   AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s).",
-               GetTranslatorName().asChar(), GetMayaNodeName().asChar(), MFnDependencyNode(GetMayaObject()).typeName().asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.translator]  "+GetTranslatorName()+": Maya node "+GetMayaNodeName()+"("+MFnDependencyNode(GetMayaObject()).typeName()+").");
 
 }
 
@@ -45,8 +46,6 @@ void CObjectSetTranslator::AddUpdateCallbacks()
 {
    CNodeTranslator::AddUpdateCallbacks();
 
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add update callbacks on translator %p",
-         GetMayaNodeName().asChar(), GetTranslatorName().asChar(), this);
    MStatus status;
    MCallbackId id;
 
@@ -75,15 +74,15 @@ void CObjectSetTranslator::NodeChanged(MObject& node, MPlug& plug)
    MString plugName = plug.name();
    if ((plug.partialName()=="dsm") || (plug.partialName()=="dnsm"))
    {
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: ignoring plug %s.",
-                  GetMayaNodeName().asChar(), plugName.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr] "+GetMayaNodeName()+" | NodeChanged: ignoring plug "+ plugName);
       return;
    }
    if ((plug.partialName()=="ai_override") || FindMayaPlug("aiOverride").asBool())
    {
       // Only update if THIS set is active (not containing sets)
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: client data is translator %s",
-                       GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr] "+GetMayaNodeName()+" | NodeChanged: client data is translator "+GetTranslatorName());
       
       // Get list of nodes on it
 
@@ -118,9 +117,9 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
    {
       translator->m_membersListDirty = true;
 
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: AttributeChangedCallback %s to or from %s, attributeMessage %i, clientData %p.",
-                 translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 plug.name().asChar(), otherPlug.name().asChar(), msg, clientData);
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+
+            translator->GetTranslatorName()+": AttributeChangedCallback "+plug.name()+" to or from "+otherPlug.name());
       // NOTE: no need for full refresh of set
       // translator->RequestUpdate(clientData);
       // Only refresh new member or removed member
@@ -169,8 +168,8 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
       else if (msg & (MNodeMessage::kAttributeAdded | MNodeMessage::kAttributeRemoved))
       {
          // Some override attribute was added or removed
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Attribute added or removed on %s.",
-                    translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+ translator->GetTranslatorName()+": Attribute added or removed on "+ plug.name());
          // Only need to update if THIS set is active
          if (translator->FindMayaPlug("aiOverride").asBool())
          {
@@ -179,8 +178,8 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
       }
       else
       {
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Ignored on %s.",
-                    translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa.translator.ipr] "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": Ignored on " + plug.name());
          // Should not be necessary, should have triggered nodeDirty callback
          // NodeDirtyCallback(plug.node(), plug, clientData);
       }
@@ -197,9 +196,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
 {
    MStatus stat;
    MString nodeName = MFnDependencyNode(node).name();
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: client data: %p.",
-               nodeName.asChar(), clientData);
-
+   
    CObjectSetTranslator * translator = static_cast< CObjectSetTranslator* >(clientData);
    if (translator != NULL)
    {
@@ -226,16 +223,13 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          MObject linker = plug.node();
          MString linkerName = MFnDependencyNode(linker).name();
          MString plugName = plug.name();
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: found connected light linker node %s downstream.",
-                     nodeName.asChar(), plugName.asChar());
+         
          MStringArray plugNameParts;
          MString plugShortName = plug.partialName();
          plugShortName.split('.', plugNameParts);
          MString leafAttrName = plugNameParts[plugNameParts.length()-1];
          if ((leafAttrName == "olnk") || (leafAttrName == "solk"))
          {
-            AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: set of objects for the light linker %s has changed, updating the objects.",
-                        nodeName.asChar(), linkerName.asChar());
             // If we got a connected light linker downstream, we need to update the set
             // FIXME: we could probably only update the added / removed node if we knew them
             translator->RequestUpdate();
@@ -244,11 +238,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          {
             translator->DirtyElement(GetTranslator(linker)); 
          }
-         else
-         {
-            AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: connection %s is irrelevant and ignored.",
-                        nodeName.asChar(), plugName.asChar());
-         }
+         
       }
    }
    else
@@ -346,8 +336,9 @@ void CObjectSetTranslator::RequestUpdate()
 
 
    // Update means all members should be updated
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate for set updates all set members.",
-              GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.translator.ipr] "+GetMayaNodeName()+" | "+GetTranslatorName()+": RequestUpdate for set updates all set members.");
+              
    
 }
 

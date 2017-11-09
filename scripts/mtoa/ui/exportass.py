@@ -84,6 +84,16 @@ def ToggleSequenceLine(flag):
    cmds.text("oa_exportStepLabel",edit=True,enable=flag)
    cmds.floatField("oa_exportStep",edit=True,enable=flag)
 
+def ShaderToggleOn(*arg):
+   ToggleShader(True)
+   
+def ShaderToggleOff(*arg):
+   ToggleShader(False)
+
+def ToggleShader(flag):
+   cmds.checkBoxGrp("oa_forceTranslateShadingEngines",edit=True,enable= not flag)
+   cmds.checkBoxGrp("oa_export_all_shading_groups",edit=True,enable=  flag)
+      
 def LightToggleOn(*arg):
    ToggleLightLinking(True)
    
@@ -124,6 +134,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
         settings.setdefault('expandProcedurals', cmds.getAttr('%s.expandProcedurals' % optionsNode))
         settings.setdefault('exportAllShadingGroups', cmds.getAttr('%s.exportAllShadingGroups' % optionsNode))
+        settings.setdefault('fullPath', cmds.getAttr('%s.exportFullPaths' % optionsNode))
         settings.setdefault('forceTranslateShadingEngines', cmds.getAttr('%s.forceTranslateShadingEngines' % optionsNode))
         
     return settings
@@ -182,7 +193,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
                          onCommand1=LightToggleOn,
                          offCommand1=LightToggleOff)
         cmds.checkBoxGrp('oa_export_shapes', label1='Shapes', value1=True)
-        cmds.checkBoxGrp('oa_export_shaders', label1='Shaders', value1=True)
+        cmds.checkBoxGrp('oa_export_shaders', label1='Shaders', onCommand1=ShaderToggleOn, offCommand1=ShaderToggleOff, value1=True)
         cmds.checkBoxGrp('oa_export_override', label1='Override Nodes', value1=True)
         cmds.checkBoxGrp('oa_export_drivers', label1='Drivers', value1=True)
         cmds.checkBoxGrp('oa_export_filters', label1='Filters', value1=True)
@@ -195,11 +206,17 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
                          label1='Expand Procedurals',
                          value1=settings.get('expandProcedurals', False))
         cmds.checkBoxGrp('oa_forceTranslateShadingEngines',
-                         label1='Force Translate Shading Engines',
+                         label1='Force Shader Assignments',
                          value1=settings.get('forceTranslateShadingEngines', False))
+
+        shadersOn = cmds.checkBoxGrp('oa_export_shaders', query=True, value1=True)
+        cmds.checkBoxGrp('oa_forceTranslateShadingEngines', edit=True, enable=not shadersOn)
+
+
         cmds.checkBoxGrp('oa_export_all_shading_groups', label1='Export All Shading Groups', 
                         value1=settings.get('exportAllShadingGroups', False))
-        
+        cmds.checkBoxGrp('oa_export_all_shading_groups', edit=True, enable= shadersOn)
+
         cmds.text("oa_exportSeparatorOther",label="")
         lightsOn = cmds.checkBoxGrp('oa_export_lights', query=True, value1=True)
         
@@ -217,7 +234,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, select=1+settings.get('shadowLinks', 0)) 
         cmds.optionMenuGrp('oa_export_shadow_links', edit=True, enable=lightsOn)
         
-        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=False)
+        cmds.checkBoxGrp('oa_export_full_path', label1='Full Paths', value1=settings.get('fullPath', False))
         cmds.textFieldGrp("oa_export_prefix", label="Prefix ", text="")
 
         cmds.setParent('..')      
@@ -293,7 +310,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
          
         settings['expandProcedurals'] = cmds.checkBoxGrp('oa_expandProcedurals', query=True, value1=True)
         settings['forceTranslateShadingEngines'] = cmds.checkBoxGrp('oa_forceTranslateShadingEngines', query=True, value1=True)
-
+        
         settings['fullPath'] = cmds.checkBoxGrp('oa_export_full_path', query=True, value1=True)
         prefix = cmds.textFieldGrp('oa_export_prefix', query=True, text=True)
         if len(prefix) > 0:

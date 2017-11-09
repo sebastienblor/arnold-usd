@@ -13,20 +13,21 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaImagePlaneMtd);
 namespace {
 
 enum ImagePlaneParams {
-    p_filename,
-    p_color,
-    p_color_space,
-    p_display_mode,
-    p_colorGain,
-    p_colorOffset,
-    p_alphaGain,
-    p_coverage,
-    p_coverageOrigin,
-    p_fit_factor,
-    p_translate,
-    p_rotate,
-    p_camera,
-    p_sourceTexture
+   p_filename,
+   p_color,
+   p_color_space,
+   p_display_mode,
+   p_colorGain,
+   p_colorOffset,
+   p_alphaGain,
+   p_coverage,
+   p_coverageOrigin,
+   p_fit_factor,
+   p_translate,
+   p_rotate,
+   p_camera,
+   p_sourceTexture,
+   p_offscreenColor
 };
 
 typedef struct AtImageData
@@ -89,6 +90,7 @@ node_parameters
 
    AiParameterNode("camera", NULL); 
    AiParameterNode("sourceTexture", NULL); 
+   AiParameterRGBA("offscreenColor", 0.0f, 0.0f, 0.0f, 0.0f);
 
    AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
    AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
@@ -168,11 +170,6 @@ shader_evaluate
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
 
-   if (sg->bounces > 1)
-   {
-      sg->out.RGBA() = AI_RGBA_ZERO;
-      return;
-   }
    int displayMode = AiShaderEvalParamInt(p_display_mode);
    if (displayMode <= 1)
    {
@@ -262,14 +259,21 @@ shader_evaluate
       }
       else if (idata->texture_handle != NULL)
       {
+         bool success = true;
          // do texture lookup
          AtTextureParams texparams;
          AiTextureParamsSetDefaults(texparams);
          // setup filter?
-         texparams.wrap_s = AI_WRAP_BLACK;
-         texparams.wrap_t = AI_WRAP_BLACK;
-
-         result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
+         //texparams.wrap_s = AI_WRAP_BLACK;
+         //texparams.wrap_t = AI_WRAP_BLACK;
+         if (sg->u >= 0.f && sg->u <= 1.f && sg->v >= 0.f && sg->v <= 1.f)
+         {
+            result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, &success);
+            if (!success)
+               result = AiShaderEvalParamRGBA(p_offscreenColor);
+         }
+         else
+            result = AiShaderEvalParamRGBA(p_offscreenColor);
       }
 
       sg->u = inU;

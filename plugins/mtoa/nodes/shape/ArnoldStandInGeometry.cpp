@@ -5,6 +5,18 @@
 #include <maya/MPxSurfaceShape.h>
 #include <maya/MPxSurfaceShapeUI.h>
 
+// memcpy between AtMatrix and MMatrix doesn't work (see #3237)
+// so we need to copy each element of the matrix
+static MMatrix AtMatrixToMMatrix(const AtMatrix& mtx)
+{
+   MMatrix res;
+   for (int j = 0; j < 4; ++j)
+      for (int i = 0; i < 4; ++i)
+         res[i][j] = mtx[i][j];
+
+  return res;
+}
+
 CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
 {
    m_BBMin.x = AI_BIG;
@@ -110,28 +122,19 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed) const
 {
    if (transformed)
    {   
-      MBoundingBox bboxRet;
-      for (unsigned int i = 0; i < AiArrayGetNumKeys(p_matrices); ++i)
-      {
-         AtMatrix mtx = AiArrayGetMtx(p_matrices, i);
-         MBoundingBox bbox(MVector(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+      MBoundingBox bbox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 
-         // FIXME Arnold5 is this correct?
-         //
-         // this might be correct now, but it could break in the future.  To
-         // make maintenance easier, I'd create a function that does this so
-         // that if it does break, you only need to fix it in one place.  Something like:
-         // MMatrix mmtx = MMatrixToAtMatrix(mtx);
-         // where
-         // AtMatrix& MMatrixToAtMatrix(MMatrix& mtx) { return reinterpret_cast<MMatrix&>(mtx); }
-         MMatrix mmtx;
-         memcpy(&mmtx, &(mtx[0][0]), sizeof(mtx));
-         bbox.transformUsing(mmtx);
-         bboxRet.expand(bbox);
-      }
-      return bboxRet;
+      // Note that we're no longer considering motion blur for the bbox. Viewport display doesn't deserve 
+      // to loose more time to get the motion data. Other geometries don't show motion neither...
+      MMatrix mmtx = AtMatrixToMMatrix(m_matrix);
+      bbox.transformUsing(mmtx);
+      MPoint min = bbox.min();
+      MPoint max = bbox.max();
+       
+      return bbox;
    }
    else return MBoundingBox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+  
 }
 
 const AtMatrix& CArnoldStandInGeometry::GetMatrix() const
@@ -593,9 +596,7 @@ void CArnoldStandInGInstance::Draw(int DrawMode)
 
 MBoundingBox CArnoldStandInGInstance::GetBBox() const
 {
-   MMatrix mmtx;
-   // FIXME Arnold5 make sure this is the right thing
-   memcpy(&mmtx, &(m_matrix[0][0]), 16 * sizeof(float));
+   MMatrix mmtx = AtMatrixToMMatrix(m_matrix);
 
    if (m_inheritXForm)
    {

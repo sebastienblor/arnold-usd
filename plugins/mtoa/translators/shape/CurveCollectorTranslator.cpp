@@ -407,7 +407,9 @@ static inline bool IsRampConstant(MRampAttribute &rampAttr)
 
 void CCurveCollectorTranslator::Export( AtNode *curve )
 {
-   ExportMatrix(curve);
+   // We don't export the matrix, as it's already considered in each curves inclusiveMatrix.
+   // Since the curve collector is necessarily the curves parent, we would be applying the matrix twice (#3228)
+   //ExportMatrix(curve);
    ProcessRenderFlags(curve);
 
    MPlug plug;
@@ -611,7 +613,9 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
 {
    if (!IsMotionBlurEnabled()) return;
 
-   ExportMatrix(curve);
+   // We don't export the matrix, as it's already considered in each curves inclusiveMatrix.
+   // Since the curve collector is necessarily the curves parent, we would be applying the matrix twice (#3228)
+   //ExportMatrix(curve);
 
    bool deformedPoints = IsMotionBlurEnabled() && IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) && RequiresMotionData();
    if (!deformedPoints)
@@ -656,8 +660,7 @@ void CCurveCollectorTranslator::ExportMotion( AtNode *curve )
 
 void CCurveCollectorTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   if (!IsTransformPlug(plug))
-      SetUpdateMode(AI_RECREATE_NODE);
+   SetUpdateMode(AI_RECREATE_NODE);
    
    CShapeTranslator::NodeChanged(node, plug);
 }

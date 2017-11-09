@@ -79,6 +79,7 @@ MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
 MObject CArnoldOptionsNode::s_log_verbosity;
+MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_atmosphereShader;
@@ -94,8 +95,11 @@ MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_export_all_shading_groups;
+MObject CArnoldOptionsNode::s_export_shading_engine;
+MObject CArnoldOptionsNode::s_export_full_paths;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
+MObject CArnoldOptionsNode::s_postTranslationCallback;
 MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
 MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
 MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
@@ -402,6 +406,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
+   s_attributes.MakeInput("subdiv_frustum_culling");
    s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
@@ -487,6 +492,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
    eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
+
+   s_mtoa_translation_info = nAttr.create("mtoa_translation_info", "mtrinf", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_mtoa_translation_info);
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
@@ -579,7 +588,18 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(false);
    addAttribute(s_export_all_shading_groups);
+
+   s_export_full_paths = nAttr.create("exportFullPaths", "export_full_paths", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_export_full_paths);
+
+   s_export_shading_engine = nAttr.create("exportShadingEngine", "export_shading_engine", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_export_shading_engine);
    
+
    s_version = tAttr.create("version", "version", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_version);
@@ -591,6 +611,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Disable Load", 3);
    eAttr.setDefault(0);
    addAttribute(s_enable_standin_draw);
+
+   s_postTranslationCallback = tAttr.create("PostTranslation", "post_translation", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_postTranslationCallback);
 
    s_IPRRefinementStartedCallback = tAttr.create("IPRRefinementStarted", "ipr_refinement_started", MFnData::kString);
    tAttr.setKeyable(false);

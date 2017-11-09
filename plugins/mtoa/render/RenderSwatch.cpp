@@ -59,8 +59,6 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
    MFnDependencyNode depFn(node);
    MString classification = MFnDependencyNode::classification(depFn.typeName());
 
-   AiMsgDebug("[mtoa] [swatch] [maya %s] of classification %s", depFn.name().asChar(), classification.asChar());
-
    // Classification string contains also the swatch render name, and the : separated parts
    // seem to be shuffled (according to alphabetic order?). So swatch render name is not
    // guaranteed to come in any specific position
@@ -163,9 +161,9 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
       MString arnoldNodeName(AiNodeGetName(arnoldNode));
       if (NULL != arnoldNode) {
          const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-         AiMsgDebug("[mtoa.swatch] %-30s | Exported as %s(%s)",
-               mayaNodeName.asChar(),
-               AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa.swatch] "+ mayaNodeName +" | Exported as "+ MString(AiNodeGetName(arnoldNode))+"("+MString(AiNodeEntryGetTypeName(nodeEntry))+")");
+               
       }
 
       // Assign it in the scene, depending on what it is
@@ -528,9 +526,8 @@ bool CRenderSwatchGenerator::doIteration()
          status = BuildArnoldScene();
          if (MStatus::kSuccess == status)
          {
-            // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
-            // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
-            AiMsgDebug("[mtoa.swatch] %-30s | Rendering", MFnDependencyNode(swatchNode()).name().asChar());
+            if (MtoaTranslationInfo())
+               MtoaDebugLog("[mtoa.swatch] " + MFnDependencyNode(swatchNode()).name() + " | Rendering");
 
             image().create(resolution(),
                            resolution(),

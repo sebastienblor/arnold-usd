@@ -1,0 +1,3 @@
+[node mtoa_test_proc]  
+   maya.name    STRING  "aiMtoaTestProc"
+   maya.procedural  BOOL  true

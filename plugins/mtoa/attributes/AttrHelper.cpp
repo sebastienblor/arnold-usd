@@ -2,6 +2,7 @@
 #include "nodes/ShaderUtils.h"
 #include "attributes/Metadata.h"
 #include "extension/ExtensionsManager.h"
+#include "utils/MtoaLog.h"
 
 #include <ai_metadata.h>
 #include <ai_msg.h>
@@ -99,8 +100,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    }
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
-   // AiMsgDebug("[mtoa.attr] [node %s] [attr %s] Reading metadata", nodeName, paramName);
-
+   
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
@@ -1062,9 +1062,7 @@ MObject CBaseAttrHelper::MakeOutput()
       AiMsgError("[mtoa.attr] Cannot retrieve output metadata from a null node entry.");
       return output;
    }
-   // const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
-   // AiMsgDebug("[mtoa.attr] [node %s] Reading output metadata", nodeName);
-
+   
    CAttrData data;
    data.isArray = false;
    if (!AiMetaDataGetInt(m_nodeEntry, NULL, "maya.output", &data.type))
@@ -1211,7 +1209,8 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    }
    else
    {
-      AiMsgDebug("[mtoa.attr] Added static attribute %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.attr] Added static attribute "+MString(AiNodeEntryGetName(m_nodeEntry))+"."+ MFnAttribute(attrib).name());
    }
    CHECK_MSTATUS(stat);
    return stat;
@@ -1246,7 +1245,8 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    }
    else
    {
-      AiMsgDebug("[mtoa.attr] Added dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.attr] Added dynamic attribute "+fnNode.name()+"."+MFnAttribute(attrib).name());
    }
    CHECK_MSTATUS(stat);
    return stat;
@@ -1293,7 +1293,9 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    
    if (stat == MStatus::kSuccess)
    {
-      AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.attr] Added extension attribute "+nodeType+"."+ attrName);
+
       stat = dgMod.doIt();
    } else
       AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());

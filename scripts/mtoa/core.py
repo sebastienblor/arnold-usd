@@ -128,8 +128,8 @@ def createStandIn(path=None):
 
     standIn = pm.createNode('aiStandIn', n='aiStandInShape')
     # temp fix until we can correct in c++ plugin
-    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
-    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
+#    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
+#    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
     pm.sets('ArnoldStandInDefaultLightSet', add=standIn)
     if path:
         standIn.dso.set(path)
@@ -260,11 +260,21 @@ def createOptions():
     elif not options.drivers.inputs():
         pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
     try:
-        pm.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
+        # we first verify if option's attribute filter is already connected to the right node.
+        # In Maya 2018, connecting to the same attribute sends a dirtiness signal for this attribute,
+        # and therefore restarts the render (#3178)
+        filterInputs = pm.listConnections(options.name() + '.filter', source=True, destination=False)
+        if (filterInputs is None) or (len(filterInputs) == 0) or (filterInputs[0] != filterNode.name()):
+            pm.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
+        
     except:
         pass
     try:
-        pm.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
+        # we first verify if option's attribute driver is already connected to the right node.
+        # Same reason as with filter above (#3178)
+        driverInputs = pm.listConnections(options.name() + '.driver', source=True, destination=False)
+        if driverInputs is None or len(driverInputs) == 0 or (driverInputs[0] != driverNode.name()):
+            pm.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
     except:
         pass
     
@@ -293,7 +303,13 @@ def _doSetDefaultTranslator(obj):
         return
     try:
         default = getDefaultTranslator(obj)
-        pm.api.MFnDependencyNode(obj).findPlug('aiTranslator').setString(default)
+        plug = pm.api.MFnDependencyNode(obj).findPlug('aiTranslator')
+
+        # we're also being called when an object is duplicated. In that case the attribute 
+        # translator is already set to a given value. For newly created objects this value is empty
+        if not plug.isNull() and plug.asString() == "":
+            plug.setString(default)
+
     except RuntimeError:
         pm.warning("failed to set default translator for %s" % pm.api.MFnDependencyNode(obj).name())
 

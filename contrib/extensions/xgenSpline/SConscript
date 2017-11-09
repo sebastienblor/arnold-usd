@@ -22,6 +22,10 @@ if system.os() == 'darwin':
 
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
+maya_version = ext_env['MAYA_VERSION']
+if int(maya_version) >= 201800:
+    local_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
+
 if system.os() =='windows':
    local_env.Append(CPPPATH = ['.'])   
    local_env.Append(LIBS=Split('ai.lib'))
@@ -72,11 +76,20 @@ if system.os() == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
     mayaRoot = mayaRoot.replace('//', '/')
 
+if int(maya_version) >= 201800:
+    proc_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
+
 
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src', 'sggeom')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src', 'xgsculptcore', 'api')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'sggeom')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'xgsculptcore', 'api')])
 proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 if system.os() =='windows':

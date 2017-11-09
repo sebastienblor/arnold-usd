@@ -317,12 +317,11 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    nAttr.setMin(0);
-   nAttr.setSoftMin(0);
    nAttr.setSoftMax(10);
    nAttr.setChannelBox(true);
    addAttribute(s_intensity);
 
-   s_lightVisible = nAttr.create("lightVisible", "lightVisible", MFnNumericData::kBoolean, 0);
+   s_lightVisible = nAttr.create("lightVisible", "light_visible", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setChannelBox(false);

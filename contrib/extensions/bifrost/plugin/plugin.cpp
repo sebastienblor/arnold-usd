@@ -1,18 +1,8 @@
 #include "BifrostTranslator.h"
-
 #include "extension/Extension.h"
-
-#include <maya/MDGMessage.h>
-#include <maya/MNodeMessage.h>
-#include <maya/MFileObject.h>
-#include <maya/MGlobal.h>
-
-// TODO: remove this comment
 
 extern "C"
 {
-
-
    #ifdef ENABLE_BIFROST
    DLLEXPORT void initializeExtension ( CExtension& extension )
    {
@@ -29,7 +19,7 @@ extern "C"
 
    DLLEXPORT void deinitializeExtension ( CExtension& extension )
    {
-      BifrostTranslator::ClearCallbacks();
+      BifrostTranslator::Uninitialize();
    }
 
    #endif

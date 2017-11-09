@@ -30,13 +30,15 @@ os.system(cmd)
 cmd = ('%s %s -ch "R,G,B" -o %s') % (oiiotool_path, os.path.join(test_root_path, "testrenderAovShape.specular_direct.exr"), os.path.join(test_root_path, "testrender9.tif"))
 os.system(cmd)
 
-cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1SG_testrenderTorus2Shape_1001.exr"), os.path.join(test_root_path, "testrender10.tif"))
+cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1_testrenderTorus2Shape_1001.exr"), os.path.join(test_root_path, "testrender10.tif"))
 os.system(cmd)
 
-cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1SG_testrenderTorus3Shape_1001.exr"), os.path.join(test_root_path, "testrender11.tif"))
+cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1_testrenderTorus3Shape_1001.exr"), os.path.join(test_root_path, "testrender11.tif"))
 os.system(cmd)
 
-cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1SG_testrenderTorus3Shape_1012.exr"), os.path.join(test_root_path, "testrender12.tif"))
+cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "aiStandardSurface1_testrenderTorus3Shape_1012.exr"), os.path.join(test_root_path, "testrender12.tif"))
 os.system(cmd)
 
+cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "testrenderSphere3Shape.exr"), os.path.join(test_root_path, "testrender13.tif"))
+os.system(cmd)
 

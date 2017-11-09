@@ -7,6 +7,7 @@
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
 
@@ -35,6 +36,7 @@
 #include <maya/MFileObject.h>
 #include <maya/M3dView.h>
 #include <maya/MAtomic.h>
+#include <maya/MBoundingBox.h>
 
 #include <cstdio>
 #include <assert.h>
@@ -221,20 +223,46 @@ void CRenderSession::DeleteRenderView()
 
 AtBBox CRenderSession::GetBoundingBox()
 {
-   AtBBox bbox;
-   if (AiUniverseIsActive())
-   {
-      // FIXME: we need to start a render to have it actually initialize the bounding box
-      // (in free mode, does nothing but setting the scene up for future ray requests)
-      AiRender(AI_RENDER_MODE_FREE);
-      bbox = AiUniverseGetSceneBounds();
-   }
-   else
-   {
-      AiMsgError("[mtoa] RenderSession is not active.");
-   }
+   // We're no longer asking Arnold to dump the bounding box, because it required to start 
+   // a render in "free" mode, so that subdivision and displacement were applied.
+   // This gave us an exact bounding box, and it used to be necessary when load_at_init = false.
+   // Now that load_at_init was removed, this bounding box information is just used for viewport display,
+   // so we don't need it to be perfectly accurate, and we don't want its computation to be expensive.
+   // So I'm now changing this, so that bounding boxes are computed by what Maya returns us.
 
-   return bbox;
+   const ObjectToTranslatorMap &processedTranslators = CMayaScene::GetArnoldSession()->GetProcessedTranslators();
+   ObjectToTranslatorMap::const_iterator it = processedTranslators.begin();
+   ObjectToTranslatorMap::const_iterator itEnd = processedTranslators.end();
+
+   MBoundingBox globalBox = MBoundingBox(); // creates an empty bounding box 
+   for (; it != itEnd; ++it)
+   {
+      CNodeTranslator *translator = it->second;
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldNode();
+      if (node == NULL) continue;
+
+      if (AiNodeEntryGetType(AiNodeGetNodeEntry(node)) != AI_NODE_SHAPE) continue; // only consider shapes
+
+      CDagTranslator *dagTranslator = static_cast<CDagTranslator*>(translator);
+      const MDagPath &dagPath = dagTranslator->GetMayaDagPath();
+      if (!dagPath.isValid()) continue;
+
+      MStatus status;
+      MFnDagNode fnNode(dagPath, &status);
+      if (status != MS::kSuccess) continue;
+
+      MBoundingBox box = fnNode.boundingBox (&status);
+      if (status != MS::kSuccess) continue;
+
+      box.transformUsing(dagPath.inclusiveMatrix());
+
+      globalBox.expand(box);
+   }
+   AtVector boxmin((float)globalBox.min()[0], (float)globalBox.min()[1], (float)globalBox.min()[2]);
+   AtVector boxmax((float)globalBox.max()[0], (float)globalBox.max()[1], (float)globalBox.max()[2]);
+   return AtBBox(boxmin, boxmax);
 }
 
 // FIXME: will probably get removed when we have proper bounding box format support
@@ -411,7 +439,14 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
-      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA of %d AA", sampling, num_aa_samples);
+      if (MtoaTranslationInfo())
+      {
+         MString log = "[mtoa] Beginning progressive sampling at ";
+         log += sampling;
+         log += " AA of ";
+         log += num_aa_samples;
+         MtoaDebugLog(log);
+      }
       CMayaScene::ExecuteScript(IPRStepStarted, false, true);
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       CMayaScene::ExecuteScript(IPRStepFinished, false, true);
@@ -556,11 +591,12 @@ MString CRenderSession::GetAssName(const MString& customName,
    return assFileName;
 }
 
-void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
+void CRenderSession::DoAssWrite(MString customFileName, const bool compressed, bool writeBox)
 {
    assert(AiUniverseIsActive());
 
    MString fileName;
+   AtNode *options = AiUniverseGetOptions();
 
    // if no custom fileName is given, use the default one in the environment variable
    if (customFileName.length() > 0)
@@ -578,13 +614,14 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
    }
    else
    {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Exporting Maya scene to file \""+ fileName +"\"");
 
       // FIXME this is not the ideal place to set this, but given how renderOptions/sessionOptions are currently 
       // assembled, this is the best place to do it (#2995)
       if ((RenderOptions()->outputAssMask() & AI_NODE_COLOR_MANAGER) == 0)
       {
-         AiNodeSetPtr(AiUniverseGetOptions(), "color_manager", NULL);
+         AiNodeSetPtr(options, "color_manager", NULL);
          // Loop over all shaders + drivers having a parameter "color_space"
          AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHADER | AI_NODE_DRIVER);
          static AtString colorSpaceStr("color_space");
@@ -599,9 +636,68 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
          }
          AiNodeIteratorDestroy(nodeIter);
       }
+
+      // Now save the metadata
+      AtMetadataStore *mds = AiMetadataStore();
+
+      // we're still adding this as an option because it could be expensive on big scenes
+      AtBBox bBox = AI_BBOX_ZERO;
+      if (writeBox)
+      {
+         bBox = GetBoundingBox();
+         MString boundsStr;
+         boundsStr += bBox.min.x;
+         boundsStr += " ";
+         boundsStr += bBox.min.y;
+         boundsStr += " ";
+         boundsStr += bBox.min.z;
+         boundsStr += " ";
+         boundsStr += bBox.max.x;
+         boundsStr += " ";
+         boundsStr += bBox.max.y;
+         boundsStr += " ";
+         boundsStr += bBox.max.z;
+         AiMetadataStoreSetStr(mds, AtString("bounds"), boundsStr.asChar());
+      }
+
+      if (AiNodeLookUpUserParameter(options, "frame"))
+         AiMetadataStoreSetFlt(mds, AtString("frame"), AiNodeGetFlt(options, "frame"));
+
+      if (AiNodeLookUpUserParameter(options, "fps"))
+         AiMetadataStoreSetFlt(mds, AtString("fps"), AiNodeGetFlt(options, "fps"));
+
+      if (AiNodeLookUpUserParameter(options, "render_layer"))
+         AiMetadataStoreSetStr(mds, AtString("render_layer"), AiNodeGetStr(options, "render_layer"));
+
+      MString currentUser;
+      MGlobal::executePythonCommand("import getpass; getpass.getuser();", currentUser);
+      if (currentUser.length() > 0)
+         AiMetadataStoreSetStr(mds, AtString("user"), currentUser.asChar());
+
+
+
+      MString sceneFileName;
+      MGlobal::executeCommand("file -q -sn", sceneFileName);
+      if(sceneFileName.length() > 0)
+         AiMetadataStoreSetStr(mds, AtString("scene"), sceneFileName.asChar());
+
+
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
-      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding());
+      AiASSWriteWithMetadata(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding(), mds);
+      AiMetadataStoreDestroy(mds);
+
+      if (writeBox && getenv("MTOA_EXPORT_ASSTOC"))
+      {
+         int extPos = fileName.rindexW('.');
+         if (extPos < 0)
+            fileName += ".asstoc";
+         else
+            fileName = fileName.substringW(0, extPos) + MString("asstoc");
+
+         WriteAsstoc(fileName, bBox);
+      }
+
    }
 }
 
@@ -662,7 +758,9 @@ void CRenderSession::StartRenderView()
    }
    s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
 
-   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+   if (session)
+      s_renderView->SetFrame((float)session->GetExportFrame());
    
 }
 

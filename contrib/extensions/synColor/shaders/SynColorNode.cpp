@@ -207,7 +207,7 @@ namespace
       SYNCOLOR::PF_RGBA_8i,
       SYNCOLOR::PF_RGB_8i
    };
-
+/*
    const char* pixelFormatStr(const SYNCOLOR::PixelFormat& pixel_format)
    {
       switch(pixel_format)
@@ -222,7 +222,8 @@ namespace
       }
       return "";
    }
-
+*/
+   
 /*   void logger(SYNCOLOR::LogLevel, const char*)
    {
    }

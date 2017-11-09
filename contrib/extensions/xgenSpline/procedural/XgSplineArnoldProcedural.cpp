@@ -1,7 +1,8 @@
 #include <ai.h>
 
-#include <XGen/SgCurve.h>
-#include <XGen/XgSplineAPI.h>
+
+#include <SgCurve.h>
+#include <XgSplineAPI.h>
 
 #include <cstring>
 #include <string>
@@ -158,11 +159,31 @@ private:
         AiNodeSetFlt(_curves, "min_pixel_width", _aiMinPixelWidth);
 
         // Curves mode ("thick", "ribbon", or "oriented")
-        AiNodeSetStr(_curves, "mode", (_aiMode == 1) ? "thick" : "ribbon");
+        AiNodeSetInt(_curves, "mode", _aiMode);
         AiNodeSetFlt(_curves, "motion_start", AiNodeGetFlt(procedural, "motion_start"));
         AiNodeSetFlt(_curves, "motion_end", AiNodeGetFlt(procedural, "motion_end"));
 
     }
+   SgVec3f orientation(const SgVec3f& direction, const SgVec3f* positions, unsigned int i, unsigned int length, const unsigned int offset)
+   {
+       SgVec3f splineCVDirection(1.0f, 1.0f, 1.0f);
+       if (length <= 1)
+       {
+           return splineCVDirection;
+       }
+
+       if (i < length - 1)
+       {
+           splineCVDirection = positions[offset + i + 1] - positions[offset + i];
+       }
+       else
+       {
+           splineCVDirection = positions[offset + i] - positions[offset + i - 1];
+       }
+       
+       return direction * splineCVDirection;
+   }
+
 
     void fillCurves(AtNode* procedural)
     {
@@ -178,6 +199,9 @@ private:
             pointInterpoCount += splineIt.vertexCount() + splineIt.primitiveCount() * 2;
         }
 
+#ifdef XGEN_ARNOLD_ORIENTATIONS
+        bool orient = (AiNodeGetInt(procedural, "ai_mode") == 2);
+#endif        
         // Get the number of motion samples
         const unsigned int steps = _splines.sampleCount();
 
@@ -193,6 +217,17 @@ private:
         SgVec3f*        points      = reinterpret_cast<SgVec3f*>(AiArrayMap(_points));
         float*          radius      = reinterpret_cast<float*>(AiArrayMap(_radius));
         SgVec2f*        uvCoord      = reinterpret_cast<SgVec2f*>(AiArrayMap(_uvCoord));
+
+        std::vector<SgVec3f> orientations;
+        int orientIndex = 0;
+
+
+#ifdef XGEN_ARNOLD_ORIENTATIONS
+        if (orient)
+            orientations.resize(pointInterpoCount, SgVec3f(0.f, 0.f, 0.f));
+        
+#endif
+        
         
         // Fill the array buffers for motion step 0
         for (XgItSpline splineIt = _splines.iterator(); !splineIt.isDone(); splineIt.next())
@@ -201,6 +236,13 @@ private:
             const unsigned int  primitiveCount = splineIt.primitiveCount();
             const unsigned int* primitiveInfos = splineIt.primitiveInfos();
             const SgVec3f*      positions      = splineIt.positions(0);
+
+            const SgVec3f*      directions     = NULL;
+#ifdef XGEN_ARNOLD_ORIENTATIONS
+            if (orient)
+                directions     = splineIt.widthDirection(0);
+#endif
+
             const float*        width          = splineIt.width();
             //const SgVec2f*      texcoords      = splineIt.texcoords();
             const SgVec2f*      patchUVs       = splineIt.patchUVs();
@@ -220,18 +262,35 @@ private:
                 // Add phantom points at the beginning
                 *points++ = phantomFirst(&positions[offset], length);
                 //*wCoord++ = phantomFirst(&texcoords[offset], length)[1];
-
+                SgVec3f direction;
+                if (directions)
+                {
+                   direction = phantomFirst(&directions[offset], length);
+                   orientations[orientIndex++] = orientation(direction, positions, 0, length, offset);
+                }
                 // Copy varying data
                 for (unsigned int i = 0; i < length; i++)
                 {
                     *points++ = positions[offset + i];
                     *radius++ = width[offset + i] * 0.5f;
                     //*wCoord++ = texcoords[offset + i][1];
+
+                   if (directions)
+                   {
+                      direction = directions[offset + i];
+                      orientations[orientIndex++] = orientation(direction, positions, i, length, offset);
+                   }
                 }
 
                 // Add phantom points at the end
                 *points++ = phantomLast(&positions[offset], length);
                 //*wCoord++ = phantomLast(&texcoords[offset], length)[1];
+
+                if (directions)
+                {
+                   direction = phantomLast(&directions[offset], length);
+                   orientations[orientIndex++] = orientation(direction, positions, length - 1, length, offset);
+                }
 
             } // for each primitive
         } // for each primitive batch
@@ -262,6 +321,7 @@ private:
 
                     // Add phantom points at the end
                     *points++ = phantomLast(&positions[offset], length);
+                    
 
                 } // for each primitive
             } // for each primitive batch
@@ -272,6 +332,10 @@ private:
         AiNodeSetArray(_curves, "points", _points);
         AiNodeSetArray(_curves, "radius", _radius);
         AiNodeSetArray(_curves, "uvs", _uvCoord);
+        if (!orientations.empty())
+            AiNodeSetArray(_curves, "orientations", AiArrayConvert((unsigned int)orientations.size(), 1, AI_TYPE_VECTOR, &orientations[0]));
+        
+        
     }
 
     template<typename T>
@@ -313,8 +377,10 @@ private:
 AI_PROCEDURAL_NODE_EXPORT_METHODS(XgSplineProceduralMtd);
 
 
+// FIXME move the parameters here !
 node_parameters
 {
+    AiParameterBool  ("face_camera", false);
 }
 
 procedural_init

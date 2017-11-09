@@ -12,7 +12,7 @@
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
 #include "nodes/shader/ArnoldStandardHairNode.h"
 #include "nodes/ArnoldNodeIDs.h"
-
+#include "utils/MtoaLog.h"
 #include <ai_metadata.h>
 
 // A Maya node class proxy
@@ -38,6 +38,7 @@ CPxMayaNode::CPxMayaNode(const MString &typeName,
    abstract = NULL;
    type = typeNode;
    classification = classif;
+   m_aovShader = false;
 }
 
 /// Read metadata for this Maya node from an arnold node
@@ -158,6 +159,11 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    }
    AiParamIteratorDestroy(paramIt);
 
+   bool aovShader = m_aovShader = false;
+   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "aov_shader", &aovShader))
+      m_aovShader = true;
+   
+
    // Class methods to use to create the Maya node, if none were specified
    // TODO : use some map to make less hardcoded (BuiltinMayaNodes or BuiltinMayaTranslators)
    // we could also let type to MPxNode::kLast et let manager
@@ -165,6 +171,8 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    // might be useful to extensions anyway.
    MString drawdbClassification = "";
    
+   bool isAutoProcedural = false;
+
    AtString drawdbClassificationMtd;
    if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.drawdb", &drawdbClassificationMtd))
    {
@@ -233,19 +241,13 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "shape")
       {
-         bool createProcedural = false;
-         if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.procedural", &createProcedural) && createProcedural)
+         if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.procedural", &isAutoProcedural) && isAutoProcedural)
          {
             creator    = CArnoldProceduralNode::creator;
             initialize = CArnoldProceduralNode::initialize;
             abstract   = &CArnoldProceduralNode::s_abstract;
          }
-
-         // TODO : can be expanded to allow base custom shape too
-         // can easily add this to CPxMayaNode
-         // MCreatorFunction     uiCreatorFunction,
       }
-      // No default strategy to create the rest
    }
    // classification string if none is stored
    if (classification.numChars() == 0)
@@ -267,9 +269,9 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          }
       }
       // should we use swatch to preview this node
-      bool doSwatch;
-      if (!AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch))
-         doSwatch = true;
+      bool doSwatch = (!isAutoProcedural); // we don't want swatches on procedurals by default
+      AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch); 
+      
       if (strlen(classificationMtd))
       {
          classification = MString(classificationMtd);
@@ -292,7 +294,8 @@ void CPxMayaNode::RegisterAOV(const MString &aovName,
    data.attribute = aovAttr;
    data.name = aovName;
    data.type = dataType;
-   AiMsgDebug("[mtoa] [%s] [node %s] Registered AOV \"%s\"",
-             provider.asChar(), name.asChar(), aovName.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] ["+provider+"] [node "+name+"] Registered AOV \""+aovName+"\"");
+   
    m_aovs.push_back(data);
 }

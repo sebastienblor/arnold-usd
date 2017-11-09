@@ -53,7 +53,9 @@ CRenderOptions::CRenderOptions()
   m_force_translate_shading_engines(false),
   m_use_existing_tiled_textures(true),
   m_autotx(true),
-  m_multiCameraRender(false)
+  m_multiCameraRender(false),
+  m_mtoa_translation_info(false),
+  m_exportShadingEngine(false)
 {}
 
 MStatus CRenderOptions::GetFromMaya()
@@ -183,6 +185,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
       m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
+      m_mtoa_translation_info = fnArnoldRenderOptions.findPlug("mtoa_translation_info").asBool();
       
       m_autotx = fnArnoldRenderOptions.findPlug("autotx").asBool();
 
@@ -191,6 +194,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
+      m_exportShadingEngine = fnArnoldRenderOptions.findPlug("exportShadingEngine").asBool();
 
 
       m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file").asBool();

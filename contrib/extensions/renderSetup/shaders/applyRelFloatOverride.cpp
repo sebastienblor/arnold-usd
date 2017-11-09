@@ -9,7 +9,7 @@ node_parameters
    AiParameterFlt("multiply", 0.0f);
    AiParameterFlt("offset", 0.0f);
    AiParameterBool("enabled", false);
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "applyRelFloatOverride");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 IMPLEMENT_APPLY_REL_OVERRIDE_SHADER(FLT, AiShaderEvalParamFlt)

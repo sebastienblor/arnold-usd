@@ -1,0 +1,57 @@
+pymel.core : INFO : Updating pymel with pre-loaded plugins: renderSetup
+Warning: file: C:/Program Files/Autodesk/Maya2017/scripts/startup/initialStartup.mel line 179: Y-axis is already the Up-axis
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiStandIn.dso' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 8: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 13: filePathEditor: Attribute 'svgToPoly.svgFilepath' is invalid or is not designated 'usedAsFilename'.
+AbcExport v1.0 using Alembic 1.5.8 (built Dec 24 2015 17:28:19)
+Warning: file: C:/Program Files/Autodesk/Maya2017/scripts/others/typeInitPlugin.mel line 39: filePathEditor: Attribute 'svgToPoly.svgFilepath' and label 'SVG' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+
+API error detected in plugins\mtoa\Main.cpp at line 631
+: (kFailure): Unexpected Internal Failure
+00:00:00   437MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138176 to associated Maya type name v5proc_procedural.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Warning: file: C:/Program Files/Autodesk/Maya2017/scripts/startup/autoLoadPlugin.mel line 32: Loading plug-in "mtoa" has resulted in changes to the scene that may need to be saved.
+AbcImport v1.0 using Alembic 1.5.8 (built Dec 24 2015 17:28:19)
+Error: line 1: Cannot find procedure "nodeEdRefreshVnnNodeTreeListers".
+Warning: Plug-in, "AbcExport.mll", is already loaded.  Skipped.
+Warning: Plug-in, "mtoa.mll", is already loaded.  Skipped.
+hlp = xgenm.xmaya.xgmArchiveExport.xgmArchiveExport()
+hlp.processDir( 'Archive', 'D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/', ['D:/arnold/mtoa/testsuite/test_0240/data/archive_source.ma'], ['|pCone1'], 0, '0.0', '0.0', 1.000000, 1.000000 )
+[  0.00%] creating sub directoriesD:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/
+[  0.00%]  processing file D:/arnold/mtoa/testsuite/test_0240/data/archive_source.ma
+[  0.00%]   processing scene D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/Archive
+[  0.00%]    openScene D:/arnold/mtoa/testsuite/test_0240/data/archive_source.ma
+File read in  0.18 seconds.
+[  0.00%]    fixNodeToShapeParent objs - ['|pCone1']
+[  0.00%]    fixNodeToShapeParent shapeParentObj - ['|pCone1']
+[ 25.00%]    processScene 1 ['|pCone1']
+[ 25.00%]    processScene 2 ['|pCone1']
+[  0.00%]     splitByShadingGroups ['|pCone1']
+[  0.00%]     getSGsFromObj |pCone1
+[  0.00%]     getSGsFromObj( |pCone1 ) returned [u'aiStandardSurface1SG']
+[ 12.50%]    processScene ['|pCone1']
+[ 12.50%]    before archiveExport ['|pCone1']
+[  0.00%]     archiveExport alembic object: ['|pCone1']
+[  0.00%]     abcExport D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/abc/Archive.abc
+[  0.00%]     abcExport objects ['|pCone1']
+[  0.00%]     abcExport select objects [u'|pCone1|pConeShape1']
+[  0.00%]     abcExport -selection -uvWrite -frameRange 1.000000 1.000000 -worldSpace -file "D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/abc/Archive.abc"
+[  0.00%]     getSGsFromObj |pCone1
+[ 25.00%]     archiveExport for callbacks
+[  0.00%]      assExport D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/ass/Archive
+[  0.00%]      assExport D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/ass/Archive__pCone1.ass.gz
+[  0.00%]      getSGsFromObj |pCone1
+[ 25.00%]     archiveExport for callbacks finished
+[  8.33%]    before materialExport ['|pCone1']
+[  8.33%]    materialExport D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/materials/Archive.ma
+[  8.33%]    getSGsFromObj |pCone1
+[100.00%]  done in 0.336 sec D:/arnold/mtoa/testsuite/test_0240/data/xgen/archives/

@@ -2,36 +2,38 @@
 
 #include "ShapeTranslator.h"
 
-class CArnoldProceduralTranslator : public CShapeTranslator
+/** 
+ *   Base Translator class for nodes exporting a procedural
+ *
+ **/ 
+class DLLEXPORT CProceduralTranslator : public CShapeTranslator
 {
 public:
-
    static void* creator()
    {
-      return new CArnoldProceduralTranslator();
+      return new CProceduralTranslator();
    }
-   static void NodeInitializer(CAbTranslator context);
-
-//------- Derived from CNodeTranslator   
    virtual AtNode* CreateArnoldNodes();
-   virtual void Export(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode);
+   virtual void ProcessRenderFlags(AtNode* node);
 
+   static void NodeInitializer(CAbTranslator context);
+   void Export(AtNode* anode);
+   void ExportMotion(AtNode* anode);
+   
 protected:
-   CArnoldProceduralTranslator() :
+   CProceduralTranslator() :
       CShapeTranslator()
    {}
    
-   // Method used to set the min/max parameters for this procedural
-   //void ExportBoundingBox(AtNode* procedural);
-   // Export this node as an instance (if IsMasterInstance() is false)
-   void ExportInstance(AtNode *instance);
-   
-//-------- Derived from CDagTranslator
-   // Export the shaders for this Geometry
    virtual void ExportShaders();
 
-   virtual void NodeChanged(MObject& node, MPlug& plug);
+   AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
+   AtNode* ExportProcedural(AtNode* procedural);
+   AtByte ComputeOverrideVisibility();
+   virtual void RequestUpdate();
 
+   MPlug FindProceduralPlug(const char *attrName);
 
+protected:
+   MFnDagNode m_DagNode;
 };

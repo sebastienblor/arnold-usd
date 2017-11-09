@@ -5,6 +5,7 @@
 */
 #include "ArnoldRenderViewCmd.h"
 #include "scene/MayaScene.h"
+#include "translators/DagTranslator.h"
 
 #include <ai_universe.h>
 
@@ -24,6 +25,7 @@
 #endif
 */
 static bool s_wasVisible = false;
+static bool s_arvExists = false;
 
 // Return the default camera
 static MDagPath GetDefaultCamera()
@@ -145,7 +147,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MSelectionList selected;
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
-      
+
 
    // What mode are we in?
    if (mode == "render" || mode == "open")
@@ -165,10 +167,56 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
          CRenderSession *renderSession = CMayaScene::GetRenderSession();
          renderSession->UpdateRenderOptions();
+         renderSession->RenderOptions()->UpdateImageDimensions();
          renderSession->StartRenderView();
+         s_arvExists = true;
          renderSession->SetRenderViewOption("Run IPR", "0");
          renderSession->SetRenderViewOption("Full IPR Update", "1");
+         CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+
+         // get cameras in the scene
+         MString camerasList;
          
+         M3dView view;
+         MDagPath activeCameraPath;
+         MStatus viewStatus;
+         view = M3dView::active3dView(&viewStatus);
+         MString viewCam;
+
+         if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+            camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
+         
+         MDagPath path;
+         MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+         
+         MFnDagNode cameraNode;
+         for (; (!dagIterCameras.isDone()); dagIterCameras.next())
+         {
+            if (dagIterCameras.getPath(path))
+            {
+               // we're exporting the cameras if they're *either* accepted by the filter status
+               // *or* if they're set as renderable
+               if(arnoldSession->FilteredStatus(path) != MTOA_EXPORT_ACCEPTED)
+               {
+                  // this camera is hidden, check if it's renderable
+                  MStatus stat;
+                  MFnDagNode cameraNode(path);
+                  MPlug renderable = cameraNode.findPlug("renderable", false, &stat);
+
+                  if (stat != MS::kSuccess || (!renderable.asBool()))
+                     continue;
+               }
+               MString camName = CDagTranslator::GetArnoldNaming(path);
+               if (camName == viewCam) continue; // we've already set this camera in the list
+
+               if (camerasList.length() > 0)
+                  camerasList += ";";
+
+               camerasList += camName;
+            }
+         }
+         // giving ARV the list of cameras
+         renderSession->SetRenderViewOption("Cameras", camerasList);
          CMayaScene::End();
          return MS::kSuccess;
       }
@@ -190,6 +238,10 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       if (!defaultCamera.isValid())
          defaultCamera = GetDefaultCamera();
 
+      // only set the default (view) camera when we run ARV
+      // for the first time
+      bool setDefaultCamera = !s_arvExists;
+
       startRenderView(defaultCamera, width, height);
 
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -204,6 +256,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       // Set the render session camera.
       renderSession->SetCamera(defaultCamera);
 
+      MString renderCamera = CDagTranslator::GetArnoldNaming(defaultCamera);
+      
+      if (setDefaultCamera)
+         renderSession->SetRenderViewOption("Camera", renderCamera);
+      
       if (is_region)
       {
          renderSession->SetRegion(region[0], region[2], region[1], region[3]);
@@ -261,6 +318,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
 void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, int height)
 {   
+   s_arvExists = true;
    CMayaScene::End();
    
    MCommonRenderSettingsData renderGlobals;
@@ -289,6 +347,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    CMayaScene::GetRenderSession()->SetResolution(width, height);
    CMayaScene::GetRenderSession()->SetCamera(camera);
 
+   s_arvExists = true;
    CMayaScene::GetRenderSession()->StartRenderView();
 
 

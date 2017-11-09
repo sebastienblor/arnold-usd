@@ -11,6 +11,7 @@
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
 #include "utils/MakeTx.h"
+#include "utils/MtoaLog.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -121,19 +122,24 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
    if (translator == NULL)
    {
       if (stat != NULL) *stat = MStatus::kNotImplemented;
-      AiMsgDebug("[mtoa.session]     %-30s | Ignoring DAG node of type %s", name.asChar(), type.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+ name + " | Ignoring DAG node of type "+ type);
+
       AiMsgTab(-1);
       return NULL;
    }
    else if (!translator->m_impl->IsMayaTypeDag())
    {
       if (stat != NULL) *stat = MStatus::kInvalidParameter;
-      AiMsgDebug("[mtoa] translator for %s of type %s is not a DAG translator", name.asChar(), type.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] translator for "+ name+" of type "+type+" is not a DAG translator");
+
       AiMsgTab(-1);
       return NULL;
    }
 
-   AiMsgDebug("[mtoa.session]     %-30s | Exporting DAG node of type %s", name.asChar(), type.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session]     "+name+" | Exporting DAG node of type "+ type);
 
    CNodeAttrHandle handle(dagPath);
    MString hashCode;
@@ -144,7 +150,8 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
 
    if (it != m_processedTranslators.end())
    {
-      AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+ name+" | Reusing previous export of DAG node of type "+type);
 
       delete translator;
       status = MStatus::kSuccess;
@@ -154,8 +161,6 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
 
    if (arnoldNode == NULL)
    {
-      if (initOnly)
-         AiMsgDebug("[mtoa.session]     %-30s | Initializing DAG node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
       translator->m_impl->Init(this, dagPath);
       if (it != m_processedTranslators.end())
@@ -182,7 +187,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool init
 
 // Export a plug (dependency node output attribute)
 //
-CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
+CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, 
                                    bool initOnly, int instanceNumber, MStatus *stat)
 {
    //instanceNumber is currently used only for bump. We provide a specific instance number
@@ -215,7 +220,9 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    if (translator == NULL)
    {
       status = MStatus::kNotImplemented;
-      AiMsgDebug("[mtoa.session]     %30s: Maya node type not supported: %s", name.asChar(), type.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+name+": Maya node type not supported: "+type);
+
       AiMsgTab(-1);
       return NULL;
    }
@@ -237,15 +244,16 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       translator = NULL;
       status = MStatus::kNotImplemented;
       MFnDependencyNode fnNode(mayaNode);
-      AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", name.asChar(),
-                 resultPlug.partialName(false, false, false, false, false, true).asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] [maya "+name+"] Invalid output attribute: \""+ resultPlug.partialName(false, false, false, false, false, true) +"\"");
       AiMsgTab(-1);
       return NULL;
    }
 
    MString plugName = resultPlug.name();
-   AiMsgDebug("[mtoa.session]     %-30s | Exporting plug %s for type %s",
-      name.asChar(), plugName.asChar(), type.asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session]     "+name+" | Exporting plug "+plugName+" for type "+type);
+
    CNodeAttrHandle handle;
    MString handleCode;
    if (translator->DependsOnOutputPlug())
@@ -263,7 +271,8 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
 
    if (it != m_processedTranslators.end())
    {
-      AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of node of type %s", name.asChar(), type.asChar());
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.session]     "+name+" | Reusing previous export of node of type "+type);
 
       delete translator;
       status = MStatus::kSuccess;
@@ -273,10 +282,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    
    if (arnoldNode == NULL)
    {
-      if (initOnly)
-         AiMsgDebug("[mtoa.session]     %-30s | Initializing node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
-      translator->m_impl->SetShadersList(nodes);
       translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true), instanceNumber);
       if (it != m_processedTranslators.end())
       {
@@ -294,28 +300,6 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       }
       if (!initOnly)
          arnoldNode = translator->m_impl->DoExport();
-   }
-   if (arnoldNode != NULL)
-   {
-      if (nodes != NULL)
-      {
-         nodes->insert(translator->m_impl->m_atNode);
-
-         if (translator->m_impl->m_additionalAtNodes)
-         {
-            unordered_map<std::string, AtNode*>::iterator nodeIt;
-            for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
-            {
-               if (nodeIt->second != NULL && nodeIt->second != translator->m_impl->m_atNode)
-                  nodes->insert(nodeIt->second);
-            }         
-         }
-      }
-      if (aovs != NULL)
-      {
-         // only ShadingEngine doesn't TrackAOVs as it's the root of the shading tree
-         translator->m_impl->TrackAOVs(aovs);
-      }
    }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
@@ -520,14 +504,9 @@ MStatus CArnoldSession::UpdateLightLinks()
          m_arnoldLightLinks.ParseLights();
       }
 
-      if (MS::kSuccess == status)
-      {
-         AiMsgDebug("[mtoa] Parsed light linking information for %i lights", m_numLights);
-      }
-      else
-      {
+      if (MS::kSuccess != status)
          AiMsgError("[mtoa] Failed to parse light linking information for %i lights", m_numLights);
-      }
+      
    }
    else
    {
@@ -535,6 +514,9 @@ MStatus CArnoldSession::UpdateLightLinks()
    }
 
    FlagLightLinksDirty(false);
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.sesion]    Updating Light-linking information");
+
    return status;
 }
 
@@ -626,9 +608,11 @@ AtNode* CArnoldSession::ExportOptions()
       return NULL;
    }
    MFnDependencyNode fnNode(options);
-   AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
+   if(MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa] Exporting Arnold options "+ fnNode.name());
+
    MPlug optPlug = fnNode.findPlug("message");
-   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, false);
+   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
 
    ExportColorManager();
 
@@ -652,7 +636,7 @@ AtNode *CArnoldSession::ExportColorManager()
       activeList.getDependNode(0,colorMgtObject);
       MFnDependencyNode fnSNode(colorMgtObject);
       MPlug mgtPlug = fnSNode.findPlug("message");
-      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, NULL, NULL, false);
+      CNodeTranslator* syncolorTr = ExportNode(mgtPlug, false);
 
       if(syncolorTr)
          return syncolorTr->GetArnoldNode();
@@ -679,11 +663,21 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       unsigned int ns = selected->length();
       status = FlattenSelection(selected, false); // false = don't skip root nodes (ticket #1061)
       unsigned int fns = selected->length();
-      AiMsgDebug("[mtoa] Exporting selection (%i:%i)", ns, fns);
+
+      if (MtoaTranslationInfo())
+      {
+         MString log = "[mtoa] Exporting selection (";
+         log += ns;
+         log += ":";
+         log += fns;
+         log += ")";
+         MtoaDebugLog(log);
+      }
    }
    else
    {
-      AiMsgDebug("[mtoa] Exporting scene");
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa] Exporting scene");
    }
 
    // Set up export options
@@ -693,7 +687,12 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
 
-   AiMsgDebug("[mtoa.session]     Initializing at frame %f", GetExportFrame());
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa.session]     Initializing at frame ";
+      log += GetExportFrame();
+      MtoaDebugLog(log);
+   }
 
    ExportOptions();  // inside loop so that we're on the proper frame
 
@@ -772,7 +771,30 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          shgElem.add(shadingGroups[shg]);
          MPlug shgPlug;
          shgElem.getPlug(0, shgPlug);
-         ExportNode(shgPlug);
+         // Since we no longer export MayaShadingEngine, we actually want to export the assigned shaders
+         MFnDependencyNode shEngineNode(shgPlug.node());
+         MPlugArray connections;
+         MStringArray shaderAttrs;
+         shaderAttrs.append("aiSurfaceShader");
+         shaderAttrs.append("surfaceShader");
+         shaderAttrs.append("aiVolumeShader");
+         shaderAttrs.append("volumeShader");
+         shaderAttrs.append("displacementShader");
+         for (unsigned int a = 0; a < shaderAttrs.length(); a++)
+         {
+            MPlug shaderPlug = shEngineNode.findPlug(shaderAttrs[a]);
+            if (!shaderPlug.isNull())
+            {
+               shaderPlug.connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  ExportNode(connections[0]);
+                  if (shaderAttrs[a] == MString("aiSurfaceShader") ||
+                     shaderAttrs[a] == MString("aiVolumeShader"))
+                     a++; // if an "ai" connection was found, skip the maya native one
+               }
+            }
+         }
       }
    }
 
@@ -836,7 +858,17 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
+
+         if (MtoaTranslationInfo())
+         {
+            MString log = "[mtoa.session]     Exporting step ";
+            log += step + 1;
+            log += " of ";
+            log += numSteps;
+            log += " at frame ";
+            log +=  m_motion_frames[step];
+            MtoaDebugLog(log);
+         }
          
          // then, loop through the already processed dag translators and export for current step
          // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
@@ -943,6 +975,8 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
             
             MStatus stat;
             cameraNode.setObject(path);
+            // Note that some non-renderable cameras are still exported in 
+            // ExportDag, if their filteredStatus is "accepted"
             renderable = cameraNode.findPlug("renderable", false, &stat);
             if (stat == MS::kSuccess && renderable.asBool())
                ExportDagPath(path, true, &stat);
@@ -1418,6 +1452,28 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
    // Set this translator as being in the update list, to avoid useless future signals
    translator->m_impl->m_inUpdateQueue = true;   
 
+   if (MtoaTranslationInfo())
+   {
+      MString log ="[mtoa.session]    Queuing "+ translator->GetMayaNodeName()+" for "; 
+      switch(translator->m_impl->m_updateMode)
+      {
+         default:
+         case CNodeTranslator::AI_UPDATE_ONLY:
+            log += " Update";
+            break;
+         case CNodeTranslator::AI_RECREATE_NODE:
+            log += " Re-generation";
+            break;
+         case CNodeTranslator::AI_RECREATE_TRANSLATOR:
+            log += " Translator re-generation";
+            break;
+         case CNodeTranslator::AI_DELETE_NODE:
+            log += "Deletion";
+            break;
+      }
+      MtoaDebugLog(log);
+   }
+
    // add this translator to the list of objects to be updated in next DoUpdate()
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
 }
@@ -1430,6 +1486,11 @@ void CArnoldSession::RequestUpdate()
 
 void CArnoldSession::DoUpdate()
 {
+   bool mtoa_translation_info = MtoaTranslationInfo();
+
+   if (mtoa_translation_info)
+      MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
+
    MStatus status;
    assert(AiUniverseIsActive());
 
@@ -1458,6 +1519,9 @@ void CArnoldSession::DoUpdate()
 
    if (m_updateMotionData)
    {  
+      if (mtoa_translation_info)
+         MtoaDebugLog("[mtoa.session]    Updating Motion Blur data");
+
       std::vector<bool> prevRequiresMotion;
       prevRequiresMotion.reserve(m_processedTranslators.size());
 
@@ -1509,6 +1573,9 @@ void CArnoldSession::DoUpdate()
 
    if (m_updateOptions)
    {
+      if (mtoa_translation_info)
+         MtoaDebugLog("[mtoa.session]     Updating Scene Options");
+
       CRenderSession *renderSession = CMayaScene::GetRenderSession();
       renderSession->UpdateRenderOptions();
       m_updateOptions = false;
@@ -1585,6 +1652,9 @@ UPDATE_BEGIN:
          // check its update mode
          if(translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
          {
+            if (mtoa_translation_info)
+               MtoaDebugLog("[mtoa.ipr]   Deleting and recreating arnold node for "+ translator->GetMayaNodeName());
+
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
             translator->Delete();
@@ -1604,6 +1674,8 @@ UPDATE_BEGIN:
 
          } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
+            if (mtoa_translation_info)
+               MtoaDebugLog("[mtoa.ipr]   Deleting arnold node for "+ translator->GetMayaNodeName());
             translator->Delete();
             // the translator has already been removed from our list
             //m_processedTranslators.erase(handle);
@@ -1615,6 +1687,8 @@ UPDATE_BEGIN:
          }  
          else
          {  
+            if (mtoa_translation_info)
+               MtoaDebugLog("[mtoa.ipr]   Updating arnold node for "+ translator->GetMayaNodeName());
             // AI_UPDATE_ONLY => simple update
             if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && translator->RequiresMotionData())
             {
@@ -1661,7 +1735,9 @@ UPDATE_BEGIN:
             if (MStatus::kSuccess == status)
             {
                name = path.partialPathName();
-               AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
+               if (mtoa_translation_info)
+                  MtoaDebugLog("[mtoa] Exported new node: "+name);
+
                newDag = true;
                translatorsToUpdate.push_back(dagTr);
                if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
@@ -1686,7 +1762,9 @@ UPDATE_BEGIN:
                   if (dagTr)
                   {
                      name = shapePath.partialPathName();
-                     AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
+                     if (mtoa_translation_info)
+                        MtoaDebugLog("[mtoa] Exported new node: "+ name);
+
                      newDag = true;
                      
                      translatorsToUpdate.push_back(dagTr);
@@ -1711,6 +1789,13 @@ UPDATE_BEGIN:
    
    // Now update all the translators in our list
 
+   if (mtoa_translation_info)
+   {
+      MString log = "[mtoa.session]    Updating ";
+      log += (int)translatorsToUpdate.size();
+      log += " nodes at current frame";
+      MtoaDebugLog(log);
+   }
    //-------- Exporting all translators at Current Frame
    if (translatorsToUpdate.size() > previousUpdatedTranslators)
    {
@@ -1781,7 +1866,17 @@ UPDATE_BEGIN:
          if (step == (unsigned int)currentFrameIndex)
             continue; // we have already processed this step during the "current frame export"
 
-         AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
+         if (mtoa_translation_info)
+         {
+            MString log = "[mtoa.session]     Updating step ";
+            log += step;
+            log += " at frame ";
+            log += m_motion_frames[step];
+            log += " for ";
+            log += (int)translatorsToUpdate.size();
+            log += " nodes";
+            MtoaDebugLog(log);
+         }
 
          // if none of the objects arrays have proven to be animated, 
          // we don't need to change the current frame. However we still need to process
@@ -1881,7 +1976,8 @@ void CArnoldSession::ClearUpdateCallbacks()
 ///
 void CArnoldSession::SetExportCamera(MDagPath camera)
 {
-   AiMsgDebug("[mtoa.session] Setting export camera to \"%s\"", camera.partialPathName().asChar());
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session] Setting export camera to \""+ camera.partialPathName() + "\"");
 
    // first we need to make sure this camera is properly exported
    if (camera.isValid())
@@ -2142,6 +2238,9 @@ void CArnoldSession::ExportTxFiles()
 
    if (useTx == false && autoTx == false) return;
 
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.session]    Updating TX files");
+
    const MStringArray &searchPaths = GetTextureSearchPaths();
 
    bool progressBar = autoTx && (MGlobal::mayaState() == MGlobal::kInteractive);
@@ -2250,7 +2349,7 @@ void CArnoldSession::ExportTxFiles()
          // already dealt with this filename, skip the auto-tx
          if (colorSpaceStr != it->second)
          {
-            AiMsgDebug("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
+            AiMsgWarning("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
          }
 
          fileAutoTx = false; // => we don't want that texture to be converted to TX   
@@ -2371,7 +2470,8 @@ void CArnoldSession::ExportTxFiles()
          AiMsgError("[maketx] Couldn't convert the texture to TX %s", source_filenames[index]);
       else if (status[index] == AiTxUpdated)
       {
-         AiMsgInfo("[maketx] Successfully converted texture to TX %s", source_filenames[index]);
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[maketx] Successfully converted texture to TX " + MString(source_filenames[index]));
 
 
          if ((progressBar) && (!progressStarted))
@@ -2589,8 +2689,16 @@ static unordered_map<AtNode*, SessionProceduralData*> s_registeredProcedurals;
 // Since Arnold doesn't support deleting nodes properly, we must also re-generate all the 
 // procedurals connected to one of these nodes about to be deleted
 void CArnoldSession::UpdateProceduralReferences()
-{
+{   
    if (m_proceduralsToUpdate.empty()) return;
+
+   if (MtoaTranslationInfo())
+   {
+      MString log = "[mtoa.session]    Need to updated references for ";
+      log += (int)m_proceduralsToUpdate.size();
+      log += "procedurals in the scene";
+      MtoaDebugLog(log);
+   }
    // ok folks, some procedurals are being re-generated here.
    // This means we have to deal with possible translators dangling references
      

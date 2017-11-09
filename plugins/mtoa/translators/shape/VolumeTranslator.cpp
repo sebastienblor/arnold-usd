@@ -116,12 +116,6 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
                fnDGNode.name().asChar());*/
          AiNodeSetPtr(volume, "shader", NULL);
       }
-      if (meshShaders.size() > 0)
-      {
-         AiNodeDeclare(volume, "mtoa_shading_groups", "constant ARRAY NODE");
-         AiNodeSetArray(volume, "mtoa_shading_groups",
-                        AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
-      }
    }
 }
 /*

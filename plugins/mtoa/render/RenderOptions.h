@@ -214,6 +214,12 @@ public:
       m_force_translate_shading_engines = force_translate_shading_engines;
    }
 
+   bool mtoaTranslationInfo() const
+   {
+      return m_mtoa_translation_info;
+   }
+
+   
    MStatus GetFromMaya();
 
    void SetupLog() const;
@@ -228,6 +234,11 @@ public:
    MString GetPluginSearchPath() const { return m_plugin_searchpath; }
    int GetLogConsoleVerbosity() const;
    int GetLogFileVerbosity() const;
+
+   // ideally this parameter should be in SessionOptions, but it's a temporary option
+   // to workaround the MayaShadingEngine removal in MtoA 2.1.0, without breaking 
+   // the binary compatibility
+   bool GetExportShadingEngine() const {return m_exportShadingEngine;}
 
 private:
 
@@ -290,4 +301,6 @@ private:
    bool m_progressive_rendering;
    bool m_isAnimated;
    bool m_multiCameraRender;  
+   bool m_mtoa_translation_info;
+   bool m_exportShadingEngine;
 };

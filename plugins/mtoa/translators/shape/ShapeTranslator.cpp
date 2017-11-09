@@ -10,6 +10,7 @@
 
 #include <common/UtilityFunctions.h>
 #include <utils/HashUtils.h>
+#include "utils/MtoaLog.h"
 
 void CShapeTranslator::Init()
 {
@@ -99,8 +100,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
    MString nodeType = helper.GetMayaNodeTypeName();
-   AiMsgDebug("[mtoa] Creating common Arnold shape attributes on Maya \"%s\" nodes", nodeType.asChar());
-
+   
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");
    helper.MakeInput("matte");
@@ -142,8 +142,6 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
    {
       // register this AtNode in our Translator, so that it is properly cleared later
       shadingEngine = AddArnoldNode("MayaShadingEngine", "SG");
-      std::vector<AtNode*> aovShaders;
-      m_impl->AddAOVDefaults(shadingEngine, aovShaders);
    }
 
    AiNodeLink(rootShader, "beauty", shadingEngine);
@@ -155,7 +153,8 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
 
 
 MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
-{
+{   
+   MPlug shadingGroupPlug;
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
 
@@ -168,7 +167,9 @@ MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
       MPlug sgPlug = connections[k];
       if (sgPlug.node().apiType() == MFn::kShadingEngine)
       {
-         return sgPlug;
+         // this is my Shading Engine plug. 
+         // However, what I want now is the corresponding shader
+         return sgPlug; 
       }
    }
    return MPlug();

@@ -23,6 +23,7 @@
 #endif
 #include <XgRenderAPIUtils.h>
 
+typedef AtNode* (*InitArnoldNodeFnc)(const char *);
 
 extern bool s_bCleanDescriptionCache;
 
@@ -48,7 +49,7 @@ namespace XGenArnold
       int Cleanup();
       int NumNodes();
       AtNode* GetNode(int i);
-
+      void SetInitCallback(InitArnoldNodeFnc cb) {m_initArnoldFunc = cb;}
       // XGenRenderAPI::ProceduralCallbacks
       virtual void flush(  const char* in_geom, PrimitiveCache* in_cache );
       virtual void log( const char* in_str ){}
@@ -90,7 +91,7 @@ namespace XGenArnold
 
       const char* getUniqueName( char* buf, const char* basename );
 
-      AtNode* getArchiveProceduralNode( const char* file_name, const char* instance_name, const bbox& arcbox, double frame );
+      AtNode* getArchiveProceduralNode( const char* file_name, const char* instance_name, /*const bbox& arcbox, */double frame );
 
       AtNode* m_node;
       AtNode* m_node_face;
@@ -110,7 +111,7 @@ namespace XGenArnold
 #endif
 
       mutable std::map<std::string, bbox> m_bboxes;
-      
+      InitArnoldNodeFnc m_initArnoldFunc;
    };
 
    class ProceduralWrapper
@@ -138,6 +139,7 @@ namespace XGenArnold
       int Cleanup() { return m_proc->Cleanup(); }
       int NumNodes() { return m_cleanup ? 0 : m_proc->NumNodes(); }
       AtNode* GetNode(int i) { return m_cleanup ? NULL : m_proc->GetNode(i); }
+      void SetInitCallback(InitArnoldNodeFnc cb) {m_proc->SetInitCallback(cb);}
 
 
 

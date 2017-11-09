@@ -70,7 +70,7 @@ installDir = ''
 
 mayaVersionDir = ''
 
-if sys.argv[1] != '2016' and sys.argv[1] != '2017' and sys.argv[1] != '2018':
+if sys.argv[1] == '2015':
     mayaVersionDir = '%s-x64' % sys.argv[1]
 else:
     mayaVersionDir = sys.argv[1]
@@ -213,6 +213,7 @@ previousFiles = [
 'scripts/mtoa/2016',
 'scripts/mtoa/2017',
 'scripts/mtoa/2018',
+'scripts/mtoa/2019',
 'scripts/mtoa/api',
 'scripts/mtoa/aov.py',
 'scripts/mtoa/core.py',
@@ -333,10 +334,10 @@ if installMode == 1: # do the proper installation
     else:
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
 
-    if sys.argv[1] != '2018':
+    if sys.argv[1] != '2018' and sys.argv[1] != '2019':
         shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
     
-    if sys.argv[1] == '2017' or sys.argv[1] == '2018':
+    if sys.argv[1] == '2017' or sys.argv[1] == '2018' or sys.argv[1] == '2019':
         homeDir = os.path.expanduser(userString)
         templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
         if EnsureDir(templatesDir):

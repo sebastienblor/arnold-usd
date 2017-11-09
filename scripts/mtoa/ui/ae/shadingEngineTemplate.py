@@ -133,31 +133,9 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         pm.cmds.frameLayout(label='AOVs', collapse=False)
         pm.cmds.columnLayout(adjustableColumn=True)
 
-        pm.cmds.frameLayout(label='Surface Shader AOVs', collapse=False)
-        pm.cmds.columnLayout(adjustableColumn=True)
-        
         pm.cmds.rowLayout(nc=2)
         pm.cmds.text(label='')
-        pm.cmds.button(label='AOV Browser',
-                       c=lambda *args: aoveditor.arnoldAOVBrowser(listAOVGroups=True,
-                                                                  nodeTypes=self.networkNodeTypes))
-        pm.setParent('..') # rowLayout
-
-        pm.cmds.frameLayout(labelVisible=False, collapsable=False)
-        self.networkCol = pm.cmds.columnLayout(adjustableColumn=True)
-        self.buildNetworkAOVs(nodeAttr, aovList)
-        pm.setParent('..') # columnLayout
-        pm.setParent('..') # frameLayout
-
-        pm.setParent('..') # columnLayout
-        pm.setParent('..') # frameLayout
-
-        pm.cmds.frameLayout(label='Other AOVs', collapse=False)
-        pm.cmds.columnLayout(adjustableColumn=True)
-
-        pm.cmds.rowLayout(nc=2)
-        pm.cmds.text(label='')
-        pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
+        pm.cmds.button(label='Add Custom AOV', c=lambda *args: shaderTemplate.newAOVPrompt())
         pm.setParent('..') # rowLayout
 
         pm.cmds.frameLayout(labelVisible=False, collapsable=False)
@@ -205,8 +183,12 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 at = self.getAOVAttr(nodeAttr, aov.name)
                 #at = nodeAttr[aov.index]
                 #at.aovName.set(aov.name)
-                ctrl = pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                   label=aov.name)
+
+                attrName = at.aovInput.name()
+                ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
+                                                   label=aov.name,
+                                     cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
+
                 self._msgCtrls.append(ctrl)
                 pm.popupMenu(parent=ctrl);
                 pm.menuItem(subMenu=True, label="Goto Node")
@@ -220,8 +202,10 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         for aov in aovList:
             if aov.name not in self.networkAOVs:
                 at = self.getAOVAttr(nodeAttr, aov.name)
-                ctrl = pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                        label=aov.name)
+
+                attrName = at.aovInput.name()
+                ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
+                                                        label=aov.name, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
                 self._msgCtrls.append(ctrl)
 
 

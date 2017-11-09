@@ -47,6 +47,9 @@ class CRenderViewZoomManipulator;
 #include <maya/MFnCamera.h>
 #include <maya/MDagPath.h>
 #include <maya/MMatrix.h>
+#ifdef MAYA_MAINLINE
+#include <maya/MColorPickerUtilities.h>
+#endif
 
 class CRenderViewMtoA : public CRenderViewInterface
 {
@@ -97,6 +100,12 @@ public:
 private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
+
+#ifdef MAYA_MAINLINE
+   class CustomCallback;
+   CustomCallback* m_colorPickingCallback;
+   MColor ColorPickingCallback(QWidget*, QWidget*, const QPoint&, bool);
+#endif
 
    MCallbackId m_rvSelectionCb;
    MCallbackId m_rvSceneSaveCb;

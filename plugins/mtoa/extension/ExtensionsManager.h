@@ -62,6 +62,9 @@ public:
    static void GetAOVs(MStringArray& result);
    static void GetNodeAOVs(const MString &mayaType, MStringArray& result);
    static void GetNodeTypesWithAOVs(MStringArray& result);
+   static void GetAOVShaders(MStringArray& result);
+   static void GetCustomShapes(MStringArray& result);
+
 
    static CExtension* GetExtension(const MString &extensionFile);
    static CExtension* GetExtensionByName(const MString &extensionName);
@@ -74,7 +77,8 @@ public:
                                 const MString &translatorName);
    static MString GetDefaultTranslator(const MString& nodeName);
    static MStringArray ListLoadedExtensions();
-
+   static void AddCustomShape(const MString &shape);
+   
    static CExtension* NewExtension(const MString &extensionFile);
 
 protected:
@@ -101,4 +105,5 @@ private:
    static ExtensionsList s_extensions;
 
    static MCallbackId s_pluginLoadedCallbackId;
+   static CustomShapesMap s_customShapes;
 };

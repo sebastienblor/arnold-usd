@@ -24,7 +24,8 @@ node_parameters
    AiParameterFlt("factor", 1.0f);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "floatComposite");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81628);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81628);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

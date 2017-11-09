@@ -640,3 +640,13 @@ void CMeshLightNewTranslator::NodeChanged(MObject& node, MPlug& plug)
    
    CMeshLightTranslator::NodeChanged(node, plug);
 }
+
+void CMeshLightNewTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "mesh_light");
+   // common attributes
+   MakeCommonAttributes(helper);
+   helper.MakeInput("shadow_color");
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("cast_volumetric_shadows");
+}

@@ -369,7 +369,7 @@ shader_evaluate
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    sg->out.RGB() = AI_RGB_BLACK;
 
-   float w_transp = 0.f;
+//   float w_transp = 0.f;
    float w_refl = 0.f;
    
    bool has_reflection = data->has_reflection;
@@ -482,8 +482,8 @@ shader_evaluate
 
 
    // FIXME Arnold5
-   void *r_brdf_data = NULL;//(has_reflection) ? AiStretchedPhongMISCreateData(sg, 0.0001f) : NULL;
-   void *d_brdf_data = NULL;//(has_diffuse) ? AiOrenNayarMISCreateData(sg, 0.f) : NULL;
+   //void *r_brdf_data = NULL;//(has_reflection) ? AiStretchedPhongMISCreateData(sg, 0.0001f) : NULL;
+   //void *d_brdf_data = NULL;//(has_diffuse) ? AiOrenNayarMISCreateData(sg, 0.f) : NULL;
 
    AtRGB d_direct_result = AI_RGB_BLACK;
    AtRGB r_direct_result = AI_RGB_BLACK;

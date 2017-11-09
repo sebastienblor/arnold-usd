@@ -14,11 +14,17 @@ class AEaiFlakesTemplate(ShaderAETemplate):
         
         self.beginLayout('Flakes', collapse=False)
         self.addControl('scale', label='Scale')
-        self.addControl('size', label='Size')
+        self.addControl('density')
+        self.addControl('step')
+        self.addControl('depth')
+        self.addControl('IOR')
+        
         self.addControl('normalRandomize', label='Normal Randomize')        
         self.addControl('coordSpace', label='Coord Space')
         self.addControl('outputSpace', label='Output Space')
         
+        #self.addControl('size', label='Size')
+
         self.endLayout()
   
         # include/call base class/node attributes

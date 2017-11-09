@@ -36,86 +36,90 @@ class AOVBrowser(object):
     '''
     A UI for browsing node types and their registered AOVs
     '''
-    def __init__(self, renderOptions=None, nodeTypes=None, listAOVGroups=True, showGroupsColumn=True):
+    def __init__(self, renderOptions=None, nodeTypes=None):
         '''
         renderOptions : an aovs.AOVInterface instance, or None to use the default
         
         nodeTypes : a list of node types to display in the available nodes column, 
             or None to display the complete list of nodes with AOVs
         '''
+
         self.allAOVs = set([])
         self.renderOptions = aovs.AOVInterface() if renderOptions is None else renderOptions
         self.allNodeTypes = set(aovs.getNodeTypesWithAOVs())
+        
         if nodeTypes:
             self.setNodeTypes(nodeTypes)
         else:
             self.nodeTypes = sorted(self.allNodeTypes)
 
-        self.doAOVGroups = listAOVGroups
-        self.doGroups = showGroupsColumn
-
+        
         self.form = pm.formLayout()
-        if self.doGroups:
-            groupsLbl = pm.text(_uiName('groupsLbl'), align='center', label='AOV Groups')
+
         availableLbl = pm.text(_uiName('availableLbl'), align='center', label='Available AOVs')
         activeLbl = pm.text(_uiName('activeLbl'), align='center', label='Active AOVs')
+        detailsLbl = pm.text(_uiName('detailsLbl'), align='center', label='')
+        detailsFieldLbl = pm.text(_uiName('pouetLbl'), align='center', label='')
 
-        if self.doGroups:
-            self.groupLst = pm.textScrollList(_uiName('groupLst'), numberOfRows=10, allowMultiSelection=True,
-                          selectCommand=self.updateActiveAOVs)
         self.availableLst = pm.textScrollList(_uiName('availableLst'), numberOfRows=10, allowMultiSelection=True,
                           doubleClickCommand=self.addAOVs)
         self.activeLst = pm.textScrollList(_uiName('activeLst'), numberOfRows=10, allowMultiSelection=True,
-                          doubleClickCommand=self.removeAOVs)
+                          selectCommand=self.selectAOV)
 
         addBtn = pm.button(_uiName('addBtn'), label='>>', command=self.addAOVs)
+        addCustomBtn = pm.button(_uiName('addCustomBtn'), label='Add Custom', command=self.addCustomAOV)
         remBtn = pm.button(_uiName('remBtn'), label='<<', command=self.removeAOVs)
 
         pm.formLayout(self.form, edit=True, attachForm=[
-                                    (groupsLbl, 'top', 1),
                                     (availableLbl, 'top', 1),
                                     (activeLbl, 'top', 1),
-                                    
-                                    (groupsLbl, 'left', 1),
-                                    (self.groupLst, 'left', 1),
+                                    (detailsLbl, 'top', 1),
                                     
                                     (activeLbl, 'right', 1),
                                     (self.activeLst, 'right', 1),
-                                    
+                                    (detailsFieldLbl, 'right', 1),
+
+                                    (addCustomBtn, 'right', 1),
                                     (remBtn, 'right', 1),
                                     (addBtn, 'bottom', 1),
+                                    (addCustomBtn, 'bottom', 1),
                                     (remBtn, 'bottom', 1),
+
                                ])
         pm.formLayout(self.form, edit=True, attachControl=[
-                                    #(availableLbl, 'left', 1, groupsLbl),
-                                    
-                                    (self.groupLst, 'top', 1, groupsLbl),
                                     (self.activeLst, 'top', 1, activeLbl),
                                     (self.availableLst, 'top', 1, availableLbl),
+                                    (detailsFieldLbl, 'top', 1, detailsLbl),
                                     
-                                    (self.groupLst, 'bottom', 1, addBtn),
                                     (self.activeLst, 'bottom', 1, addBtn),
-                                    (self.availableLst, 'bottom', 1, remBtn),
+                                    (self.availableLst, 'bottom', 1, addCustomBtn),
                                     
-                                    (addBtn, 'right', 1, remBtn),
-#                                    (addBtn, 'top', 1, self.activeLst),
-#                                    (remBtn, 'top', 1, self.availableLst)
+                                    (addBtn, 'right', 1, addCustomBtn),
+                                    (addCustomBtn, 'right', 1, remBtn),
                                 ])
 
         pm.formLayout(self.form, edit=True, attachPosition=[
-                                    (groupsLbl, 'right', 1, 33),
-                                    (availableLbl, 'left', 1, 33),
-                                    (availableLbl, 'right', 1, 66),
-                                    (activeLbl, 'left', 1, 66),
+                                    (availableLbl, 'left', 1, 1),
+                                    (availableLbl, 'right', 1, 50),
+                                    (activeLbl, 'left', 1, 50),
+                                    (activeLbl, 'right', 1, 100),
+                                    (detailsLbl, 'left', 1, 100),
+
                                     
-                                    (self.groupLst, 'right', 1, 33),
-                                    (self.availableLst, 'left', 1, 33),
-                                    (self.availableLst, 'right', 1, 66),
-                                    (self.activeLst, 'left', 1, 66),
+                                    (self.availableLst, 'left', 1, 1),
+                                    (self.availableLst, 'right', 1, 50),
+                                    (self.activeLst, 'left', 1, 50),
+                                    (self.activeLst, 'right', 1, 100),
+                                    (detailsFieldLbl, 'left', 1, 100),
                                     
-                                    (addBtn, 'left', 1, 33),
-                                    (addBtn, 'right', 1, 66),
-                                    (remBtn, 'left', 1, 66),
+                                    (addBtn, 'left', 1, 1),
+                                    (addBtn, 'right', 1, 50),
+                                    (addCustomBtn, 'left', 1, 50),
+                                    (addCustomBtn, 'right', 1, 75),
+                                    (remBtn, 'left', 1, 75),
+                                    (remBtn, 'right', 1, 100),                                    
+                                    
+
                                 ])
  
 
@@ -125,19 +129,6 @@ class AOVBrowser(object):
         self.nodeTypes = sorted(self.allNodeTypes.intersection(nodeTypes))
  
     def populate(self):
-        '''
-        update the contents of all scroll lists
-        '''
-        if self.doGroups:
-            pm.textScrollList(self.groupLst, edit=True, removeAll=True)
-            if self.doAOVGroups:
-                for nodeType in aovs.getAOVGroups():
-                    pm.textScrollList(self.groupLst, edit=True, append=nodeType)
-            for nodeType in self.nodeTypes:
-                # make sure we have at least one named aov
-                # FIXME: what does an empty AOV mean? why are these nodes returned by getNodeTypesWithAOVs()?  
-                #if any([x for x in aovs.getRegisteredAOVs(nodeType=nodeType) if x]):
-                pm.textScrollList(self.groupLst, edit=True, append=nodeType)
         # populate available and active based on aovs provided by groups and nodes
         self.updateActiveAOVs()
 
@@ -147,16 +138,36 @@ class AOVBrowser(object):
         AOV attributes for any nodes in the scene.
         '''
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
+        aovShaderName = None
+
+        # clear the current selection
+        pm.textScrollList(self.activeLst, edit=True,deselectAll=True)
+
         if sel:
             global _updating
             _updating = True
             try:
-                for aovName in sel:
-                    aov = self.renderOptions.addAOV(aovName)
+                for aovFullName in sel:
+                    aovList = aovFullName.split()
+                    aovName = aovList[0] # splits on whitespace
+                    aovShaderName = None
+                    if len(aovList) > 1:
+                        shaderName = aovList[1]
+                        if shaderName[:1] == "(" and shaderName[-1:] == ")":
+                            shaderName = shaderName[1:-1]
+                            aovShadersList = aovs.getAOVShaders()
+                            if shaderName in aovShadersList:
+                                aovShaderName = shaderName
+
+                    aov = self.renderOptions.addAOV(aovName, aovShader=aovShaderName)
             finally:
                 _updating = False
             self.updateActiveAOVs()
 
+            pm.textScrollList(self.activeLst, edit=True,selectItem=sel[0].split()[0])
+
+            if not aovShaderName:
+                self.selectAOV()
     def removeAOVs(self, *args):
         '''
         delete the selected AOVs
@@ -168,11 +179,53 @@ class AOVBrowser(object):
             try:
                 self.renderOptions.removeAOVs(sel)
                 for aov in sel:
-                    pm.textScrollList(self.availableLst, edit=True, append=aov)
+
+                    # need to check if the AOV we're removing is part of the allAOVs list
+                    # but since this list contain the eventual shader owner , eg (aiShadowMatte)
+                    # we need to take this into account
+                    found = False
+                    for allAOVs in self.allAOVs:
+                        aovName = allAOVs.split()[0]
+                        if aovName == aov:
+                            found = True
+                            break
+
+                    if found:
+                        pm.textScrollList(self.availableLst, edit=True, append=aov)
                     pm.textScrollList(self.activeLst, edit=True, removeItem=aov)
             finally:
                 _updating = False
             self.updateActiveAOVs()
+
+    def selectAOV(self, *args):
+        sel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
+        pm.select(clear=True)
+        if sel:
+            for aov in sel:
+                for aovName, aovList in self.renderOptions.getAOVs(group=True):
+                    if aovName == aov and aovList and len(aovList):
+                        pm.select(aovList[0].node, add=True)
+                        break
+                    
+
+
+    def addCustomAOV(self, *args):
+        global _updating
+        
+        aovName = ""
+        _updating = True
+        try:
+            aovName, aovNode = shaderTemplate.newAOVPrompt()    
+        finally:
+            _updating = False
+        
+        self.updateActiveAOVs()
+        # clear the current selection
+        pm.textScrollList(self.activeLst, edit=True,deselectAll=True)
+
+        pm.textScrollList(self.activeLst, edit=True,selectItem=aovName)
+        self.selectAOV()
+
 
     def updateActiveAOVs(self):
         '''
@@ -181,11 +234,6 @@ class AOVBrowser(object):
         if _updating:
             return
         
-        if not self.doGroups or (not self.doAOVGroups and len(self.nodeTypes) == 1):
-            groups = self.nodeTypes
-        else:
-            groups = pm.textScrollList(self.groupLst, query=True, selectItem=True)
-
         # first, find out what's selected, so we can reselect any persistent items
         availableSel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
         activeSel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
@@ -200,22 +248,29 @@ class AOVBrowser(object):
         except pm.MayaNodeError:
             activeAOVs = []
         self.allAOVs = set([])
-        for group in groups:
-            if group.startswith('<'):
-                # it's an AOV group
-                aovList = aovs.getGroupAOVs(group)
-            else:
-                aovList = [x for x in aovs.getRegisteredAOVs(nodeType=group) if x]
-            self.allAOVs.update(aovList)
-            for aovName in aovList:
-                if aovName not in activeAOVs:
-                    if aovName not in availableList:
-                        availableList.append(aovName)
-                else:
-                    if aovName not in activeList:
-                        activeList.append(aovName)
-        # update sorted and not duplicated available AOVs
-        availableList.sort()
+
+
+        aovList = aovs.getBuiltinAOVs()
+        aovList.sort()
+        for group in self.nodeTypes:
+            for x in aovs.getRegisteredAOVs(nodeType=group) :
+                if x:
+                    aovLabel = x + ' ('
+                    aovLabel +=group
+                    aovLabel += ')'
+                    aovList.append(aovLabel)
+        
+        self.allAOVs.update(aovList)
+
+        for aovFullName in aovList:
+            aovName = aovFullName.split()[0]
+            if aovName not in activeAOVs:
+                if aovName not in availableList:
+                    availableList.append(aovFullName)
+            
+        for activeAOV in activeAOVs:
+            activeList.append(activeAOV.name)
+        
         for aovName in availableList:
             pm.textScrollList(self.availableLst, edit=True, append=aovName)
             if aovName in availableSel:
@@ -590,21 +645,6 @@ class ArnoldAOVEditor(object):
         self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
         pm.setParent(self.mainCol)
-        self.aovShadersFrame = pm.cmds.frameLayout('arnoldAOVShadersFrame', label='AOV Shaders', width=WIDTH,
-                            collapsable=True, collapse=True)
-        
-        pm.scriptJob(parent=self.aovShadersFrame, attributeChange=['defaultArnoldRenderOptions.aov_shaders', self.updateAovShaders], dri=True, alc=True, per=True )
-
-        pm.cmds.rowLayout('arnoldAOVShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
-        pm.cmds.text(label='')
-        pm.cmds.button(label='Add', c=lambda *args: self.addAovShader())
-        pm.setParent('..') # rowLayout
-
-        pm.setParent(self.aovShadersFrame)
-
-        self.updateAovShaders()
-
-        pm.setParent(self.mainCol)
 
         pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH,
                             collapsable=True, collapse=False, height=200)
@@ -618,7 +658,7 @@ class ArnoldAOVEditor(object):
 
         pm.cmds.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
         pm.cmds.text(label='')
-        pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
+        #pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
         pm.cmds.button(label='Delete All', c=lambda *args: (self.renderOptions.removeAOVs(self.aovRows.keys()), \
                                                             hooks.setupDefaultAOVs(self.renderOptions)))
         pm.setParent('..') # rowLayout
@@ -652,73 +692,7 @@ class ArnoldAOVEditor(object):
                                       lambda *args: pm.evalDeferred(self.refresh)])
 
 
-    def updateAovShaders(self, *args):
-
-        for row in self.aovShaders:
-            row.delete()
-
-        self.aovShaders = []
-
-        pm.setParent(self.aovShadersFrame)
-        shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
-        
-        for i in range(shadersSize):
-
-            frame = pm.frameLayout(collapsable=False, labelVisible=False)
-            self.aovShaders.append(frame)
-
-            rowName = 'arnoldAOVShadersRow%d' % i
-            pm.cmds.rowLayout(rowName, nc=2, columnWidth2=[350, 50], columnAttach2=['both', 'right'])
-            aovCtrlName = 'aov_shaders%d' % i
-            aovShaderName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
-            
-            pm.attrNavigationControlGrp(aovCtrlName,
-                                    label='',
-                                    at=aovShaderName, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+aovShaderName+"\" \"\"")
-
-            aovShaderDelete = 'arnoldAOVShaderDelete%d' % i
-            pm.cmds.symbolButton(aovShaderDelete, image="SP_TrashIcon.png", command=pm.Callback(self.deleteAovShader, i))
-            pm.setParent(self.aovShadersFrame)
-
-        pm.setParent(self.mainCol)
-
-
-    def deleteAovShader(self, index):
-        if self.aovShaders is None:
-            return
-
-        shadersLength = len(self.aovShaders)
-
-        if index < 0 or index >= shadersLength:
-            return 
-
-        if index <= shadersLength - 2:
-            for i in range(index, shadersLength - 1):
-                aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
-                elemConnection = pm.listConnections(aovShaderElem,p=True, d=False,s=True)
-                if (not elemConnection is None):
-                    for elem in elemConnection:
-                        pm.disconnectAttr(elem, aovShaderElem)
-
-
-                aovShaderNextElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (i+1)
-                nextElemConnection = pm.listConnections(aovShaderNextElem,p=True, d=False,s=True)
-                if (not nextElemConnection is None) and len(nextElemConnection) > 0:
-                    pm.connectAttr(nextElemConnection[0], aovShaderElem)
-
-        aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (shadersLength - 1)
-        pm.removeMultiInstance(aovShaderElem , b=True)
-
-        self.updateAovShaders()
-
-    def addAovShader(self, *args):
-
-        shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
-        attrName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % shadersSize
-
-        melCmd = "createRenderNode -all \"defaultNavigation -force true -connectToExisting -destination "+attrName+" -source %node\" \"\""
-        mel.eval(melCmd);
-        self.updateAovShaders()
+    
 
     def removeAOVCallbacks(self, *args):
         for attr in AOV_CALLBACK_ATTRS:
@@ -827,7 +801,88 @@ def arnoldAOVBrowser(**kwargs):
     return browser
 
 
+global _aovDisplayCtrl
 _aovDisplayCtrl= None
+global _aovShadersFrame
+_aovShadersFrame = None
+global _aovShaders
+_aovShaders = []
+
+def updateAovShaders(*args):
+
+    global _aovShaders
+    global _aovShadersFrame
+
+    for row in _aovShaders:
+        row.delete()
+
+    _aovShaders = []
+
+    pm.setParent(_aovShadersFrame)
+    shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
+    
+    for i in range(shadersSize):
+
+        frame = pm.frameLayout(collapsable=False, labelVisible=False)
+        _aovShaders.append(frame)
+
+        rowName = 'arnoldAOVShadersRow%d' % i
+        pm.cmds.rowLayout(rowName, nc=2, columnWidth2=[350, 50], columnAttach2=['both', 'right'])
+        aovCtrlName = 'aov_shaders%d' % i
+        aovShaderName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
+        
+        pm.attrNavigationControlGrp(aovCtrlName,
+                                label='',
+                                at=aovShaderName, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+aovShaderName+"\" \"\"")
+
+        aovShaderDelete = 'arnoldAOVShaderDelete%d' % i
+        pm.cmds.symbolButton(aovShaderDelete, image="SP_TrashIcon.png", command=pm.Callback(deleteAovShader, i))
+        pm.setParent(_aovShadersFrame)
+
+    pm.setParent('..')
+    #pm.setParent(pm.cmds.columnLayout('arnoldAOVMainColumn', query=True))
+
+
+def deleteAovShader(index):
+    global _aovShaders
+    global _aovShadersFrame
+
+    if _aovShaders is None:
+        return
+
+    shadersLength = len(_aovShaders)
+
+    if index < 0 or index >= shadersLength:
+        return 
+
+    if index <= shadersLength - 2:
+        for i in range(index, shadersLength - 1):
+            aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % i
+            elemConnection = pm.listConnections(aovShaderElem,p=True, d=False,s=True)
+            if (not elemConnection is None):
+                for elem in elemConnection:
+                    pm.disconnectAttr(elem, aovShaderElem)
+
+
+            aovShaderNextElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (i+1)
+            nextElemConnection = pm.listConnections(aovShaderNextElem,p=True, d=False,s=True)
+            if (not nextElemConnection is None) and len(nextElemConnection) > 0:
+                pm.connectAttr(nextElemConnection[0], aovShaderElem)
+
+    aovShaderElem = 'defaultArnoldRenderOptions.aov_shaders[%d]' % (shadersLength - 1)
+    pm.removeMultiInstance(aovShaderElem , b=True)
+
+    updateAovShaders()
+
+def addAovShader(*args):
+
+    shadersSize = pm.getAttr('defaultArnoldRenderOptions.aov_shaders', s=True)
+    attrName = 'defaultArnoldRenderOptions.aov_shaders[%d]' % shadersSize
+
+    melCmd = "createRenderNode -all \"defaultNavigation -force true -connectToExisting -destination "+attrName+" -source %node\" \"\""
+    mel.eval(melCmd);
+    updateAovShaders()
+
 
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
@@ -836,6 +891,12 @@ def createArnoldAOVTab():
     pm.columnLayout('enableAOVs', adjustableColumn=True)
     
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+
+    legacyFrame = pm.cmds.frameLayout('legacyFrame', label='Legacy', width=WIDTH,
+                            collapsable=True, collapse=True)
+
+    mayaRenderViewFrame = pm.cmds.frameLayout('mayaRenderViewFrame', label='Maya Render View', width=WIDTH,
+                            collapsable=True, collapse=True)
 
     pm.attrControlGrp(attribute=aovNode.node.aovMode, label='Mode')
 
@@ -854,6 +915,24 @@ def createArnoldAOVTab():
     _aovDisplayCtrl._setToChildMode()
     _aovDisplayCtrl._doSetup(aovNode.node.name() + '.displayAOV')
     
+    pm.setParent('..')
+
+    # aov shader
+    global _aovShadersFrame
+    _aovShadersFrame = pm.cmds.frameLayout('arnoldAOVShadersFrame', label='AOV Shaders', width=WIDTH,
+                        collapsable=True, collapse=True)
+    
+    pm.scriptJob(parent=_aovShadersFrame, attributeChange=['defaultArnoldRenderOptions.aov_shaders', updateAovShaders], dri=True, alc=True, per=True )
+
+    pm.cmds.rowLayout('arnoldAOVShaderButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
+    pm.cmds.text(label='')
+    pm.cmds.button(label='Add', c=lambda *args: addAovShader())
+    pm.setParent('..') # rowLayout
+
+    pm.setParent(_aovShadersFrame)
+    updateAovShaders()
+
+    pm.setParent('..')
     pm.setParent(parentForm)
 
     cmds.scrollLayout('arnoldAOVsScrollLayout', horizontalScrollBarThickness=0)

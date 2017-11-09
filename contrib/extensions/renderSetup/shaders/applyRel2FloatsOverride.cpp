@@ -9,7 +9,7 @@ node_parameters
    AiParameterVec2("multiply", 0.0f, 0.0f);
    AiParameterVec2("offset", 0.0f, 0.0f);
    AiParameterBool("enabled", false);
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "applyRel2FloatsOverride");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 IMPLEMENT_APPLY_REL_OVERRIDE_SHADER(VEC2, AiShaderEvalParamVec2)

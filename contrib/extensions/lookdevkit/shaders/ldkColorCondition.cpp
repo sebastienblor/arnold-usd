@@ -25,7 +25,8 @@ node_parameters
    AiParameterBool("condition", false);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "colorCondition");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81634);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81634);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

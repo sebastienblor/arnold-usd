@@ -22,11 +22,15 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("n", "nodePlug", MSyntax::kSelectionItem);
 
    syntax.addFlag("lnt", "listAOVNodeTypes", MSyntax::kNoArg);
+   syntax.addFlag("las", "listAOVShaders", MSyntax::kNoArg);
+   syntax.addFlag("lcs", "listCustomShapes", MSyntax::kNoArg);
    syntax.addFlag("sdt", "setDefaultTranslator", MSyntax::kString, MSyntax::kString);
 
    syntax.addFlag("llx", "listLoadedExtensions", MSyntax::kNoArg);
    syntax.addFlag("gev", "getExtensionApiVersion", MSyntax::kString);
    syntax.addFlag("gbi", "getBuildID", MSyntax::kNoArg);
+
+
    return syntax;
 }
 
@@ -136,7 +140,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          CMayaScene::Begin(MTOA_SESSION_SWATCH);
          CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
          arnoldSession->ExportOptions();
-         arnoldSession->ExportNode(plug, NULL, &aovs, true, -1, &status);
+         arnoldSession->ExportNode(plug, true, -1, &status);
 
          CHECK_MSTATUS(status);
          CMayaScene::End();
@@ -154,6 +158,18 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    {
       MStringArray result;
       CExtensionsManager::GetNodeTypesWithAOVs(result);
+      setResult(result);
+   }
+   else if (args.isFlagSet("listAOVShaders"))
+   {
+      MStringArray result;
+      CExtensionsManager::GetAOVShaders(result);
+      setResult(result);
+   }
+   else if (args.isFlagSet("listCustomShapes"))
+   {
+      MStringArray result;
+      CExtensionsManager::GetCustomShapes(result);
       setResult(result);
    }
    else if(args.isFlagSet("setDefaultTranslator"))

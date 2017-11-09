@@ -44,6 +44,9 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
             subsurface_0 = subsurface_1 = False
 
         thin_walled = bool(pm.getAttr(nodeName + '.thin_walled'))
+        sss_diffusion = True
+        if pm.getAttr(nodeName + '.subsurfaceType') != 0:
+            sss_diffusion = False
 
         pm.editorTemplate(dimControl=(nodeName, 'specularIOR', metal_1))
         pm.editorTemplate(dimControl=(nodeName, 'diffuseRoughness', metal_1 or transmission_1))
@@ -61,13 +64,19 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         pm.editorTemplate(dimControl=(nodeName, 'transmissionScatterAnisotropy', dim_transmission_interior))
         pm.editorTemplate(dimControl=(nodeName, 'transmissionDispersion', dim_transmission_interior))
         pm.editorTemplate(dimControl=(nodeName, 'transmissionExtraRoughness', dim_transmission_interior))
+        pm.editorTemplate(dimControl=(nodeName, 'transmissionTransparent', dim_transmission))
 
         dim_subsurface = metal_1 or transmission_1 or subsurface_0
         dim_subsurface_radius = dim_subsurface or thin_walled
+        dim_subsurface_anisotropy = dim_subsurface or sss_diffusion
         pm.editorTemplate(dimControl=(nodeName, 'subsurface', metal_1 or transmission_1))
         pm.editorTemplate(dimControl=(nodeName, 'subsurfaceColor', dim_subsurface))
         pm.editorTemplate(dimControl=(nodeName, 'subsurfaceRadius', dim_subsurface_radius))
         pm.editorTemplate(dimControl=(nodeName, 'subsurfaceScale', dim_subsurface_radius))
+        pm.editorTemplate(dimControl=(nodeName, 'subsurfaceType', dim_subsurface))
+        pm.editorTemplate(dimControl=(nodeName, 'subsurfaceAnisotropy', dim_subsurface_anisotropy))
+
+
 
     def createIOR(self, attr):
         tokens = attr.split('.')
@@ -81,7 +90,6 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 
         presets={ 'Cornea': 1.37, 'Diamond': 2.42, 'Ethanol': 1.36, 'Flint glass': 1.6, 'Glass': 1.5, 'Ice' : 1.31, 'Olive Oil': 1.47, 'Plastic': 1.55, 'Saphire': 1.77, 'Skin': 1.4, 'Water': 1.33}
         for k in sorted(presets):
-            print pm.Callback(setFloatValue, controlName, presets[k])
             pm.menuItem(label=k, command=pm.Callback(setFloatValue, controlName, presets[k]))
 
 
@@ -170,6 +178,8 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addCustom("transmissionDispersion", self.createAbbe, self.updateAbbe)
         self.addControl("transmissionExtraRoughness", label="Extra Roughness", annotation="Transmission Extra Roughness")
+        self.addSeparator()
+        self.addControl("transmitAovs", label="Transmit AOVs")
         self.endLayout()
 
         self.beginLayout("Subsurface", collapse=True)
@@ -177,8 +187,10 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 
         self.addCustom("subsurfaceColor", self.createSSS, self.updateSSS)
         #self.addControl("subsurfaceColor", label="Color", annotation="Subsurface Scattering Color")
-        self.addControl("subsurfaceRadius", label="Radius", annotation="Subsurface Scattering Radius");
-        self.addControl("subsurfaceScale", label="Scale", annotation="Subsurface Scattering Scale");
+        self.addControl("subsurfaceRadius", label="Radius", annotation="Subsurface Scattering Radius")
+        self.addControl("subsurfaceScale", label="Scale", annotation="Subsurface Scattering Scale")
+        self.addControl("subsurfaceType", label="Type", annotation="Subsurface Type",  changeCommand=self.changeParams)
+        self.addControl("subsurfaceAnisotropy", label="Anisotropy", annotation="Subsurface Anisotropy")
         self.endLayout() 
 
         self.beginLayout("Coat", collapse=True)

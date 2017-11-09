@@ -91,6 +91,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         # TODO: add dicing camera UI
         self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
+        self.addControl("aiSubdivFrustumIgnore ", label="Ignore Frustum")
+        
         self.endLayout()
         
         self.beginLayout('Displacement Attributes', collapse=True)
@@ -109,15 +111,110 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 #       ui.addControl("enableProcedural")
 #       ui.addControl("dso")
 
+
+def LoadProceduralButtonPush(nodeName):
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
+    projectDir = cmds.workspace(query=True, directory=True)     
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load StandIn',okc='Load',fm=1, startingDirectory=projectDir)
+    if ret is not None and len(ret):
+        ProceduralDsoEdit(nodeName, ret[0], True)
+
+def ProceduralDsoEdit(nodeName, mPath, replace=False) :
+    mArchivePath = ''
+    nodeName = nodeName.replace('.dso','')
+    
+    expression = r''
+    if replace:
+        # Expression to replace frame numbers by #
+        expression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
+    else:
+        expression = r'(.*?)([\._])([#]*)([\.]?)([#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
+
+    # If it is a recogniced format
+    if re.search(expression,mPath) != None:
+        m_groups = re.search(expression,mPath).groups()
+
+        # Single file
+        if not m_groups[2]:
+            mArchivePath = mPath
+            cmds.setAttr(nodeName+'.aiUseFrameExtension',False)
+        # Sequence without subframes    
+        elif not m_groups[3]:
+            cmds.setAttr(nodeName+'.aiUseFrameExtension',True)
+            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
+            cmds.setAttr(nodeName+'.aiUseSubFrame',False)
+            cmds.setAttr(nodeName+'.aiFrameNumber', int(m_groups[2])) 
+        # Sequence with subframes
+        else:
+            cmds.setAttr(nodeName+'.aiUseFrameExtension',True)
+            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
+            cmds.setAttr(nodeName+'.aiUseSubFrame',True)
+    # Other
+    else:
+        mArchivePath = mPath
+
+    pm.setAttr(nodeName+'.dso',mArchivePath,type='string')
+    cmds.textField('proceduralDsoPath', edit=True, text=mArchivePath)
+
+def ProceduralTemplateDsoNew(nodeName) :
+    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
+    cmds.text(label='Path ')
+    path = cmds.textField('proceduralDsoPath',changeCommand=lambda *args: ProceduralDsoEdit(nodeName, *args))
+    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
+    cmds.symbolButton('ProceduralPathButton', image='navButtonBrowse.png', command=lambda *args: LoadProceduralButtonPush(nodeName))
+
+def ProceduralTemplateDsoReplace(plugName) :
+    cmds.textField( 'proceduralDsoPath', edit=True, changeCommand=lambda *args: ProceduralDsoEdit(plugName, *args))
+    cmds.textField( 'proceduralDsoPath', edit=True, text=cmds.getAttr(plugName) )
+    cmds.symbolButton('ProceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadProceduralButtonPush(plugName))
+
 class ProceduralTemplate(templates.ShapeTranslatorTemplate):
 
     def setup(self):
-        self.commonShapeAttributes()
+
+        self.beginLayout('File/Frame', collapse=False)   
+        self.addCustom('dso', ProceduralTemplateDsoNew, ProceduralTemplateDsoReplace)
+
         self.addSeparator()
-        self.addControl('dso', label='Path')
-        self.addControl('data', label='Data')
+        self.addControl('aiFrameNumber', label='Frame')
+        self.addControl('aiFrameOffset')
+
+        self.endLayout()
+
+        self.beginLayout('StandIn Overrides', collapse=False)
+        self.addControl('aiOverrideLightLinking', label='Override StandIn Light Linking')
+        self.addControl('aiOverrideShaders', label='Override StandIn Shaders')
+        self.addSeparator()
+        self.addControl('aiOverrideReceiveShadows', label='Override Receive Shadows')
+        self.addControl('receiveShadows', label='   Receive Shadows')
+        self.addControl('aiOverrideSelfShadows',  label='Override Self Shadows')
+        self.addControl('aiSelfShadows', label='   Self Shadows')
+        self.addControl('aiOverrideOpaque', label='Override Opaque')
+        self.addControl('aiOpaque', label='   Opaque')
+        self.addControl('aiOverrideDoubleSided',  label='Override Double-Sided')
+        self.addControl('doubleSided', label='   Double-Sided')
+        self.addControl('aiOverrideMatte', label='Override Matte')
+        self.addControl('aiMatte', label='   Matte')
+        self.endLayout()
+        
+        self.beginLayout("Visibility", collapse=False)
+        self.addControl("primaryVisibility", label="Primary Visibility")
+        self.addControl("castsShadows", label="Casts Shadows")
+        self.addControl("aiVisibleInDiffuseReflection", label="Diffuse Reflection")
+        self.addControl("aiVisibleInSpecularReflection", label="Specular Reflection")
+        self.addControl("aiVisibleInDiffuseTransmission", label="Diffuse Transmission")
+        self.addControl("aiVisibleInSpecularTransmission", label="Specular Transmission")
+        self.addControl("aiVisibleInVolume", label="Volume")
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiTraceSets", label="Trace Sets")
+        self.endLayout()        
+
 #        self.addControl('deferStandinLoad', label='Defer Procedural Load')
+        self.addControl('aiOverrideNodes')
+        self.addControl('aiNamespace')
         self.addControl("aiUserOptions", label="User Options")
+        
+
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
 templates.registerTranslatorUI(ProceduralTemplate, "mesh", "procedural")
@@ -515,9 +612,18 @@ class CameraTemplate(templates.AttributeTemplate):
                 pm.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
 
     
+    def cameraFilterMapNew(self, nodeAttr):
+        pm.attrNavigationControlGrp('aiCameraFilterMap',
+                                    label='Filtermap',
+                                    at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+
+    def cameraFilterMapReplace(self, nodeAttr):
+        pm.attrNavigationControlGrp('aiCameraFilterMap', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+
     def addCommonAttributes(self):
         self.addControl("aiExposure")
-        self.addControl("aiFiltermap")
+        self.addCustom('aiFiltermap', self.cameraFilterMapNew, self.cameraFilterMapReplace)
+
         self.addSeparator()
         self.addControl("aiRollingShutter")
         self.addControl("aiRollingShutterDuration")
@@ -686,6 +792,7 @@ def getCameraDefault(obj):
     default = 'orthographic' if isOrtho else 'perspective'
     return default
 
+# FIXME: this is modifying the scene on plugin load and it shouldn't
 templates.registerDefaultTranslator('camera', getCameraDefault)
 templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 

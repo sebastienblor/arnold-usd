@@ -94,6 +94,7 @@ public:
    static MObject s_log_filename;
    static MObject s_log_max_warnings;
    static MObject s_log_verbosity;
+   static MObject s_mtoa_translation_info;
 
    static MObject s_background;
    static MObject s_atmosphere;
@@ -115,9 +116,13 @@ public:
    static MObject s_absolute_procedural_paths;
    static MObject s_force_translate_shading_engines;
    static MObject s_export_all_shading_groups;
-   
+   static MObject s_export_full_paths;
+   static MObject s_export_shading_engine;
+
    static MObject s_version;
    static MObject s_enable_standin_draw;
+
+   static MObject s_postTranslationCallback;
 
    static MObject s_IPRRefinementStartedCallback;
    static MObject s_IPRRefinementFinishedCallback;

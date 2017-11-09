@@ -31,7 +31,8 @@ node_parameters
    AiParameterFlt("clampMax", 1.0f);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "floatCorrect");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81650);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81650);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

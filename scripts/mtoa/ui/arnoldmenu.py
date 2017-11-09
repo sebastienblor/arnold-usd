@@ -67,6 +67,10 @@ def doCreateCurveCollector():
                 
     cmds.select(curveNode, replace=True)
 
+def doCreateCustomShape(shapeName):
+    shapeNode = mutils.createLocator(shapeName)
+    cmds.select(shapeNode, replace=True)
+
 def doCreateOldMeshLight():
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
@@ -496,6 +500,14 @@ def createArnoldMenu():
 #        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light", image='arealight.png',
 #                    c=lambda *args: cmds.CreateAreaLight())
         
+        customShapes = cmds.arnoldPlugins(listCustomShapes=True)
+        if customShapes and len(customShapes) > 0:
+            pm.menuItem('ArnoldCustomShapes', label='Custom Shapes', parent='ArnoldMenu', subMenu=True, tearOff=True)
+            for customShape in customShapes:
+                pm.menuItem(customShape, parent='ArnoldCustomShapes', label=customShape,
+                    command=pm.Callback(doCreateCustomShape, customShape))
+
+
         pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
                     c=lambda *args: doCreateCurveCollector())
         pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu', image='VolumeShelf.png', 

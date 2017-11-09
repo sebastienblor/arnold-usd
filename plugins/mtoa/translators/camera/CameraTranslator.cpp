@@ -68,12 +68,12 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    }
    else
    {
-      AiNodeSetFlt(camera, "focus_distance", 1.f);
-      AiNodeSetFlt(camera, "aperture_size", 0.f);
-      AiNodeSetInt(camera, "aperture_blades", 0);
-      AiNodeSetFlt(camera, "aperture_rotation", 0.f);
-      AiNodeSetFlt(camera, "aperture_blade_curvature", 0.f);
-      AiNodeSetFlt(camera, "aperture_aspect_ratio", 1.0f);
+      AiNodeResetParameter(camera, "focus_distance");
+      AiNodeResetParameter(camera, "aperture_size");
+      AiNodeResetParameter(camera, "aperture_blades");
+      AiNodeResetParameter(camera, "aperture_rotation");
+      AiNodeResetParameter(camera, "aperture_blade_curvature");
+      AiNodeResetParameter(camera, "aperture_aspect_ratio");
    }
 }
 
@@ -97,9 +97,6 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
    AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
-
-   float shutterStart = 0.f;
-   float shutterEnd = 1.f;
 
    double motionStart, motionEnd;
    GetSessionOptions().GetMotionRange(motionStart, motionEnd);

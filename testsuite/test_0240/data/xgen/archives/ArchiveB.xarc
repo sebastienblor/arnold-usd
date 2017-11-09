@@ -1,0 +1,8 @@
+#ArchiveGroup 0 name="ArchiveB" description="No description." thumbnail="ArchiveB.png" materials="${PROJECT}/xgen/archives/materials/ArchiveB.ma" color=[1,0,0]
+0 "${PROJECT}/xgen/archives/abc/ArchiveB.abc" material=ArchiveB:aiStandardSurface2SG objects=|pPipe1
+1 "${PROJECT}/xgen/archives/abc/ArchiveB.abc" material=ArchiveB:aiStandardSurface2SG objects=|pPipe1
+2 "${PROJECT}/xgen/archives/abc/ArchiveB.abc" material=ArchiveB:aiStandardSurface2SG objects=|pPipe1
+3 "${PROJECT}/xgen/archives/ass/ArchiveB__pPipe1.ass.gz" material=ArchiveB:aiStandardSurface2 objects=|pPipe1
+4 "${PROJECT}/xgen/archives/ass/ArchiveB__pPipe1.ass.gz" material=ArchiveB:aiStandardSurface2 objects=|pPipe1
+5 "${PROJECT}/xgen/archives/ass/ArchiveB__pPipe1.ass.gz" material=ArchiveB:aiStandardSurface2 objects=|pPipe1
+

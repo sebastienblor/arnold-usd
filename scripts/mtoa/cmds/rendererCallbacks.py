@@ -212,7 +212,7 @@ try:
                 self.selectionChanged()
    
         def onConnectionChanged(self, **kwargs):
-            if cmds.nodeType(kwargs['srcPlug']) == "aiAOV" and cmds.nodeType(kwargs['dstPlug']) in ["aiAOVDriver", "aiAOVFilter"]:
+            if OpenMaya.MFnDependencyNode(kwargs['srcPlug'].node()).typeName == "aiAOV" and OpenMaya.MFnDependencyNode(kwargs['dstPlug'].node()).typeName in ["aiAOVDriver", "aiAOVFilter"]:
                 self.selectionChanged()
 
 
@@ -226,7 +226,13 @@ try:
             self.sceneObservableRegistered = False
 
         def __del__(self):
-            self._unregister()
+            # This try/except block was added to resolve FB-3203.
+            # It avoids a crash on quitting mayapy.exe that is caused by calling _unregister after
+            # Maya standalone has been uninitialized.
+            try:
+                self._unregister()
+            except:
+                pass
 
         def encode(self):
             aovsJSON = {}
@@ -383,7 +389,17 @@ try:
                         # So store a mapping between the old filter name and our new name if they are different.
                         newFilterName = filterName
                         if filterName != self.DEFAULT_ARNOLD_FILTER_NAME:
-                            newFilterName = cmds.createNode("aiAOVFilter", name=filterName)
+                            # If a filter was already created for this aiAOV node, then use the existing filter
+                            connections = cmds.listConnections("aiAOV_" + aovName)
+                            connectionFound = False
+                            for connection in connections:
+                                if cmds.nodeType(connection) == u'aiAOVFilter':
+                                    newFilterName = connection
+                                    connectionFound = True
+                                    break
+                            # If such a filter was not found, then create one
+                            if not connectionFound:
+                                newFilterName = cmds.createNode(u"aiAOVFilter", name=filterName)
                             if newFilterName != filterName:
                                 filterNewNameMap[filterName] = newFilterName
 
@@ -533,14 +549,29 @@ def aiExportFrame( self, frame, objFilename ):
     #            file=objFilename + ".mi" )
     self.log( "assExport " + objFilename + ".ass.gz")
 
-def aiExportAppendFile( self, assFilename, material, obj, lod ):
+def aiExportAppendFile( self, assFilename, materialNS, material, obj, lod ):
+    
+    # get the surface shaders from the ShadingEngine
+    shaderName = materialNS + material
+    if cmds.objectType(material) == 'shadingEngine':
+        # the shader is a shading engine, which is no longer exported to .ass
+        # we want to get the assigned surface shader
+
+        # first do .surfaceShader plug, so that it's eventually overridden by .aiSurfaceShader later
+        conns = cmds.listConnections(material+".surfaceShader", d=False, s=True )
+        if conns and len(conns) > 0 and conns[0]:
+            shaderName = materialNS + conns[0]
+
+        conns = cmds.listConnections(material+".aiSurfaceShader", d=False, s=True )
+        if conns and len(conns) > 0 and conns[0]:
+            shaderName = materialNS + conns[0]
+    
     lodList = self.tweakLodAppend( self.curFiles, lod  )
     for l in lodList:
-        self.addArchiveFile( "ass", assFilename, material, "", l, 3 )
+        self.addArchiveFile( "ass", assFilename, shaderName, "", l, 3 )
         
 def aiExport( self, objs, filename, lod, materialNS ):
     filename = self.nestFilenameInDirectory( filename, "ass" )
-    
     lastProgress = self.progress
     self.splitProgress( len(objs) )
     
@@ -575,7 +606,7 @@ def aiExport( self, objs, filename, lod, materialNS ):
             materials = self.getSGsFromObj( obj )
             if materials and len(materials)>0 :
                 assFilename = objFilename + frameToken + ".ass.gz"
-                aiExportAppendFile( self, assFilename, materialNS+materials[0], obj, lod )
+                aiExportAppendFile( self, assFilename, materialNS, materials[0], obj, lod )
         self.incProgress()
     
     #cmds.currentUnit( linear=prevUnits )

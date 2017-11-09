@@ -291,8 +291,13 @@ MStatus CMayaScene::Restart()
    s_arnoldSession->Begin(optionss);
 
    s_arnoldSession->Export();
-         
+
    s_renderSession->m_renderOptions.UpdateImageDimensions();
+
+      // Execute post export callback
+   MFnDependencyNode fnArnoldRenderOptions(GetSceneArnoldRenderOptionsNode());
+   MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation").asString();
+   ExecuteScript(postTranslationCallbackScript);
 
    return MStatus::kSuccess;
 }
@@ -319,11 +324,7 @@ MObject CMayaScene::GetSceneArnoldRenderOptionsNode()
    {
       list.getDependNode(0, ArnoldRenderOptionsNode);
    }
-   else
-   {
-      AiMsgDebug("[mtoa] could not find defaultArnoldRenderOptions");
-   }
-
+   
    return ArnoldRenderOptionsNode;
 }
 
@@ -336,6 +337,12 @@ MStatus CMayaScene::Export(MSelectionList* selected)
       // FIXME: provide access to resolution settings in arnoldSession, and export them
       // in OptionsTranslator
       s_renderSession->m_renderOptions.UpdateImageDimensions();
+
+      // Execute post export callback
+      // FIXME: do we also want to do it in Update() ? 
+      MFnDependencyNode fnArnoldRenderOptions(GetSceneArnoldRenderOptionsNode());
+      MString postTranslationCallbackScript = fnArnoldRenderOptions.findPlug("post_translation").asString();
+      ExecuteScript(postTranslationCallbackScript);
    }
    else
    {
@@ -545,8 +552,9 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 
    
    MString name = depNodeFn.name();
-   AiMsgDebug("[mtoa] IPRNewNodeCallback on %s(%s)", name.asChar(), type.asChar());
-
+   if (MtoaTranslationInfo())
+      MtoaDebugLog("[mtoa.ipr] IPRNewNodeCallback on "+ MString(name.asChar())+" ("+MString(type.asChar())+")");
+      
    CArnoldSession* arnoldSession = GetArnoldSession();
 
    MFnDagNode dagNodeFn(node);
@@ -568,7 +576,11 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 
    // new cameras shouldn't restart IPR
    if (node.hasFn(MFn::kCamera)) 
+   {
+      // add this camera to the renderview list
+      s_renderSession->SetRenderViewOption(MString("Add Camera"), CDagTranslator::GetArnoldNaming(path));
       return;
+   }
 
    arnoldSession->RequestUpdate();
 }

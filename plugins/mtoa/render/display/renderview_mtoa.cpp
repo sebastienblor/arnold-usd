@@ -95,6 +95,35 @@ static CARVSequenceData *s_sequenceData = NULL;
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
 
+#ifdef MAYA_MAINLINE
+
+class CRenderViewMtoA::CustomCallback : public MColorPickerCallback
+{
+public:
+   CustomCallback(QWidget* key, CRenderViewMtoA* renderView)
+      : MColorPickerCallback(key)
+      , m_renderView(renderView)
+   {
+   }
+
+   MColor getColor(QWidget* pickedWidget, const QPoint& pt, bool viewTransform) const
+   {
+      if(pickedWidget && getKey()==m_renderView->GetRenderView())
+      {
+         const QPoint localPt = getKey()->mapFromGlobal(pt);
+         const AtRGBA color 
+            = m_renderView->GetWidgetColorAtPosition(localPt.x(), localPt.y(), viewTransform, pickedWidget);
+         return MColor(color.r, color.g, color.b, color.a);
+      }
+      return MColor(0., 0., 0., 1.);
+   }
+
+private:
+   CRenderViewMtoA* m_renderView;
+};
+
+#endif
+
 
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
@@ -113,9 +142,17 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasProgressiveRenderFinished(false)
 
 {   
+#ifdef MAYA_MAINLINE
+   m_colorPickingCallback = 0x0;
+#endif
 }
 CRenderViewMtoA::~CRenderViewMtoA()
 {
+#ifdef MAYA_MAINLINE
+   delete m_colorPickingCallback;
+   MColorPickerUtilities::unregisterFromColorPicking(GetRenderView());
+#endif
+
    if (m_rvSceneSaveCb)
    {
       MMessage::removeCallback(m_rvSceneSaveCb);
@@ -162,6 +199,7 @@ CRenderViewMtoA::~CRenderViewMtoA()
       m_colorMgtRefreshCb = 0;
    }
 }
+
 // Return all renderable cameras
 static int GetRenderCamerasList(MDagPathArray &cameras)
 {
@@ -420,7 +458,15 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
 #endif
 
+#ifdef MAYA_MAINLINE
+   if(!m_colorPickingCallback)
+   {
+      m_colorPickingCallback = new CustomCallback(GetRenderView(), this);
+      MColorPickerUtilities::doRegisterToColorPicking(GetRenderView(), m_colorPickingCallback);
+   }
+#endif
 }
+
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
@@ -1632,6 +1678,10 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 void CRenderViewMtoA::Resize(int width, int height)
 {
    CRenderViewInterface::Resize(width, height);
+
+   if(MGlobal::apiVersion() < 201760) // this option was only implemented in Maya 2017 Update 4
+      return;
+
    if (s_creatingARV)
       return;
 
@@ -1644,20 +1694,11 @@ void CRenderViewMtoA::Resize(int width, int height)
    if (isFloating)
    {
       MString workspaceCmd = "workspaceControl -edit";
-      workspaceCmd += " -iw ";
+      workspaceCmd += " -rsw ";
       workspaceCmd += width;
-      workspaceCmd += " -ih ";
+      workspaceCmd += " -rsh ";
       workspaceCmd += height;
       workspaceCmd += " \"ArnoldRenderView\"";
-      MGlobal::executeCommand(workspaceCmd);
-
-      // this is supposed to resize the workspace control, but apparenlty it isn't working
-      workspaceCmd = "workspaceControl -edit";
-      workspaceCmd += " -wp \"fixed\" -hp \"fixed\" \"ArnoldRenderView\" ";
-      MGlobal::executeCommand(workspaceCmd);
-
-      workspaceCmd = "workspaceControl -edit";
-      workspaceCmd += " -wp \"free\" -hp \"free\" \"ArnoldRenderView\" ";
       MGlobal::executeCommand(workspaceCmd);
    }
 

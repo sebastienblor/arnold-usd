@@ -28,7 +28,8 @@ node_parameters
    AiParameterBool("maskAlphaIsLuminance", false);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "colorMask");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81626);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81626);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

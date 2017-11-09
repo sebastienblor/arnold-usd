@@ -36,6 +36,7 @@ def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
             cmds.setAttr(nodeName+'.useFrameExtension',True)
             mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
             cmds.setAttr(nodeName+'.useSubFrame',False)
+            cmds.setAttr(nodeName+'.frameNumber', int(m_groups[2])) 
         # Sequence with subframes
         else:
             cmds.setAttr(nodeName+'.useFrameExtension',True)
@@ -46,28 +47,7 @@ def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
         mArchivePath = mPath
         
     cmds.setAttr(nodeName+'.dso',mArchivePath,type='string')
-    if '.so' in mPath or '.dll' in mPath or '.dylib' in mPath:
-        cmds.text('standInDataLabel', edit=True, enable=True)
-        cmds.textField('standInData', edit=True, enable=True)
-    else:
-        cmds.text('standInDataLabel', edit=True, enable=False)
-        cmds.textField('standInData', edit=True, enable=False)
     cmds.textField('standInDsoPath', edit=True, text=mArchivePath)
-
-
-#def ArnoldStandInBBoxScaleEdit(mScale) :
-    # Get AE tab name
-#    node = mel.eval('$tempNode = $gAECurrentTab')
-    
-    # Update value
-#    cmds.setAttr(node+'.bboxScale',mScale)
-    
-def ArnoldStandInDataEdit(mData) :
-    # Get AE tab name
-    nodeName = mel.eval('$tempNode = $gAECurrentTab')
-    
-    # Set data
-    cmds.setAttr(nodeName+'.data',mData,type='string')
 
 def ArnoldStandInTemplateDsoNew(nodeName) :
     cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
@@ -75,37 +55,11 @@ def ArnoldStandInTemplateDsoNew(nodeName) :
     path = cmds.textField('standInDsoPath',changeCommand=lambda *args: ArnoldStandInDsoEdit(nodeName, *args))
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
     cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda *args: LoadStandInButtonPush(nodeName))
-    
-def ArnoldStandInTemplateDataNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'both', 0)], columnWidth=[(1,145),(2,220)] )
-    cmds.text('standInDataLabel', label='Data ')
-    path = cmds.textField('standInData',changeCommand=ArnoldStandInDataEdit)
-    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName))
-    filePath=cmds.getAttr(nodeName.replace('.data','.dso'))
-    if filePath:
-        if '.so' in filePath or '.dll' in filePath or '.dylib' in filePath:
-            cmds.text('standInDataLabel', edit=True, enable=True)
-            cmds.textField('standInData', edit=True, enable=True)
-    else:
-        cmds.text('standInDataLabel', edit=True, enable=False)
-        cmds.textField('standInData', edit=True, enable=False)
 
 def ArnoldStandInTemplateDsoReplace(plugName) :
     cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(plugName, *args))
     cmds.textField( 'standInDsoPath', edit=True, text=cmds.getAttr(plugName) )
     cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadStandInButtonPush(plugName))
-
-def ArnoldStandInTemplateDataReplace(plugName) :
-    cmds.textField( 'standInData', edit=True, text=cmds.getAttr(plugName) )
-    filePath=cmds.getAttr(plugName.replace('.data','.dso'))
-    if filePath:
-        if '.so' in filePath or '.dll' in filePath or '.dylib' in filePath:
-            cmds.text('standInDataLabel', edit=True, enable=True)
-            cmds.textField('standInData', edit=True, enable=True)
-    else:
-        cmds.text('standInDataLabel', edit=True, enable=False)
-        cmds.textField('standInData', edit=True, enable=False)
-
 
 
 def ArnoldStandInUpdateUI(attrName) :
@@ -129,27 +83,7 @@ def ArnoldStandInUpdateUI(attrName) :
             pm.setAttr(attrName + overrideVisAttrs[i], 1)
             if pm.getAttr(attrName + visAttrs[i]) == 0:
                 pm.setAttr(attrName + visAttrs[i], 1)
-
     
-#def deferStandinLoadChange(nodeName):
-#    status = cmds.getAttr(nodeName+'.deferStandinLoad')
-#    if status == False:
-#        cmds.floatField('standInBBoxScale', edit=True, enable=False)
-#        cmds.text('standInBBoxScaleLabel', edit=True, enable=False)
-#    else:
-#        cmds.floatField('standInBBoxScale', edit=True, enable=True)
-#        cmds.text('standInBBoxScaleLabel', edit=True, enable=True)
-
-#def ArnoldStandInTemplateBBoxScaleNew(nodeName) :
-#    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'left', 0)], columnWidth=[(1,145),(2,70)] )
-#    cmds.text('standInBBoxScaleLabel', label='Bounding Box Scale ', enable=False)
-#    path = cmds.floatField('standInBBoxScale', changeCommand=ArnoldStandInBBoxScaleEdit)
-#    cmds.floatField(path, edit=True, value=cmds.getAttr(nodeName), enable=False)
-        
-#def ArnoldStandInTemplateBBoxScaleReplace(plugName) :
-#    cmds.floatField('standInBBoxScale', edit=True, value=cmds.getAttr(plugName) )
-
-
         
 class AEaiStandInTemplate(ShaderAETemplate):
     def setup(self):
@@ -157,13 +91,14 @@ class AEaiStandInTemplate(ShaderAETemplate):
         
         self.beginLayout('File/Frame', collapse=False)        
         self.addCustom('dso', ArnoldStandInTemplateDsoNew, ArnoldStandInTemplateDsoReplace)
-        self.addCustom('data', ArnoldStandInTemplateDataNew, ArnoldStandInTemplateDataReplace)
         self.addControl('standInDrawOverride', label='Viewport Override')
         self.addControl('mode', label='Viewport Draw Mode')
         self.addSeparator()
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
+        self.addSeparator()
         self.addControl('overrideNodes')
+        self.addControl('aiNamespace', label='Namespace')
         self.endLayout()
         self.beginNoOptimize();
 

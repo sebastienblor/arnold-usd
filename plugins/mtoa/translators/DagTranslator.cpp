@@ -348,6 +348,8 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
    data.shortName = "csh";
    helper.MakeInputBoolean(data);
 
+/*
+   Can I stop creating these Arnold 4 attributes now ?
    data.defaultValue.BOOL() = true;
    data.name = "visibleInReflections";
    data.shortName = "vir";
@@ -357,6 +359,7 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
    data.name = "visibleInRefractions";
    data.shortName = "vif";
    helper.MakeInputBoolean(data);
+   */
 }
 
 // create arnold visibility attributes with standardized render flag names
@@ -434,6 +437,8 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
       CNodeTranslatorImpl::ExportUserAttribute(anode);
 }
 
+// Return the list of Sets containing this object, by checking the whole hierarchy.
+// Only consider the Sets having aiOverride = true, the others can be ignored
 static MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
 {
    MStatus status;
@@ -483,27 +488,20 @@ MStatus CDagTranslatorImpl::ExportOverrideSets()
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
    MDagPath path = dagTr->GetMayaDagPath();
    // Check for passed path
+
    MObjectArray overrideSetObjs;
+   // This will include the whole hierarchy
    status = GetOverrideSets(path, overrideSetObjs);
-   // If passed path is a shape, check for its transform as well
-   // FIXME: do we want to consider full hierarchy ?
-   // Also consider the sets the transform of that shape might be in
-   const MObject transformObj = path.transform(&status);
-   while ((MStatus::kSuccess == status) && (transformObj != path.node(&status)))
-   {
-      status = path.pop();
-   }
-   if (!(path == dagTr->GetMayaDagPath()))
-   {
-      status = GetOverrideSets(path, overrideSetObjs);
-   }
+   
    // Exporting a set creates no Arnold object but allow IPR to track it
    MFnSet fnSet;
-   unsigned int ns = overrideSetObjs.length();
-   for (unsigned int i=0; i<ns; i++)
+   const unsigned int ns = overrideSetObjs.length();
+   for (unsigned int i = 0; i < ns; ++i)
    {
       fnSet.setObject(overrideSetObjs[i]);
-      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
+      CNodeTranslator *translator = m_session->ExportNode(fnSet.findPlug("message"));
+      if (translator)
+         m_overrideSets.push_back(translator);
    }
 
    return status;

@@ -10,167 +10,229 @@
 #include <maya/MDagPath.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
-#include <maya/MRenderUtil.h>
-#include <maya/MEventMessage.h>
-
 #include <maya/MString.h>
 
-//static MCallbackId s_idleCallback = 0;
-//static std::vector<CArnoldProceduralTranslator *> s_updatedProcedurals;
-
-void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
+void CProceduralTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "procedural");
    CShapeTranslator::MakeCommonAttributes(helper);
 
    CAttrData data;
-/*
    data.defaultValue.BOOL() = true;
-   data.name = "deferStandinLoad";
-   data.shortName = "deferStandinLoad";
-   data.channelBox = false;
-   data.keyable = false;
+   data.name = "overrideLightLinking";
+   data.shortName = "oll";
    helper.MakeInputBoolean(data);
-*/
-   data.name = "dso";
-   data.shortName = "dso";
-   data.channelBox = false;
-   helper.MakeInputString(data);
-
-   data.name = "data";
-   data.shortName = "data";
-   data.channelBox = false;
-   helper.MakeInputString(data);
-
+   
+   data.defaultValue.BOOL() = true;
+   data.name = "overrideShaders";
+   data.shortName = "osh";
+   helper.MakeInputBoolean(data);
 }
 
-AtNode* CArnoldProceduralTranslator::CreateArnoldNodes()
+AtNode* CProceduralTranslator::CreateArnoldNodes()
 {
    if (IsMasterInstance())
-   {
-      AtNode * tmpRes = AddArnoldNode("procedural");
-      return  tmpRes;
-   }
+      return AddArnoldNode("procedural");
    else
-   {
-      AtNode * tmpRes = AddArnoldNode("ginstance");
-      return  tmpRes;
-   }
+      return AddArnoldNode("ginstance");
 }
 
-/* Commented this out as nobody calls this function. 
-   Was this removed by mistake ?? Should this be called by ProcessRenderFlags ??
+// FIXME : please remove all these hacks regarding the "override" attributes 
+// once we no longer case about pre-2.0.2 compatibility
+static void ArnoldStandInVisibilityOverride(AtByte &visibility, MPlug overridePlug, 
+                                                MPlug visPlug, AtByte rayType)
+{
+   if (visPlug.isNull())
+      return; // nothing to do here
 
-AtByte CArnoldProceduralTranslator::ComputeOverrideVisibility()
+   // FIXME to be removed once we get rid of these "override" attributes
+   if (!overridePlug.isNull() && !overridePlug.asBool())
+   {
+      // the deprecated override parameter was left to False
+      // need to set it to True so that we stop caring about it
+      overridePlug.setBool(true);
+
+      // if override was OFF and Visibility was OFF
+      // it actually meant that my Visibility was ON
+      if (!visPlug.asBool())
+         visPlug.setBool(true);
+   }
+
+   // I can only remove visibility as compared to full visibility
+   if (!visPlug.asBool())
+      visibility &= ~rayType;
+}
+/**
+*   Standins visibility override is a bit special  :
+*   The procedural visibility will determine which rays make it to the procedural node. Then, the child node 
+*   keeps its own visibility value (i.e. it doesn't inherit from the procedural parent as for other attributes).
+*   This means that the resulting visibility value for the nested objects is the "intersection" of their own value
+*   and the procedural's one. So the only thing we can do here is to remove bits of the visibility value.
+**/
+AtByte CProceduralTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (!IsRenderable())
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
-   MPlug plug;
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideCastsShadows"), 
+                                                FindMayaPlug("castsShadows"), 
+                                                AI_RAY_SHADOW);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overridePrimaryVisibility"), 
+                                                FindMayaPlug("primaryVisibility"), 
+                                                AI_RAY_CAMERA);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInDiffuseReflection"), 
+                                                FindMayaPlug("aiVisibleInDiffuseReflection"), 
+                                                AI_RAY_DIFFUSE_REFLECT);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInSpecularReflection"), 
+                                                FindMayaPlug("aiVisibleInSpecularReflection"), 
+                                                AI_RAY_SPECULAR_REFLECT);
+   
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInDiffuseTransmission"), 
+                                                FindMayaPlug("aiVisibleInDiffuseTransmission"), 
+                                                AI_RAY_DIFFUSE_TRANSMIT);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInSpecularTransmission"), 
+                                                FindMayaPlug("aiVisibleInSpecularTransmission"), 
+                                                AI_RAY_SPECULAR_TRANSMIT);
+
+   ArnoldStandInVisibilityOverride(visibility, FindMayaPlug("overrideVisibleInVolume"), 
+                                                FindMayaPlug("aiVisibleInVolume"), 
+                                                AI_RAY_VOLUME);
 
    return visibility;
 }
-*/
 
-// Moved both ExportProcedural and ExportInstance here, for API simplicity
-void CArnoldProceduralTranslator::Export(AtNode* node)
+/// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
+void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
 {
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(node));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      // Export the instance. 
-      ExportInstance(node);
-   }
+   // Once we can get rid of pre-2.0.2 compatibility, we can simply invoke ComputeVisibility here...
+   // For now we're testing if one of the legacy attributes exists
+   if (FindMayaPlug("overridePrimaryVisibility").isNull())
+      AiNodeSetByte(node, "visibility", ComputeVisibility());   
    else
+      AiNodeSetByte(node, "visibility", ComputeOverrideVisibility());
+
+   MPlug plug;
+   
+   plug = FindProceduralPlug("overrideSelfShadows");
+   if (plug.isNull() || plug.asBool())
    {
-      // Export the procedural
-      MFnDagNode dagNode(m_dagPath.node());
-      AiNodeSetStr(node, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
-      ExportMatrix(node);
-      ProcessRenderFlags(node);
-      ExportShaders();
-      ExportLightLinking(node);
-      MString dso = dagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
-      MString resolvedName = dso.asChar();
+      plug = FindMayaPlug("aiSelfShadows");
+      if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+   }
 
-      unsigned int nchars = resolvedName.numChars();
-      if (nchars > 3 && resolvedName.substringW(nchars-3, nchars) == ".so")
-      {
-          resolvedName = resolvedName.substringW(0, nchars-4)+LIBEXT;
-      }
-      else if (nchars > 4 && resolvedName.substringW(nchars-4, nchars) == ".dll")
-      {
-          resolvedName = resolvedName.substringW(0, nchars-5)+LIBEXT;
-      }
-      else if (nchars > 6 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
-      {
-          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
-      }
-         
-      GetSessionOptions().FormatProceduralPath(resolvedName);
-      AiNodeSetStr(node, "filename", resolvedName.asChar());
-/*
-      MPlug deferStandinLoad = dagNode.findPlug("deferStandinLoad");
-      if (!deferStandinLoad.asBool())
-          AiNodeSetBool(node, "load_at_init", true);
+   // for standins, we check
+   plug = FindProceduralPlug("overrideOpaque");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiOpaque");
+      if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
+   }
+   
+   plug = FindProceduralPlug("overrideReceiveShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("receiveShadows");
+      if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
+   }
+   
+   plug = FindProceduralPlug("overrideDoubleSided");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("doubleSided");
+      
+      if (!plug.isNull() && plug.asBool())
+         AiNodeSetByte(node, "sidedness", AI_RAY_ALL);
       else
-          ExportBoundingBox(node);
-*/
-
-      MPlug data = dagNode.findPlug("data");
-      int sizeData = strlen(data.asString().asChar());
-      if (sizeData != 0)
-      {
-          AiNodeSetStr(node, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
-      }
+         AiNodeSetByte(node, "sidedness", 0);
+   }
+   
+   // for standins, we check
+   plug = FindProceduralPlug("overrideMatte");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiMatte");
+      if (!plug.isNull()) AiNodeSetBool(node, "matte", plug.asBool());
+   }
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(node, "motion_start", (float)motionStart);
+      AiNodeSetFlt(node, "motion_end", (float)motionEnd);
    }
 }
 
-void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
+void CProceduralTranslator::Export(AtNode* anode)
+{
+   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
+   if (strcmp(nodeType, "ginstance") == 0)
+   {
+      ExportInstance(anode, GetMasterInstance());
+   }
+   else
+   {
+      ExportProcedural(anode);
+   }
+}
+
+void CProceduralTranslator::ExportMotion(AtNode* anode)
 {
    ExportMatrix(anode);
 }
 
-void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
+// Deprecated : Arnold support procedural instance, but it's not safe.
+//
+AtNode* CProceduralTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   MDagPath masterInstance = GetMasterInstance();
    MFnDependencyNode masterDepNode(masterInstance.node());
    MPlug dummyPlug = masterDepNode.findPlug("matrix");
    // in case master instance wasn't exported (#648)
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
    
-   AiNodeSetStr(instance, "name", GetArnoldNaming(m_dagPath).asChar());
+
+   //AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
 
    ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
-   
-   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
-   AiNodeSetByte(instance, "visibility", visibility);
+  
+   // #2858 we must recompute the visibility instead of getting the master's one
+   // since we're not sure the master has already been exported 
+   //AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   //AiNodeSetByte(instance, "visibility", visibility);
+   ProcessRenderFlags(instance);
 
-   MFnDagNode dagNode(masterInstance);
+   m_DagNode.setObject(masterInstance);
    
-   if (dagNode.findPlug("overrideShaders").asBool() &&
+   if (FindProceduralPlug("overrideShaders").asBool() &&
       RequiresShaderExport())
    {
       ExportShaders();
    }
-   if (dagNode.findPlug("overrideLightLinking").asBool())
+   if (FindProceduralPlug("overrideLightLinking").asBool())
    {
       ExportLightLinking(instance);
-   }      
+   }
 
+   return instance;
 }
-void CArnoldProceduralTranslator::ExportShaders()
-{
-   AtNode *procedural = GetArnoldNode();
-   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
-   std::vector<AtNode*> meshShaders;
+void CProceduralTranslator::ExportShaders()
+{
+   AtNode *node = GetArnoldNode();
+   if (node == NULL)
+      return;
+
+   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
@@ -178,54 +240,63 @@ void CArnoldProceduralTranslator::ExportShaders()
       AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
-         AiNodeSetPtr(procedural, "shader", shader);
-         meshShaders.push_back(shader);
+         AiNodeSetPtr(node, "shader", shader);
       }
       else
-      {
-         AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
-         /*AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input.",
-               fnDGNode.name().asChar());*/
-         AiNodeSetPtr(procedural, "shader", NULL);
-      }
-      if (meshShaders.size() > 0)
-      {
-         AiNodeDeclare(procedural, "mtoa_shading_groups", "constant ARRAY NODE");
-         AiNodeSetArray(procedural, "mtoa_shading_groups",
-                        AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
+      {         
+         AiNodeSetPtr(node, "shader", NULL);
       }
    }
-
 }
-void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
-{
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
 
-   if (/*plugName == ".deferStandinLoad" ||*/ plugName == ".dso" || plugName == ".data")
-      SetUpdateMode(AI_RECREATE_NODE);
+AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
+{
+   m_DagNode.setObject(m_dagPath.node());
+
+   // Why did we use to set the name here ? this is already done in AddArnoldNode
+   //AiNodeSetStr(procedural, "name", GetArnoldNaming(m_dagPath).asChar());
+
+   ExportMatrix(procedural);
+   ProcessRenderFlags(procedural);
+   if (FindProceduralPlug("overrideShaders").asBool())
+      ExportShaders();
    
-   CShapeTranslator::NodeChanged(node, plug);
+   if (FindProceduralPlug("overrideLightLinking").asBool())
+      ExportLightLinking(procedural);
+   
+   AiNodeSetBool(procedural, "override_nodes", FindProceduralPlug("overrideNodes").asBool());
+
+   MString nsName = m_DagNode.findPlug("aiNamespace").asString();
+   if (nsName.length() > 0)
+      AiNodeSetStr(procedural, "namespace", nsName.asChar());
+   else
+      AiNodeResetParameter(procedural, "namespace");
+   
+   return procedural;
 }
 
 
-/*
-void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
+void CProceduralTranslator::RequestUpdate()
+{  
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+   // this should propagate a request update on all other procedurals, standins, referencing me
+}
+
+MPlug CProceduralTranslator::FindProceduralPlug(const char *name)
 {
-   MFnDagNode dagNode(m_dagPath.node());
+   MString attrName(name);
+   if (attrName.length() == 0)
+      return MPlug();
 
-   MBoundingBox boundingBox = dagNode.boundingBox();
-   MPoint bbMin = boundingBox.min();
-   MPoint bbMax = boundingBox.max();
+   MPlug result = m_DagNode.findPlug(MString(name));
+   if (!result.isNull())
+      return result;
 
-   float minCoords[4];
-   float maxCoords[4];
+   MString prefix = attrName.substringW(0, 0);
+   attrName = MString ("ai") + prefix.toUpperCase() + attrName.substringW(1, attrName.length() - 1);
 
-   bbMin.get(minCoords);
-   bbMax.get(maxCoords);
+   result = m_DagNode.findPlug(attrName);
+   return result;
 
-   AiNodeSetVec(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
-   AiNodeSetVec(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
-
-*/

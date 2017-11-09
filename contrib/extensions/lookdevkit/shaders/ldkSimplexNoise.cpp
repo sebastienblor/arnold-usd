@@ -60,7 +60,8 @@ node_parameters
    AiParameterEnum("noiseType", NT_FRACTAL, NoiseTypeNames);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "simplexNoise");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81654);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81654);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

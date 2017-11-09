@@ -173,6 +173,7 @@
     <attr n="ai:ltf" s="defaultArnoldRenderOptions.log_to_file" t="boolean" h="Log to File."/>       
     <attr n="ai:lve" s="defaultArnoldRenderOptions.log_verbosity" t="int" h="Verbosity level. (0 - Errors, 1 - Warnings + Info, 2 - Debug)"/>       
     <attr n="ai:lmw" s="defaultArnoldRenderOptions.log_max_warnings" t="int" h="Maximum number of warnings."/>
+    <attr n="ai:mti" s="defaultArnoldRenderOptions.mtoa_translation_info" t="boolean" h="MtoA Translation Info."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Mel callbacks"/>
