@@ -2861,8 +2861,13 @@ desc STRING "Apply a gamma correction to the color."
     [attr blend]
         min                 FLOAT   0
         softmax             FLOAT   1
-
-
+    [attr cell_blend]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr cell_rotate]
+        softmin             FLOAT   0
+        softmax             FLOAT   1
+    
 
 [node car_paint]
     desc                    STRING  "Prototype Car Paint shader."
