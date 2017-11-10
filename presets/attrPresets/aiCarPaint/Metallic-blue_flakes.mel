@@ -7,7 +7,7 @@ blendAttr "normalCameraZ" 0;
 blendAttr "hardwareColorR" 0.5; 
 blendAttr "hardwareColorG" 0.5; 
 blendAttr "hardwareColorB" 0.5; 
-blendAttr "base" 0.8899999857; 
+blendAttr "base" 0.2; 
 blendAttr "baseColorR" 0.01329999976; 
 blendAttr "baseColorG" 0.07500000298; 
 blendAttr "baseColorB" 0.2080000043; 
