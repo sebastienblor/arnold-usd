@@ -166,62 +166,78 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
 //
 AtNode*  CFileTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaFile"));
-}
-
-bool StringHasOnlyNumbersAndMinus(const std::string& str)
-{
-   static const char validCharacters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}; // do we have to add - ?
-   for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
-   {
-      for (int i = 0; i < 10; ++i)
-      {
-         if (*it == validCharacters[i])
-            return true;
-      }
-   }
-   return false;
+   return ProcessAOVOutput(AddArnoldNode("image"));
 }
 
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
-
-   MPlug plug = FindMayaPlug("uvCoord");
    const CSessionOptions &options = GetSessionOptions();
 
+   MPlug plug = FindMayaPlug("uvCoord");
    plug.connectedTo(connections, true, false);
 
    if (connections.length() != 0)
    {
       MObject srcObj = connections[0].node();
       MFnDependencyNode srcNodeFn(srcObj);
+
       if (srcNodeFn.typeName() == "place2dTexture")
       {
+         if (srcNodeFn.findPlug("wrapU").asBool())
+         {
+            if (srcNodeFn.findPlug("mirrorU").asBool())
+               AiNodeSetStr(shader, "swrap", "mirror");
+            else
+               AiNodeSetStr(shader, "swrap", "periodic");
+            
+         } else
+            AiNodeSetStr(shader, "swrap", "black"); // FIXME it should be "missing_textures_color"
+
+         if (srcNodeFn.findPlug("wrapV").asBool())
+         {
+            if (srcNodeFn.findPlug("mirrorV").asBool())
+               AiNodeSetStr(shader, "twrap", "mirror");
+            else
+               AiNodeSetStr(shader, "twrap", "periodic");
+            
+         } else
+            AiNodeSetStr(shader, "twrap", "black"); // FIXME it should be "missing_textures_color"
+         
+         MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV");
+         if (!repeatUVPlug.isNull())
+         {
+            AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
+            AiNodeSetFlt(shader, "sscale", repeatUV.x);
+            AiNodeSetFlt(shader, "tscale", repeatUV.y);
+         }
+         MPlug offsetUVPlug = srcNodeFn.findPlug("offset");
+         if (!offsetUVPlug.isNull())
+         {
+            AiNodeSetFlt(shader, "soffset", offsetUVPlug.child(0).asFloat());
+            AiNodeSetFlt(shader, "toffset", offsetUVPlug.child(1).asFloat());
+         }
+
          // until multiple outputs are supporte, place2d outputs are added to
-         // inputs on the file node itself
-         // FIXME do this with a translator
+         // inputs on the file node itself // FIXME do this with a translator
+
+         /* TODO with a uv_transform node
          ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
          ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
          ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
-         ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
-         ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
-         ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapU"));
-         ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapV"));
          ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
-         ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
          ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateUV"));
-         ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
-         ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
+         ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));*/
          srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
          if (connections.length() > 0)
          {
             MFnDependencyNode uvcNodeFn(connections[0].node());
             if (uvcNodeFn.typeName() == "uvChooser")
-               AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
          }
       }
    }
+
    MString prevFilename = AiNodeGetStr(shader, "filename").c_str();
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
@@ -288,7 +304,6 @@ void CFileTranslator::Export(AtNode* shader)
             {
                // Previous Filename was .tx, either because of "use existing tx", 
                // or because it's explicitely targeting the .tx
-//seb
                MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
 
                int dotPos = resolvedFilename.rindexW(".");
@@ -336,21 +351,40 @@ void CFileTranslator::Export(AtNode* shader)
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
    AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
-   AiNodeSetBool(shader, "useDefaultColor", FindMayaPlug("aiUseDefaultColor").asBool());
+  
+   // FIXME : in Maya File, the default color is also seen out of the UV range, when UV wrapping is disabled
+   // In Arnold image node, the only choice we have is "black"
+   AiNodeSetBool(shader, "ignore_missing_textures", FindMayaPlug("aiUseDefaultColor").asBool());
+   ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGB, "defaultColor");
 
-   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
-   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
+   ProcessParameter(shader, "offset", AI_TYPE_RGB, "colorOffset");
+   ProcessParameter(shader, "multiply", AI_TYPE_RGB, "colorGain");
+
+   /* TODO Color corrections
+   
+   
    ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
    ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
 
    plug = FindMayaPlug("exposure");
    if (plug.isNull())
       AiNodeSetFlt(shader, "exposure", 0.0f);
    else
       ProcessParameter(shader, "exposure", AI_TYPE_FLOAT, plug);
+
+   */
+
+   /* Note that the following native file attributes are ignored :
+      - filter type 
+      - pre-filter 
+      - effects filter
+      - effects filter offset
+      - effects invert
+      - effects color remap
+   */
+
 
 }
 
