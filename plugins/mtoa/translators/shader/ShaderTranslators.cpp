@@ -66,7 +66,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CLambertTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("lambert"));
+   return AddArnoldNode("lambert");
 }
 
 void CLambertTranslator::Export(AtNode* shader)
@@ -119,7 +119,7 @@ void CLambertTranslator::Export(AtNode* shader)
 //
 AtNode*  CPhysicalSkyTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("physical_sky"));
+   return AddArnoldNode("physical_sky");
 }
 
 void CPhysicalSkyTranslator::Export(AtNode* shader)
@@ -166,7 +166,7 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
 //
 AtNode*  CFileTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaFile"));
+   return AddArnoldNode("MayaFile");
 }
 
 bool StringHasOnlyNumbersAndMinus(const std::string& str)
@@ -434,7 +434,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 //
 AtNode*  CBump3DTranslator::CreateArnoldNodes()
 {
-   return  ProcessAOVOutput(AddArnoldNode("bump3d"));
+   return  AddArnoldNode("bump3d");
 }
 
 void CBump3DTranslator::Export(AtNode* shader)
@@ -470,7 +470,7 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    }
    AtEnum modeEnum = AiParamGetEnum(AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(shader), "mode"));
    AiNodeSetInt(shader, "mode", AiEnumGetValue(modeEnum, outputAttr.asChar()));
-   return ProcessAOVOutput(shader);
+   return shader;
 }
 
 void CSamplerInfoTranslator::Export(AtNode* shader)
@@ -484,15 +484,15 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 
    if (outputAttr == "output1D")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage1D"));
+      return AddArnoldNode("MayaPlusMinusAverage1D");
    }
    else if (outputAttr == "output2D")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage2D"));
+      return AddArnoldNode("MayaPlusMinusAverage2D");
    }
    else if (outputAttr == "output3D")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage3D"));
+      return AddArnoldNode("MayaPlusMinusAverage3D");
    }
    else
    {
@@ -651,11 +651,11 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 
    if (outputAttr == "outValue")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaRemapValueToValue"));
+      return AddArnoldNode("MayaRemapValueToValue");
    }
    else if (outputAttr == "outColor")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaRemapValueToColor"));
+      return AddArnoldNode("MayaRemapValueToColor");
    }
    else
    {
@@ -721,7 +721,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaRemapColor"));
+   return AddArnoldNode("MayaRemapColor");
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
@@ -861,7 +861,7 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
 //
 AtNode*  CRampTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaRamp"));
+   return AddArnoldNode("MayaRamp");
 }
 
 void CRampTranslator::Export(AtNode* shader)
@@ -918,7 +918,7 @@ void CRampTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaPlace2DTexture"));
+   return AddArnoldNode("MayaPlace2DTexture");
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
@@ -951,7 +951,7 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaLayeredTexture"));
+   return AddArnoldNode("MayaLayeredTexture");
 }
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
@@ -1041,7 +1041,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("MayaLayeredShader"));
+   return AddArnoldNode("MayaLayeredShader");
 }
 
 void CLayeredShaderTranslator::Export(AtNode* shader)
@@ -1311,7 +1311,7 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
 
 AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
+   return AddArnoldNode("standard_surface");
 }
 
 void CMayaPhongTranslator::Export(AtNode* shader)
@@ -1343,7 +1343,7 @@ void CMayaPhongTranslator::Export(AtNode* shader)
 
 AtNode* CMayaPhongTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
+   return AddArnoldNode("standard_surface");
 }
 
 void CMayaPhongETranslator::Export(AtNode* shader)
@@ -1374,7 +1374,7 @@ void CMayaPhongETranslator::Export(AtNode* shader)
 
 AtNode* CMayaPhongETranslator::CreateArnoldNodes()
 {
-    return ProcessAOVOutput(AddArnoldNode("standard_surface"));
+    return AddArnoldNode("standard_surface");
 }
 
 void CMayaAnisotropicTranslator::Export(AtNode* shader)
@@ -1449,7 +1449,7 @@ void CMayaAnisotropicTranslator::Export(AtNode* shader)
 
 AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
+   return AddArnoldNode("standard_surface");
 }
 
 void CMayaRampShaderTranslator::Export(AtNode* shader)
@@ -1497,7 +1497,7 @@ void CMayaRampShaderTranslator::Export(AtNode* shader)
 
 AtNode* CMayaRampShaderTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode("standard_surface"));
+   return AddArnoldNode("standard_surface");
 }
 
 
@@ -1529,7 +1529,7 @@ void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CAiHairTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("hair");
+   return ProcessAOVOutput(AddArnoldNode("hair"));
 }
 
 void CAiStandardHairTranslator::NodeInitializer(CAbTranslator context)
@@ -1560,7 +1560,7 @@ void CAiStandardHairTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CAiStandardHairTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("standard_hair");
+   return ProcessAOVOutput(AddArnoldNode("standard_hair"));
 }
 
 AtNode* CAiImageTranslator::CreateArnoldNodes()
