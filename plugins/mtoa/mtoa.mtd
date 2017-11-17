@@ -969,12 +969,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -993,12 +993,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1051,12 +1051,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1082,12 +1082,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0    
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1103,12 +1103,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1168,12 +1168,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
