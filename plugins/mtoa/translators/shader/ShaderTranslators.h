@@ -118,6 +118,12 @@ public:
    static void NodeInitializer(CAbTranslator context);
 private:
    MString m_colorSpace;
+
+   bool RequiresColorCorrect() const;
+   bool RequiresUvTransform() const;
+
+   bool m_hasColorCorrect;
+   bool m_hasUvTransform;
 };
 
 class CAiHairTranslator : public CShaderTranslator{
