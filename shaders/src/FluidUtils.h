@@ -254,6 +254,8 @@ public:
       {
          bool isConnected = false;
          elements = (GradientDescriptionElement*)AiMalloc(sizeof(GradientDescriptionElement) * nelements);
+		 memset(elements, 0, sizeof(GradientDescriptionElement) * nelements);
+		 uint32_t valuesElemsCount = AiArrayGetNumElements(valuesArray);
          for (uint32_t i = 0; i < nelements; ++i)
          {
             elements[i].position = AiArrayGetFlt(positionsArray, i);
@@ -273,7 +275,7 @@ public:
                   elements[i].outputType = AiNodeEntryGetOutputType(nentry);
                }
             }
-            else
+			else if (i < valuesElemsCount)
                elements[i].value = ReadFromArray<T>(valuesArray, i);
             
          }
