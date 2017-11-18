@@ -266,14 +266,14 @@ public:
                std::stringstream ss;
                ss << valuesName << "[" << i << "]";
                elements[i].node = AiNodeGetLink(node, ss.str().c_str());
-               if (elements[i].node == 0)
-                  elements[i].value = ReadFromArray<T>(valuesArray, i);
-               else
+               if (elements[i].node != 0)
                {
                   isConnected = true;
                   const AtNodeEntry* nentry = AiNodeGetNodeEntry(elements[i].node);
                   elements[i].outputType = AiNodeEntryGetOutputType(nentry);
                }
+               else if (i < valuesElemsCount)
+                  elements[i].value = ReadFromArray<T>(valuesArray, i);
             }
 			else if (i < valuesElemsCount)
                elements[i].value = ReadFromArray<T>(valuesArray, i);
