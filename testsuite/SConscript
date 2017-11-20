@@ -810,7 +810,7 @@ if __name__ == 'SCons.Script':
 
                 for fullName in testlist:
                     name = os.path.basename(fullName)
-                    if name in GUI_LIST:
+                    if name in GUI_LIST and system.os() == 'darwin':
                         continue
                     SRC += [os.path.join(name, 'README')]
             else:
@@ -846,7 +846,7 @@ if __name__ == 'SCons.Script':
                 GUI_LIST = find_test_group('gui')
                 for fullName in testlist:
                     name = os.path.basename(fullName)
-                    if name in GUI_LIST:
+                    if name in GUI_LIST and system.os() == 'darwin':
                         print "Skipping GUI test \"%s\"" % name
                         continue
                     testRunner.add_test(name)
