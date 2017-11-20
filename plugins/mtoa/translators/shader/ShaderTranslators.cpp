@@ -263,22 +263,39 @@ void CFileTranslator::Export(AtNode* shader)
             if (srcNodeFn.findPlug("wrapU").asBool())
             {
                if (srcNodeFn.findPlug("mirrorU").asBool())
-                  AiNodeSetStr(uvTransformNode, "wrap_frame_u", "mirror");
-               else
+               {
                   AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+                  AiNodeSetBool(uvTransformNode, "mirror_u", true);
+               }
+               else
+               {
+                  AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+                  AiNodeSetBool(uvTransformNode, "mirror_u", false);
+               }
                
             } else
+            {
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color"); // FIXME it should be "missing_textures_color"
+               AiNodeSetBool(uvTransformNode, "mirror_u", false);
+            }
 
             if (srcNodeFn.findPlug("wrapV").asBool())
             {
                if (srcNodeFn.findPlug("mirrorV").asBool())
-                  AiNodeSetStr(uvTransformNode, "wrap_frame_v", "mirror");
-               else
+               {
                   AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
-            
+                  AiNodeSetBool(uvTransformNode, "mirror_v", true);
+               }
+               else
+               {
+                  AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+                  AiNodeSetBool(uvTransformNode, "mirror_v", false);
+               }            
             } else
+            {
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color"); // FIXME it should be "missing_textures_color"
+               AiNodeSetBool(uvTransformNode, "mirror_v", false);
+            }
             
             ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
             ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
@@ -508,6 +525,19 @@ void CFileTranslator::Export(AtNode* shader)
    */
 
 
+}
+void CFileTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "alphaGain" || plugName == "alphaOffset" || plugName == "alphaIsLuminance" || plugName == "invert") &&
+      !RequiresColorCorrect())
+      SetUpdateMode(AI_RECREATE_NODE);
+
+if ((plugName == "uvCoord") &&
+      !RequiresUvTransform())
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
 }
 
 bool CFileTranslator::RequiresColorCorrect() const
