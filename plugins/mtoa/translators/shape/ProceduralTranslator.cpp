@@ -31,6 +31,8 @@ void CProceduralTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CProceduralTranslator::CreateArnoldNodes()
 {
+   m_attrChanged = false;
+
    if (IsMasterInstance())
       return AddArnoldNode("procedural");
    else
@@ -171,6 +173,7 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
 
 void CProceduralTranslator::Export(AtNode* anode)
 {
+   m_attrChanged = false;
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
@@ -276,10 +279,25 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
 }
 
 
+void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
+
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShapeTranslator::NodeChanged(node, plug);
+}
+   
 void CProceduralTranslator::RequestUpdate()
 {  
-   SetUpdateMode(AI_RECREATE_NODE);
+   // if no attribute has changed, it means that RequestUpdate is invoked explicitely
+   // and in that case we want to fully regenerate the node (#3240)
+   if (!m_attrChanged)
+      SetUpdateMode(AI_RECREATE_NODE);
+
    CShapeTranslator::RequestUpdate();
+   m_attrChanged = false;
    // this should propagate a request update on all other procedurals, standins, referencing me
 }
 
