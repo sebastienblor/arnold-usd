@@ -638,21 +638,49 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiApertureRotation")
         self.addControl("aiApertureAspectRatio")
         
-    def globaShutterChanged(self, *args):
+    def globalShutterChanged(self, nodeAttr, *args):
+
+        if cmds.getAttr(nodeAttr):
+            pm.control("aiShutterStartCtrl", edit=True, enable=False)
+            pm.control("aiShutterEndCtrl", edit=True, enable=False)
+        else:            
+            pm.control("aiShutterStartCtrl", edit=True, enable=True)
+            pm.control("aiShutterEndCtrl", edit=True, enable=True)
+
+    def globalShutterNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+
+        cmds.rowLayout(numberOfColumns=2)
+        cmds.text(label="Use Global Shutter")
+        cmds.checkBox('aiUseGlobalShutterCheckBox', label="")
+        cmds.setParent('..')
+
+        cmds.columnLayout(adj=True)
+        cmds.attrFieldSliderGrp("aiShutterStartCtrl", label="Shutter Start", attribute='.'.join([self.nodeName, 'aiShutterStart']))
+        cmds.attrFieldSliderGrp("aiShutterEndCtrl", label="Shutter End", attribute='.'.join([self.nodeName, 'aiShutterEnd']))
+        cmds.setParent('..')
+
+        cmds.setUITemplate(ppt=True)
+
+        self.globalShutterReplace(nodeAttr)
+
+    def globalShutterReplace(self, nodeAttr):
+        cmds.connectControl('aiUseGlobalShutterCheckBox', '.'.join([self.nodeName, 'aiUseGlobalShutter']))
+        cmds.attrFieldSliderGrp('aiShutterStartCtrl', edit=True, attribute='.'.join([self.nodeName, 'aiShutterStart']))
+        cmds.attrFieldSliderGrp('aiShutterEndCtrl', edit=True, attribute='.'.join([self.nodeName, 'aiShutterEnd']))
         
-        if cmds.getAttr(self.nodeAttr('aiUseGlobalShutter')) == 1:
-            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterStart', True))
-            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterEnd', True))
-        else:
-            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterStart', False))
-            pm.editorTemplate(dimControl=(self.nodeName, 'aiShutterEnd', False))
-        
+        cmds.checkBox('aiUseGlobalShutterCheckBox', edit=True, changeCommand=lambda *args: self.globalShutterChanged(nodeAttr, *args))
+
+        self.globalShutterChanged(nodeAttr)
+
     def addShutterAttributes(self):
         self.addSeparator()
         self.addControl("motionBlurOverride", label="Camera Motion Blur")
-        self.addControl("aiUseGlobalShutter", label="Use Global Shutter", changeCommand=self.globaShutterChanged)
-        self.addControl("aiShutterStart")
-        self.addControl("aiShutterEnd")
+
+        self.addCustom("aiUseGlobalShutter", self.globalShutterNew, self.globalShutterReplace)
+        cmds.editorTemplate(suppress='aiShutterStart')
+        cmds.editorTemplate(suppress='aiShutterEnd')
         self.addControl("aiShutterType")
         self.addCustom( "aiShutterCurve", self.createRamp, self.updateRamp )
         
