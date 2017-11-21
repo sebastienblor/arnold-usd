@@ -117,6 +117,7 @@ public:
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
 private:
+   void ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut);
    MString m_colorSpace;
 };
 
