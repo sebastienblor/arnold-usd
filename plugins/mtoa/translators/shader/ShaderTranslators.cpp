@@ -260,43 +260,21 @@ void CFileTranslator::Export(AtNode* shader)
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
+            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
+            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
+
             if (srcNodeFn.findPlug("wrapU").asBool())
-            {
-               if (srcNodeFn.findPlug("mirrorU").asBool())
-               {
-                  AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
-                  AiNodeSetBool(uvTransformNode, "mirror_u", true);
-               }
-               else
-               {
-                  AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
-                  AiNodeSetBool(uvTransformNode, "mirror_u", false);
-               }
-               
-            } else
-            {
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+            else
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color"); // FIXME it should be "missing_textures_color"
-               AiNodeSetBool(uvTransformNode, "mirror_u", false);
-            }
+               
 
             if (srcNodeFn.findPlug("wrapV").asBool())
-            {
-               if (srcNodeFn.findPlug("mirrorV").asBool())
-               {
-                  AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
-                  AiNodeSetBool(uvTransformNode, "mirror_v", true);
-               }
-               else
-               {
-                  AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
-                  AiNodeSetBool(uvTransformNode, "mirror_v", false);
-               }            
-            } else
-            {
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+            else
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color"); // FIXME it should be "missing_textures_color"
-               AiNodeSetBool(uvTransformNode, "mirror_v", false);
-            }
             
+
             ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
             ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
             ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
@@ -570,6 +548,8 @@ bool CFileTranslator::RequiresUvTransform() const
       return false;
 
    return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger"), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU"), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV"), false) &&
             IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame"), 0.f ) &&
             IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV"), 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("coverage"), 1.f, 1.f ) &&
