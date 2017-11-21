@@ -120,6 +120,7 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    
 private:
+   void ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut);
    MString m_colorSpace;
 
    bool RequiresColorCorrect() const;

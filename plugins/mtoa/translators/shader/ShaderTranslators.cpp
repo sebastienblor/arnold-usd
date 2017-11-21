@@ -363,17 +363,41 @@ void CFileTranslator::Export(AtNode* shader)
 
       options.FormatTexturePath(resolvedFilename);
 
-      // need to handle <f> tokens, in case they are combined with other (eventually arnold) tokens
-      static const MString fTokenStr = "<f>";
-      int fTokenIndex = resolvedFilename.indexW(fTokenStr);
-      if (fTokenIndex > 0)
+      MString tokenStr = "<";
+      int tokenIndex = resolvedFilename.indexW(tokenStr);
+      if (tokenIndex >= 0)
       {
-         // the MString frameNumber adds a '0' before the frame value.
-         // Do we really want that ? doesn't make much sense....so well, removing it here
-         int fileFrame = FindMayaPlug("useFrameExtension").asBool() ? FindMayaPlug("frameExtension").asInt() + FindMayaPlug("frameOffset").asInt() : (int)GetExportFrame();
-         frameNumber = fileFrame;
-         MString filenameExt = resolvedFilename.substringW(fTokenIndex + 3, resolvedFilename.length() - 1);
-         resolvedFilename = resolvedFilename.substringW(0, fTokenIndex - 1) + frameNumber + filenameExt;
+         // need to handle <f> tokens, in case they are combined with other (eventually arnold) tokens
+         tokenStr = "<f>";
+         tokenIndex = resolvedFilename.indexW(tokenStr);
+         if (tokenIndex > 0)
+         {
+            // the MString frameNumber adds a '0' before the frame value.
+            // Do we really want that ? doesn't make much sense....so well, removing it here
+            int fileFrame = FindMayaPlug("useFrameExtension").asBool() ? FindMayaPlug("frameExtension").asInt() + FindMayaPlug("frameOffset").asInt() : (int)GetExportFrame();
+            frameNumber = fileFrame;
+            MString filenameExt = resolvedFilename.substringW(tokenIndex + 3, resolvedFilename.length() - 1);
+            resolvedFilename = resolvedFilename.substringW(0, tokenIndex - 1) + frameNumber + filenameExt;
+         }
+         tokenStr = "<shapeName>";
+         MString tokenOut = "<attr:name>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<shapePath>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<UDIM";
+         tokenOut = "<udim";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+
+         tokenStr = "<u>";
+         tokenOut = "<utile>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<U>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<v>";
+         tokenOut = "<vtile>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<V>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
       }
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
@@ -558,7 +582,14 @@ bool CFileTranslator::RequiresUvTransform() const
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV"), 0.f, 0.f ) );
 
 }
+void CFileTranslator::ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut)
+{   
+   int tokenIndex = filename.indexW(tokenIn);
+   if ((tokenIndex) < 0) return; // token not found
 
+   filename = filename.substringW(0, tokenIndex - 1) + 
+      tokenOut + filename.substringW(tokenIndex + tokenIn.length(), filename.length() - 1);
+}
 void CFileTranslator::NodeInitializer(CAbTranslator context)
 {
 
