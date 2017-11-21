@@ -500,20 +500,26 @@ void CFileTranslator::Export(AtNode* shader)
       AiNodeSetRGB(shader, "multiply", colorGain.r, colorGain.g, colorGain.b);
    } else
    {
-      // TODO what should we do with either colorGain or exposure is connected ??
+      AtNode *compositeNode = GetArnoldNode("gain_exp");
+      if (compositeNode == NULL)
+         compositeNode = AddArnoldNode("color_correct", "gain_exp");
 
+      AiNodeLink(compositeNode, "multiply", shader);
+      AiNodeSetRGBA(compositeNode, "input", 1.f, 1.f, 1.f, 1.f);
+      ProcessParameter(compositeNode, "multiply", AI_TYPE_RGB, "colorGain");
+      ProcessParameter(compositeNode, "exposure", AI_TYPE_FLOAT, "exposure");
    }
-
+   if (colorCorrectNode)
+   {
+      ProcessParameter(colorCorrectNode, "alpha_is_luminance", AI_TYPE_BOOLEAN, "alphaIsLuminance");
+      // when "invert" is enabled, we want it to invert both the RGB and the alpha
+      // this is done through 2 different attributes in color_correct
+      ProcessParameter(colorCorrectNode, "invert", AI_TYPE_BOOLEAN, "invert");
+      ProcessParameter(colorCorrectNode, "invert_alpha", AI_TYPE_BOOLEAN, "invert");
+      ProcessParameter(colorCorrectNode, "alpha_multiply", AI_TYPE_FLOAT, "alphaGain");
+      ProcessParameter(colorCorrectNode, "alpha_add", AI_TYPE_FLOAT, "alphaOffset");
+   }
    
-   /* TODO Color corrections
-   
-   
-   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-
-   */
 
    /* Note that the following native file attributes are ignored :
       - filter type 
