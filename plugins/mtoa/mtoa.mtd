@@ -2849,7 +2849,7 @@ desc STRING "Apply a gamma correction to the color."
 
 [node contour_filter]
     maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "Contour filter"
+    maya.translator         STRING  "contour"
 
 [node toon]
     desc                    STRING  "Toon shader"
@@ -2862,6 +2862,9 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
     [attr edge_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_tonemap]
         min             FLOAT   0
         max             FLOAT   1
     [attr edge_opacity]
@@ -2904,6 +2907,9 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
     [attr highlight_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr rim_light_color]
         min             FLOAT   0
         softmax         FLOAT   1
     [attr highlight_size]

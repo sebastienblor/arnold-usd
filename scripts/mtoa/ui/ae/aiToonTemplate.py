@@ -6,22 +6,31 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addSwatch()
 
         self.beginScrollLayout()
-
         self.beginLayout("Edge", collapse=False)
-        self.addControl("mask_color", label="Mask Color")
+        self.addControl("enable", label="Edge (requires contour filter)")
+        self.addSeparator()
         self.addControl("edge_color", label="Edge Color")
+        self.addControl("edge_tonemap", label="Edge Tonemap")
         self.addControl("edge_opacity", label="Edge Opacity")
         self.addControl("width_scale", label="Width Scaling")
-        self.addControl("priority", label="Priority")
+
+        self.beginLayout("Edge Detection", collapse=False)
         self.beginNoOptimize();
-        self.addSeparator()
         self.addControl("id_difference", label="ID Difference")
+        self.addControl("mask_color", label="Mask Color")
         self.addControl("uv_threshold", label="UV Threshold")
         self.addControl("angle_threshold", label="Angle Threshold")
-        self.addSeparator()
-        self.addControl("disable", label="Disable Edge")
+        self.addControl("normal_type", label="Edge Detection")
+        self.endNoOptimize();
+        self.endLayout()
+
+        self.beginLayout("Advanced Edge Control", collapse=True)
+        self.beginNoOptimize();
+        self.addControl("priority", label="Priority")
+        self.addControl("scale_silhouette", label="Scale Silhouette")
         self.addControl("ignore_throughput", label="Ignore Throughput")
         self.endNoOptimize();
+        self.endLayout()
         self.endLayout()
 
         self.beginLayout("Base", collapse=False)
@@ -46,6 +55,12 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("light", label="Light")
         self.addControl("highlight_color", label="Color")
         self.addControl("highlight_size", label="Size")
+        self.addControl("highlight_aov", label="AOV")
+        self.endLayout()
+
+        self.beginLayout("Rim Lighting", collapse=True)
+        self.addControl("rim_light_color", label="Color")
+        self.addControl("rim_light_aov", label="AOV")
         self.endLayout()
 
         self.beginLayout("Transmission", collapse=True)
@@ -60,6 +75,11 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginLayout("Emission", collapse=False)
         self.addControl("emission", label="Weight")
         self.addControl("emission_color", label="Color")
+        self.endLayout()
+
+        self.beginLayout("Geometry", collapse=True)
+        self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
+        self.addControl("bump_mode", label="Bump Mapping Mode")
         self.endLayout()
 
         self.beginLayout("Advanced", collapse=True)
