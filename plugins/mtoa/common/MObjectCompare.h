@@ -9,7 +9,6 @@
 #include <maya/MString.h>
 #include <maya/MFnDependencyNode.h>
 #if MAYA_API_VERSION >= 201600
-testme
 #include <maya/MUuid.h>
 #endif
 #include <common/UnorderedContainer.h>
