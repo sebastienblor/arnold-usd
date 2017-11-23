@@ -387,14 +387,17 @@ void CFileTranslator::Export(AtNode* shader)
          tokenStr = "<UDIM";
          tokenOut = "<udim";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
-
-         tokenStr = "<u>";
-         tokenOut = "<utile>";
+         tokenStr = "<utile>"; 
+         tokenOut = "<utile:1>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<u>";         
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<U>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<vtile>";
+         tokenOut = "<vtile:1>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<v>";
-         tokenOut = "<vtile>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<V>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
@@ -469,7 +472,7 @@ void CFileTranslator::Export(AtNode* shader)
    // FIXME : in Maya File, the default color is also seen out of the UV range, when UV wrapping is disabled
    // In Arnold image node, the only choice we have is "black"
    AiNodeSetBool(shader, "ignore_missing_textures", FindMayaPlug("aiUseDefaultColor").asBool());
-   ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGB, "defaultColor");
+   ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGBA, "defaultColor");
 
    ProcessParameter(shader, "offset", AI_TYPE_RGB, "colorOffset");
 
