@@ -586,10 +586,6 @@ createNode shadingEngine -n "lambert2SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo2";
 	rename -uid "400C909F-40F9-8E02-D3C9-14A9BB655DD6";
-createNode file -n "file1";
-	rename -uid "9A1F8B69-435A-54D7-89C0-2CB7706B3CA3";
-	setAttr ".ftn" -type "string" "Jupiter_Map.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture1";
 	rename -uid "5BB326F6-47A6-6F5C-EA1F-5D9513746F62";
 createNode script -n "uiConfigurationScriptNode";
@@ -668,11 +664,6 @@ createNode script -n "sceneConfigurationScriptNode";
 	rename -uid "1E1B28AC-45E0-A8EC-83B7-9C92AA080042";
 	setAttr ".b" -type "string" "playbackOptions -min 1 -max 120 -ast 1 -aet 200 ";
 	setAttr ".st" 6;
-createNode file -n "file2";
-	rename -uid "D7DE665D-4AAE-5C63-6FD5-6ABC66B69F41";
-	setAttr ".ftn" -type "string" "Jupiter_Map.jpg";
-	setAttr ".exp" 1.5;
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture2";
 	rename -uid "8FFE3205-4118-F739-00DD-E28344A7129F";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
@@ -1144,17 +1135,8 @@ createNode shadingEngine -n "test:lambert2SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "test:materialInfo2";
 	rename -uid "B22DAA5D-4918-3426-9FBF-EDA0B403A459";
-createNode file -n "test:file1";
-	rename -uid "1D9FA8B4-4D0C-C704-F780-449DC029A844";
-	setAttr ".ftn" -type "string" "Jupiter_Map.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "test:place2dTexture1";
 	rename -uid "BC820E15-4701-D49A-B4FF-4DBD18D9F3B5";
-createNode file -n "test:file2";
-	rename -uid "B208A240-4A67-15FA-CE01-A795810DA356";
-	setAttr ".ftn" -type "string" "Jupiter_Map.jpg";
-	setAttr ".exp" 1.5;
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "test:place2dTexture2";
 	rename -uid "C94E17B4-400C-6388-89CC-24974DEE412E";
 createNode ramp -n "test:ramp1";
@@ -1316,56 +1298,11 @@ connectAttr "description_hairPhysical_Shape.iog" "hairPhysicalShader1SG.dsm" -na
 connectAttr "hairPhysicalShader1SG.msg" "materialInfo1.sg";
 connectAttr "hairPhysicalShader1.msg" "materialInfo1.m";
 connectAttr "hairPhysicalShader1.msg" "materialInfo1.t" -na;
-connectAttr "file1.oc" "lambert2.c";
 connectAttr "lambert2.oc" "lambert2SG.ss";
 connectAttr "pPlaneShape1.iog" "lambert2SG.dsm" -na;
 connectAttr "lambert2SG.msg" "materialInfo2.sg";
 connectAttr "lambert2.msg" "materialInfo2.m";
-connectAttr "file1.msg" "materialInfo2.t" -na;
-connectAttr ":defaultColorMgtGlobals.cme" "file1.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file1.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file1.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file1.ws";
-connectAttr "place2dTexture1.c" "file1.c";
-connectAttr "place2dTexture1.tf" "file1.tf";
-connectAttr "place2dTexture1.rf" "file1.rf";
-connectAttr "place2dTexture1.mu" "file1.mu";
-connectAttr "place2dTexture1.mv" "file1.mv";
-connectAttr "place2dTexture1.s" "file1.s";
-connectAttr "place2dTexture1.wu" "file1.wu";
-connectAttr "place2dTexture1.wv" "file1.wv";
-connectAttr "place2dTexture1.re" "file1.re";
-connectAttr "place2dTexture1.of" "file1.of";
-connectAttr "place2dTexture1.r" "file1.ro";
-connectAttr "place2dTexture1.n" "file1.n";
-connectAttr "place2dTexture1.vt1" "file1.vt1";
-connectAttr "place2dTexture1.vt2" "file1.vt2";
-connectAttr "place2dTexture1.vt3" "file1.vt3";
-connectAttr "place2dTexture1.vc1" "file1.vc1";
-connectAttr "place2dTexture1.o" "file1.uv";
-connectAttr "place2dTexture1.ofs" "file1.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file2.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file2.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file2.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file2.ws";
-connectAttr "place2dTexture2.c" "file2.c";
-connectAttr "place2dTexture2.tf" "file2.tf";
-connectAttr "place2dTexture2.rf" "file2.rf";
-connectAttr "place2dTexture2.mu" "file2.mu";
-connectAttr "place2dTexture2.mv" "file2.mv";
-connectAttr "place2dTexture2.s" "file2.s";
-connectAttr "place2dTexture2.wu" "file2.wu";
-connectAttr "place2dTexture2.wv" "file2.wv";
-connectAttr "place2dTexture2.re" "file2.re";
-connectAttr "place2dTexture2.of" "file2.of";
-connectAttr "place2dTexture2.r" "file2.ro";
-connectAttr "place2dTexture2.n" "file2.n";
-connectAttr "place2dTexture2.vt1" "file2.vt1";
-connectAttr "place2dTexture2.vt2" "file2.vt2";
-connectAttr "place2dTexture2.vt3" "file2.vt3";
-connectAttr "place2dTexture2.vc1" "file2.vc1";
-connectAttr "place2dTexture2.o" "file2.uv";
-connectAttr "place2dTexture2.ofs" "file2.fs";
+
 connectAttr ":defaultArnoldDisplayDriver.msg" ":defaultArnoldRenderOptions.drivers"
 		 -na;
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
@@ -1389,63 +1326,15 @@ connectAttr "test:description_hairPhysical_Shape.iog" "test:hairPhysicalShader1S
 connectAttr "test:hairPhysicalShader1SG.msg" "test:materialInfo1.sg";
 connectAttr "test:hairPhysicalShader1.msg" "test:materialInfo1.m";
 connectAttr "test:hairPhysicalShader1.msg" "test:materialInfo1.t" -na;
-connectAttr "test:file1.oc" "test:lambert2.c";
 connectAttr "test:lambert2.oc" "test:lambert2SG.ss";
 connectAttr "test:pPlaneShape1.iog" "test:lambert2SG.dsm" -na;
 connectAttr "test:lambert2SG.msg" "test:materialInfo2.sg";
 connectAttr "test:lambert2.msg" "test:materialInfo2.m";
-connectAttr "test:file1.msg" "test:materialInfo2.t" -na;
-connectAttr ":defaultColorMgtGlobals.cme" "test:file1.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "test:file1.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "test:file1.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "test:file1.ws";
-connectAttr "test:place2dTexture1.c" "test:file1.c";
-connectAttr "test:place2dTexture1.tf" "test:file1.tf";
-connectAttr "test:place2dTexture1.rf" "test:file1.rf";
-connectAttr "test:place2dTexture1.mu" "test:file1.mu";
-connectAttr "test:place2dTexture1.mv" "test:file1.mv";
-connectAttr "test:place2dTexture1.s" "test:file1.s";
-connectAttr "test:place2dTexture1.wu" "test:file1.wu";
-connectAttr "test:place2dTexture1.wv" "test:file1.wv";
-connectAttr "test:place2dTexture1.re" "test:file1.re";
-connectAttr "test:place2dTexture1.of" "test:file1.of";
-connectAttr "test:place2dTexture1.r" "test:file1.ro";
-connectAttr "test:place2dTexture1.n" "test:file1.n";
-connectAttr "test:place2dTexture1.vt1" "test:file1.vt1";
-connectAttr "test:place2dTexture1.vt2" "test:file1.vt2";
-connectAttr "test:place2dTexture1.vt3" "test:file1.vt3";
-connectAttr "test:place2dTexture1.vc1" "test:file1.vc1";
-connectAttr "test:place2dTexture1.o" "test:file1.uv";
-connectAttr "test:place2dTexture1.ofs" "test:file1.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "test:file2.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "test:file2.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "test:file2.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "test:file2.ws";
-connectAttr "test:place2dTexture2.c" "test:file2.c";
-connectAttr "test:place2dTexture2.tf" "test:file2.tf";
-connectAttr "test:place2dTexture2.rf" "test:file2.rf";
-connectAttr "test:place2dTexture2.mu" "test:file2.mu";
-connectAttr "test:place2dTexture2.mv" "test:file2.mv";
-connectAttr "test:place2dTexture2.s" "test:file2.s";
-connectAttr "test:place2dTexture2.wu" "test:file2.wu";
-connectAttr "test:place2dTexture2.wv" "test:file2.wv";
-connectAttr "test:place2dTexture2.re" "test:file2.re";
-connectAttr "test:place2dTexture2.of" "test:file2.of";
-connectAttr "test:place2dTexture2.r" "test:file2.ro";
-connectAttr "test:place2dTexture2.n" "test:file2.n";
-connectAttr "test:place2dTexture2.vt1" "test:file2.vt1";
-connectAttr "test:place2dTexture2.vt2" "test:file2.vt2";
-connectAttr "test:place2dTexture2.vt3" "test:file2.vt3";
-connectAttr "test:place2dTexture2.vc1" "test:file2.vc1";
-connectAttr "test:place2dTexture2.o" "test:file2.uv";
-connectAttr "test:place2dTexture2.ofs" "test:file2.fs";
 connectAttr "test:place2dTexture3.o" "test:ramp1.uv";
 connectAttr "test:place2dTexture3.ofs" "test:ramp1.fs";
 connectAttr "test:hairPhysicalShader1.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[0].dn"
 		;
 connectAttr "test:ramp1.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[1].dn"
-		;
-connectAttr "test:file1.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[2].dn"
 		;
 connectAttr "test:place2dTexture3.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[3].dn"
 		;
@@ -1455,8 +1344,6 @@ connectAttr "test:hairPhysicalShader1SG.msg" "test:hyperShadePrimaryNodeEditorSa
 		;
 connectAttr "test:lambert2SG.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[6].dn"
 		;
-connectAttr "test:file2.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[7].dn"
-		;
 connectAttr "test:place2dTexture1.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[8].dn"
 		;
 connectAttr "test:place2dTexture2.msg" "test:hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[9].dn"
@@ -1465,15 +1352,11 @@ connectAttr "place2dTexture3.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[
 		;
 connectAttr "ramp1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[1].dn"
 		;
-connectAttr "file2.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[2].dn"
-		;
 connectAttr "hairPhysicalShader1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[3].dn"
 		;
 connectAttr "lambert2.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[4].dn"
 		;
 connectAttr "lambert2SG.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[5].dn"
-		;
-connectAttr "file1.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[6].dn"
 		;
 connectAttr "hairPhysicalShader1SG.msg" "hyperShadePrimaryNodeEditorSavedTabsInfo.tgi[0].ni[7].dn"
 		;
@@ -1498,11 +1381,7 @@ connectAttr "test:place2dTexture3.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
 connectAttr "test:defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
 connectAttr "aiSkyDomeLightShape1.ltd" ":lightList1.l" -na;
-connectAttr "file1.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file2.msg" ":defaultTextureList1.tx" -na;
 connectAttr "ramp1.msg" ":defaultTextureList1.tx" -na;
-connectAttr "test:file1.msg" ":defaultTextureList1.tx" -na;
-connectAttr "test:file2.msg" ":defaultTextureList1.tx" -na;
 connectAttr "test:ramp1.msg" ":defaultTextureList1.tx" -na;
 connectAttr "aiSkyDomeLight1.iog" ":defaultLightSet.dsm" -na;
 // End of test.ma

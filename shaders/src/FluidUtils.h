@@ -254,6 +254,8 @@ public:
       {
          bool isConnected = false;
          elements = (GradientDescriptionElement*)AiMalloc(sizeof(GradientDescriptionElement) * nelements);
+		 memset(elements, 0, sizeof(GradientDescriptionElement) * nelements);
+		 uint32_t valuesElemsCount = AiArrayGetNumElements(valuesArray);
          for (uint32_t i = 0; i < nelements; ++i)
          {
             elements[i].position = AiArrayGetFlt(positionsArray, i);
@@ -264,16 +266,16 @@ public:
                std::stringstream ss;
                ss << valuesName << "[" << i << "]";
                elements[i].node = AiNodeGetLink(node, ss.str().c_str());
-               if (elements[i].node == 0)
-                  elements[i].value = ReadFromArray<T>(valuesArray, i);
-               else
+               if (elements[i].node != 0)
                {
                   isConnected = true;
                   const AtNodeEntry* nentry = AiNodeGetNodeEntry(elements[i].node);
                   elements[i].outputType = AiNodeEntryGetOutputType(nentry);
                }
+               else if (i < valuesElemsCount)
+                  elements[i].value = ReadFromArray<T>(valuesArray, i);
             }
-            else
+			else if (i < valuesElemsCount)
                elements[i].value = ReadFromArray<T>(valuesArray, i);
             
          }
