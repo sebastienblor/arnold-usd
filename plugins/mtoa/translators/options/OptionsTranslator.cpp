@@ -1269,7 +1269,17 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetArray(options, "aov_shaders", aovShadersArray);
    }
 
+   MPlug gpuPlug = FindMayaPlug("gpu");
+   if (!gpuPlug.isNull() && GetSessionMode() != MTOA_SESSION_SWATCH)
+   {
+      bool gpu = gpuPlug.asBool();
+      AtDeviceType deviceType = (gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU;
+      std::vector<int> devices(AiCountRenderDevicesByType(deviceType));
+      for (size_t i = 0; i < devices.size(); ++i)
+         devices[i] = (int)i;
 
+      AiSelectRenderDevices(deviceType,  (int)devices.size(), &devices[0]);
+   }
 }
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)

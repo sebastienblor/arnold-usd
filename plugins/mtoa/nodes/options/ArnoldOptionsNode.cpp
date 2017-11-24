@@ -112,6 +112,7 @@ MObject CArnoldOptionsNode::s_origin;
 MObject CArnoldOptionsNode::s_aov_shaders;
 MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
+MObject CArnoldOptionsNode::s_gpu;
 
 
 
@@ -438,6 +439,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_autotx = nAttr.create("autotx", "autotx", MFnNumericData::kBoolean, defaultAutoTx);
    nAttr.setKeyable(false);
    addAttribute(s_autotx);
+
+   s_gpu = nAttr.create("gpu", "gpu", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_gpu);
+
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");
