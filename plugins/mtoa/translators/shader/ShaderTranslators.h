@@ -49,7 +49,7 @@ SHADER_TRANSLATOR(CMayaPhongETranslator);
 SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
 SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
-
+SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {

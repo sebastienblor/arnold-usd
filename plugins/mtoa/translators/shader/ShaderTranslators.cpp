@@ -1692,6 +1692,21 @@ AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
    return AddArnoldNode("standard_surface");
 }
 
+void CMayaBlendColorsTranslator::Export(AtNode* shader)
+{
+   // Note that inputs are inverted in Maya shader as compared to arnold
+   ProcessParameter(shader, "input2", AI_TYPE_RGBA, "color1");
+   ProcessParameter(shader, "input1", AI_TYPE_RGBA, "color2");
+   ProcessParameter(shader, "mix", AI_TYPE_FLOAT, "blender");
+   
+}
+
+AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("mix_rgba");
+}
+
+
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
