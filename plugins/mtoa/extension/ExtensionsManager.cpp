@@ -510,6 +510,32 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             s_registeredTranslators[*mayaNode] = TranslatorsSet();
             oldTrans = &s_registeredTranslators[*mayaNode];
             regTrsNodes++;
+         } else {
+            // search for the original registered CPxMayaNode
+            MayaNodeToTranslatorsMap::iterator prevIt = s_registeredTranslators.find(*mayaNode);
+            if (prevIt != s_registeredTranslators.end())
+            {
+               CPxMayaNode *prevMayaNode = (CPxMayaNode*)(&(prevIt->first));
+               // For each of these fields in CPxMayaNode that was left to its default value
+               // we want to set the new value.
+               // This situation might happen when an extension was first loaded for a given Maya node
+               // and then an arnold shader was registered with the same maya.name (#3252).
+               // In that case there will be two different CExtension classes, but as they both are for the
+               // same Maya node type, the shader's data will be ignored, and the second CPxMayaNode will be discarded.
+               // TODO: verify that we're not missing other information about the CPxMayaNode
+               if (!prevMayaNode->m_aovShader)
+                  prevMayaNode->m_aovShader = mayaNode->m_aovShader;
+
+               if (prevMayaNode->m_aovs.empty())
+                  prevMayaNode->m_aovs = mayaNode->m_aovs;
+
+               if (prevMayaNode->arnold.length() == 0)
+                  prevMayaNode->arnold = mayaNode->arnold;
+
+               if (prevMayaNode->classification.length() == 0)
+                  prevMayaNode->classification = mayaNode->classification;
+            }
+
          }
 
          TranslatorsSet::iterator trsIt;
