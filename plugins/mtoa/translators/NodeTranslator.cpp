@@ -1218,6 +1218,7 @@ const double *CNodeTranslator::GetMotionFrames(unsigned int &count)
 CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
 {
    CArnoldSession *session = CMayaScene::GetArnoldSession();
+   if(session == NULL) return NULL;
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(dagPath);
    return session->GetActiveTranslator(handle);
@@ -1226,6 +1227,7 @@ CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
 CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
 {
    CArnoldSession *session = CMayaScene::GetArnoldSession();
+   if(session == NULL) return NULL;
    std::vector<CNodeTranslator*> translators;
    CNodeAttrHandle handle(object);
    return session->GetActiveTranslator(handle);

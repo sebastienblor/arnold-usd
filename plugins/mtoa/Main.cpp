@@ -738,6 +738,10 @@ namespace // <anonymous>
          shaders->RegisterTranslator("fluidTexture2D",
                                        "",
                                        CFluidTexture2DTranslator::creator);
+         shaders->RegisterTranslator("blendColors",
+                                       "",
+                                       CMayaBlendColorsTranslator::creator);
+
       }
 
       // Finally register all nodes from the loaded extensions with Maya in load order

@@ -42,8 +42,8 @@ templates.registerAETemplate(ProjectionTemplate, 'projection')
 
 class ImagePlaneTemplate(templates.AttributeTemplate):
     def setup(self):
-        self.beginLayout('Arnold', collapse=False)
         self.addControl('aiAutoTx', label='Auto-generate TX Textures')
-        self.endLayout()
+        self.addControl('aiOffscreenColor', label='Offscreen Color')
+
 
 templates.registerAETemplate(ImagePlaneTemplate, 'imagePlane')

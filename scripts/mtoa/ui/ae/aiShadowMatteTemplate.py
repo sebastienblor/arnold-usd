@@ -9,7 +9,16 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
         backgroundAttr = '%s.%s' % (nodeName, 'background')
         value = pm.getAttr(backgroundAttr)
         pm.editorTemplate(dimControl=(nodeName, 'backgroundColor', not value))
+    
+    def updateSpecular(self, nodeName):            
+        specularAttr = '%s.%s' % (nodeName, 'indirectSpecularEnable')
+        value = pm.getAttr(specularAttr)
+        pm.editorTemplate(dimControl=(nodeName, 'specularColor', not value))
+        pm.editorTemplate(dimControl=(nodeName, 'specularIntensity', not value))
+        pm.editorTemplate(dimControl=(nodeName, 'specularRoughness', not value))
+        pm.editorTemplate(dimControl=(nodeName, 'specularIOR', not value))
                 
+
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
@@ -38,10 +47,11 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Specular", collapse=True)
+        self.addControl("indirectSpecularEnable", label="Indirect Specular", changeCommand=self.updateSpecular)
         self.addControl("specularColor", label="Color")
         self.addControl("specularIntensity", label="Intensity")
         self.addControl("specularRoughness", label="Roughness")
-        self.addControl("indirectSpecularEnable", label="Indirect Specular")
+        self.addControl("specularIOR", label="IOR")        
         self.endLayout()
 
         self.beginLayout("AOVs", collapse=True)

@@ -665,6 +665,8 @@ bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
+   // default value
+   geom->bbox = MBoundingBox(MPoint(-1.f, -1.f, -1.f), MPoint(1.f, 1.f, 1.f));
 
    MString path_val = geom->filename;
 
@@ -693,9 +695,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
             MPoint max(xmax, ymax, zmax);
             geom->bbox = MBoundingBox(min, max);
          } 
-         else
-            geom->bbox = MBoundingBox();
-
+         
          AiMetadataStoreDestroy(mds);   
          return true;
       }
@@ -736,9 +736,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
                MPoint max(xmax, ymax, zmax);
                geom->bbox = MBoundingBox(min, max);
             } 
-            else
-               geom->bbox = MBoundingBox();
-
+            
             delete []str;
             return true;
          }
@@ -786,9 +784,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
          MPoint max(xmax, ymax, zmax);
          geom->bbox = MBoundingBox(min, max);
       } 
-      else
-         geom->bbox = MBoundingBox();
-
+      
       delete []str;
       return true;
    }

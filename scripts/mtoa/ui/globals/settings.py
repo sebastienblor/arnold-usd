@@ -300,6 +300,10 @@ def changeRenderType():
     except:
         pass
 
+def changeFrustumCulling(*args):
+    frustumCulling = cmds.getAttr('defaultArnoldRenderOptions.subdiv_frustum_culling')
+    pm.attrControlGrp('sub_frustum_padding', edit=True, enable=frustumCulling)
+
 def setupOriginText():
     sel = cmds.listConnections('defaultArnoldRenderOptions.origin', d=0, s=1)
     if (sel != None) and (len(sel) > 0):
@@ -870,6 +874,17 @@ def createArnoldSubdivSettings():
     pm.attrControlGrp('sub_max_subdivisions',
                         label="Max. Subdivisions",
                         attribute='defaultArnoldRenderOptions.maxSubdivisions')
+
+    pm.attrControlGrp('sub_frustum_culling',
+                        label="Frustum Culling",
+                        changeCommand=changeFrustumCulling,
+                        attribute='defaultArnoldRenderOptions.subdivFrustumCulling')
+
+    pm.attrControlGrp('sub_frustum_padding',
+                        label="Frustum Padding",
+                        attribute='defaultArnoldRenderOptions.subdivFrustumPadding')
+    frustumCulling = cmds.getAttr('defaultArnoldRenderOptions.subdiv_frustum_culling')
+    pm.attrControlGrp('sub_frustum_padding', edit=True, enable=frustumCulling)
 
     pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
     pm.text('es_subdiv_dicing_camera_text', label="Dicing Camera")

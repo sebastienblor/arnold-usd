@@ -975,6 +975,8 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
             
             MStatus stat;
             cameraNode.setObject(path);
+            // Note that some non-renderable cameras are still exported in 
+            // ExportDag, if their filteredStatus is "accepted"
             renderable = cameraNode.findPlug("renderable", false, &stat);
             if (stat == MS::kSuccess && renderable.asBool())
                ExportDagPath(path, true, &stat);
@@ -2332,8 +2334,11 @@ void CArnoldSession::ExportTxFiles()
 
       std::string filenameStr = filename.asChar();
 
-      const char *autoTxParam = AiNodeIs(node, image_str) ? "autoTx" : "aiAutoTx";
-      bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
+      MPlug autoTxPlug = translator->FindMayaPlug("autoTx");
+      if (autoTxPlug.isNull())
+         autoTxPlug = translator->FindMayaPlug("aiAutoTx");
+
+      bool fileAutoTx = autoTx && (!autoTxPlug.isNull()) && autoTxPlug.asBool();
 
       MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
       std::string colorSpaceStr = colorSpace.asChar();

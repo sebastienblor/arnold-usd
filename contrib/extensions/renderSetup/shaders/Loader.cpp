@@ -43,7 +43,12 @@ node_loader
         node->name        = "applyAbs3FloatsOverride";
         node->node_type   = AI_NODE_SHADER;
         break;
-
+    case RENDER_SETUP_APPLY_ABS_INT_OVERRIDE:
+        node->methods     = applyAbsIntOverrideMtd;
+        node->output_type = AI_TYPE_INT;
+        node->name        = "applyAbsIntOverride";
+        node->node_type   = AI_NODE_SHADER;
+        break;
     case RENDER_SETUP_APPLY_REL_FLOAT_OVERRIDE:
         node->methods     = applyRelFloatOverrideMtd;
         node->output_type = AI_TYPE_FLOAT;
@@ -60,6 +65,12 @@ node_loader
         node->methods     = applyRel3FloatsOverrideMtd;
         node->output_type = AI_TYPE_RGB;
         node->name        = "applyRel3FloatsOverride";
+        node->node_type   = AI_NODE_SHADER;
+        break;
+    case RENDER_SETUP_APPLY_REL_INT_OVERRIDE:
+        node->methods     = applyRelIntOverrideMtd;
+        node->output_type = AI_TYPE_INT;
+        node->name        = "applyRelIntOverride";
         node->node_type   = AI_NODE_SHADER;
         break;
 

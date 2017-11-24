@@ -49,7 +49,7 @@ SHADER_TRANSLATOR(CMayaPhongETranslator);
 SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
 SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
-
+SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
@@ -116,8 +116,18 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
 private:
+   void ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut);
    MString m_colorSpace;
+
+   bool RequiresColorCorrect() const;
+   bool RequiresUvTransform() const;
+   
+   bool m_hasColorCorrect;
+   bool m_hasUvTransform;
 };
 
 class CAiHairTranslator : public CShaderTranslator{

@@ -1,0 +1,130 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0255\test_0255.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.3.78.11. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:10.18.13.5413.
+  API : OpenGL V.4.5.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 7.5.18.
+ Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+00:00:00   494MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   494MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name v5proc_procedural.
+Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
+File read in  0.26 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0255/test.ma
+dag 
+dag persp
+path =persp
+`anonymous-namespace'::IsTemplated persp
+`anonymous-namespace'::IsTemplated world
+export persp
+dag perspShape
+path =perspShape
+`anonymous-namespace'::IsTemplated perspShape
+`anonymous-namespace'::IsTemplated persp
+`anonymous-namespace'::IsTemplated world
+export perspShape
+dag top
+path =top
+`anonymous-namespace'::IsTemplated top
+`anonymous-namespace'::IsTemplated world
+REJECT B
+NOT ACCEPTED
+rejected branch
+dag front
+path =front
+`anonymous-namespace'::IsTemplated front
+`anonymous-namespace'::IsTemplated world
+REJECT B
+NOT ACCEPTED
+rejected branch
+dag side
+path =side
+`anonymous-namespace'::IsTemplated side
+`anonymous-namespace'::IsTemplated world
+REJECT B
+NOT ACCEPTED
+rejected branch
+dag pCube1
+path =pCube1
+`anonymous-namespace'::IsTemplated pCube1
+`anonymous-namespace'::IsTemplated world
+export pCube1
+dag pCubeShape1
+path =pCubeShape1
+`anonymous-namespace'::IsTemplated pCubeShape1
+`anonymous-namespace'::IsTemplated pCube1
+`anonymous-namespace'::IsTemplated world
+export pCubeShape1
+dag pPlane1
+path =pPlane1
+`anonymous-namespace'::IsTemplated pPlane1
+`anonymous-namespace'::IsTemplated world
+export pPlane1
+dag pPlaneShape1
+path =pPlaneShape1
+`anonymous-namespace'::IsTemplated pPlaneShape1
+`anonymous-namespace'::IsTemplated pPlane1
+`anonymous-namespace'::IsTemplated world
+export pPlaneShape1
+dag pCube2
+path =pCube2
+`anonymous-namespace'::IsTemplated pCube2
+`anonymous-namespace'::IsTemplated world
+export pCube2
+dag pCubeShape2
+path =pCubeShape2
+`anonymous-namespace'::IsTemplated pCubeShape2
+`anonymous-namespace'::IsTemplated pCube2
+`anonymous-namespace'::IsTemplated world
+export pCubeShape2
+dag pCube3
+path =pCube3
+`anonymous-namespace'::IsTemplated pCube3
+`anonymous-namespace'::IsTemplated world
+export pCube3
+dag pCubeShape3
+path =pCubeShape3
+`anonymous-namespace'::IsTemplated pCubeShape3
+`anonymous-namespace'::IsTemplated pCube3
+`anonymous-namespace'::IsTemplated world
+export pCubeShape3
+dag camera1
+path =camera1
+`anonymous-namespace'::IsTemplated camera1
+`anonymous-namespace'::IsTemplated world
+export camera1
+dag cameraShape1
+path =cameraShape1
+`anonymous-namespace'::IsTemplated cameraShape1
+`anonymous-namespace'::IsTemplated camera1
+`anonymous-namespace'::IsTemplated world
+export cameraShape1
+`anonymous-namespace'::IsTemplated pPlaneShape1
+`anonymous-namespace'::IsTemplated pPlane1
+`anonymous-namespace'::IsTemplated world
+`anonymous-namespace'::IsTemplated pCubeShape1
+`anonymous-namespace'::IsTemplated pCube1
+`anonymous-namespace'::IsTemplated world
+`anonymous-namespace'::IsTemplated pCubeShape2
+`anonymous-namespace'::IsTemplated pCube2
+`anonymous-namespace'::IsTemplated world
+`anonymous-namespace'::IsTemplated pCubeShape3
+`anonymous-namespace'::IsTemplated pCube3
+`anonymous-namespace'::IsTemplated world
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0255\test.ma completed.

@@ -140,6 +140,9 @@ class AOVBrowser(object):
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
         aovShaderName = None
 
+        # clear the current selection
+        pm.textScrollList(self.activeLst, edit=True,deselectAll=True)
+
         if sel:
             global _updating
             _updating = True
@@ -217,6 +220,9 @@ class AOVBrowser(object):
             _updating = False
         
         self.updateActiveAOVs()
+        # clear the current selection
+        pm.textScrollList(self.activeLst, edit=True,deselectAll=True)
+
         pm.textScrollList(self.activeLst, edit=True,selectItem=aovName)
         self.selectAOV()
 

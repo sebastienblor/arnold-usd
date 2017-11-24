@@ -758,7 +758,9 @@ void CRenderSession::StartRenderView()
    }
    s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
 
-   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+   if (session)
+      s_renderView->SetFrame((float)session->GetExportFrame());
    
 }
 

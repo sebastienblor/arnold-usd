@@ -969,12 +969,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -993,12 +993,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1051,12 +1051,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1082,12 +1082,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0    
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1103,12 +1103,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1168,12 +1168,12 @@
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
     [attr shutter_start]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     0.0
     [attr shutter_end]
-        min                 FLOAT     0.0
-        max                 FLOAT     1.0
+        softmin             FLOAT     0.0
+        softmax             FLOAT     1.0
         default             FLOAT     1.0
     [attr rolling_shutter_duration]
         min                 FLOAT     0.0
@@ -1315,6 +1315,9 @@
     [attr subsurface_scale]
         min             FLOAT   0.0
         softmax         FLOAT   10.0
+    [attr subsurface_anisotropy]
+        min             FLOAT   -1.0
+        max             FLOAT   1.0
     [attr coat]
         min             FLOAT   0.0
         max             FLOAT   1.0
@@ -2477,12 +2480,24 @@ maya.name               STRING  "aiShadowMatte"
 maya.classification     STRING  "shader/surface"
 maya.swatch             BOOL    false
 
+    [attr shadow_opacity]
+        min                 FLOAT   0.0    
+        max                 FLOAT   1.0
+    [attr diffuse_intensity]
+        min                 FLOAT   0.0    
+        softmax             FLOAT   1.0
     [attr backlighting]
         min                 FLOAT   0.0    
         max                 FLOAT   1.0
-        softmin                 FLOAT   0.0    
-        softmax                 FLOAT   1.0
-
+    [attr specular_intensity]
+        min                 FLOAT   0.0    
+        softmax             FLOAT   1.0
+    [attr specular_roughness]
+        min                 FLOAT   0.0    
+        max                 FLOAT   1.0
+    [attr specular_IOR]
+        min                 FLOAT   0.0    
+        softmax             FLOAT   10.0
     [attr aov_shadow]
         aov.type                INT     0x05
     [attr aov_shadow_matte]
@@ -2846,6 +2861,92 @@ desc STRING "Apply a gamma correction to the color."
     [attr blend]
         min                 FLOAT   0
         softmax             FLOAT   1
+    [attr cell_blend]
+        min                 FLOAT   0
+        max                 FLOAT   1
+    [attr cell_rotate]
+        softmin             FLOAT   0
+        softmax             FLOAT   1
+    
+
+[node car_paint]
+    desc                    STRING  "Prototype Car Paint shader."
+    maya.name               STRING  "aiCarPaint"
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8B
+    [attr coat]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr coat_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr coat_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr coat_IOR]
+        min             FLOAT   0
+        softmax         FLOAT   5
+
+    [attr specular]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_light_facing]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_falloff]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_IOR]
+        min             FLOAT   0
+        softmax         FLOAT   3
+    [attr transmission_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr flake_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr flake_light_facing]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr flake_falloff]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr flake_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr flake_IOR]
+        min             FLOAT   0
+        softmax         FLOAT   100
+    [attr flake_scale]
+        min             FLOAT   0.000001
+        softmax         FLOAT   100
+    [attr flake_density]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr flake_layers]
+        min             INT   1
+        softmax         INT   4
+    [attr flake_normal_randomize]
+        min             FLOAT   0
+        max             FLOAT   1
+
+    [attr base]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr base_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr base_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
 
 [node contour_filter]
     maya.attr_prefix        STRING  ""
@@ -2946,8 +3047,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr indirect_specular]
         min             FLOAT   0
         max             FLOAT   1
-
-
 
 
 

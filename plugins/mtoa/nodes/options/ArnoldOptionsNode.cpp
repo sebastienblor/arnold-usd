@@ -406,6 +406,8 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
+   s_attributes.MakeInput("subdiv_frustum_culling");
+   s_attributes.MakeInput("subdiv_frustum_padding");
    s_attributes.MakeInput("subdiv_dicing_camera");
 
    // textures
