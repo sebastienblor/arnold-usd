@@ -89,6 +89,8 @@ public:
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
 };
 
 class CBump3DTranslator : public CShaderTranslator
