@@ -26,12 +26,13 @@ import math
 import re
 
 import pymel.core as pm
-
+import maya.cmds as cmds
 import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
 import mtoa.aovs as aovs
+
 
 from maya.app.stereo import stereoCameraRig
 

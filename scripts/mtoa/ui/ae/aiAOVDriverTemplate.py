@@ -1,4 +1,5 @@
 import pymel.core as pm
+import maya.cmds as cmds
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 

@@ -6,7 +6,7 @@ from itertools import groupby
 import arnold.ai_params
 import maya.api.OpenMaya as om
 import maya.mel as mel
-import maya.cmds
+import maya.cmds as cmds
 
 BUILTIN_AOVS = (
                 ('P',                   'vector'),
@@ -409,20 +409,20 @@ class AOVInterface(object):
             # is assigned to a shader of this type. If so, we can reuse it as output shader
             allActiveAOVs = getAOVs()
             for activeAOV in allActiveAOVs:
-                conns = maya.cmds.listConnections(activeAOV.node+".defaultValue", d=False, s=True, type=aovShader )
+                conns = cmds.listConnections(activeAOV.node+".defaultValue", d=False, s=True, type=aovShader )
                 if conns and len(conns) > 0 and conns[0]:
                     outShader = conns[0]
                     break
             
             if outShader == None:
                 # second, see if shaders of this type already exist in the scene
-                existingShaders = maya.cmds.ls(type=aovShader)
+                existingShaders = cmds.ls(type=aovShader)
                 if existingShaders and len(existingShaders) > 0:
                     outShader = existingShaders[len(existingShaders) - 1]
                 else:
                     # to finish, let's create a new shader in the scene if none was found
                     aiName = "_aov_"+aovShader
-                    outShader = maya.cmds.shadingNode(aovShader, name=aiName, asShader=True)
+                    outShader = cmds.shadingNode(aovShader, name=aiName, asShader=True)
 
             # connect the output shader to 'defaultValue'
             pm.connectAttr(("%s.outColor"%outShader), ("%s.defaultValue"%aovNode))
@@ -589,13 +589,13 @@ def createAliases(sg):
     aovList = getAOVNodes(True)
     sgPlug = sg.name()+".aiCustomAOVs"
     
-    sgLogIdx = maya.cmds.getAttr(sgPlug, mi=True) or []
-    s = set([maya.cmds.getAttr("%s[%d].aovName" % (sgPlug, i)) for i in sgLogIdx])
+    sgLogIdx = cmds.getAttr(sgPlug, mi=True) or []
+    s = set([cmds.getAttr("%s[%d].aovName" % (sgPlug, i)) for i in sgLogIdx])
     free = listAvailableIndices(sgLogIdx, len(aovList))
     n = 0
     for aov in aovList:
         if aov[0] not in s:
-            maya.cmds.setAttr("%s[%d].aovName" % (sgPlug, free[n]), aov[0], typ="string")
+            cmds.setAttr("%s[%d].aovName" % (sgPlug, free[n]), aov[0], typ="string")
             n += 1
 
     if pm.referenceQuery(sg.name(), isNodeReferenced=True):
