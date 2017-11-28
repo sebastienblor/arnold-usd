@@ -5,7 +5,6 @@ from collections import namedtuple
 from itertools import groupby
 import arnold.ai_params
 import maya.api.OpenMaya as om
-import pymel.versions as versions
 import maya.mel as mel
 import maya.cmds
 
@@ -177,7 +176,7 @@ def refreshAliases():
     addAliases(aovList)
 
 def isValidAOVNode(name):
-    maya_version = versions.shortName()
+    maya_version = cmds.about(q=True, version=True)
     if int(float(maya_version)) < 2017:
         return True
 

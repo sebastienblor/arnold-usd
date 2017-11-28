@@ -4,7 +4,6 @@ import mtoa.ui.ae.templates as templates
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.aoveditor as aoveditor
 from collections import defaultdict
-import pymel.versions as versions
 
 class DisplacementShaderTemplate(templates.AttributeTemplate):
     def setup(self):

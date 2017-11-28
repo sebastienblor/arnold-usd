@@ -8,7 +8,6 @@ import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
 import arnold as ai
-import pymel.versions as versions
 import mtoa.convertShaders
 
 from uuid import getnode as get_mac
@@ -452,7 +451,7 @@ def arnoldMtoARenderView():
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not pm.about(b=1):
-        maya_version = versions.shortName()
+        maya_version = cmds.about(q=True, version=True)
         if int(float(maya_version)) < 2017:
             pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
         else:

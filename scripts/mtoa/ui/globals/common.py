@@ -26,7 +26,6 @@ import math
 import re
 
 import pymel.core as pm
-import pymel.versions as versions
 
 import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
@@ -652,7 +651,7 @@ def createArnoldImageFormatControl():
                          optionMenuName='imageMenuMayaSW')
 
 
-    maya_version = versions.shortName()
+    maya_version = cmds.about(q=True, version=True)
     if int(float(maya_version)) >= 2016:
         cmds.attrEnumOptionMenuGrp( l='Color Space',
                             at='defaultArnoldDriver.colorManagement' )
@@ -688,7 +687,7 @@ def createArnoldImageFormatControl():
 
 
 def updateArnoldColorSpace(*args):
-    maya_version = versions.shortName()
+    maya_version = cmds.about(q=True, version=True)
     if int(float(maya_version)) < 2016:
         return
 
@@ -2293,7 +2292,7 @@ def createArnoldRendererCommonGlobalsTab():
     
     # Scene Assembly Section
     #
-    maya_version = versions.shortName()
+    maya_version = cmds.about(q=True, version=True)
     if int(float(maya_version)) >= 2017:
         pm.frameLayout('sceneAssemblyFrame',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSceneAssembly"),

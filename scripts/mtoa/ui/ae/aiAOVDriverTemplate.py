@@ -1,7 +1,6 @@
 import pymel.core as pm
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-import pymel.versions as versions
 
 class AEaiAOVDriverTemplate(ShaderAETemplate):
 
@@ -22,7 +21,7 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         self.addControl('prefix', label="Override Path Prefix")
         self.addControl('mergeAOVs', label="Merge AOVs")
         self.addControl('outputMode')
-        maya_version = versions.shortName()
+        maya_version = cmds.about(q=True, version=True)
         if int(float(maya_version)) >= 2017:
             self.addControl('colorManagement', label = 'Color Space')
 

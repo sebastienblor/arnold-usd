@@ -4,7 +4,6 @@ import mtoa.core as core
 import mtoa.ui.arnoldmenu as arnoldmenu
 import mtoa.utils as mutils
 import mtoa.ui.globals.settings as settings
-import pymel.versions as versions
 def removeArnoldShelf():
    if cmds.shelfLayout('Arnold', exists=True):
       cmds.deleteUI('Arnold')
@@ -38,7 +37,7 @@ def createArnoldShelf():
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
-   maya_version = versions.shortName()
+   maya_version = cmds.about(q=True, version=True)
    if int(float(maya_version)) < 2017:
       maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel Arnold`;')   
    else:
