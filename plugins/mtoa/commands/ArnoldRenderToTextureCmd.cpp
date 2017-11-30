@@ -452,7 +452,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          // we loop over the entire Arnold Scene, and check which have this node as parent
          AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
-   
          while (!AiNodeIteratorFinished(nodeIter))
          {
             AtNode *loopNode = AiNodeIteratorGetNext(nodeIter);
@@ -491,6 +490,19 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    {
       AtNode *mesh = nodes[i];
       const char *meshName = AiNodeGetName(mesh);
+      std::string fullMeshName = meshName;
+
+      if (AiNodeLookUpByName(meshName) == NULL)
+      {
+         // this name isn't enough to find the node in the scene.
+         // We might need to set its full path name
+         AtNode *parent = AiNodeGetParent(mesh);
+         while(parent)
+         {
+            fullMeshName = std::string(AiNodeGetName(parent)) + std::string("^") + fullMeshName;
+            parent = AiNodeGetParent(parent);
+         }
+      }
 
       if (progressBar)
       {
@@ -592,7 +604,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
-            AiNodeSetStr(camera, "polymesh", meshName);
+            AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
             AiNodeSetStr(camera, "uv_set", uvSet.asChar());
             AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
             AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
@@ -637,7 +649,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MString filename = folderName + "/" + meshNameStr.c_str() + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
-         AiNodeSetStr(camera, "polymesh", meshName);
+         AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
          AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
