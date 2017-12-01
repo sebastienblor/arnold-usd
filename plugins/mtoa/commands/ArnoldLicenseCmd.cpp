@@ -215,8 +215,6 @@ bool RemoveEnvVar(const char* name)
 bool SetEnvVar(const char* name, const char* value, bool append = false)
 {
 
-   SetEnvironmentVariable(name, value);
-
    if (!IsValidStr(name))
       return true;
 
@@ -356,6 +354,7 @@ void copyToClipboard(const MString &str)
 {
    std::string s(str.asChar());
 
+#ifdef _WIN32
    HWND hwnd = GetDesktopWindow();
 
    OpenClipboard(hwnd);
@@ -371,6 +370,8 @@ void copyToClipboard(const MString &str)
    SetClipboardData(CF_TEXT,hg);
    CloseClipboard();
    GlobalFree(hg);
+#endif
+
 }
 
 static MCallbackId s_idle_cb = 0;
@@ -518,12 +519,16 @@ unsigned int ArnoldLicenseInfoThread(void* data)
                std::string::size_type n = line.find("Total of ");
                if (n != std::string::npos)
                {
-                  info->nlmLicenseCount = std::stoi(line.substr(n+9));
+                  MString licCount(line.substr(n+9).c_str());
+                  info->nlmLicenseCount = licCount.asInt();
 
                   // read the number of licenses in use
                   n = line.find("Total of ", n+1);
                   if (n != std::string::npos)
-                     info->nlmLicenseInUse = std::stoi(line.substr(n + 9));
+                  {
+                     MString licInUse(line.substr(n + 9).c_str());
+                     info->nlmLicenseInUse = licInUse.asInt();
+                  }
                }
             }
          }
