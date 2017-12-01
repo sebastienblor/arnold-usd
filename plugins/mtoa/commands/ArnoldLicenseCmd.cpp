@@ -18,8 +18,10 @@
 #include <maya/MEventMessage.h>
 #include <maya/MGlobal.h>
 #include <maya/MMutexLock.h>
+#include <maya/MFileObject.h>
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <stdio.h>
@@ -133,30 +135,28 @@ std::string GetEnvVar(const char* name)
 #elif defined _DARWIN
    // read the current value from the plist file
    std::string filename = std::string("setenv.") + std::string(name) + std::string(".plist");
-   Filename plistFn = GetHomeFolder() + Filename("Library") + Filename("LaunchAgents") + Filename(filename.c_str());
-   if (GeFExist(plistFn))
-   {
-      char plistPath[256] = "";
-      plistFn.GetString().GetCString(plistPath, 256, STRINGENCODING_UTF8);
-      std::ifstream file(plistPath);
-      if (file.is_open())
-      {
-         for (std::string line; std::getline(file, line);)
-         {
-            std::string pattern = std::string("launchctl setenv ") + std::string(name) + std::string(" ");
-            std::string::size_type startIndex = line.find(pattern);
-            if (startIndex != std::string::npos)
-            {
-               startIndex += pattern.length();
-               std::string::size_type endIndex = line.find("</", startIndex);
-               std::string::size_type count = endIndex == std::string::npos ? std::string::npos : endIndex - startIndex;
-               std::string currentValue = line.substr(startIndex, count);
-               strcpy(value, currentValue.c_str());
-            }
-         }
+   const char *homeDir = getenv("HOME");
+   MString plistFn = (homeDir) ? homeDir : "";
+   plistFn += "/Library/LaunchAgents/";
+   plistFn += filename.c_str();
 
-         file.close();
+   std::ifstream file(plistFn.asChar());
+   if (file.good() && file.is_open())
+   {
+      for (std::string line; std::getline(file, line);)
+      {
+         std::string pattern = std::string("launchctl setenv ") + std::string(name) + std::string(" ");
+         std::string::size_type startIndex = line.find(pattern);
+         if (startIndex != std::string::npos)
+         {
+            startIndex += pattern.length();
+            std::string::size_type endIndex = line.find("</", startIndex);
+            std::string::size_type count = endIndex == std::string::npos ? std::string::npos : endIndex - startIndex;
+            std::string currentValue = line.substr(startIndex, count);
+            strcpy(value, currentValue.c_str());
+         }
       }
+      file.close();
    }
 #endif
 
@@ -200,9 +200,15 @@ bool RemoveEnvVar(const char* name)
 
    // backup the original file
    std::string filename = std::string("setenv.") + std::string(name) + std::string(".plist");
-   Filename plistFn = GetHomeFolder() + Filename("Library") + Filename("LaunchAgents") + Filename(filename.c_str());
-   if (GeFExist(plistFn))
-      if (!GeFKill(plistFn))
+   const char *homeDir = getenv("HOME");
+   MString plistFn = (homeDir) ? homeDir : "";
+   plistFn += "/Library/LaunchAgents/";
+   plistFn += filename.c_str();
+
+   std::ifstream ifile(plistFn.asChar());
+
+   if (ifile.good())
+      if (remove(plistFn.asChar()) != 0)
          return false;
 
    // update the local env
@@ -273,26 +279,31 @@ bool SetEnvVar(const char* name, const char* value, bool append = false)
 
    // backup the original file
    std::string filename = std::string("setenv.") + std::string(name) + std::string(".plist");
-   Filename plistFn = GetHomeFolder() + Filename("Library") + Filename("LaunchAgents") + Filename(filename.c_str());
-   Filename plistBackupFn = plistFn.GetString() + String(".bak");
-   if (GeFExist(plistFn))
+   const char *homeDir = getenv("HOME");
+   MString plistFn = (homeDir) ? homeDir : "";
+   plistFn += "/Library/LaunchAgents/";
+   MString plistFolder = plistFn;
+   plistFn += filename.c_str();
+
+   MString plistBackupFn = plistFn + MString(".bak");
+   MFileObject ifile;
+   ifile.setRawFullName(plistFn);
+   if (ifile.exists())
    {
-      if (!GeFRename(plistFn, plistBackupFn))
+      if (rename(plistFn.asChar(), plistBackupFn.asChar()) != 0)
          return false;
-   }
-
-   // create the folder when does not exist
-   if (!GeFExist(plistFn.GetDirectory(), TRUE))
-      if (!GeFCreateDirRec(plistFn.GetDirectory()))
-         return false;
-
-   char plistPath[256] = "";
-   plistFn.GetString().GetCString(plistPath, 256, STRINGENCODING_UTF8);
+   } else
+   {
+      MFileObject dirObject;
+      dirObject.setRawFullName(plistFolder);
+      if (!dirObject.exists())
+         mkdir(plistFolder.asChar(), 0775);
+   
+   }   
 
    bool success = true;
-
    // update the file
-   std::ofstream out(plistPath);
+   std::ofstream out(plistFn.asChar());
    if (out.is_open())
    {
       out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -322,8 +333,10 @@ bool SetEnvVar(const char* name, const char* value, bool append = false)
    // remove the backup file on success
    if (success)
    {      
-      if (GeFExist(plistBackupFn))
-         GeFKill(plistBackupFn);
+      MFileObject plistBackupObj;
+      plistBackupObj.setRawFullName(plistBackupFn);
+      if (plistBackupObj.exists())
+         remove(plistBackupFn.asChar());
 
       // update the local env
       setenv(name, value, 1);
@@ -337,10 +350,14 @@ bool SetEnvVar(const char* name, const char* value, bool append = false)
    // restore the file on error
    else
    {
-      if (GeFExist(plistFn))
-         GeFKill(plistFn);
-      if (GeFExist(plistBackupFn))
-         GeFRename(plistBackupFn, plistFn);
+      MFileObject plistObj;
+      plistObj.setRawFullName(plistFn);
+      if (plistObj.exists())
+         remove(plistFn.asChar());
+
+      plistObj.setRawFullName(plistBackupFn);
+      if (plistObj.exists())
+         rename(plistBackupFn.asChar(), plistFn.asChar());
    }
 #else
    // update the local env
