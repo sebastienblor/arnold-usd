@@ -7,6 +7,7 @@ import maya.cmds as cmds
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.licensing
 import arnold as ai
 import pymel.versions as versions
 import mtoa.convertShaders
@@ -292,7 +293,41 @@ def installButtonPush(file):
         cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
     except:
         cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
+
+def arnoldLicensingGetMacAddress():
+    if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
+        cmds.deleteUI("ArnoldLicenseGetMacAddress")
+    w = cmds.window("ArnoldLicenseGetMacAddress", title="Get MAC Address")
+    cmds.window("ArnoldLicenseGetMacAddress", edit=True, width=240, height=60)
     
+    cmds.columnLayout()
+
+    cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1,10),(2,90),(3,140)] )
+    cmds.text(align="left", label="")
+    cmds.text(align="left", label="MAC Address")
+    name = cmds.textField()
+    mac = get_mac()
+    mactext = ("%012X" % mac)
+    cmds.textField(name,  edit=True, text=mactext, editable=False )
+    cmds.setParent( '..' )
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,10),(2,70),(3,80), (4, 70), (5,10)])
+    cmds.text(align="left",label="")
+    commandStr = 'import maya.cmds as cmds;cmds.arnoldLicense(copyToClipboard=\"' + mactext+'\")'
+    print commandStr
+    cmds.button( align="left", label='Copy', command=(commandStr))
+    cmds.text(label="")
+    cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
+    cmds.text(align="right", label="")
+    cmds.setParent( '..' )
+    cmds.showWindow(w)
+
+def arnoldLicensingConnectLicenseServer():
+
+    win = mtoa.licensing.ConnectToLicenseServer()
+    win.create()
+
+
+
 def arnoldLicenseDialog():
     if (cmds.window("ArnoldLicense", ex=True)):
         cmds.deleteUI("ArnoldLicense")
@@ -539,6 +574,13 @@ def createArnoldMenu():
         pm.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
                     c=lambda *args: arnoldConvertDeprecated())
 
+        pm.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
+                    subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingGetMacAddress())
+        pm.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingConnectLicenseServer())
+
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
 
@@ -568,8 +610,8 @@ def createArnoldMenu():
         pm.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
 
-        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
-                    c=lambda *args: arnoldLicenseDialog())
+#        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
+#                    c=lambda *args: arnoldLicenseDialog())
 
         pm.menuItem(divider=1, parent='ArnoldHelpMenu')
 

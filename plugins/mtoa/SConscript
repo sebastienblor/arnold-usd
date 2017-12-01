@@ -128,6 +128,7 @@ if system.os() == 'windows':
             local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
         else:
             local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
+    local_env.Append(LIBS = ['user32.lib', 'advapi32.lib']) # this is needed for the licensing tools, for system environment variables
 elif system.os() == 'linux':
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
