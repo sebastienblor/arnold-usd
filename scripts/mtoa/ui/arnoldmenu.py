@@ -322,10 +322,8 @@ def arnoldLicensingGetMacAddress():
     cmds.showWindow(w)
 
 def arnoldLicensingConnectLicenseServer():
-
     win = mtoa.licensing.ConnectToLicenseServer()
     win.create()
-
 
 
 def arnoldLicenseDialog():
@@ -580,6 +578,11 @@ def createArnoldMenu():
                     c=lambda *args: arnoldLicensingGetMacAddress())
         pm.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
+        pm.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
+        pm.menuItem('ArnoldSuscribe',  label='Suscribe to Arnold', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
