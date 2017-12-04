@@ -313,7 +313,6 @@ def arnoldLicensingGetMacAddress():
     cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,10),(2,70),(3,80), (4, 70), (5,10)])
     cmds.text(align="left",label="")
     commandStr = 'import maya.cmds as cmds;cmds.arnoldLicense(copyToClipboard=\"' + mactext+'\")'
-    print commandStr
     cmds.button( align="left", label='Copy', command=(commandStr))
     cmds.text(label="")
     cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
@@ -324,7 +323,9 @@ def arnoldLicensingGetMacAddress():
 def arnoldLicensingConnectLicenseServer():
     win = mtoa.licensing.ConnectToLicenseServer()
     win.create()
-
+def arnoldLicensingGetDiagnostics():
+    win = mtoa.licensing.GetDiagnostics()
+    win.create()
 
 def arnoldLicenseDialog():
     if (cmds.window("ArnoldLicense", ex=True)):
@@ -578,6 +579,8 @@ def createArnoldMenu():
                     c=lambda *args: arnoldLicensingGetMacAddress())
         pm.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
+        pm.menuItem('ArnoldGetDiagnostics', label='Get Diagnostics', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingGetDiagnostics())
         pm.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
         pm.menuItem('ArnoldSuscribe',  label='Suscribe to Arnold', parent='ArnoldLicensingMenu', 

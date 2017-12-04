@@ -494,12 +494,6 @@ unsigned int ArnoldLicenseInfoThread(void* data)
    //if (info->status != AI_LIC_SUCCESS && info->status != AI_LIC_ERROR_NOTAVAILABLE)
    {
       std::string output;
-      
-#ifdef _WIN32
-      MString lmutilCmd = "C:/solidangle/mtoadeploy/2017/bin/lmutil lmstat -S adskflex -a";
-#else
-      MString lmutilCmd = "lmutil lmstat -S adskflex -a &";
-#endif
 
       MString res;
       MGlobal::executePythonCommand("import mtoa.licensing;mtoa.licensing.nlmStatus()", res);
