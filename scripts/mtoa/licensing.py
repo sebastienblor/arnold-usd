@@ -10,6 +10,8 @@ import threading
 import mtoa.callbacks as callbacks
 import arnold.ai_license
 import time
+from uuid import getnode as get_mac
+import shutil
 
 global _waitingForLicenseStatus
 _waitingForLicenseStatus = False
@@ -277,7 +279,7 @@ class GetDiagnostics(object):
 
         winTitle = "Get Diagnostics"
 
-        self.window = cmds.window(self.window, sizeable=False, widthHeight=(600, 600), title=winTitle)
+        self.window = cmds.window(self.window, sizeable=False, widthHeight=(540, 600), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)
@@ -352,3 +354,153 @@ def returnServerStatus(rlmStatus, rlmLicensesCount, rlmLicensesInUse, nlmStatus,
         updateStatus(ConnectToLicenseServer(), textRLM, rlmStatus, textNLM, nlmStatus)
         _waitingForLicenseStatus = False
         cmds.waitCursor(state=False)
+
+
+###########################################
+### INSTALL NODE-LOCKED
+###########################################
+
+class NodeLocked(object):
+    window = None
+    def __new__(cls, *args, **kwargs):
+        if not '_instance' in vars(cls):
+            cls._instance = super(NodeLocked, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def __init__(self):
+        if self.window is None:
+            self.window = 'MtoANodeLocked'
+
+
+    def doCancel(self):
+        cmds.deleteUI(self.window)
+        return True
+
+    def create(self):
+        if cmds.window(self.window, exists=True):
+            cmds.deleteUI(self.window)
+
+        winTitle = "Arnold Node-locked License"
+
+        self.window = cmds.window(self.window, sizeable=False, widthHeight=(630, 280), title=winTitle)
+        self.createUI()
+
+        cmds.setParent(menu=True)
+        cmds.showWindow(self.window)
+
+
+    def dotDotDotButtonPush(self, file):
+        licenseFilter = 'License Files (*.lic)'
+        ret = cmds.fileDialog2(fileFilter=licenseFilter, 
+                                cap='Load License File',okc='Load',fm=1)
+        if ret is not None and len(ret):
+            cmds.textField(file, edit=True, text=ret[0])
+
+    def installButtonPush(self, file):
+        licenseFile = cmds.textField(file, query=True, text=True)
+        import maya.mel as mel
+        mPath = mel.eval('getenv "MTOA_PATH"')
+        destination = os.path.join(mPath,'bin')
+        try:
+            shutil.copy(licenseFile,destination)
+            cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
+        except:
+            cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
+
+
+    def createUI(self):
+        cmds.scrollLayout(childResizable=True)
+
+        cmds.columnLayout()
+        #cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
+
+        #cmds.text(label="");cmds.text(label="");
+
+        arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
+
+        cmds.text(label="")
+        cmds.text(align="center",label=arnoldAboutText)
+        arnoldAboutText =  u"Note that monthly and annual subscription licenses are floating licenses, not node-locked. They require a license server\n"
+        cmds.text(align="left",label=arnoldAboutText)
+        cmds.text(label="")
+        cmds.separator()
+
+        cmds.setParent( '..' )
+        cmds.separator()
+
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
+        macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
+        cmds.text(label="")
+        cmds.text(align="left",label=macText)
+        cmds.setParent( '..' )
+        cmds.separator()
+
+        cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
+        cmds.text(label="")
+        cmds.text(align="left",label="MAC Address")
+        name = cmds.textField()
+        mac = get_mac()
+        mactext = ("%012X" % mac)
+        cmds.textField(name,  edit=True, text=mactext, editable=False )
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+
+
+        cmds.setParent( '..' )
+
+        cmds.separator()
+        
+        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
+        macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
+        cmds.text(label="")
+        cmds.text(align="left",label=macText)
+        cmds.setParent( '..' )
+
+        cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,390),(4,7),(5,26),(6,7),(7,80),(8,12)] )
+        cmds.text(label="")
+        cmds.text(align="left",label="License file (.lic)")
+        file = cmds.textField()
+        cmds.text(label="")
+        cmds.button( label='...', command=lambda *args: self.dotDotDotButtonPush(file) )
+        cmds.text(label="")
+        cmds.button( label='Install', command=lambda *args: self.installButtonPush(file) )
+        cmds.text(label="")
+
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.text(label="")
+
+        cmds.setParent( '..' )
+
+        cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,80),(2,360), (3, 80),(4,20),(5,80)] )
+        cmds.text(label="")
+        cmds.text(label="")
+        cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + self.window + '\", window=True)'))
+        cmds.text(label="")
+        cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+
+        cmds.setParent( '..' )
+
+        
