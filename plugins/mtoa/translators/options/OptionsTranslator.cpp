@@ -1268,7 +1268,8 @@ void COptionsTranslator::Export(AtNode *options)
       
       AiNodeSetArray(options, "aov_shaders", aovShadersArray);
    }
-
+   if (GetSessionOptions().IsInteractiveRender())
+      AiNodeSetBool(options, "enable_dependency_graph", true);
 
 }
 
