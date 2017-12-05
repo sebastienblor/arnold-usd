@@ -211,14 +211,6 @@ void CNodeTranslator::Delete()
    m_impl->m_backReferences.clear();
 #endif
 
-
-   if (m_impl->m_isProcedural)
-   {
-      // if this node is a procedural, we want to un-register it from the Arnold Session.
-      // FIXME : make we get rid of this once dependency graph is properly implemented in arnold
-      m_impl->m_session->UnRegisterProcedural(m_impl->m_atNode);
-   }
-   
    AtNode *mainNode = m_impl->m_atNode;
    AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
@@ -490,24 +482,6 @@ void CNodeTranslator::RequestUpdate()
    m_impl->m_session->QueueForUpdate(this);   
    static AtString namespaceStr("namespace");
 
-   if (m_impl->m_isProcedural && m_impl->m_updateMode >= AI_RECREATE_NODE)
-   {
-      AtNode *procNode = GetArnoldNode();
-      if (procNode && AiNodeEntryLookUpParameter (AiNodeGetNodeEntry(procNode), namespaceStr ))
-      {
-         AtString namespaceVal = AiNodeGetStr(procNode, namespaceStr);
-         // only namespaces in procedurals can allow to produce inter-procedural connections
-         if (!namespaceVal.empty())
-         {
-            // If this is a procedural being re-generated, we must
-            // advert the arnold session so that it checks for all 
-            // lost connections
-            m_impl->m_session->QueueProceduralUpdate(this);
-         }
-      }
-
-   }
-   
    // Pass the update request to the export session
    m_impl->m_session->RequestUpdate();
 }
