@@ -60,8 +60,7 @@ def arnoldBatchRender(option):
         print err
         
 def arnoldBatchStop():
-    import pymel.core as pm
-    pm.mel.eval('batchRender')
+    mel.eval('batchRender')
 
 def arnoldIprStart(editor, resolutionX, resolutionY, camera):
     # Make sure the aiOptions node exists

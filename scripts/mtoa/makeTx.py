@@ -4,10 +4,10 @@ import platform
 import re
 import subprocess
 import maya.cmds as cmds
+import maya.mel as mel
 import shlex
 from arnold import *
 import os.path
-import pymel.core as pm
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
 # so we'll temporarily provide bindings until this is resolved, see core #5293
@@ -126,7 +126,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
         cmd = shlex.split(cmd_str, posix=False)
 
     maya_version = cmds.about(q=True, version=True)
-    if pm.mel.exists("colorManagementPrefs"):
+    if mel.exists("colorManagementPrefs"):
 
         if cmds.colorManagementPrefs(q=True, cmEnabled=True):
             if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
