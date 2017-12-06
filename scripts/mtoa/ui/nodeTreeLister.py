@@ -12,6 +12,7 @@ options:
 """
 import mtoa.utils as utils
 import pymel.core as pm
+import maya.mel
 from mtoa.core import _processClass, createArnoldNode, isSubClassification
 from mtoa.callbacks import *
 from collections import namedtuple
@@ -119,7 +120,7 @@ def createNodeCallback(runtimeClassification, postCommand, nodeType):
     node = unicode(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
     if postCommand:
         postCommand = postCommand.replace('%node', node).replace('%type', nodeType).replace(r'\"','"')
-        pm.mel.eval(postCommand)
+        maya.mel.eval(postCommand)
     return node
 
 _createNodeCallbackProc = utils.pyToMelProc(createNodeCallback, 

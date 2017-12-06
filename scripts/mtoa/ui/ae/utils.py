@@ -1,7 +1,7 @@
 import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae
-
+import maya.cmds
 import os
 import pkgutil
 import re
@@ -11,7 +11,7 @@ import inspect
 def arnoldGetDimValue(node, attr):
 
     fullAttr = '%s.%s'%(node, attr)
-    value = pm.getAttr(fullAttr)
+    value = cmds.getAttr(fullAttr)
     return value
 
 # Dims target control if source attribute is true.

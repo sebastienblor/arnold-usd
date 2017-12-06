@@ -97,7 +97,7 @@ def isMtoaNode(nodeType):
     """
     global _mtoaNodes
     if _mtoaNodes is None:
-        _mtoaNodes = pm.pluginInfo('mtoa', query=True, dependNode=True)
+        _mtoaNodes = cmds.pluginInfo('mtoa', query=True, dependNode=True)
     return nodeType in _mtoaNodes
 
 def getAttributeData(nodeType):
@@ -392,8 +392,8 @@ def installCallbacks():
     if cmds.about(batch=True):
         callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
     else:
-        pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
-        pm.scriptJob(event =['SceneOpened', _rendererChanged] )
+        cmds.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
+        cmds.scriptJob(event =['SceneOpened', _rendererChanged] )
 
     import mtoa.aovs as aovs
     aovs.installCallbacks()

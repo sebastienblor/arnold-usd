@@ -12,7 +12,7 @@ def mtoaPackageRoot():
 
 if 'pymel' not in globals():
     import pymel
-    maya_version = cmds.about(q=True, version=True)
+    maya_version = cmds.about(version=True)
     print "Maya %s importing module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
 else :
     print "Maya %s had already imported module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
@@ -42,7 +42,7 @@ def _overrideMelScripts():
     # for those procedures that we could not simply define overrides interactively, we keep edited files
     # per version of maya
     root = mtoaPackageRoot()
-    maya_version = cmds.about(q=True, version=True)
+    maya_version = cmds.about(version=True)
     meldir = os.path.join(root, maya_version, 'mel')
     meldir = mtoa.utils.convertToUnicode(meldir)
     pathsep = mtoa.utils.convertToUnicode(os.pathsep)
@@ -58,7 +58,7 @@ def _overrideMelScripts():
 
 def _overridePythonScripts():
     root = mtoaPackageRoot()
-    maya_version = cmds.about(q=True, version=True)
+    maya_version = cmds.about(version=True)
     path = os.path.join(root, maya_version)
     if not os.path.isdir(path):
         return
@@ -249,7 +249,7 @@ def _register():
                                            ('string', 'camera'), ('string', 'options')])
     args['renderRegionProcedure'] = 'mayaRenderRegion'
 
-    maya_version = cmds.about(q=True, version=True)
+    maya_version = cmds.about(version=True)
     if int(float(maya_version)) >= 2017:
         args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
                                           [('int', 'width'), ('int', 'height'),
