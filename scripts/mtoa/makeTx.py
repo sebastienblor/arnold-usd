@@ -126,7 +126,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
         cmd = shlex.split(cmd_str, posix=False)
 
     maya_version = cmds.about(version=True)
-    if mel.exists("colorManagementPrefs"):
+    if mel.eval("exists \"colorManagementPrefs\""):
 
         if cmds.colorManagementPrefs(q=True, cmEnabled=True):
             if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):

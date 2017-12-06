@@ -688,7 +688,7 @@ def UpdateAllTx(force):
 
     maya_version = cmds.about(version=True)
    
-    if maya.mel.exists("colorManagementPrefs"):
+    if maya.mel.eval("exists \"colorManagementPrefs\""):
     # only do this if command colorManagementPrefs exists
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
         cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)
