@@ -16,6 +16,7 @@ This makes it easy to extend the built-in functionality within your override.  F
     mtoa.hooks.getDefaultAOVs = getDefaultAOVs
 """
 import os
+import maya.cmds as cmds
 from posixpath import join
 
 def setupFilter(filter, aovName=None):
