@@ -82,7 +82,7 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         kwargs[runtimeClassification] = True
         node = pm.shadingNode(nodeType, **kwargs)
     else:
-        pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
+        cmds.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
         node = pm.createNode(nodeType, **kwargs)
 
     createShadingGroupIfNeeded(nodeType, node)
@@ -97,7 +97,7 @@ def isMtoaNode(nodeType):
     """
     global _mtoaNodes
     if _mtoaNodes is None:
-        _mtoaNodes = pm.pluginInfo('mtoa', query=True, dependNode=True)
+        _mtoaNodes = cmds.pluginInfo('mtoa', query=True, dependNode=True)
     return nodeType in _mtoaNodes
 
 def getAttributeData(nodeType):
@@ -109,7 +109,7 @@ def getAttributeData(nodeType):
 
 def arnoldIsCurrentRenderer():
     "return whether arnold is the current renderer"
-    return pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold'
+    return cmds.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold'
 
 def listTranslators(nodeType):
     '''
@@ -122,9 +122,9 @@ def listTranslators(nodeType):
     return utils.groupn(data, 2)
 
 def createStandIn(path=None):
-    if not pm.objExists('ArnoldStandInDefaultLightSet'):
-        pm.createNode("objectSet", name=":ArnoldStandInDefaultLightSet", shared=True)
-        pm.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
+    if not cmds.objExists('ArnoldStandInDefaultLightSet'):
+        cmds.createNode("objectSet", name=":ArnoldStandInDefaultLightSet", shared=True)
+        cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
 
     standIn = pm.createNode('aiStandIn', n='aiStandInShape')
     # temp fix until we can correct in c++ plugin
@@ -136,7 +136,7 @@ def createStandIn(path=None):
     return standIn
     
 def createVolume():
-    pm.createNode('aiVolume', n='aiVolumeShape')
+    cmds.createNode('aiVolume', n='aiVolumeShape')
 
 def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     """
@@ -197,10 +197,10 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
 
 
 def createOptions():
-    mtoaLoaded = pm.pluginInfo('mtoa', query=True,loaded=True)
+    mtoaLoaded = cmds.pluginInfo('mtoa', query=True,loaded=True)
     
     if not mtoaLoaded:
-        pm.error("MtoA plugin isn't loaded")
+        cmds.error("MtoA plugin isn't loaded")
         return
         
     """
@@ -213,13 +213,13 @@ def createOptions():
     # testing for obj existence before creating because createNode with shared and forcing a namespace
     # will switch the namespace if the object already exists (it's bugged).
     options = pm.createNode('aiOptions', skipSelect=True, shared=True, name=':defaultArnoldRenderOptions')\
-        if not pm.objExists('defaultArnoldRenderOptions') else None
+        if not cmds.objExists('defaultArnoldRenderOptions') else None
     filterNode = pm.createNode('aiAOVFilter', name=':defaultArnoldFilter', skipSelect=True, shared=True)\
-        if not pm.objExists('defaultArnoldFilter') else None
+        if not cmds.objExists('defaultArnoldFilter') else None
     driverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDriver', skipSelect=True, shared=True)\
-        if not pm.objExists('defaultArnoldDriver') else None
+        if not cmds.objExists('defaultArnoldDriver') else None
     displayDriverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDisplayDriver', skipSelect=True, shared=True)\
-        if not pm.objExists('defaultArnoldDisplayDriver') else None
+        if not cmds.objExists('defaultArnoldDisplayDriver') else None
 
     if (filterNode or driverNode) and not options:
         options = pm.PyNode('defaultArnoldRenderOptions')
@@ -243,7 +243,7 @@ def createOptions():
         # newly created options
         hooks.setupDefaultAOVs(aovs.AOVInterface(options))
         hooks.setupOptions(options)
-        pm.setAttr('defaultArnoldRenderOptions.version', str(cmds.pluginInfo( 'mtoa', query=True, version=True)))
+        cmds.setAttr('defaultArnoldRenderOptions.version', str(cmds.pluginInfo( 'mtoa', query=True, version=True)), type="string")
     else:
         options = pm.PyNode('defaultArnoldRenderOptions')
         if displayDriverNode:
@@ -265,7 +265,7 @@ def createOptions():
         # and therefore restarts the render (#3178)
         filterInputs = pm.listConnections(options.name() + '.filter', source=True, destination=False)
         if (filterInputs is None) or (len(filterInputs) == 0) or (filterInputs[0] != filterNode.name()):
-            pm.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
+            cmds.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
         
     except:
         pass
@@ -274,7 +274,7 @@ def createOptions():
         # Same reason as with filter above (#3178)
         driverInputs = pm.listConnections(options.name() + '.driver', source=True, destination=False)
         if driverInputs is None or len(driverInputs) == 0 or (driverInputs[0] != driverNode.name()):
-            pm.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
+            cmds.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
     except:
         pass
     
@@ -311,7 +311,7 @@ def _doSetDefaultTranslator(obj):
             plug.setString(default)
 
     except RuntimeError:
-        pm.warning("failed to set default translator for %s" % pm.api.MFnDependencyNode(obj).name())
+        cmds.warning("failed to set default translator for %s" % pm.api.MFnDependencyNode(obj).name())
 
 def registerDefaultTranslator(nodeType, default):
     """
@@ -362,7 +362,7 @@ def getDefaultTranslator(obj):
         pass
 
 def _rendererChanged(*args):
-    if pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':
+    if cmds.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':
         global _defaultTranslators
 
         it = pm.api.MItDependencyNodes()
@@ -389,11 +389,11 @@ def installCallbacks():
     """
     # certain scenes fail to execute this callback:
     #callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
-    if pm.about(batch=True):
+    if cmds.about(batch=True):
         callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
     else:
-        pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
-        pm.scriptJob(event =['SceneOpened', _rendererChanged] )
+        cmds.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
+        cmds.scriptJob(event =['SceneOpened', _rendererChanged] )
 
     import mtoa.aovs as aovs
     aovs.installCallbacks()

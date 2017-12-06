@@ -4,12 +4,12 @@ from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
 import maya.cmds as cmds
+import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
 import mtoa.licensing
 import arnold as ai
-import pymel.versions as versions
 import mtoa.convertShaders
 
 from uuid import getnode as get_mac
@@ -32,7 +32,7 @@ def doExportStandIn():
     try:
         #Change it to ASS
         cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
-        pm.mel.eval('ExportSelection')
+        maya.mel.eval('ExportSelection')
     finally:
         cmds.optionVar(sv=('defaultFileExportActiveType', default))
 
@@ -43,8 +43,8 @@ def doExportOptionsStandIn():
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
 
-    pm.mel.eval('ExportSelectionOptions')
-    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
+    maya.mel.eval('ExportSelectionOptions')
+    maya.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
 
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
@@ -366,8 +366,8 @@ def arnoldMtoARenderView():
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
-    if not pm.about(b=1):
-        maya_version = versions.shortName()
+    if not cmds.about(b=1):
+        maya_version = cmds.about(version=True)
         if int(float(maya_version)) < 2017:
             pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
         else:

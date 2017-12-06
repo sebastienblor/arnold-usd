@@ -109,7 +109,7 @@ def fileTokenRenderPass(path, tokens, **kwargs):
         if not os.path.isabs(path):
             path = join('<RenderPass>', path)
         else:
-            pm.cmds.warning('[mtoa] Multiple render passes (AOVs) exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
+            cmds.warning('[mtoa] Multiple render passes (AOVs) exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
     return path
 _fileTokenRenderPass = fileTokenRenderPass
 
@@ -118,7 +118,7 @@ def fileTokenCamera(path, tokens, **kwargs):
     renderable = [c for c in pm.ls(type='camera') if c.renderable.get()]
     if '<Camera>' not in path and len(renderable) > 1:
         if os.path.isabs(path):
-            pm.cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
+            cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
         else:
             path = join('<Camera>', path)
 
@@ -136,15 +136,15 @@ _fileTokenCamera = fileTokenCamera
 
 def fileTokenRenderLayer(path, tokens, **kwargs):
     import pymel.core as pm
-    layers = pm.cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)
+    layers = cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)
     if '<RenderLayer>' not in path and len(layers) > 1:
         if os.path.isabs(path):
-            pm.cmds.warning('[mtoa] Multiple renderable render layers exist, but output path is absolute and without <RenderLayer> token: "%s"' % path)
+            cmds.warning('[mtoa] Multiple renderable render layers exist, but output path is absolute and without <RenderLayer> token: "%s"' % path)
         else:
             path = join('<RenderLayer>', path)
 
     if '<RenderLayer>' in path and 'RenderLayer' not in tokens:
-        tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+        tokens['RenderLayer'] = cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
     
     if tokens.get('RenderLayer', None) == 'defaultRenderLayer':
         tokens['RenderLayer'] = 'masterLayer'
@@ -154,4 +154,4 @@ _fileTokenRenderLayer = fileTokenRenderLayer
 def fileTokenVersion(path, tokens, **kwargs):
     import pymel.core as pm
     if '<Version>' in path and 'Version' not in tokens:
-        tokens['Version'] = pm.getAttr('defaultRenderGlobals.renderVersion')
+        tokens['Version'] = cmds.getAttr('defaultRenderGlobals.renderVersion')

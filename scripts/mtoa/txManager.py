@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import maya.utils as utils
+import maya.mel
 import os.path
 import glob
 import re
@@ -9,8 +10,7 @@ import threading
 import makeTx
 import platform
 from arnold import *
-import pymel.versions as versions
-import pymel.core as pm
+
 
 def isImage(file):
     ext = os.path.splitext(file)[1]
@@ -55,10 +55,10 @@ class MakeTxThread (threading.Thread):
         if not self.txManager.selectedItems:
             return
             
-        ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
-        utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True);
-        maya_version = versions.shortName()
-    
+        ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7'])
+        utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True)
+        maya_version = cmds.about(version=True)
+
         # first we need to make sure the options & color manager node were converted to arnold
         arnoldUniverseActive = AiUniverseIsActive()
 
@@ -384,7 +384,7 @@ class MtoATxManager(object):
                 texturePrefix = '~~  '
 
             textureSuffix = ''
-            maya_version = versions.shortName()
+            maya_version = cmds.about(version=True)
             if int(float(maya_version)) >= 2016:
                 textureSuffix =' ('+txItem[2]+')'
 
@@ -571,7 +571,7 @@ class MtoATxManager(object):
         ctrlPath = '|'.join([self.window, 'groupBox_4', 'checkBox']);
         recursive = cmds.checkBox(ctrlPath, query=True, value=True);
         
-        maya_version = versions.shortName()
+        maya_version = cmds.about(version=True)
         self.selectedItems = []
         if os.path.isdir(folder):
             if recursive:
@@ -686,9 +686,9 @@ def UpdateAllTx(force):
     if force == 0:
         arg_options = "-u " + arg_options
 
-    maya_version = versions.shortName()
+    maya_version = cmds.about(version=True)
    
-    if pm.mel.exists("colorManagementPrefs"):
+    if maya.mel.eval("exists \"colorManagementPrefs\""):
     # only do this if command colorManagementPrefs exists
         render_colorspace = cmds.colorManagementPrefs(query=True, renderingSpaceName=True)
         cmEnable = cmds.colorManagementPrefs(query=True, cmEnabled=True)

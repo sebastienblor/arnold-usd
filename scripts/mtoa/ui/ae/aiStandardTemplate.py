@@ -1,5 +1,6 @@
 import pymel.core as pm
 import mtoa.utils as utils
+import maya.mel
 import mtoa.ui.ae.utils as aeUtils
 import mtoa.convertShaders as convertShaders
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -11,37 +12,37 @@ class AEaiStandardTemplate(ShaderAETemplate):
     
     def checkSpecularFresnel(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
-        fresIorValue = pm.getAttr(fullAttr)
+        fresIorValue = cmds.getAttr(fullAttr)
     
         fullAttr = '%s.%s'%(nodeName, "specular_Fresnel")
-        specFresValue = pm.getAttr(fullAttr)
+        specFresValue = cmds.getAttr(fullAttr)
         
         dim = (specFresValue is False) or (fresIorValue is True)
-        pm.editorTemplate(dimControl=(nodeName, "Ksn", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "Ksn", dim))
 
     def checkReflectionFresnel(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
-        fresIorValue = pm.getAttr(fullAttr)
+        fresIorValue = cmds.getAttr(fullAttr)
         
         fullAttr = '%s.%s'%(nodeName, "Fresnel")
-        refFresValue = pm.getAttr(fullAttr)
+        refFresValue = cmds.getAttr(fullAttr)
         
         dim = (refFresValue is False) or (fresIorValue is True)
-        pm.editorTemplate(dimControl=(nodeName, "Krn", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "Krn", dim))
         
     def checkFresnelUseIOR(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
-        fresIorValue = pm.getAttr(fullAttr)
+        fresIorValue = cmds.getAttr(fullAttr)
         
         fullAttr = '%s.%s'%(nodeName, "specular_Fresnel")
-        specFresValue = pm.getAttr(fullAttr)
+        specFresValue = cmds.getAttr(fullAttr)
         dim = (specFresValue is False) or (fresIorValue is True)
-        pm.editorTemplate(dimControl=(nodeName, "Ksn", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "Ksn", dim))
         
         fullAttr = '%s.%s'%(nodeName, "Fresnel")
-        refFresValue = pm.getAttr(fullAttr)
+        refFresValue = cmds.getAttr(fullAttr)
         dim = (refFresValue is False) or (fresIorValue is True)
-        pm.editorTemplate(dimControl=(nodeName, "Krn", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "Krn", dim))
 
     def convertToStandardSurface(self, nodeName):
         convertShaders.doMapping(nodeName)
@@ -162,14 +163,14 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.endLayout() # End Advanced Layout
 
         self.beginLayout("Hardware Texturing", collapse=True)
-        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
+        maya.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
         self.endLayout()
 
         self.addAOVLayout(aovReorder = ['direct_diffuse', 'indirect_diffuse', 'direct_specular', 'indirect_specular',
                                         'reflection', 'refraction', 'refraction_opacity', 'emission', 'sss', 'direct_sss', 'indirect_sss'])
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.suppress('PhongExponent')
        

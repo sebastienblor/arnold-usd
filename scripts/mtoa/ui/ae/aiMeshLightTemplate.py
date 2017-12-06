@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import pymel.core as pm
+import maya.mel
 import mtoa.ui.ae.lightTemplate as lightTemplate
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
@@ -93,7 +93,7 @@ class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
         for extra in extras:
             self.suppress(extra)
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

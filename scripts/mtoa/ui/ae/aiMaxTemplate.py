@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiMaxTemplate(ShaderAETemplate):
@@ -9,7 +9,7 @@ class AEaiMaxTemplate(ShaderAETemplate):
         self.addControl('input1')
         self.addControl('input2')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

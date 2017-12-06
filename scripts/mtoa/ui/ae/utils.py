@@ -1,31 +1,33 @@
 import pymel.core as pm
 import mtoa.utils as utils
+import maya.mel
 import mtoa.ui.ae
-
+import maya.cmds
 import os
 import pkgutil
 import re
 import sys
 import inspect
+import maya.cmds as cmds
 
 def arnoldGetDimValue(node, attr):
 
     fullAttr = '%s.%s'%(node, attr)
-    value = pm.getAttr(fullAttr)
+    value = cmds.getAttr(fullAttr)
     return value
 
 # Dims target control if source attribute is true.
 def arnoldDimControlIfTrue(node, target, source):
     dim = arnoldGetDimValue(node, source)
-    pm.editorTemplate(dimControl=(node, target, dim))
+    cmds.editorTemplate(dimControl=(node, target, dim))
 
 # Dims target control if source attribute is false.
 def arnoldDimControlIfFalse(node, target, source):
     dim = not arnoldGetDimValue(node, source)
-    pm.editorTemplate(dimControl=(node, target, dim))
+    cmds.editorTemplate(dimControl=(node, target, dim))
 
 def getNodeType(name):
-    nodeType = pm.nodeType(name)
+    nodeType = cmds.nodeType(name)
     lights = ["directionalLight",
                 "pointLight",
                 "spotLight",
@@ -37,7 +39,7 @@ def getNodeType(name):
     return nodeType
 
 def attributeExists(attribute, nodeName):
-    return pm.attributeQuery(attribute, node=nodeName, exists=True)
+    return cmds.attributeQuery(attribute, node=nodeName, exists=True)
 
 
 def loadAETemplates():
@@ -80,7 +82,7 @@ def _makeAEProc(modname, objname, procname):
     python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(objname)s','" + $nodeName + "')");}'''
     d = locals().copy()
     d['__name__'] = __name__
-    pm.mel.eval( contents % d )
+    maya.mel.eval( contents % d )
 
 def _aeLoader(modname, objname, nodename):
     mod = __import__(modname, globals(), locals(), [objname], -1)
@@ -89,7 +91,7 @@ def _aeLoader(modname, objname, nodename):
         if inspect.isfunction(f):
             f(nodename)
         elif inspect.isclass(f):
-            inst = f(pm.nodeType(nodename))
+            inst = f(cmds.nodeType(nodename))
             inst._doSetup(nodename)
         else:
             print "AE object %s has invalid type %s" % (f, type(f))
@@ -104,20 +106,20 @@ def interToUI(label):
     return label
 
 def attrType(attr):
-    type = pm.getAttr(attr, type=True)
+    type = cmds.getAttr(attr, type=True)
     if type == 'float3':
         node, at = attr.split('.', 1)
-        if pm.attributeQuery(at, node=node, usedAsColor=1):
+        if cmds.attributeQuery(at, node=node, usedAsColor=1):
             type = 'color'
     return type
 
 def rebuildAE():
     "completely rebuild the attribute editor"
     edForm = pm.melGlobals['gAttributeEditorForm']
-    if pm.layout(edForm, q=True, exists=True):
-        children = pm.layout(edForm, q=True, childArray=True)
+    if cmds.layout(edForm, q=True, exists=True):
+        children = cmds.layout(edForm, q=True, childArray=True)
         if children:
-            pm.deleteUI(children[0])
+            cmds.deleteUI(children[0])
             pm.mel.attributeEditorVisibilityStateChange(1, "")
 
 def attrTextFieldGrp(*args, **kwargs):
@@ -131,21 +133,21 @@ def attrTextFieldGrp(*args, **kwargs):
     changeCommand = kwargs.pop('changeCommand', kwargs.pop('cc', None))
     if changeCommand:
         def cc(newVal):
-            pm.setAttr(attribute, newVal)
+            cmds.setAttr(attribute, newVal, type="string")
             changeCommand(newVal)
     else:
-        cc = lambda newVal: pm.setAttr(attribute, newVal)
+        cc = lambda newVal: cmds.setAttr(attribute, newVal, type="string")
 
     if kwargs.pop('edit', kwargs.pop('e', False)):
         ctrl = args[0]
-        pm.textFieldGrp(ctrl, edit=True,
-                    text=pm.getAttr(attribute),
+        cmds.textFieldGrp(ctrl, edit=True,
+                    text=cmds.getAttr(attribute),
                     changeCommand=cc)
-        pm.scriptJob(parent=ctrl,
+        cmds.scriptJob(parent=ctrl,
                      replacePrevious=True,
                      attributeChange=[attribute,
-                                      lambda: pm.textFieldGrp(ctrl, edit=True,
-                                                              text=pm.getAttr(attribute))])
+                                      lambda: cmds.textFieldGrp(ctrl, edit=True,
+                                                              text=cmds.getAttr(attribute))])
     elif kwargs.pop('query', kwargs.pop('q', False)):
         # query
         pass
@@ -157,18 +159,18 @@ def attrTextFieldGrp(*args, **kwargs):
         ctrl = None
         if len(args) > 0:
             ctrl = args[0]
-            pm.textFieldGrp(ctrl,
+            cmds.textFieldGrp(ctrl,
                             label=labelText,
-                            text=pm.getAttr(attribute),
+                            text=cmds.getAttr(attribute),
                             changeCommand=cc)
         else:
-            ctrl = pm.textFieldGrp(label=labelText,
-                                   text=pm.getAttr(attribute),
+            ctrl = cmds.textFieldGrp(label=labelText,
+                                   text=cmds.getAttr(attribute),
                                    changeCommand=cc)
-        pm.scriptJob(parent=ctrl,
+        cmds.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
-                                      lambda: pm.textFieldGrp(ctrl, edit=True,
-                                                              text=pm.getAttr(attribute))])
+                                      lambda: cmds.textFieldGrp(ctrl, edit=True,
+                                                              text=cmds.getAttr(attribute))])
         return ctrl
 
 def attrBoolControlGrp(*args, **kwargs):
@@ -177,20 +179,20 @@ def attrBoolControlGrp(*args, **kwargs):
     changeCommand = kwargs.pop('changeCommand', kwargs.pop('cc', None))
     if changeCommand:
         def cc(newVal):
-            pm.setAttr(attribute, newVal)
+            cmds.setAttr(attribute, newVal)
             changeCommand(newVal)
     else:
-        cc = lambda newVal: pm.setAttr(attribute, newVal)
+        cc = lambda newVal: cmds.setAttr(attribute, newVal)
 
     if kwargs.pop('edit', kwargs.pop('e', False)):
         ctrl = args[0]
-        pm.checkBox(ctrl, edit=True,
-                    value=pm.getAttr(attribute),
+        cmds.checkBox(ctrl, edit=True,
+                    value=cmds.getAttr(attribute),
                     changeCommand=cc)
-        pm.scriptJob(parent=ctrl,
+        cmds.scriptJob(parent=ctrl,
                      replacePrevious=True,
                      attributeChange=[attribute,
-                                      lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
+                                      lambda: cmds.checkBox(ctrl, edit=True, value=cmds.getAttr(attribute))])
     elif kwargs.pop('query', kwargs.pop('q', False)):
         # query
         pass
@@ -200,36 +202,36 @@ def attrBoolControlGrp(*args, **kwargs):
         if not labelText:
             labelText = pm.mel.interToUI(attribute.split('.')[-1])
         ctrl = args[0]
-        pm.rowLayout(numberOfColumns=1, columnWidth1=285, columnAttach1='right')
-        pm.checkBox(ctrl, label=labelText,
-                    value=pm.getAttr(attribute),
+        cmds.rowLayout(numberOfColumns=1, columnWidth1=285, columnAttach1='right')
+        cmds.checkBox(ctrl, label=labelText,
+                    value=cmds.getAttr(attribute),
                     changeCommand=cc)
-        pm.setParent('..')
-        pm.scriptJob(parent=ctrl,
+        cmds.setParent('..')
+        cmds.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
-                     lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
+                     lambda: cmds.checkBox(ctrl, edit=True, value=cmds.getAttr(attribute))])
         return ctrl
 
 class AttrControlGrp(object):
     UI_TYPES = {
-        'float':  pm.cmds.attrFieldSliderGrp,
-        'float2': pm.cmds.attrFieldGrp,
-        'float3': pm.cmds.attrFieldGrp,
-        'color':  pm.cmds.attrColorSliderGrp,
-        'bool':   pm.cmds.attrControlGrp,
-        'long':   pm.cmds.attrFieldSliderGrp,
-        'byte':   pm.cmds.attrFieldSliderGrp,
-        'long2':  pm.cmds.attrFieldGrp,
-        'long3':  pm.cmds.attrFieldGrp,
-        'short':  pm.cmds.attrFieldSliderGrp,
-        'short2': pm.cmds.attrFieldGrp,
-        'short3': pm.cmds.attrFieldGrp,
-        'enum':   pm.cmds.attrEnumOptionMenuGrp,
-        'double': pm.cmds.attrFieldSliderGrp,
-        'double2':pm.cmds.attrFieldGrp,
-        'double3':pm.cmds.attrFieldGrp,
+        'float':  cmds.attrFieldSliderGrp,
+        'float2': cmds.attrFieldGrp,
+        'float3': cmds.attrFieldGrp,
+        'color':  cmds.attrColorSliderGrp,
+        'bool':   cmds.attrControlGrp,
+        'long':   cmds.attrFieldSliderGrp,
+        'byte':   cmds.attrFieldSliderGrp,
+        'long2':  cmds.attrFieldGrp,
+        'long3':  cmds.attrFieldGrp,
+        'short':  cmds.attrFieldSliderGrp,
+        'short2': cmds.attrFieldGrp,
+        'short3': cmds.attrFieldGrp,
+        'enum':   cmds.attrEnumOptionMenuGrp,
+        'double': cmds.attrFieldSliderGrp,
+        'double2':cmds.attrFieldGrp,
+        'double3':cmds.attrFieldGrp,
         'string': attrTextFieldGrp,
-        'message':pm.cmds.attrNavigationControlGrp
+        'message':cmds.attrNavigationControlGrp
     }
     def __init__(self, attribute, *args, **kwargs):
         self.attribute = attribute
@@ -251,7 +253,7 @@ class AttrControlGrp(object):
             print "Error creating %s:" % cmd.__name__
             raise
         if self.callback:
-            pm.scriptJob(attributeChange=[self.attribute, self.callback],
+            cmds.scriptJob(attributeChange=[self.attribute, self.callback],
                          replacePrevious=True, parent=self.control)
 
     def edit(self, **kwargs):
@@ -266,5 +268,5 @@ class AttrControlGrp(object):
             return
         self.UI_TYPES[self.type](self.control, edit=True, attribute=self.attribute)
         if self.callback:
-            pm.scriptJob(attributeChange=[self.attribute, self.callback],
+            cmds.scriptJob(attributeChange=[self.attribute, self.callback],
                          replacePrevious=True, parent=self.control)

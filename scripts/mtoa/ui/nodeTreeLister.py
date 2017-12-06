@@ -12,6 +12,7 @@ options:
 """
 import mtoa.utils as utils
 import pymel.core as pm
+import maya.mel
 from mtoa.core import _processClass, createArnoldNode, isSubClassification
 from mtoa.callbacks import *
 from collections import namedtuple
@@ -30,8 +31,8 @@ global _typeInfoMap
 _typeInfoMap = ()
 
 def isClassified(node, klass):
-    nodeType = pm.nodeType(node)
-    return klass in pm.getClassification(nodeType)
+    nodeType = cmds.nodeType(node)
+    return klass in cmds.getClassification(nodeType)
 
 def getTypeInfo():
     '''
@@ -44,7 +45,7 @@ def getTypeInfo():
         tmpmap = {}
         nodeTypes = []
         for cat in CATEGORIES:
-            catTypes = pm.listNodeTypes('rendernode/arnold/' + cat)
+            catTypes = cmds.listNodeTypes('rendernode/arnold/' + cat)
             if catTypes :
                 nodeTypes.extend(catTypes)
         if nodeTypes:
@@ -101,7 +102,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
         # skip unclassified
         if staticClass == 'rendernode/arnold' or staticClass == 'rendernode/arnold/shader':
             continue
-        pm.menuItem(label = nodePath.replace('/', ' '), 
+        cmds.menuItem(label = nodePath.replace('/', ' '), 
                       tearOff = True, subMenu = True)
         
         # call buildCreateSubMenu() to create the menu entries.  The specified 
@@ -112,14 +113,14 @@ def aiHyperShadeCreateMenu_BuildMenu():
         #
         pm.mel.buildCreateSubMenu(staticClass, '%s %s ""' % (_createNodeCallbackProc,
                                                              runtimeClass) )
-        pm.setParent('..', menu=True)
+        cmds.setParent('..', menu=True)
 
 def createNodeCallback(runtimeClassification, postCommand, nodeType):
 
     node = unicode(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
     if postCommand:
         postCommand = postCommand.replace('%node', node).replace('%type', nodeType).replace(r'\"','"')
-        pm.mel.eval(postCommand)
+        maya.mel.eval(postCommand)
     return node
 
 _createNodeCallbackProc = utils.pyToMelProc(createNodeCallback, 
