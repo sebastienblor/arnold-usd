@@ -11,6 +11,8 @@ from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
 from mtoa.utils import prettify, toMayaStyle
 import mtoa.core as core
+import maya.cmds as cmds
+import maya.mel
 from mtoa.core import registerDefaultTranslator, getDefaultTranslator
 import arnold
 
@@ -103,7 +105,7 @@ class BaseTemplate(object):
 
     def nodeType(self):
         if self._nodeType is None:
-            self._nodeType = pm.objectType(self.nodeName)
+            self._nodeType = cmds.objectType(self.nodeName)
         return self._nodeType
 
     def nodeAttr(self, attr=None):
@@ -112,7 +114,7 @@ class BaseTemplate(object):
         return self.nodeName + '.' + attr
 
     def nodeAttrExists(self, attr):
-        return pm.addAttr(self.nodeAttr(attr), q=True, ex=True)
+        return cmds.addAttr(self.nodeAttr(attr), q=True, ex=True)
 
 def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
@@ -321,17 +323,17 @@ class AEChildMode(BaseMode):
         self._layoutStack = []
 
     def preSetup(self):
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-        self._layoutStack = [pm.setParent(query=True)]
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        self._layoutStack = [cmds.setParent(query=True)]
 
     def postSetup(self):        
-        pm.setUITemplate(popTemplate=True)
+        cmds.setUITemplate(popTemplate=True)
 
     def update(self):
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         try:
             for attr, updateFunc, parent in self._controls:
-                pm.setParent(parent)
+                cmds.setParent(parent)
                 updateFunc(self.nodeAttr(attr))
         except:
             # print some useful info
@@ -339,7 +341,7 @@ class AEChildMode(BaseMode):
             # re-raise the last exception
             raise
         finally:
-            pm.setUITemplate(popTemplate=True)
+            cmds.setUITemplate(popTemplate=True)
 
     def addTemplate(self, attr, template):
         self.addChildTemplate(attr, template)
@@ -350,7 +352,7 @@ class AEChildMode(BaseMode):
         template.setup()
         for attr in template._attributes:
             try:
-                pm.cmds.editorTemplate(suppress=attr)
+                cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
         self.addCustom(attr, template._doSetup, template._doUpdate)
@@ -372,24 +374,24 @@ class AEChildMode(BaseMode):
         if enumeratedItem:
             kwargs['enumeratedItem'] = enumeratedItem
         parent = self._layoutStack[-1]
-        pm.setParent(parent)
+        cmds.setParent(parent)
         control = AttrControlGrp(**kwargs)
         self._controls.append((attr, control.setAttribute, parent))
 
     def addCustom(self, attr, createFunc, updateFunc):
         parent = self._layoutStack[-1]
-        pm.setParent(parent)
-        col = pm.cmds.columnLayout(adj=True)
+        cmds.setParent(parent)
+        col = cmds.columnLayout(adj=True)
         if not hasattr(createFunc, '__call__'):
             createFunc = getattr(pm.mel, createFunc)
         if not hasattr(updateFunc, '__call__'):
             updateFunc = getattr(pm.mel, updateFunc)
         createFunc(self.nodeAttr(attr))
-        pm.setParent(parent)
+        cmds.setParent(parent)
         self._controls.append((attr, updateFunc, col))
 
     def addSeparator(self):
-        pm.separator()
+        cmds.separator()
 
     def beginLayout(self, label, **kwargs):
         '''
@@ -397,16 +399,16 @@ class AEChildMode(BaseMode):
         accepts any keyword args valid for creating a frameLayout
         '''
         kwargs['label'] = label
-        pm.setParent(self._layoutStack[-1])
-        pm.frameLayout(**kwargs)
-        self._layoutStack.append(pm.columnLayout(adjustableColumn=True))
+        cmds.setParent(self._layoutStack[-1])
+        cmds.frameLayout(**kwargs)
+        self._layoutStack.append(cmds.columnLayout(adjustableColumn=True))
 
     def endLayout(self):
         '''
         end the current frameLayout
         '''
         self._layoutStack.pop()
-        pm.setParent(self._layoutStack[-1])
+        cmds.setParent(self._layoutStack[-1])
 
     # for compatibility with pymel.core.uitypes.AETemplate
     def beginNoOptimize(self):
@@ -468,10 +470,10 @@ class AERootMode(BaseMode):
         template.setup()
         for attr in template._attributes:
             try:
-                pm.cmds.editorTemplate(suppress=attr)
+                cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
-        pm.cmds.editorTemplate(aeCallback(template._doSetup),
+        cmds.editorTemplate(aeCallback(template._doSetup),
                           aeCallback(template._doUpdate),
                           attr,
                           callCustom=True)
@@ -497,10 +499,10 @@ class AERootMode(BaseMode):
             kwargs['label'] = label
         if annotation:
             kwargs['annotation'] = annotation
-        pm.cmds.editorTemplate(*args, **kwargs)
+        cmds.editorTemplate(*args, **kwargs)
         
     def suppress(self, attr):
-        pm.cmds.editorTemplate(suppress=attr)
+        cmds.editorTemplate(suppress=attr)
 
     def addCustom(self, attr, newFunc, replaceFunc):
         # TODO: support multiple attributes passed
@@ -509,46 +511,46 @@ class AERootMode(BaseMode):
         if hasattr(replaceFunc, '__call__'):
             replaceFunc = aeCallback(replaceFunc)
         args = (newFunc, replaceFunc, attr) 
-        pm.cmds.editorTemplate(callCustom=1, *args)
+        cmds.editorTemplate(callCustom=1, *args)
 
     def addSeparator(self):
-        pm.cmds.editorTemplate(addSeparator=True)
+        cmds.editorTemplate(addSeparator=True)
 
     def suppress(self, control):
-        pm.cmds.editorTemplate(suppress=control)
+        cmds.editorTemplate(suppress=control)
 
     def dimControl(self, nodeName, control, state):
-        pm.cmds.editorTemplate(dimControl=(nodeName, control, state))
+        cmds.editorTemplate(dimControl=(nodeName, control, state))
 
     def beginLayout(self, name, collapse=True):
-        pm.cmds.editorTemplate(beginLayout=name, collapse=collapse)
+        cmds.editorTemplate(beginLayout=name, collapse=collapse)
 
     def endLayout(self):
-        pm.cmds.editorTemplate(endLayout=True)
+        cmds.editorTemplate(endLayout=True)
 
     def beginScrollLayout(self):
-        pm.cmds.editorTemplate(beginScrollLayout=True)
+        cmds.editorTemplate(beginScrollLayout=True)
 
     def endScrollLayout(self):
-        pm.cmds.editorTemplate(endScrollLayout=True)
+        cmds.editorTemplate(endScrollLayout=True)
 
     def beginNoOptimize(self):
-        pm.cmds.editorTemplate(beginNoOptimize=True)
+        cmds.editorTemplate(beginNoOptimize=True)
 
     def endNoOptimize(self):
-        pm.cmds.editorTemplate(endNoOptimize=True)
+        cmds.editorTemplate(endNoOptimize=True)
 
     def interruptOptimize(self):
-        pm.cmds.editorTemplate(interruptOptimize=True)
+        cmds.editorTemplate(interruptOptimize=True)
 
     def addComponents(self):
-        pm.cmds.editorTemplate(addComponents=True)
+        cmds.editorTemplate(addComponents=True)
 
     def addExtraControls(self, label=None):
         kwargs = {}
         if label:
             kwargs['extraControlsLabel'] = label
-        pm.cmds.editorTemplate(addExtraControls=True, **kwargs)
+        cmds.editorTemplate(addExtraControls=True, **kwargs)
 
 class ShapeMixin(object):
     def renderStatsAttributes(self):
@@ -631,7 +633,7 @@ class TranslatorControl(AttributeTemplate):
         """
         try :
             # asString allows for enum attributes as well
-            transName = pm.getAttr(nodeName + ".aiTranslator", asString=True)
+            transName = cmds.getAttr(nodeName + ".aiTranslator", asString=True)
         except :
             transName = None
         translators = self.getTranslators()
@@ -640,13 +642,13 @@ class TranslatorControl(AttributeTemplate):
             transName = getDefaultTranslator(nodeName)
             if transName is None:
                 if not translators:
-                    pm.warning("cannot find default translator for %s" % nodeName)
+                    cmds.warning("cannot find default translator for %s" % nodeName)
                     return
                 transName = translators[0]
             try :
-                pm.setAttr(nodeName + ".aiTranslator", transName)
+                cmds.setAttr(nodeName + ".aiTranslator", transName, type="string")
             except:
-                pm.warning("cannot set default translator for %s" % nodeName)
+                cmds.warning("cannot set default translator for %s" % nodeName)
                 import traceback
                 traceback.print_exc()
         return transName
@@ -658,42 +660,42 @@ class TranslatorControl(AttributeTemplate):
         """
         # attr should be aiTranslator. do we need to split?
         nodeName = attr.split('.')[0]
-        self.updateChildren(nodeName, pm.getAttr(nodeName + ".aiTranslator", asString=True))
+        self.updateChildren(nodeName, cmds.getAttr(nodeName + ".aiTranslator", asString=True))
 
     def updateChildren(self, nodeName, currentTranslator):
         """
         update the translator UI, which consists of an optionMenuGrp and a frameLayout per translator,
         so that only the frameLayout corresponding to the currently selected translator is visible
         """
-        if not pm.layout(self._optionMenu, exists=True):
+        if not cmds.layout(self._optionMenu, exists=True):
             # not built yet
             return
-        fullpath = pm.layout(self._optionMenu, query=True, fullPathName=True)
+        fullpath = cmds.layout(self._optionMenu, query=True, fullPathName=True)
         # get the grand-parent columnLayout
         gparent = fullpath.rsplit('|', 2)[0]
         # get the great-grand parent frame layout
         frame = fullpath.rsplit('|', 3)[0]
         try:
-            pm.frameLayout(frame, edit=True, collapsable=False, labelVisible=False, borderVisible=False)
+            cmds.frameLayout(frame, edit=True, collapsable=False, labelVisible=False, borderVisible=False)
         except RuntimeError:
             # this is a little dirty: it will only succeed when attaching to AE
             pass
 
-        children = pm.layout(gparent, query=True, childArray=True)
+        children = cmds.layout(gparent, query=True, childArray=True)
         # hide all frameLayouts but ours
         assert currentTranslator, "we should have a translator set by now"
 
         for child in children:
             # is it a frame layout?
-            objType = pm.objectTypeUI(child)
+            objType = cmds.objectTypeUI(child)
             if objType == 'frameLayout':
-                label = pm.frameLayout(child, query=True, label=True)
+                label = cmds.frameLayout(child, query=True, label=True)
                 # turn collapsable and label off
                 if showAllTranslators:
-                    pm.frameLayout(child, edit=True, collapsable=False, labelVisible=True,
+                    cmds.frameLayout(child, edit=True, collapsable=False, labelVisible=True,
                                      visible=True)
                 else:
-                    pm.frameLayout(child, edit=True, collapsable=False, labelVisible=False,
+                    cmds.frameLayout(child, edit=True, collapsable=False, labelVisible=False,
                                      visible=(label == currentTranslator))
         # FIXME: this needs a check for read-only nodes from referenced files. also, not sure
         # changing attribute properties is the best approach
@@ -703,8 +705,8 @@ class TranslatorControl(AttributeTemplate):
         """
         called when the translator attribute is changed
         """
-        transName = pm.getAttr(attr)
-        pm.optionMenuGrp(self._optionMenu, edit=True, value=transName)
+        transName = cmds.getAttr(attr)
+        cmds.optionMenuGrp(self._optionMenu, edit=True, value=transName)
         self.updateChildren(nodeName, transName)
 
     def menuChanged(self, nodeName, currentTranslator):
@@ -712,24 +714,24 @@ class TranslatorControl(AttributeTemplate):
         called when the translator optionMenuGrp (aiTranslatorOMG) changes
         """
         # this setAttr triggers attributeChanged to call updateChildren
-        pm.setAttr(nodeName + ".aiTranslator", currentTranslator)
+        cmds.setAttr(nodeName + ".aiTranslator", currentTranslator, type="string")
 
     def createMenu(self, nodeName):
         """
         called to create an optionMenuGrp for choosing between multiple translator options for a given node
         """
-        self._optionMenu = pm.optionMenuGrp(self._optionMenu, label=self._label, columnWidth=(1, 150),
+        self._optionMenu = cmds.optionMenuGrp(self._optionMenu, label=self._label, columnWidth=(1, 150),
                                              cc=lambda *args: self.menuChanged(nodeName, args[0]))
         # create menu items
         for tran in self.getTranslators():
-            pm.menuItem(label=tran)
-        pm.setParent(menu=True)
+            cmds.menuItem(label=tran)
+        cmds.setParent(menu=True)
 
         transName = self.getCurrentTranslator(nodeName)
-        pm.optionMenuGrp(self._optionMenu, edit=True, value=transName)
+        cmds.optionMenuGrp(self._optionMenu, edit=True, value=transName)
 
         transAttr = nodeName + ".aiTranslator"
-        pm.scriptJob(attributeChange=[transAttr, lambda *args: self.attributeChanged(nodeName, transAttr, *args)],
+        cmds.scriptJob(attributeChange=[transAttr, lambda *args: self.attributeChanged(nodeName, transAttr, *args)],
                      replacePrevious=True,
                      parent=self._optionMenu)
 
@@ -738,22 +740,22 @@ class TranslatorControl(AttributeTemplate):
         called to update an optionMenuGrp for choosing between multiple translator options for a given node
         """
         # delete current options
-        translators = pm.optionMenuGrp(self._optionMenu, q=True, itemListLong=True)
+        translators = cmds.optionMenuGrp(self._optionMenu, q=True, itemListLong=True)
         for tran in translators:
-            pm.deleteUI(tran, menuItem=True)
+            cmds.deleteUI(tran, menuItem=True)
 
         # populate with a fresh list
-        parent = pm.setParent(self._optionMenu)
+        parent = cmds.setParent(self._optionMenu)
         for tran in self._translators:
-            pm.menuItem(label=tran, parent=parent + '|OptionMenu')
+            cmds.menuItem(label=tran, parent=parent + '|OptionMenu')
 
         transName = self.getCurrentTranslator(nodeName)
-        pm.optionMenuGrp(self._optionMenu, edit=True, value=transName,
+        cmds.optionMenuGrp(self._optionMenu, edit=True, value=transName,
                            cc=lambda *args: self.menuChanged(nodeName, args[0]))
         self.updateChildren(nodeName, transName)
 
         transAttr = nodeName + ".aiTranslator"
-        pm.scriptJob(attributeChange=[transAttr, lambda *args: self.attributeChanged(nodeName, transAttr, *args)],
+        cmds.scriptJob(attributeChange=[transAttr, lambda *args: self.attributeChanged(nodeName, transAttr, *args)],
                      replacePrevious=True,
                      parent=self._optionMenu)
 
@@ -841,10 +843,10 @@ def registerTranslatorUI(templateClass, mayaNodeType, translatorName='<built-in>
     translators = getTranslators(mayaNodeType)
     if translatorName not in translators:
         if translators:
-            pm.warning('[mtoa] Registering UI for unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
+            cmds.warning('[mtoa] Registering UI for unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
                    (translatorName, mayaNodeType, ', '.join(['"%s"' % x for x in translators])))
         else:
-            pm.warning('[mtoa] Registering UI for translator "%s" for Maya node %s, but node has no translators. Did you mean to call registerAETemplate?' % \
+            cmds.warning('[mtoa] Registering UI for translator "%s" for Maya node %s, but node has no translators. Did you mean to call registerAETemplate?' % \
                    (translatorName, mayaNodeType))
     assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
         "you must pass a subclass of AttributeTemplate"
@@ -893,7 +895,7 @@ def createTranslatorMenu(node, label=None, nodeType=None, default=None, optionMe
     convenience function for creating a TranslatorControl and attaching it to a non-AE UI
     '''
     if nodeType is None:
-        nodeType = pm.nodeType(node)
+        nodeType = cmds.nodeType(node)
     kwargs = {}
     if label is not None:
         kwargs['label'] = label
@@ -918,23 +920,23 @@ def shapeTemplate(nodeName):
     # see mtoa.registerArnoldRenderer._addAEHooks for where loadArnoldTemplate gets added to AEshapeHooks.
     # note that this is not called in 2013: loadArnoldTemplate is called for both depend and DAG nodes 
     for hook in pm.melGlobals['AEshapeHooks']:
-        pm.mel.eval(hook + ' "' + nodeName + '"')
+        maya.mel.eval(hook + ' "' + nodeName + '"')
 
-    pm.cmds.editorTemplate(beginLayout=pm.mel.uiRes("m_AEshapeTemplate.kObjectDisplay"))
-
-    # include/call base class/node attributes
-    pm.mel.AEdagNodeCommon(nodeName)
-    pm.cmds.editorTemplate(endLayout=True)
+    cmds.editorTemplate(beginLayout=maya.mel.eval("uiRes "+m_AEshapeTemplate.kObjectDisplay))
 
     # include/call base class/node attributes
-    pm.mel.AEdagNodeInclude(nodeName)
+    maya.mel.eval("AEdagNodeCommon "+nodeName)
+    cmds.editorTemplate(endLayout=True)
+
+    # include/call base class/node attributes
+    maya.mel.eval("AEdagNodeInclude "+nodeName)
 
 def loadArnoldTemplate(nodeName):
     """
     Create the "Arnold" AE template for the passed node
     """
     global _templates
-    nodeType = pm.objectType(nodeName)
+    nodeType = cmds.objectType(nodeName)
 
     # skip nodes that were created by mtoa, these should not generate an "Arnold" section.
     # this is here mostly for versions > 2013, because the new hook system causes this function to be
@@ -944,9 +946,9 @@ def loadArnoldTemplate(nodeName):
 
     template = getNodeTemplate(nodeType)
     if template:
-        pm.cmds.editorTemplate(beginLayout='Arnold', collapse=True)
+        cmds.editorTemplate(beginLayout='Arnold', collapse=True)
         template._doSetup(nodeName)
         if hasattr(template, '_attributes'):
             for attr in template._attributes:
-                pm.cmds.editorTemplate(suppress=attr)
-        pm.cmds.editorTemplate(endLayout=True)
+                cmds.editorTemplate(suppress=attr)
+        cmds.editorTemplate(endLayout=True)

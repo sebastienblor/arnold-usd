@@ -153,7 +153,7 @@ def ProceduralDsoEdit(nodeName, mPath, replace=False) :
     else:
         mArchivePath = mPath
 
-    pm.setAttr(nodeName+'.dso',mArchivePath,type='string')
+    cmds.setAttr(nodeName+'.dso',mArchivePath,type='string')
     cmds.textField('proceduralDsoPath', edit=True, text=mArchivePath)
 
 def ProceduralTemplateDsoNew(nodeName) :
@@ -490,7 +490,7 @@ class CameraTemplate(templates.AttributeTemplate):
         cmds.gradientControlNoAttr( control, edit=True, currentKey=current, asString=curveString) 
             
     def updateValue(self, attr, control, valueField, positionField):
-        value = pm.floatField(valueField, query=True, value=True)
+        value = cmds.floatField(valueField, query=True, value=True)
         
         values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
         valuesSplit = values.split(',')
@@ -500,11 +500,11 @@ class CameraTemplate(templates.AttributeTemplate):
         valuesSplit[current*3] = str(value)
         values = ",".join(valuesSplit)
         
-        pm.gradientControlNoAttr( control, edit=True, asString=values)
+        cmds.gradientControlNoAttr( control, edit=True, asString=values)
         self.syncAttribute(attr, control, valueField, positionField)
         
     def updatePosition(self, attr, control, valueField, positionField):
-        value = pm.floatField(positionField, query=True, value=True)
+        value = cmds.floatField(positionField, query=True, value=True)
         
         values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
         valuesSplit = values.split(',')
@@ -514,31 +514,31 @@ class CameraTemplate(templates.AttributeTemplate):
         valuesSplit[current*3+1] = str(value)
         values = ",".join(valuesSplit)
         
-        pm.gradientControlNoAttr( control, edit=True, asString=values)
+        cmds.gradientControlNoAttr( control, edit=True, asString=values)
         self.syncAttribute(attr, control, valueField, positionField)
         
     def createRamp( self, attr ):
         #Create the control fields
-        pm.columnLayout( )
+        cmds.columnLayout( )
         
         cmds.rowLayout(nc=2, cw2=(142,220))
-        pm.text("Shutter Curve");
-        pm.text(" ");
-        pm.cmds.setParent('..')
+        cmds.text("Shutter Curve");
+        cmds.text(" ");
+        cmds.setParent('..')
         
         cmds.rowLayout("ShutterCurveRowLayout",nc=2, cw2=(142,220))
         
-        pm.columnLayout("ShutterCurveColumLayout")
+        cmds.columnLayout("ShutterCurveColumLayout")
         cmds.rowLayout("ShutterCurveValueLayout", nc=2, cw2=(60,45))
-        pm.text("Value");
-        valueField = pm.floatField("ShutterCurveValueField");
-        pm.cmds.setParent('..')
+        cmds.text("Value");
+        valueField = cmds.floatField("ShutterCurveValueField");
+        cmds.setParent('..')
         
-        pm.rowLayout("ShutterCurvePositionLayout", nc=2, cw2=(60,45))
-        pm.text("Position");
+        cmds.rowLayout("ShutterCurvePositionLayout", nc=2, cw2=(60,45))
+        cmds.text("Position");
         
         positionField = cmds.floatField("ShutterCurvePositionField");
-        pm.cmds.setParent('..')
+        cmds.setParent('..')
         
         '''pm.rowLayout(nc=2, cw2=(60,65))
         pm.text("Interpol.");
@@ -548,10 +548,10 @@ class CameraTemplate(templates.AttributeTemplate):
         pm.menuItem( label='Smooth' )
         pm.menuItem( label='Spline' )
         pm.cmds.setParent('..')'''
-        pm.cmds.setParent('..')
+        cmds.setParent('..')
         
-        gradient = pm.gradientControlNoAttr("ShutterCurveGradientControl", w=200, h=100 )
-        pm.gradientControlNoAttr( gradient, edit=True, changeCommand=pm.Callback(self.syncAttribute,attr,gradient, valueField, positionField) )
+        gradient = cmds.gradientControlNoAttr("ShutterCurveGradientControl", w=200, h=100 )
+        cmds.gradientControlNoAttr( gradient, edit=True, changeCommand=pm.Callback(self.syncAttribute,attr,gradient, valueField, positionField) )
         
         #Initialize the curve with the values in the attribute
         curveString = ""
@@ -574,15 +574,15 @@ class CameraTemplate(templates.AttributeTemplate):
             
         cmds.gradientControlNoAttr( gradient, edit=True, asString=curveString) 
         
-        pm.floatField(valueField, edit=True, value=startY, changeCommand=pm.Callback(self.updateValue, attr, gradient, valueField, positionField))
-        pm.floatField(positionField, edit=True, value=startX, changeCommand=pm.Callback(self.updatePosition, attr, gradient, valueField, positionField))
+        cmds.floatField(valueField, edit=True, value=startY, changeCommand=pm.Callback(self.updateValue, attr, gradient, valueField, positionField))
+        cmds.floatField(positionField, edit=True, value=startX, changeCommand=pm.Callback(self.updatePosition, attr, gradient, valueField, positionField))
         
     def updateRamp( self, attr ):
         name = self.nodeName
         translator = cmds.getAttr(self.nodeAttr('aiTranslator'))
 
-        uiParent = pm.setParent( q = True )
-        controls = pm.columnLayout( uiParent, q=True, ca=True )
+        uiParent = cmds.setParent( q = True )
+        controls = cmds.columnLayout( uiParent, q=True, ca=True )
         
         curveString = ""
         attr = self.nodeAttr('aiShutterCurve')
@@ -608,17 +608,17 @@ class CameraTemplate(templates.AttributeTemplate):
                 cmds.gradientControlNoAttr( control, edit=True, asString=curveString)
                 current = cmds.gradientControlNoAttr( control, query=True, currentKey=True) 
                 
-                pm.floatField(valueField, edit=True, value=float(valuesSplit[current*3]))
-                pm.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
+                cmds.floatField(valueField, edit=True, value=float(valuesSplit[current*3]))
+                cmds.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
 
     
     def cameraFilterMapNew(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiCameraFilterMap',
+        cmds.attrNavigationControlGrp('aiCameraFilterMap',
                                     label='Filtermap',
                                     at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def cameraFilterMapReplace(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiCameraFilterMap', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+        cmds.attrNavigationControlGrp('aiCameraFilterMap', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def addCommonAttributes(self):
         self.addControl("aiExposure")

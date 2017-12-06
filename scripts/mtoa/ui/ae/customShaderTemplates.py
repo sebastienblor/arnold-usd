@@ -1,4 +1,3 @@
-import pymel.core as pm
 import mtoa.aovs as aovs
 import mtoa.ui.ae.templates as templates
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
