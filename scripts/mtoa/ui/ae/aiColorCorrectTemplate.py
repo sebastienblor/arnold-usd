@@ -1,6 +1,3 @@
-import pymel.core as pm
-from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-
 import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 

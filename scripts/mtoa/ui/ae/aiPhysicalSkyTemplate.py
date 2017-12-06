@@ -1,4 +1,3 @@
-import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 import maya.cmds as cmds
