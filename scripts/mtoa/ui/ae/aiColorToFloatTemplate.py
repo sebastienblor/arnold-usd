@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiColorToFloatTemplate(ShaderAETemplate):
@@ -10,7 +10,8 @@ class AEaiColorToFloatTemplate(ShaderAETemplate):
         self.addControl("input")
         self.addControl("mode")
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+
         self.addExtraControls()
 
         self.endScrollLayout()

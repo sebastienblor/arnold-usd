@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiAtanTemplate(ShaderAETemplate):
@@ -10,7 +10,7 @@ class AEaiAtanTemplate(ShaderAETemplate):
         self.addControl('y')
         self.addControl('units')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

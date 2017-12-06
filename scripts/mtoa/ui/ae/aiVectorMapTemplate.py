@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiVectorMapTemplate(ShaderAETemplate):
@@ -19,7 +19,7 @@ class AEaiVectorMapTemplate(ShaderAETemplate):
         self.addControl('tangentSpace')
         self.addControl('scale')
 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

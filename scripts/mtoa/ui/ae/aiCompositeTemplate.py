@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiCompositeTemplate(ShaderAETemplate):
@@ -11,7 +11,7 @@ class AEaiCompositeTemplate(ShaderAETemplate):
         self.addControl('operation')
         self.addControl('alphaOperation')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

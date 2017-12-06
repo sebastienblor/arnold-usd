@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import maya.cmds as cmds
 import mtoa.convertShaders as convertShaders
@@ -72,7 +72,7 @@ class AEaiHairTemplate(ShaderAETemplate):
 #        self.addAOVLayout()
         
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

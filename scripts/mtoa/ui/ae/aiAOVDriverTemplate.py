@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 import maya.cmds as cmds
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -34,7 +34,7 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         self.endLayout()
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.suppress('customAttributes')
         self.suppress('layerHalfPrecision')

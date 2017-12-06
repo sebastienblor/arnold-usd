@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -50,7 +50,7 @@ class AEaiCustomIorTemplate(ShaderAETemplate):
         self.addControl('k', label='k')       
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         

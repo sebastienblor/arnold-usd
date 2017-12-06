@@ -79,10 +79,10 @@ def ArnoldStandInUpdateUI(attrName) :
                      'aiVisibleInVolume']
 
     for i in range(len(overrideVisAttrs)):
-        if pm.getAttr(attrName + overrideVisAttrs[i]) == 0:
-            pm.setAttr(attrName + overrideVisAttrs[i], 1)
-            if pm.getAttr(attrName + visAttrs[i]) == 0:
-                pm.setAttr(attrName + visAttrs[i], 1)
+        if cmds.getAttr(attrName + overrideVisAttrs[i]) == 0:
+            cmds.setAttr(attrName + overrideVisAttrs[i], 1)
+            if cmds.getAttr(attrName + visAttrs[i]) == 0:
+                cmds.setAttr(attrName + visAttrs[i], 1)
     
         
 class AEaiStandInTemplate(ShaderAETemplate):
@@ -158,7 +158,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.suppress('blackBox')
         self.suppress('containerType')
@@ -235,9 +235,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def updateOverridesVisibility(self, nodeName):
                 
-        pm.editorTemplate(dimControl=(nodeName, 'receiveShadows', not pm.getAttr('%s.%s' % (nodeName, 'overrideReceiveShadows'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'aiSelfShadows', not pm.getAttr('%s.%s' % (nodeName, 'overrideSelfShadows'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'aiOpaque', not pm.getAttr('%s.%s' % (nodeName, 'overrideOpaque'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'doubleSided', not pm.getAttr('%s.%s' % (nodeName, 'overrideDoubleSided'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'aiMatte', not pm.getAttr('%s.%s' % (nodeName, 'overrideMatte'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'receiveShadows', not cmds.getAttr('%s.%s' % (nodeName, 'overrideReceiveShadows'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'aiSelfShadows', not cmds.getAttr('%s.%s' % (nodeName, 'overrideSelfShadows'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'aiOpaque', not cmds.getAttr('%s.%s' % (nodeName, 'overrideOpaque'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'doubleSided', not cmds.getAttr('%s.%s' % (nodeName, 'overrideDoubleSided'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'aiMatte', not cmds.getAttr('%s.%s' % (nodeName, 'overrideMatte'))))  
     

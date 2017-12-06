@@ -1,4 +1,3 @@
-import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 import maya.cmds as cmds
@@ -125,7 +124,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.endNoOptimize()
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()
 

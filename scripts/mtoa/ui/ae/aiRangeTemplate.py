@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiRangeTemplate(ShaderAETemplate):
@@ -13,7 +13,7 @@ class AEaiRangeTemplate(ShaderAETemplate):
         self.addControl('outputMax', label='Output Max')
         self.addControl('smoothstep')        
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

@@ -1,4 +1,5 @@
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -8,15 +9,15 @@ class AEaiSkinTemplate(ShaderAETemplate):
 
     def checkPrimarySpecularFresnel(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, 'specular_enable_fresnel_falloff')
-        useFresnel = pm.getAttr(fullAttr)
+        useFresnel = cmds.getAttr(fullAttr)
         dim = not useFresnel
-        pm.editorTemplate(dimControl=(nodeName, 'specularIor', dim))
+        cmds.editorTemplate(dimControl=(nodeName, 'specularIor', dim))
 
     def checkSecondarySpecularFresnel(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, 'sheen_enable_fresnel_falloff')
-        useFresnel = pm.getAttr(fullAttr)
+        useFresnel = cmds.getAttr(fullAttr)
         dim = not useFresnel
-        pm.editorTemplate(dimControl=(nodeName, 'sheenIor', dim))
+        cmds.editorTemplate(dimControl=(nodeName, 'sheenIor', dim))
 
     def setup(self):
         self.addSwatch()
@@ -90,7 +91,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addAOVLayout(aovReorder = ['specular', 'sheen', 'sss', 'direct_sss', 'indirect_sss'])
         
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         

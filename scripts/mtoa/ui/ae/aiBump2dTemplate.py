@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiBump2dTemplate(ShaderAETemplate):
@@ -11,7 +11,7 @@ class AEaiBump2dTemplate(ShaderAETemplate):
 
         self.addSeparator()
         self.addControl('normal', label='Normal')
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()
