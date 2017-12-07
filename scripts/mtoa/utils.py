@@ -154,10 +154,18 @@ def findMelScript(name):
 
 def safeDelete(node):
     '''delete a node, or disconnect it, if it is read-only'''
-    if node.isReadOnly():
-        node.message.disconnect()
+    node_str = str(node)
+    print 'deleting', node_str
+    if cmds.lockNode( node_str, q=True, lock=True )[0]:
+
+        node_connections = cmds.listConnections('{}.message'.format(node_str),
+                                                  source=False, destination=True,
+                                                  connections=True,
+                                                  plugs=True) or []
+        for src, dest in zip(node_connections[::2], node_connections[1::2]):
+            cmds.disconnectAttr(src, dest)
     else:
-        cmds.delete(str(node))
+        cmds.delete(node_str)
 
 def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
     result = []

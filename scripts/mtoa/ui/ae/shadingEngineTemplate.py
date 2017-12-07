@@ -104,7 +104,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
             - set of all indices used by aiCustomAOVs
             - set of aov names that appear in aiCustomAOVs that are not in the globals
         '''
-        self.nameToAttr, nextIndex = aovs.getShadingGroupAOVMap(nodeAttr)
+        self.nameToAttr = aovs.getShadingGroupAOVMap(nodeAttr)
         self.arrayIndices = set([at.index() for at in self.nameToAttr.values()])
         self.orphanedAOVs = set(self.nameToAttr.keys()).difference([aov.name for aov in aovList])
 

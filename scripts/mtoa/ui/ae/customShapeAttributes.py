@@ -1061,6 +1061,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         for templateName in deepexrToleranceTemplates:
             
             driverName = self.nodeName
+            if not cmds.objExists(driverName):
+                continue
 
             # note that this function may be called to fill the defaultArnoldDriver exposed params
             # but with self != defaultArnoldDriver
@@ -1080,7 +1082,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             if driverName == "defaultArnoldDriver":
                 cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]')
                 for i in range(0,len(aovList)):
-                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
+                    if driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
                         cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
@@ -1095,6 +1098,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.setParent(templateName)
 
             driverName = self.nodeName
+            if not cmds.objExists(driverName):
+                continue
 
             # note that this function may be called to fill the defaultArnoldDriver exposed params
             # but with self != defaultArnoldDriver
@@ -1112,9 +1117,10 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
 
             if driverName == "defaultArnoldDriver":
                 cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerHalfPrecision[0]' )
-           
+
                 for i in range(0,len(aovList)):
-                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
+                    if driver_list == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
                         cmds.attrControlGrp(label=labelStr , a=attrStr )
@@ -1135,6 +1141,9 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             
             # in the render settings window I only want to display the defaultArnoldDriver params
             driverName = self.nodeName
+            if not cmds.objExists(driverName):
+                continue
+
             if templateName[:26] == "unifiedRenderGlobalsWindow":
                 driverName = "defaultArnoldDriver"
 
@@ -1144,7 +1153,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             if driverName == "defaultArnoldDriver":
                 cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
                 for i in range(0,len(aovList)):
-                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
+                    if driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
                         cmds.attrControlGrp(label=labelStr , a=attrStr )

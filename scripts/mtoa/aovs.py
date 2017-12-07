@@ -1,8 +1,9 @@
-import pymel.core as pm
+# import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 from collections import namedtuple
 from itertools import groupby
+import re
 import arnold.ai_params
 import maya.api.OpenMaya as om
 import maya.mel as mel
@@ -82,7 +83,7 @@ LIGHTING_AOVS = ['RGBA',
                 'volume_direct', 
                 'volume_indirect',
                 'shadow_matte']
-                
+
 TYPES = (
     ("int",    arnold.ai_params.AI_TYPE_INT),
     ("uint",    arnold.ai_params.AI_TYPE_UINT),
@@ -132,43 +133,42 @@ def getShadingGroupAOVMap(nodeAttr):
     return a mapping from aov name to element 'aovName' plug on aiCustomAOVs, and the next available index
     '''
     lastIndex = -1
-    nextIndex = None
+    nextIndex = 0
     nameToAttr = {}
-    for at in nodeAttr:
-        currIndex = at.index()
-        if nextIndex is None and currIndex > (lastIndex +1):
-            nextIndex = lastIndex +1
-        name = at.aovName.get()
+
+    idx_list = cmds.getAttr(nodeAttr, mi=True) or []
+
+    for i in idx_list:
+        _a = '{}[{}]'.format(nodeAttr, i)
+        name = cmds.getAttr('{}.aovName'.format(_a, i))
         if name:
-            nameToAttr[name] = at
-        lastIndex = currIndex
-    if nextIndex is None:
-        nextIndex = lastIndex +1
+            nameToAttr[name] = _a
+        nextIndex = i+1
     return nameToAttr, nextIndex
 
 def removeAliases(aovs):
-    for sg in pm.ls(type='shadingEngine'):
+    for sg in cmds.ls(type='shadingEngine'):
         for aov in aovs:
             try:
-                pm.removeMultiInstance(sg + '.ai_aov_' + aov.name)
+                cmds.removeMultiInstance(sg + '.ai_aov_' + aov.name)
             except RuntimeError, err:
                 pass #print err
 
 def addAliases(aovs):
-    for sg in pm.ls(type='shadingEngine'):
-        sgAttr = sg.aiCustomAOVs
+    for sg in cmds.ls(type='shadingEngine'):
+        sgAttr = '{}.aiCustomAOVs'.format(sg)
         nameMapping, nextIndex = getShadingGroupAOVMap(sgAttr)
         for aov in aovs:
             try:
                 plug = nameMapping[aov.name]
             except KeyError:
-                plug = sgAttr[nextIndex]
-                plug.aovName.set(aov.name)
+                plug = '{}[{}].aovName'.format(sgAttr, nextIndex)
+                cmds.setAttr(plug, aov.name, type="string")
             try:
-                pm.aliasAttr('ai_aov_' + aov.name, plug)
+                cmds.aliasAttr('ai_aov_' + aov.name, plug)
             except RuntimeError as err:
-                pm.aliasAttr(sg + '.ai_aov_' + aov.name, remove=True)
-                pm.aliasAttr('ai_aov_' + aov.name, plug)
+                cmds.aliasAttr(sg + '.ai_aov_' + aov.name, remove=True)
+                cmds.aliasAttr('ai_aov_' + aov.name, plug)
 
 def refreshAliases():
     aovList = getAOVs()
@@ -185,10 +185,7 @@ def isValidAOVNode(name):
     if hasRenderSetup == 0:
         return True
 
-    # return true for older version
-    sList = om.MSelectionList()
-    sList.add(name)
-    return not om.MFnDependencyNode(sList.getDependNode(0)).isFromReferencedFile
+    return not cmds.referenceQuery(name, isNodeReferenced=True)
 
 class SceneAOV(object):
     def __init__(self, node, destAttr):
@@ -242,7 +239,11 @@ class SceneAOV(object):
     @property
     def index(self):
         if self._index is None:
-            self._index = self.destAttr.index()
+            match = re.search(r'\[(\d)\]', self.destAttr)
+            if match:
+                self._index = int(match.groups()[0])
+            else:
+                self._index = 0
         return self._index
 
     @property
@@ -253,7 +254,7 @@ class SceneAOV(object):
         the aiAOV node that it wraps, call update()
         '''
         if self._name is None:
-            self._name = self._node.attr('name').get()
+            self._name = cmds.getAttr('{}.name'.format(self._node))
         return self._name
 
     @property
@@ -274,23 +275,23 @@ class SceneAOV(object):
     def rename(self, newName, oldName=None):
         '''
         rename an AOV in the active list.
-        
+
         provide oldName if the attribute has already been renamed and you just need
-        to perform the proper bookkeeping 
+        to perform the proper bookkeeping
         '''
         if oldName is None:
             oldName = self.name
-            self.node.attr('name').set(newName)
+            cmds.setAttr('{}.name'.format(self.node), newName)
 
-        for sg in pm.ls(type='shadingEngine'):
+        for sg in cmds.ls(type='shadingEngine'):
             try:
-                pm.aliasAttr(sg + '.ai_aov_' + oldName, remove=True)
+                cmds.aliasAttr(sg + '.ai_aov_' + oldName, remove=True)
             except RuntimeError, err:
                 pass #print err
 
             sgAttr = sg.aiCustomAOVs
             try:
-                pm.aliasAttr('ai_aov_' + newName, sgAttr[self.index])
+                cmds.aliasAttr('ai_aov_' + newName, sgAttr[self.index])
             except RuntimeError, err:
                 pass #print err
 
@@ -298,8 +299,7 @@ class SceneAOV(object):
         '''
         update the cached name from the AOV node
         '''
-        self._name = self._node.attr('name').get()
-        self._name = self._node.attr('name').get()
+        self._name = cmds.getAttr('{}.name'.format(self._node), type="string")
 
 #------------------------------------------------------------
 # scene queries
@@ -307,35 +307,37 @@ class SceneAOV(object):
 
 class AOVInterface(object):
     def __init__(self, node=None):
-        self._node = node if node else pm.PyNode('defaultArnoldRenderOptions')
-        self._aovAttr = self._node.aovs
+        self._node = node if node else 'defaultArnoldRenderOptions'
+        self._aovAttr = '{}.aovs'.format(self._node)
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._node)
 
     @property
     def node(self):
-        if not self._node.exists():
+        if not cmds.objExists(self._node):
             raise TypeError("node doesn't exist")
         return self._node
 
     def nextAvailableAttr(self):
-        return self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
+        return '{}[{}]'.format(self._aovAttr, cmds.getAttr(self._aovAttr, size=True))
 
     def getAOVs(self, group=False, sort=True, enabled=None, include=None, exclude=None):
         '''
         return a list of SceneAOV classes for all AOVs in the scene
         if group is True, the SceneAOVs are grouped by name: (aovName, [SceneAOV1, SceneAOV2, ...])
-        
+
         enabled: the enabled state of the AOV. ignored if None (default)
         include: a list of AOV names to include
         exclude: a list of AOV names to exclude
         '''
-        result = [SceneAOV(fromAttr.node(), toAttr) for toAttr, fromAttr in self._aovAttr.inputs(plugs=True, connections=True) if isValidAOVNode(fromAttr.node().name())]
+        _inputs = cmds.listConnections(self._aovAttr, source=True, destination=False, plugs=True, connections=True) or []
+        _inputs = dict(zip(_inputs[::2], _inputs[1::2]))
+        result = [SceneAOV(fromAttr.split('.')[0], toAttr) for toAttr, fromAttr in _inputs.items() if isValidAOVNode(fromAttr.split('.')[0])]
         if sort:
             result = sorted(result)
         if enabled is not None:
-            result = [aov for aov in result if aov.node.attr('enabled').get() == enabled]
+            result = [aov for aov in result if cmds.getAttr('{}.enabled'.format(aov.node)) == enabled]
         if group:
             result = [(aovName, list(aovs)) for aovName, aovs in groupby(result, lambda x: x.name)]
         if include:
@@ -349,17 +351,18 @@ class AOVInterface(object):
         sorted by aovName
         @param names: if True, returns pairs of (aovName, aovNode). if False, returns a list of aovNodes
         '''
+        _inputs = cmds.listConnections(self._aovAttr, source=True, destination=False) or []
         if names:
-            result = [(x.attr('name').get(), x) for x in self._aovAttr.inputs() if isValidAOVNode(x.name())]
+            result = [(cmds.getAttr('{}.name'.format(x)), x) for x in _inputs if isValidAOVNode(x)]
             return sorted(result, key = lambda x: x[0])
         else:
-            result = [x for x in self._aovAttr.inputs() if isValidAOVNode(x.name())]
-            return sorted(result, key = lambda x: x.attr('name').get())
+            result = [x for x in _inputs if isValidAOVNode(x)]
+            return sorted(result, key = lambda x: cmds.getAttr('{}.name'.format(x)))
 
     def getAOVNode(self, aovName):
         '''
         given the name of an AOV, return the corresponding aov node
-        
+
         raises an error if there is more than one match.
         returns None if there are no matches.
         '''
@@ -379,33 +382,33 @@ class AOVInterface(object):
             aovType = getAOVTypeMap().get(aovName, 'rgba')
         if not isinstance(aovType, int):
             aovType = dict(TYPES)[aovType]
-        aovNode = pm.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
-        out = aovNode.attr('outputs')[0]
+        aovNode = cmds.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
+        out = '{}.outputs[0]'.format(aovNode)
 
-        pm.connectAttr('defaultArnoldDriver.message', out.driver)
+        cmds.connectAttr('defaultArnoldDriver.message', '{}.driver'.format(out))
         filter = defaultFiltersByName.get(aovName, None)
         if filter:
-            node = pm.createNode('aiAOVFilter', skipSelect=True)
-            node.aiTranslator.set(filter)
-            filterAttr = node.attr('message')
+            node = cmds.createNode('aiAOVFilter', skipSelect=True)
+            cmds.setAttr('{}.aiTranslator'.format(node), filter, type="string")
+            filterAttr = '{}.message'.format(node)
             import mtoa.hooks as hooks
             hooks.setupFilter(filter, aovName)
         else:
             filterAttr = 'defaultArnoldFilter.message'
-        pm.connectAttr(filterAttr, out.filter)
+        cmds.connectAttr(filterAttr, '{}.filter'.format(out))
 
-        aovNode.attr('name').set(aovName)
-        aovNode.attr('type').set(aovType)
+        cmds.setAttr('{}.name'.format(aovNode), aovName, type="string")
+        cmds.setAttr('{}.type'.format(aovNode), aovType)
         nextPlug = self.nextAvailableAttr()
-        aovNode.message.connect(nextPlug)
+        cmds.connectAttr('{}.message'.format(aovNode), nextPlug)
         aov = SceneAOV(aovNode, nextPlug)
         addAliases([aov])
 
         if aovShader:
             # this is an AOV shader, we need to do some magic here
             outShader = None
-            
-            # first, check amongst active AOVs, to see  if one of them 
+
+            # first, check amongst active AOVs, to see  if one of them
             # is assigned to a shader of this type. If so, we can reuse it as output shader
             allActiveAOVs = getAOVs()
             for activeAOV in allActiveAOVs:
@@ -413,7 +416,7 @@ class AOVInterface(object):
                 if conns and len(conns) > 0 and conns[0]:
                     outShader = conns[0]
                     break
-            
+
             if outShader == None:
                 # second, see if shaders of this type already exist in the scene
                 existingShaders = cmds.ls(type=aovShader)
@@ -425,8 +428,8 @@ class AOVInterface(object):
                     outShader = cmds.shadingNode(aovShader, name=aiName, asShader=True)
 
             # connect the output shader to 'defaultValue'
-            pm.connectAttr(("%s.outColor"%outShader), ("%s.defaultValue"%aovNode))
-            pm.select(outShader)
+            cmds.connectAttr(("%s.outColor"%outShader), ("%s.defaultValue"%aovNode))
+            cmds.select(outShader)
 
         return aov
 
@@ -465,11 +468,13 @@ class AOVInterface(object):
         '''
         Note this does not remove aliases. You must call removeAliases() manually
         '''
-        inputs = aovNode.inputs(type=['aiAOVDriver', 'aiAOVFilter'])
+        inputs = []
+        for nodeType in ['aiAOVDriver', 'aiAOVFilter']:
+            inputs += cmds.listConnections(aovNode, source=True, destination=False, type=nodeType) or []
         utils.safeDelete(aovNode)
         for input in inputs:
             # callback may have deleted it
-            if input.exists() and not input.message.outputs():
+            if cmds.objExists(input) and not cmds.listConnections('{}.message'.format(input), source=False, destination=True):
                 print "deleting", input
 
     def renameAOVs(self, oldName, newName):
@@ -489,13 +494,13 @@ class AOVInterface(object):
 def getAOVs(group=False, sort=True, enabled=None, include=None, exclude=None):
     try:
         return AOVInterface().getAOVs(group, sort, enabled, include, exclude)
-    except pm.MayaNodeError:
+    except:
         return []
 
 def getAOVNodes(names=False):
     try:
         return AOVInterface().getAOVNodes(names)
-    except pm.MayaNodeError:
+    except:
         return []
 
 #------------------------------------------------------------
@@ -515,7 +520,7 @@ def getRegisteredAOVs(builtin=False, nodeType=None):
         else:
             result = [x[0] for x in getNodeGlobalAOVData(nodeType)]
     else:
-        result = pm.cmds.arnoldPlugins(listAOVs=True)
+        result = cmds.arnoldPlugins(listAOVs=True)
     if builtin:
         result = getBuiltinAOVs() + result
     return result
@@ -529,14 +534,14 @@ def getLightingAOVs():
 def getNodeGlobalAOVData(nodeType):
     "returns a list of registered (name, attribute, data type) pairs for the given node type"
     # convert to a 2d array
-    result = [GlobalAOVData(*x) for x in utils.groupn(pm.cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType), 3)]
+    result = [GlobalAOVData(*x) for x in utils.groupn(cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType), 3)]
     return sorted(result, key=lambda x: x.name)
 
 def getNodeTypesWithAOVs():
-    return sorted(pm.cmds.arnoldPlugins(listAOVNodeTypes=True))
+    return sorted(cmds.arnoldPlugins(listAOVNodeTypes=True))
 
 def getAOVShaders():
-    return sorted(pm.cmds.arnoldPlugins(listAOVShaders=True))
+    return sorted(cmds.arnoldPlugins(listAOVShaders=True))
 
 _aovTypeMap = None
 def getAOVTypeMap():
@@ -579,36 +584,36 @@ def createAliases(sg):
         return
     if sg.name() == "swatchShadingGroup":
         return
-        
-    if pm.hasAttr(sg, "attributeAliasList"):
+
+    if cmds.attributeQuery('{}.attributeAliasList'.format(sg), exists=True):
         alias_list = sg.attributeAliasList
         if alias_list.exists() and not sg.listAliases() :
             print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg.name()
             alias_list.delete()
 
     aovList = getAOVNodes(True)
-    sgPlug = sg.name()+".aiCustomAOVs"
-    
+    sgPlug = "{}.aiCustomAOVs".format(sg)
+
     sgLogIdx = cmds.getAttr(sgPlug, mi=True) or []
-    s = set([cmds.getAttr("%s[%d].aovName" % (sgPlug, i)) for i in sgLogIdx])
+    s = set([cmds.getAttr("{}[{}].aovName".format(sgPlug, i)) for i in sgLogIdx])
     free = listAvailableIndices(sgLogIdx, len(aovList))
     n = 0
     for aov in aovList:
         if aov[0] not in s:
-            cmds.setAttr("%s[%d].aovName" % (sgPlug, free[n]), aov[0], typ="string")
+            cmds.setAttr("{}[{}].aovName".format(sgPlug, free[n]), aov[0], typ="string")
             n += 1
 
-    if pm.referenceQuery(sg.name(), isNodeReferenced=True):
+    if cmds.referenceQuery(sg, isNodeReferenced=True):
         return
 
     sgAttr = sg.aiCustomAOVs
     for at in sgAttr:
-        name = at.aovName.get()
+        name = cmds.getAttr('{}.aovName'.format(at))
         try:
-            pm.aliasAttr('ai_aov_' + name, at)
+            cmds.aliasAttr('ai_aov_' + name, at)
         except RuntimeError as err:
-            pm.aliasAttr(sg + '.ai_aov_' + name, remove=True)
-            pm.aliasAttr('ai_aov_' + name, at)
+            cmds.aliasAttr(sg + '.ai_aov_' + name, remove=True)
+            cmds.aliasAttr('ai_aov_' + name, at)
 
 
 def installCallbacks():
@@ -616,10 +621,10 @@ def installCallbacks():
     _sgAliasesCallbacks.addCallback(createAliases, passArgs=True)
     callbacks.addNodeAddedCallback(_sgAliasesCallbacks, 'shadingEngine',
                                    applyToExisting=True, apiArgs=False)
-    
-    if not pm.about(batch=True):
+
+    if not cmds.about(batch=True):
         callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks, 'aiOptions', 'aovList',
-                                  context=pm.api.MNodeMessage.kConnectionMade | pm.api.MNodeMessage.kConnectionBroken,
+                                  context=om.MNodeMessage.kConnectionMade | om.MNodeMessage.kConnectionBroken,
                                   applyToExisting=True)
     #callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks.entryCallback, 'aiAOV', None, applyToExisting=True)
 
