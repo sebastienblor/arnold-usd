@@ -183,7 +183,8 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 #at = nodeAttr[aov.index]
                 #at.aovName.set(aov.name)
 
-                attrName = at.aovInput.name()
+                #attrName = at.aovInput.name()
+                attrName = at + '.aovInput'
                 ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
                                                    label=aov.name,
                                      cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
@@ -201,7 +202,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         for aov in aovList:
             if aov.name not in self.networkAOVs:
                 at = self.getAOVAttr(nodeAttr, aov.name)
-                attrName = at
+                attrName = at + '.aovInput'
                 #attrName = at.aovInput.name()
                 ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
                                                         label=aov.name, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
