@@ -435,7 +435,7 @@ def createArnoldFileNameFormatControl():
     cmds.menuItem('mayaSoftwareNameDotFrameDotExtension', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt3"))
     cmds.menuItem('mayaSoftwareNameDotExtensionDotFrame', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt4"))
     cmds.menuItem('mayaSoftwareNameDotFrame', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt5"))
-    cmds.menuItem('mayaSoftwareFrameDotExtension', label=mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt6"))
+    cmds.menuItem('mayaSoftwareFrameDotExtension', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt6"))
     cmds.menuItem('mayaSoftwareNameUnderFrameDotExtension', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt7"))
     cmds.menuItem('mayaSoftwareMultiFrame', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt8"))
     cmds.menuItem('mayaSoftwareMultiFrameDotExtension', label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kExt9"))
