@@ -580,14 +580,15 @@ def removeAOVChangedCallback(key):
 
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown
+    sg = str(sg)
     if not sg:
         return
-    if sg.name() == "swatchShadingGroup":
+    if sg == "swatchShadingGroup":
         return
 
-    if cmds.attributeQuery('{}.attributeAliasList'.format(sg), exists=True):
-        alias_list = sg.attributeAliasList
-        if alias_list.exists() and not sg.listAliases() :
+    if cmds.attributeQuery('attributeAliasList', node=sg, exists=True):
+        alias_list = '{}.attributeAliasList'.format(sg)
+        if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :
             print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg.name()
             alias_list.delete()
 
@@ -606,8 +607,9 @@ def createAliases(sg):
     if cmds.referenceQuery(sg, isNodeReferenced=True):
         return
 
-    sgAttr = sg.aiCustomAOVs
-    for at in sgAttr:
+    sgAttr = '{}.aiCustomAOVs'.format(sg)
+    for i in cmds.getAttr(sgAttr, mi=True):
+        at = '{}[{}]'.format(sgAttr, i)
         name = cmds.getAttr('{}.aovName'.format(at))
         try:
             cmds.aliasAttr('ai_aov_' + name, at)
