@@ -58,7 +58,7 @@ class AOVBrowser(object):
         availableLbl = cmds.text(_uiName('availableLbl'), align='center', label='Available AOVs')
         activeLbl = cmds.text(_uiName('activeLbl'), align='center', label='Active AOVs')
         detailsLbl = cmds.text(_uiName('detailsLbl'), align='center', label='')
-        detailsFieldLbl = cmds.text(_uiName('pouetLbl'), align='center', label='')
+        detailsFieldLbl = cmds.text(_uiName('detailsFieldLbl'), align='center', label='')
 
         self.availableLst = cmds.textScrollList(_uiName('availableLst'), numberOfRows=10, allowMultiSelection=True,
                           doubleClickCommand=self.addAOVs)

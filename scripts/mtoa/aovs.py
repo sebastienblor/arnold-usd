@@ -129,6 +129,7 @@ def listAvailableIndices(logIdxList, nreq):
     return free
 
 def getShadingGroupAOVMap(nodeAttr):
+    nodeAttr = str(nodeAttr)
     '''
     return a mapping from aov name to element 'aovName' plug on aiCustomAOVs, and the next available index
     '''

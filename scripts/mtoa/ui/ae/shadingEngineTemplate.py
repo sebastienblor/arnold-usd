@@ -43,8 +43,9 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         
         # populated by updateCustomArrayData()
         self.nameToAttr = {} # mapping from aov name to element plug on aiCustomAOVs 
-        self.arrayIndices = set([])  # set of all indices used by aiCustomAOVs
+        #self.arrayIndices = set([])  # set of all indices used by aiCustomAOVs
         self.orphanedAOVs = set([]) # set of aov names that appear in aiCustomAOVs that are not in the globals
+        self.nextIndex = 0
 
         super(ShadingEngineTemplate, self).__init__(nodeType)
         
@@ -88,13 +89,11 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         try:
             return self.nameToAttr[aovName]
         except KeyError:
-            i = 0
-            while i in self.arrayIndices:
-                i+=1
-            at = nodeAttr[i]
-            at.aovName.set(aovName)
-            self.nameToAttr[aovName] = at
-            self.arrayIndices.add(i)
+            values = cmds.getAttr(nodeAttr, mi=True)
+            values.append(aovName)
+            cmds.setAttr(nodeAttr, values, type=stringArray)
+            aovList = aovs.getAOVs()
+            self.updateCustomArrayData(nodeAttr, aovList)
             return at
 
     def updateCustomArrayData(self, nodeAttr, aovList):
@@ -104,8 +103,8 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
             - set of all indices used by aiCustomAOVs
             - set of aov names that appear in aiCustomAOVs that are not in the globals
         '''
-        self.nameToAttr = aovs.getShadingGroupAOVMap(nodeAttr)
-        self.arrayIndices = set([at.index() for at in self.nameToAttr.values()])
+        self.nameToAttr, self.nextIndex = aovs.getShadingGroupAOVMap(str(nodeAttr))
+        #self.arrayIndices = set([at.index() for at in self.nameToAttr.values()])
         self.orphanedAOVs = set(self.nameToAttr.keys()).difference([aov.name for aov in aovList])
 
     def updateNetworkData(self):
@@ -202,8 +201,8 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         for aov in aovList:
             if aov.name not in self.networkAOVs:
                 at = self.getAOVAttr(nodeAttr, aov.name)
-
-                attrName = at.aovInput.name()
+                attrName = at
+                #attrName = at.aovInput.name()
                 ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
                                                         label=aov.name, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
                 self._msgCtrls.append(ctrl)
