@@ -843,7 +843,7 @@ def arnoldChangedCamera(camera, cameraMode, menu):
     cmds.evalDeferred(updateArnoldCameraControl)
 
 def setArnoldCheckboxFromAttr(camera, chkbox, attr):
-    if cmds.hasAttr(camera, 'stereoRigType'):
+    if pm.hasAttr(camera, 'stereoRigType'):
         # camera.leftCam.get() does not work on Maya2011
         try:
             camera = camera.leftCam.inputs()[0]
@@ -976,7 +976,7 @@ def updateArnoldCameraControl(*args):
         if cameraMode == CAM_MENU_STEREOPAIR:
             thisCamLabel = '%s%s'%(camera, mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
         else:
-            thisCamLabel = camera
+            thisCamLabel = str(camera)
 
         cmds.menuItem(label=thisCamLabel, data=CAM_MENU_IGNORE)
         # Save this as a global variable for others to access
@@ -988,11 +988,11 @@ def updateArnoldCameraControl(*args):
                 cmds.menuItem(divider=1, data=CAM_MENU_IGNORE)
             elif isStereo2:
                 # Stereo rig
-                label = '%s%s'%(nonRenderableCamera, mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
-                cmds.menuItem(label=label, data=CAM_MENU_STEREOPAIR)
+                lab = '%s%s'%(nonRenderableCamera, mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
+                cmds.menuItem(label=lab, data=CAM_MENU_STEREOPAIR)
             else:
                 # Mono camera.
-                cmds.menuItem(label=nonRenderableCamera, data=CAM_MENU_CAMERA)
+                cmds.menuItem(label=str(nonRenderableCamera), data=CAM_MENU_CAMERA)
 
         # Insert add menuItem
         if not isFakeCam and nonRenderableCamera:
@@ -1399,7 +1399,7 @@ def createArnoldCommonResolution():
             # so we do this twice.
             #
             niceName = tokens[0].replace(' ', '_').replace('"', '\\"')
-            uiName = mel.eval("imageFormats_melToUI "+niceName)
+            uiName = mel.eval("imageFormats_melToUI \""+niceName+"\"")
             cmds.menuItem(label=uiName)
 
     for item in gUserImageFormatData:
@@ -1455,7 +1455,7 @@ def createArnoldCommonResolution():
 
     # Construct all menu items
     for i, melUnit in enumerate(gMeasurementUnitsNames):
-        cmds.menuItem(label=mel.eval("resolutionFormats_melToUI "+melUnit), data=i)
+        cmds.menuItem(label=mel.eval("resolutionFormats_melToUI \""+melUnit+"\""), data=i)
 
     # connect the label, so we can change its color
     cmds.connectControl('sizeUnitsMenu', 'defaultResolution.imageSizeUnits', index=1)
@@ -1476,7 +1476,7 @@ def createArnoldCommonResolution():
 
     # Construct all menu items
     for i, melUnit in enumerate(gResolutionUnitsNames):
-        cmds.menuItem(label=mel.eval("resolutionFormats_melToUI "+melUnit), data=i)
+        cmds.menuItem(label=mel.eval("resolutionFormats_melToUI \""+melUnit+"\""), data=i)
 
     # connect the label, so we can change its color
     cmds.connectControl('resUnitsMenu', 'defaultResolution.pixelDensityUnits', index=1)
