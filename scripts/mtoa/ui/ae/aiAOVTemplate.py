@@ -125,7 +125,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
         ]
         
         for lpeToken in lpeTokens:
-            cmds.menuItem(label=lpeToken[0], annotation=lpeToken[1], command=pm.Callback(self.addTokenLPE, lpeToken[1]))
+            cmds.menuItem(label=lpeToken[0], annotation=lpeToken[1], command= lambda arg=None, x=lpeToken[1]: self.addTokenLPE(x))
 
             if lpeTokens[1] == "V" or lpeTokens[1] == "A":
                 cmds.menuItem(divider=True)

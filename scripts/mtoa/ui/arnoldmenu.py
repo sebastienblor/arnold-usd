@@ -505,7 +505,7 @@ def createArnoldMenu():
             pm.menuItem('ArnoldCustomShapes', label='Custom Shapes', parent='ArnoldMenu', subMenu=True, tearOff=True)
             for customShape in customShapes:
                 pm.menuItem(customShape, parent='ArnoldCustomShapes', label=customShape,
-                    command=pm.Callback(doCreateCustomShape, customShape))
+                    command=lambda arg=None, x=customShape:doCreateCustomShape(x))
 
 
         pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',

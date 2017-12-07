@@ -1,5 +1,4 @@
 import maya.mel
-import pymel.core as pm
 import maya.cmds as cmds
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
@@ -92,7 +91,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 
         presets={ 'Cornea': 1.37, 'Diamond': 2.42, 'Ethanol': 1.36, 'Flint glass': 1.6, 'Glass': 1.5, 'Ice' : 1.31, 'Olive Oil': 1.47, 'Plastic': 1.55, 'Saphire': 1.77, 'Skin': 1.4, 'Water': 1.33}
         for k in sorted(presets):
-            cmds.menuItem(label=k, command=pm.Callback(setFloatValue, controlName, presets[k]))
+            cmds.menuItem(label=k, command= lambda arg=None,x=presets[k]:  setFloatValue(controlName, x))
 
 
     def updateIOR(self, attr):
@@ -113,7 +112,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 
         presets={'Diamond': 55, 'Sapphire': 72}
         for k in sorted(presets):
-            cmds.menuItem(label=k, command=pm.Callback(setFloatValue, controlName, presets[k]))
+            cmds.menuItem(label=k, command= lambda arg=None, x=presets[k]: setFloatValue(controlName, x))
 
 
     def updateAbbe(self, attr):
@@ -135,7 +134,7 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
 
         presets={'Apple': (0.43,0.21,0.17,11.61,3.88,1.75), 'Chicken':(0.44,0.22,0.14,9.44,3.35, 1.79) , 'Cream':(0.99,0.94,0.83,15.03,4.66,2.54), 'Ketchup': (0.22,0.01,0.00,4.76,0.57,0.39), 'Marble': (0.93,0.91,0.88,8.51,5.57,3.95), 'Potato':(0.86,0.74,0.29,14.27,7.23,2.04) , 'Skim Milk': (0.89,0.89,0.80,18.42,10.44,3.50), 'Skin 1':(0.57,0.31,0.17,3.67,1.37,0.68) , 'Skin 2':(0.75,0.57,0.47,4.82,1.69,1.09) , 'Whole Milk':(0.95,0.93,0.85,10.90,6.58,2.51) }
         for k in sorted(presets):
-            cmds.menuItem(label=k, command=pm.Callback(setValueSSS, controlName, presets[k]))
+            cmds.menuItem(label=k, command= lambda arg=None, x=presets[k]: setValueSSS(controlName, x))
 
     def updateSSS(self, attr):
         tokens = attr.split('.')

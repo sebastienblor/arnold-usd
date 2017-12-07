@@ -330,27 +330,27 @@ def createArnoldInsertKeywordMenu(parent):
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kFileNameKeywords"), enable=0)
     cmds.menuItem(divider=True)
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordScene"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Scene>"))
+                  command=lambda *args: insertArnoldKeywordMenuCallback("<Scene>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordLayer"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderLayer>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderLayer>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordCamera"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Camera>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<Camera>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordRPFG"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderPassFileGroup>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPass"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPass>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderPass>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPassType"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPassType>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderPassType>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordExtension"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Extension>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<Extension>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordVersion"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Version>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<Version>"))
     date = cmds.date(format="YY_MM_DD")
     cmds.menuItem(label=(mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordDate") + date),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback,  date))
+                  command=lambda arg=None, x=date:insertArnoldKeywordMenuCallback(x))
     time = cmds.date(format="hh-mm-ss")
     cmds.menuItem(label=(mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordTime") + time),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, time))
+                  command=lambda arg=None, x=time:insertArnoldKeywordMenuCallback(x))
 
 # ----------------------------------------------------------------------------
 # Code to create and update the Image File Output frame
@@ -970,7 +970,7 @@ def updateArnoldCameraControl(*args):
 
         cmds.optionMenuGrp(optMenu,
                          edit=True,
-                         changeCommand=pm.Callback(arnoldChangedCamera, camera, cameraMode, optMenu))
+                         changeCommand=lambda arg=None, x=camera, y=cameraMode, z=optMenu: arnoldChangedCamera(x, y, z))
 
         # The first item is the current renderable camera
         if cameraMode == CAM_MENU_STEREOPAIR:
@@ -1010,7 +1010,7 @@ def updateArnoldCameraControl(*args):
                                     annotation=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kNonRendCam"),
                                     width=20,
                                     height=20,
-                                    command=pm.Callback(arnoldChangedCamera, camera, cameraMode, ''))
+                                    command=lambda arg=None, x=camera, y=cameraMode: arnoldChangedCamera(x, y, ''))
 
         cmds.setParent('..')
 
@@ -1018,13 +1018,13 @@ def updateArnoldCameraControl(*args):
             cmds.columnLayout()
             chkbox = cmds.checkBoxGrp(numberOfCheckBoxes=1,
                                     label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kAlphaChannel"))
-            cmds.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'mask'))
+            cmds.checkBoxGrp(chkbox, e=True, cc=lambda arg=None, x=chkbox, y=camera:arnoldCameraMaskChange(x, y, 'mask'))
             setArnoldCheckboxFromAttr(camera, chkbox, "mask")
             cmds.connectControl(chkbox, "%s.mask"%camShape, index=1)
             cmds.connectControl(chkbox, "%s.mask"%camShape, index=2)
             chkbox = cmds.checkBoxGrp(numberOfCheckBoxes=1,
                                     label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kDepthChannel"))
-            cmds.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'depth'))
+            cmds.checkBoxGrp(chkbox, e=True, cc=lambda arg=None, x=chkbox, y=camera:arnoldCameraMaskChange(x, y, 'depth'))
             setArnoldCheckboxFromAttr(camera, chkbox, "depth")
             cmds.connectControl(chkbox, "%s.depth"%camShape, index=1)
             cmds.connectControl(chkbox, "%s.depth"%camShape, index=2)
@@ -1261,7 +1261,7 @@ def createArnoldCommonFrameRange():
     '''
     cmds.attrControlGrp('modifyExtensionCtrl',
                         attribute='defaultRenderGlobals.modifyExtension',
-                        changeCommand=pm.Callback(updateArnoldFrameNumberControls),
+                        changeCommand=lambda *args:updateArnoldFrameNumberControls()),
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
     '''
 
@@ -1430,8 +1430,8 @@ def createArnoldCommonResolution():
                       label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
                       label1=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
                       label2=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
-                      on1=pm.Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
-                      on2=pm.Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
+                      on1=lambda *args:cmds.setAttr("defaultResolution.lockDeviceAspectRatio", 0),
+                      on2=lambda *args:cmds.setAttr("defaultResolution.lockDeviceAspectRatio", 1),
                       data1=0,
                       data2=1)
 
@@ -2157,14 +2157,11 @@ def createArnoldCommonRenderOptions():
         cmds.scrollField(control,
                        preventOverride=True,
                        height=50,
-                       changeCommand=pm.Callback(changeArnoldMelCallbacks,
-                                                 control,
-                                                 plug))
+                       changeCommand=lambda arg=None, x=control, y=plug: changeArnoldMelCallbacks(x, y))
         updateArnoldMelCallback(control, plug)
   
         cmds.scriptJob(parent=parent,
-                     attributeChange=(plug, Callback(updateArnoldMelCallback,
-                                                     control, plug)))
+                     attributeChange=(plug, lambda arg=None, x=control, y=plug: updateArnoldMelCallback(x, y)))
 
     # Set up script jobs for those attributes which require updating of
     # multiple controls.

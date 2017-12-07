@@ -13,13 +13,13 @@ class AEaiHairTemplate(ShaderAETemplate):
         tokens = nodeName.split('.')
         nodeName = tokens[0]        
         #cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
-        cmds.button('aiHairConvertShaderButton',  label='Convert To New Shader', command=pm.Callback(self.convertToStandardHair, nodeName))
+        cmds.button('aiHairConvertShaderButton',  label='Convert To New Shader', command=lambda arg=None, x=nodeName: self.convertToStandardHair(x))
         #cmds.setParent( '..' )
    
     def convertShaderReplace(self, nodeName):
         tokens = nodeName.split('.')
         nodeName = tokens[0]
-        cmds.button('aiHairConvertShaderButton',  edit=True, command=pm.Callback(self.convertToStandardHair, nodeName))
+        cmds.button('aiHairConvertShaderButton',  edit=True, command=lambda arg=None, x=nodeName: self.convertToStandardHair(x))
         
 
     def setup(self):
