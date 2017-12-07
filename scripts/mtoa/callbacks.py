@@ -58,7 +58,7 @@ def manageCallback(callbackId):
 def _makeNodeAddedCB(nodeType):
     def nodeAddedCB(obj, *args):
         # nodeAdded callback includes sub-types, but we want exact type only
-        mfn = pm.api.MFnDependencyNode(obj)
+        mfn = om.MFnDependencyNode(obj)
         if mfn.typeName() != nodeType:
             return
         global _nodeAddedCallbacks
@@ -75,7 +75,7 @@ def _makeNodeAddedCB(nodeType):
 def _makeNodeRemovedCB(nodeType):
     def nodeRemovedCB(obj, *args):
         # nodeAdded callback includes sub-types, but we want exact type only
-        mfn = pm.api.MFnDependencyNode(obj)
+        mfn = om.MFnDependencyNode(obj)
         if mfn.typeName() != nodeType:
             return
         global _nodeRemovedCallbacks
@@ -327,7 +327,7 @@ class Callback(object):
             print "adding rigger", rigger
 
         for rigger in riggers:
-            pm.menuItem(
+            cmds.menuItem(
                 label = "Add " + str(rigger),
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
@@ -454,7 +454,6 @@ class DeferredCallbackQueue(CallbackQueue):
         the public callback function
         '''
         if not self._updating:
-            #print pm.api.MFileIO.isOpeningFile(), pm.api.MFileIO.isReadingFile()
             if not om.MFileIO.isOpeningFile():
                 self._updating = True
                 cmds.evalDeferred(self.deferredCallback)

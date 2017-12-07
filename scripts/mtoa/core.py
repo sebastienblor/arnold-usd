@@ -7,6 +7,7 @@ import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 import maya.cmds as cmds
 import maya.mel as mel
+import maya.OpenMaya as om
 import os
 
 CATEGORY_TO_RUNTIME_CLASS = {
@@ -303,7 +304,7 @@ def _doSetDefaultTranslator(obj):
         return
     try:
         default = getDefaultTranslator(obj)
-        plug = pm.api.MFnDependencyNode(obj).findPlug('aiTranslator')
+        plug = om.MFnDependencyNode(obj).findPlug('aiTranslator')
 
         # we're also being called when an object is duplicated. In that case the attribute 
         # translator is already set to a given value. For newly created objects this value is empty
@@ -311,7 +312,7 @@ def _doSetDefaultTranslator(obj):
             plug.setString(default)
 
     except RuntimeError:
-        cmds.warning("failed to set default translator for %s" % pm.api.MFnDependencyNode(obj).name())
+        cmds.warning("failed to set default translator for %s" % om.MFnDependencyNode(obj).name())
 
 def registerDefaultTranslator(nodeType, default):
     """
@@ -329,11 +330,11 @@ def registerDefaultTranslator(nodeType, default):
     if not isFunc:
       cmds.arnoldPlugins(setDefaultTranslator=(nodeType, default))    
     if arnoldIsCurrentRenderer():
-        it = pm.api.MItDependencyNodes()
+        it = om.MItDependencyNodes()
         while not it.isDone():
             obj = it.item()
             if not obj.isNull():
-                mfn = pm.api.MFnDependencyNode(obj)
+                mfn = om.MFnDependencyNode(obj)
                 if mfn.typeName() == nodeType:
                     plug = mfn.findPlug("aiTranslator")
                     if not plug.isNull() and plug.asString() == "":
@@ -349,8 +350,12 @@ def registerDefaultTranslator(nodeType, default):
 
 def getDefaultTranslator(obj):
     if isinstance(obj, basestring):
-        obj = pm.api.toMObject(obj)
-    mfn = pm.api.MFnDependencyNode(obj)
+        selList = om.MSelectionList()
+        om.MSelectionList.add(selList, obj)
+        obj = om.MObject()
+        om.MSelectionList.getDependNode(list, 0, obj)
+
+    mfn = om.MFnDependencyNode(obj)
     global _defaultTranslators
     try:
         default = _defaultTranslators[mfn.typeName()]
@@ -365,11 +370,11 @@ def _rendererChanged(*args):
     if cmds.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':
         global _defaultTranslators
 
-        it = pm.api.MItDependencyNodes()
+        it = om.MItDependencyNodes()
         while not it.isDone():
             obj = it.item()
             if not obj.isNull():
-                mfn = pm.api.MFnDependencyNode(obj)
+                mfn = om.MFnDependencyNode(obj)
                 nodeType = mfn.typeName()
                 if nodeType in _defaultTranslators:
                     default = _defaultTranslators[nodeType]

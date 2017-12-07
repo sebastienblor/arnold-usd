@@ -608,14 +608,16 @@ def createAliases(sg):
         return
 
     sgAttr = '{}.aiCustomAOVs'.format(sg)
-    for i in cmds.getAttr(sgAttr, mi=True):
-        at = '{}[{}]'.format(sgAttr, i)
-        name = cmds.getAttr('{}.aovName'.format(at))
-        try:
-            cmds.aliasAttr('ai_aov_' + name, at)
-        except RuntimeError as err:
-            cmds.aliasAttr(sg + '.ai_aov_' + name, remove=True)
-            cmds.aliasAttr('ai_aov_' + name, at)
+    attrValues = cmds.getAttr(sgAttr, mi=True)
+    if attrValues:
+        for i in attrValues:
+            at = '{}[{}]'.format(sgAttr, i)
+            name = cmds.getAttr('{}.aovName'.format(at))
+            try:
+                cmds.aliasAttr('ai_aov_' + name, at)
+            except RuntimeError as err:
+                cmds.aliasAttr(sg + '.ai_aov_' + name, remove=True)
+                cmds.aliasAttr('ai_aov_' + name, at)
 
 
 def installCallbacks():

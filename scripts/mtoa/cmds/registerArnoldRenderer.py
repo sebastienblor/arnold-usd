@@ -5,6 +5,7 @@ import inspect
 import mtoa.utils
 import arnoldShelf
 import maya.cmds as cmds
+import maya.mel as mel
 
 def mtoaPackageRoot():
     '''return the path to the mtoa python package directory'''
@@ -34,7 +35,8 @@ except:
     traceback.print_exc(file=sys.__stderr__) # goes to the console
     raise
 
-if not pm.about(batch=True):
+# These few lines should be removed (see bbf60a80)
+if not cmds.about(batch=True):
     for nodeType in pm.pluginInfo('mtoa', q=1, dependNode=1):
         pm._factories.addMayaType(nodeType, 'kPluginDependNode')
 

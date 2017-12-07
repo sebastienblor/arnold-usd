@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
@@ -334,8 +333,6 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
             pass
             
     def setup(self):
-        #pm.mel.eval('AEaddRampControl("widthProfile")')
-        #pm.mel.eval('AEaddRampControl("colorTable")')
         self.addControl("aiRenderCurve")
         self.addControl("aiCurveWidth")
         self.addControl("aiSampleRate")
@@ -539,19 +536,10 @@ class CameraTemplate(templates.AttributeTemplate):
         
         positionField = cmds.floatField("ShutterCurvePositionField");
         cmds.setParent('..')
-        
-        '''pm.rowLayout(nc=2, cw2=(60,65))
-        pm.text("Interpol.");
-        pm.optionMenu(changeCommand=self.updateRamp )
-        pm.menuItem( label='None' )
-        pm.menuItem( label='Linear' )
-        pm.menuItem( label='Smooth' )
-        pm.menuItem( label='Spline' )
-        pm.cmds.setParent('..')'''
         cmds.setParent('..')
         
         gradient = cmds.gradientControlNoAttr("ShutterCurveGradientControl", w=200, h=100 )
-        cmds.gradientControlNoAttr( gradient, edit=True, changeCommand=pm.Callback(self.syncAttribute,attr,gradient, valueField, positionField) )
+        cmds.gradientControlNoAttr( gradient, edit=True, changeCommand=lambda arg=None, x=attr, y=gradient, z=valueField, w=positionField:self.syncAttribute(x, y, z, w))
         
         #Initialize the curve with the values in the attribute
         curveString = ""
@@ -574,8 +562,8 @@ class CameraTemplate(templates.AttributeTemplate):
             
         cmds.gradientControlNoAttr( gradient, edit=True, asString=curveString) 
         
-        cmds.floatField(valueField, edit=True, value=startY, changeCommand=pm.Callback(self.updateValue, attr, gradient, valueField, positionField))
-        cmds.floatField(positionField, edit=True, value=startX, changeCommand=pm.Callback(self.updatePosition, attr, gradient, valueField, positionField))
+        cmds.floatField(valueField, edit=True, value=startY, changeCommand=lambda arg=None, x=attr, y=gradient, z=valueField, w=positionField: self.updateValue(x, y, z, w))
+        cmds.floatField(positionField, edit=True, value=startX, changeCommand=lambda arg=None, x=attr, y=gradient, z=valueField, w=positionField: self.updatePosition(x, y, z, w))
         
     def updateRamp( self, attr ):
         name = self.nodeName
@@ -787,13 +775,11 @@ def cameraOrthographicChanged(orthoPlug, *args):
         isOrtho = orthoPlug.asBool()
         
         currTrans = transPlug.asString()
-        #print "cameraOrthographicChanged", fnCam.name(), currTrans, isOrtho
         newTrans = None
         if isOrtho and currTrans != 'orthographic':
             newTrans = 'orthographic'
         elif not isOrtho and currTrans == 'orthographic':
             newTrans = 'perspective'
-        #print "newTrans", newTrans
         if newTrans:
             transPlug.setString(newTrans)
 
@@ -818,7 +804,7 @@ def cameraTranslatorChanged(transPlug, *args):
             orthoPlug.setBool(False)
 
 def getCameraDefault(obj):
-    isOrtho = pm.api.MFnDependencyNode(obj).findPlug("orthographic").asBool()
+    isOrtho = om.MFnDependencyNode(obj).findPlug("orthographic").asBool()
     default = 'orthographic' if isOrtho else 'perspective'
     return default
 
@@ -947,7 +933,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         nodeName = self.selectedAttrName(nodeName)
         # Attribute Name
         attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
-        cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
+        cmds.textField(attrNameText, edit=True, changeCommand=lambda arg=None, x=nodeName, y=attrNameText, z=index: self.changeAttrName(x, y, z))
         
         # Attribute Type
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
@@ -966,14 +952,14 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.optionMenu(menu, edit=True, select=4)
         elif result[0] == 'STRING':
             cmds.optionMenu(menu, edit=True, select=5)
-        cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
+        cmds.optionMenu(menu, edit=True, changeCommand=lambda arg=None, x=nodeName, y=menu, z=index: self.changeAttrType(x, y, z))
         
         # Attribute Value
         attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
-        cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
+        cmds.textField(attrValueText, edit=True, changeCommand=lambda arg=None, x=nodeName, y=attrValueText, z=index: self.changeAttrValue(x, y, z))
         
         # Remove button
-        cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
+        cmds.symbolButton(image="SP_TrashIcon.png", command=lambda arg=None, x=nodeName, y=index:self.removeAttribute(x, y))
         
     def updatedMetadata(self, nodeName):
 
@@ -997,7 +983,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
 
         nodeName = self.selectedAttrName(nodeName)
-        cmds.button( label='Add New Attribute', command=pm.Callback(self.addAttribute, nodeName))
+        cmds.button( label='Add New Attribute', command=lambda arg=None, x=nodeName: self.addAttribute(x))
         cmds.setParent( '..' )
         layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
         # This template could be created more than once in different panels
@@ -1274,7 +1260,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
 
         # Attribute Name
         attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
-        cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
+        cmds.textField(attrNameText, edit=True, changeCommand=lambda arg=None, x=nodeName, y=attrNameText, z=index: self.changeAttrName(x, y, z))
         
         # Attribute Type
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
@@ -1293,14 +1279,14 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.optionMenu(menu, edit=True, select=4)
         elif result[0] == 'STRING':
             cmds.optionMenu(menu, edit=True, select=5)
-        cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
+        cmds.optionMenu(menu, edit=True, changeCommand=lambda arg=None, x=nodeName, y=menu, z=index: self.changeAttrType(x, y, z))
         
         # Attribute Value
         attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
-        cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
+        cmds.textField(attrValueText, edit=True, changeCommand=lambda arg=None, x=nodeName, y= attrValueText, z=index: self.changeAttrValue(x, y, z))
         
         # Remove button
-        cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
+        cmds.symbolButton(image="SP_TrashIcon.png", command=lambda arg=None, x=nodeName, y=index: self.removeAttribute(x, y))
         
     def updatedMetadata(self, nodeName):
         
@@ -1325,7 +1311,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         nodeName = self.selectedAttrName(nodeName)
 
         cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
-        cmds.button( label='Add New Attribute', command=pm.Callback(self.addAttribute, nodeName))
+        cmds.button( label='Add New Attribute', command=lambda arg=None, x=nodeName: self.addAttribute(x))
         cmds.setParent( '..' )
         layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
         # This template could be created more than once in different panels
