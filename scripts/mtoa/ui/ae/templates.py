@@ -5,7 +5,6 @@ using `registerAETemplate` or `registerTranslatorUI` depending on whether the te
 or for an mtoa translator.
 """
 
-import pymel
 import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
@@ -410,23 +409,18 @@ class AEChildMode(BaseMode):
         self._layoutStack.pop()
         cmds.setParent(self._layoutStack[-1])
 
-    # for compatibility with pymel.core.uitypes.AETemplate
     def beginNoOptimize(self):
         pass
 
-    # for compatibility with pymel.core.uitypes.AETemplate
     def endNoOptimize(self):
         pass
 
-    # for compatibility with pymel.core.uitypes.AETemplate
     def beginScrollLayout(self):
         pass
 
-    # for compatibility with pymel.core.uitypes.AETemplate
     def endScrollLayout(self):
         pass
 
-    # for compatibility with pymel.core.uitypes.AETemplate
     def addExtraControls(self):
         pass
 

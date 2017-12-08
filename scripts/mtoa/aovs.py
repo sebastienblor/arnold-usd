@@ -100,15 +100,6 @@ GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 
 SceneAOVData = namedtuple('SceneAOVData', ['name', 'type', 'index', 'node'])
 
-def nextAvailableIndex(attr):
-    lastIndex = -1
-    for at in attr:
-        currIndex = at.index()
-        if currIndex > (lastIndex +1):
-            return lastIndex +1
-        lastIndex = currIndex
-    return lastIndex +1
-
 # Return a list of nreq free indices that do not appear in
 # the sorted list logIdxList
 def listAvailableIndices(logIdxList, nreq):
@@ -265,7 +256,7 @@ class SceneAOV(object):
         the aiAOV node that it wraps, call update()
         '''
         if self._type is None:
-            self._type = self._node.attr('type').get()
+            self._type = cmds.getAttr('{}.type'.format(self._node)) # FIXME : should this be returned as a string ?
         return self._type
 
     @property
@@ -484,8 +475,8 @@ class AOVInterface(object):
         matches = self.getAOVs(include=[oldName])
         if matches:
             for aov in matches:
-                aov.node.attr('name').set(newName)
-
+                cmds.setAttr('{}.name'.format(aov.node), newName, type="string")
+                
             # we can only use one
             matches[0].rename(newName, oldName)
         else:

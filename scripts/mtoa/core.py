@@ -2,7 +2,6 @@
 functions for dealing with mtoa node types and classifications
 '''
 
-import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 import maya.cmds as cmds
@@ -28,7 +27,7 @@ def _processClass(nodeType):
     
     e.g. from 'aiStandard' to ('rendernode/arnold/shader/surface', 'asShader', 'Arnold/Shader/Surface')
     '''
-    for klass in pm.getClassification(nodeType):
+    for klass in cmds.getClassification(nodeType):
         if klass.startswith('rendernode/arnold'):
             parts = klass.split('/')
             if len(parts) < 3:
@@ -127,11 +126,11 @@ def createStandIn(path=None):
         cmds.createNode("objectSet", name=":ArnoldStandInDefaultLightSet", shared=True)
         cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
 
-    standIn = pm.createNode('aiStandIn', n='aiStandInShape')
+    standIn = cmds.createNode('aiStandIn', n='aiStandInShape')
     # temp fix until we can correct in c++ plugin
 #    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
 #    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
-    pm.sets('ArnoldStandInDefaultLightSet', add=standIn)
+    cmds.sets('ArnoldStandInDefaultLightSet', add=standIn)
     if path:
         standIn.dso.set(path)
     return standIn
@@ -139,6 +138,8 @@ def createStandIn(path=None):
 def createVolume():
     cmds.createNode('aiVolume', n='aiVolumeShape')
 
+
+# FIXME can we get rid of this function now ?
 def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     """
     Upgrades scenes to use new node-base filter and drivers
@@ -148,53 +149,41 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     driver/filter specific settings like compression and quality.
     """
     print "[mtoa] upgrading to new AOV driver/filter setup"
-    aovNodes = pm.ls(type='aiAOV')
+    aovNodes = cmds.ls(type='aiAOV')
     if defaultDriver is None:
-        defaultDriver = pm.PyNode('defaultArnoldDriver')
+        defaultDriver = 'defaultArnoldDriver'
         
     if defaultFilter is None:
-        defaultFilter = pm.PyNode('defaultArnoldFilter')
+        defaultFilter = 'defaultArnoldFilter'
 
-    driver = options.imageFormat.get()
+    driver = cmds.getAttr('{}.imageFormat'.format(options), asString=True)
     if driver:
-        defaultDriver.aiTranslator.set(driver)
+        cmds.setAttr('{}.aiTranslator'.format(defaultDriver), driver, type="string")
+        
 
-    filter = options.filterType.get()
+    filter = cmds.getAttr('{}.filterType'.format(options), asString=True)
     if filter:
-        defaultFilter.aiTranslator.set(filter)
+        cmds.setAttr('{}.aiTranslator'.format(defaultFilter), filter, type="string")
 
     data = [(aovNodes, 'aiAOVDriver', '.outputs[0].driver', 'imageFormat', defaultDriver),
             (aovNodes, 'aiAOVFilter', '.outputs[0].filter', 'filterType', defaultFilter)]
 
     for nodes, mayaNodeType, inputAttr, controlAttr, defaultNode in data:
-#        attrSet = set([])
-#        for transName, arnoldNode in listTranslators(mayaNodeType):
-#            print "\t", arnoldNode
-#            for paramName, attrName, label, annotation in getAttributeData(arnoldNode):
-#                print "\t\t", paramName, attrName
-#                attrSet.add(attrName)
         for node in nodes:
-            at = node.name() + inputAttr
-            inputs = pm.listConnections(at, source=True, destination=False)
+            at = node + inputAttr
+            inputs = cmds.listConnections(at, source=True, destination=False)
             if not inputs:
-                translator = node.attr(controlAttr).get()
+                translator = cmds.getAttr('{}.{}'.format(node, controlAttr), asString=True)
                 if translator in ['', '<Use Globals>']:
-                    defaultNode.message.connect(at)
+                    cmds.connectAttr('{}.message'.format(defaultNode), at)
                     print "[mtoa] upgrading %s: connected to default node %s" % (node, defaultNode)
                 else:
-                    outputNode = pm.createNode(mayaNodeType, skipSelect=True)
+                    outputNode = cmds.createNode(mayaNodeType, skipSelect=True)
                     print "[mtoa] upgrading %s: created new node %s and set translator to %r" % (node, outputNode, translator)
-                    outputNode.message.connect(at)
-                    outputNode.aiTranslator.set(translator)
+                    cmds.connectAttr('{}.message'.format(outputNode), at)
+                    cmds.setAttr('{}.aiTranslator'.format(outputNode), translator, type="string")
 
-#                for attr in attrSet:
-#                    oldName = outputType + attr[0].upper() + attr[1:]
-#                    try:
-#                        value = aovNode.attr(oldName).get()
-#                        print aovNode, oldName, value
-#                    except AttributeError:
-#                        pass
-#                    outputNode.attr(attr)
+
 
 
 def createOptions():
@@ -213,17 +202,17 @@ def createOptions():
     # the shared option ensures that it is only created if it does not exist
     # testing for obj existence before creating because createNode with shared and forcing a namespace
     # will switch the namespace if the object already exists (it's bugged).
-    options = pm.createNode('aiOptions', skipSelect=True, shared=True, name=':defaultArnoldRenderOptions')\
+    options = cmds.createNode('aiOptions', skipSelect=True, shared=True, name=':defaultArnoldRenderOptions')\
         if not cmds.objExists('defaultArnoldRenderOptions') else None
-    filterNode = pm.createNode('aiAOVFilter', name=':defaultArnoldFilter', skipSelect=True, shared=True)\
+    filterNode = cmds.createNode('aiAOVFilter', name=':defaultArnoldFilter', skipSelect=True, shared=True)\
         if not cmds.objExists('defaultArnoldFilter') else None
-    driverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDriver', skipSelect=True, shared=True)\
+    driverNode = cmds.createNode('aiAOVDriver', name=':defaultArnoldDriver', skipSelect=True, shared=True)\
         if not cmds.objExists('defaultArnoldDriver') else None
-    displayDriverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDisplayDriver', skipSelect=True, shared=True)\
+    displayDriverNode = cmds.createNode('aiAOVDriver', name=':defaultArnoldDisplayDriver', skipSelect=True, shared=True)\
         if not cmds.objExists('defaultArnoldDisplayDriver') else None
 
     if (filterNode or driverNode) and not options:
-        options = pm.PyNode('defaultArnoldRenderOptions')
+        options = 'defaultArnoldRenderOptions'
         # options previously existed, so we need to upgrade
         upgradeAOVOutput(options, filterNode, driverNode)
 
@@ -232,13 +221,13 @@ def createOptions():
         # newly created default filter
         hooks.setupFilter(filterNode)
     else:
-        filterNode = pm.PyNode('defaultArnoldFilter')
+        filterNode = 'defaultArnoldFilter'
 
     if driverNode:
         # newly created default driver
         hooks.setupDriver(driverNode)
     else:
-        driverNode = pm.PyNode('defaultArnoldDriver')
+        driverNode = 'defaultArnoldDriver'
 
     if options:
         # newly created options
@@ -246,36 +235,37 @@ def createOptions():
         hooks.setupOptions(options)
         cmds.setAttr('defaultArnoldRenderOptions.version', str(cmds.pluginInfo( 'mtoa', query=True, version=True)), type="string")
     else:
-        options = pm.PyNode('defaultArnoldRenderOptions')
+        options = 'defaultArnoldRenderOptions'
         if displayDriverNode:
             # options exist, but not display driver: upgrade from older version of mtoa
             hooks.setupDefaultAOVs(aovs.AOVInterface(options))
 
     if displayDriverNode:
         # newly created default driver
-        displayDriverNode.aiTranslator.set('maya')
+        # FIXME why is there a 'maya' translator ??
+        cmds.setAttr('{}.aiTranslator'.format(displayDriverNode), 'maya', type="string")
         # GUI only
-        displayDriverNode.outputMode.set(0)
+        cmds.setAttr('{}.outputMode'.format(displayDriverNode), 0)        
         hooks.setupDriver(displayDriverNode)
-        displayDriverNode.message.connect(options.drivers, nextAvailable=True)
-    elif not options.drivers.inputs():
-        pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
+        cmds.connectAttr('{}.message'.format(displayDriverNode), '{}.drivers'.format(options), nextAvailable=True)
+    elif not cmds.listConnections('{}.drivers'.format(options), source=True, destination=False):
+        cmds.connectAttr('defaultArnoldDisplayDriver.message', '{}.drivers'.format(options), nextAvailable=True)
     try:
         # we first verify if option's attribute filter is already connected to the right node.
         # In Maya 2018, connecting to the same attribute sends a dirtiness signal for this attribute,
         # and therefore restarts the render (#3178)
-        filterInputs = pm.listConnections(options.name() + '.filter', source=True, destination=False)
-        if (filterInputs is None) or (len(filterInputs) == 0) or (filterInputs[0] != filterNode.name()):
-            cmds.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
+        filterInputs = cmds.listConnections('{}.filter'.format(options), source=True, destination=False)
+        if (filterInputs is None) or (len(filterInputs) == 0) or (filterInputs[0] != filterNode):
+            cmds.connectAttr('%s.message' % filterNode, '%s.filter' % options, force=True)
         
     except:
         pass
     try:
         # we first verify if option's attribute driver is already connected to the right node.
         # Same reason as with filter above (#3178)
-        driverInputs = pm.listConnections(options.name() + '.driver', source=True, destination=False)
-        if driverInputs is None or len(driverInputs) == 0 or (driverInputs[0] != driverNode.name()):
-            cmds.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
+        driverInputs = cmds.listConnections('{}.driver'.format(options), source=True, destination=False)
+        if driverInputs is None or len(driverInputs) == 0 or (driverInputs[0] != driverNode):
+            cmds.connectAttr('%s.message' % driverNode, '%s.driver' % options, force=True)
     except:
         pass
     
@@ -286,7 +276,8 @@ def createShadingGroupIfNeeded(nodeType, node):
         shadingNodeGroupName = node + "SG"
         group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=shadingNodeGroupName)
         outAttr = node
-        if mel.eval("attributeExists(\"outColor\", \"" + node + "\")"):
+
+        if cmds.attributeQuery('outColor', node=node, exists=True):
             outAttr += ".outColor"
         else:
             outAttr += ".message"
@@ -318,7 +309,7 @@ def registerDefaultTranslator(nodeType, default):
     """
     Register the default translator for a node type. The second argument identifies the name of the
     translator.  Pass the translator name (as a string) if the default is always the same,
-    or a function that takes the current node as a pymel PyNode and returns the translator name as a string.
+    or a function that takes the current node (as a string) and returns the translator name as a string.
 
     The default will automatically be set whenever a node of the given type is added to the scene.
     """

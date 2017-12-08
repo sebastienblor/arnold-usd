@@ -1,6 +1,6 @@
 import pymel.core as pm
 import mtoa.utils as utils
-import maya.mel
+import maya.mel as mel
 import mtoa.ui.ae
 import maya.cmds
 import os
@@ -82,7 +82,7 @@ def _makeAEProc(modname, objname, procname):
     python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(objname)s','" + $nodeName + "')");}'''
     d = locals().copy()
     d['__name__'] = __name__
-    maya.mel.eval( contents % d )
+    mel.eval( contents % d )
 
 def _aeLoader(modname, objname, nodename):
     mod = __import__(modname, globals(), locals(), [objname], -1)

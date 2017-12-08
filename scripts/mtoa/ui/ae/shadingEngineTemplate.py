@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.cmds as cmds
 import mtoa.aovs as aovs
 import mtoa.ui.ae.templates as templates
@@ -12,20 +11,22 @@ from collections import defaultdict
 
 def getAOVsInNetwork(rootNode):
     '''
-    returns a map from PyNode to aovs
+    returns a map from nodes to aovs
     
     the aov list contains all registered aovs for that node type, regardless of whether
     they are currently enabled in the globals 
     '''
     results = {}
-    for node in pm.listHistory(rootNode, pruneDagObjects=True):
+    for node in cmds.listHistory(rootNode, pruneDagObjects=True):
+
+        nodeType = cmds.nodeType(node)
         # TODO: Create a general method to assign AOVs of hidden nodes
         # lambert shader has only translator registered so this is a Lambert Maya node and does not have an AOV tab
-        if pm.nodeType(node) == "lambert":
+        if nodeType == "lambert":
             results[node] = [u'direct_diffuse', u'indirect_diffuse']
         else:
             # TODO: cache this result
-            results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
+            results[node] = [cmds.getAttr('{}.{}'.format(node, at)) for (aov, at, type) in aovs.getNodeGlobalAOVData(nodeType)]
     return results
 
 class ShadingEngineTemplate(templates.AttributeTemplate):
@@ -77,7 +78,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
             or self.networkCol is None or not cmds.layout(self.networkCol, exists=True):
             return
 
-        nodeAttr = pm.Attribute(self.nodeAttr('aiCustomAOVs'))
+        nodeAttr = self.nodeAttr('aiCustomAOVs')
         self.updateAOVFrame(nodeAttr)
 
     def getAOVAttr(self, nodeAttr, aovName):
@@ -121,8 +122,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
     def buildAOVFrame(self, nodeAttr):
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
-        nodeAttr = pm.Attribute(nodeAttr)
-
+        
         aovList = aovs.getAOVs()
         self.updateNetworkData()
         self.updateCustomArrayData(nodeAttr, aovList)
@@ -153,8 +153,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
     def updateAOVFrame(self, nodeAttr):
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
-        nodeAttr = pm.Attribute(nodeAttr)
-
+        
         self.updateNetworkData()
         for ctrl in self._msgCtrls:
             cmds.deleteUI(ctrl)
@@ -192,7 +191,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 cmds.popupMenu(parent=ctrl);
                 cmds.menuItem(subMenu=True, label="Goto Node")
                 for node in self.aovNodes[aov.name]:
-                    cmds.menuItem(label=node.name(), command=lambda arg, node=node: pm.select(node))
+                    cmds.menuItem(label=node, command=lambda arg, node=node: cmds.select(node))
 
     def buildOtherAOVs(self, nodeAttr, aovList):
         '''

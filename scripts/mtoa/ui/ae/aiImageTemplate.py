@@ -124,7 +124,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.endNoOptimize()
         self.endLayout()
         
-        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
+        mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()
 

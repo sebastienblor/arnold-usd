@@ -252,7 +252,7 @@ try:
             else:
                 # Iterate over our aovNodes (aiAOV nodes)
                 for aovNode in aovNodes:
-                    aovNodeName = aovNode.name()
+                    aovNodeName = aovNode
                     numOutputs = cmds.getAttr(aovNodeName + ".outputs", size=True)
                     currentOutputs = []
                     

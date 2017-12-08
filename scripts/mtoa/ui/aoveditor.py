@@ -344,8 +344,6 @@ class AOVItem(object):
                 continue
             else:
                 self.outputs.append(outputRow)
-                #pm.symbolButton(image="navButtonConnected.png")
-                #pm.symbolButton(image="smallTrash.png")
                 cmds.setParent('..')
 
         cmds.setParent('..')
@@ -353,8 +351,6 @@ class AOVItem(object):
 
 
         aovMenuButton = cmds.symbolButton(image="arrowDown.png")
-#        pm.symbolButton(image="smallTrash.png",
-#                        command=lambda *args: self.parent.removeAOV(aovNode))
 
         self.popupMenu = cmds.popupMenu(parent=aovMenuButton, button=1, postMenuCommand=self.buildPopupMenu)
 
@@ -411,12 +407,11 @@ class AOVItem(object):
         outputRow = self.outputs.pop(index)
         outputRow.delete()
         self.outputsChanged = True
-        #pm.evalDeferred(self.fixOptionMenus)
-
+        
     def buildPopupMenu(self, menu, parent):
         if self.outputsChanged:
             cmds.popupMenu(self.popupMenu, edit=True, deleteAllItems=True)
-            cmds.menuItem(parent=menu, label='Select AOV Node', c=lambda *args: pm.select(self.aov.node))
+            cmds.menuItem(parent=menu, label='Select AOV Node', c=lambda *args: cmds.select(self.aov.node))
             cmds.menuItem(parent=menu, label='Add New Output Driver', c=lambda *args: self.addOutput())
             cmds.menuItem(parent=menu, label='Remove AOV', c=lambda *args: self.parent.removeAOV(self.aov))
 
@@ -564,7 +559,7 @@ class AOVOutputItem(object):
         else:
             utils.safeDelete(self.filterNode)
         self.outputAttr.remove()
-        pm.deleteUI(self.row)
+        cmds.deleteUI(self.row)
 
     def translatorChanged(self, translatorAttr, menu):
         '''
@@ -580,10 +575,10 @@ class AOVOutputItem(object):
         restoring the selected item to the proper value
         '''
         # clear menu
-        value = pm.optionMenu(menu, query=True, value=True)
-        for item in pm.optionMenu(menu, query=True, itemListLong=True) or []:
-            pm.deleteUI(item)
-        default = '<%s>' % pm.getAttr(defaultNode + '.aiTranslator')
+        value = cmds.optionMenu(menu, query=True, value=True)
+        for item in cmds.optionMenu(menu, query=True, itemListLong=True) or []:
+            cmds.deleteUI(item)
+        default = '<%s>' % cmds.getAttr(defaultNode + '.aiTranslator')
         cmds.menuItem(parent=menu, label=default)
         for tran in templates.getTranslators(outputType):
             cmds.menuItem(parent=menu, label=tran)
@@ -860,8 +855,7 @@ def updateAovShaders(*args):
         cmds.setParent(_aovShadersFrame)
 
     cmds.setParent('..')
-    #pm.setParent(cmds.columnLayout('arnoldAOVMainColumn', query=True))
-
+    
 
 def deleteAovShader(index):
     global _aovShaders
