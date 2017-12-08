@@ -5,7 +5,6 @@ from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnol
 import mtoa.ui.ae.templates as templates
 import ctypes
 import types
-import pymel.core as pm
 
 try:
     import mtoa.utils as utils
@@ -615,19 +614,19 @@ def aiCreateRenderNodeCommandCallback(postCommand, type):
         return "python(\"import mtoa.core as core ; core.createArnoldNode(\\\"" + type + "\\\")\")"
 
 def aiRenderSettingsBuiltCallback(currentRenderer):
-    pm.renderer('arnold', edit=True, addGlobalsTab=('Common',
+    cmds.renderer('arnold', edit=True, addGlobalsTab=('Common',
                                                     utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
                                                     utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
-    pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
+    cmds.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
                                                     utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
                                                     utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
-    pm.renderer('arnold', edit=True, addGlobalsTab=('System', 
+    cmds.renderer('arnold', edit=True, addGlobalsTab=('System', 
                                                     utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
-    pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
+    cmds.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
                                                     utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
-    pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
+    cmds.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
                                                     utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
 
@@ -638,7 +637,7 @@ def aiRendererAddOneTabToGlobalsWindowCreateProcCallback(createProc):
                    'createArnoldRendererDiagnosticsTab']
 
     if createProc in createProcs:
-        pm.mel.eval(createProc)
+        mel.eval(createProc)
         
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)

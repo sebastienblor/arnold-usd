@@ -11,7 +11,6 @@ options:
 
 """
 import mtoa.utils as utils
-import pymel.core as pm
 import maya.mel
 from mtoa.core import _processClass, createArnoldNode, isSubClassification
 from mtoa.callbacks import *
@@ -78,7 +77,7 @@ def createArnoldNodesTreeLister_Content(renderNodeTreeLister, postCommand, filte
                 command = Callback(createNodeCallback, runtimeClass, postCommand, nodeType)
                 import maya.app.general.tlfavorites as _fav
                 _fav.addPath(nodePath + '/' + nodeType, nodeType)
-                pm.nodeTreeLister(renderNodeTreeLister, e=True, add=[nodePath + '/' + nodeType, "render_%s.png" % nodeType, command])
+                cmds.nodeTreeLister(renderNodeTreeLister, e=True, add=[nodePath + '/' + nodeType, "render_%s.png" % nodeType, command])
                 del _fav
 
 
@@ -111,8 +110,8 @@ def aiHyperShadeCreateMenu_BuildMenu():
         # node type, thereby completing the correct argument list for the 
         # creation routine.
         #
-        pm.mel.buildCreateSubMenu(staticClass, '%s %s ""' % (_createNodeCallbackProc,
-                                                             runtimeClass) )
+        mel.eval('buildCreateSubMenu "{}" "{}" "{}" ""'.format(staticClass, _createNodeCallbackProc, runtimeClass) )
+
         cmds.setParent('..', menu=True)
 
 def createNodeCallback(runtimeClassification, postCommand, nodeType):

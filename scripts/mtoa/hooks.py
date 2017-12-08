@@ -116,7 +116,7 @@ _fileTokenRenderPass = fileTokenRenderPass
 
 def fileTokenCamera(path, tokens, **kwargs):
     import pymel.core as pm
-    renderable = [c for c in pm.ls(type='camera') if c.renderable.get()]
+    renderable = [c for c in cmds.ls(type='camera') if cmds.getAttr('{}.renderable'.format(c))]
     if '<Camera>' not in path and len(renderable) > 1:
         if os.path.isabs(path):
             cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
@@ -128,7 +128,7 @@ def fileTokenCamera(path, tokens, **kwargs):
             if not kwargs['leaveUnmatchedTokens']:
                 raise ValueError("[mtoa] Multiple renderable cameras: you must provide a value for <Camera> token")
         elif len(renderable) == 1:
-            tokens['Camera'] = renderable[0].getParent().name()
+            tokens['Camera'] = cmds.listRelatives(renderable[0], parent=True)
         else:
             if not kwargs['leaveUnmatchedTokens']:
                 raise ValueError("[mtoa] No renderable cameras: you must provide a value for <Camera> token")

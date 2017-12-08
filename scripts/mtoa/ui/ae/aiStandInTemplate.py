@@ -3,7 +3,6 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
-import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 def LoadStandInButtonPush(nodeName):

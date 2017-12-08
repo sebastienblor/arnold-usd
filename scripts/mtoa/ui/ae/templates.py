@@ -912,25 +912,6 @@ def createTranslatorMenu(node, label=None, nodeType=None, default=None, optionMe
 # functions used internally for loading templates
 #----------------------------------------------------------------
 
-def shapeTemplate(nodeName):
-    """
-    override for the builtin maya shapeTemplate procedure
-    """
-    # Run the hooks.
-    # see mtoa.registerArnoldRenderer._addAEHooks for where loadArnoldTemplate gets added to AEshapeHooks.
-    # note that this is not called in 2013: loadArnoldTemplate is called for both depend and DAG nodes 
-    for hook in pm.melGlobals['AEshapeHooks']:
-        maya.mel.eval(hook + ' "' + nodeName + '"')
-
-    cmds.editorTemplate(beginLayout=maya.mel.eval("uiRes "+m_AEshapeTemplate.kObjectDisplay))
-
-    # include/call base class/node attributes
-    maya.mel.eval("AEdagNodeCommon "+nodeName)
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    maya.mel.eval("AEdagNodeInclude "+nodeName)
-
 def loadArnoldTemplate(nodeName):
     """
     Create the "Arnold" AE template for the passed node

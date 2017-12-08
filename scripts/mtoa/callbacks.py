@@ -3,7 +3,6 @@ a module for managing mtoa's callbacks
 """
  
 import maya.cmds as cmds
-import pymel.core as pm
 import maya.OpenMaya as om
 from collections import defaultdict
 import types
@@ -66,8 +65,7 @@ def _makeNodeAddedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.PyNode(obj)
-                func(node)
+                func(mfn.name())
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
@@ -83,8 +81,7 @@ def _makeNodeRemovedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.PyNode(obj)
-                func(node)
+                func(mfn.name())
     # no unicode allowed
     nodeRemovedCB.__name__ = "nodeRemovedCB_" + str(nodeType) 
     return nodeRemovedCB
@@ -321,8 +318,7 @@ class Callback(object):
     Example:
 
     .. python::
-
-        import pymel as pm
+        
         def addRigger(rigger, **kwargs):
             print "adding rigger", rigger
 

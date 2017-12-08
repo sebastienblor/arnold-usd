@@ -1,4 +1,3 @@
-# import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 from collections import namedtuple

@@ -11,15 +11,6 @@ def mtoaPackageRoot():
     '''return the path to the mtoa python package directory'''
     return os.path.dirname(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
-if 'pymel' not in globals():
-    import pymel
-    maya_version = cmds.about(version=True)
-    print "Maya %s importing module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
-else :
-    print "Maya %s had already imported module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
-    
-import pymel.core as pm
-
 try:
     import mtoa.utils as utils
     import mtoa.ui.exportass as exportass
@@ -35,11 +26,12 @@ except:
     traceback.print_exc(file=sys.__stderr__) # goes to the console
     raise
 
-# These few lines should be removed (see bbf60a80)
-if not cmds.about(batch=True):
-    for nodeType in pm.pluginInfo('mtoa', q=1, dependNode=1):
-        pm._factories.addMayaType(nodeType, 'kPluginDependNode')
+# These few lines should be removed (see #1913)
+#if not cmds.about(batch=True):
+#    for nodeType in pluginInfo('mtoa', q=1, dependNode=1):
+#        _factories.addMayaType(nodeType, 'kPluginDependNode')
 
+'''
 def _overrideMelScripts():
     # for those procedures that we could not simply define overrides interactively, we keep edited files
     # per version of maya
@@ -53,10 +45,11 @@ def _overrideMelScripts():
     for f in glob.glob(os.path.join(meldir, '*.mel')):
         print>>sys.__stdout__, "Maya %s sourcing MEL override %s" % (maya_version, f)
         print "Maya %s sourcing MEL override %s" % (maya_version, f)
-        pm.mel.source(pm.mel.encodeString(f))
-        test = pm.mel.whatIs(os.path.split(f)[1]).split(': ', 1)
+        fStr = mel.eval("encodeString \"+f+"\"")
+        mel.eval("source \""+fStr+"\"")
+        test = mel.("eval "+ (os.path.split(f)[1]).split(': ', 1)))
         if len(test) == 2 and test[1].replace('\\', '/') != f.replace('\\', '/'):
-            pm.warning("Overriding failed: Maya is still using %s" % test[1])
+            cmds.warning("Overriding failed: Maya is still using %s" % test[1])
 
 def _overridePythonScripts():
     root = mtoaPackageRoot()
@@ -73,19 +66,7 @@ def _overridePythonScripts():
             import_string = "from %s import *" % os.path.splitext(f)[0]
             exec import_string
             # module = __import__(os.path.splitext(f)[0])
-
-def _addAEHooks():
-    """
-    in versions of Maya prior to 2013 there is no way to override built-in AE templates.
-    """
-    # Realflow uses the AEshapeHooks global variable as a convention for sharing AEshapeTemplate overrides,
-    # so we will too, unless a more popular convention is found.
-    pm.melGlobals.initVar('string[]', 'AEshapeHooks')
-    hooks = list(pm.melGlobals['AEshapeHooks'])
-    import mtoa.ui.ae.templates
-    procName = utils.pyToMelProc(mtoa.ui.ae.templates.loadArnoldTemplate, [('string', 'nodeName')], useName=True)
-    hooks.append(procName)
-    pm.melGlobals['AEshapeHooks'] = hooks
+'''
 
 def addSpreadSheetHooks():
 
@@ -102,9 +83,9 @@ def addSpreadSheetHooks():
     arnoldAttrList += "\"colorR\", \"colorG\", \"colorB\", \"intensity\", \"aiExposure\", \"aiSpread\", \"aiResolution\", \"aiSoftEdge\", \"aiSamples\", \"aiNormalize\", "
     arnoldAttrList += "\"aiFormat\", \"aiPortalMode\"}"
         
-    if pm.optionVar(exists='SSEitem1'):
-        previousSSEitem1 = pm.optionVar(q='SSEitem1')
-        previousSSEitem2 = pm.optionVar(q='SSEitem2')
+    if cmds.optionVar(exists='SSEitem1'):
+        previousSSEitem1 = cmds.optionVar(q='SSEitem1')
+        previousSSEitem2 = cmds.optionVar(q='SSEitem2')
 
         ind = 0
         for item in previousSSEitem1:
@@ -118,30 +99,30 @@ def addSpreadSheetHooks():
                 return
 
             # the attribute list is different, let's remove the items
-            pm.optionVar(removeFromArray=("SSEitem1", ind))
-            pm.optionVar(removeFromArray=("SSEitem2", ind))
-            pm.optionVar(removeFromArray=("SSEitem3", ind))
+            cmds.optionVar(removeFromArray=("SSEitem1", ind))
+            cmds.optionVar(removeFromArray=("SSEitem2", ind))
+            cmds.optionVar(removeFromArray=("SSEitem3", ind))
             break
         
-    pm.optionVar(stringValueAppend=("SSEitem1", "Arnold"))
-    pm.optionVar(stringValueAppend=("SSEitem2", arnoldAttrList))
-    pm.optionVar(intValueAppend=("SSEitem3", 1))
+    cmds.optionVar(stringValueAppend=("SSEitem1", "Arnold"))
+    cmds.optionVar(stringValueAppend=("SSEitem2", arnoldAttrList))
+    cmds.optionVar(intValueAppend=("SSEitem3", 1))
     
 
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
 def updateMayaImageFormatControl():
-    #pm.mel.source("createMayaSoftwareCommonGlobalsTab.mel")
+    #mel.eval("source createMayaSoftwareCommonGlobalsTab.mel")
     currentRenderer = utils.currentRenderer()
     if currentRenderer == 'mentalRay':
-        pm.mel.updateMentalRayImageFormatControl()
+        mel.eval("updateMentalRayImageFormatControl()")
     elif currentRenderer == 'arnold':
         mtoa.ui.globals.common.updateArnoldImageFormatControl()
     else:
-        pm.mel.updateMayaSoftwareImageFormatControl();
+        mel.eval("updateMayaSoftwareImageFormatControl()")
 
-    if currentRenderer != 'arnold' and pm.mel.getApplicationVersionAsFloat() >= 2009:
-        pm.mel.updateMultiCameraBufferNamingMenu();
+    if currentRenderer != 'arnold':
+        mel.eval("updateMultiCameraBufferNamingMenu()")
 
 def renderSettingsTabLabel_melToUI(smel):
 
@@ -149,9 +130,9 @@ def renderSettingsTabLabel_melToUI(smel):
     # be localized. This procedure uses the first string
     # argument that is passed with the "-addGlobalsTab"
     # flag in the "renderer" command.
-
     try:
-        result = pm.mel.uiRes({
+
+        tabUI = {
             'Common'             : "m_unifiedRenderGlobalsWindow.kCommon",
             'Passes'             : "m_unifiedRenderGlobalsWindow.kPassesTab",
             'Maya Software'      : "m_unifiedRenderGlobalsWindow.kMayaSoftware",
@@ -161,59 +142,63 @@ def renderSettingsTabLabel_melToUI(smel):
             'Quality'            : "m_unifiedRenderGlobalsWindow.kQuality",
             'Indirect Lighting'  : "m_unifiedRenderGlobalsWindow.kIndirectLighting",
             'Options'            : "m_unifiedRenderGlobalsWindow.kOptions"
-            }[smel])
+            }[smel]
+
+
+        result = mel.eval("uiRes "+tabUI)
     except:
         result = smel
-        pm.mel.uiToMelMsg("renderSettingsTabLabel_melToUI", smel, 0)
-
+        mel.eval('uiToMelMsg renderSettingsTabLabel_melToUI "{}" 0'.format(smel))
+        
     return result
 
 def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     # Check to see if the unified render globals window existed.
     # If it does not exist, then we don't need to add any tab yet.
-    if not pm.window('unifiedRenderGlobalsWindow', exists=True):
+    if not cmds.window('unifiedRenderGlobalsWindow', exists=True):
         try:
-            pm.error(pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kCannotAddTabs"))
+            cmds.error(mel.eval("uiRes m_unifiedRenderGlobalsWindow.kCannotAddTabs"))
         except:
             pass
         return
     
-    displayAllTabs = pm.mel.isDisplayingAllRendererTabs()
+    displayAllTabs = mel.eval("isDisplayingAllRendererTabs()")
 
     # If the current renderer the renderer is not this
     # renderer, then don't add the tab yet.
     if not displayAllTabs and utils.currentRenderer() != renderer:
         return
 
-    pm.setParent('unifiedRenderGlobalsWindow')
+    cmds.setParent('unifiedRenderGlobalsWindow')
 
     # Hide the tabForm while updating.
-    tabFormManagedStatus = pm.formLayout('tabForm', q=True, manage=True)
-    pm.formLayout('tabForm', edit=True, manage=False)
-    pm.setParent('tabForm')
+    tabFormManagedStatus = cmds.formLayout('tabForm', q=True, manage=True)
+    cmds.formLayout('tabForm', edit=True, manage=False)
+    cmds.setParent('tabForm')
 
     # Set the correct tabLayout parent.
     if displayAllTabs:
-        tabLayoutName = pm.mel.getRendererTabLayout(pm.melGlobals['gMasterLayerRendererName'])
+        renderVal = mel.eval('global proc string _mtoa_string() { global string $gMasterLayerRendererName; return $gMasterLayerRendererName; } _mtoa_string()');        
+        tabLayoutName = mel.eval('getRendererTabLayout "{}"'.format(renderVal))
     else:
-        tabLayoutName = pm.mel.getRendererTabLayout(renderer)
+        tabLayoutName = mel.eval('getRendererTabLayout "{}"'.format(renderer))
 
-    pm.setParent(tabLayoutName)
+    cmds.setParent(tabLayoutName)
 
     # The tabName is the tabLabel with the white space removed
     # and the word "Tab" added to the end.
     # "masterLayer" will act as the renderer name if the tab
     # is in the master layer.
-    tabName = pm.mel.rendererTabName(renderer, tabLabel)
+    tabName = mel.eval('rendererTabName "{}" "{}"'.format(renderer, tabLabel))
 
     # if the tab-control does not exist, define it and add it
     # to the tabLayout
-    if not pm.layout(tabName, exists=True):
-        pm.setUITemplate('renderGlobalsTemplate', pushTemplate=True)
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    if not cmds.layout(tabName, exists=True):
+        cmds.setUITemplate('renderGlobalsTemplate', pushTemplate=True)
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
         # Define the tab
-        pm.formLayout(tabName)
+        cmds.formLayout(tabName)
 
         # get the content of the tab from the createTabProc
 
@@ -227,21 +212,21 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
                           'createArnoldRendererDiagnosticsTab']
 
         if createProc in createProcs:
-            pm.mel.eval(createProc)
+            mel.eval(createProc)
 
         # These end off the layouts of the information in the Tab
-        pm.setParent('..')
+        cmds.setParent('..')
 
-        pm.setUITemplate(popTemplate=True)
-        pm.setUITemplate(popTemplate=True)
+        cmds.setUITemplate(popTemplate=True)
+        cmds.setUITemplate(popTemplate=True)
 
         # Add the tab to the tabLayout
-        pm.tabLayout(tabLayoutName,
+        cmds.tabLayout(tabLayoutName,
                        edit=True,
                        tabLabel=(tabName, renderSettingsTabLabel_melToUI(tabLabel)))
 
     # Restore the old manage status for the tabForm.
-    pm.formLayout('tabForm', edit=True, manage=tabFormManagedStatus)
+    cmds.formLayout('tabForm', edit=True, manage=tabFormManagedStatus)
 
 def _register():
     args = {}
@@ -277,21 +262,21 @@ def _register():
                                                     [('string', 'editor'), ('int', 'pause')])
     args['changeIprRegionProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
                                                     [('string', 'renderPanel')])
-    pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
+    cmds.renderer('arnold', rendererUIName='Arnold Renderer', **args)
 
     if int(float(maya_version)) > 2018:
-        pm.renderer('arnold', edit=True, supportColorManagement=True)
+        cmds.renderer('arnold', edit=True, supportColorManagement=True)
 
     aiRenderSettingsBuiltCallback("arnold")
-    pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
-    pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
-    pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
+    cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
+    cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
+    cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
     utils.pyToMelProc(updateBackgroundSettings, useName=True)
     utils.pyToMelProc(updateAtmosphereSettings, useName=True)
     #We have to source this file otherwise maya will override
     #our mel proc overrides below.
     #
-    pm.mel.source('createMayaSoftwareCommonGlobalsTab.mel')
+    mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel"')
     
     if int(float(maya_version)) < 2018:
         utils.pyToMelProc(addOneTabToGlobalsWindow,
@@ -305,27 +290,28 @@ def _register():
 
 def registerArnoldRenderer():
     try:
-        alreadyRegistered = pm.renderer('arnold', exists=True)
+        alreadyRegistered = cmds.renderer('arnold', exists=True)
         if not alreadyRegistered:
 
-            pm.evalDeferred(_register)
+            cmds.evalDeferred(_register)
 
             # AE Templates
             # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
-            pm.evalDeferred(aeUtils.loadAETemplates)
+            cmds.evalDeferred(aeUtils.loadAETemplates)
             import rendererCallbacks
             rendererCallbacks.registerCallbacks()
             import mtoa.ui.ae.customShapeAttributes
             import mtoa.ui.ae.customShaderTemplates
-            if not pm.about(batch=True):
+            if not cmds.about(batch=True):
                 # Reload the AE Window if it has already been opened
-                pm.evalDeferred(aeUtils.rebuildAE)
+                cmds.evalDeferred(aeUtils.rebuildAE)
                 # create the Arnold menu
                 createArnoldMenu()
 
+            # FIXME: This doesn't seem to be used anymore
             # version specific overrides or additions
-            _overridePythonScripts()
-            _overrideMelScripts()
+            #_overridePythonScripts()
+            #_overrideMelScripts()
 
             # Add option box for file translator
             utils.pyToMelProc(exportass.arnoldAssOpts,
@@ -338,7 +324,7 @@ def registerArnoldRenderer():
             core.installCallbacks()
             core.MTOA_GLOBALS['COMMAND_PORT'] = None
 
-            if not pm.about(batch=True):
+            if not cmds.about(batch=True):
                 commandPortBase = 4700
                 try:
                     commandPortBase = int(os.environ['MTOA_COMMAND_PORT'])
@@ -353,8 +339,8 @@ def registerArnoldRenderer():
                         break
                     except:
                         pass
-            if not pm.about(batch=True):
-                pm.evalDeferred(arnoldShelf.createArnoldShelf)
+            if not cmds.about(batch=True):
+                cmds.evalDeferred(arnoldShelf.createArnoldShelf)
 
             addSpreadSheetHooks()
 

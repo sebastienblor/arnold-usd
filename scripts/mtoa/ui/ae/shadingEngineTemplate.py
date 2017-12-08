@@ -44,7 +44,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         # populated by updateCustomArrayData()
         self.nameToAttr = {} # mapping from aov name to element plug on aiCustomAOVs 
         #self.arrayIndices = set([])  # set of all indices used by aiCustomAOVs
-        self.orphanedAOVs = set([]) # set of aov names that appear in aiCustomAOVs that are not in the globals
+        #self.orphanedAOVs = set([]) # set of aov names that appear in aiCustomAOVs that are not in the globals
         self.nextIndex = 0
 
         super(ShadingEngineTemplate, self).__init__(nodeType)
@@ -73,8 +73,8 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         self.addCustom("aiCustomAOVs", self.buildAOVFrame, self.updateAOVFrame)
 
     def update(self):
-        if self.nodeName is None or not pm.objExists(self.nodeName) \
-            or self.networkCol is None or not pm.layout(self.networkCol, exists=True):
+        if self.nodeName is None or not cmds.objExists(self.nodeName) \
+            or self.networkCol is None or not cmds.layout(self.networkCol, exists=True):
             return
 
         nodeAttr = pm.Attribute(self.nodeAttr('aiCustomAOVs'))
@@ -105,7 +105,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         '''
         self.nameToAttr, self.nextIndex = aovs.getShadingGroupAOVMap(str(nodeAttr))
         #self.arrayIndices = set([at.index() for at in self.nameToAttr.values()])
-        self.orphanedAOVs = set(self.nameToAttr.keys()).difference([aov.name for aov in aovList])
+        #self.orphanedAOVs = set(self.nameToAttr.keys()).difference([aov.name for aov in aovList])
 
     def updateNetworkData(self):
         self.networkData = getAOVsInNetwork(self.nodeAttr('surfaceShader'))
@@ -127,28 +127,28 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         self.updateNetworkData()
         self.updateCustomArrayData(nodeAttr, aovList)
 
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-        pm.cmds.frameLayout(label='AOVs', collapse=False)
-        pm.cmds.columnLayout(adjustableColumn=True)
+        cmds.frameLayout(label='AOVs', collapse=False)
+        cmds.columnLayout(adjustableColumn=True)
 
-        pm.cmds.rowLayout(nc=2)
-        pm.cmds.text(label='')
-        pm.cmds.button(label='Add Custom AOV', c=lambda *args: shaderTemplate.newAOVPrompt())
-        pm.setParent('..') # rowLayout
+        cmds.rowLayout(nc=2)
+        cmds.text(label='')
+        cmds.button(label='Add Custom AOV', c=lambda *args: shaderTemplate.newAOVPrompt())
+        cmds.setParent('..') # rowLayout
 
-        pm.cmds.frameLayout(labelVisible=False, collapsable=False)
-        self.otherCol = pm.cmds.columnLayout(adjustableColumn=True)
+        cmds.frameLayout(labelVisible=False, collapsable=False)
+        self.otherCol = cmds.columnLayout(adjustableColumn=True)
         self.buildOtherAOVs(nodeAttr, aovList)
-        pm.setParent('..') # columnLayout
-        pm.setParent('..') # frameLayout
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
 
-        pm.setParent('..') # columnLayout
-        pm.setParent('..') # frameLayout
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
         
-        pm.setParent('..') # columnLayout
-        pm.setParent('..') # frameLayout
-        pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def updateAOVFrame(self, nodeAttr):
         # TODO: move this into AttributeEditorTemplate
@@ -157,21 +157,21 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
 
         self.updateNetworkData()
         for ctrl in self._msgCtrls:
-            pm.deleteUI(ctrl)
+            cmds.deleteUI(ctrl)
         self._msgCtrls = []
 
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
         aovList = aovs.getAOVs()
         self.updateCustomArrayData(nodeAttr, aovList)
 
-        pm.setParent(self.networkCol)
+        cmds.setParent(self.networkCol)
         self.buildNetworkAOVs(nodeAttr, aovList)
 
-        pm.setParent(self.otherCol)
+        cmds.setParent(self.otherCol)
         self.buildOtherAOVs(nodeAttr, aovList)
 
-        pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
+        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def buildNetworkAOVs(self, nodeAttr, aovList):
         '''
@@ -184,15 +184,15 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 #at.aovName.set(aov.name)
 
                 attrName = '{}.aovInput'.format(at)
-                ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
+                ctrl = cmds.attrNavigationControlGrp(at=attrName,
                                                    label=aov.name,
                                      cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
 
                 self._msgCtrls.append(ctrl)
-                pm.popupMenu(parent=ctrl);
-                pm.menuItem(subMenu=True, label="Goto Node")
+                cmds.popupMenu(parent=ctrl);
+                cmds.menuItem(subMenu=True, label="Goto Node")
                 for node in self.aovNodes[aov.name]:
-                    pm.cmds.menuItem(label=node.name(), command=lambda arg, node=node: pm.select(node))
+                    cmds.menuItem(label=node.name(), command=lambda arg, node=node: pm.select(node))
 
     def buildOtherAOVs(self, nodeAttr, aovList):
         '''
@@ -202,7 +202,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
             if aov.name not in self.networkAOVs:
                 at = self.getAOVAttr(nodeAttr, aov.name)
                 attrName = '{}.aovInput'.format(at)
-                ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
+                ctrl = cmds.attrNavigationControlGrp(at=attrName,
                                                         label=aov.name, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
                 self._msgCtrls.append(ctrl)
 

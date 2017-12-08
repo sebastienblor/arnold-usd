@@ -81,10 +81,10 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         runtimeClassification = getRuntimeClass(nodeType)
     if runtimeClassification:
         kwargs[runtimeClassification] = True
-        node = pm.shadingNode(nodeType, **kwargs)
+        node = cmds.shadingNode(nodeType, **kwargs)
     else:
         cmds.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
-        node = pm.createNode(nodeType, **kwargs)
+        node = cmds.createNode(nodeType, **kwargs)
 
     createShadingGroupIfNeeded(nodeType, node)
     createOptions()
