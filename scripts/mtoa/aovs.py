@@ -290,9 +290,9 @@ class SceneAOV(object):
             except RuntimeError, err:
                 pass #print err
 
-            sgAttr = sg.aiCustomAOVs
+            sgAttr = '{}.aiCustomAOVs'.format(sg)
             try:
-                cmds.aliasAttr('ai_aov_' + newName, sgAttr[self.index])
+                cmds.aliasAttr('ai_aov_' + newName, '{}[{}]'.format(sgAttr,self.index))
             except RuntimeError, err:
                 pass #print err
 
