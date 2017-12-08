@@ -89,7 +89,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         try:
             return self.nameToAttr[aovName]
         except KeyError:
-            values = cmds.getAttr(nodeAttr, mi=True)
+            values = cmds.getAttr(nodeAttr, mi=True) or []
             values.append(aovName)
             cmds.setAttr(nodeAttr, values, type=stringArray)
             aovList = aovs.getAOVs()
@@ -183,8 +183,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 #at = nodeAttr[aov.index]
                 #at.aovName.set(aov.name)
 
-                #attrName = at.aovInput.name()
-                attrName = at + '.aovInput'
+                attrName = '{}.aovInput'.format(at)
                 ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
                                                    label=aov.name,
                                      cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
@@ -202,8 +201,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         for aov in aovList:
             if aov.name not in self.networkAOVs:
                 at = self.getAOVAttr(nodeAttr, aov.name)
-                attrName = at + '.aovInput'
-                #attrName = at.aovInput.name()
+                attrName = '{}.aovInput'.format(at)
                 ctrl = pm.cmds.attrNavigationControlGrp(at=attrName,
                                                         label=aov.name, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
                 self._msgCtrls.append(ctrl)

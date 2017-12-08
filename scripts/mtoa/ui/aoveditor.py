@@ -335,7 +335,8 @@ class AOVItem(object):
         # cache the list of outputs
         self.outputs = []
         outputsAttrStr = '{}.outputs'.format(aovNode)
-        for i in cmds.getAttr(outputsAttrStr, mi=True):
+        outputsAttrVal = cmds.getAttr(outputsAttrStr, mi=True) or []
+        for i in outputsAttrVal:
             outputAttr = '{}[{}]'.format(outputsAttrStr, i)
             try:
                 outputRow = AOVOutputItem(self.outputColumn, outputAttr, self)
@@ -451,10 +452,18 @@ class AOVOutputItem(object):
         self.row = None
         self.driverMenu = None
         self.filterMenu = None
-        driver_inputs = cmds.listConnections('{}.driver'.format(outputAttr), source=True, destination=False)
-        filter_inputs = cmds.listConnections('{}.filter'.format(outputAttr), source=True, destination=False)
-        self.driverNode = driver_inputs[0]
-        self.filterNode = filter_inputs[0]
+        driver_inputs = cmds.listConnections('{}.driver'.format(outputAttr), source=True, destination=False) or []
+        filter_inputs = cmds.listConnections('{}.filter'.format(outputAttr), source=True, destination=False) or []
+        if len(driver_inputs):
+            self.driverNode = driver_inputs[0]
+        else:
+            self.driverNode = None
+
+        if len(filter_inputs):
+            self.filterNode = filter_inputs[0]
+        else:
+            self.filterNode = None
+
         self.buildOutputRow()
 
     def buildOutputRow(self):

@@ -351,10 +351,10 @@ def registerDefaultTranslator(nodeType, default):
 def getDefaultTranslator(obj):
     if isinstance(obj, basestring):
         selList = om.MSelectionList()
-        om.MSelectionList.add(selList, obj)
+        selList.add(obj)
         obj = om.MObject()
-        om.MSelectionList.getDependNode(list, 0, obj)
-
+        selList.getDependNode(0, obj)
+        
     mfn = om.MFnDependencyNode(obj)
     global _defaultTranslators
     try:

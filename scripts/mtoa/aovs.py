@@ -141,7 +141,7 @@ def getShadingGroupAOVMap(nodeAttr):
 
     for i in idx_list:
         _a = '{}[{}]'.format(nodeAttr, i)
-        name = cmds.getAttr('{}.aovName'.format(_a, i))
+        name = cmds.getAttr('{}.aovName'.format(_a))
         if name:
             nameToAttr[name] = _a
         nextIndex = i+1
@@ -282,7 +282,7 @@ class SceneAOV(object):
         '''
         if oldName is None:
             oldName = self.name
-            cmds.setAttr('{}.name'.format(self.node), newName)
+            cmds.setAttr('{}.name'.format(self.node), newName, type="string")
 
         for sg in cmds.ls(type='shadingEngine'):
             try:
@@ -609,16 +609,15 @@ def createAliases(sg):
         return
 
     sgAttr = '{}.aiCustomAOVs'.format(sg)
-    attrValues = cmds.getAttr(sgAttr, mi=True)
-    if attrValues:
-        for i in attrValues:
-            at = '{}[{}]'.format(sgAttr, i)
-            name = cmds.getAttr('{}.aovName'.format(at))
-            try:
-                cmds.aliasAttr('ai_aov_' + name, at)
-            except RuntimeError as err:
-                cmds.aliasAttr(sg + '.ai_aov_' + name, remove=True)
-                cmds.aliasAttr('ai_aov_' + name, at)
+    attrValues = cmds.getAttr(sgAttr, mi=True) or []
+    for i in attrValues:
+        at = '{}[{}]'.format(sgAttr, i)
+        name = cmds.getAttr('{}.aovName'.format(at))
+        try:
+            cmds.aliasAttr('ai_aov_' + name, at)
+        except RuntimeError as err:
+            cmds.aliasAttr(sg + '.ai_aov_' + name, remove=True)
+            cmds.aliasAttr('ai_aov_' + name, at)
 
 
 def installCallbacks():

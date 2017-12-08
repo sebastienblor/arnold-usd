@@ -1069,7 +1069,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
                 cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]')
                 for i in range(0,len(aovList)):
                     driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
-                    if driver_list[0] == 'defaultArnoldDriver':
+                    if driver_list and len(driver_list) and driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
                         cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
@@ -1106,7 +1106,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
 
                 for i in range(0,len(aovList)):
                     driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
-                    if driver_list == 'defaultArnoldDriver':
+                    if driver_list and len(driver_list) and driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
                         cmds.attrControlGrp(label=labelStr , a=attrStr )
@@ -1140,7 +1140,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
                 cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
                 for i in range(0,len(aovList)):
                     driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
-                    if driver_list[0] == 'defaultArnoldDriver':
+                    if driver_list and len(driver_list) and driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
                         cmds.attrControlGrp(label=labelStr , a=attrStr )
