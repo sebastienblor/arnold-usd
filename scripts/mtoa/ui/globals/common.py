@@ -295,11 +295,11 @@ def updateArnoldTargetFilePreview(*args):
     # Convert from pixels to the correct measurement units
     inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
     inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(height, dpi))
-    docWidth = mel.eval('convertMeasurement({}, \"inches\", \"{}\")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
-    docHeight = mel.eval('convertMeasurement({}, \"inches\",\"{}\")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
+    docWidth = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
+    docHeight = mel.eval('convertMeasurement({}, "inches","{}")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
 
     # Convert from DPI to the correct resolution units
-    res = mel.eval('convertResolutionMeasurement({}, \"pixels/inch\", \"{}\")'.format(dpi,gResolutionUnitsNames[resUnits]))
+    res = mel.eval('convertResolutionMeasurement({}, "pixels/inch", "{}")'.format(dpi,gResolutionUnitsNames[resUnits]))
 
     # Convert to strings, rounding applicable floats to 1 decimal place
     imW = width
@@ -307,10 +307,10 @@ def updateArnoldTargetFilePreview(*args):
 
     docW = mel.eval('setDecimalPrecision({}, 1.0)'.format(docWidth))
     docH = mel.eval('setDecimalPrecision({}, 1.0)'.format(docHeight))
-    units = mel.eval('resolutionFormats_melToUI(\"{}\")'.format(gMeasurementUnitsNames[sizeUnits]))
+    units = mel.eval('resolutionFormats_melToUI("{}")'.format(gMeasurementUnitsNames[sizeUnits]))
     resVal = mel.eval('setDecimalPrecision({}, 1.0)'.format(res))
 
-    resUnitsStr = mel.eval('resolutionFormats_melToUI(\"{}\")'.format(gResolutionUnitsNames[resUnits]))
+    resUnitsStr = mel.eval('resolutionFormats_melToUI("{}")'.format(gResolutionUnitsNames[resUnits]))
 
     imageLabel = mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kNewImageSize")
     imageSizeString = cmds.format(imageLabel, s=(imW, imH, docW, docH, units, resVal, resUnitsStr))
@@ -486,7 +486,7 @@ def changeArnoldFileNameFormat(*args):
 
     item = cmds.optionMenuGrp('extMenu', q=True, sl=True)
 
-    mel.eval('setMayaSoftwareFrameExt(\"{}\", 0)'.format(fileTypeToExtension(item)))
+    mel.eval('setMayaSoftwareFrameExt("{}", 0)'.format(fileTypeToExtension(item)))
 
     # Update the batch render window if it exists
     #
@@ -511,7 +511,7 @@ def updateArnoldFileNameFormatControl(*args):
         psdFormat = 1
     else:
         imfType = mel.eval('getImfImageType()')
-        multiframe = mel.eval('multiframeFormat(\"{}\")'.format(imfType))
+        multiframe = mel.eval('multiframeFormat("{}")'.format(imfType))
         psdFormat = 0
     activeMenuItem = 0
 
@@ -1062,7 +1062,7 @@ def updateArnoldCameraControl(*args):
     #  Invoke any user supplied code. This callback is published and
     #  needs to remain consistent in future versions of Maya.
     #
-    if mel.eval("exists \"renderableCameraListUserCallback\""):
+    if mel.eval('exists "renderableCameraListUserCallback"'):
         # Use catchQuiet in case no callback is supplied, we don't
         # want that to show an error.
         mel.eval('catchQuiet( eval("source \"renderableCameraListUserCallback\"")')
@@ -1084,7 +1084,7 @@ def updateArnoldFrameNumberControls(*args):
     useAnim      = cmds.getAttr("defaultRenderGlobals.animation")
     useCustomExt = cmds.getAttr("defaultRenderGlobals.modifyExtension")
     imfType = mel.eval('getImfImageType()')
-    multiframe = mel.eval('multiframeFormat(\"{}\")'.format(imfType))
+    multiframe = mel.eval('multiframeFormat("{}")'.format(imfType))
 
     cmds.attrControlGrp('startFrameCtrl',
                         edit=True,
@@ -1559,7 +1559,7 @@ def changeArnoldRes(*args):
 
     # Convert from the current resolution units to DPI
     resUnits = cmds.getAttr('defaultResolution.pixelDensityUnits')
-    newDPI = mel.eval('convertResolutionMeasurement({}, \"{}\", \"pixels/inch\")'.format(value, gResolutionUnitsNames[resUnits]))
+    newDPI = mel.eval('convertResolutionMeasurement({}, "{}", "pixels/inch")'.format(value, gResolutionUnitsNames[resUnits]))
 
     # Check that value is within value range
     if newDPI < 1.0:
@@ -1779,8 +1779,8 @@ def updateArnoldResolution(*args):
         # Convert from pixels to the correct measurement units
         inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
         inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(heght, dpi))
-        docWidth = mel.eval('convertMeasurement({}, \"inches\", \"{}\")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
-        docHeight = mel.eval('convertMeasurement({}, \"inches\", \"{}\")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
+        docWidth = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
+        docHeight = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
         precision = 3
 
     cmds.floatFieldGrp('mayaSoftwareResWidth', edit=True, precision=precision, v1=docWidth)
@@ -1788,7 +1788,7 @@ def updateArnoldResolution(*args):
 
     # Update resolution field
     # Convert from DPI to the correct resolution units
-    res = mel.eval('convertResolutionMeasurement({}, \"pixels/inch\", \"{}\")'.format(dpi, gResolutionUnitsNames[resUnits]))
+    res = mel.eval('convertResolutionMeasurement({}, "pixels/inch", "{}")'.format(dpi, gResolutionUnitsNames[resUnits]))
     cmds.floatFieldGrp('mayaSoftwareRes', edit=True, precision=3, v1=res)
 
     # "Size Units" and "Resolution Units" fields automatically update
@@ -1976,7 +1976,7 @@ def changeArnoldAspectLockWidth(*args):
 
     if sizeUnits != 0:
         # Convert the obtained value to inches, then to pixels
-        inchWidth = mel.eval('convertMeasurement({}, \"{}\", \"inches\")'.format(widthValue, gMeasurementUnitsNames[sizeUnits]))
+        inchWidth = mel.eval('convertMeasurement({}, "{}", "inches")'.format(widthValue, gMeasurementUnitsNames[sizeUnits]))
         requestedWidth = mel.eval('convertInchesToPixels({}, {})'.format(inchWidth, dpi))
     else: # the width value is in pixels, so no need to convert
         requestedWidth = widthValue
@@ -2025,7 +2025,7 @@ def changeArnoldAspectLockHeight(*args):
     sizeUnits = cmds.getAttr('{}.imageSizeUnits'.format(resNode))
 
     if sizeUnits != 0:
-        inchHeight = mel.eval('convertMeasurement({}, \"{}\", \"inches\")'.format(heightValue, gMeasurementUnitsNames[sizeUnits]))
+        inchHeight = mel.eval('convertMeasurement({}, "{}", "inches")'.format(heightValue, gMeasurementUnitsNames[sizeUnits]))
         # Convert the obtained value to inches, then to pixels
         requestedHeight = mel.eval('convertInchesToPixels({},{})'.format(inchHeight, dpi))
     else:

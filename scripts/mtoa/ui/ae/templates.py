@@ -5,7 +5,6 @@ using `registerAETemplate` or `registerTranslatorUI` depending on whether the te
 or for an mtoa translator.
 """
 
-import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
 from mtoa.utils import prettify, toMayaStyle
@@ -381,10 +380,12 @@ class AEChildMode(BaseMode):
         parent = self._layoutStack[-1]
         cmds.setParent(parent)
         col = cmds.columnLayout(adj=True)
-        if not hasattr(createFunc, '__call__'):
-            createFunc = getattr(pm.mel, createFunc)
-        if not hasattr(updateFunc, '__call__'):
-            updateFunc = getattr(pm.mel, updateFunc)
+        # FIXME this was only needed for aiTranslator called in setup()
+        # when we used a aeCallback() of the lambda functions
+        #if not hasattr(createFunc, '__call__'):
+        #    createFunc = getattr(pm.mel, createFunc)
+        #if not hasattr(updateFunc, '__call__'):
+        #    updateFunc = getattr(pm.mel, updateFunc)
         createFunc(self.nodeAttr(attr))
         cmds.setParent(parent)
         self._controls.append((attr, updateFunc, col))
@@ -770,9 +771,12 @@ class TranslatorControl(AttributeTemplate):
                 self.beginLayout('hide', collapse=False)
                 # if there is more than one translator, we group each in its own layout
                 # create the menu for selecting the translator
+
+                # FIXME we used a aeCallback of the lambda functions, need to
+                # double check what this removal could change
                 self.addCustom("aiTranslator",
-                               aeCallback(lambda attr: self.createMenu(attr.split('.')[0])),
-                               aeCallback(lambda attr: self.updateMenu(attr.split('.')[0])))
+                               lambda attr: self.createMenu(attr.split('.')[0]),
+                               lambda attr: self.updateMenu(attr.split('.')[0]))
 
                 for translator, template in self.getTranslatorTemplates():
                     # we always create a layout, even if it's empty
@@ -786,8 +790,8 @@ class TranslatorControl(AttributeTemplate):
                 # an update callback, but we don't have any normal controls around, so we'll have to make one and
                 # hide it
                 self.addCustom('message',
-                               aeCallback(self.updateChildrenCallback),
-                               aeCallback(self.updateChildrenCallback))
+                               self.updateChildrenCallback,
+                               self.updateChildrenCallback)
             else:
                 translator, template = self.getTranslatorTemplates()[0]
                 self.addChildTemplate('message', template)
