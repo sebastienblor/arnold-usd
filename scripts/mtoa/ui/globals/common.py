@@ -25,7 +25,6 @@ import os
 import math
 import re
 
-import pymel.core as pm
 import maya.cmds as cmds
 import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
@@ -34,7 +33,7 @@ import mtoa.core as core
 import mtoa.aovs as aovs
 import maya.OpenMayaRender
 import maya.mel as mel
-
+import mtoa.melUtils as mu
 
 from maya.app.stereo import stereoCameraRig
 
@@ -106,7 +105,7 @@ def setParentToArnoldCommonTab():
     # Account for the special "all renderers" master layer layout
     # when we are using render layers
     if mel.eval("isDisplayingAllRendererTabs"):
-        renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
+        renderer = mu.getVar('gMasterLayerRendererName', init=True)
     else:
         renderer = utils.currentRenderer()
 
@@ -204,7 +203,7 @@ def updateArnoldTargetFilePreview(*args):
     oldParent = cmds.setParent(query=True)
 
     if mel.eval("isDisplayingAllRendererTabs"):
-        renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
+        renderer = mu.getVar('gMasterLayerRendererName', init=True)
     else:
         renderer = utils.currentRenderer()
 
@@ -285,33 +284,33 @@ def updateArnoldTargetFilePreview(*args):
     if sizeUnits == 0:
         sizeUnits = 1
 
-
-    gMeasurementUnitsNames = pm.melGlobals.get('gMeasurementUnitsNames', 'string[]')
-    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
-
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]', init=True)
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]', init=True)
+    
     if not gResolutionUnitsNames:
         mel.eval("source \"resolutionFormats.mel\"")
-        gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
-        gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+        gMeasurementUnitsNames =  mu.getVar('gMeasurementUnitsNames', type= 'string[]')
+        gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]')
 
     # Convert from pixels to the correct measurement units
-    docWidth = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches(width, dpi), "inches", gMeasurementUnitsNames[sizeUnits])
-
-    docHeight = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches(height, dpi), "inches", gMeasurementUnitsNames[sizeUnits])
+    inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
+    inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(height, dpi))
+    docWidth = mel.eval('convertMeasurement({}, \"inches\", \"{}\")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
+    docHeight = mel.eval('convertMeasurement({}, \"inches\",\"{}\")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
 
     # Convert from DPI to the correct resolution units
-    res = pm.mel.convertResolutionMeasurement(dpi, "pixels/inch", gResolutionUnitsNames[resUnits])
+    res = mel.eval('convertResolutionMeasurement({}, \"pixels/inch\", \"{}\")'.format(dpi,gResolutionUnitsNames[resUnits]))
 
     # Convert to strings, rounding applicable floats to 1 decimal place
     imW = width
     imH = height
 
-    docW = pm.mel.setDecimalPrecision(docWidth, 1.0)
-    docH = pm.mel.setDecimalPrecision(docHeight, 1.0)
-    units = pm.mel.resolutionFormats_melToUI(gMeasurementUnitsNames[sizeUnits])
-    resVal = pm.mel.setDecimalPrecision(res, 1.0)
+    docW = mel.eval('setDecimalPrecision({}, 1.0)'.format(docWidth))
+    docH = mel.eval('setDecimalPrecision({}, 1.0)'.format(docHeight))
+    units = mel.eval('resolutionFormats_melToUI(\"{}\")'.format(gMeasurementUnitsNames[sizeUnits]))
+    resVal = mel.eval('setDecimalPrecision({}, 1.0)'.format(res))
 
-    resUnitsStr = pm.mel.resolutionFormats_melToUI(gResolutionUnitsNames[resUnits])
+    resUnitsStr = mel.eval('resolutionFormats_melToUI(\"{}\")'.format(gResolutionUnitsNames[resUnits]))
 
     imageLabel = mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kNewImageSize")
     imageSizeString = cmds.format(imageLabel, s=(imW, imH, docW, docH, units, resVal, resUnitsStr))
@@ -487,7 +486,7 @@ def changeArnoldFileNameFormat(*args):
 
     item = cmds.optionMenuGrp('extMenu', q=True, sl=True)
 
-    pm.mel.setMayaSoftwareFrameExt(fileTypeToExtension(item), 0)
+    mel.eval('setMayaSoftwareFrameExt(\"{}\", 0)'.format(fileTypeToExtension(item)))
 
     # Update the batch render window if it exists
     #
@@ -511,7 +510,8 @@ def updateArnoldFileNameFormatControl(*args):
         multiframe = 0
         psdFormat = 1
     else:
-        multiframe = pm.mel.multiframeFormat(pm.mel.getImfImageType())
+        imfType = mel.eval('getImfImageType()')
+        multiframe = mel.eval('multiframeFormat(\"{}\")'.format(imfType))
         psdFormat = 0
     activeMenuItem = 0
 
@@ -1004,8 +1004,8 @@ def updateArnoldCameraControl(*args):
 
         cmds.menuItem(label=thisCamLabel, data=CAM_MENU_IGNORE)
         # Save this as a global variable for others to access
-        pm.melGlobals['gRenderableCameraListMenu'] = str(optMenu)
-
+        mu.setVar('gRenderableCameraListMenu', str(optMenu))
+        
         # Insert cameras
         for nonRenderableCamera, isStereo2 in nonRenderableCameras:
             if (nonRenderableCamera, isStereo2) == MENU_SEPARATOR:
@@ -1083,7 +1083,8 @@ def updateArnoldFrameNumberControls(*args):
 
     useAnim      = cmds.getAttr("defaultRenderGlobals.animation")
     useCustomExt = cmds.getAttr("defaultRenderGlobals.modifyExtension")
-    multiframe = pm.mel.multiframeFormat(pm.mel.getImfImageType())
+    imfType = mel.eval('getImfImageType()')
+    multiframe = mel.eval('multiframeFormat(\"{}\")'.format(imfType))
 
     cmds.attrControlGrp('startFrameCtrl',
                         edit=True,
@@ -1131,7 +1132,6 @@ def createArnoldRenderVersionKeywordMenu(parent):
         else:
             ival = '1'
 
-    #callBack = pm.textFieldGrp("renderVersionCtrl", e=True, text="^1s", forceChangeCommand=True)
     formatString = mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kVersionNumber")
     cmds.menuItem(label=formatString.replace('^1s', ival),
                 command=Callback(cmds.textFieldGrp, 'renderVersionCtrl', e=True, text=ival, forceChangeCommand=True))
@@ -1283,14 +1283,6 @@ def createArnoldCommonFrameRange():
     cmds.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=1)
     cmds.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=2)
 
-    '''
-    cmds.attrControlGrp('modifyExtensionCtrl',
-                        attribute='defaultRenderGlobals.modifyExtension',
-                        changeCommand=lambda *args:updateArnoldFrameNumberControls()),
-                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
-    '''
-
-
     cmds.attrControlGrp('startExtensionCtrl',
                         attribute='defaultRenderGlobals.startExtension',
                         enable=cmds.getAttr('defaultRenderGlobals.modifyExtension'),
@@ -1360,25 +1352,25 @@ def createArnoldCommonResolution():
     #
     # Make sure the list of predefined resolutions has been read in.
     #
-    gImageFormatData = pm.melGlobals.get('gImageFormatData', 'string[]')
-    gUserImageFormatData = pm.melGlobals.get('gUserImageFormatData', 'string[]')
+    gImageFormatData = mu.getVar('gImageFormatData', type='string[]', init=True)
+    gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]', init=True)
 
     if not gImageFormatData:
         mel.eval("source imageFormats.mel")
-        gImageFormatData = pm.melGlobals['gImageFormatData']
+        gImageFormatData = mu.getVar('gImageFormatData', type='string[]')
 
 
     if not mel.eval('exists imageFormats_melToUI'):
         mel.eval('source imageFormats.mel')
-        gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
+        gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
 
 
-    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
-    gMeasurementUnitsNames = pm.melGlobals.get('gMeasurementUnitsNames', 'string[]')
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]', init=True)
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]', init=True)
 
     if not gResolutionUnitsNames:
         mel.eval("source resolutionFormats.mel")
-        gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+        gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]')
 
     isMayaEvalVersion = cmds.about(ev=True)
     gPLEImageFormatData = []
@@ -1389,7 +1381,7 @@ def createArnoldCommonResolution():
         # Yes, we need the eval here, to avoid doing the source
         # until we know whether the file actually exists
         mel.eval('catchQuiet( eval("userImageFormats.mel"))')
-        gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
+        gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
@@ -1404,7 +1396,7 @@ def createArnoldCommonResolution():
     numResolutionPresets = len(gImageFormatData)
     allResNodes = cmds.ls(type='resolution')
     numResolutionNodePresets = len(allResNodes) - 1
-    gImageFormatDividerPosition = pm.melGlobals.get('gImageFormatDividerPosition', 'int')
+    gImageFormatDividerPosition = mu.getVar('gImageFormatDividerPosition', type='int', init=True)
     cmds.optionMenuGrp('resolutionMenu',
                      label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kPresets"),
                      changeCommand=changeArnoldResolution)
@@ -1561,13 +1553,13 @@ def changeArnoldRes(*args):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]', init=True)
     oldDPI = cmds.getAttr('defaultResolution.dotsPerInch')
     value = cmds.floatFieldGrp('mayaSoftwareRes', q=True, v1=True)
 
     # Convert from the current resolution units to DPI
     resUnits = cmds.getAttr('defaultResolution.pixelDensityUnits')
-    newDPI = pm.mel.convertResolutionMeasurement(value, gResolutionUnitsNames[resUnits], "pixels/inch")
+    newDPI = mel.eval('convertResolutionMeasurement({}, \"{}\", \"pixels/inch\")'.format(value, gResolutionUnitsNames[resUnits]))
 
     # Check that value is within value range
     if newDPI < 1.0:
@@ -1659,9 +1651,9 @@ def updateArnoldResolution(*args):
     whichRes = 1 # use "Custom" if no match is found
     allResNodes = cmds.ls(type='resolution')
 
-    gImageFormatData = pm.melGlobals.get('gImageFormatData', 'string[]')
-    gUserImageFormatData = pm.melGlobals.get('gUserImageFormatData', 'string[]')
-    gDefaultDpi = pm.melGlobals.get('gDefaultDpi', 'float')
+    gImageFormatData = mu.getVar('gImageFormatData', type='string[]', init=True)
+    gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]', init=True)
+    gDefaultDpi = mu.getVar('gDefaultDpi', type='float', init=True)
 
     numResolutionPresets = len(gImageFormatData)
     numUserResolutionPresets = len(gUserImageFormatData)
@@ -1772,8 +1764,8 @@ def updateArnoldResolution(*args):
     #
     # Update the UI controls for image size and resolution
     #
-    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
-    gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]')
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]')
 
     sizeUnits = cmds.getAttr('{}.imageSizeUnits'.format(resNode))
     resUnits = cmds.getAttr('{}.pixelDensityUnits'.format(resNode))
@@ -1785,8 +1777,10 @@ def updateArnoldResolution(*args):
     precision = 0 # To ensure pixel values are displayed without decimals
     if sizeUnits != 0:
         # Convert from pixels to the correct measurement units
-        docWidth = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches( width, dpi ), "inches", gMeasurementUnitsNames[sizeUnits])
-        docHeight = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches( height, dpi ), "inches", gMeasurementUnitsNames[sizeUnits])
+        inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
+        inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(heght, dpi))
+        docWidth = mel.eval('convertMeasurement({}, \"inches\", \"{}\")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
+        docHeight = mel.eval('convertMeasurement({}, \"inches\", \"{}\")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
         precision = 3
 
     cmds.floatFieldGrp('mayaSoftwareResWidth', edit=True, precision=precision, v1=docWidth)
@@ -1794,7 +1788,7 @@ def updateArnoldResolution(*args):
 
     # Update resolution field
     # Convert from DPI to the correct resolution units
-    res = pm.mel.convertResolutionMeasurement(dpi, "pixels/inch", gResolutionUnitsNames[resUnits])
+    res = mel.eval('convertResolutionMeasurement({}, \"pixels/inch\", \"{}\")'.format(dpi, gResolutionUnitsNames[resUnits]))
     cmds.floatFieldGrp('mayaSoftwareRes', edit=True, precision=3, v1=res)
 
     # "Size Units" and "Resolution Units" fields automatically update
@@ -1817,14 +1811,14 @@ def changeArnoldResolution(*args):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    gImageFormatData = pm.melGlobals['gImageFormatData']
-    gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
-    gDefaultDpi = pm.melGlobals['gDefaultDpi']
+    gImageFormatData = mu.getVar('gImageFormatData', type='string[]')
+    gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
+    gDefaultDpi = mu.getVar('gDefaultDpi')
 
     # We are suppose to get proper image formats for PLE.
     isMayaEvalVersion = cmds.about(ev=True)
     if isMayaEvalVersion:
-        gPLEImageFormatData = pm.melGlobals['gPLEImageFormatData']
+        gPLEImageFormatData = mu.getVar('gPLEImageFormatData', type='string[]')
         gImageFormatData = gPLEImageFormatData
 
     numResolutionPresets = len(gImageFormatData)
@@ -1974,7 +1968,7 @@ def changeArnoldAspectLockWidth(*args):
 
     widthValue = cmds.floatFieldGrp('mayaSoftwareResWidth', q=True, v1=True)
 
-    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]')
 
     resNode = 'defaultResolution'
     dpi = cmds.getAttr('{}.dotsPerInch'.format(resNode))
@@ -1982,7 +1976,8 @@ def changeArnoldAspectLockWidth(*args):
 
     if sizeUnits != 0:
         # Convert the obtained value to inches, then to pixels
-        requestedWidth = pm.mel.convertInchesToPixels(pm.mel.convertMeasurement(widthValue, gMeasurementUnitsNames[sizeUnits], "inches"), dpi)
+        inchWidth = mel.eval('convertMeasurement({}, \"{}\", \"inches\")'.format(widthValue, gMeasurementUnitsNames[sizeUnits]))
+        requestedWidth = mel.eval('convertInchesToPixels({}, {})'.format(inchWidth, dpi))
     else: # the width value is in pixels, so no need to convert
         requestedWidth = widthValue
 
@@ -2023,15 +2018,16 @@ def changeArnoldAspectLockHeight(*args):
 
     heightValue = cmds.floatFieldGrp('mayaSoftwareResHeight', q=True, v1=True)
 
-    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]')
 
     resNode = 'defaultResolution'
     dpi = cmds.getAttr('{}.dotsPerInch'.format(resNode))
     sizeUnits = cmds.getAttr('{}.imageSizeUnits'.format(resNode))
 
     if sizeUnits != 0:
+        inchHeight = mel.eval('convertMeasurement({}, \"{}\", \"inches\")'.format(heightValue, gMeasurementUnitsNames[sizeUnits]))
         # Convert the obtained value to inches, then to pixels
-        requestedHeight = pm.mel.convertInchesToPixels(pm.mel.convertMeasurement(heightValue, gMeasurementUnitsNames[sizeUnits], "inches"),dpi)
+        requestedHeight = mel.eval('convertInchesToPixels({},{})'.format(inchHeight, dpi))
     else:
         # the width value is in pixels, so no need to convert
         requestedHeight = heightValue
@@ -2128,7 +2124,7 @@ def updateArnoldDeviceAspectRatio(*args):
 
 
 # ----------------------------------------------------------------------------
-# Code to update pre/post layer/frame pm.mel callbacks
+# Code to update pre/post layer/frame callbacks
 #
 
 def changeArnoldMelCallbacks(control, attr):
