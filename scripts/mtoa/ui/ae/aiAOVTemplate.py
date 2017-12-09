@@ -1,5 +1,4 @@
-﻿import pymel.core as pm
-import maya.mel
+﻿import maya.mel
 import mtoa.aovs as aovs
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -17,23 +16,15 @@ class AEaiAOVTemplate(ShaderAETemplate):
 
     def outputsNew(self, attr):
         node, plug = attr.split('.', 1)
-        attr = pm.Attribute(attr)
-        self.frame = pm.mel.AEnewNonNumericMulti(node,
-                                                 plug,
-                                                 "AOV Outputs",
-                                                 "", "AEnewCompound",
-                                                 attr.getArrayIndices())
+        idx_list = cmds.getAttr(attr, mi=True) or []
+        idx_listStr = str(idx_list).replace('[', '{').replace(']', '}').replace('L', '')
+        self.frame = maya.mel.eval('AEnewNonNumericMulti(\"{}\",\"{}\",\"AOV Outputs\",\"\", \"AEnewCompound\",{})'.format(node, plug, idx_listStr))
 
     def outputsReplace(self, attr):
         node, plug = attr.split('.', 1)
-        attr = pm.Attribute(attr)
-        #pm.setParent(self.frame)
-        pm.mel.AEreplaceNonNumericMulti(self.frame,
-                                        node,
-                                        plug,
-                                        "", "AEreplaceCompound",
-                                        attr.getArrayIndices())
-
+        idx_list = cmds.getAttr(attr, mi=True) or []
+        idx_listStr = str(idx_list).replace('[', '{').replace(']', '}').replace('L', '')
+        maya.mel.eval('AEreplaceNonNumericMulti(\"{}\", \"{}\", \"{}\",  \"\", \"AEreplaceCompound\", {})'.format(self.frame, node, plug, idx_listStr))
     
     def updateLightGroupsVisibility(self, nodeName):
         nameAttr = '%s.%s' % (nodeName, 'name')

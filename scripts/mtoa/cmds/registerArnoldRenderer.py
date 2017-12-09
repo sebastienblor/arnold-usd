@@ -6,6 +6,7 @@ import mtoa.utils
 import arnoldShelf
 import maya.cmds as cmds
 import maya.mel as mel
+import mtoa.melUtils as mu
 
 def mtoaPackageRoot():
     '''return the path to the mtoa python package directory'''
@@ -178,7 +179,7 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
 
     # Set the correct tabLayout parent.
     if displayAllTabs:
-        renderVal = mel.eval('global proc string _mtoa_string() { global string $gMasterLayerRendererName; return $gMasterLayerRendererName; } _mtoa_string()');        
+        renderVal = mu.getVar('gMasterLayerRendererName')
         tabLayoutName = mel.eval('getRendererTabLayout "{}"'.format(renderVal))
     else:
         tabLayoutName = mel.eval('getRendererTabLayout "{}"'.format(renderer))
