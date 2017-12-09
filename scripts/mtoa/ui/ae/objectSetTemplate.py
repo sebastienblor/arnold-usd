@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
@@ -20,7 +19,6 @@ class AttributeListWindow(object):
         cmds.window(self.win, title=wintitle,
                     sizeable=True,
                     resizeToFitChildren=False)
-        #pm.windowPref(removeAll=True)
         form = cmds.formLayout('form')
         filterText = cmds.textField('alf_filter_text', height=20)
         self.filterText = filterText
@@ -44,7 +42,8 @@ class AttributeListWindow(object):
                 cmds.textScrollList(self.scrollList, edit=True, append=attr)
 
         row = cmds.rowLayout(numberOfColumns=2, columnAlign2=("center", "center"))
-        # cmds.button(width=100, label=modeLabel, c=lambda *args: self.addAttrAndHide())        
+        # cmds.button(width=100, label=modeLabel, c=lambda *args: self.addAttrAndHide())      
+
         cmds.button(width=100, label=modeLabel, command=Callback(cmd))
         cmds.button(width=100, label="Cancel", c=lambda *args: cmds.deleteUI(self.win, window=True))  
         cmds.setParent('..')
@@ -63,6 +62,7 @@ class AttributeListWindow(object):
                 self._attributes.pop(attr, None)
         else:
             self._attributes = self.template.getExistingAttributes()
+
         
     def filterAttributes(self):
         cmds.textScrollList(self.scrollList, edit=True, removeAll=True)        
@@ -80,15 +80,15 @@ class AttributeListWindow(object):
                     cmds.textScrollList(self.scrollList, edit=True, append=attr)
 
     def addAttrAndHide(self):
-        #cmds.window(self.win, edit=True, visible=False)
+        
         attrLabels = cmds.textScrollList(self.scrollList, q=True, si=True)
+        
         if attrLabels:
             self.template.addAttr([self._attributes[x] for x in attrLabels])
         self.handleAttributes('add')
         self.filterAttributes()
 
     def removeAttrAndHide(self):
-        #cmds.window(self.win, edit=True, visible=False)
         attrLabels = cmds.textScrollList(self.scrollList, q=True, si=True)
         if attrLabels:
             self.template.removeAttr([self._attributes[x] for x in attrLabels])
@@ -100,8 +100,6 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         
     def setup(self):
         self.addControl("aiOverride")
-        # print "ObjectSetTemplate setup %s" % self.nodeName
-        # print self.attributeCandidates()
         self.addCustom("aiOverride", self.createAttributesButtons, self.updateAttributesButtons)
         self.addSeparator()
         # FIXME: need a proper listing of override attributes
@@ -109,13 +107,9 @@ class ObjectSetTemplate(templates.AttributeTemplate):
                 
     def update(self):
         pass
-        # print "ObjectSetTemplate update %s" % self.nodeName
-        # FIXME seems never to get called
         pass
             
     def createAttributesButtons(self, attr):
-        # print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
-        # print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         cmds.rowLayout(numberOfColumns=3,
                        columnWidth3=(140, 80, 80),
@@ -129,8 +123,6 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
         
     def updateAttributesButtons(self, attr):
-        # print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
-        # print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
         pass
 
     def getCandidateAttributes(self):
@@ -139,52 +131,49 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         if attributeList:
             for attrName in attributeList:
                 try:
-                    attr = pm.general.Attribute(attrName)
-                    candidates[attr.longName(fullPath=True)] = attr
+                    attrShortName = attrName[attrName.find('.')+1:]
+                    candidates[attrShortName] = attrName
                 except:
                     pass
         return candidates
 
     def getExistingAttributes(self):
         existing = {}
-        attrs = pm.PyNode(self.nodeName).listAttr(userDefined=True)
-        for attr in attrs :
-            name = attr.longName(fullPath=True)
-            if not name in existing :
-                existing[name] = attr
+        
+        attrs = cmds.listAttr(self.nodeName, userDefined=True) or []
+        for attr in attrs:
+            if not attr in existing:
+                existing[attr] = '{}.{}'.format(self.nodeName, attr)
+
         return existing
         
-    @staticmethod
-    def getAttrParent(attr):
-        return attr.getParent(-1, True)
-        
     def addAttr(self, attrs):    
-        # print "addAttr %r" % attrs
         for attr in attrs:
             # must add from top parent
-            parent = ObjectSetTemplate.getAttrParent(attr)
-            self._doAdd(parent.node(), parent.name(longName=True, includeNode=False), None)
+            attrSplit = attr.split('.')
+            if len(attrSplit) > 1:
+                node = attrSplit[0]
+                self._doAdd(node, attrSplit[1], None)
+                
        
     def _doAdd(self, srcNode, attrName, parentName):
-        dstNode = pm.PyNode(self.nodeName)
-        # print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
-        # print "Get %s.%s info" % (srcNode, attrName)
+        srcNode = str(srcNode)
         args                     = {}
         if parentName:
             args['parent']              = parentName  
-        args['longName']         = pm.attributeQuery(attrName, node=srcNode, longName=True)
-        args['shortName']        = pm.attributeQuery(attrName, node=srcNode, shortName=True)
+        args['longName']         = cmds.attributeQuery(attrName, node=srcNode, longName=True)
+        args['shortName']        = cmds.attributeQuery(attrName, node=srcNode, shortName=True)
         try:
-            args['niceName']         = pm.attributeQuery(attrName, node=srcNode, niceName=True)
+            args['niceName']         = cmds.attributeQuery(attrName, node=srcNode, niceName=True)
         except:
             pass
-        children                 = pm.attributeQuery(attrName, node=srcNode, listChildren=True)
+        children                 = cmds.attributeQuery(attrName, node=srcNode, listChildren=True)
         if children:
             args['numberOfChildren']    = len(children)
         else:
             children             = []
             try:
-                defaultValue            = pm.attributeQuery(attrName, node=srcNode, listDefault=True)
+                defaultValue            = cmds.attributeQuery(attrName, node=srcNode, listDefault=True)
                 args['defaultValue']    = defaultValue[0]
             except:
                 pass           
@@ -199,72 +188,69 @@ class ObjectSetTemplate(templates.AttributeTemplate):
             
         # args['dataType']       = None
         try:
-            args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)
+            args['category']         = cmds.attributeQuery(attrName, node=srcNode, categories=True)
         except:
             pass         
-        isEnum                   = pm.attributeQuery(attrName, node=srcNode, enum=True)
+        isEnum                   = cmds.attributeQuery(attrName, node=srcNode, enum=True)
         if isEnum:
             try:
-                listEnum                = pm.attributeQuery(attrName, node=srcNode, listEnum=True)
+                listEnum                = cmds.attributeQuery(attrName, node=srcNode, listEnum=True)
                 args['enumName']        = listEnum[0]
             except:
                 pass
-        isMulti                  = pm.attributeQuery(attrName, node=srcNode, multi=True)
+        isMulti                  = cmds.attributeQuery(attrName, node=srcNode, multi=True)
         if isMulti:
             args['multi']               = True
-            args['indexMatters']        = pm.attributeQuery(attrName, node=srcNode, indexMatters=True)
-        hasMin                   = pm.attributeQuery(attrName, node=srcNode, minExists=True)
+            args['indexMatters']        = cmds.attributeQuery(attrName, node=srcNode, indexMatters=True)
+        hasMin                   = cmds.attributeQuery(attrName, node=srcNode, minExists=True)
         if hasMin:
             try:
-                minValue                = pm.attributeQuery(attrName, node=srcNode, minimum=True)
+                minValue                = cmds.attributeQuery(attrName, node=srcNode, minimum=True)
                 args['minValue']        = minValue[0]
             except:
                 pass        
-        hasMax                   = pm.attributeQuery(attrName, node=srcNode, maxExists=True)
+        hasMax                   = cmds.attributeQuery(attrName, node=srcNode, maxExists=True)
         if hasMax:    
             try:
-                maxValue               = pm.attributeQuery(attrName, node=srcNode, maximum=True)
+                maxValue               = cmds.attributeQuery(attrName, node=srcNode, maximum=True)
                 args['maxValue']       = maxValue[0]
             except:
                 pass
-        hasSoftMin                   = pm.attributeQuery(attrName, node=srcNode, softMinExists=True)
+        hasSoftMin                   = cmds.attributeQuery(attrName, node=srcNode, softMinExists=True)
         if hasSoftMin:
             try:
-                softMinValue           = pm.attributeQuery(attrName, node=srcNode, softMin=True)
+                softMinValue           = cmds.attributeQuery(attrName, node=srcNode, softMin=True)
                 args['softMinValue']   = softMinValue[0]
             except:
                 pass
-        hasSoftMax                   = pm.attributeQuery(attrName, node=srcNode, softMaxExists=True)
+        hasSoftMax                   = cmds.attributeQuery(attrName, node=srcNode, softMaxExists=True)
         if hasSoftMax:
             try:
-                softMaxValue           = pm.attributeQuery(attrName, node=srcNode, softMax=True)
+                softMaxValue           = cmds.attributeQuery(attrName, node=srcNode, softMax=True)
                 args['softMaxValue']   = softMaxValue[0]
             except:
                 pass
         try:                                              
-            args['usedAsColor']      = pm.attributeQuery(attrName, node=srcNode, usedAsColor=True)
+            args['usedAsColor']      = cmds.attributeQuery(attrName, node=srcNode, usedAsColor=True)
         except:
             pass            
         try:
-            args['usedAsFilename']   = pm.attributeQuery(attrName, node=srcNode, usedAsFilename=True)
+            args['usedAsFilename']   = cmds.attributeQuery(attrName, node=srcNode, usedAsFilename=True)
         except:
             pass           
-        args['keyable']          = pm.attributeQuery(attrName, node=srcNode, keyable=True) 
-        # connectable            = pm.attributeQuery(attrName, node=srcNode, connectable=True)     
+        args['keyable']          = cmds.attributeQuery(attrName, node=srcNode, keyable=True) 
         
-        # print "Add %s.%s with options: %s" % (dstNode, attrName, args)
-        pm.addAttr(dstNode, **args)
+        
+        cmds.addAttr(self.nodeName, **args)
         for child in children:
             self._doAdd(srcNode, child, args['longName'])       
 
               
     def removeAttr(self, attrs):
-        # print "removeAttr %r" % attrs
         for attr in attrs:
-            # Can only delete top parent of compound / multi attributes
-            parent = ObjectSetTemplate.getAttrParent(attr)
-            # print "remove %r will need to remove %r" % (attr, parent)
-            parent.delete()
+            attrSplit = attr.split('.')
+            if len(attrSplit) > 1:
+                cmds.deleteAttr('{}.{}'.format(attrSplit[0], attrSplit[1]))
             
             
 templates.registerAETemplate(ObjectSetTemplate, "objectSet")

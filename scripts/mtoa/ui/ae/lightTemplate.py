@@ -1,5 +1,4 @@
-﻿from pymel.mayautils import executeDeferred
-import mtoa.ui.ae.utils as aeUtils
+﻿import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
 from mtoa.callbacks import *
 from mtoa.ui.ae.templates import AttributeTemplate
