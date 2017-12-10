@@ -106,6 +106,8 @@ def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, p
                 pass
         d['procname'] = '%s%s' % (procPrefix, objId)
 
+    # ensure we remove forbidden characters. This appears because of '<built-in>' token in procname #3263
+    d['procname'] = d['procname'].replace('<', '_').replace('>', '_').replace('-', '_')
     d['melParams'] = ', '.join(melParams)
     d['pyParams'] = ', '.join(pyParams)
     d['melReturn'] = melReturn
