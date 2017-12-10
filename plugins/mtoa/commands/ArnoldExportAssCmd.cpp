@@ -429,11 +429,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
          appendToResult(curfilename);
 
-         // TODO: package all of this in a method
-         // This is no longer necessary in arnold side, see #814
-//         if (cameras.length() > 1 || writeBox)
-            //AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
-         
          renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed, writeBox);
       }

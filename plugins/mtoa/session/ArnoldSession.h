@@ -192,9 +192,6 @@ public:
 
    void RequestUpdateOptions();
 
-   void QueueProceduralUpdate(CNodeTranslator *tr);
-   void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
-   void UnRegisterProcedural(AtNode *node);
    void ExportTxFiles();
 
    const ObjectToTranslatorMap &GetProcessedTranslators() const {return m_processedTranslators;}
@@ -255,9 +252,6 @@ private:
 
    
    void RecursiveUpdateDagChildren(MDagPath &parent);
-
-   void UpdateProceduralReferences();
-
 private:
 
    CSessionOptions m_sessionOptions;
@@ -281,7 +275,6 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-   unordered_set<CNodeTranslator *> m_proceduralsToUpdate;
    
 protected:
    ObjectHandleToDagMap m_masterInstances;

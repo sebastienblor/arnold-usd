@@ -185,24 +185,10 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    // the main arnold node
    if (m_atRoot == NULL)
       m_atRoot = m_atNode;
-   
-   if (m_atNode != NULL && (AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(m_atNode)) == AI_NODE_SHAPE_PROCEDURAL))
-   {
-      // FIXME : make sure we get rid of this once a DG is implemented in arnold
-      
-      // this is a procedural node, so it can "contain"
-      // other arnold nodes, we're flagging it this way
-      m_isProcedural = true;
-      // need to register to arnold session, that will keep track of it
-      m_session->RegisterProcedural(m_atNode, &m_tr);
-   }
 
    if (MtoaTranslationInfo())
    {
       MString log = "[mtoa.translator]  "+m_tr.GetMayaNodeName()+" ("+GetMayaNodeTypeName()+"): ";
-      if (m_isProcedural)
-         log += "Procedural ";
-
       log += "Translator "+m_tr.GetTranslatorName();
       if (m_atNode == NULL)
          log += " didn't create any node";

@@ -32,6 +32,7 @@ MSyntax CArnoldSceneCmd::newSyntax()
    MSyntax syntax;
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("l", "list",  MSyntax::kString);
+   syntax.addFlag("q", "query"); // returns true is there's currently an active arnold scene
 
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -50,6 +51,11 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
    bool listRootNodes = false;
    bool listAllNodes = false;
 
+   if (args.isFlagSet("query"))
+   {
+      setResult(CMayaScene::IsActive());
+      return MS::kSuccess;
+   }
    MString listValue = (args.isFlagSet("list")) ? args.flagArgumentString("list", 0) : "";
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "create";
 

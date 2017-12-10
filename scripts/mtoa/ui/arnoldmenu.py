@@ -7,12 +7,12 @@ import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
 
 from uuid import getnode as get_mac
 import os
-import shutil
 import sys
 
 defaultFolder = ""
@@ -274,128 +274,43 @@ Portions related to TurbulenceFD API Copyright (c) 2015 Jascha Wetzel. All right
     
     cmds.showWindow(w)
     
-def dotDotDotButtonPush(file):
-    licenseFilter = 'License Files (*.lic)'
-    ret = cmds.fileDialog2(fileFilter=licenseFilter, 
-                            cap='Load License File',okc='Load',fm=1)
-    if ret is not None and len(ret):
-        cmds.textField(file, edit=True, text=ret[0])
         
-def installButtonPush(file):
-    licenseFile = cmds.textField(file, query=True, text=True)
-    import maya.mel as mel
-    mPath = mel.eval('getenv "MTOA_PATH"')
-    destination = os.path.join(mPath,'bin')
-    try:
-        shutil.copy(licenseFile,destination)
-        cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
-    except:
-        cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
+def arnoldLicensingGetMacAddress():
+    if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
+        cmds.deleteUI("ArnoldLicenseGetMacAddress")
+    w = cmds.window("ArnoldLicenseGetMacAddress", sizeable=False, title="Get MAC Address")
+    cmds.window("ArnoldLicenseGetMacAddress", edit=True, width=240, height=60)
     
-def arnoldLicenseDialog():
-    if (cmds.window("ArnoldLicense", ex=True)):
-        cmds.deleteUI("ArnoldLicense")
-    w = cmds.window("ArnoldLicense", title="Arnold Node-locked License")
-    cmds.window("ArnoldLicense", edit=True, width=430, height=280)
     cmds.columnLayout()
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
 
-    cmds.text(label="");cmds.text(label="");
-
-    arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
-
-    cmds.text(label="")
-    cmds.text(align="left",label=arnoldAboutText)
-
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.separator()
-    cmds.separator()
-
-    cmds.setParent( '..' )
-    cmds.separator()
-
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
-    macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
-    cmds.text(label="")
-    cmds.text(align="left",label=macText)
-    cmds.setParent( '..' )
-    cmds.separator()
-
-    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
-    cmds.text(label="")
-    cmds.text(align="left",label="MAC Address")
+    cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1,10),(2,90),(3,140)] )
+    cmds.text(align="left", label="")
+    cmds.text(align="left", label="MAC Address")
     name = cmds.textField()
     mac = get_mac()
     mactext = ("%012X" % mac)
     cmds.textField(name,  edit=True, text=mactext, editable=False )
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-
     cmds.setParent( '..' )
-
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
-    macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,10),(2,70),(3,80), (4, 70), (5,10)])
+    cmds.text(align="left",label="")
+    commandStr = 'import maya.cmds as cmds;cmds.arnoldLicense(copyToClipboard=\"' + mactext+'\")'
+    cmds.button( align="left", label='Copy', command=(commandStr))
     cmds.text(label="")
-    cmds.text(align="left",label=macText)
+    cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
+    cmds.text(align="right", label="")
     cmds.setParent( '..' )
-
-    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,190),(4,7),(5,26),(6,7),(7,80),(8,12)] )
-    cmds.text(label="")
-    cmds.text(align="left",label="License file (.lic)")
-    file = cmds.textField()
-    cmds.text(label="")
-    cmds.button( label='...', command=lambda *args: dotDotDotButtonPush(file) )
-    cmds.text(label="")
-    cmds.button( label='Install', command=lambda *args: installButtonPush(file) )
-    cmds.text(label="")
-
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.setParent( '..' )
-
-    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,80),(2,160), (3, 80),(4,20),(5,80)] )
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
-    cmds.text(label="")
-    cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
-
-    cmds.setParent( '..' )
-
     cmds.showWindow(w)
+
+def arnoldLicensingConnectLicenseServer():
+    win = mtoa.licensing.ConnectToLicenseServer()
+    win.create()
+def arnoldLicensingGetDiagnostics():
+    win = mtoa.licensing.GetDiagnostics()
+    win.create()
+
+def arnoldLicensingNodeLocked():
+    win = mtoa.licensing.NodeLocked()
+    win.create()
     
 def arnoldTxManager():
     core.createOptions()
@@ -538,7 +453,40 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
                     c=lambda *args: arnoldConvertDeprecated())
 
-        cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
+        cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
+                    subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingConnectLicenseServer())
+        cmds.menuItem('ArnoldGetDiagnostics', label='Get Diagnostics', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingGetDiagnostics())
+        cmds.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
+        cmds.separator()
+
+        cmds.menuItem('ArnoldSuscribe',  label='Suscribe to Arnold', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+        cmds.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingGetMacAddress())
+
+        setupServerLink = 'https://support.solidangle.com/display/A5AILIC/Setting+up+a+License+Server'
+        platformName = sys.platform
+
+        if platformName.startswith('win'):
+            setupServerLink = 'https://support.solidangle.com/x/IQAzAg'
+        elif platformName.startswith('linux'):
+            setupServerLink = 'https://support.solidangle.com/x/JwAzAg'
+        elif platformName.startswith('darwin'):
+            setupServerLink = 'https://support.solidangle.com/x/EQAzAg'
+
+        cmds.menuItem('ArnoldSetupLicenseServer', label='Setup License Server', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage=setupServerLink))
+
+        cmds.separator()
+        cmds.menuItem('ArnoldInstallNodeLocked', label='Install Node-locked license (Legacy)', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingNodeLocked())
+
+
+        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
 
         cmds.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
@@ -567,8 +515,8 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
 
-        cmds.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
-                    c=lambda *args: arnoldLicenseDialog())
+#        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
+#                    c=lambda *args: arnoldLicenseDialog())
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 

@@ -43,7 +43,6 @@ public :
       m_atNode(NULL),
       m_additionalAtNodes(NULL),
       m_atRoot(NULL),
-      m_isProcedural(false),
       m_overrideSets(),
       m_inUpdateQueue(false),
       m_animArrays(false),
@@ -121,10 +120,6 @@ public :
    AtNode *m_atRoot; // shortcut to the node which is at the root of this translator
    // do not delete, it is supposed to be one of the translators nodes
 
-   // FIXME : make sure we get rid of this isProcedural stuff 
-   // once dependency graph is properly implemented in arnold....
-   bool m_isProcedural;
-   
    std::vector<CNodeTranslator*> m_overrideSets;
 
    // This stores callback IDs for the callbacks this

@@ -37,6 +37,7 @@
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldUpdateTxCmd.h"
 #include "commands/ArnoldSceneCmd.h"
+#include "commands/ArnoldLicenseCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldBakeGeoCmd.h"
@@ -144,7 +145,8 @@ namespace // <anonymous>
       {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax},
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
-      {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax}
+      {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
+      {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.

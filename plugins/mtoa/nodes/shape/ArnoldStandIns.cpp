@@ -310,7 +310,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isAss = true;
 
       AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
       AiNodeSetBool(options, "skip_license_check", true);
 
       // setup procedural search path
