@@ -130,7 +130,7 @@ def createStandIn(path=None):
     # temp fix until we can correct in c++ plugin
 #    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
 #    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
-    cmds.sets('ArnoldStandInDefaultLightSet', add=standIn)
+    cmds.sets(standIn, add='ArnoldStandInDefaultLightSet')
     if path:
         standIn.dso.set(path)
     return standIn
