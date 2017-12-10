@@ -486,7 +486,7 @@ def createArnoldMenu():
                     c=lambda *args: arnoldLicensingNodeLocked())
 
 
-        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
+        cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
 
         cmds.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
@@ -515,7 +515,7 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
 
-#        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
+#        cmds.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
 #                    c=lambda *args: arnoldLicenseDialog())
 
         cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
