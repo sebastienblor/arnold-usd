@@ -1,6 +1,4 @@
-﻿import pymel.core as pm
-from pymel.mayautils import executeDeferred
-import mtoa.ui.ae.utils as aeUtils
+﻿import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
 from mtoa.callbacks import *
 from mtoa.ui.ae.templates import AttributeTemplate
@@ -287,7 +285,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             #cmds.mel.updateAE(newFilter)
         else: # MENU_NODE_INSTANCE
             # name is an existing node
-            self.connectLightFilter(pm.PyNode(name))
+            self.connectLightFilter(name)
 
     def addLightFilter(self, filterNodeType):
         '''
@@ -300,7 +298,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     def connectLightFilter(self, newFilter):
         attr =  self.nodeAttr('aiFilters')
         nfilters = getConnectedCount(attr)
-        cmds.connectAttr('%s.message' % newFilter.name(), '%s[%s]'%(attr, nfilters), force=True)
+        cmds.connectAttr('%s.message' % newFilter, '%s[%s]'%(attr, nfilters), force=True)
         self.lightFiltersUpdateList()
         self.updateAddMenu()
 

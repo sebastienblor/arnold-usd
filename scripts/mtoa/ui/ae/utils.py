@@ -1,6 +1,5 @@
-import pymel.core as pm
 import mtoa.utils as utils
-import maya.mel
+import maya.mel as mel
 import mtoa.ui.ae
 import maya.cmds
 import os
@@ -9,6 +8,7 @@ import re
 import sys
 import inspect
 import maya.cmds as cmds
+import mtoa.melUtils as mu
 
 def arnoldGetDimValue(node, attr):
 
@@ -37,10 +37,6 @@ def getNodeType(name):
         nodeType = 'light'
 
     return nodeType
-
-def attributeExists(attribute, nodeName):
-    return cmds.attributeQuery(attribute, node=nodeName, exists=True)
-
 
 def loadAETemplates():
     templates = []
@@ -82,7 +78,7 @@ def _makeAEProc(modname, objname, procname):
     python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(objname)s','" + $nodeName + "')");}'''
     d = locals().copy()
     d['__name__'] = __name__
-    maya.mel.eval( contents % d )
+    mel.eval( contents % d )
 
 def _aeLoader(modname, objname, nodename):
     mod = __import__(modname, globals(), locals(), [objname], -1)
@@ -115,12 +111,12 @@ def attrType(attr):
 
 def rebuildAE():
     "completely rebuild the attribute editor"
-    edForm = pm.melGlobals['gAttributeEditorForm']
+    edForm = mu.getVar('gAttributeEditorForm')
     if cmds.layout(edForm, q=True, exists=True):
         children = cmds.layout(edForm, q=True, childArray=True)
         if children:
             cmds.deleteUI(children[0])
-            pm.mel.attributeEditorVisibilityStateChange(1, "")
+            mel.eval('attributeEditorVisibilityStateChange(1, \"\")')
 
 def attrTextFieldGrp(*args, **kwargs):
     """
@@ -155,7 +151,7 @@ def attrTextFieldGrp(*args, **kwargs):
         # create
         labelText = kwargs.pop('label', None)
         if not labelText:
-            labelText = pm.mel.interToUI(attribute.split('.')[-1])
+            labelText = mel.eval('interToUI(\"{}\")'.format(attribute.split('.')[-1]))
         ctrl = None
         if len(args) > 0:
             ctrl = args[0]
@@ -200,7 +196,7 @@ def attrBoolControlGrp(*args, **kwargs):
         # create
         labelText = kwargs.pop('label', None)
         if not labelText:
-            labelText = pm.mel.interToUI(attribute.split('.')[-1])
+            labelText = mel.eval('interToUI(\"{}\")'.format(attribute.split('.')[-1]))
         ctrl = args[0]
         cmds.rowLayout(numberOfColumns=1, columnWidth1=285, columnAttach1='right')
         cmds.checkBox(ctrl, label=labelText,

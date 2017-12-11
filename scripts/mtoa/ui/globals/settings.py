@@ -271,7 +271,8 @@ def removeSubdivDicingCamera(field, doDelete, select):
         cmds.symbolButton(select, edit=True, enable=False)
         if doDelete:
             parent = cmds.listRelatives( 'cameraShape1', parent=True )
-            cmds.delete(parent)
+            if parent and len(parent):
+                cmds.delete(parent)
     
 def buildSubdivDicingCameraMenu(popup, field, select):
 

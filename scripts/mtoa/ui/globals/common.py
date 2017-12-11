@@ -25,7 +25,6 @@ import os
 import math
 import re
 
-import pymel.core as pm
 import maya.cmds as cmds
 import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
@@ -34,7 +33,7 @@ import mtoa.core as core
 import mtoa.aovs as aovs
 import maya.OpenMayaRender
 import maya.mel as mel
-
+import mtoa.melUtils as mu
 
 from maya.app.stereo import stereoCameraRig
 
@@ -55,23 +54,35 @@ CAM_MENU_IGNORE     = 4
 
 
 def _listStereoRigs():
-    return [pm.nt.DagNode(x) for x in stereoCameraRig.listRigs(True) or []]
+    return stereoCameraRig.listRigs(True) or []
 def _isMono(camera):
-    return not stereoCameraRig.rigRoot(camera.name())
+    return not stereoCameraRig.rigRoot(camera)
+
+def getStereoLeftCamera(camera):
+    result = cmds.listConnections('{}.leftCam'.format(camera), d=False, s=True)                
+    if result and len(result):
+        return result[0]
+    else:
+        return None
+def getStereoRightCamera(camera):
+    result = cmds.listConnections('{}.leftCam'.format(camera), d=False, s=True)                
+    if result and len(result):
+        return result[0]
+    else:
+        return None
 
 def getMultiCameraChildren(camera):
     cameras = []
     if cmds.pluginInfo("stereoCamera", query=True, loaded=True):
         import maya.app.stereo.stereoCameraRig as stereoCameraRig
         if stereoCameraRig.isRigRoot(str(camera)):
-            # camera.leftCam.get() does not work on Maya2011
             try:
-                result = camera.leftCam.inputs()[0]
-                if result:
-                    cameras.append(result)
-                    result = camera.rightCam.inputs()[0]
-                    if result:
-                        cameras.append(result)
+                lCam = getStereoLeftCamera(camera)
+                if lCam:
+                    cameras.append(lCam)
+                    rCam = getStereoRightCamera(camera)
+                    if rCam:
+                        cameras.append(rCam)
             except IndexError:
                 cmds.warning("Stereo camera %s is missing required connections" % camera)
     return cameras
@@ -94,7 +105,7 @@ def setParentToArnoldCommonTab():
     # Account for the special "all renderers" master layer layout
     # when we are using render layers
     if mel.eval("isDisplayingAllRendererTabs"):
-        renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
+        renderer = mu.getVar('gMasterLayerRendererName', init=True)
     else:
         renderer = utils.currentRenderer()
 
@@ -192,7 +203,7 @@ def updateArnoldTargetFilePreview(*args):
     oldParent = cmds.setParent(query=True)
 
     if mel.eval("isDisplayingAllRendererTabs"):
-        renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
+        renderer = mu.getVar('gMasterLayerRendererName', init=True)
     else:
         renderer = utils.currentRenderer()
 
@@ -273,33 +284,33 @@ def updateArnoldTargetFilePreview(*args):
     if sizeUnits == 0:
         sizeUnits = 1
 
-
-    gMeasurementUnitsNames = pm.melGlobals.get('gMeasurementUnitsNames', 'string[]')
-    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
-
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]', init=True)
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]', init=True)
+    
     if not gResolutionUnitsNames:
         mel.eval("source \"resolutionFormats.mel\"")
-        gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
-        gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+        gMeasurementUnitsNames =  mu.getVar('gMeasurementUnitsNames', type= 'string[]')
+        gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]')
 
     # Convert from pixels to the correct measurement units
-    docWidth = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches(width, dpi), "inches", gMeasurementUnitsNames[sizeUnits])
-
-    docHeight = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches(height, dpi), "inches", gMeasurementUnitsNames[sizeUnits])
+    inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
+    inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(height, dpi))
+    docWidth = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
+    docHeight = mel.eval('convertMeasurement({}, "inches","{}")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
 
     # Convert from DPI to the correct resolution units
-    res = pm.mel.convertResolutionMeasurement(dpi, "pixels/inch", gResolutionUnitsNames[resUnits])
+    res = mel.eval('convertResolutionMeasurement({}, "pixels/inch", "{}")'.format(dpi,gResolutionUnitsNames[resUnits]))
 
     # Convert to strings, rounding applicable floats to 1 decimal place
     imW = width
     imH = height
 
-    docW = pm.mel.setDecimalPrecision(docWidth, 1.0)
-    docH = pm.mel.setDecimalPrecision(docHeight, 1.0)
-    units = pm.mel.resolutionFormats_melToUI(gMeasurementUnitsNames[sizeUnits])
-    resVal = pm.mel.setDecimalPrecision(res, 1.0)
+    docW = mel.eval('setDecimalPrecision({}, 1.0)'.format(docWidth))
+    docH = mel.eval('setDecimalPrecision({}, 1.0)'.format(docHeight))
+    units = mel.eval('resolutionFormats_melToUI("{}")'.format(gMeasurementUnitsNames[sizeUnits]))
+    resVal = mel.eval('setDecimalPrecision({}, 1.0)'.format(res))
 
-    resUnitsStr = pm.mel.resolutionFormats_melToUI(gResolutionUnitsNames[resUnits])
+    resUnitsStr = mel.eval('resolutionFormats_melToUI("{}")'.format(gResolutionUnitsNames[resUnits]))
 
     imageLabel = mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kNewImageSize")
     imageSizeString = cmds.format(imageLabel, s=(imW, imH, docW, docH, units, resVal, resUnitsStr))
@@ -330,27 +341,27 @@ def createArnoldInsertKeywordMenu(parent):
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kFileNameKeywords"), enable=0)
     cmds.menuItem(divider=True)
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordScene"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Scene>"))
+                  command=lambda *args: insertArnoldKeywordMenuCallback("<Scene>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordLayer"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderLayer>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderLayer>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordCamera"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Camera>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<Camera>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordRPFG"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderPassFileGroup>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPass"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPass>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderPass>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPassType"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPassType>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<RenderPassType>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordExtension"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Extension>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<Extension>"))
     cmds.menuItem(label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordVersion"),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Version>"))
+                  command=lambda *args:insertArnoldKeywordMenuCallback("<Version>"))
     date = cmds.date(format="YY_MM_DD")
     cmds.menuItem(label=(mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordDate") + date),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback,  date))
+                  command=lambda arg=None, x=date:insertArnoldKeywordMenuCallback(x))
     time = cmds.date(format="hh-mm-ss")
     cmds.menuItem(label=(mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kKeywordTime") + time),
-                  command=pm.Callback(insertArnoldKeywordMenuCallback, time))
+                  command=lambda arg=None, x=time:insertArnoldKeywordMenuCallback(x))
 
 # ----------------------------------------------------------------------------
 # Code to create and update the Image File Output frame
@@ -475,7 +486,7 @@ def changeArnoldFileNameFormat(*args):
 
     item = cmds.optionMenuGrp('extMenu', q=True, sl=True)
 
-    pm.mel.setMayaSoftwareFrameExt(fileTypeToExtension(item), 0)
+    mel.eval('setMayaSoftwareFrameExt("{}", 0)'.format(fileTypeToExtension(item)))
 
     # Update the batch render window if it exists
     #
@@ -499,7 +510,8 @@ def updateArnoldFileNameFormatControl(*args):
         multiframe = 0
         psdFormat = 1
     else:
-        multiframe = pm.mel.multiframeFormat(pm.mel.getImfImageType())
+        imfType = mel.eval('getImfImageType()')
+        multiframe = mel.eval('multiframeFormat("{}")'.format(imfType))
         psdFormat = 0
     activeMenuItem = 0
 
@@ -724,24 +736,29 @@ def updateArnoldImageFormatControl(*args):
     cmds.setAttr('defaultRenderGlobals.imfkey', str(curr), type="string")
     
 
-def extendToShape(dag):
-    'Return the camera shape from this dag object'
+def extendToShape(cam):
+    if cam is None:
+        return None
+
     try:
-        return dag.getShape()
+      camShapes = cmds.listRelatives(cam, shapes=True)
+      if camShapes and len(camShapes):
+          return camShapes[0]
+      else:
+          return None
     except AttributeError:
-        return dag
+        return None
 
 def getCameras():
     '''
     Return a tuple of (ortho, mono, stereo) camera lists, converting camera
     shapes to transforms
     '''
-    ortho = [pm.PyNode(x) for x in pm.listCameras(orthographic=True) or []]
+    ortho = cmds.listCameras(orthographic=True) or []
     mono = []
     stereo = []
     # List all mono perspective cameras first
-    for camera in pm.listCameras(perspective=True) or []:
-        camera = pm.PyNode(camera)
+    for camera in cmds.listCameras(perspective=True) or []:
         if _isMono(camera):
             # Ensure to use its shape node
             mono.append(camera)
@@ -752,12 +769,16 @@ def getCameras():
 def arnoldCameraMaskChange(ui, camera, mask_name):
     val = cmds.checkBoxGrp(ui, q=True, value1=True)
     if _isMono(camera):
-        camera.attr(mask_name).set(val)
+        cmds.setAttr('{}.{}'.format(camera, mask_name), val)
     else:
-        lCam = camera.leftCam.get()
-        rCam = camera.rightCam.get()
-        lCam.attr(mask_name).set(val)
-        rCam.attr(mask_name).set(val)
+
+        lCam = getStereoLeftCamera(camera)
+        if lCam:
+            cmds.setAttr('{}.{}'.format(lCam, mask_name), val)
+        rCam = getStereoRightCamera(camera)
+        if rCam:
+            cmds.setAttr('{}.{}'.format(rCam, mask_name), val)
+        
 
 def arnoldChangedCamera(camera, cameraMode, menu):
     '''
@@ -801,14 +822,14 @@ def arnoldChangedCamera(camera, cameraMode, menu):
 
             for cam in cameras:
                 camShape = extendToShape(cam)
-
-                # Create adjustments if we are not on the master layer
-                if not isBaseLayer and not newCamNeedLayerAdj:
-                    # If the source had an adjustment, create one on the
-                    # new camera as well.
-                    if camShape.renderable.inputs():
-                        newCamNeedLayerAdj = True;
-                camShape.renderable.set(False)
+                if camShape:
+                    # Create adjustments if we are not on the master layer
+                    if not isBaseLayer and not newCamNeedLayerAdj:
+                        # If the source had an adjustment, create one on the
+                        # new camera as well.
+                        if cmds.listConnections('{}.renderable'.format(camShape), d=False, s=True):
+                            newCamNeedLayerAdj = True;
+                    cmds.setAttr('{}.renderable'.format(camShape), False)
 
     elif data == CAM_MENU_ADD:
         # Create adjustments if not on the master layer.
@@ -820,43 +841,44 @@ def arnoldChangedCamera(camera, cameraMode, menu):
         new = cmds.optionMenuGrp(menu, query=True, value=True)
         cameras = []
         if data == CAM_MENU_CAMERA:
-            cameras.append(pm.PyNode(new))
+            cameras.append(new)
         elif data == CAM_MENU_STEREOPAIR:
             pairStr = mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kStereoPair")
             stereoCam = new[:-len(pairStr)]
-            cameras = getMultiCameraChildren(pm.nt.DagNode(stereoCam))
+            cameras = getMultiCameraChildren(stereoCam)
         elif data == CAM_MENU_ADD:
             # Mark renderable the first non renderable camera we can find
-            allCameraShapes = pm.ls(cameras=True)
+            allCameraShapes = cmds.ls(cameras=True)
             for cameraShape in allCameraShapes:
-                if not cameraShape.renderable.get():
+                if not cmds.getAttr('{}.renderable'.format(cameraShape)):
                     cameras.append(cameraShape)
                     break
 
         # Now make the new cameras renderable
         for cam in cameras:
             if newCamNeedLayerAdj:
-                pm.editRenderLayerAdjustment(cam.renderable)
-            cam.renderable.set(True)
-
+                cmds.editRenderLayerAdjustment('{}.renderable'.format(cam))
+            cmds.setAttr('{}.renderable'.format(cam), True)
+            
     # Finally force recomputing the UI
     cmds.evalDeferred(updateArnoldCameraControl)
 
 def setArnoldCheckboxFromAttr(camera, chkbox, attr):
-    if pm.hasAttr(camera, 'stereoRigType'):
-        # camera.leftCam.get() does not work on Maya2011
+    if cmds.attributeQuery('stereoRigType', node=camera, exists=True):
         try:
-            camera = camera.leftCam.inputs()[0]
+            camera = getStereoLeftCamera(camera)
+            if camera is None:
+                return
         except IndexError:
             return
-    val = camera.attr(attr).get()
+    val = cmds.getAttr('{}.{}'.format(camera, attr))
     cmds.checkBoxGrp(chkbox, e=True, value1=val)
 
 
 def updateArnoldCameraControl(*args):
 
-    pm.melGlobals.initVar('string', 'gRenderableCameraListMenu')
-
+    mel.eval('global string $gRenderableCameraListMenu')
+    
     oldParent = cmds.setParent(query=True)
 
     setParentToArnoldCommonTab()
@@ -878,7 +900,7 @@ def updateArnoldCameraControl(*args):
 
     # List all mono perspective cameras first
     for camera in monoCams:
-        if camera.renderable.get():
+        if cmds.getAttr('{}.renderable'.format(camera)):
             renderableCameras.append((camera, False))
         else:
             nonRenderableCameras.append((camera, False))
@@ -894,24 +916,25 @@ def updateArnoldCameraControl(*args):
             nonRenderableCameras.append(MENU_SEPARATOR)
             # rig.leftCam.get() does not work in Maya2011
             try:
-                lCam = rig.leftCam.inputs()[0].getShape()
-                rCam = rig.rightCam.inputs()[0].getShape()
+                lCam = extendToShape(getStereoLeftCamera(rig))
+                rCam = extendToShape(getStereoRightCamera(rig))
             except IndexError:
                 cmds.warning("Stereo camera %s is missing required connections" % rig)
                 continue
-            cameras = rig.listRelatives(type="camera", allDescendents=True)
+            cameras = cmds.listRelatives(rig, type="camera", allDescendents=True) or []
             # Add an entry for the rig pair if at least one cam is not
             # renderable. Use the + character to mark it.
             skipLR = False
-            if lCam.renderable.get() and rCam.renderable.get():
+            if cmds.getAttr('{}.renderable'.format(lCam)) and cmds.getAttr('{}.renderable'.format(rCam)):
                 renderableCameras.append((rig, True))
                 skipLR = True
             else:
                 nonRenderableCameras.append((rig, True))
 
             for camShape in cameras:
-                camera = camShape.getParent()
-                if camShape.renderable.get():
+                camParents = cmds.listRelatives(camShape, parent=True) or []
+                if len(camParents) and cmds.getAttr('{}.renderable'.format(camShape)):
+                    camera = camParents[0]
                     if (camShape == lCam or camShape == rCam):
                         if not skipLR:
                             renderableCameras.append((camera, False))
@@ -921,6 +944,7 @@ def updateArnoldCameraControl(*args):
                         renderableCameras.append((camera, False))
                 else:
                     nonRenderableCameras.append((camera, False))
+                
         # Remove the separator if nothing was added.
         if nonRenderableCameras and nonRenderableCameras[-1] == MENU_SEPARATOR:
             nonRenderableCameras.pop()
@@ -930,7 +954,7 @@ def updateArnoldCameraControl(*args):
 
     for camera in orthoCams:
         # Ensure to use its shape node
-        if camera.renderable.get():
+        if cmds.getAttr('{}.renderable'.format(camera)):
             renderableCameras.append((camera, False))
         else:
             nonRenderableCameras.append((camera, False))
@@ -970,7 +994,7 @@ def updateArnoldCameraControl(*args):
 
         cmds.optionMenuGrp(optMenu,
                          edit=True,
-                         changeCommand=pm.Callback(arnoldChangedCamera, camera, cameraMode, optMenu))
+                         changeCommand=lambda arg=None, x=camera, y=cameraMode, z=optMenu: arnoldChangedCamera(x, y, z))
 
         # The first item is the current renderable camera
         if cameraMode == CAM_MENU_STEREOPAIR:
@@ -980,8 +1004,8 @@ def updateArnoldCameraControl(*args):
 
         cmds.menuItem(label=thisCamLabel, data=CAM_MENU_IGNORE)
         # Save this as a global variable for others to access
-        pm.melGlobals['gRenderableCameraListMenu'] = str(optMenu)
-
+        mu.setVar('gRenderableCameraListMenu', str(optMenu))
+        
         # Insert cameras
         for nonRenderableCamera, isStereo2 in nonRenderableCameras:
             if (nonRenderableCamera, isStereo2) == MENU_SEPARATOR:
@@ -1002,7 +1026,8 @@ def updateArnoldCameraControl(*args):
         if not isFakeCam:
             # connect the label, so we can change its color
             camShape = extendToShape(camera)
-            cmds.connectControl(optMenu, "%s.renderable"%camShape, index=1)
+            if camShape:
+                cmds.connectControl(optMenu, "%s.renderable"%camShape, index=1)
 
             if len(renderableCameras) > 1:
                 cmds.iconTextButton(style="iconOnly",
@@ -1010,7 +1035,7 @@ def updateArnoldCameraControl(*args):
                                     annotation=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kNonRendCam"),
                                     width=20,
                                     height=20,
-                                    command=pm.Callback(arnoldChangedCamera, camera, cameraMode, ''))
+                                    command=lambda arg=None, x=camera, y=cameraMode: arnoldChangedCamera(x, y, ''))
 
         cmds.setParent('..')
 
@@ -1018,13 +1043,13 @@ def updateArnoldCameraControl(*args):
             cmds.columnLayout()
             chkbox = cmds.checkBoxGrp(numberOfCheckBoxes=1,
                                     label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kAlphaChannel"))
-            cmds.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'mask'))
+            cmds.checkBoxGrp(chkbox, e=True, cc=lambda arg=None, x=chkbox, y=camera:arnoldCameraMaskChange(x, y, 'mask'))
             setArnoldCheckboxFromAttr(camera, chkbox, "mask")
             cmds.connectControl(chkbox, "%s.mask"%camShape, index=1)
             cmds.connectControl(chkbox, "%s.mask"%camShape, index=2)
             chkbox = cmds.checkBoxGrp(numberOfCheckBoxes=1,
                                     label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kDepthChannel"))
-            cmds.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'depth'))
+            cmds.checkBoxGrp(chkbox, e=True, cc=lambda arg=None, x=chkbox, y=camera:arnoldCameraMaskChange(x, y, 'depth'))
             setArnoldCheckboxFromAttr(camera, chkbox, "depth")
             cmds.connectControl(chkbox, "%s.depth"%camShape, index=1)
             cmds.connectControl(chkbox, "%s.depth"%camShape, index=2)
@@ -1037,7 +1062,7 @@ def updateArnoldCameraControl(*args):
     #  Invoke any user supplied code. This callback is published and
     #  needs to remain consistent in future versions of Maya.
     #
-    if mel.eval("exists \"renderableCameraListUserCallback\""):
+    if mel.eval('exists "renderableCameraListUserCallback"'):
         # Use catchQuiet in case no callback is supplied, we don't
         # want that to show an error.
         mel.eval('catchQuiet( eval("source \"renderableCameraListUserCallback\"")')
@@ -1058,7 +1083,8 @@ def updateArnoldFrameNumberControls(*args):
 
     useAnim      = cmds.getAttr("defaultRenderGlobals.animation")
     useCustomExt = cmds.getAttr("defaultRenderGlobals.modifyExtension")
-    multiframe = pm.mel.multiframeFormat(pm.mel.getImfImageType())
+    imfType = mel.eval('getImfImageType()')
+    multiframe = mel.eval('multiframeFormat("{}")'.format(imfType))
 
     cmds.attrControlGrp('startFrameCtrl',
                         edit=True,
@@ -1106,7 +1132,6 @@ def createArnoldRenderVersionKeywordMenu(parent):
         else:
             ival = '1'
 
-    #callBack = pm.textFieldGrp("renderVersionCtrl", e=True, text="^1s", forceChangeCommand=True)
     formatString = mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kVersionNumber")
     cmds.menuItem(label=formatString.replace('^1s', ival),
                 command=Callback(cmds.textFieldGrp, 'renderVersionCtrl', e=True, text=ival, forceChangeCommand=True))
@@ -1258,14 +1283,6 @@ def createArnoldCommonFrameRange():
     cmds.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=1)
     cmds.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=2)
 
-    '''
-    cmds.attrControlGrp('modifyExtensionCtrl',
-                        attribute='defaultRenderGlobals.modifyExtension',
-                        changeCommand=pm.Callback(updateArnoldFrameNumberControls),
-                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
-    '''
-
-
     cmds.attrControlGrp('startExtensionCtrl',
                         attribute='defaultRenderGlobals.startExtension',
                         enable=cmds.getAttr('defaultRenderGlobals.modifyExtension'),
@@ -1335,25 +1352,25 @@ def createArnoldCommonResolution():
     #
     # Make sure the list of predefined resolutions has been read in.
     #
-    gImageFormatData = pm.melGlobals.get('gImageFormatData', 'string[]')
-    gUserImageFormatData = pm.melGlobals.get('gUserImageFormatData', 'string[]')
+    gImageFormatData = mu.getVar('gImageFormatData', type='string[]', init=True)
+    gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]', init=True)
 
     if not gImageFormatData:
         mel.eval("source imageFormats.mel")
-        gImageFormatData = pm.melGlobals['gImageFormatData']
+        gImageFormatData = mu.getVar('gImageFormatData', type='string[]')
 
 
     if not mel.eval('exists imageFormats_melToUI'):
         mel.eval('source imageFormats.mel')
-        gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
+        gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
 
 
-    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
-    gMeasurementUnitsNames = pm.melGlobals.get('gMeasurementUnitsNames', 'string[]')
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]', init=True)
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]', init=True)
 
     if not gResolutionUnitsNames:
         mel.eval("source resolutionFormats.mel")
-        gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+        gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]')
 
     isMayaEvalVersion = cmds.about(ev=True)
     gPLEImageFormatData = []
@@ -1364,7 +1381,7 @@ def createArnoldCommonResolution():
         # Yes, we need the eval here, to avoid doing the source
         # until we know whether the file actually exists
         mel.eval('catchQuiet( eval("userImageFormats.mel"))')
-        gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
+        gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
@@ -1379,7 +1396,7 @@ def createArnoldCommonResolution():
     numResolutionPresets = len(gImageFormatData)
     allResNodes = cmds.ls(type='resolution')
     numResolutionNodePresets = len(allResNodes) - 1
-    gImageFormatDividerPosition = pm.melGlobals.get('gImageFormatDividerPosition', 'int')
+    gImageFormatDividerPosition = mu.getVar('gImageFormatDividerPosition', type='int', init=True)
     cmds.optionMenuGrp('resolutionMenu',
                      label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kPresets"),
                      changeCommand=changeArnoldResolution)
@@ -1430,8 +1447,8 @@ def createArnoldCommonResolution():
                       label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
                       label1=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
                       label2=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
-                      on1=pm.Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
-                      on2=pm.Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
+                      on1=lambda *args:cmds.setAttr("defaultResolution.lockDeviceAspectRatio", 0),
+                      on2=lambda *args:cmds.setAttr("defaultResolution.lockDeviceAspectRatio", 1),
                       data1=0,
                       data2=1)
 
@@ -1536,13 +1553,13 @@ def changeArnoldRes(*args):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]', init=True)
     oldDPI = cmds.getAttr('defaultResolution.dotsPerInch')
     value = cmds.floatFieldGrp('mayaSoftwareRes', q=True, v1=True)
 
     # Convert from the current resolution units to DPI
     resUnits = cmds.getAttr('defaultResolution.pixelDensityUnits')
-    newDPI = pm.mel.convertResolutionMeasurement(value, gResolutionUnitsNames[resUnits], "pixels/inch")
+    newDPI = mel.eval('convertResolutionMeasurement({}, "{}", "pixels/inch")'.format(value, gResolutionUnitsNames[resUnits]))
 
     # Check that value is within value range
     if newDPI < 1.0:
@@ -1634,9 +1651,9 @@ def updateArnoldResolution(*args):
     whichRes = 1 # use "Custom" if no match is found
     allResNodes = cmds.ls(type='resolution')
 
-    gImageFormatData = pm.melGlobals.get('gImageFormatData', 'string[]')
-    gUserImageFormatData = pm.melGlobals.get('gUserImageFormatData', 'string[]')
-    gDefaultDpi = pm.melGlobals.get('gDefaultDpi', 'float')
+    gImageFormatData = mu.getVar('gImageFormatData', type='string[]', init=True)
+    gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]', init=True)
+    gDefaultDpi = mu.getVar('gDefaultDpi', type='float', init=True)
 
     numResolutionPresets = len(gImageFormatData)
     numUserResolutionPresets = len(gUserImageFormatData)
@@ -1737,21 +1754,21 @@ def updateArnoldResolution(*args):
     cmds.optionMenuGrp('resolutionMenu', edit=True, sl=whichRes)
 
     cmds.checkBoxGrp('aspectLockCheck', edit=True, v1=cmds.getAttr('defaultResolution.aspectLock'))
-    resNode = pm.PyNode('defaultResolution')
+    resNode = 'defaultResolution'
     cmds.floatFieldGrp('resRatio', edit=True, v1=aspect)
     adjustArnoldPixelAspect(resNode)
-    resNode.pixelAspect.set(cmds.floatFieldGrp('pixRatio', q=True, v1=True))
+    cmds.setAttr('{}.pixelAspect'.format(resNode), cmds.floatFieldGrp('pixRatio', q=True, v1=True))
     cmds.radioButtonGrp('ratioLockRadio',
                         edit=True,
-                        select=resNode.lockDeviceAspectRatio.get()+1)
+                        select=(cmds.getAttr('{}.lockDeviceAspectRatio'.format(resNode))+1))
     #
     # Update the UI controls for image size and resolution
     #
-    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
-    gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]')
+    gResolutionUnitsNames = mu.getVar('gResolutionUnitsNames', type='string[]')
 
-    sizeUnits = resNode.imageSizeUnits.get()
-    resUnits = resNode.pixelDensityUnits.get()
+    sizeUnits = cmds.getAttr('{}.imageSizeUnits'.format(resNode))
+    resUnits = cmds.getAttr('{}.pixelDensityUnits'.format(resNode))
 
     # Update width and height fields
     docWidth = float(width)
@@ -1760,8 +1777,10 @@ def updateArnoldResolution(*args):
     precision = 0 # To ensure pixel values are displayed without decimals
     if sizeUnits != 0:
         # Convert from pixels to the correct measurement units
-        docWidth = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches( width, dpi ), "inches", gMeasurementUnitsNames[sizeUnits])
-        docHeight = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches( height, dpi ), "inches", gMeasurementUnitsNames[sizeUnits])
+        inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
+        inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(heght, dpi))
+        docWidth = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
+        docHeight = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
         precision = 3
 
     cmds.floatFieldGrp('mayaSoftwareResWidth', edit=True, precision=precision, v1=docWidth)
@@ -1769,7 +1788,7 @@ def updateArnoldResolution(*args):
 
     # Update resolution field
     # Convert from DPI to the correct resolution units
-    res = pm.mel.convertResolutionMeasurement(dpi, "pixels/inch", gResolutionUnitsNames[resUnits])
+    res = mel.eval('convertResolutionMeasurement({}, "pixels/inch", "{}")'.format(dpi, gResolutionUnitsNames[resUnits]))
     cmds.floatFieldGrp('mayaSoftwareRes', edit=True, precision=3, v1=res)
 
     # "Size Units" and "Resolution Units" fields automatically update
@@ -1792,19 +1811,19 @@ def changeArnoldResolution(*args):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    gImageFormatData = pm.melGlobals['gImageFormatData']
-    gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
-    gDefaultDpi = pm.melGlobals['gDefaultDpi']
+    gImageFormatData = mu.getVar('gImageFormatData', type='string[]')
+    gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
+    gDefaultDpi = mu.getVar('gDefaultDpi')
 
     # We are suppose to get proper image formats for PLE.
     isMayaEvalVersion = cmds.about(ev=True)
     if isMayaEvalVersion:
-        gPLEImageFormatData = pm.melGlobals['gPLEImageFormatData']
+        gPLEImageFormatData = mu.getVar('gPLEImageFormatData', type='string[]')
         gImageFormatData = gPLEImageFormatData
 
     numResolutionPresets = len(gImageFormatData)
     numUserResolutionPresets = len(gUserImageFormatData)
-    allResNodes = pm.ls(type='resolution')
+    allResNodes = cmds.ls(type='resolution')
     numResolutionNodePresets = len(allResNodes) - 1
     tokens = []
     resItem = cmds.optionMenuGrp('resolutionMenu', q=True, sl=True)
@@ -1825,9 +1844,9 @@ def changeArnoldResolution(*args):
             if resItem > (numResolutionPresets + numUserResolutionPresets + 1):
                 # It's one of the user-defined resolution nodes' presets
                 resNode = allResNodes[resItem - numResolutionPresets - numUserResolutionPresets - 1]
-                resWidth = resNode.width.get()
-                resHeight = resNode.height.get()
-                resAspect = resNode.deviceAspectRatio.get()
+                resWidth = cmds.getAttr('{}.width'.format(resNode))
+                resHeight = cmds.getAttr('{}.height'.format(resNode))
+                resAspect = cmds.getAttr('{}.deviceAspectRatio'.format(resNode))
             else:
                 # It's one of the user-defined resolution presets
                 item = gUserImageFormatData[resItem - numResolutionPresets - 2]
@@ -1882,20 +1901,20 @@ def updateArnoldPixelDeviceRatios(node):
     This is called when the resolution changes. Update the pixel or the
     device aspect ration as necessary.
     '''
-    aspect = float(node.width.get()) / float(node.height.get())
+    aspect = float(cmds.getAttr('{}.width'.format(node))) / float(cmds.getAttr('{}.width'.format(node)))
 
-    if node.lockDeviceAspectRatio.get() == 0:
-        aspect = aspect * node.pixelAspect.get()
-        node.deviceAspectRatio.set(aspect)
+    if cmds.getAttr('{}.lockDeviceAspectRatio'.format(node)) == 0:
+        aspect = aspect * float(cmds.getAttr('{}.pixelAspect'.format(node)))
+        cmds.setAttr('{}.deviceAspectRatio'.format(node), aspect)
     else:
-        aspect = node.deviceAspectRatio.get() / aspect
-        node.pixelAspect.set(aspect)
+        aspect = float(cmds.getAttr('{}.deviceAspectRatio'.format(node))) / aspect
+        cmds.setAttr('{}.pixelAspect'.format(node), aspect)
 
 def checkArnoldAspectLockWidth(node):
-    if node.aspectLock.get():
-        value = node.width.get()
-        aspect = node.pixelAspect.get()
-        aspect /= node.deviceAspectRatio.get()
+    if cmds.getAttr('{}.aspectLock'.format(node)):
+        value = cmds.getAttr('{}.width'.format(node))
+        aspect = cmds.getAttr('{}.pixelAspect'.format(node))
+        aspect /= float(cmds.getAttr('{}.deviceAspectRatio'.format(node)))
 
         #fix for bug#269698, plus 0.5 to give round value
         rez = (aspect * value) + 0.5
@@ -1907,15 +1926,15 @@ def checkArnoldAspectLockWidth(node):
                 cmds.warning(dispMsg)
                 rez = PLE_MAX_Y
 
-        node.height.set(rez)
+        cmds.setAttr('{}.height'.format(node), rez)
 
     updateArnoldPixelDeviceRatios(node)
 
 def checkArnoldAspectLockHeight(node):
-    if node.aspectLock.get():
-        value = node.height.get()
-        aspect = node.pixelAspect.get()
-        aspect /= node.deviceAspectRatio.get()
+    if cmds.getAttr('{}.aspectLock'.format(node)):
+        value = cmds.getAttr('{}.height'.format(node))
+        aspect = cmds.getAttr('{}.pixelAspect'.format(node))
+        aspect /= cmds.getAttr('{}.deviceAspectRatio'.format(node))
 
         #fix for bug#269698, plus 0.5 to give round value
         rez = (value/aspect) + 0.5
@@ -1927,8 +1946,8 @@ def checkArnoldAspectLockHeight(node):
                 cmds.warning(dispMsg)
                 rez = PLE_MAX_X
 
-        node.width.set(rez)
-
+        cmds.setAttr('{}.width'.format(node), rez)
+        
     updateArnoldPixelDeviceRatios(node)
 
 
@@ -1949,15 +1968,16 @@ def changeArnoldAspectLockWidth(*args):
 
     widthValue = cmds.floatFieldGrp('mayaSoftwareResWidth', q=True, v1=True)
 
-    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]')
 
-    resNode = pm.PyNode('defaultResolution')
-    dpi = resNode.dotsPerInch.get()
-    sizeUnits = resNode.imageSizeUnits.get()
+    resNode = 'defaultResolution'
+    dpi = cmds.getAttr('{}.dotsPerInch'.format(resNode))
+    sizeUnits = cmds.getAttr('{}.imageSizeUnits'.format(resNode))
 
     if sizeUnits != 0:
         # Convert the obtained value to inches, then to pixels
-        requestedWidth = pm.mel.convertInchesToPixels(pm.mel.convertMeasurement(widthValue, gMeasurementUnitsNames[sizeUnits], "inches"), dpi)
+        inchWidth = mel.eval('convertMeasurement({}, "{}", "inches")'.format(widthValue, gMeasurementUnitsNames[sizeUnits]))
+        requestedWidth = mel.eval('convertInchesToPixels({}, {})'.format(inchWidth, dpi))
     else: # the width value is in pixels, so no need to convert
         requestedWidth = widthValue
 
@@ -1972,7 +1992,7 @@ def changeArnoldAspectLockWidth(*args):
         cmds.warning(mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kWidthWarning"))
         requestedWidth = 2
 
-    resNode.width.set(requestedWidth)
+    cmds.setAttr('{}.width'.format(resNode), requestedWidth)
     cmds.optionMenuGrp('resolutionMenu', edit=True, sl=1)
     checkArnoldAspectLockWidth(resNode)
 
@@ -1998,15 +2018,16 @@ def changeArnoldAspectLockHeight(*args):
 
     heightValue = cmds.floatFieldGrp('mayaSoftwareResHeight', q=True, v1=True)
 
-    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+    gMeasurementUnitsNames = mu.getVar('gMeasurementUnitsNames', type='string[]')
 
-    resNode = pm.PyNode('defaultResolution')
-    dpi = resNode.dotsPerInch.get()
-    sizeUnits = resNode.imageSizeUnits.get()
+    resNode = 'defaultResolution'
+    dpi = cmds.getAttr('{}.dotsPerInch'.format(resNode))
+    sizeUnits = cmds.getAttr('{}.imageSizeUnits'.format(resNode))
 
     if sizeUnits != 0:
+        inchHeight = mel.eval('convertMeasurement({}, "{}", "inches")'.format(heightValue, gMeasurementUnitsNames[sizeUnits]))
         # Convert the obtained value to inches, then to pixels
-        requestedHeight = pm.mel.convertInchesToPixels(pm.mel.convertMeasurement(heightValue, gMeasurementUnitsNames[sizeUnits], "inches"),dpi)
+        requestedHeight = mel.eval('convertInchesToPixels({},{})'.format(inchHeight, dpi))
     else:
         # the width value is in pixels, so no need to convert
         requestedHeight = heightValue
@@ -2022,20 +2043,20 @@ def changeArnoldAspectLockHeight(*args):
         cmds.warning(mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kHeightWarning"))
         requestedHeight = 2
 
-    resNode.height.set(requestedHeight)
+    cmds.setAttr('{}.height'.format(resNode), requestedHeight)
     cmds.optionMenuGrp('resolutionMenu', edit=True, sl=1)
     checkArnoldAspectLockHeight(resNode)
 
     # Set the proper field ordering if PAL or NTSC.
     if requestedHeight == 576: # PAL
-        resNode.oddFieldFirst.set(0)
+        cmds.setAttr('{}.oddFieldFirst'.format(resNode), 0)
         if cmds.columnLayout('rgFieldLayout', exists=True):
             if mel.eval("exists updateFieldOptions"):
                 mel.eval("updateFieldOptions")
 
 
     elif requestedHeight == 486: # NTSC
-        resNode.oddFieldFirst.set(1)
+        cmds.setAttr('{}.oddFieldFirst'.format(resNode), 1)
         if cmds.columnLayout('rgFieldLayout', exists=True):
             if mel.eval("exists updateFieldOptions"):
                 mel.eval("updateFieldOptions")
@@ -2051,9 +2072,9 @@ def adjustArnoldPixelAspect(node):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    aspect = node.deviceAspectRatio.get()
-    width = node.width.get()
-    height = node.height.get()
+    aspect = cmds.getAttr('{}.deviceAspectRatio'.format(node))
+    width = cmds.getAttr('{}.width'.format(node))
+    height = cmds.getAttr('{}.height'.format(node))
     pixelAspect = float(width) / float(height)
     pixelAspect = aspect / pixelAspect
     cmds.floatFieldGrp('pixRatio', e=True, v1=pixelAspect)
@@ -2066,14 +2087,13 @@ def adjustArnoldDeviceAspect(node):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    devAspect = node.deviceAspectRatio
-    width = node.width.get()
-    height = node.height.get()
+    width = cmds.getAttr('{}.width'.format(node))
+    height = cmds.getAttr('{}.height'.format(node))
 
     pixelAspect = cmds.floatFieldGrp('pixRatio', q=True, v1=True)
     aspect = float(width) / float(height)
     aspect = pixelAspect * aspect
-    cmds.setAttr(devAspect, aspect)
+    cmds.setAttr('{}.deviceAspectRatio'.format(node), aspect)
     cmds.floatFieldGrp('resRatio', edit=True, v1=aspect)
 
     cmds.setParent(oldParent)
@@ -2083,7 +2103,7 @@ def updateArnoldPixelAspectRatio(*args):
 
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
-    resNode = pm.PyNode('defaultResolution')
+    resNode = 'defaultResolution'
     resNode.pixelAspect.set(cmds.floatFieldGrp('pixRatio', q=True, v1=True))
     adjustArnoldDeviceAspect(resNode)
     updateArnoldResolution()
@@ -2097,14 +2117,14 @@ def updateArnoldDeviceAspectRatio(*args):
     setParentToArnoldCommonTab()
 
     cmds.setAttr('defaultResolution.deviceAspectRatio', cmds.floatFieldGrp('resRatio', q=True, v1=True))
-    adjustArnoldPixelAspect(pm.PyNode('defaultResolution'))
+    adjustArnoldPixelAspect('defaultResolution')
     updateArnoldResolution()
 
     cmds.setParent(oldParent)
 
 
 # ----------------------------------------------------------------------------
-# Code to update pre/post layer/frame pm.mel callbacks
+# Code to update pre/post layer/frame callbacks
 #
 
 def changeArnoldMelCallbacks(control, attr):
@@ -2157,14 +2177,11 @@ def createArnoldCommonRenderOptions():
         cmds.scrollField(control,
                        preventOverride=True,
                        height=50,
-                       changeCommand=pm.Callback(changeArnoldMelCallbacks,
-                                                 control,
-                                                 plug))
+                       changeCommand=lambda arg=None, x=control, y=plug: changeArnoldMelCallbacks(x, y))
         updateArnoldMelCallback(control, plug)
   
         cmds.scriptJob(parent=parent,
-                     attributeChange=(plug, Callback(updateArnoldMelCallback,
-                                                     control, plug)))
+                     attributeChange=(plug, lambda arg=None, x=control, y=plug: updateArnoldMelCallback(x, y)))
 
     # Set up script jobs for those attributes which require updating of
     # multiple controls.

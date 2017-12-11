@@ -3,7 +3,6 @@ a module for managing mtoa's callbacks
 """
  
 import maya.cmds as cmds
-import pymel.core as pm
 import maya.OpenMaya as om
 from collections import defaultdict
 import types
@@ -58,7 +57,7 @@ def manageCallback(callbackId):
 def _makeNodeAddedCB(nodeType):
     def nodeAddedCB(obj, *args):
         # nodeAdded callback includes sub-types, but we want exact type only
-        mfn = pm.api.MFnDependencyNode(obj)
+        mfn = om.MFnDependencyNode(obj)
         if mfn.typeName() != nodeType:
             return
         global _nodeAddedCallbacks
@@ -66,8 +65,7 @@ def _makeNodeAddedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.PyNode(obj)
-                func(node)
+                func(mfn.name())
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
@@ -75,7 +73,7 @@ def _makeNodeAddedCB(nodeType):
 def _makeNodeRemovedCB(nodeType):
     def nodeRemovedCB(obj, *args):
         # nodeAdded callback includes sub-types, but we want exact type only
-        mfn = pm.api.MFnDependencyNode(obj)
+        mfn = om.MFnDependencyNode(obj)
         if mfn.typeName() != nodeType:
             return
         global _nodeRemovedCallbacks
@@ -83,8 +81,7 @@ def _makeNodeRemovedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.PyNode(obj)
-                func(node)
+                func(mfn.name())
     # no unicode allowed
     nodeRemovedCB.__name__ = "nodeRemovedCB_" + str(nodeType) 
     return nodeRemovedCB
@@ -321,13 +318,12 @@ class Callback(object):
     Example:
 
     .. python::
-
-        import pymel as pm
+        
         def addRigger(rigger, **kwargs):
             print "adding rigger", rigger
 
         for rigger in riggers:
-            pm.menuItem(
+            cmds.menuItem(
                 label = "Add " + str(rigger),
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
@@ -454,7 +450,6 @@ class DeferredCallbackQueue(CallbackQueue):
         the public callback function
         '''
         if not self._updating:
-            #print pm.api.MFileIO.isOpeningFile(), pm.api.MFileIO.isReadingFile()
             if not om.MFileIO.isOpeningFile():
                 self._updating = True
                 cmds.evalDeferred(self.deferredCallback)

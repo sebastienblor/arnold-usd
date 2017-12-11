@@ -1,4 +1,3 @@
-import pymel.core as pm
 import mtoa.utils as utils
 import maya.mel
 import mtoa.ui.ae.utils as aeUtils
@@ -52,13 +51,13 @@ class AEaiStandardTemplate(ShaderAETemplate):
         tokens = nodeName.split('.')
         nodeName = tokens[0]        
         #cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
-        cmds.button('aiStandardConvertShaderButton',  label='Convert To New Shader', command=pm.Callback(self.convertToStandardSurface, nodeName))
+        cmds.button('aiStandardConvertShaderButton',  label='Convert To New Shader', command=lambda arg=None, x=nodeName: self.convertToStandardSurface(x))
         #cmds.setParent( '..' )
    
     def convertShaderReplace(self, nodeName):
         tokens = nodeName.split('.')
         nodeName = tokens[0]
-        cmds.button('aiStandardConvertShaderButton',  edit=True, command=pm.Callback(self.convertToStandardSurface, nodeName))
+        cmds.button('aiStandardConvertShaderButton',  edit=True, command=lambda arg=None, x=nodeName: self.convertToStandardSurface(x))
         
     def setup(self):
         self.addSwatch()
