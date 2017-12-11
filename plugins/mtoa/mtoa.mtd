@@ -1368,7 +1368,10 @@
     [attr ao_distance]
         min                 FLOAT 0.0
         softmax             FLOAT 200.0
-
+    [attr roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    
 [node ray_switch_rgba]
     maya.hide               BOOL    true
     maya.id                 INT     0x00115D84
