@@ -121,10 +121,12 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       CMaterialView::Suspend();
    }
 
+   bool isInteractive = (mode != MTOA_SESSION_BATCH && mode != MTOA_SESSION_ASS); 
+
    // FIXME: raise an error if Begin is called on active session
    // (forcing a CMayaScene::End() to be called before a CMayaScene::Begin() ?
    if (s_renderSession == NULL)
-      s_renderSession = new CRenderSession();
+      s_renderSession = new CRenderSession(isInteractive);
    if (s_arnoldSession == NULL)
       s_arnoldSession = new CArnoldSession();
 

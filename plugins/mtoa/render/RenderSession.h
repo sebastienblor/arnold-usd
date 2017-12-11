@@ -166,6 +166,7 @@ public:
    /// though Arnold is not currently rendering.
    /// \return if we're active.
    inline bool IsActive() const { return m_is_active; }
+   inline bool IsInteractiveSession() const {return m_interactiveSession;}
 
    static void ClearIdleRenderViewCallback();
 
@@ -174,12 +175,13 @@ public:
       
 private:
 
-   CRenderSession()
+   // interactive session is related to arnold's AiBegin(AI_SESSION_INTERACTIVE)
+   CRenderSession(bool interactiveSession = true)
       : m_paused_ipr(false)
       , m_is_active(false)
       , m_render_thread(NULL)
       , m_rendering(0)
-      //, m_renderView(NULL)
+      , m_interactiveSession(interactiveSession)
    {
    }
 
@@ -205,6 +207,7 @@ private:
    CRenderOptions m_renderOptions;
    bool           m_paused_ipr;  ///< True when IPR is paused.
    bool           m_is_active;   ///< True when after a Init() and before a Finish().
+   bool           m_interactiveSession;
 
    /// This is a special callback installed to update the render view while Arnold is rendering in IPR.
    /// \see AddIdleRenderViewCallback

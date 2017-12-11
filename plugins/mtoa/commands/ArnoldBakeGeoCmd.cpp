@@ -117,8 +117,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::ostream os(&fb);
    os << "# Arnold Renderer - OBJ export\n";  // anything else we want to dump in the header ?
 
-   AiBegin();
-   CMayaScene::Begin(MTOA_SESSION_ASS);
+   CMayaScene::Begin(MTOA_SESSION_RENDER);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);   

@@ -131,9 +131,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    // or in batch it might fail
    bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
 
-
-   AiBegin();
-   CMayaScene::Begin(MTOA_SESSION_BATCH);
+   CMayaScene::Begin(MTOA_SESSION_RENDER);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);

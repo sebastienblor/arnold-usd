@@ -281,6 +281,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    bool AiUniverseCreated = false;
    if (assfile != "")
    {  
+      // FIXME shouldn't we rather call ArnoldUniverseOnlyBegin ?
       AiUniverseCreated = ArnoldUniverseBegin();
 
       bool processRead = false;

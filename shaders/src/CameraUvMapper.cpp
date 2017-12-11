@@ -329,31 +329,24 @@ node_initialize
    const char* polymesh = AiNodeGetStr(node, "polymesh");
    AtNode* input_node = AiNodeLookUpByName(polymesh);
 
-   if (!AiNodeGetBool(AiUniverseGetOptions(), "preserve_scene_data"))
+   
+   if (input_node == 0)
    {
-      data->clearUvMapper();
-      AiMsgError("Preserve Scene Data is not set!");
+      AiMsgError("The input object can't be found!");
+      AiMsgError("%s", polymesh);
    }
    else
    {
-      if (input_node == 0)
+      try
       {
-         AiMsgError("The input object can't be found!");
-         AiMsgError("%s", polymesh);
-      }
-      else
-      {
-         try
-         {
 
-            data->allocateUvMapper(input_node, node);
-            data->p_offset = AiNodeGetFlt(node, "offset");
-         }
-         catch (std::exception ex)
-         {
-            data->clearUvMapper();
-            AiMsgError("[CameraUvMapper] Exception caught at Node Initialize %s", ex.what());
-         }
+         data->allocateUvMapper(input_node, node);
+         data->p_offset = AiNodeGetFlt(node, "offset");
+      }
+      catch (std::exception ex)
+      {
+         data->clearUvMapper();
+         AiMsgError("[CameraUvMapper] Exception caught at Node Initialize %s", ex.what());
       }
    }
 }
