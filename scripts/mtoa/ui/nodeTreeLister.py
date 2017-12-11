@@ -31,7 +31,9 @@ _typeInfoMap = ()
 
 def isClassified(node, klass):
     nodeType = cmds.nodeType(node)
-    return klass in cmds.getClassification(nodeType)
+    nodeClassifications = cmds.getClassification(nodeType)[0].split(':')
+
+    return klass in nodeClassifications
 
 def getTypeInfo():
     '''

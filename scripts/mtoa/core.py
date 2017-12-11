@@ -27,7 +27,9 @@ def _processClass(nodeType):
     
     e.g. from 'aiStandard' to ('rendernode/arnold/shader/surface', 'asShader', 'Arnold/Shader/Surface')
     '''
-    for klass in cmds.getClassification(nodeType):
+    nodeClassifications = cmds.getClassification(nodeType)[0].split(':') or []
+
+    for klass in nodeClassifications:
         if klass.startswith('rendernode/arnold'):
             parts = klass.split('/')
             if len(parts) < 3:
