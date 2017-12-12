@@ -390,6 +390,17 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
    AiSetAppString(appString.asChar());
 
+   // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(options_node, "camera");
+   if (renderCam == NULL)
+   {      
+      // Please don't tell anyone that I'm creating a dummy camera here,
+      // it will be deleted at the end of this function anyway.
+      renderCam = AiNode("persp_camera");
+      AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
+      AiNodeSetPtr(options_node, "camera", (void*)renderCam);
+   }
+
    // Dirty hack... this is initializing all the polymeshes triangles
    // which is necessary for CameraUvMapper to work correctly
    AiRender(AI_RENDER_MODE_FREE);
