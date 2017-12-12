@@ -47,7 +47,6 @@
 #include "commands/ArnoldTemperatureCmd.h"
 #include "commands/ArnoldFlushCmd.h"
 #include "commands/ArnoldCopyAsAdminCmd.h"
-#include "commands/ArnoldAIRCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -142,7 +141,6 @@ namespace // <anonymous>
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
       {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
-      {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax},
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
