@@ -184,16 +184,17 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiOverrideLightLinking', label='Override StandIn Light Linking')
         self.addControl('aiOverrideShaders', label='Override StandIn Shaders')
         self.addSeparator()
-        self.addControl('aiOverrideReceiveShadows', label='Override Receive Shadows')
-        self.addControl('receiveShadows', label='   Receive Shadows')
-        self.addControl('aiOverrideSelfShadows',  label='Override Self Shadows')
-        self.addControl('aiSelfShadows', label='   Self Shadows')
-        self.addControl('aiOverrideOpaque', label='Override Opaque')
-        self.addControl('aiOpaque', label='   Opaque')
-        self.addControl('aiOverrideDoubleSided',  label='Override Double-Sided')
-        self.addControl('doubleSided', label='   Double-Sided')
-        self.addControl('aiOverrideMatte', label='Override Matte')
-        self.addControl('aiMatte', label='   Matte')
+        self.addOverrideAttributes()
+        # self.addControl('aiOverrideReceiveShadows', changeCommand=self.updateOverridesVisibility, label='Override Receive Shadows')
+        # self.addControl('receiveShadows', label='   Receive Shadows')
+        # self.addControl('aiOverrideSelfShadows', changeCommand=self.updateOverridesVisibility,  label='Override Self Shadows')
+        # self.addControl('aiSelfShadows', label='   Self Shadows')
+        # self.addControl('aiOverrideOpaque', changeCommand=self.updateOverridesVisibility, label='Override Opaque')
+        # self.addControl('aiOpaque', label='   Opaque')
+        # self.addControl('aiOverrideDoubleSided', changeCommand=self.updateOverridesVisibility,  label='Override Double-Sided')
+        # self.addControl('doubleSided', label='   Double-Sided')
+        # self.addControl('aiOverrideMatte', changeCommand=self.updateOverridesVisibility, label='Override Matte')
+        # self.addControl('aiMatte', label='   Matte')
         self.endLayout()
         
         self.beginLayout("Visibility", collapse=False)
@@ -213,7 +214,88 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiNamespace')
         self.addControl("aiUserOptions", label="User Options")
         
+    def addOverrideAttributes(self):
 
+        self.beginNoOptimize()
+        self.receiveShadowsCtrl = ""
+        self.aiSelfShadowsCtrl = ""
+        self.aiOpaquesCtrl = ""
+        self.doubleSidedCtrl = ""
+        self.aiMatteCtrl = ""
+        self.addCustom("aiOverrideReceiveShadows", self.overridesNew, self.overridesReplace)
+        self.endNoOptimize()
+
+    def overridesChanged(self, nodeAttr, control, *args):
+
+        enabled = bool(cmds.getAttr(nodeAttr))
+        cmds.attrControlGrp(control, edit=True, enable=enabled)
+
+    def overridesNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+
+        self.aiOverrideReceiveShadowsCtrl = cmds.attrControlGrp('aiOverrideReceiveShadowsCtrl', label="Override Receive Shadows",
+            attribute='.'.join([self.nodeName, 'aiOverrideReceiveShadows']))
+        self.receiveShadowsCtrl = cmds.attrControlGrp("receiveShadowsCtrl", label=" Receive Shadows", 
+            attribute='.'.join([self.nodeName, 'receiveShadows']))
+
+        self.aiOverrideSelfShadowsCtrl = cmds.attrControlGrp('aiOverrideSelfShadowsCtrl', label="Override Self Shadows",
+            attribute='.'.join([self.nodeName, 'aiOverrideSelfShadows']))
+        self.aiSelfShadowsCtrl = cmds.attrControlGrp("aiSelfShadowsCtrl", label=" Self Shadows",
+            attribute='.'.join([self.nodeName, 'aiSelfShadows']))
+
+        self.aiOverrideOpaqueCtrl = cmds.attrControlGrp('aiOverrideOpaqueCtrl', label="Override Opaque",
+            attribute='.'.join([self.nodeName, 'aiOverrideOpaque']))
+        self.aiOpaquesCtrl = cmds.attrControlGrp("aiOpaqueCtrl", label=" Opaque",
+            attribute='.'.join([self.nodeName, 'aiOpaque']))
+
+        self.aiOverrideDoubleSidedCtrl = cmds.attrControlGrp('aiOverrideDoubleSidedCtrl', label='Override Double-Sided',
+            attribute='.'.join([self.nodeName, 'aiOverrideDoubleSided']))
+        self.doubleSidedCtrl = cmds.attrControlGrp('doubleSidedCtrl', label='   Double-Sided',
+            attribute='.'.join([self.nodeName, 'doubleSided']))
+
+        self.aiOverrideMatteCtrl = cmds.attrControlGrp('aiOverrideMatteCtrl', label='Override Matte',
+            attribute='.'.join([self.nodeName, 'aiOverrideMatte']))
+        self.aiMatteCtrl = cmds.attrControlGrp('aiMatteCtrl', label='   Matte',
+            attribute='.'.join([self.nodeName, 'aiMatte']))
+
+        cmds.setUITemplate(ppt=True)
+
+        self.overridesReplace(nodeAttr)
+
+    def overridesReplace(self, nodeAttr):
+
+        cmds.attrControlGrp(self.aiOverrideReceiveShadowsCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideReceiveShadows']), self.receiveShadowsCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideReceiveShadows']))
+        cmds.attrControlGrp(self.receiveShadowsCtrl, edit=True, attribute='.'.join([self.nodeName, 'receiveShadows']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideReceiveShadows']))))
+        
+        cmds.attrControlGrp(self.aiOverrideSelfShadowsCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideSelfShadows']), self.aiSelfShadowsCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideSelfShadows']))
+        cmds.attrControlGrp(self.aiSelfShadowsCtrl, edit=True,
+            attribute='.'.join([self.nodeName, 'aiSelfShadows']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideSelfShadows']))))
+
+        cmds.attrControlGrp(self.aiOverrideOpaqueCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideOpaque']), self.aiOpaquesCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideOpaque']))
+        cmds.attrControlGrp(self.aiOpaquesCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiOpaque']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideOpaque']))))
+
+        cmds.attrControlGrp(self.aiOverrideDoubleSidedCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideDoubleSided']), self.doubleSidedCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideDoubleSided']))
+        cmds.attrControlGrp(self.doubleSidedCtrl, edit=True, attribute='.'.join([self.nodeName, 'doubleSided']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideDoubleSided']))))
+
+        cmds.attrControlGrp(self.aiOverrideMatteCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideMatte']), self.aiMatteCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideMatte']))
+        cmds.attrControlGrp(self.aiMatteCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiMatte']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideMatte']))))
+  
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
 templates.registerTranslatorUI(ProceduralTemplate, "mesh", "procedural")
