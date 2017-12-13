@@ -3,7 +3,22 @@ import arnoldShelf
 import rendererCallbacks
 
 def unregisterArnoldRenderer():
-    cmds.deleteUI('ArnoldMenu', menu=True)
-    cmds.renderer('arnold', unregisterRenderer=True)
-    arnoldShelf.removeArnoldShelf()
-    rendererCallbacks.clearCallbacks()
+
+   try:
+      cmds.deleteUI('ArnoldMenu', menu=True)
+   except RuntimeError as err:
+      pass
+
+   try:
+      cmds.renderer('arnold', unregisterRenderer=True)
+   except RuntimeError as err:
+      pass
+   try:
+      arnoldShelf.removeArnoldShelf()
+   except RuntimeError as err:
+      pass
+   try:
+      rendererCallbacks.clearCallbacks()
+   except RuntimeError as err:
+      pass
+      

@@ -223,6 +223,11 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
 MStatus CMayaScene::End()
 {
+   // The scene hasn't been properly initialized, we shouldn't do anything
+   // This was creating crashes when MtoA was unloaded (#3218)
+   if (s_lock == NULL)
+      return MStatus::kSuccess;
+
    MStatus status = MStatus::kSuccess;
 
    AiCritSecEnter(&s_lock);
