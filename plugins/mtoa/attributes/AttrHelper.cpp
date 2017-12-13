@@ -1216,41 +1216,6 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    return stat;
 }
 
-// CDynamicAttrHelper
-//
-
-MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
-{
-   MStatus stat;
-   MStatus statAttr;
-   MFnDependencyNode fnNode;
-   fnNode.setObject(m_instance);
-   MFnAttribute fnAttr(attrib);
-   fnAttr.addToCategory("arnold");
-   // Check if an attribute of same name already exists
-   MObject mAttr = fnNode.attribute(fnAttr.name(),&statAttr);
-   if (statAttr == MS::kSuccess)
-   {
-      // If same type then all is good
-      if (fnAttr.type() == MFnAttribute(mAttr).type())
-      {
-         return stat;
-      }
-   }
-   stat = fnNode.addAttribute(attrib);
-   // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
-   if (stat != MS::kSuccess)
-   {
-      AiMsgError("[mtoa.attr] Unable to create dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
-   }
-   else
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.attr] Added dynamic attribute "+fnNode.name()+"."+MFnAttribute(attrib).name());
-   }
-   CHECK_MSTATUS(stat);
-   return stat;
-}
 
 // CExtensionAttrHelper
 //
