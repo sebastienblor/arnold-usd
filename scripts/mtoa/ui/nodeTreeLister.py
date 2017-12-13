@@ -112,7 +112,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
         # node type, thereby completing the correct argument list for the 
         # creation routine.
         #
-        maya.mel.eval('buildCreateSubMenu("{}","{} {} \"\"")'.format(staticClass, _createNodeCallbackProc, runtimeClass) )
+        maya.mel.eval('buildCreateSubMenu(\"{}\",\"{} {} \\\"\\\"\")'.format(staticClass, _createNodeCallbackProc, runtimeClass) )
 
         cmds.setParent('..', menu=True)
 
