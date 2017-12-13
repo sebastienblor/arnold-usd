@@ -1356,12 +1356,18 @@ def createArnoldCommonResolution():
     gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]', init=True)
 
     if not gImageFormatData:
-        mel.eval("source imageFormats.mel")
+        try:
+            mel.eval("source imageFormats.mel")
+        except RuntimeError as err:
+            pass
         gImageFormatData = mu.getVar('gImageFormatData', type='string[]')
 
 
     if not mel.eval('exists imageFormats_melToUI'):
-        mel.eval('source imageFormats.mel')
+        try:
+            mel.eval('source imageFormats.mel')
+        except RuntimeError as err:
+            pass
         gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
 
 
