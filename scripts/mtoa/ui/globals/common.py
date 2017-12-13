@@ -1819,7 +1819,7 @@ def changeArnoldResolution(*args):
 
     gImageFormatData = mu.getVar('gImageFormatData', type='string[]')
     gUserImageFormatData = mu.getVar('gUserImageFormatData', type='string[]')
-    gDefaultDpi = mu.getVar('gDefaultDpi')
+    gDefaultDpi = mu.getVar('gDefaultDpi', type="float")
 
     # We are suppose to get proper image formats for PLE.
     isMayaEvalVersion = cmds.about(ev=True)
