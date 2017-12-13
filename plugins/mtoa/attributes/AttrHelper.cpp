@@ -1267,48 +1267,5 @@ void CExtensionAttrHelper::AddCommonAttributes()
 
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 {
-   MStatus stat;
-
-   MString nodeType = m_class.typeName();
-   MFnAttribute fnAttr(attrib);
-   fnAttr.addToCategory("arnold");
-   MString attrName = fnAttr.name();
-
-   MDGModifier dgMod;
-   stat = dgMod.addExtensionAttribute(m_class, attrib);
-
-   const MObject &pluginNode = CExtensionsManager::GetMayaPlugin();
-
-   // if the extension attribute was properly registered we want to link it to the MtoA plugin.
-   // However we must only do it for "parent" attributes as per maya guidelines, which is why we're testing parent().isNull().
-   // Unfortunately, maya is returning success even if this attribute was already added to the MNodeClass, and 
-   // linking the same attribute twice ends up crashing maya. So we're storing here a map of all class + attributes
-   // previously stored, in order to avoid doing it twice.
-   // Another situation we need to consider, is about classes inheriting from other class that already linked the same attribute.
-   // The only case in MtoA where this happens is with the stereoRigCamera, where the parameters are already loaded for 
-   // the base "camera" class. So we do an exception for that class
-   static unordered_set<std::string>  s_linkedExtensionAttributes;
-   if (stat == MStatus::kSuccess && (!pluginNode.isNull()) && fnAttr.parent().isNull() && nodeType != "stereoRigCamera")
-   {  
-      std::string registerAttr(nodeType.asChar());
-      registerAttr += ".";
-      registerAttr += attrName.asChar();
-      if(s_linkedExtensionAttributes.find(registerAttr) == s_linkedExtensionAttributes.end())
-      {
-         stat = dgMod.linkExtensionAttributeToPlugin(pluginNode, attrib);   
-         s_linkedExtensionAttributes.insert(registerAttr);
-      }
-   }
-   
-   if (stat == MStatus::kSuccess)
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.attr] Added extension attribute "+nodeType+"."+ attrName);
-
-      stat = dgMod.doIt();
-   } else
-      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
-   
-   CHECK_MSTATUS(stat);
-   return stat;
+   return CExtensionsManager::RegisterExtensionAttribute(m_class, attrib);
 }

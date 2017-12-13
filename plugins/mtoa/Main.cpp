@@ -841,6 +841,10 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
    if (initData[MTOA_INIT_ARNOLD_NODES])
       UnregisterArnoldNodes(object);
 
+   // This will only unregister what was previously registered,
+   // so we don't need to test initData
+   CExtensionsManager::UnregisterExtensionAttributes(object);
+
    if (initData[MTOA_INIT_COMMANDS])
       for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
          plugin.deregisterCommand(mayaCmdList[i].name);
@@ -1188,6 +1192,19 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister Arnold nodes");
    }
 
+   // Unregister all attribute extensions from Maya atributes
+   status = CExtensionsManager::UnregisterExtensionAttributes(object);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold attribute extensions");
+      MGlobal::displayInfo("Successfully deregistered Arnold attribute extensions");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold attribute extensions");
+      MGlobal::displayError("Failed to deregister Arnold attribute extensions");
+   }
    // Deregister in inverse order of registration
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
