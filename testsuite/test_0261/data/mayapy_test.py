@@ -45,7 +45,7 @@ cmds.createNode('hairSystem')
 
 arnoldNodes = ['aiStandIn',
 				'aiAreaLight',
-				#'aiSkyDomeLight',  #CRASHING
+				'aiSkyDomeLight',  #CRASHING
 				'aiCurveCollector',
 				#'aiVolume',  #CRASHING
 				'aiStandardSurface',
