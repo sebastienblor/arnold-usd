@@ -290,33 +290,38 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
    // Make sure that the given type of node exists
-   if (nodeEntry != NULL)
-   {
-      AtNode* node = AiNode(type);
-      m_impl->SetArnoldNodeName(node, tag);
-
-      if (tag != NULL && strlen(tag))
-      {
-         if (m_impl->m_additionalAtNodes == NULL) 
-            m_impl->m_additionalAtNodes = new unordered_map<std::string, AtNode*>();
-         if (m_impl->m_additionalAtNodes->count(tag))
-         {
-            AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
-            return node;
-         }
-         else
-            (*(m_impl->m_additionalAtNodes))[tag] = node;
-      } else
-         m_impl->m_atNode = node;
-      return node;
-   }
-   else
+   if (nodeEntry == NULL)
    {
       AiMsgError("[mtoa.translator]   %s: Arnold node type %s does not exist.", GetTranslatorName().asChar(), type);
       return NULL;
    }
+
+   AtNode* node = AiNode(type);
+   AddExistingArnoldNode(node, tag);
+   return node;
 }
 
+void CNodeTranslator::AddExistingArnoldNode(AtNode *node, const char *tag)
+{
+   if (node == NULL) return;
+
+   m_impl->SetArnoldNodeName(node, tag);
+
+   if (tag != NULL && strlen(tag))
+   {
+      if (m_impl->m_additionalAtNodes == NULL) 
+         m_impl->m_additionalAtNodes = new unordered_map<std::string, AtNode*>();
+      if (m_impl->m_additionalAtNodes->count(tag))
+      {
+         AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
+         return;
+      }
+      else
+         (*(m_impl->m_additionalAtNodes))[tag] = node;
+   } else
+      m_impl->m_atNode = node;
+   
+}
 void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
    // When the frame is changed for motion blur we can receive signals here,

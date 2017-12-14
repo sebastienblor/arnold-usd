@@ -42,6 +42,7 @@ protected:
    AtByte ComputeMasterVisibility(const MDagPath& masterDagPath) const;
    void ExportInstances(AtNode* instancer);
    virtual void RequestUpdate();
+   virtual void PostExport(AtNode *node);
 
 protected:
    MFnParticleSystem m_fnParticleSystem;
@@ -62,6 +63,7 @@ protected:
    MVectorArray m_instantVeloArray;
    std::vector< AtArray* > m_vec_matrixArrays;
    MStringArray m_objectNames;
+   std::vector<bool> m_cloneInstances;
    MDagPathArray m_objectDagPaths;
    unordered_map<int, int>  m_particleIDMap;
    unordered_map<int, MIntArray> m_particlePathsMap;
