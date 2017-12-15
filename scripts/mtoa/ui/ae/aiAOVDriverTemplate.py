@@ -1,5 +1,6 @@
 import maya.mel
 import maya.cmds as cmds
+import mtoa.utils as utils
 from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
@@ -22,8 +23,8 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         self.addControl('prefix', label="Override Path Prefix")
         self.addControl('mergeAOVs', label="Merge AOVs")
         self.addControl('outputMode')
-        maya_version = cmds.about(version=True)
-        if int(float(maya_version)) >= 2017:
+        maya_version = utils.getMayaVersion()
+        if maya_version >= 2017:
             self.addControl('colorManagement', label = 'Color Space')
 
         self.addControl('lightPathExpression')

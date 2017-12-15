@@ -366,8 +366,8 @@ def arnoldMtoARenderView():
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not cmds.about(b=1):
-        maya_version = cmds.about(version=True)
-        if int(float(maya_version)) < 2017:
+        maya_version = mutils.getMayaVersion()
+        if maya_version < 2017:
             cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
         else:
             cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )

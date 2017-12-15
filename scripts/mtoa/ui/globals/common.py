@@ -666,8 +666,8 @@ def createArnoldImageFormatControl():
                          optionMenuName='imageMenuMayaSW')
 
 
-    maya_version = cmds.about(version=True)
-    if int(float(maya_version)) >= 2016:
+    maya_version = utils.getMayaVersion()
+    if maya_version >= 2016:
         cmds.attrEnumOptionMenuGrp( l='Color Space',
                             at='defaultArnoldDriver.colorManagement' )
     
@@ -685,7 +685,7 @@ def createArnoldImageFormatControl():
                          updateArnoldImageFormatControl))
 
 
-    if int(float(maya_version)) >= 2016:
+    if maya_version >= 2016:
 
         cmds.scriptJob(
           parent=parent,
@@ -702,8 +702,8 @@ def createArnoldImageFormatControl():
 
 
 def updateArnoldColorSpace(*args):
-    maya_version = cmds.about(version=True)
-    if int(float(maya_version)) < 2016:
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2016:
         return
 
     curr = cmds.getAttr('defaultArnoldDriver.aiTranslator')
@@ -2315,8 +2315,8 @@ def createArnoldRendererCommonGlobalsTab():
     
     # Scene Assembly Section
     #
-    maya_version = cmds.about(version=True)
-    if int(float(maya_version)) >= 2017:
+    maya_version = utils.getMayaVersion()
+    if maya_version >= 2017:
         cmds.frameLayout('sceneAssemblyFrame',
                         label=mel.eval("uiRes m_createMayaSoftwareCommonGlobalsTab.kSceneAssembly"),
                         collapsable=True,

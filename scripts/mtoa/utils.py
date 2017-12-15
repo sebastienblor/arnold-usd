@@ -598,3 +598,7 @@ def getActiveRenderLayerName():
             return 'masterLayer'
         return layer
     return ''
+
+def getMayaVersion():
+    version = cmds.about(f=True)
+    return int(float(version[:4]))

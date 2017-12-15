@@ -57,7 +57,7 @@ class MakeTxThread (threading.Thread):
             
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7'])
         utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True)
-        maya_version = cmds.about(version=True)
+        maya_version = utils.getMayaVersion()
 
         # first we need to make sure the options & color manager node were converted to arnold
         arnoldUniverseActive = AiUniverseIsActive()
@@ -86,7 +86,7 @@ class MakeTxThread (threading.Thread):
             conflictSpace = False
 
             # color spaces didn't exist in versions < 2016
-            if int(float(maya_version)) >= 2016:
+            if maya_version >= 2016:
                 for node in nodes:
                     nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                     if colorSpace != 'auto' and colorSpace != nodeColorSpace:
@@ -384,8 +384,8 @@ class MtoATxManager(object):
                 texturePrefix = '~~  '
 
             textureSuffix = ''
-            maya_version = cmds.about(version=True)
-            if int(float(maya_version)) >= 2016:
+            maya_version = utils.getMayaVersion()
+            if maya_version >= 2016:
                 textureSuffix =' ('+txItem[2]+')'
 
 
@@ -571,7 +571,7 @@ class MtoATxManager(object):
         ctrlPath = '|'.join([self.window, 'groupBox_4', 'checkBox']);
         recursive = cmds.checkBox(ctrlPath, query=True, value=True);
         
-        maya_version = cmds.about(version=True)
+        maya_version = utils.getMayaVersion()
         self.selectedItems = []
         if os.path.isdir(folder):
             if recursive:
@@ -579,7 +579,7 @@ class MtoATxManager(object):
                     for texture in files:
                         if (isImage(texture)):
                             inputFile = os.path.join(folder, texture)
-                            if int(float(maya_version)) >= 2016:
+                            if maya_version >= 2016:
                                 colorSpace = cmds.colorManagementFileRules(evaluate=inputFile)
                             else:
                                 colorSpace = 'auto'
@@ -591,7 +591,7 @@ class MtoATxManager(object):
                 for texture in files:
                     if (isImage(texture)):
                         inputFile = os.path.join(folder, texture)
-                        if int(float(maya_version)) >= 2016:
+                        if maya_version >= 2016:
                             colorSpace = cmds.colorManagementFileRules(evaluate=inputFile)
                         else:
                             colorSpace = 'auto'
@@ -686,7 +686,7 @@ def UpdateAllTx(force):
     if force == 0:
         arg_options = "-u " + arg_options
 
-    maya_version = cmds.about(version=True)
+    maya_version = utils.getMayaVersion()
    
     if maya.mel.eval("exists \"colorManagementPrefs\""):
     # only do this if command colorManagementPrefs exists
@@ -709,7 +709,7 @@ def UpdateAllTx(force):
         conflictSpace = False
 
         # colorSpace didn't exist in maya 2015
-        if int(float(maya_version)) >= 2016:
+        if maya_version >= 2016:
             for node in nodes:
                 nodeColorSpace = cmds.getAttr(node+'.colorSpace')
                 if colorSpace != 'auto' and colorSpace != nodeColorSpace:

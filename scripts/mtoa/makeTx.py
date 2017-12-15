@@ -8,6 +8,7 @@ import maya.mel as mel
 import shlex
 from arnold import *
 import os.path
+import mtoa.utils as utils
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
 # so we'll temporarily provide bindings until this is resolved, see core #5293
@@ -125,7 +126,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
         cmd_str += arguments
         cmd = shlex.split(cmd_str, posix=False)
 
-    maya_version = cmds.about(version=True)
+    #maya_version = utils.getMayaVersion()
     if mel.eval("exists \"colorManagementPrefs\""):
 
         if cmds.colorManagementPrefs(q=True, cmEnabled=True):

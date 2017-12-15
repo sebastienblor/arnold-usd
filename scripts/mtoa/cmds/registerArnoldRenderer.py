@@ -37,7 +37,7 @@ def _overrideMelScripts():
     # for those procedures that we could not simply define overrides interactively, we keep edited files
     # per version of maya
     root = mtoaPackageRoot()
-    maya_version = cmds.about(version=True)
+    maya_version = utils.getMayaVersion()
     meldir = os.path.join(root, maya_version, 'mel')
     meldir = mtoa.utils.convertToUnicode(meldir)
     pathsep = mtoa.utils.convertToUnicode(os.pathsep)
@@ -54,7 +54,7 @@ def _overrideMelScripts():
 
 def _overridePythonScripts():
     root = mtoaPackageRoot()
-    maya_version = cmds.about(version=True)
+    maya_version = utils.getMayaVersion()
     path = os.path.join(root, maya_version)
     if not os.path.isdir(path):
         return
@@ -237,8 +237,8 @@ def _register():
                                            ('string', 'camera'), ('string', 'options')])
     args['renderRegionProcedure'] = 'mayaRenderRegion'
 
-    maya_version = cmds.about(version=True)
-    if int(float(maya_version)) >= 2017:
+    maya_version = utils.getMayaVersion()
+    if maya_version >= 2017:
         args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
                                           [('int', 'width'), ('int', 'height'),
                                            ('string', 'camera'), ('string', 'saveToRenderView')])
@@ -265,7 +265,7 @@ def _register():
                                                     [('string', 'renderPanel')])
     cmds.renderer('arnold', rendererUIName='Arnold Renderer', **args)
 
-    if int(float(maya_version)) > 2018:
+    if maya_version > 2018:
         cmds.renderer('arnold', edit=True, supportColorManagement=True)
 
     aiRenderSettingsBuiltCallback("arnold")
@@ -279,7 +279,7 @@ def _register():
     #
     mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel"')
     
-    if int(float(maya_version)) < 2018:
+    if maya_version < 2018:
         utils.pyToMelProc(addOneTabToGlobalsWindow,
                           [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
                           useName=True)

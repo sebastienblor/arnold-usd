@@ -167,8 +167,8 @@ def refreshAliases():
     addAliases(aovList)
 
 def isValidAOVNode(name):
-    maya_version = cmds.about(q=True, version=True)
-    if int(float(maya_version)) < 2017:
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2017:
         return True
 
     hasRenderSetup = mel.eval('mayaHasRenderSetup()')

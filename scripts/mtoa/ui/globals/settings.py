@@ -5,6 +5,7 @@ import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
 import maya.mel
+import mtoa.utils as utils
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -926,8 +927,8 @@ def createArnoldTextureSettings():
     cmds.separator()
     
     # don't create texture_automip for 2016 as autoTx is ON by default
-    maya_version = cmds.about(version=True)
-    if int(float(maya_version)) < 2016:
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2016:
         cmds.attrControlGrp('texture_automip',
                             label="Auto-mipmap",
                             attribute='defaultArnoldRenderOptions.textureAutomip')
@@ -1395,8 +1396,8 @@ def createArnoldRendererGlobalsTab():
     # Gamma correction
     #
     
-    maya_version = cmds.about(version=True)
-    if int(float(maya_version)) < 2016:
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2016:
         cmds.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
         createArnoldGammaSettings()
         cmds.setParent('..')
