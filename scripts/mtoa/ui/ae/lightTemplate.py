@@ -115,7 +115,7 @@ from functools import partial
 class ColorTemperatureTemplate:
     def updateUseColorTemperature(self, *args):
         try:
-            cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
+            cmds.attrFieldSliderGrp(self.sliderCtrl, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
         except:
             pass
 
@@ -139,11 +139,11 @@ class ColorTemperatureTemplate:
         isEnabled = True
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
         aeUtils.attrBoolControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
-                                   label='Use Color Temperature', changeCommand=self.updateUseColorTemperature)
+                                   label='Use Color Temperature', changeCommand=lambda *args: self.updateUseColorTemperature(*args))
         cmds.setParent('..')        
         cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
         cmds.canvas(self.canvasName, width=65, height=12)
-        cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, 
+        self.sliderCtrl = cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, 
                                 attribute=self.nodeAttr('aiColorTemperature'),
                                 enable=isEnabled,
                                 precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=self.updateColorTemperature)
@@ -165,7 +165,7 @@ class ColorTemperatureTemplate:
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
         aeUtils.attrBoolControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
                                    changeCommand=self.updateUseColorTemperature)
-        cmds.attrFieldSliderGrp(self.sliderName, edit=True, 
+        cmds.attrFieldSliderGrp(self.sliderCtrl, edit=True, 
                                 attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled,
                                 changeCommand=self.updateColorTemperature)
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
@@ -179,6 +179,7 @@ class ColorTemperatureTemplate:
         cmds.canvas(self.canvasName, edit=True, rgbValue=displayColor)
             
     def setupColorTemperature(self, lightType=""):
+        self.sliderCtrl = ""
         self.sliderName = '%s_LightColorTemperature' % lightType
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
