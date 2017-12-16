@@ -117,7 +117,6 @@ def listTranslators(nodeType):
     '''
     return a list of (translator, arnoldNode) pairs
     '''
-    import maya.cmds as cmds
     data = cmds.arnoldPlugins(listTranslators=nodeType) or []
     # convert empty strings to None
     data = [x or None for x in data]
