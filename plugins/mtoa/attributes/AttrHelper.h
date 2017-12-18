@@ -114,8 +114,7 @@ typedef MStatus  (*AddAttributeFunction)(const MObject &attr);
 ///
 /// CStaticAttrHelper is used within the initialize method of a custom MPxNode to generate static attributes.
 ///
-///
-/// CExtensionAttrHelper registers dynamic attributes for a Maya node class, such that the attributes are
+/// CExtensionAttrHelper registers dynamic attributes for a node class, such that the attributes are
 /// automatically added to all current and future node instances. Extension attribute helpers are used within a
 /// translator's NodeInitializer function. Their primary use case is writing a translator for a built-in Maya
 /// node type that requires additional Arnold-specific parameters. For example:
@@ -352,4 +351,29 @@ protected:
    void AddCommonAttributes();
    MNodeClass m_class;
 
+};
+
+//---------------------------------------------------------------------
+// CDynamicAttrHelper is LEGACY.
+// I'm keeping its definition here to avoid breaking binary compatibility
+// FIXME : remember to remove it when a breaking-ABI version is released
+class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
+{
+
+public:
+   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="ai_") :
+      CBaseAttrHelper(arnoldNodeEntry, prefix),
+      m_instance(obj) {}
+   CDynamicAttrHelper(MObject& obj, const MString& arnoldNodeEntryName, const MString& prefix="ai_") :
+      CBaseAttrHelper(arnoldNodeEntryName, prefix),
+      m_instance(obj) {}
+
+   MString GetMayaNodeTypeName() const {return m_instance.apiTypeStr();}
+   MTypeId GetMayaNodeTypeId() const {return MTypeId(m_instance.apiType());}
+
+protected:
+   MObject m_instance;
+
+protected:
+   virtual MStatus addAttribute(MObject& attrib);
 };
