@@ -9,6 +9,7 @@ import subprocess
 import threading
 import makeTx
 import platform
+import mtoa.utils as mutils
 from arnold import *
 
 
@@ -686,7 +687,7 @@ def UpdateAllTx(force):
     if force == 0:
         arg_options = "-u " + arg_options
 
-    maya_version = utils.getMayaVersion()
+    maya_version = mutils.getMayaVersion()
    
     if maya.mel.eval("exists \"colorManagementPrefs\""):
     # only do this if command colorManagementPrefs exists
