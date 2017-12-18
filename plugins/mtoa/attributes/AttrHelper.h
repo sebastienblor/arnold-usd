@@ -114,9 +114,8 @@ typedef MStatus  (*AddAttributeFunction)(const MObject &attr);
 ///
 /// CStaticAttrHelper is used within the initialize method of a custom MPxNode to generate static attributes.
 ///
-/// CDynamicAttrHelper adds dynamic attributes to an existing Maya node.
 ///
-/// CExtensionAttrHelper registers dynamic attributes for a node class, such that the attributes are
+/// CExtensionAttrHelper registers dynamic attributes for a Maya node class, such that the attributes are
 /// automatically added to all current and future node instances. Extension attribute helpers are used within a
 /// translator's NodeInitializer function. Their primary use case is writing a translator for a built-in Maya
 /// node type that requires additional Arnold-specific parameters. For example:
@@ -286,43 +285,6 @@ public:
 
 protected:
    AddAttributeFunction m_addFunc;
-
-protected:
-   virtual MStatus addAttribute(MObject& attrib);
-};
-
-// CDynamicAttrHelper
-//
-/// Attribute helper for creating dynamic attributes on existing Maya nodes
-///
-class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
-{
-
-public:
-   /// @param obj  maya node to add attributes to
-   /// @param arnoldNodeEntry  arnold node entry to use when checking parameter metadata
-   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="ai_") :
-      CBaseAttrHelper(arnoldNodeEntry, prefix),
-      m_instance(obj)
-   {}
-   /// @param obj  maya node to add attributes to
-   /// @param arnoldNodeEntryName  arnold node entry to use when checking parameter metadata
-   CDynamicAttrHelper(MObject& obj, const MString& arnoldNodeEntryName, const MString& prefix="ai_") :
-      CBaseAttrHelper(arnoldNodeEntryName, prefix),
-      m_instance(obj)
-   {
-      if (m_nodeEntry == NULL)
-      {
-         AiMsgWarning("[mtoa.attr] CDynamicAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
-                      arnoldNodeEntryName.asChar(), MFnDependencyNode(m_instance).typeName().asChar());
-      }
-   }
-
-   MString GetMayaNodeTypeName() const {return m_instance.apiTypeStr();}
-   MTypeId GetMayaNodeTypeId() const {return MTypeId(m_instance.apiType());}
-
-protected:
-   MObject m_instance;
 
 protected:
    virtual MStatus addAttribute(MObject& attrib);

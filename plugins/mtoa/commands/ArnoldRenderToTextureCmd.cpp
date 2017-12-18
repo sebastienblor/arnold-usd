@@ -131,9 +131,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    // or in batch it might fail
    bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
 
-
-   AiBegin();
-   CMayaScene::Begin(MTOA_SESSION_BATCH);
+   CMayaScene::Begin(MTOA_SESSION_RENDER);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);
@@ -211,7 +209,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       }
    }
    AtNode* options_node = AiUniverseGetOptions();
-   AiNodeSetBool(options_node, "preserve_scene_data", true);
    AiNodeSetPtr(options_node, "color_manager", NULL);
 
    int resolution = 512; // default value
@@ -393,6 +390,17 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    MString appString = MString("MtoA ") + MTOA_VERSION + " " + BUILD_ID + " Maya " + mayaVersion;
    AiSetAppString(appString.asChar());
 
+   // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(options_node, "camera");
+   if (renderCam == NULL)
+   {      
+      // Please don't tell anyone that I'm creating a dummy camera here,
+      // it will be deleted at the end of this function anyway.
+      renderCam = AiNode("persp_camera");
+      AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
+      AiNodeSetPtr(options_node, "camera", (void*)renderCam);
+   }
+
    // Dirty hack... this is initializing all the polymeshes triangles
    // which is necessary for CameraUvMapper to work correctly
    AiRender(AI_RENDER_MODE_FREE);
@@ -441,7 +449,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          // we loop over the entire Arnold Scene, and check which have this node as parent
          AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
-   
          while (!AiNodeIteratorFinished(nodeIter))
          {
             AtNode *loopNode = AiNodeIteratorGetNext(nodeIter);
@@ -480,6 +487,19 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    {
       AtNode *mesh = nodes[i];
       const char *meshName = AiNodeGetName(mesh);
+      std::string fullMeshName = meshName;
+
+      if (AiNodeLookUpByName(meshName) == NULL)
+      {
+         // this name isn't enough to find the node in the scene.
+         // We might need to set its full path name
+         AtNode *parent = AiNodeGetParent(mesh);
+         while(parent)
+         {
+            fullMeshName = std::string(AiNodeGetName(parent)) + std::string("^") + fullMeshName;
+            parent = AiNodeGetParent(parent);
+         }
+      }
 
       if (progressBar)
       {
@@ -581,7 +601,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
-            AiNodeSetStr(camera, "polymesh", meshName);
+            AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
             AiNodeSetStr(camera, "uv_set", uvSet.asChar());
             AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
             AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
@@ -626,7 +646,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MString filename = folderName + "/" + meshNameStr.c_str() + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
-         AiNodeSetStr(camera, "polymesh", meshName);
+         AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
          AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));

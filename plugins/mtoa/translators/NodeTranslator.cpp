@@ -211,14 +211,6 @@ void CNodeTranslator::Delete()
    m_impl->m_backReferences.clear();
 #endif
 
-
-   if (m_impl->m_isProcedural)
-   {
-      // if this node is a procedural, we want to un-register it from the Arnold Session.
-      // FIXME : make we get rid of this once dependency graph is properly implemented in arnold
-      m_impl->m_session->UnRegisterProcedural(m_impl->m_atNode);
-   }
-   
    AtNode *mainNode = m_impl->m_atNode;
    AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
@@ -298,33 +290,38 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
    // Make sure that the given type of node exists
-   if (nodeEntry != NULL)
-   {
-      AtNode* node = AiNode(type);
-      m_impl->SetArnoldNodeName(node, tag);
-
-      if (tag != NULL && strlen(tag))
-      {
-         if (m_impl->m_additionalAtNodes == NULL) 
-            m_impl->m_additionalAtNodes = new unordered_map<std::string, AtNode*>();
-         if (m_impl->m_additionalAtNodes->count(tag))
-         {
-            AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
-            return node;
-         }
-         else
-            (*(m_impl->m_additionalAtNodes))[tag] = node;
-      } else
-         m_impl->m_atNode = node;
-      return node;
-   }
-   else
+   if (nodeEntry == NULL)
    {
       AiMsgError("[mtoa.translator]   %s: Arnold node type %s does not exist.", GetTranslatorName().asChar(), type);
       return NULL;
    }
+
+   AtNode* node = AiNode(type);
+   AddExistingArnoldNode(node, tag);
+   return node;
 }
 
+void CNodeTranslator::AddExistingArnoldNode(AtNode *node, const char *tag)
+{
+   if (node == NULL) return;
+
+   m_impl->SetArnoldNodeName(node, tag);
+
+   if (tag != NULL && strlen(tag))
+   {
+      if (m_impl->m_additionalAtNodes == NULL) 
+         m_impl->m_additionalAtNodes = new unordered_map<std::string, AtNode*>();
+      if (m_impl->m_additionalAtNodes->count(tag))
+      {
+         AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
+         return;
+      }
+      else
+         (*(m_impl->m_additionalAtNodes))[tag] = node;
+   } else
+      m_impl->m_atNode = node;
+   
+}
 void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 {  
    // When the frame is changed for motion blur we can receive signals here,
@@ -490,24 +487,6 @@ void CNodeTranslator::RequestUpdate()
    m_impl->m_session->QueueForUpdate(this);   
    static AtString namespaceStr("namespace");
 
-   if (m_impl->m_isProcedural && m_impl->m_updateMode >= AI_RECREATE_NODE)
-   {
-      AtNode *procNode = GetArnoldNode();
-      if (procNode && AiNodeEntryLookUpParameter (AiNodeGetNodeEntry(procNode), namespaceStr ))
-      {
-         AtString namespaceVal = AiNodeGetStr(procNode, namespaceStr);
-         // only namespaces in procedurals can allow to produce inter-procedural connections
-         if (!namespaceVal.empty())
-         {
-            // If this is a procedural being re-generated, we must
-            // advert the arnold session so that it checks for all 
-            // lost connections
-            m_impl->m_session->QueueProceduralUpdate(this);
-         }
-      }
-
-   }
-   
    // Pass the update request to the export session
    m_impl->m_session->RequestUpdate();
 }

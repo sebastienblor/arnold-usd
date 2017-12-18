@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiUvTransformTemplate(ShaderAETemplate):
@@ -41,7 +41,7 @@ class AEaiUvTransformTemplate(ShaderAETemplate):
         self.endLayout()
         self.addControl('unit')
 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

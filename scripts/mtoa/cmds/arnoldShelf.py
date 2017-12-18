@@ -4,7 +4,6 @@ import mtoa.core as core
 import mtoa.ui.arnoldmenu as arnoldmenu
 import mtoa.utils as mutils
 import mtoa.ui.globals.settings as settings
-import pymel.versions as versions
 def removeArnoldShelf():
    if cmds.shelfLayout('Arnold', exists=True):
       cmds.deleteUI('Arnold')
@@ -38,13 +37,13 @@ def createArnoldShelf():
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
-   maya_version = versions.shortName()
-   if int(float(maya_version)) < 2017:
+   maya_version = mutils.getMayaVersion()
+   if maya_version < 2017:
       maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel Arnold`;')   
    else:
       maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel -version \"2017\" Arnold`;')
 
-   shelfStyle = ('shelf' if int(float(maya_version)) >= 2016 else 'simple')
+   shelfStyle = ('shelf' if maya_version >= 2016 else 'simple')
 
    cmds.shelfButton(label='Create Area Light', command='import mtoa.utils as mutils;mutils.createLocator("aiAreaLight", asLight=True)', sourceType='python', annotation='Create Area Light', image='AreaLightShelf.png', style='iconOnly')
    cmds.shelfButton(label='Create Mesh Light', command='import mtoa.utils as mutils; mutils.createMeshLight()', sourceType='python', annotation='Create Mesh Light', image='MeshLightShelf.png', style='iconOnly')

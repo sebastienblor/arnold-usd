@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
@@ -153,7 +152,7 @@ def ProceduralDsoEdit(nodeName, mPath, replace=False) :
     else:
         mArchivePath = mPath
 
-    pm.setAttr(nodeName+'.dso',mArchivePath,type='string')
+    cmds.setAttr(nodeName+'.dso',mArchivePath,type='string')
     cmds.textField('proceduralDsoPath', edit=True, text=mArchivePath)
 
 def ProceduralTemplateDsoNew(nodeName) :
@@ -185,16 +184,17 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiOverrideLightLinking', label='Override StandIn Light Linking')
         self.addControl('aiOverrideShaders', label='Override StandIn Shaders')
         self.addSeparator()
-        self.addControl('aiOverrideReceiveShadows', label='Override Receive Shadows')
-        self.addControl('receiveShadows', label='   Receive Shadows')
-        self.addControl('aiOverrideSelfShadows',  label='Override Self Shadows')
-        self.addControl('aiSelfShadows', label='   Self Shadows')
-        self.addControl('aiOverrideOpaque', label='Override Opaque')
-        self.addControl('aiOpaque', label='   Opaque')
-        self.addControl('aiOverrideDoubleSided',  label='Override Double-Sided')
-        self.addControl('doubleSided', label='   Double-Sided')
-        self.addControl('aiOverrideMatte', label='Override Matte')
-        self.addControl('aiMatte', label='   Matte')
+        self.addOverrideAttributes()
+        # self.addControl('aiOverrideReceiveShadows', changeCommand=self.updateOverridesVisibility, label='Override Receive Shadows')
+        # self.addControl('receiveShadows', label='   Receive Shadows')
+        # self.addControl('aiOverrideSelfShadows', changeCommand=self.updateOverridesVisibility,  label='Override Self Shadows')
+        # self.addControl('aiSelfShadows', label='   Self Shadows')
+        # self.addControl('aiOverrideOpaque', changeCommand=self.updateOverridesVisibility, label='Override Opaque')
+        # self.addControl('aiOpaque', label='   Opaque')
+        # self.addControl('aiOverrideDoubleSided', changeCommand=self.updateOverridesVisibility,  label='Override Double-Sided')
+        # self.addControl('doubleSided', label='   Double-Sided')
+        # self.addControl('aiOverrideMatte', changeCommand=self.updateOverridesVisibility, label='Override Matte')
+        # self.addControl('aiMatte', label='   Matte')
         self.endLayout()
         
         self.beginLayout("Visibility", collapse=False)
@@ -214,7 +214,88 @@ class ProceduralTemplate(templates.ShapeTranslatorTemplate):
         self.addControl('aiNamespace')
         self.addControl("aiUserOptions", label="User Options")
         
+    def addOverrideAttributes(self):
 
+        self.beginNoOptimize()
+        self.receiveShadowsCtrl = ""
+        self.aiSelfShadowsCtrl = ""
+        self.aiOpaquesCtrl = ""
+        self.doubleSidedCtrl = ""
+        self.aiMatteCtrl = ""
+        self.addCustom("aiOverrideReceiveShadows", self.overridesNew, self.overridesReplace)
+        self.endNoOptimize()
+
+    def overridesChanged(self, nodeAttr, control, *args):
+
+        enabled = bool(cmds.getAttr(nodeAttr))
+        cmds.attrControlGrp(control, edit=True, enable=enabled)
+
+    def overridesNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+
+        self.aiOverrideReceiveShadowsCtrl = cmds.attrControlGrp('aiOverrideReceiveShadowsCtrl', label="Override Receive Shadows",
+            attribute='.'.join([self.nodeName, 'aiOverrideReceiveShadows']))
+        self.receiveShadowsCtrl = cmds.attrControlGrp("receiveShadowsCtrl", label=" Receive Shadows", 
+            attribute='.'.join([self.nodeName, 'receiveShadows']))
+
+        self.aiOverrideSelfShadowsCtrl = cmds.attrControlGrp('aiOverrideSelfShadowsCtrl', label="Override Self Shadows",
+            attribute='.'.join([self.nodeName, 'aiOverrideSelfShadows']))
+        self.aiSelfShadowsCtrl = cmds.attrControlGrp("aiSelfShadowsCtrl", label=" Self Shadows",
+            attribute='.'.join([self.nodeName, 'aiSelfShadows']))
+
+        self.aiOverrideOpaqueCtrl = cmds.attrControlGrp('aiOverrideOpaqueCtrl', label="Override Opaque",
+            attribute='.'.join([self.nodeName, 'aiOverrideOpaque']))
+        self.aiOpaquesCtrl = cmds.attrControlGrp("aiOpaqueCtrl", label=" Opaque",
+            attribute='.'.join([self.nodeName, 'aiOpaque']))
+
+        self.aiOverrideDoubleSidedCtrl = cmds.attrControlGrp('aiOverrideDoubleSidedCtrl', label='Override Double-Sided',
+            attribute='.'.join([self.nodeName, 'aiOverrideDoubleSided']))
+        self.doubleSidedCtrl = cmds.attrControlGrp('doubleSidedCtrl', label='   Double-Sided',
+            attribute='.'.join([self.nodeName, 'doubleSided']))
+
+        self.aiOverrideMatteCtrl = cmds.attrControlGrp('aiOverrideMatteCtrl', label='Override Matte',
+            attribute='.'.join([self.nodeName, 'aiOverrideMatte']))
+        self.aiMatteCtrl = cmds.attrControlGrp('aiMatteCtrl', label='   Matte',
+            attribute='.'.join([self.nodeName, 'aiMatte']))
+
+        cmds.setUITemplate(ppt=True)
+
+        self.overridesReplace(nodeAttr)
+
+    def overridesReplace(self, nodeAttr):
+
+        cmds.attrControlGrp(self.aiOverrideReceiveShadowsCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideReceiveShadows']), self.receiveShadowsCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideReceiveShadows']))
+        cmds.attrControlGrp(self.receiveShadowsCtrl, edit=True, attribute='.'.join([self.nodeName, 'receiveShadows']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideReceiveShadows']))))
+        
+        cmds.attrControlGrp(self.aiOverrideSelfShadowsCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideSelfShadows']), self.aiSelfShadowsCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideSelfShadows']))
+        cmds.attrControlGrp(self.aiSelfShadowsCtrl, edit=True,
+            attribute='.'.join([self.nodeName, 'aiSelfShadows']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideSelfShadows']))))
+
+        cmds.attrControlGrp(self.aiOverrideOpaqueCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideOpaque']), self.aiOpaquesCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideOpaque']))
+        cmds.attrControlGrp(self.aiOpaquesCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiOpaque']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideOpaque']))))
+
+        cmds.attrControlGrp(self.aiOverrideDoubleSidedCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideDoubleSided']), self.doubleSidedCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideDoubleSided']))
+        cmds.attrControlGrp(self.doubleSidedCtrl, edit=True, attribute='.'.join([self.nodeName, 'doubleSided']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideDoubleSided']))))
+
+        cmds.attrControlGrp(self.aiOverrideMatteCtrl, edit=True,
+            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideMatte']), self.aiMatteCtrl, *args),
+            attribute='.'.join([self.nodeName, 'aiOverrideMatte']))
+        cmds.attrControlGrp(self.aiMatteCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiMatte']),
+            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideMatte']))))
+  
 
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
 templates.registerTranslatorUI(ProceduralTemplate, "mesh", "procedural")
@@ -334,8 +415,6 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
             pass
             
     def setup(self):
-        #pm.mel.eval('AEaddRampControl("widthProfile")')
-        #pm.mel.eval('AEaddRampControl("colorTable")')
         self.addControl("aiRenderCurve")
         self.addControl("aiCurveWidth")
         self.addControl("aiSampleRate")
@@ -490,7 +569,7 @@ class CameraTemplate(templates.AttributeTemplate):
         cmds.gradientControlNoAttr( control, edit=True, currentKey=current, asString=curveString) 
             
     def updateValue(self, attr, control, valueField, positionField):
-        value = pm.floatField(valueField, query=True, value=True)
+        value = cmds.floatField(valueField, query=True, value=True)
         
         values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
         valuesSplit = values.split(',')
@@ -500,11 +579,11 @@ class CameraTemplate(templates.AttributeTemplate):
         valuesSplit[current*3] = str(value)
         values = ",".join(valuesSplit)
         
-        pm.gradientControlNoAttr( control, edit=True, asString=values)
+        cmds.gradientControlNoAttr( control, edit=True, asString=values)
         self.syncAttribute(attr, control, valueField, positionField)
         
     def updatePosition(self, attr, control, valueField, positionField):
-        value = pm.floatField(positionField, query=True, value=True)
+        value = cmds.floatField(positionField, query=True, value=True)
         
         values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
         valuesSplit = values.split(',')
@@ -514,44 +593,35 @@ class CameraTemplate(templates.AttributeTemplate):
         valuesSplit[current*3+1] = str(value)
         values = ",".join(valuesSplit)
         
-        pm.gradientControlNoAttr( control, edit=True, asString=values)
+        cmds.gradientControlNoAttr( control, edit=True, asString=values)
         self.syncAttribute(attr, control, valueField, positionField)
         
     def createRamp( self, attr ):
         #Create the control fields
-        pm.columnLayout( )
+        cmds.columnLayout( )
         
         cmds.rowLayout(nc=2, cw2=(142,220))
-        pm.text("Shutter Curve");
-        pm.text(" ");
-        pm.cmds.setParent('..')
+        cmds.text("Shutter Curve");
+        cmds.text(" ");
+        cmds.setParent('..')
         
         cmds.rowLayout("ShutterCurveRowLayout",nc=2, cw2=(142,220))
         
-        pm.columnLayout("ShutterCurveColumLayout")
+        cmds.columnLayout("ShutterCurveColumLayout")
         cmds.rowLayout("ShutterCurveValueLayout", nc=2, cw2=(60,45))
-        pm.text("Value");
-        valueField = pm.floatField("ShutterCurveValueField");
-        pm.cmds.setParent('..')
+        cmds.text("Value");
+        valueField = cmds.floatField("ShutterCurveValueField");
+        cmds.setParent('..')
         
-        pm.rowLayout("ShutterCurvePositionLayout", nc=2, cw2=(60,45))
-        pm.text("Position");
+        cmds.rowLayout("ShutterCurvePositionLayout", nc=2, cw2=(60,45))
+        cmds.text("Position");
         
         positionField = cmds.floatField("ShutterCurvePositionField");
-        pm.cmds.setParent('..')
+        cmds.setParent('..')
+        cmds.setParent('..')
         
-        '''pm.rowLayout(nc=2, cw2=(60,65))
-        pm.text("Interpol.");
-        pm.optionMenu(changeCommand=self.updateRamp )
-        pm.menuItem( label='None' )
-        pm.menuItem( label='Linear' )
-        pm.menuItem( label='Smooth' )
-        pm.menuItem( label='Spline' )
-        pm.cmds.setParent('..')'''
-        pm.cmds.setParent('..')
-        
-        gradient = pm.gradientControlNoAttr("ShutterCurveGradientControl", w=200, h=100 )
-        pm.gradientControlNoAttr( gradient, edit=True, changeCommand=pm.Callback(self.syncAttribute,attr,gradient, valueField, positionField) )
+        gradient = cmds.gradientControlNoAttr("ShutterCurveGradientControl", w=200, h=100 )
+        cmds.gradientControlNoAttr( gradient, edit=True, changeCommand=lambda arg=None, x=attr, y=gradient, z=valueField, w=positionField:self.syncAttribute(x, y, z, w))
         
         #Initialize the curve with the values in the attribute
         curveString = ""
@@ -574,15 +644,15 @@ class CameraTemplate(templates.AttributeTemplate):
             
         cmds.gradientControlNoAttr( gradient, edit=True, asString=curveString) 
         
-        pm.floatField(valueField, edit=True, value=startY, changeCommand=pm.Callback(self.updateValue, attr, gradient, valueField, positionField))
-        pm.floatField(positionField, edit=True, value=startX, changeCommand=pm.Callback(self.updatePosition, attr, gradient, valueField, positionField))
+        cmds.floatField(valueField, edit=True, value=startY, changeCommand=lambda arg=None, x=attr, y=gradient, z=valueField, w=positionField: self.updateValue(x, y, z, w))
+        cmds.floatField(positionField, edit=True, value=startX, changeCommand=lambda arg=None, x=attr, y=gradient, z=valueField, w=positionField: self.updatePosition(x, y, z, w))
         
     def updateRamp( self, attr ):
         name = self.nodeName
         translator = cmds.getAttr(self.nodeAttr('aiTranslator'))
 
-        uiParent = pm.setParent( q = True )
-        controls = pm.columnLayout( uiParent, q=True, ca=True )
+        uiParent = cmds.setParent( q = True )
+        controls = cmds.columnLayout( uiParent, q=True, ca=True )
         
         curveString = ""
         attr = self.nodeAttr('aiShutterCurve')
@@ -608,17 +678,17 @@ class CameraTemplate(templates.AttributeTemplate):
                 cmds.gradientControlNoAttr( control, edit=True, asString=curveString)
                 current = cmds.gradientControlNoAttr( control, query=True, currentKey=True) 
                 
-                pm.floatField(valueField, edit=True, value=float(valuesSplit[current*3]))
-                pm.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
+                cmds.floatField(valueField, edit=True, value=float(valuesSplit[current*3]))
+                cmds.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
 
     
     def cameraFilterMapNew(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiCameraFilterMap',
+        cmds.attrNavigationControlGrp('aiCameraFilterMap',
                                     label='Filtermap',
                                     at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def cameraFilterMapReplace(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiCameraFilterMap', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+        cmds.attrNavigationControlGrp('aiCameraFilterMap', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def addCommonAttributes(self):
         self.addControl("aiExposure")
@@ -787,13 +857,11 @@ def cameraOrthographicChanged(orthoPlug, *args):
         isOrtho = orthoPlug.asBool()
         
         currTrans = transPlug.asString()
-        #print "cameraOrthographicChanged", fnCam.name(), currTrans, isOrtho
         newTrans = None
         if isOrtho and currTrans != 'orthographic':
             newTrans = 'orthographic'
         elif not isOrtho and currTrans == 'orthographic':
             newTrans = 'perspective'
-        #print "newTrans", newTrans
         if newTrans:
             transPlug.setString(newTrans)
 
@@ -818,7 +886,7 @@ def cameraTranslatorChanged(transPlug, *args):
             orthoPlug.setBool(False)
 
 def getCameraDefault(obj):
-    isOrtho = pm.api.MFnDependencyNode(obj).findPlug("orthographic").asBool()
+    isOrtho = om.MFnDependencyNode(obj).findPlug("orthographic").asBool()
     default = 'orthographic' if isOrtho else 'perspective'
     return default
 
@@ -947,7 +1015,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         nodeName = self.selectedAttrName(nodeName)
         # Attribute Name
         attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
-        cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
+        cmds.textField(attrNameText, edit=True, changeCommand=lambda arg=None, x=nodeName, y=attrNameText, z=index: self.changeAttrName(x, y, z))
         
         # Attribute Type
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
@@ -966,14 +1034,14 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.optionMenu(menu, edit=True, select=4)
         elif result[0] == 'STRING':
             cmds.optionMenu(menu, edit=True, select=5)
-        cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
+        cmds.optionMenu(menu, edit=True, changeCommand=lambda arg=None, x=nodeName, y=menu, z=index: self.changeAttrType(x, y, z))
         
         # Attribute Value
         attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
-        cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
+        cmds.textField(attrValueText, edit=True, changeCommand=lambda arg=None, x=nodeName, y=attrValueText, z=index: self.changeAttrValue(x, y, z))
         
         # Remove button
-        cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
+        cmds.symbolButton(image="SP_TrashIcon.png", command=lambda arg=None, x=nodeName, y=index:self.removeAttribute(x, y))
         
     def updatedMetadata(self, nodeName):
 
@@ -997,7 +1065,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
 
         nodeName = self.selectedAttrName(nodeName)
-        cmds.button( label='Add New Attribute', command=pm.Callback(self.addAttribute, nodeName))
+        cmds.button( label='Add New Attribute', command=lambda arg=None, x=nodeName: self.addAttribute(x))
         cmds.setParent( '..' )
         layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
         # This template could be created more than once in different panels
@@ -1061,6 +1129,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         for templateName in deepexrToleranceTemplates:
             
             driverName = self.nodeName
+            if not cmds.objExists(driverName):
+                continue
 
             # note that this function may be called to fill the defaultArnoldDriver exposed params
             # but with self != defaultArnoldDriver
@@ -1080,7 +1150,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             if driverName == "defaultArnoldDriver":
                 cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]')
                 for i in range(0,len(aovList)):
-                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
+                    if driver_list and len(driver_list) and driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
                         cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
@@ -1095,6 +1166,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.setParent(templateName)
 
             driverName = self.nodeName
+            if not cmds.objExists(driverName):
+                continue
 
             # note that this function may be called to fill the defaultArnoldDriver exposed params
             # but with self != defaultArnoldDriver
@@ -1112,9 +1185,10 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
 
             if driverName == "defaultArnoldDriver":
                 cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerHalfPrecision[0]' )
-           
+
                 for i in range(0,len(aovList)):
-                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
+                    if driver_list and len(driver_list) and driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
                         cmds.attrControlGrp(label=labelStr , a=attrStr )
@@ -1135,6 +1209,9 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             
             # in the render settings window I only want to display the defaultArnoldDriver params
             driverName = self.nodeName
+            if not cmds.objExists(driverName):
+                continue
+
             if templateName[:26] == "unifiedRenderGlobalsWindow":
                 driverName = "defaultArnoldDriver"
 
@@ -1144,7 +1221,8 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             if driverName == "defaultArnoldDriver":
                 cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
                 for i in range(0,len(aovList)):
-                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    driver_list = cmds.listConnections('{}.outputs[0].driver'.format(aovList[i].node), source=True, destination=False)
+                    if driver_list and len(driver_list) and driver_list[0] == 'defaultArnoldDriver':
                         labelStr = aovList[i].name
                         attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
                         cmds.attrControlGrp(label=labelStr , a=attrStr )
@@ -1264,7 +1342,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
 
         # Attribute Name
         attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
-        cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
+        cmds.textField(attrNameText, edit=True, changeCommand=lambda arg=None, x=nodeName, y=attrNameText, z=index: self.changeAttrName(x, y, z))
         
         # Attribute Type
         menu = cmds.optionMenu("MtoA_exrMAttributeType")
@@ -1283,14 +1361,14 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.optionMenu(menu, edit=True, select=4)
         elif result[0] == 'STRING':
             cmds.optionMenu(menu, edit=True, select=5)
-        cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
+        cmds.optionMenu(menu, edit=True, changeCommand=lambda arg=None, x=nodeName, y=menu, z=index: self.changeAttrType(x, y, z))
         
         # Attribute Value
         attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
-        cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
+        cmds.textField(attrValueText, edit=True, changeCommand=lambda arg=None, x=nodeName, y= attrValueText, z=index: self.changeAttrValue(x, y, z))
         
         # Remove button
-        cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
+        cmds.symbolButton(image="SP_TrashIcon.png", command=lambda arg=None, x=nodeName, y=index: self.removeAttribute(x, y))
         
     def updatedMetadata(self, nodeName):
         
@@ -1315,7 +1393,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         nodeName = self.selectedAttrName(nodeName)
 
         cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
-        cmds.button( label='Add New Attribute', command=pm.Callback(self.addAttribute, nodeName))
+        cmds.button( label='Add New Attribute', command=lambda arg=None, x=nodeName: self.addAttribute(x))
         cmds.setParent( '..' )
         layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
         # This template could be created more than once in different panels

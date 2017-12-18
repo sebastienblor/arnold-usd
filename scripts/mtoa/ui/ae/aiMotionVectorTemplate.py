@@ -1,13 +1,14 @@
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiMotionVectorTemplate(ShaderAETemplate):
     def checkRaw(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "raw")
-        rawValue = pm.getAttr(fullAttr)
+        rawValue = cmds.getAttr(fullAttr)
         
         dim = rawValue
-        pm.editorTemplate(dimControl=(nodeName, "maxDisplace", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "maxDisplace", dim))
         
     def setup(self):
         self.addSwatch()
@@ -23,7 +24,7 @@ class AEaiMotionVectorTemplate(ShaderAETemplate):
         
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

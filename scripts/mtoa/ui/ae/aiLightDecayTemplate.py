@@ -1,23 +1,24 @@
 import mtoa.ui.ae.utils as aeUtils
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiLightDecayTemplate(ShaderAETemplate):
     def checkNearAtten(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "use_near_atten")
-        rawValue = pm.getAttr(fullAttr)
+        rawValue = cmds.getAttr(fullAttr)
         
         dim = not rawValue
-        pm.editorTemplate(dimControl=(nodeName, "nearStart", dim))
-        pm.editorTemplate(dimControl=(nodeName, "nearEnd", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "nearStart", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "nearEnd", dim))
 
     def checkFarAtten(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "use_far_atten")
-        rawValue = pm.getAttr(fullAttr)
+        rawValue = cmds.getAttr(fullAttr)
         
         dim = not rawValue
-        pm.editorTemplate(dimControl=(nodeName, "farStart", dim))
-        pm.editorTemplate(dimControl=(nodeName, "farEnd", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "farStart", dim))
+        cmds.editorTemplate(dimControl=(nodeName, "farEnd", dim))
 
     def setup(self):
         self.addSwatch()
@@ -37,7 +38,7 @@ class AEaiLightDecayTemplate(ShaderAETemplate):
         
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

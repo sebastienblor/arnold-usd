@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiFogTemplate(ShaderAETemplate):
@@ -15,7 +15,7 @@ class AEaiFogTemplate(ShaderAETemplate):
         self.addControl('groundPoint', label='Ground Point')
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

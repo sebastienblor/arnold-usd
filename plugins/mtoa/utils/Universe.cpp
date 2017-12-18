@@ -1,5 +1,7 @@
 #include "Universe.h"
 #include "extension/Extension.h"
+#include "render/RenderSession.h"
+#include "scene/MayaScene.h"
 
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -69,7 +71,10 @@ bool ArnoldUniverseBegin(int logFlags)
 {
    if (!AiUniverseIsActive())
    {
-      AiBegin();
+      CRenderSession *renderSession = CMayaScene::GetRenderSession();
+      bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
+
+      AiBegin((isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH);
       MtoaSetupLogging(logFlags);
       LoadPlugins();
       ReadMetafile();
@@ -82,7 +87,9 @@ bool ArnoldUniverseOnlyBegin()
 {
    if (!AiUniverseIsActive())
    {
-      AiBegin();
+      CRenderSession *renderSession = CMayaScene::GetRenderSession();
+      bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
+      AiBegin((isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH);
       return true;
    }
    return false;

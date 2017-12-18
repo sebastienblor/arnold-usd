@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
@@ -11,14 +11,14 @@ def TwoSidedAttrReplace(plugName):
     cmds.attrNavigationControlGrp(ctrlName, edit=True, attribute=(plugName),  cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
 
 def TwoSidedAttrNew(plugName):
-    pm.setUITemplate('attributeEditorTemplate', pst=True)
+    cmds.setUITemplate('attributeEditorTemplate', pst=True)
 
     nodeAndAttrs = plugName.split(".")
     ctrlName = "aiTwoSided"
     ctrlName += nodeAndAttrs[1]
 
     cmds.attrNavigationControlGrp(ctrlName, label=nodeAndAttrs[1], cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
-    pm.setUITemplate(ppt=True)
+    cmds.setUITemplate(ppt=True)
     TwoSidedAttrReplace(plugName)
 
 
@@ -34,7 +34,7 @@ class AEaiTwoSidedTemplate(ShaderAETemplate):
         self.addCustom("back", TwoSidedAttrNew, TwoSidedAttrReplace)
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

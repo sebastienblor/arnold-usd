@@ -1,0 +1,3 @@
+Ensure arnold attributes and nodes are unregistered at unload
+
+author: sebastien.ortega

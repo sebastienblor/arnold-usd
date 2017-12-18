@@ -1,19 +1,18 @@
-﻿import pymel.core as pm
-import mtoa.core as core
+﻿import mtoa.core as core
 from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
 import maya.cmds as cmds
+import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.licensing
 import arnold as ai
-import pymel.versions as versions
 import mtoa.convertShaders
 
 from uuid import getnode as get_mac
 import os
-import shutil
 import sys
 
 defaultFolder = ""
@@ -32,7 +31,7 @@ def doExportStandIn():
     try:
         #Change it to ASS
         cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
-        pm.mel.eval('ExportSelection')
+        maya.mel.eval('ExportSelection')
     finally:
         cmds.optionVar(sv=('defaultFileExportActiveType', default))
 
@@ -43,8 +42,8 @@ def doExportOptionsStandIn():
     defaultBounds = cmds.getAttr('defaultArnoldRenderOptions.outputAssBoundingBox')
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', 1)
 
-    pm.mel.eval('ExportSelectionOptions')
-    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
+    maya.mel.eval('ExportSelectionOptions')
+    maya.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
 
     cmds.setAttr('defaultArnoldRenderOptions.outputAssBoundingBox', defaultBounds)
 
@@ -275,128 +274,43 @@ Portions related to TurbulenceFD API Copyright (c) 2015 Jascha Wetzel. All right
     
     cmds.showWindow(w)
     
-def dotDotDotButtonPush(file):
-    licenseFilter = 'License Files (*.lic)'
-    ret = cmds.fileDialog2(fileFilter=licenseFilter, 
-                            cap='Load License File',okc='Load',fm=1)
-    if ret is not None and len(ret):
-        cmds.textField(file, edit=True, text=ret[0])
         
-def installButtonPush(file):
-    licenseFile = cmds.textField(file, query=True, text=True)
-    import maya.mel as mel
-    mPath = mel.eval('getenv "MTOA_PATH"')
-    destination = os.path.join(mPath,'bin')
-    try:
-        shutil.copy(licenseFile,destination)
-        cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
-    except:
-        cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
+def arnoldLicensingGetMacAddress():
+    if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
+        cmds.deleteUI("ArnoldLicenseGetMacAddress")
+    w = cmds.window("ArnoldLicenseGetMacAddress", sizeable=False, title="Get MAC Address")
+    cmds.window("ArnoldLicenseGetMacAddress", edit=True, width=240, height=60)
     
-def arnoldLicenseDialog():
-    if (cmds.window("ArnoldLicense", ex=True)):
-        cmds.deleteUI("ArnoldLicense")
-    w = cmds.window("ArnoldLicense", title="Arnold Node-locked License")
-    cmds.window("ArnoldLicense", edit=True, width=430, height=280)
     cmds.columnLayout()
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
 
-    cmds.text(label="");cmds.text(label="");
-
-    arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
-
-    cmds.text(label="")
-    cmds.text(align="left",label=arnoldAboutText)
-
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.separator()
-    cmds.separator()
-
-    cmds.setParent( '..' )
-    cmds.separator()
-
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
-    macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
-    cmds.text(label="")
-    cmds.text(align="left",label=macText)
-    cmds.setParent( '..' )
-    cmds.separator()
-
-    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
-    cmds.text(label="")
-    cmds.text(align="left",label="MAC Address")
+    cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1,10),(2,90),(3,140)] )
+    cmds.text(align="left", label="")
+    cmds.text(align="left", label="MAC Address")
     name = cmds.textField()
     mac = get_mac()
     mactext = ("%012X" % mac)
     cmds.textField(name,  edit=True, text=mactext, editable=False )
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-    cmds.separator()
-
     cmds.setParent( '..' )
-
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
-    macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,10),(2,70),(3,80), (4, 70), (5,10)])
+    cmds.text(align="left",label="")
+    commandStr = 'import maya.cmds as cmds;cmds.arnoldLicense(copyToClipboard=\"' + mactext+'\")'
+    cmds.button( align="left", label='Copy', command=(commandStr))
     cmds.text(label="")
-    cmds.text(align="left",label=macText)
+    cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
+    cmds.text(align="right", label="")
     cmds.setParent( '..' )
-
-    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,190),(4,7),(5,26),(6,7),(7,80),(8,12)] )
-    cmds.text(label="")
-    cmds.text(align="left",label="License file (.lic)")
-    file = cmds.textField()
-    cmds.text(label="")
-    cmds.button( label='...', command=lambda *args: dotDotDotButtonPush(file) )
-    cmds.text(label="")
-    cmds.button( label='Install', command=lambda *args: installButtonPush(file) )
-    cmds.text(label="")
-
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
-
-    cmds.setParent( '..' )
-
-    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,80),(2,160), (3, 80),(4,20),(5,80)] )
-    cmds.text(label="")
-    cmds.text(label="")
-    cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
-    cmds.text(label="")
-    cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
-
-    cmds.setParent( '..' )
-
     cmds.showWindow(w)
+
+def arnoldLicensingConnectLicenseServer():
+    win = mtoa.licensing.ConnectToLicenseServer()
+    win.create()
+def arnoldLicensingGetDiagnostics():
+    win = mtoa.licensing.GetDiagnostics()
+    win.create()
+
+def arnoldLicensingNodeLocked():
+    win = mtoa.licensing.NodeLocked()
+    win.create()
     
 def arnoldTxManager():
     core.createOptions()
@@ -451,130 +365,163 @@ def arnoldMtoARenderView():
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
-    if not pm.about(b=1):
-        maya_version = versions.shortName()
-        if int(float(maya_version)) < 2017:
-            pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
+    if not cmds.about(b=1):
+        maya_version = mutils.getMayaVersion()
+        if maya_version < 2017:
+            cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
         else:
-            pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )
+            cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )
 
-        pm.menuItem('ArnoldRender', label='Render', parent='ArnoldMenu', image='RenderShelf.png', 
+        cmds.menuItem('ArnoldRender', label='Render', parent='ArnoldMenu', image='RenderShelf.png', 
                     c=lambda *args: arnoldMtoARenderView())
         
-        pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',  image='RenderViewShelf.png',
+        cmds.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',  image='RenderViewShelf.png',
                     c=lambda *args: arnoldOpenMtoARenderView())
-        pm.menuItem(parent='ArnoldMenu', divider=True)
+        cmds.menuItem(parent='ArnoldMenu', divider=True)
 
-        pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create", image='StandinShelf.png',
+        cmds.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create", image='StandinShelf.png',
                     c=lambda *args: createStandIn())
-        pm.menuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,  
+        cmds.menuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,  
                     c=lambda *args: doCreateStandInFile())
-        pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', image='ExportStandinShelf.png',
+        cmds.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', image='ExportStandinShelf.png',
                     c=lambda *args: doExportStandIn())
-        pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
+        cmds.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     c=lambda *args: doExportOptionsStandIn())
 
-        pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
-        pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light", image='AreaLightShelf.png',
+        cmds.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light", image='AreaLightShelf.png',
                     c=lambda *args: mutils.createLocator('aiAreaLight', asLight=True))
-        pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light", image='SkydomeLightShelf.png',
+        cmds.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light", image='SkydomeLightShelf.png',
                     c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
-        pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light', image='MeshLightShelf.png',
+        cmds.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light', image='MeshLightShelf.png',
                     c=lambda *args: mutils.createMeshLight())
-        pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", image='PhotometricLightShelf.png',
+        cmds.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", image='PhotometricLightShelf.png',
                     c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
-        pm.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal", image='LightPortalShelf.png',
+        cmds.menuItem('LightPortal', parent='ArnoldLights', label="Light Portal", image='LightPortalShelf.png',
                     c=lambda *args: doCreateLightPortal())
-        pm.menuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", image='PhysicalSkyShelf.png',
+        cmds.menuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", image='PhysicalSkyShelf.png',
                     c=lambda *args: doCreatePhysicalSky())
-#        pm.menuItem(parent='ArnoldLights', divider=True)
+#        cmds.menuItem(parent='ArnoldLights', divider=True)
 
-#        pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light", image='directionallight.png',
+#        cmds.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light", image='directionallight.png',
 #                    c=lambda *args: cmds.CreateDirectionalLight())
-#        pm.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light", image='pointlight.png',
+#        cmds.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light", image='pointlight.png',
 #                    c=lambda *args: cmds.CreatePointLight())
-#        pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light", image='spotlight.png',
+#        cmds.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light", image='spotlight.png',
 #                    c=lambda *args: cmds.CreateSpotLight())
-#        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light", image='arealight.png',
+#        cmds.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light", image='arealight.png',
 #                    c=lambda *args: cmds.CreateAreaLight())
         
         customShapes = cmds.arnoldPlugins(listCustomShapes=True)
         if customShapes and len(customShapes) > 0:
-            pm.menuItem('ArnoldCustomShapes', label='Custom Shapes', parent='ArnoldMenu', subMenu=True, tearOff=True)
+            cmds.menuItem('ArnoldCustomShapes', label='Custom Shapes', parent='ArnoldMenu', subMenu=True, tearOff=True)
             for customShape in customShapes:
-                pm.menuItem(customShape, parent='ArnoldCustomShapes', label=customShape,
-                    command=pm.Callback(doCreateCustomShape, customShape))
+                cmds.menuItem(customShape, parent='ArnoldCustomShapes', label=customShape,
+                    command=lambda arg=None, x=customShape:doCreateCustomShape(x))
 
 
-        pm.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
+        cmds.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
                     c=lambda *args: doCreateCurveCollector())
-        pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu', image='VolumeShelf.png', 
+        cmds.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu', image='VolumeShelf.png', 
                     c=lambda *args: createVolume())
                     
-        pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures", image='FlushTextureShelf.png', 
+        cmds.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures", image='FlushTextureShelf.png', 
                     c=lambda *args: cmds.arnoldFlushCache(textures=True))
-        pm.menuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures",  image='FlushTextureShelf.png', 
+        cmds.menuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures",  image='FlushTextureShelf.png', 
                     c=lambda *args: cmds.arnoldFlushCache(selected_textures=True))
-        pm.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights", image='FlushBackgroundShelf.png',
+        cmds.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights", image='FlushBackgroundShelf.png',
                     c=lambda *args: cmds.arnoldFlushCache(skydome=True))
-        pm.menuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights", image='FlushQuadLightShelf.png',
+        cmds.menuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights", image='FlushQuadLightShelf.png',
                     c=lambda *args: cmds.arnoldFlushCache(quads=True))
-        pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All", image='FlushAllCachesShelf.png',
+        cmds.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All", image='FlushAllCachesShelf.png',
                     c=lambda *args: cmds.arnoldFlushCache(flushall=True))
                     
-        pm.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities', image='BakeGeometryShelf.png', 
+        cmds.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities', image='BakeGeometryShelf.png', 
                     c=lambda *args: arnoldBakeGeo())
-        pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',  image='RenderToTextureShelf.png', 
+        cmds.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',  image='RenderToTextureShelf.png', 
                     c=lambda *args: arnoldRenderToTexture())
-        pm.menuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', 
+        cmds.menuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', 
                     c=lambda *args: arnoldTxManager())                    
-        pm.menuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',  image='UpdateTxShelf.png', 
+        cmds.menuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',  image='UpdateTxShelf.png', 
                     c=lambda *args: arnoldUpdateTx())                    
-        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
+        cmds.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     c=lambda *args: arnoldLightManager())
-        pm.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
+        cmds.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
                     c=lambda *args: arnoldConvertDeprecated())
 
-        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
+        cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
+                    subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingConnectLicenseServer())
+        cmds.menuItem('ArnoldGetDiagnostics', label='Get Diagnostics', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingGetDiagnostics())
+        cmds.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
+        cmds.separator()
+
+        cmds.menuItem('ArnoldSuscribe',  label='Suscribe to Arnold', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
+        cmds.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingGetMacAddress())
+
+        setupServerLink = 'https://support.solidangle.com/display/A5AILIC/Setting+up+a+License+Server'
+        platformName = sys.platform
+
+        if platformName.startswith('win'):
+            setupServerLink = 'https://support.solidangle.com/x/IQAzAg'
+        elif platformName.startswith('linux'):
+            setupServerLink = 'https://support.solidangle.com/x/JwAzAg'
+        elif platformName.startswith('darwin'):
+            setupServerLink = 'https://support.solidangle.com/x/EQAzAg'
+
+        cmds.menuItem('ArnoldSetupLicenseServer', label='Setup License Server', parent='ArnoldLicensingMenu', 
+                    c=lambda *args: cmds.launch(webPage=setupServerLink))
+
+        cmds.separator()
+        cmds.menuItem('ArnoldInstallNodeLocked', label='Install Node-locked license (Legacy)', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingNodeLocked())
+
+
+        cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
 
-        pm.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/a5AFMUG/Arnold+for+Maya+User+Guide'))
 
-        pm.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5AFMUG/Tutorials'))
 
-#        pm.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
+#        cmds.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
 #                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Video+Tutorials'))
 
-        pm.menuItem('ArnoldLearningScenes', label='Learning Scenes', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldLearningScenes', label='Learning Scenes', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5AFMUG/Learning+Scenes'))
 
-        pm.menuItem(divider=1, parent='ArnoldHelpMenu')
+        cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
-        pm.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
 
-        pm.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://subscribe.solidangle.com'))
         
-#        pm.menuItem('ArnoldAsk', label='Knowledge Base', parent='ArnoldHelpMenu',
+#        cmds.menuItem('ArnoldAsk', label='Knowledge Base', parent='ArnoldHelpMenu',
 #                    c=lambda *args: cmds.launch(webPage='https://ask.solidangle.com'))
 
-        pm.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
 
-        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
-                    c=lambda *args: arnoldLicenseDialog())
+#        cmds.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
+#                    c=lambda *args: arnoldLicenseDialog())
 
-        pm.menuItem(divider=1, parent='ArnoldHelpMenu')
+        cmds.menuItem(divider=1, parent='ArnoldHelpMenu')
 
-        pm.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
+        cmds.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5ARP/Arnoldpedia'))
                     
-        pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
+        cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())

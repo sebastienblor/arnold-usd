@@ -1,0 +1,66 @@
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'MASH_Audio.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 8: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 13: filePathEditor: Attribute 'svgToPoly.svgFilepath' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been registered already.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   221MB ERROR   | [mtoa.attr] Arnold parameter "options.preserve_scene_data" does not exist.
+00:00:00   229MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   229MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0260/test1.ma
+SAVED
+Warning: Plugin "mtoa" has been forced to unload even though it still has services in use. This could cause Maya to become unstable and even crash. You are advised to save your data in MayaAscii format and restart Maya as soon as possible.
+Successfully deregistered renderer 'arnold'
+Successfully deregistered Arnold nodes
+[mtoa] Successfully deregisterdd 'arnoldRender' command.
+[mtoa] Successfully deregisterdd 'arnoldIpr' command.
+[mtoa] Successfully deregisterdd 'arnoldBakeGeo' command.
+[mtoa] Successfully deregisterdd 'arnoldRenderToTexture' command.
+[mtoa] Successfully deregisterdd 'arnoldExportAss' command.
+[mtoa] Successfully deregisterdd 'arnoldPlugins' command.
+[mtoa] Successfully deregisterdd 'arnoldListAttributes' command.
+[mtoa] Successfully deregisterdd 'arnoldTemperatureToColor' command.
+[mtoa] Successfully deregisterdd 'arnoldFlushCache' command.
+[mtoa] Successfully deregisterdd 'arnoldCopyAsAdmin' command.
+[mtoa] Successfully deregisterdd 'arnoldRenderView' command.
+[mtoa] Successfully deregisterdd 'arnoldUpdateTx' command.
+[mtoa] Successfully deregisterdd 'arnoldScene' command.
+[mtoa] Successfully deregisterdd 'arnoldLicense' command.
+Successfully deregistered Arnold material view renderer
+Successfully deregistered Arnold swatch renderer
+Successfully deregistered tx texture file
+Successfully deregistered Arnold ass file exporter
+Successfully deregistered Arnold ass file importer
+LOADING NEW FILE
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been registered already.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+00:00:00   261MB ERROR   | [mtoa.attr] Arnold parameter "options.preserve_scene_data" does not exist.
+
+API error detected in plugins\mtoa\Main.cpp at line 631
+: (kFailure): Unexpected Internal Failure
+00:00:00   262MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   262MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been registered already.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been registered already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Warning: };
+Warning: "C:/Program Files/Autodesk/Maya2017/scripts/others/imageFormats.mel" line 65.2 : Global variable is already initialized; this occurrence is ignored.
+Successfully registered renderer 'arnold'
+
+API error detected in plugins\mtoa\Main.cpp at line 1118
+: (kInvalidParameter): Cannot find item of required type
+
+API error detected in plugins\mtoa\Main.cpp at line 1124
+: (kInvalidParameter): Cannot find item of required type
+File read in  0.26 seconds.
+YESSSSSSSSSSSS

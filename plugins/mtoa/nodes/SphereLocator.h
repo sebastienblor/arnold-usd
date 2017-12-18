@@ -49,11 +49,6 @@ public:
 
    static void* creator();
 
-   // FIXME : This function used to return true, but its signature was
-   // wrong (const was missing). Because of that, it was never called,
-   // and everything worked fine. Now that OSX compilation warning told us to fix this,
-   // this method is being called.... and we realize it shouldn't be (some nodes like aiSkydome can't be created anymore)
-   //bool isAbstractClass() const;
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV = true);
@@ -113,9 +108,13 @@ public:
       m_vbo             = -1;
       
       MObject obj = thisMObject();
-      MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
+      // We're no longer calling this as the callback ends up pointing to nowhere when MtoA is unloaded.
+      // Plus, no memory is actually released in removeSphereLocator, so it's only resetting values
+      // before the node is deleted, which makes it a bit useless (see #3270)
+      //MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
    }
    
+   /*
    static void removeSphereLocator(MObject& node, void* clientData)
    {
       CSphereLocator* locator = reinterpret_cast<CSphereLocator*>(clientData);
@@ -128,6 +127,6 @@ public:
       locator->m_cachedDivisionX = -1;
       locator->m_cachedDivisionY = -1;
       locator->m_cachedFormat    = -1;
-   }
+   }*/
 
-};  // class CSphereLocator
+}; // class CSphereLocator
