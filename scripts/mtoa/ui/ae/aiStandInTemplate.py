@@ -1,6 +1,7 @@
 import re
 import maya.cmds as cmds
 import maya.mel as mel
+import os.path
 import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
@@ -8,8 +9,13 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
-    projectDir = cmds.workspace(query=True, directory=True)     
-    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load StandIn',okc='Load',fm=1, startingDirectory=projectDir)
+    defaultDir = cmds.workspace(query=True, directory=True)
+    currentDir = cmds.getAttr(attrName) or ''
+    currentDir = os.path.dirname(currentDir)
+    if os.path.exists(currentDir):
+        defaultDir = currentDir
+
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load StandIn',okc='Load',fm=1, startingDirectory=defaultDir)
     if ret is not None and len(ret):
         cmds.setAttr(attrName.replace('.dso', '.useFrameExtension'), False) # I picked one file, no file sequence
         ArnoldStandInDsoEdit(attrName, ret[0])
