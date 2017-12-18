@@ -68,7 +68,11 @@ void CFilterTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
-// No callbacks currently, can this maya node be deleted ?
+// We used to override this function to do nothing at all, which disabled update callbacks
+// for all filter nodes. This prevented IPR from working properly (#3273), so I'm re-enabling this.
+// We could completely remove this function, but it would break binary compatibility, so for now
+// I'm leaving it here.
 void CFilterTranslator::AddUpdateCallbacks()
 {
+   CNodeTranslator::AddUpdateCallbacks();
 }
