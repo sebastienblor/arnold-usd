@@ -56,7 +56,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         cmds.setAttr(nodeName,mPath,type='string')
         cmds.textScrollList(self.gridsListPath, edit=True, removeAll=True)
 
-        if not os.path.isfile(mPath):
+        if not os.path.isfile(mPath) and not  '#' in mPath:
             return
 
         attrName = nodeName.replace('.filename', '.grids')
@@ -196,6 +196,23 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         if filename is not None:
             filename = os.path.expandvars(filename)
+            startIndex = filename.find('#')
+            if startIndex >= 0 :
+                hashCount = 0
+                for i in range(startIndex, len(filename)):
+                    if filename[i] == '#':
+                        hashCount=hashCount+1
+                    else:
+                        break            
+
+                frameStr = str(cmds.getAttr(attrName.replace('.filename', '.frame')))
+                # apply the padding
+                while len(frameStr) < hashCount:
+                    frameStr = '0' + frameStr
+
+                filename = filename[:startIndex] + frameStr + filename[startIndex+hashCount:]
+
+
             if os.path.isfile(filename):
                 gridsList = ai.AiVolumeFileGetChannels(filename);
                 
