@@ -109,6 +109,8 @@
 
 #include <ai.h>
 
+static MString s_arnold_plugin_path_orig = MString("");
+static MString s_mtoa_extensions_path_orig = MString("");
 namespace // <anonymous>
 {
    MCallbackId connectionCallback;
@@ -615,14 +617,23 @@ namespace // <anonymous>
          MString proceduralsPath = pluginPath + MString("procedurals");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
-         if (envVar != 0)
-            SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath));
+         MString envVarStr = (envVar) ? MString(envVar) : MString("");
+         if (envVarStr.length() > 0 && envVarStr != modulePluginPath && envVarStr != proceduralsPath)
+         {
+            // store current variable to restore at unload
+            s_arnold_plugin_path_orig = envVarStr;
+            SetEnv("ARNOLD_PLUGIN_PATH", envVarStr + MString(PATH_SEPARATOR) + modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
+         }
          else
             SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
          envVar = getenv("MTOA_EXTENSIONS_PATH");
-         if (envVar != 0)
-            SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath
-               + MString(PATH_SEPARATOR) + proceduralsPath));
+         envVarStr = (envVar) ? MString(envVar) : MString("");
+         if (envVarStr.length() > 0 && envVarStr != moduleExtensionPath)
+         {
+            // store current variable to restore at unload
+            s_mtoa_extensions_path_orig = envVarStr;
+            SetEnv("MTOA_EXTENSIONS_PATH", envVarStr + MString(PATH_SEPARATOR) + moduleExtensionPath);
+         }
          else
             SetEnv("MTOA_EXTENSIONS_PATH", moduleExtensionPath);
       }
@@ -1361,6 +1372,10 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       AiMsgError("Failed to deregister Arnold ass file importer");
       MGlobal::displayError("Failed to deregister Arnold ass file importer");
    }
+
+   // Restore the original env variables, so that they don't accumulate if we re-load MtoA
+   SetEnv("MTOA_EXTENSIONS_PATH", s_mtoa_extensions_path_orig);
+   SetEnv("ARNOLD_PLUGIN_PATH", s_arnold_plugin_path_orig);
 
    MMessage::removeCallback(connectionCallback);
    
