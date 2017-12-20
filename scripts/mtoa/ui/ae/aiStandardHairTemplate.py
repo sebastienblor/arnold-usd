@@ -58,6 +58,7 @@ class AEaiStandardHairTemplate(ShaderAETemplate):
         self.beginLayout("Advanced", collapse=True)
         self.addControl("indirectDiffuse",  label="Indirect Diffuse", annotation="Indirect Diffuse")
         self.addControl("indirectSpecular",  label="Indirect Specular", annotation="Indirect Specular")
+        self.addControl("extraDepth",  label="Extra Depth", annotation="Extra Depth")
         self.endLayout()
 
 
