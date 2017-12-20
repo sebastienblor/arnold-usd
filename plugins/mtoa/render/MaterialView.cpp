@@ -830,7 +830,6 @@ unsigned int CMaterialView::RenderThread(void* data)
 
 void* CMaterialView::Creator()
 {
-   assert(s_instance == NULL);
    s_instance = new CMaterialView();
    return (void*)s_instance;
 }
