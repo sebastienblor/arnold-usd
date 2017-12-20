@@ -193,7 +193,8 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
          if (pluginLib == NULL)
          {
-            AiMsgWarning("[mtoa] Error loading extension library: "+ MString(LibraryLastError()));
+            MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
+            AiMsgWarning(msg.asChar());
 
             DeleteExtension(extension);
             status = MStatus::kFailure;
@@ -203,7 +204,8 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
          if (initializer == NULL)
          {            
-            AiMsgWarning("[mtoa] Error initializing extension library: " + MString(LibraryLastError()));
+            MString msg = MString("[mtoa] Error initializing extension library: ") + MString(LibraryLastError());
+            AiMsgWarning(msg.asChar());
 
             LibraryUnload(pluginLib);
             DeleteExtension(extension);
