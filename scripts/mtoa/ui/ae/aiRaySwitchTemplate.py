@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiRaySwitchTemplate(ShaderAETemplate):
@@ -20,6 +20,6 @@ class AEaiRaySwitchTemplate(ShaderAETemplate):
         self.addControl('volume', label='Volume')
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()

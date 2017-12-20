@@ -1269,6 +1269,9 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetArray(options, "aov_shaders", aovShadersArray);
    }
 
+   if (GetSessionOptions().IsInteractiveRender())
+      AiNodeSetBool(options, "enable_dependency_graph", true);
+
    MPlug gpuPlug = FindMayaPlug("gpu");
    if (!gpuPlug.isNull() && GetSessionMode() != MTOA_SESSION_SWATCH)
    {

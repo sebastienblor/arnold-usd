@@ -639,37 +639,104 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("mayaBump2D");
+   MPlug plug = FindMayaPlug("bumpInterp");
+   if (!plug.isNull() && plug.asShort() > 0)
+      return AddArnoldNode("normal_map");
+
+   // check attribute useAs
+   return AddArnoldNode("bump2d");
 }
 
 void CBump2DTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
-   MStatus status;
-   MPlug plug = FindMayaPlug("bumpInterp", &status);
-   if (status && !plug.isNull())
+   static const AtString normalMapStr("normal_map");
+   if (AiNodeIs(shader, normalMapStr))
    {
-      int useAs = plug.asShort();
-      AiNodeSetInt(shader, "use_as", useAs);
-      if (useAs > 0)
-      {         
-         AtNode* n = AiNodeGetLink(shader, "bump_map");
-         if (n != 0)
-            AiNodeLink(n, "normal_map", shader);
+      // either Object-space or Tangent-space normal
+
+      MPlug plug = FindMayaPlug("bumpInterp");
+      if (!plug.isNull() && plug.asShort() == 1) 
+      {
+         // Tangent space normal
+         AiNodeSetBool(shader, "tangent_space", true);
+         AiNodeSetBool(shader, "color_to_signed", true); // remap normals from [0,1] to [-1,1]
+         ProcessParameter(shader, "invert_x", AI_TYPE_BOOLEAN, "aiFlipR");
+         ProcessParameter(shader, "invert_y", AI_TYPE_BOOLEAN, "aiFlipG");
+         AiNodeResetParameter(shader, "invert_z");
+
+         MPlug swapTangentPlug = FindMayaPlug("aiSwapTangents");
+         if (!swapTangentPlug.isNull() && swapTangentPlug.asBool())
+            AiNodeSetStr(shader, "order", "YXZ");
+         else
+            AiNodeResetParameter(shader, "order"); // XYZ
+
+         AiNodeResetParameter(shader, "tangent");
+         AiNodeResetParameter(shader, "normal");
+         AiNodeResetParameter(shader, "strength");
+
+         MPlug useDerivsPlug = FindMayaPlug("aiUseDerivatives");
+         if (!useDerivsPlug.isNull() && !useDerivsPlug.asBool())
+         {
+            // do we really want to keep supporting this ??
+            // Here the user decided to export derivatives but doesn't want to use them for this bump....
+            // We can plug a state_vector returning dPdu in parameter tangent as a workaround.
+            AtNode *tangentNode = GetArnoldNode("tangent");
+            if (tangentNode == NULL)
+               tangentNode = AddArnoldNode("state_vector", "tangent");
+
+            AiNodeSetStr(tangentNode, "variable", "dPdu");
+            AiNodeLink(tangentNode, "tangent", shader);
+         }        
+
+      } else
+      {
+         // Object space normal
+         AiNodeSetBool(shader, "tangent_space", false);
+         // note that normal isn't remapped in object space normal in maya
+         AiNodeSetBool(shader, "color_to_signed", false);
+
+         AiNodeResetParameter(shader, "tangent");
+         AiNodeResetParameter(shader, "normal");
+         AiNodeResetParameter(shader, "order");
+         AiNodeResetParameter(shader, "invert_x");
+         AiNodeResetParameter(shader, "invert_y");
+         AiNodeResetParameter(shader, "invert_z");
+         AiNodeResetParameter(shader, "strength");
       }
+
+      // Bump value is a float parameter in maya bump, but it can be 
+      // automagically interpreted as a vector for normal maps. 
+      MPlugArray connections;
+      plug = FindMayaPlug("bumpValue");
+      plug.connectedTo(connections, true, false);
+      AtNode *bumpMap = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+
+      if (bumpMap)
+         AiNodeLink(bumpMap, "input", shader);
+      else 
+         AiNodeResetParameter(shader, "input");
+
+   } else
+   {
+      // Bump mode
+      // just need to export bump_map & bump_height
+      ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
+      ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");      
    }
-   ProcessParameter(shader, "flip_r", AI_TYPE_BOOLEAN, "aiFlipR");
-   ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
-   ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
-   ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
-
-   MPlugArray connections;
-   plug = FindMayaPlug("normalCamera");
-
+   // in any case, export the bump for arnold parameter "normal"
    ExportBump(shader);
 }
 
+void CBump2DTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // make sure we recreate the node in case "bumpInterp" changes, 
+   // since it can change whether this node is exported as a bump2d or as a normal_map
+   MString plugName =  plug.partialName(false, false, false, false, false, true);
+   if (plugName == MString("bumpInterp"))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
 // Bump3d
 //
 AtNode*  CBump3DTranslator::CreateArnoldNodes()
@@ -1691,6 +1758,21 @@ AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("standard_surface");
 }
+
+void CMayaBlendColorsTranslator::Export(AtNode* shader)
+{
+   // Note that inputs are inverted in Maya shader as compared to arnold
+   ProcessParameter(shader, "input2", AI_TYPE_RGBA, "color1");
+   ProcessParameter(shader, "input1", AI_TYPE_RGBA, "color2");
+   ProcessParameter(shader, "mix", AI_TYPE_FLOAT, "blender");
+   
+}
+
+AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("mix_rgba");
+}
+
 
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {

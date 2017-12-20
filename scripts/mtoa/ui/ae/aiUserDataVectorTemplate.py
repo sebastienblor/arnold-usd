@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiUserDataVectorTemplate(ShaderAETemplate):
@@ -9,7 +9,7 @@ class AEaiUserDataVectorTemplate(ShaderAETemplate):
         self.addControl('vectorAttrName',label='Attribute')
         self.addControl('defaultValue')
 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

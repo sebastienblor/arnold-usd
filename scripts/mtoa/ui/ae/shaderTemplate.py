@@ -1,4 +1,3 @@
-import pymel.core as pm
 import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
@@ -9,7 +8,7 @@ import mtoa.core as core
 import maya.cmds as cmds
 
 def newAOVPrompt(default=''):
-    result = pm.cmds.promptDialog(button=['Create', 'Cancel'],
+    result = cmds.promptDialog(button=['Create', 'Cancel'],
                                   defaultButton='Create',
                                   cancelButton='Cancel',
                                   message='AOV Name',
@@ -17,7 +16,7 @@ def newAOVPrompt(default=''):
                                   text=default)
     if result == 'Create':
         core.createOptions()
-        newAOV = pm.promptDialog(query=True, text=True)#[0:29] # channel names in the exr driver are limited to 29 characterss
+        newAOV = cmds.promptDialog(query=True, text=True)#[0:29] # channel names in the exr driver are limited to 29 characterss
         if len(newAOV) > 29:
             oldAOV = newAOV
             newAOV = newAOV[0:29]
@@ -78,7 +77,7 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         """
         if newAOV == self.NEW_AOV_ITEM:
             # the the current value is inactive, fill this in as the starting text
-            currVal = pm.getAttr(nodeAttr)
+            currVal = cmds.getAttr(str(nodeAttr))
             if currVal not in self.activeNames:
                 if currVal != self.EMPTY_AOV_ITEM and currVal != self.NEW_AOV_ITEM and currVal != self.BEAUTY_ITEM:
                     default = str(currVal).replace(" (Inactive)", "")
@@ -90,7 +89,7 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
 
             aovName, aovNode = newAOVPrompt(default)
             if aovNode is None:
-                pm.setAttr(nodeAttr, self.NEW_AOV_ITEM)
+                cmds.setAttr(str(nodeAttr), self.NEW_AOV_ITEM, type="string")
                 return
         elif newAOV == self.BEAUTY_ITEM:
             aovName = self.BEAUTY_ITEM
@@ -98,11 +97,11 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
             aovName = ""
         else:
             aovName = newAOV
-        pm.setAttr(nodeAttr, aovName)
+        cmds.setAttr(str(nodeAttr), aovName, type="string")
 
     def updateMenu(self, nodeAttr):
         self.clear()
-        currVal = str(pm.getAttr(nodeAttr))
+        currVal = str(cmds.getAttr(nodeAttr))
         prevVal = str(self._prevLabel)
         defval = str(self._defaultLabel)
         currVal = currVal.replace(" (Inactive)", "")
@@ -121,14 +120,14 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         if defval != currVal:
             if defval not in self.activeNames and defval != self.BEAUTY_ITEM:
                 defval = self.UNKNOWN_AOV_ITEM % defval
-                pm.menuItem(label=defval, parent=(self.menuName))
+                cmds.menuItem(label=defval, parent=(self.menuName))
         
         
         if not currVal or currVal == self.EMPTY_AOV_ITEM:
             currVal = self.EMPTY_AOV_ITEM
         elif currVal not in self.activeNames and currVal != self.BEAUTY_ITEM:
             currVal = self.UNKNOWN_AOV_ITEM % currVal
-            pm.menuItem(label=currVal, parent=(self.menuName))
+            cmds.menuItem(label=currVal, parent=(self.menuName))
 
         # beauty is always first, so remove it in all cases, it will be added below if
         # includeBeauty is enabled
@@ -139,34 +138,34 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
             pass
         
         if self.includeBeauty:
-            pm.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName))
+            cmds.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName))
 
         # add items
         for aov in self.activeNames:
-            pm.menuItem(label=aov, parent=(self.menuName))
+            cmds.menuItem(label=aov, parent=(self.menuName))
 
         if self.allowEmpty:
-            pm.menuItem(label=self.EMPTY_AOV_ITEM, parent=(self.menuName))
+            cmds.menuItem(label=self.EMPTY_AOV_ITEM, parent=(self.menuName))
 
         if self.allowCreation:
-            pm.menuItem(label=self.NEW_AOV_ITEM, parent=(self.menuName))
+            cmds.menuItem(label=self.NEW_AOV_ITEM, parent=(self.menuName))
         # set active
-        pm.optionMenu(self.menuName, edit=True, value=currVal)
+        cmds.optionMenu(self.menuName, edit=True, value=currVal)
         self._prevLabel = currVal
 
-        menu = pm.optionMenu(self.menuName, edit=True,
+        menu = cmds.optionMenu(self.menuName, edit=True,
                              changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
         return menu
     
     def clear(self):
-        for item in pm.optionMenu(self.menuName, query=True, itemListLong=True) or []:
-            pm.deleteUI(item)
+        for item in cmds.optionMenu(self.menuName, query=True, itemListLong=True) or []:
+            cmds.deleteUI(item)
 
     def setup(self):
         self.addCustom(self.attr, self.createMenu, self.updateMenu)
 
     def createMenu(self, nodeAttr):
-        pm.setUITemplate(popTemplate=1)
+        cmds.setUITemplate(popTemplate=1)
         
         if self.allowDisable:
             kwargs = dict(nc=3,
@@ -176,16 +175,16 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
             kwargs = dict(nc=2,
                           columnWidth2=[145, 220],
                           columnAttach2=['right', 'both'])
-        pm.rowLayout(**kwargs)
-        pm.text(label=self.label)
+        cmds.rowLayout(**kwargs)
+        cmds.text(label=self.label)
         if self.allowDisable:
-            pm.checkBox(label='')
-        pm.optionMenu(self.menuName)
-        pm.setParent('..')
+            cmds.checkBox(label='')
+        cmds.optionMenu(self.menuName)
+        cmds.setParent('..')
 
         menu = self.updateMenu(nodeAttr)
 
-        pm.scriptJob(parent=menu,
+        cmds.scriptJob(parent=menu,
                      attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
 
     def updateMenuCallback(self):
@@ -199,12 +198,12 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
 
 class ShaderMixin(object):
     def bumpNew(self, attrName):
-        pm.setUITemplate('attributeEditorTemplate', pst=True)
-        pm.attrNavigationControlGrp('bumpControl', label="Bump Mapping", at=attrName)
-        pm.setUITemplate(ppt=True)
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+        cmds.attrNavigationControlGrp('bumpControl', label="Bump Mapping", at=attrName)
+        cmds.setUITemplate(ppt=True)
 
     def bumpReplace(self, attrName):
-        pm.attrNavigationControlGrp('bumpControl', edit=True, at=attrName)
+        cmds.attrNavigationControlGrp('bumpControl', edit=True, at=attrName)
 
     def addBumpLayout(self):
         self.beginLayout("Bump Mapping", collapse=True)
@@ -234,7 +233,7 @@ class ShaderMixin(object):
 #            self.addControl('enableAOVs', label='Enable AOVs')
 #            self.addControl('overrideAOVs', label='Override AOV Names')
 #            self.endNoOptimize()
-            dynamic = self.nodeType() not in set(pm.pluginInfo("mtoa", q=True, dependNode=True))
+            dynamic = self.nodeType() not in set(cmds.pluginInfo("mtoa", q=True, dependNode=True))
             for name, attr, type in aovAttrs:
                 if dynamic:
                     attr = 'ai_' + attr

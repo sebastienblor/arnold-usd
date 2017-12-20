@@ -1,4 +1,5 @@
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
@@ -7,16 +8,16 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
     def updateBackground(self, nodeName):
             
         backgroundAttr = '%s.%s' % (nodeName, 'background')
-        value = pm.getAttr(backgroundAttr)
-        pm.editorTemplate(dimControl=(nodeName, 'backgroundColor', not value))
+        value = cmds.getAttr(backgroundAttr)
+        cmds.editorTemplate(dimControl=(nodeName, 'backgroundColor', not value))
     
     def updateSpecular(self, nodeName):            
         specularAttr = '%s.%s' % (nodeName, 'indirectSpecularEnable')
-        value = pm.getAttr(specularAttr)
-        pm.editorTemplate(dimControl=(nodeName, 'specularColor', not value))
-        pm.editorTemplate(dimControl=(nodeName, 'specularIntensity', not value))
-        pm.editorTemplate(dimControl=(nodeName, 'specularRoughness', not value))
-        pm.editorTemplate(dimControl=(nodeName, 'specularIOR', not value))
+        value = cmds.getAttr(specularAttr)
+        cmds.editorTemplate(dimControl=(nodeName, 'specularColor', not value))
+        cmds.editorTemplate(dimControl=(nodeName, 'specularIntensity', not value))
+        cmds.editorTemplate(dimControl=(nodeName, 'specularRoughness', not value))
+        cmds.editorTemplate(dimControl=(nodeName, 'specularIOR', not value))
                 
 
     def setup(self):
@@ -63,7 +64,7 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
 
         self.endLayout()
 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

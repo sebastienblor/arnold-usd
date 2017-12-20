@@ -357,8 +357,44 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       m_particlePathsMap.clear();
       m_particleIDMap.clear();
       m_objectNames.clear();
+      m_cloneInstances.clear();
       m_objectDagPaths.clear();
 
+
+      /// export instance object masters
+      int numObjects = paths.length();
+      m_cloneInstances.reserve(numObjects);
+      MFnDagNode fnDag;
+      for (int i = 0; i < numObjects; ++i)
+      {
+         MDagPath dagPathMaster = paths[i];
+         fnDag.setObject(dagPathMaster);
+
+         AtNode *masterNode = NULL;
+         // MFnInstancer.allInstances returns intermediate objects. D'oh!
+         if (!fnDag.isIntermediateObject())
+         {
+            // Check if the node is in the scene already.
+            MFnDependencyNode masterDepNode(dagPathMaster.node());
+            MPlug dummyPlug = masterDepNode.findPlug("matrix");
+            // in case master instance wasn't exported (#648)
+            // and also to create the reference between both translators
+            if (!dummyPlug.isNull())
+               masterNode = ExportConnectedNode(dummyPlug);
+
+         }
+         if (masterNode != NULL && AiNodeEntryGetType(AiNodeGetNodeEntry(masterNode)) == AI_NODE_LIGHT)
+         {
+            m_cloneInstances.push_back(true); // marking the path object as needing to be cloned
+         }
+         else
+         {
+            m_cloneInstances.push_back(false); // standard gInstance of node will be created
+         }
+         m_objectNames.append(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
+         m_objectDagPaths.append(dagPathMaster);
+      }
+      // Done export object masters
       if (mayaMatrices.length() > 0)
       {
          unsigned int nmtx = ((hasMotion) ? GetNumMotionSteps() : 1);
@@ -374,13 +410,16 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
             int id = partIds[j];
             m_particleIDMap[id] = j;
-            int pathNumber = particlePathStartIndices[j + 1] - particlePathStartIndices[j];
-            MIntArray paths;
-            for (int i = 0; i < pathNumber; i++)
+
+            // because there could be multiple paths for each particle(grouped objects) we need to get the number of paths for each particleId
+            int numPathsPP = particlePathStartIndices[j + 1] - particlePathStartIndices[j];
+            MIntArray pathsIdx;
+            for (int i = 0; i < numPathsPP; i++)
             {
-               paths.append(pathIndices[particlePathStartIndices[j]+i]);
+               pathsIdx.append(pathIndices[particlePathStartIndices[j]+i]);
             }
-            m_particlePathsMap[id] = paths;
+            m_particlePathsMap[id] = pathsIdx;
+            
             //m_instanceTags.append("originalParticle");
             if(velocities.length() > 0)
             {
@@ -396,29 +435,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          m_out_customIntAttrArrays    = m_instant_customIntAttrArrays;
       }
 
-      /// export instance object masters
-      int numObjects = paths.length();
-      MFnDagNode fnDag;
-      for (int i = 0; i < numObjects; ++i)
-      {
-         MDagPath dagPathMaster = paths[i];
-         fnDag.setObject(dagPathMaster);
-         // MFnInstancer.allInstances returns intermediate objects. D'oh!
-         if (!fnDag.isIntermediateObject())
-         {
-            // Check if the node is in the scene already.
-            MFnDependencyNode masterDepNode(dagPathMaster.node());
-            MPlug dummyPlug = masterDepNode.findPlug("matrix");
-            // in case master instance wasn't exported (#648)
-            // and also to create the reference between both translators
-            if (!dummyPlug.isNull())
-               ExportConnectedNode(dummyPlug);
-
-         }
-         m_objectNames.append(CDagTranslator::GetArnoldNaming(dagPathMaster).asChar());
-         m_objectDagPaths.append(dagPathMaster);
-      }
-      // Done export object masters
 
    }
    else // motion Steps
@@ -549,12 +565,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                m_particleIDMap[partIds[j]] = m_vec_matrixArrays.size()-1;
 
                int pathNumber = particlePathStartIndices[j + 1] - particlePathStartIndices[j];
-               MIntArray paths;
+               MIntArray pathIdx;
                for (int i = 0; i < pathNumber; i++)
                {
-                  paths.append(pathIndices[particlePathStartIndices[j]+i]);
+                  pathIdx.append(pathIndices[particlePathStartIndices[j]+i]);
                }
-               m_particlePathsMap[partIds[j]] = paths;
+               m_particlePathsMap[partIds[j]] = pathIdx;
 
                //m_instanceTags.append("newParticle");
                if (velocities.length() > 0)
@@ -618,13 +634,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          }
       }
    }
+}
 
-   // check if all the steps have been exported
-   for (size_t i = 0; i < m_exportedSteps.size(); ++i)
-   {
-      if (m_exportedSteps[i] == false)
-         return;
-   }
+void CInstancerTranslator::PostExport(AtNode *node)
+{
 
    /// NOW write out the final list
    // if deform blur is disabled, this function will only be called for current frame (#2386)
@@ -648,32 +661,41 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
       for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
       {
-         MString instanceKey = "inst";
-         instanceKey += globalIndex;
-
-         // check if the instance for this index was already found
-         AtNode *instance = GetArnoldNode(instanceKey.asChar());
-         if (instance == NULL)
-         {
-            // Create and register this ginstance node, so that it is properly cleared later
-            instance = AddArnoldNode("ginstance", instanceKey.asChar());
-
-            // We no longer set the name of these instances since AddArnoldNode already does,
-            // and takes the prefix into account (#2684)
-   
-         }
          int idx = m_particlePathsMap[partID][k];
          if (idx >= (int)m_objectNames.length()) continue;
 
+         AtNode *instance = NULL;
          AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
-         AiNodeSetPtr(instance, "node", obj);
-         AiNodeSetBool(instance, "inherit_xform", true);
-         // Do not assign same array to more than one node
-         if (k == 0)
-            AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
-         else
-            AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
 
+         MString instanceKey = "inst";
+         instanceKey += globalIndex;
+
+         if (m_cloneInstances[idx])
+         {
+            // Clone the master node (lights can't be instanced in arnold)
+            instance  = AiNodeClone(obj);
+            AddExistingArnoldNode(instance, instanceKey.asChar());
+            AiNodeSetDisabled(instance, false);
+            // no motion blur on lighs
+            AtMatrix origM = AiNodeGetMatrix(instance, "matrix");
+            AtMatrix particleMatrix = AiArrayGetMtx(m_vec_matrixArrays[j], 0);
+            AtMatrix total_matrix = AiM4Mult(particleMatrix, origM);
+            AiNodeSetMatrix(instance, "matrix", total_matrix);
+         } else
+         { 
+            // Regular instances
+            instance = GetArnoldNode(instanceKey.asChar());
+            if (instance == NULL)
+            {
+               // Create and register this ginstance node, so that it is properly cleared later
+               instance = AddArnoldNode("ginstance", instanceKey.asChar());
+               // We no longer set the name of these instances since AddArnoldNode already does,
+               // and takes the prefix into account (#2684)
+            }
+            AiNodeSetPtr(instance, "node", obj);
+            AiNodeSetBool(instance, "inherit_xform", true);
+            AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
+         }
          //AiNodeDeclare(instance, "instanceTag", "constant STRING");
          //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
         
@@ -689,12 +711,17 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             MVector vecAttrValue = custVect->second[j];
             if (MString(custVect->first.c_str()) == "rgbPP")
             {
-               AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
+               if (m_cloneInstances[idx]) // override the light color
+                  AiNodeSetRGB(instance, "color", (float)vecAttrValue.x, (float)vecAttrValue.y, (float)vecAttrValue.z); 
+                   
+               if (!AiNodeLookUpUserParameter(instance, custVect->first.c_str()))
+                  AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
                AiNodeSetRGB(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
-                                             }
+            }
             else
             {
-               AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
+               if (!AiNodeLookUpUserParameter(instance, custVect->first.c_str()))
+                  AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
                AiNodeSetVec(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
             }
          }
@@ -702,24 +729,30 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
          {
             float doubleAttrValue = (float)custDouble->second[j];
-
+            if (!AiNodeLookUpUserParameter(instance, custDouble->first.c_str()))
                AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
-               AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
+            AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
 
          }
          unordered_map<std::string, MIntArray>::iterator custInt;
          for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
          {
             int intAttrValue = custInt->second[j];
-
+            if (!AiNodeLookUpUserParameter(instance, custInt->first.c_str()))
                AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
-               AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
+            AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
 
          }
       }
    }
+   for (size_t i = 0; i < m_vec_matrixArrays.size(); ++i)
+   {
+      AiArrayDestroy(m_vec_matrixArrays[i]);
+   }
+   m_vec_matrixArrays.clear();
 
 }
+
 void CInstancerTranslator::RequestUpdate()
 {
    /*

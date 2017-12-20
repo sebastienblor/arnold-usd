@@ -14,6 +14,7 @@
 #include <maya/MDGMessage.h>
 #include <maya/MMessage.h>
 #include <maya/MStringArray.h>
+#include <maya/MNodeClass.h>
 
 
 //--------------- CExtensionsManager -----------------------------------
@@ -80,6 +81,8 @@ public:
    static void AddCustomShape(const MString &shape);
    
    static CExtension* NewExtension(const MString &extensionFile);
+   static MStatus RegisterExtensionAttribute(const MNodeClass &nodeClass, const MObject &attrib);
+   static MStatus UnregisterExtensionAttributes(const MObject &plugin);
 
 protected:
    static MStatus DoUnloadExtension(CExtension* extension);   
@@ -93,6 +96,7 @@ protected:
    static const CPxTranslator* FindRegisteredTranslator(const CPxMayaNode &mayaNode,
                                                         const CPxTranslator &translator=CPxTranslator());
    static TranslatorsSet* FindRegisteredTranslators(const CPxMayaNode &mayaNode);
+
 
 private:
    CExtensionsManager() {}

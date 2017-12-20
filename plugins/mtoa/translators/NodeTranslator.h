@@ -167,6 +167,7 @@ protected:
     */
    AtNode* AddArnoldNode(const char* type, const char* tag=NULL);
 
+
    /** Register an update callback created in AddUpdateCallbacks
 
      Every callback created in AddUpdateCallbacks should be register using this function, 
@@ -175,6 +176,8 @@ protected:
      \see AddUpdateCallbacks
    */   
    void RegisterUpdateCallback(const MCallbackId id);
+
+   void AddExistingArnoldNode(AtNode *node, const char *tag=NULL);
 
 public:
 

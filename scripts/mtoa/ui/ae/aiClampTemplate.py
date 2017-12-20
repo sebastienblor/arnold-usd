@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiClampTemplate(ShaderAETemplate):
@@ -10,7 +10,7 @@ class AEaiClampTemplate(ShaderAETemplate):
         self.addControl('min')
         self.addControl('max')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

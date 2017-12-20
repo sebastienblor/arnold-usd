@@ -1,7 +1,7 @@
-import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 import maya.cmds as cmds
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiPhysicalSkyTemplate(ShaderAETemplate):
@@ -27,7 +27,7 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         self.endScrollLayout()
 

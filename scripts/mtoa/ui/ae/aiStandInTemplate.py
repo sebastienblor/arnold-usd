@@ -1,65 +1,39 @@
 import re
 import maya.cmds as cmds
 import maya.mel as mel
+import os.path
+import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
-import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def LoadStandInButtonPush(nodeName):
+def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
-    projectDir = cmds.workspace(query=True, directory=True)     
-    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load StandIn',okc='Load',fm=1, startingDirectory=projectDir)
+    defaultDir = cmds.workspace(query=True, directory=True)
+    currentDir = cmds.getAttr(attrName) or ''
+    currentDir = os.path.dirname(currentDir)
+    if os.path.exists(currentDir):
+        defaultDir = currentDir
+
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load StandIn',okc='Load',fm=1, startingDirectory=defaultDir)
     if ret is not None and len(ret):
-        ArnoldStandInDsoEdit(nodeName, ret[0], True)
+        cmds.setAttr(attrName.replace('.dso', '.useFrameExtension'), False) # I picked one file, no file sequence
+        ArnoldStandInDsoEdit(attrName, ret[0])
 
-def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
-    mArchivePath = ''
-    nodeName = nodeName.replace('.dso','')
-    
-    expression = r''
-    if replace:
-        # Expression to replace frame numbers by #
-        expression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
-    else:
-        expression = r'(.*?)([\._])([#]*)([\.]?)([#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
+def ArnoldStandInDsoEdit(attrName, mPath) :
+    cmds.setAttr(attrName, mPath, type='string')
 
-    # If it is a recogniced format
-    if re.search(expression,mPath) != None:
-        m_groups = re.search(expression,mPath).groups()
-        # Single file
-        if not m_groups[2]:
-            mArchivePath = mPath
-            cmds.setAttr(nodeName+'.useFrameExtension',False)
-        # Sequence without subframes    
-        elif not m_groups[3]:
-            cmds.setAttr(nodeName+'.useFrameExtension',True)
-            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-            cmds.setAttr(nodeName+'.frameNumber', int(m_groups[2])) 
-        # Sequence with subframes
-        else:
-            cmds.setAttr(nodeName+'.useFrameExtension',True)
-            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
-            cmds.setAttr(nodeName+'.useSubFrame',True)
-    # Other
-    else:
-        mArchivePath = mPath
-        
-    cmds.setAttr(nodeName+'.dso',mArchivePath,type='string')
-    cmds.textField('standInDsoPath', edit=True, text=mArchivePath)
-
-def ArnoldStandInTemplateDsoNew(nodeName) :
+def ArnoldStandInTemplateDsoNew(attrName) :
     cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
     cmds.text(label='Path ')
-    path = cmds.textField('standInDsoPath',changeCommand=lambda *args: ArnoldStandInDsoEdit(nodeName, *args))
-    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
-    cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda *args: LoadStandInButtonPush(nodeName))
+    path = cmds.textField('standInDsoPath',changeCommand=lambda *args: ArnoldStandInDsoEdit(attrName, *args))
+    cmds.textField( path, edit=True, text=cmds.getAttr(attrName) )
+    cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda *args: LoadStandInButtonPush(attrName))
 
-def ArnoldStandInTemplateDsoReplace(plugName) :
-    cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(plugName, *args))
-    cmds.textField( 'standInDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadStandInButtonPush(plugName))
+def ArnoldStandInTemplateDsoReplace(attrName) :
+    cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(attrName, *args))
+    cmds.textField( 'standInDsoPath', edit=True, text=cmds.getAttr(attrName) )
+    cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadStandInButtonPush(attrName))
 
 
 def ArnoldStandInUpdateUI(attrName) :
@@ -79,13 +53,76 @@ def ArnoldStandInUpdateUI(attrName) :
                      'aiVisibleInVolume']
 
     for i in range(len(overrideVisAttrs)):
-        if pm.getAttr(attrName + overrideVisAttrs[i]) == 0:
-            pm.setAttr(attrName + overrideVisAttrs[i], 1)
-            if pm.getAttr(attrName + visAttrs[i]) == 0:
-                pm.setAttr(attrName + visAttrs[i], 1)
+        if cmds.getAttr(attrName + overrideVisAttrs[i]) == 0:
+            cmds.setAttr(attrName + overrideVisAttrs[i], 1)
+            if cmds.getAttr(attrName + visAttrs[i]) == 0:
+                cmds.setAttr(attrName + visAttrs[i], 1)
     
         
 class AEaiStandInTemplate(ShaderAETemplate):
+
+    # when "Use File Sequence" is toggled we need to change the Filename
+    # -> enabling it should replace the numeric part by ###
+    # -> disabling it should replace ### by the frameNumber value
+    def useSequenceChange(self, nodeName):
+        useSequence = cmds.getAttr(nodeName + '.useFrameExtension')
+        mOrigPath = cmds.getAttr(nodeName + '.dso') or r''
+        mPath = mOrigPath
+
+        if useSequence:
+            # check if something is connected to FrameNumber
+            if not mu.hasAttrInputs(nodeName, 'frameNumber'):
+                # Nothing connected yet, make an expression and connect it to frameNumber
+                cmds.expression(s= nodeName +'.frameNumber=frame' )
+
+            # We're supposed to find a file sequence, let's see if there is one
+            expression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
+            if re.search(expression,mPath) != None: # check if format is recognized
+                m_groups = re.search(expression,mPath).groups()
+                # Single file
+                if not m_groups[2]:
+                    cmds.setAttr(nodeName + '.useFrameExtension', False)
+                    cmds.error(("[mtoa] StandIn Sequence not recognized with filename %s" % mPath))
+                # Sequence without subframes    
+                elif not m_groups[3]:
+                #    cmds.setAttr(nodeName+'.useFrameExtension',True)
+                    mPath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
+                    
+                    if cmds.getAttr(nodeName+'.useSubFrame'):
+                        cmds.setAttr(nodeName+'.useSubFrame',False)
+                    
+                # Sequence with subframes
+                else:
+                    mPath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
+
+                    if not cmds.getAttr(nodeName+'.useSubFrame'):
+                        cmds.setAttr(nodeName+'.useSubFrame',True)       
+
+        else:
+            # replace #### by the current frame
+            frameNumber = float(cmds.getAttr(nodeName + '.frameNumber')) + float(cmds.getAttr(nodeName + '.frameOffset'))
+            if not cmds.getAttr(nodeName + '.useSubFrame'):
+                frameNumber = int(frameNumber)
+            startIndex = mPath.find('#')
+            if startIndex >= 0 :
+                hashCount = 0
+                for i in range(startIndex, len(mPath)):
+                    if mPath[i] == '#':
+                        hashCount=hashCount+1
+                    else:
+                        break            
+                frameStr = str(frameNumber)
+
+                # apply the padding
+                while len(frameStr) < hashCount:
+                    frameStr = '0' + frameStr
+
+                mPath = mPath[:startIndex] + frameStr + mPath[startIndex+hashCount:]
+
+        if mPath != mOrigPath:
+            cmds.setAttr(nodeName+'.dso', mPath, type='string')
+        cmds.textField('standInDsoPath', edit=True, text=mPath)
+
     def setup(self):
         self.beginScrollLayout()
         
@@ -94,6 +131,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('standInDrawOverride', label='Viewport Override')
         self.addControl('mode', label='Viewport Draw Mode')
         self.addSeparator()
+        self.addControl('useFrameExtension', label='Use File Sequence', changeCommand=self.useSequenceChange)
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
         self.addSeparator()
@@ -158,7 +196,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.suppress('blackBox')
         self.suppress('containerType')
@@ -235,9 +273,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
     def updateOverridesVisibility(self, nodeName):
                 
-        pm.editorTemplate(dimControl=(nodeName, 'receiveShadows', not pm.getAttr('%s.%s' % (nodeName, 'overrideReceiveShadows'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'aiSelfShadows', not pm.getAttr('%s.%s' % (nodeName, 'overrideSelfShadows'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'aiOpaque', not pm.getAttr('%s.%s' % (nodeName, 'overrideOpaque'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'doubleSided', not pm.getAttr('%s.%s' % (nodeName, 'overrideDoubleSided'))))  
-        pm.editorTemplate(dimControl=(nodeName, 'aiMatte', not pm.getAttr('%s.%s' % (nodeName, 'overrideMatte'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'receiveShadows', not cmds.getAttr('%s.%s' % (nodeName, 'overrideReceiveShadows'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'aiSelfShadows', not cmds.getAttr('%s.%s' % (nodeName, 'overrideSelfShadows'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'aiOpaque', not cmds.getAttr('%s.%s' % (nodeName, 'overrideOpaque'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'doubleSided', not cmds.getAttr('%s.%s' % (nodeName, 'overrideDoubleSided'))))  
+        cmds.editorTemplate(dimControl=(nodeName, 'aiMatte', not cmds.getAttr('%s.%s' % (nodeName, 'overrideMatte'))))  
     

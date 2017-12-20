@@ -794,6 +794,12 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
+# Install the licensing tools
+rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os())
+nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os())
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
+
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 
@@ -1179,6 +1185,12 @@ else:
 
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
+
+# package the licensing tools
+rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os())
+nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os())
+PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
+PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'pit'])
 

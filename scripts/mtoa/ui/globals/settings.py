@@ -4,27 +4,28 @@ from mtoa.callbacks import *
 import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
-import pymel.versions as versions
+import maya.mel
+import mtoa.utils as utils
 
 def updateRenderSettings(*args):
-    flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
-    pm.attrControlGrp('os_threads', edit=True, enable=flag)
-    flag = pm.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
-    pm.attrControlGrp('os_scene_scale', edit=True, enable=flag)
+    flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
+    cmds.attrControlGrp('os_threads', edit=True, enable=flag)
+    flag = cmds.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
+    cmds.attrControlGrp('os_scene_scale', edit=True, enable=flag)
     
 def updateAutotileSettings(*args):
-    flag = pm.getAttr('defaultArnoldRenderOptions.autotile')
-    pm.attrControlGrp('ts_texture_autotile', edit=True, enable=flag)
+    flag = cmds.getAttr('defaultArnoldRenderOptions.autotile')
+    cmds.attrControlGrp('ts_texture_autotile', edit=True, enable=flag)
 
 def updateAutoTxSettings(*args):
-    flag = pm.getAttr('defaultArnoldRenderOptions.autotx') == 0
-    pm.attrControlGrp('use_existing_tiled_textures', edit=True, enable=flag)
+    flag = cmds.getAttr('defaultArnoldRenderOptions.autotx') == 0
+    cmds.attrControlGrp('use_existing_tiled_textures', edit=True, enable=flag)
 
 
 def updateSamplingSettings(*args):
-    flag = (pm.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True) 
-    pm.attrControlGrp('ss_max_value', edit=True, enable=flag)
-    pm.attrControlGrp('ss_clamp_sample_values_AOVs', edit=True, enable=flag)
+    flag = (cmds.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True) 
+    cmds.attrControlGrp('ss_max_value', edit=True, enable=flag)
+    cmds.attrControlGrp('ss_clamp_sample_values_AOVs', edit=True, enable=flag)
 
 def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
     computed = 0
@@ -40,14 +41,14 @@ def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
     return (computed, computedDepth)
 
 def updateComputeSamples(*args):
-    AASamples = pm.getAttr('defaultArnoldRenderOptions.AASamples')
-    GISamples = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
-    specularSamples = pm.getAttr('defaultArnoldRenderOptions.GISpecularSamples')
-    transmissionSamples = pm.getAttr('defaultArnoldRenderOptions.GITransmissionSamples')
+    AASamples = cmds.getAttr('defaultArnoldRenderOptions.AASamples')
+    GISamples = cmds.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
+    specularSamples = cmds.getAttr('defaultArnoldRenderOptions.GISpecularSamples')
+    transmissionSamples = cmds.getAttr('defaultArnoldRenderOptions.GITransmissionSamples')
     
-    diffuseDepth = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
-    specularDepth = pm.getAttr('defaultArnoldRenderOptions.GISpecularDepth')
-    transmissionDepth = pm.getAttr('defaultArnoldRenderOptions.GITransmissionDepth')
+    diffuseDepth = cmds.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
+    specularDepth = cmds.getAttr('defaultArnoldRenderOptions.GISpecularDepth')
+    transmissionDepth = cmds.getAttr('defaultArnoldRenderOptions.GITransmissionDepth')
     
     if AASamples <= 0:
         AASamples = 1
@@ -60,48 +61,48 @@ def updateComputeSamples(*args):
     totalSamples = AASamplesComputed + GISamplesComputed + specularSamplesComputed + transmissionSamplesComputed
     totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + specularSamplesComputedDepth + transmissionSamplesComputedDepth
 
-    pm.text("textAASamples",
+    cmds.text("textAASamples",
             edit=True, 
             label='Camera (AA) Samples : %i' % AASamplesComputed)
 
-    pm.text("textGISamples",
+    cmds.text("textGISamples",
             edit=True, 
             label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
-    pm.text("textSpecularSamples",
+    cmds.text("textSpecularSamples",
             edit=True, 
             label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
         
-    pm.text("textTransmissionSamples",
+    cmds.text("textTransmissionSamples",
             edit=True, 
             label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
         
-    pm.text("textTotalSamples",
+    cmds.text("textTotalSamples",
             edit=True, 
             label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
 
 def updateMotionBlurSettings(*args):
-    flag = pm.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
-    pm.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
-    pm.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
-    pm.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
-    pm.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
-    pm.attrControlGrp('textArnoldMBAngle', edit=True, enable=flag)
-    pm.attrControlGrp('mb_position', edit=True, enable=flag)
+    flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
+    cmds.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
+    cmds.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
+    cmds.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
+    cmds.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
+    cmds.attrControlGrp('textArnoldMBAngle', edit=True, enable=flag)
+    cmds.attrControlGrp('mb_position', edit=True, enable=flag)
     if flag:
         arnoldMotionBlurPositionChanged()
     else:
-        pm.attrControlGrp('mb_motion_frames', edit=True, enable=False)
-        pm.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
-        pm.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
+        cmds.attrControlGrp('mb_motion_frames', edit=True, enable=False)
+        cmds.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
+        cmds.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
 
 def updateLogSettings(*args):
-    name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
-    logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
+    name = cmds.getAttr('defaultArnoldRenderOptions.log_filename')
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
 
 def getBackgroundShader(*args):
     if cmds.objExists('defaultArnoldRenderOptions.background'):
-        conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
+        conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
         if conns:
             return conns[0].split('.')[0]
     return ""
@@ -109,73 +110,73 @@ def getBackgroundShader(*args):
 def selectBackground(*args):
     node = getBackgroundShader()
     if node:
-        pm.select(node, r=True)
+        cmds.select(node, r=True)
 
 def changeBackground(node, field, select):
-    connection = pm.listConnections('defaultArnoldRenderOptions.background')
+    connection = cmds.listConnections('defaultArnoldRenderOptions.background')
     if connection:
-        if pm.nodeType(connection[0]) == 'transform':
-            connection = pm.listRelatives(connection[0], s=True)
+        if cmds.nodeType(connection[0]) == 'transform':
+            connection = cmds.listRelatives(connection[0], s=True)
         if str(connection[0]) == str(node):
             selectBackground()
             return 0
-    pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
+    cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
     if field is not None:
-        pm.textField(field, edit=True, text=node)
-        pm.symbolButton(select, edit=True, enable=True)
+        cmds.textField(field, edit=True, text=node)
+        cmds.symbolButton(select, edit=True, enable=True)
     selectBackground()
 
 def createBackground(type, field, select):
     bg = getBackgroundShader()
     #if bg:
-        #pm.delete(bg)
-    node = pm.shadingNode(type, asShader=True, name=type)
+        #cmds.delete(bg)
+    node = cmds.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field, select)
 
 def removeBackground(field, doDelete, select):
     node = getBackgroundShader()
     if node:
-        pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
-        pm.textField(field, edit=True, text="")
-        pm.symbolButton(select, edit=True, enable=False)
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
+        cmds.textField(field, edit=True, text="")
+        cmds.symbolButton(select, edit=True, enable=False)
         if doDelete:
-            pm.delete(node)
+            cmds.delete(node)
 
 def buildBackgroundMenu(popup, field, select):
 
-    switches = pm.ls(type='aiRaySwitch')
-    skies = pm.ls(type='aiSky')
-    pSkies = pm.ls(type='aiPhysicalSky')
+    switches = cmds.ls(type='aiRaySwitch')
+    skies = cmds.ls(type='aiSky')
+    pSkies = cmds.ls(type='aiPhysicalSky')
 
-    pm.popupMenu(popup, edit=True, deleteAllItems=True)
+    cmds.popupMenu(popup, edit=True, deleteAllItems=True)
     for item in skies:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
+        cmds.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
 
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
     
     for item in pSkies:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
+        cmds.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
 
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
 
     for item in switches:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
+        cmds.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
 
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
     
 
-    pm.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field, select))
-    pm.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field, select))
-    pm.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field, select))
+    cmds.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field, select))
+    cmds.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field, select))
+    cmds.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field, select))
 
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
 
-    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
-    pm.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
+    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
+    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
 
     
 def getAtmosphereShader(*args):
-    conns = pm.listConnections('defaultArnoldRenderOptions.atmosphere', s=True, d=False, p=True)
+    conns = cmds.listConnections('defaultArnoldRenderOptions.atmosphere', s=True, d=False, p=True)
     if conns:
         return conns[0].split('.')[0]
     return ""
@@ -183,58 +184,58 @@ def getAtmosphereShader(*args):
 def selectAtmosphere(*args):
     node = getAtmosphereShader()
     if node:
-        pm.select(node, r=True)
+        cmds.select(node, r=True)
         
 def changeAtmosphere(node, field, select):
-    connection = pm.listConnections('defaultArnoldRenderOptions.atmosphere')
+    connection = cmds.listConnections('defaultArnoldRenderOptions.atmosphere')
     if connection:
-        if pm.nodeType(connection[0]) == 'transform':
-            connection = pm.listRelatives(connection[0], s=True)
+        if cmds.nodeType(connection[0]) == 'transform':
+            connection = cmds.listRelatives(connection[0], s=True)
         if str(connection[0]) == str(node):
             selectAtmosphere()
             return 0
-    pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.atmosphere', force=True)
+    cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.atmosphere', force=True)
     if field is not None:
-        pm.textField(field, edit=True, text=node)
-        pm.symbolButton(select, edit=True, enable=True)
+        cmds.textField(field, edit=True, text=node)
+        cmds.symbolButton(select, edit=True, enable=True)
     selectAtmosphere()
 
 def createAtmosphere(type, field, select):
     bg = getAtmosphereShader()
-    node = pm.shadingNode(type, asShader=True, name=type)
+    node = cmds.shadingNode(type, asShader=True, name=type)
     changeAtmosphere(node, field, select)
 
 def removeAtmosphere(field, doDelete, select):
     node = getAtmosphereShader()
     if node:
-        pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.atmosphere')
-        pm.textField(field, edit=True, text="")
-        pm.symbolButton(select, edit=True, enable=False)
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.atmosphere')
+        cmds.textField(field, edit=True, text="")
+        cmds.symbolButton(select, edit=True, enable=False)
         if doDelete:
-            pm.delete(node)
+            cmds.delete(node)
     
 def buildAtmosphereMenu(popup, field, select):
 
-    pm.popupMenu(popup, edit=True, deleteAllItems=True)
+    cmds.popupMenu(popup, edit=True, deleteAllItems=True)
 
-    for typ in pm.listNodeTypes(['rendernode/arnold/light/volume']) or []:
-        shaders = pm.ls(type=typ)
+    for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
+        shaders = cmds.ls(type=typ)
         for item in shaders:
-            pm.menuItem(parent=popup, label=item, command=Callback(changeAtmosphere, item, field, select))
+            cmds.menuItem(parent=popup, label=item, command=Callback(changeAtmosphere, item, field, select))
     
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
     
-    for typ in pm.listNodeTypes(['rendernode/arnold/light/volume']) or []:
+    for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
         menuLabel = "Create "+typ
-        pm.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
+        cmds.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
         
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
 
-    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
-    pm.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
+    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
+    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
     
 def getSubdivDicingCameraShader(*args):
-    conns = pm.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False, p=True)
+    conns = cmds.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False, p=True)
     if conns:
         return conns[0].split('.')[0]
     return ""
@@ -242,59 +243,60 @@ def getSubdivDicingCameraShader(*args):
 def selectSubdivDicingCamera(*args):
     node = getSubdivDicingCameraShader()
     if node:
-        pm.select(node, r=True)
+        cmds.select(node, r=True)
 
 def changeSubdivDicingCamera(node, field, select):
-    connection = pm.listConnections('defaultArnoldRenderOptions.subdivDicingCamera')
+    connection = cmds.listConnections('defaultArnoldRenderOptions.subdivDicingCamera')
     if connection:
-        if pm.nodeType(connection[0]) == 'transform':
-            connection = pm.listRelatives(connection[0], s=True)
+        if cmds.nodeType(connection[0]) == 'transform':
+            connection = cmds.listRelatives(connection[0], s=True)
         if str(connection[0]) == str(node):
             selectSubdivDicingCamera()
             return 0
-    pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.subdivDicingCamera', force=True)
+    cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.subdivDicingCamera', force=True)
     if field is not None:
-        pm.textField(field, edit=True, text=node)
-        pm.symbolButton(select, edit=True, enable=True)
+        cmds.textField(field, edit=True, text=node)
+        cmds.symbolButton(select, edit=True, enable=True)
     selectSubdivDicingCamera()
 
 def createSubdivDicingCamera(type, field, select):
     bg = getSubdivDicingCameraShader()
-    node = pm.camera()
+    node = cmds.camera()
     changeSubdivDicingCamera(node[1], field, select)
 
 def removeSubdivDicingCamera(field, doDelete, select):
     node = getSubdivDicingCameraShader()
     if node:
-        pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.subdivDicingCamera')
-        pm.textField(field, edit=True, text="")
-        pm.symbolButton(select, edit=True, enable=False)
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.subdivDicingCamera')
+        cmds.textField(field, edit=True, text="")
+        cmds.symbolButton(select, edit=True, enable=False)
         if doDelete:
             parent = cmds.listRelatives( 'cameraShape1', parent=True )
-            pm.delete(parent)
+            if parent and len(parent):
+                cmds.delete(parent)
     
 def buildSubdivDicingCameraMenu(popup, field, select):
 
-    pm.popupMenu(popup, edit=True, deleteAllItems=True)
+    cmds.popupMenu(popup, edit=True, deleteAllItems=True)
 
     cameras = cmds.ls(type="camera")
     for item in cameras:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeSubdivDicingCamera, item, field, select))
+        cmds.menuItem(parent=popup, label=item, command=Callback(changeSubdivDicingCamera, item, field, select))
     
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
     
     menuLabel = "Create camera"
-    pm.menuItem(parent=popup, label=menuLabel, command=Callback(createSubdivDicingCamera, "camera", field, select))
+    cmds.menuItem(parent=popup, label=menuLabel, command=Callback(createSubdivDicingCamera, "camera", field, select))
         
-    pm.menuItem(parent=popup, divider=True)
+    cmds.menuItem(parent=popup, divider=True)
 
-    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeSubdivDicingCamera, field, False, select))
-    pm.menuItem(parent=popup, label="Delete", command=Callback(removeSubdivDicingCamera, field, True, select))
+    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeSubdivDicingCamera, field, False, select))
+    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeSubdivDicingCamera, field, True, select))
 
 def changeRenderType():
     try:
-        enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2
-        pm.attrControlGrp('os_kickRenderFlags',
+        enabled = cmds.getAttr('defaultArnoldRenderOptions.renderType') == 2
+        cmds.attrControlGrp('os_kickRenderFlags',
                             edit=True,
                             enable=enabled)
     except:
@@ -302,13 +304,13 @@ def changeRenderType():
 
 def changeFrustumCulling(*args):
     frustumCulling = cmds.getAttr('defaultArnoldRenderOptions.subdiv_frustum_culling')
-    pm.attrControlGrp('sub_frustum_padding', edit=True, enable=frustumCulling)
+    cmds.attrControlGrp('sub_frustum_padding', edit=True, enable=frustumCulling)
 
 def setupOriginText():
     sel = cmds.listConnections('defaultArnoldRenderOptions.origin', d=0, s=1)
     if (sel != None) and (len(sel) > 0):
         tr = sel[0]
-        pm.textField('defaultArnoldRenderOptionsOriginTextField', e=1, text=tr)
+        cmds.textField('defaultArnoldRenderOptionsOriginTextField', e=1, text=tr)
 
 def selectOrigin(*args, **kwargs):
     sel = cmds.ls(sl=1, transforms=1, long=1)
@@ -321,461 +323,460 @@ def selectOrigin(*args, **kwargs):
 
 def createArnoldRenderSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout('arnoldRenderLayout', adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout('arnoldRenderLayout', adjustableColumn=True)
 
-    pm.attrControlGrp('os_renderType',
+    cmds.attrControlGrp('os_renderType',
                         label="Render Type",
                         changeCommand=changeRenderType,
                         attribute='defaultArnoldRenderOptions.renderType')
 
     
 
-    pm.separator()
+    cmds.separator()
 
-    pm.attrControlGrp('os_bucket_scanning',
+    cmds.attrControlGrp('os_bucket_scanning',
                         label="Bucket Scanning",
                         attribute='defaultArnoldRenderOptions.bucketScanning')
 
-    pm.attrControlGrp('os_bucket_size',
+    cmds.attrControlGrp('os_bucket_size',
                         label="Bucket Size",
                         attribute='defaultArnoldRenderOptions.bucketSize')
 
     
-    pm.attrControlGrp('os_output_overscan',
+    cmds.attrControlGrp('os_output_overscan',
                         label='Overscan',
                         attribute='defaultArnoldRenderOptions.outputOverscan')
     
-    pm.separator()
+    cmds.separator()
 
-    pm.checkBoxGrp('os_threads_autodetect',
+    cmds.checkBoxGrp('os_threads_autodetect',
                     cc=updateRenderSettings,
                     label='',
                     label1='Autodetect Threads')
 
-    pm.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
+    cmds.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
 
-    pm.attrControlGrp('os_threads',
+    cmds.attrControlGrp('os_threads',
                         label="Threads",
                         attribute='defaultArnoldRenderOptions.threads')
 
-    pm.separator()
+    cmds.separator()
 
-    pm.attrControlGrp('os_binary_ass',
+    cmds.attrControlGrp('os_binary_ass',
                         label='Binary-encode ASS Files',
                         attribute='defaultArnoldRenderOptions.binaryAss')
     
                     
-    pm.attrControlGrp('os_outputAssBoundingBox',
+    cmds.attrControlGrp('os_outputAssBoundingBox',
                         label="Export Bounding Box (.asstoc)",
                         attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
                    
-    pm.attrControlGrp('os_expandProcedurals',
+    cmds.attrControlGrp('os_expandProcedurals',
                         label='Expand Procedurals',
                         attribute='defaultArnoldRenderOptions.expandProcedurals')
 
-    pm.attrControlGrp('os_exportAllShadingGroups',
+    cmds.attrControlGrp('os_exportAllShadingGroups',
                         label='Export All Shading Groups',
                         attribute='defaultArnoldRenderOptions.exportAllShadingGroups')
 
-    pm.attrControlGrp('os_exportFullPaths',
+    cmds.attrControlGrp('os_exportFullPaths',
                         label='Export Full Paths',
                         attribute='defaultArnoldRenderOptions.exportFullPaths')
-    pm.attrControlGrp('os_exportShadingEngine',
+    cmds.attrControlGrp('os_exportShadingEngine',
                         label='Export Shading Engine (Legacy)',
                         attribute='defaultArnoldRenderOptions.exportShadingEngine')
 
-    pm.separator()
+    cmds.separator()
 
-    enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2
+    enabled = cmds.getAttr('defaultArnoldRenderOptions.renderType') == 2
 
-    pm.attrControlGrp('os_kickRenderFlags',
+    cmds.attrControlGrp('os_kickRenderFlags',
                         label='Kick Render Flags',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.kickRenderFlags')
 
-    pm.separator()
+    cmds.separator()
 
-    pm.attrControlGrp('os_render_unit',
+    cmds.attrControlGrp('os_render_unit',
                         label='Render Unit',
                         cc=updateRenderSettings,
                         attribute='defaultArnoldRenderOptions.renderUnit')
 
-    enabled = pm.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
+    enabled = cmds.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
 
-    pm.attrControlGrp('os_scene_scale',
+    cmds.attrControlGrp('os_scene_scale',
                         label='Scene Scale',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.sceneScale')
 
-    pm.separator()
+    cmds.separator()
 
-    pm.attrControlGrp('os_offset_origin',
+    cmds.attrControlGrp('os_offset_origin',
                         label='Offset Origin',
                         attribute='defaultArnoldRenderOptions.offsetOrigin')
 
-    pm.rowLayout(numberOfColumns=2, adjustableColumn=1, columnWidth2=(200, 80))
+    cmds.rowLayout(numberOfColumns=2, adjustableColumn=1, columnWidth2=(200, 80))
 
-    pm.textField('defaultArnoldRenderOptionsOriginTextField', editable=False)
-    pm.button(label='Select Origin', command=selectOrigin)
+    cmds.textField('defaultArnoldRenderOptionsOriginTextField', editable=False)
+    cmds.button(label='Select Origin', command=selectOrigin)
 
     setupOriginText()
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.frameLayout(label='Callbacks', collapse=True)
+    cmds.frameLayout(label='Callbacks', collapse=True)
     
-    pm.attrControlGrp(
+    cmds.attrControlGrp(
             'os_postTranslationCallback',
             label='Post Translation',
             attribute='defaultArnoldRenderOptions.PostTranslation')
-    pm.separator()
+    cmds.separator()
 
-    pm.attrControlGrp(
+    cmds.attrControlGrp(
             'os_iprRefinementStartedCallback',
             label='IPR Refinement Started',
             attribute='defaultArnoldRenderOptions.IPRRefinementStarted')
 
-    pm.attrControlGrp(
+    cmds.attrControlGrp(
             'os_iprRefinementFinishedCallback',
             label='IPR Refinement Finished',
             attribute='defaultArnoldRenderOptions.IPRRefinementFinished')
     
-    pm.attrControlGrp(
+    cmds.attrControlGrp(
             'os_iprStepStartedCallback',
             label='IPR Step Started',
             attribute='defaultArnoldRenderOptions.IPRStepStarted')
 
-    pm.attrControlGrp(
+    cmds.attrControlGrp(
             'os_iprStepFinishedCallback',
             label='IPR Step Finished',
             attribute='defaultArnoldRenderOptions.IPRStepFinished')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def updateArnoldFilterOptions(*args):
     pass
 
 def createArnoldSamplingSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
-    pm.text( "textAASamples", 
+    cmds.text( "textAASamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
     
-    pm.text( "textGISamples", 
+    cmds.text( "textGISamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
     
-    pm.text( "textSpecularSamples", 
+    cmds.text( "textSpecularSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
 
-    pm.text( "textTransmissionSamples", 
+    cmds.text( "textTransmissionSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
 
-    pm.text( "textTotalSamples", 
+    cmds.text( "textTotalSamples", 
                font = "smallBoldLabelFont",
                align='left',
                )
                         
-    pm.separator()
+    cmds.separator()
 
-    pm.intSliderGrp('ss_AA_samples',
+    cmds.intSliderGrp('ss_AA_samples',
                         label="Camera (AA)",
                         minValue = 1,
                         maxValue = 10,
                         fieldMinValue=-10,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples)
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples)
                         )
 
-    pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=1)
-    pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
-    pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=1)
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
 
-    pm.intSliderGrp('ss_hemi_samples',
+    cmds.intSliderGrp('ss_hemi_samples',
                         label="Diffuse",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=1)
-    pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
-    pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=1)
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     
-    pm.intSliderGrp('ss_specular_samples',
+    cmds.intSliderGrp('ss_specular_samples',
                         label="Specular",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=1)
-    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=2)
-    pm.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=3)    
+    cmds.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=1)
+    cmds.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=2)
+    cmds.connectControl('ss_specular_samples', 'defaultArnoldRenderOptions.GISpecularSamples', index=3)    
     
-    pm.intSliderGrp('ss_transmission_samples',
+    cmds.intSliderGrp('ss_transmission_samples',
                         label='Transmission',
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=1)
-    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=2)
-    pm.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=3)    
+    cmds.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=1)
+    cmds.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=2)
+    cmds.connectControl('ss_transmission_samples', 'defaultArnoldRenderOptions.GITransmissionSamples', index=3)    
 
-    pm.attrControlGrp('ss_sss_samples',
+    cmds.attrControlGrp('ss_sss_samples',
                         label='SSS',
                         attribute='defaultArnoldRenderOptions.GI_sss_samples')
     
-    pm.attrControlGrp('ss_volume_samples',
+    cmds.attrControlGrp('ss_volume_samples',
                         label='Volume Indirect',
                         attribute='defaultArnoldRenderOptions.GI_volume_samples')
 
-    pm.separator()
+    cmds.separator()
     
-    pm.attrControlGrp('ss_lock_sampling_noise',
+    cmds.attrControlGrp('ss_lock_sampling_noise',
                         label="Lock Sampling Pattern",
                         attribute='defaultArnoldRenderOptions.lock_sampling_noise')
 
-    pm.attrControlGrp('ss_use_autobump',
+    cmds.attrControlGrp('ss_use_autobump',
                         label='Use Autobump in SSS',
                         attribute='defaultArnoldRenderOptions.sssUseAutobump',
                         annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
     
-    pm.separator()
-    pm.attrControlGrp('ss_indirect_specular_blur',
+    cmds.separator()
+    cmds.attrControlGrp('ss_indirect_specular_blur',
                         label="Indirect Specular Blur",
                         attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
 
 
-    pm.frameLayout(label='Clamping', collapse=True)
+    cmds.frameLayout(label='Clamping', collapse=True)
 
-    pm.checkBoxGrp('ss_clamp_sample_values',
+    cmds.checkBoxGrp('ss_clamp_sample_values',
                     cc=updateSamplingSettings,
                     label='Clamp AA Samples')
 
-    pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=1)
-    pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=2)
+    cmds.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=1)
+    cmds.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=2)
 
-    pm.checkBoxGrp('ss_clamp_sample_values_AOVs',
+    cmds.checkBoxGrp('ss_clamp_sample_values_AOVs',
                     cc=updateSamplingSettings,
                     label='Affect AOVs')
 
-    pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=1)
-    pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=2)
+    cmds.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=1)
+    cmds.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=2)
 
-    pm.attrControlGrp('ss_max_value',
+    cmds.attrControlGrp('ss_max_value',
                         label="AA Clamp Value",
                         attribute='defaultArnoldRenderOptions.AASampleClamp')
 
-    pm.attrControlGrp('ss_indirect_max_value',
+    cmds.attrControlGrp('ss_indirect_max_value',
                         label="Indirect Clamp Value",
                         attribute='defaultArnoldRenderOptions.indirectSampleClamp')
                         
-    pm.setParent('..')
+    cmds.setParent('..')
     
-    pm.frameLayout(label="Filter", collapse=True)
+    cmds.frameLayout(label="Filter", collapse=True)
     
     createTranslatorMenu('defaultArnoldFilter',
                             label='Type',
                             nodeType='aiAOVFilter',
                             default='gaussian')
      
-    pm.setParent('..')
-    pm.setParent('..') # column layout
+    cmds.setParent('..')
+    cmds.setParent('..') # column layout
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
     updateArnoldFilterOptions()
 
 
 def createArnoldGammaSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
     
-    pm.attrControlGrp('ss_driver_gamma',
+    cmds.attrControlGrp('ss_driver_gamma',
                         label="Display Driver gamma",
                         attribute='defaultArnoldRenderOptions.display_gamma')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 
 def createArnoldRayDepthSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('rs_total_depth',
+    cmds.attrControlGrp('rs_total_depth',
                         label="Total",
                         attribute='defaultArnoldRenderOptions.GITotalDepth')
 
-    pm.separator(style="none")
+    cmds.separator(style="none")
 
     
-    pm.intSliderGrp('rs_diffuse_depth',
+    cmds.intSliderGrp('rs_diffuse_depth',
                         label="Diffuse",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=1)
-    pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=2)
-    pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=3)
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=1)
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=2)
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=3)
     
     '''
-    pm.attrControlGrp('rs_diffuse_depth',
+    cmds.attrControlGrp('rs_diffuse_depth',
                         label="Diffuse depth",
                         attribute='defaultArnoldRenderOptions.GIDiffuseDepth')
     '''
     
-    pm.intSliderGrp('rs_specular_depth',
+    cmds.intSliderGrp('rs_specular_depth',
                         label="Specular",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=1)
-    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=2)
-    pm.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=3)
+    cmds.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=1)
+    cmds.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=2)
+    cmds.connectControl('rs_specular_depth', 'defaultArnoldRenderOptions.GISpecularDepth', index=3)
     
     '''
-    pm.attrControlGrp('rs_specular_depth',
+    cmds.attrControlGrp('rs_specular_depth',
                         label="Specular depth",
                         attribute='defaultArnoldRenderOptions.GISpecularDepth')
     '''
 
-    pm.intSliderGrp('rs_transmission_depth',
+    cmds.intSliderGrp('rs_transmission_depth',
                         label="Transmission ",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
-    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=1)
-    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=2)
-    pm.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=3)
+    cmds.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=1)
+    cmds.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=2)
+    cmds.connectControl('rs_transmission_depth', 'defaultArnoldRenderOptions.GITransmissionDepth', index=3)
 
     '''
-    pm.attrControlGrp('rs_transmission_depth',
+    cmds.attrControlGrp('rs_transmission_depth',
                         label="Refraction depth",
                         attribute='defaultArnoldRenderOptions.GITransmissionDepth')
     '''
     
-    pm.attrControlGrp('rs_volume_depth',
+    cmds.attrControlGrp('rs_volume_depth',
                         label="Volume",
                         attribute='defaultArnoldRenderOptions.GIVolumeDepth')
     
-    pm.separator(style="none")
+    cmds.separator(style="none")
 
-    pm.attrControlGrp('rs_auto_transparency_depth',
+    cmds.attrControlGrp('rs_auto_transparency_depth',
                         label="Transparency Depth",
                         attribute='defaultArnoldRenderOptions.autoTransparencyDepth')
 
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldEnvironmentSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
     
-    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
-    pm.text('es_atmosphere_text', label="Atmosphere")
-    pm.connectControl('es_atmosphere_text', 'defaultArnoldRenderOptions.atmosphere')
-    atmosphereTextField = pm.textField("defaultArnoldRenderOptionsAtmosphereTextField",editable=False)
-    atmosphereButton = pm.symbolButton(image="navButtonUnconnected.png")
-    atmosphereSelectButton = pm.symbolButton("defaultArnoldRenderOptionsAtmosphereSelectButton", image="navButtonConnected.png", command=selectAtmosphere, enable=False)
-    atpopup = pm.popupMenu(parent=atmosphereButton, button=1)
-    pm.popupMenu(atpopup, edit=True, postMenuCommand=Callback(buildAtmosphereMenu, atpopup, atmosphereTextField, atmosphereSelectButton))
+    cmds.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    cmds.text('es_atmosphere_text', label="Atmosphere")
+    cmds.connectControl('es_atmosphere_text', 'defaultArnoldRenderOptions.atmosphere')
+    atmosphereTextField = cmds.textField("defaultArnoldRenderOptionsAtmosphereTextField",editable=False)
+    atmosphereButton = cmds.symbolButton(image="navButtonUnconnected.png")
+    atmosphereSelectButton = cmds.symbolButton("defaultArnoldRenderOptionsAtmosphereSelectButton", image="navButtonConnected.png", command=selectAtmosphere, enable=False)
+    atpopup = cmds.popupMenu(parent=atmosphereButton, button=1)
+    cmds.popupMenu(atpopup, edit=True, postMenuCommand=Callback(buildAtmosphereMenu, atpopup, atmosphereTextField, atmosphereSelectButton))
     
-    pm.setParent('..')
+    cmds.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.atmosphere', s=True, d=False)
     if conns:
-        pm.textField(atmosphereTextField, edit=True, text=conns[0])
-        pm.symbolButton(atmosphereSelectButton, edit=True, enable=True)
+        cmds.textField(atmosphereTextField, edit=True, text=conns[0])
+        cmds.symbolButton(atmosphereSelectButton, edit=True, enable=True)
 
-    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
-    pm.text('es_background_text', label="Background (Legacy)")
-    pm.connectControl('es_background_text', 'defaultArnoldRenderOptions.background')
-    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
-    backgroundSelectButton = pm.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
-    bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
+    cmds.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    cmds.text('es_background_text', label="Background (Legacy)")
+    cmds.connectControl('es_background_text', 'defaultArnoldRenderOptions.background')
+    backgroundTextField = cmds.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
+    backgroundButton = cmds.symbolButton(image="navButtonUnconnected.png")
+    backgroundSelectButton = cmds.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
+    bgpopup = cmds.popupMenu(parent=backgroundButton, button=1)
+    cmds.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
-        pm.textField(backgroundTextField, edit=True, text=conns[0])
-        pm.symbolButton(backgroundSelectButton, edit=True, enable=True)
+        cmds.textField(backgroundTextField, edit=True, text=conns[0])
+        cmds.symbolButton(backgroundSelectButton, edit=True, enable=True)
 
-    pm.separator(style="none")
+    cmds.separator(style="none")
     
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def arnoldMotionBlurPositionChanged(*args):
-    sel = pm.optionMenuGrp('mb_position', q=True, select=True) - 1
+    sel = cmds.optionMenuGrp('mb_position', q=True, select=True) - 1
     if (sel is 3):
-        pm.attrControlGrp('mb_motion_frames', edit=True, enable=False)
-        pm.attrControlGrp('mb_motion_range_start', edit=True, enable=True)
-        pm.attrControlGrp('mb_motion_range_end', edit=True, enable=True)
+        cmds.attrControlGrp('mb_motion_frames', edit=True, enable=False)
+        cmds.attrControlGrp('mb_motion_range_start', edit=True, enable=True)
+        cmds.attrControlGrp('mb_motion_range_end', edit=True, enable=True)
         arnoldMotionCustomChanged()
     else:
-        pm.attrControlGrp('mb_motion_frames', edit=True, enable=True)
-        pm.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
-        pm.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
+        cmds.attrControlGrp('mb_motion_frames', edit=True, enable=True)
+        cmds.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
+        cmds.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
         arnoldMotionFramesChanged()
 
 def arnoldMotionFramesChanged(*args):
-    length = pm.getAttr('defaultArnoldRenderOptions.motion_frames')
+    length = cmds.getAttr('defaultArnoldRenderOptions.motion_frames')
     angle = length * 360
-    pm.text("textArnoldMBAngle",
+    cmds.text("textArnoldMBAngle",
                 edit=True, 
                 label=u'  Shutter Angle : %i°' % angle)
     
 def arnoldMotionCustomChanged(*args):
-    start = pm.getAttr('defaultArnoldRenderOptions.motion_start')
-    end = pm.getAttr('defaultArnoldRenderOptions.motion_end')
+    start = cmds.getAttr('defaultArnoldRenderOptions.motion_start')
+    end = cmds.getAttr('defaultArnoldRenderOptions.motion_end')
     angle = abs(end-start) * 360
-    pm.text("textArnoldMBAngle",
+    cmds.text("textArnoldMBAngle",
                edit=True, 
                label=u'  Shutter Angle : %i°' % angle)
     
 def createArnoldMotionBlurRange(*args):
 
-    pm.text("textArnoldMBAngle", 
+    cmds.text("textArnoldMBAngle", 
                 font = "smallBoldLabelFont",
                 align='left',
                 enable=False
             )
     
-    pm.text( "textArnoldMBAngle",
+    cmds.text( "textArnoldMBAngle",
                 edit=True, 
                 label=u'  Shutter Angle : %i°' % 180)
 
                
-    cmds.optionMenuGrp('mb_position', label='Position')
-    cmds.optionMenuGrp('mb_position', edit=True, changeCommand=pm.Callback(arnoldMotionBlurPositionChanged))
+    cmds.optionMenuGrp('mb_position', label='Position', changeCommand=arnoldMotionBlurPositionChanged)
     cmds.menuItem( label='Start On Frame', data=0)
     cmds.menuItem( label='Center On Frame', data=1)
     cmds.menuItem( label='End On Frame', data=2)
@@ -786,19 +787,19 @@ def createArnoldMotionBlurRange(*args):
 
     
     
-    pm.attrFieldSliderGrp('mb_motion_frames',
+    cmds.attrFieldSliderGrp('mb_motion_frames',
                             label="Length",
                             ann='Motion Range in Frames',
                             attribute='defaultArnoldRenderOptions.motion_frames',
                             cc=arnoldMotionFramesChanged)
                         
-    pm.attrFieldSliderGrp('mb_motion_range_start',
+    cmds.attrFieldSliderGrp('mb_motion_range_start',
                             label="Start",
                             ann='Motion Range Start in Frames',
                             attribute='defaultArnoldRenderOptions.motion_start',
                             cc=arnoldMotionCustomChanged)
                         
-    pm.attrFieldSliderGrp('mb_motion_range_end',
+    cmds.attrFieldSliderGrp('mb_motion_range_end',
                             label="End",
                             ann='Motion Range End in Frames',
                             attribute='defaultArnoldRenderOptions.motion_end',
@@ -806,119 +807,119 @@ def createArnoldMotionBlurRange(*args):
     
 def createArnoldMotionBlurSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
     
                    
-    pm.checkBoxGrp('mb_enable',
+    cmds.checkBoxGrp('mb_enable',
                     cc=updateMotionBlurSettings,
                     label='Enable')
 
-    pm.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=1)
-    pm.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=2)
+    cmds.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=1)
+    cmds.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=2)
     
-    pm.checkBoxGrp('mb_object_deform_enable',
+    cmds.checkBoxGrp('mb_object_deform_enable',
                     label='Deformation')
                      
-    pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=1)
-    pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=2)
+    cmds.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=1)
+    cmds.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=2)
     
-    pm.checkBoxGrp('mb_camera_enable',
+    cmds.checkBoxGrp('mb_camera_enable',
                     label='Camera')
                      
-    pm.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=1)
-    pm.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=2)
+    cmds.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=1)
+    cmds.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=2)
     
-    pm.attrControlGrp('mb_motion_steps',
+    cmds.attrControlGrp('mb_motion_steps',
                         label="Keys",
                         attribute='defaultArnoldRenderOptions.motion_steps')                   
                         
-    pm.separator()
+    cmds.separator()
     
     createArnoldMotionBlurRange()
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldLightSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('lightThreshold',
+    cmds.attrControlGrp('lightThreshold',
                         label="Low Light Threshold",
                         attribute='defaultArnoldRenderOptions.lowLightThreshold')
 
-    pm.separator()
+    cmds.separator()
 
-    pm.attrControlGrp('lightLinking',
+    cmds.attrControlGrp('lightLinking',
                         label="Light Linking",
                         attribute='defaultArnoldRenderOptions.lightLinking')
 
-    pm.attrControlGrp('shadowLinking',
+    cmds.attrControlGrp('shadowLinking',
                         label="Shadow Linking",
                         attribute='defaultArnoldRenderOptions.shadowLinking')
 
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldSubdivSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('sub_max_subdivisions',
+    cmds.attrControlGrp('sub_max_subdivisions',
                         label="Max. Subdivisions",
                         attribute='defaultArnoldRenderOptions.maxSubdivisions')
 
-    pm.attrControlGrp('sub_frustum_culling',
+    cmds.attrControlGrp('sub_frustum_culling',
                         label="Frustum Culling",
                         changeCommand=changeFrustumCulling,
                         attribute='defaultArnoldRenderOptions.subdivFrustumCulling')
 
-    pm.attrControlGrp('sub_frustum_padding',
+    cmds.attrControlGrp('sub_frustum_padding',
                         label="Frustum Padding",
                         attribute='defaultArnoldRenderOptions.subdivFrustumPadding')
     frustumCulling = cmds.getAttr('defaultArnoldRenderOptions.subdiv_frustum_culling')
-    pm.attrControlGrp('sub_frustum_padding', edit=True, enable=frustumCulling)
+    cmds.attrControlGrp('sub_frustum_padding', edit=True, enable=frustumCulling)
 
-    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
-    pm.text('es_subdiv_dicing_camera_text', label="Dicing Camera")
-    pm.connectControl('es_subdiv_dicing_camera_text', 'defaultArnoldRenderOptions.subdivDicingCamera')
-    subdivDicingCameraTextField = pm.textField("defaultArnoldRenderOptionsSubdivDicingCameraTextField",editable=False)
-    subdivDicingCameraButton = pm.symbolButton(image="navButtonUnconnected.png")
-    subdivDicingCameraSelectButton = pm.symbolButton("defaultArnoldRenderOptionsSubdivDicingCameraSelectButton", image="navButtonConnected.png", command=selectSubdivDicingCamera, enable=False)
-    sdcpopup = pm.popupMenu(parent=subdivDicingCameraButton, button=1)
-    pm.popupMenu(sdcpopup, edit=True, postMenuCommand=Callback(buildSubdivDicingCameraMenu, sdcpopup, subdivDicingCameraTextField, subdivDicingCameraSelectButton))
+    cmds.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    cmds.text('es_subdiv_dicing_camera_text', label="Dicing Camera")
+    cmds.connectControl('es_subdiv_dicing_camera_text', 'defaultArnoldRenderOptions.subdivDicingCamera')
+    subdivDicingCameraTextField = cmds.textField("defaultArnoldRenderOptionsSubdivDicingCameraTextField",editable=False)
+    subdivDicingCameraButton = cmds.symbolButton(image="navButtonUnconnected.png")
+    subdivDicingCameraSelectButton = cmds.symbolButton("defaultArnoldRenderOptionsSubdivDicingCameraSelectButton", image="navButtonConnected.png", command=selectSubdivDicingCamera, enable=False)
+    sdcpopup = cmds.popupMenu(parent=subdivDicingCameraButton, button=1)
+    cmds.popupMenu(sdcpopup, edit=True, postMenuCommand=Callback(buildSubdivDicingCameraMenu, sdcpopup, subdivDicingCameraTextField, subdivDicingCameraSelectButton))
     
-    pm.setParent('..')
+    cmds.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False)
     if conns:
-        pm.textField(subdivDicingCameraTextField, edit=True, text=conns[0])
-        pm.symbolButton(subdivDicingCameraSelectButton, edit=True, enable=True)
+        cmds.textField(subdivDicingCameraTextField, edit=True, text=conns[0])
+        cmds.symbolButton(subdivDicingCameraSelectButton, edit=True, enable=True)
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 
 def createArnoldTextureSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
    
-    pm.attrControlGrp('autotx', 
+    cmds.attrControlGrp('autotx', 
                         cc=updateAutoTxSettings,
                         label="Auto-convert Textures to TX ", 
                         attribute='defaultArnoldRenderOptions.autotx')
 
-    pm.attrControlGrp('use_existing_tiled_textures', 
+    cmds.attrControlGrp('use_existing_tiled_textures', 
                         label="Use Existing TX Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
     
@@ -926,27 +927,27 @@ def createArnoldTextureSettings():
     cmds.separator()
     
     # don't create texture_automip for 2016 as autoTx is ON by default
-    maya_version = versions.shortName()
-    if int(float(maya_version)) < 2016:
-        pm.attrControlGrp('texture_automip',
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2016:
+        cmds.attrControlGrp('texture_automip',
                             label="Auto-mipmap",
                             attribute='defaultArnoldRenderOptions.textureAutomip')
                             
-    pm.attrControlGrp('texture_accept_unmipped',
+    cmds.attrControlGrp('texture_accept_unmipped',
                         label="Accept Unmipped",
                         attribute='defaultArnoldRenderOptions.textureAcceptUnmipped')
                         
     cmds.separator()
     
     
-    pm.checkBoxGrp('ts_autotile',
+    cmds.checkBoxGrp('ts_autotile',
                     cc=updateAutotileSettings,
                     label='',
                     label1='Auto-tile')
                      
-    pm.connectControl('ts_autotile', 'defaultArnoldRenderOptions.autotile', index=2)
+    cmds.connectControl('ts_autotile', 'defaultArnoldRenderOptions.autotile', index=2)
     
-    pm.intSliderGrp('ts_texture_autotile',
+    cmds.intSliderGrp('ts_texture_autotile',
                         label="Tile Size",
                         minValue = 16,
                         maxValue = 64,
@@ -954,24 +955,24 @@ def createArnoldTextureSettings():
                         fieldMaxValue=1024
                     )
 
-    pm.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=1)
-    pm.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=2)
-    pm.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=3)
+    cmds.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=1)
+    cmds.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=2)
+    cmds.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=3)
     
-    '''pm.attrControlGrp('texture_autotile',
+    '''cmds.attrControlGrp('texture_autotile',
                         label="Auto-tile Size",
                         attribute='defaultArnoldRenderOptions.textureAutotile')'''
 
-    pm.attrControlGrp('texture_accept_untiled',
+    cmds.attrControlGrp('texture_accept_untiled',
                         label="Accept Untiled",
                         attribute='defaultArnoldRenderOptions.textureAcceptUntiled')
     
 
-    pm.attrControlGrp('texture_max_memory_MB',
+    cmds.attrControlGrp('texture_max_memory_MB',
                         label="Max Cache Size (MB)",
                         attribute='defaultArnoldRenderOptions.textureMaxMemoryMB')
 
-    pm.attrControlGrp('texture_max_open_files',
+    cmds.attrControlGrp('texture_max_open_files',
                         label="Max Open Files",
                         attribute='defaultArnoldRenderOptions.textureMaxOpenFiles')
 
@@ -985,155 +986,155 @@ def createArnoldTextureSettings():
                         label="Specular Blur", 
                         attribute='defaultArnoldRenderOptions.textureSpecularBlur') 
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldOverrideSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('ignore_textures',
+    cmds.attrControlGrp('ignore_textures',
                         attribute='defaultArnoldRenderOptions.ignore_textures')
 
-    pm.attrControlGrp('ignore_shaders',
+    cmds.attrControlGrp('ignore_shaders',
                         attribute='defaultArnoldRenderOptions.ignore_shaders')
 
-    pm.attrControlGrp('ignore_atmosphere',
+    cmds.attrControlGrp('ignore_atmosphere',
                         attribute='defaultArnoldRenderOptions.ignore_atmosphere')
 
-    pm.attrControlGrp('ignore_lights',
+    cmds.attrControlGrp('ignore_lights',
                         attribute='defaultArnoldRenderOptions.ignore_lights')
 
-    pm.attrControlGrp('ignore_shadows',
+    cmds.attrControlGrp('ignore_shadows',
                         attribute='defaultArnoldRenderOptions.ignore_shadows')
                         
-    pm.attrControlGrp('ignore_subdivision',
+    cmds.attrControlGrp('ignore_subdivision',
                         attribute='defaultArnoldRenderOptions.ignore_subdivision')
 
-    pm.attrControlGrp('ignore_displacement',
+    cmds.attrControlGrp('ignore_displacement',
                         attribute='defaultArnoldRenderOptions.ignore_displacement')
 
-    pm.attrControlGrp('ignore_bump',
+    cmds.attrControlGrp('ignore_bump',
                         attribute='defaultArnoldRenderOptions.ignore_bump')
 
-    pm.attrControlGrp('ignore_smoothing',
+    cmds.attrControlGrp('ignore_smoothing',
                         attribute='defaultArnoldRenderOptions.ignore_smoothing', label='Ignore Normal Smoothing')
                         
-    pm.attrControlGrp('ignore_motion_blur',
+    cmds.attrControlGrp('ignore_motion_blur',
                         attribute='defaultArnoldRenderOptions.ignore_motion_blur')
 
-    pm.attrControlGrp('ignore_dof',
+    cmds.attrControlGrp('ignore_dof',
                         attribute='defaultArnoldRenderOptions.ignore_dof', label='Ignore Depth of Field')
                         
-    pm.attrControlGrp('ignore_sss',
+    cmds.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
 
-    pm.attrControlGrp('force_translate_shading_engines',
+    cmds.attrControlGrp('force_translate_shading_engines',
                        attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldPathSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
     
-    pm.attrControlGrp('texture_absolute_paths',
+    cmds.attrControlGrp('texture_absolute_paths',
                         label='Absolute Texture Paths',
                         attribute='defaultArnoldRenderOptions.absoluteTexturePaths')
 
-    pm.attrControlGrp('os_absoluteProceduralPaths',
+    cmds.attrControlGrp('os_absoluteProceduralPaths',
                         label='Absolute Procedural Paths',
                         attribute='defaultArnoldRenderOptions.absoluteProceduralPaths')
 
-    pm.separator()
+    cmds.separator()
 
 
-    pm.attrControlGrp('os_procedural_searchpath',
+    cmds.attrControlGrp('os_procedural_searchpath',
                         label="Procedural Search Path",
                         attribute='defaultArnoldRenderOptions.procedural_searchpath')
 
-    pm.attrControlGrp('os_plugin_searchpath',
+    cmds.attrControlGrp('os_plugin_searchpath',
                         label="Plugin Search Path",
                         attribute='defaultArnoldRenderOptions.plugin_searchpath')
 
-    pm.attrControlGrp('os_texture_searchpath',
+    cmds.attrControlGrp('os_texture_searchpath',
                         label="Texture Search Path",
                         attribute='defaultArnoldRenderOptions.texture_searchpath')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldMayaintegrationSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
     
-    pm.attrControlGrp('os_progressive_rendering',
+    cmds.attrControlGrp('os_progressive_rendering',
                         label='Progressive Refinement',
                         attribute='defaultArnoldRenderOptions.progressive_rendering')
 
-    pm.attrControlGrp('os_progressive_initial_level',
+    cmds.attrControlGrp('os_progressive_initial_level',
                         label="Initial Sampling Level",
                         attribute='defaultArnoldRenderOptions.progressive_initial_level')
                     
-    pm.separator()
+    cmds.separator()
                     
-    pm.attrControlGrp('os_clear_before_render',
+    cmds.attrControlGrp('os_clear_before_render',
                         label="Clear Before Render",
                         attribute='defaultArnoldRenderOptions.clear_before_render')
                    
-    pm.attrControlGrp('os_force_scene_update_before_IPR_refresh',
+    cmds.attrControlGrp('os_force_scene_update_before_IPR_refresh',
                         label='Force Scene Update On IPR Refresh',
                         attribute='defaultArnoldRenderOptions.force_scene_update_before_IPR_refresh')
     
-    pm.attrControlGrp('os_force_texture_cache_flush_after_render',
+    cmds.attrControlGrp('os_force_texture_cache_flush_after_render',
                         label='Force Texture Cache Flush After Render',
                         attribute='defaultArnoldRenderOptions.force_texture_cache_flush_after_render')
                    
-    pm.separator()
+    cmds.separator()
                   
-    pm.attrControlGrp('os_enable_swatch_render',
+    cmds.attrControlGrp('os_enable_swatch_render',
                         label="Enable Swatch Render",
                         attribute='defaultArnoldRenderOptions.enable_swatch_render')
 
-    pm.attrControlGrp('os_standin_draw_override',
+    cmds.attrControlGrp('os_standin_draw_override',
                         label="StandIn Viewport Override",
                         attribute='defaultArnoldRenderOptions.standin_draw_override')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
     
 def createArnoldLicensingSettings():
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
     
-    pm.attrControlGrp('os_abort_on_license_fail',
+    cmds.attrControlGrp('os_abort_on_license_fail',
                         label="Abort On License Fail",
                         attribute='defaultArnoldRenderOptions.abortOnLicenseFail')
 
-    pm.attrControlGrp('os_skip_license_check',
+    cmds.attrControlGrp('os_skip_license_check',
                         label="Render with Watermarks (Skip License Check)",
                         attribute='defaultArnoldRenderOptions.skip_license_check')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def LoadFilenameButtonPush(*args):
     import os
     basicFilter = 'All Files (*.*)'
     initFolder = cmds.textFieldGrp("ls_log_filename", query=True, text=True)
     if "$MTOA_LOG_PATH" in initFolder:
-        logPath = pm.mel.eval('getenv "MTOA_LOG_PATH"')
+        logPath = maya.mel.eval('getenv "MTOA_LOG_PATH"')
         if not logPath:
-            logPath = pm.workspace(query=True, rootDirectory=True)
+            logPath = cmds.workspace(query=True, rootDirectory=True)
         resolvedFolder = initFolder.replace("$MTOA_LOG_PATH",logPath)
     else:
         resolvedFolder = initFolder
@@ -1146,43 +1147,43 @@ def LoadFilenameButtonPush(*args):
 def ChangeLogToConsole(*args):
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
+    cmds.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def ChangeLogToFile(*args):
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     cmds.textFieldGrp('ls_log_filename', edit=True, enable=logToFile)
     cmds.symbolButton("ls_log_filename_button", edit=True, enable=logToFile)
-    pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
+    cmds.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def createArnoldLogSettings():
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
 
     
-    pm.attrControlGrp('log_verbosity',
+    cmds.attrControlGrp('log_verbosity',
                         label="Verbosity Level",
                         enable=logToConsole,
                         attribute='defaultArnoldRenderOptions.log_verbosity')                
                         
     
-    pm.checkBoxGrp('log_to_console',
+    cmds.checkBoxGrp('log_to_console',
                     label='Console',
                     changeCommand=ChangeLogToConsole)
 
-    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=1)
-    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=2)
+    cmds.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=1)
+    cmds.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=2)
     
-    pm.checkBoxGrp('log_to_file',
+    cmds.checkBoxGrp('log_to_file',
                     label='File',
                     changeCommand=ChangeLogToFile)
 
-    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
-    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
+    cmds.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
+    cmds.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
     
     cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
     path = cmds.textFieldGrp('ls_log_filename',
@@ -1191,62 +1192,62 @@ def createArnoldLogSettings():
                                 cc=updateLogSettings,
                                 width=325)
     cmds.symbolButton('ls_log_filename_button', image='navButtonBrowse.png', command=LoadFilenameButtonPush, enable=logToFile)
-    pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
-    pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
-    pm.setParent('..')
+    cmds.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
+    cmds.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
+    cmds.setParent('..')
     
     '''
-    pm.attrControlGrp('log_filename',
+    cmds.attrControlGrp('log_filename',
                         label="Filename",
                         attribute='defaultArnoldRenderOptions.log_filename',
                         cc=updateLogSettings)
     '''
 
-    pm.attrControlGrp('log_max_warnings',
+    cmds.attrControlGrp('log_max_warnings',
                         label='Max. Warnings',
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
-    pm.setParent('..')
-    pm.checkBoxGrp('mtoa_translation_info',
+    cmds.setParent('..')
+    cmds.checkBoxGrp('mtoa_translation_info',
                     label='MtoA Translation Info')
-    pm.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=1)
-    pm.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=2)
+    cmds.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=1)
+    cmds.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=2)
     
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
     
 def createArnoldErrorHandlingSettings():
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('os_abort_on_error',
+    cmds.attrControlGrp('os_abort_on_error',
                         label="Abort On Error",
                         attribute='defaultArnoldRenderOptions.abortOnError')
                    
-    pm.separator()
+    cmds.separator()
     
-    pm.attrControlGrp('os_error_color_bad_texture',
+    cmds.attrControlGrp('os_error_color_bad_texture',
                         label="Texture Error Color",
                         attribute='defaultArnoldRenderOptions.errorColorBadTexture')
                    
-    pm.attrControlGrp('os_error_color_bad_pixel',
+    cmds.attrControlGrp('os_error_color_bad_pixel',
                         label="NaN Error Color",
                         attribute='defaultArnoldRenderOptions.errorColorBadPixel')
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
 def createArnoldUserOptionsSettings():
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
     
-    pm.attrControlGrp('os_user_options',
+    cmds.attrControlGrp('os_user_options',
                         label="Options",
                         attribute='defaultArnoldRenderOptions.aiUserOptions')
-    pm.setParent('..')
+    cmds.setParent('..')
     
-    pm.setUITemplate(popTemplate=True)
+    cmds.setUITemplate(popTemplate=True)
 
     
 def createArnoldRendererDiagnosticsTab():
@@ -1254,45 +1255,45 @@ def createArnoldRendererDiagnosticsTab():
     # Make sure the aiOptions node exists
     #core.createOptions()
 
-    parentForm = pm.setParent(query=True)
+    parentForm = cmds.setParent(query=True)
     
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0)
-    pm.columnLayout('arnoldDiagnosticsColumn', adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0)
+    cmds.columnLayout('arnoldDiagnosticsColumn', adjustableColumn=True)
 
     # Log
     #
-    pm.frameLayout('arnoldLogSettings', label="Log", cll=True, cl=0)
+    cmds.frameLayout('arnoldLogSettings', label="Log", cll=True, cl=0)
     createArnoldLogSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     # Error handling
     #
-    pm.frameLayout('arnoldErrorHandlingSettings', label="Error Handling", cll=True, cl=0)
+    cmds.frameLayout('arnoldErrorHandlingSettings', label="Error Handling", cll=True, cl=0)
     createArnoldErrorHandlingSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     # User Options
     #
-    pm.frameLayout('arnoldUserOptionsSettings', label="User Options", cll=True,  cl=0)
+    cmds.frameLayout('arnoldUserOptionsSettings', label="User Options", cll=True,  cl=0)
     createArnoldUserOptionsSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     # Overrides
     #
-    pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
+    cmds.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
     createArnoldOverrideSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
 
-    pm.formLayout(parentForm,
+    cmds.formLayout(parentForm,
                     edit=True,
                     af=[('arnoldDiagnosticsScrollLayout', "top", 0),
                         ('arnoldDiagnosticsScrollLayout', "bottom", 0),
                         ('arnoldDiagnosticsScrollLayout', "left", 0),
                         ('arnoldDiagnosticsScrollLayout', "right", 0)])
 
-    pm.setParent(parentForm)
+    cmds.setParent(parentForm)
     
 def updateArnoldRendererDiagnosticsTab(*args):
     updateLogSettings()
@@ -1302,47 +1303,47 @@ def createArnoldRendererSystemTab():
     # Make sure the aiOptions node exists
     #core.createOptions()
 
-    parentForm = pm.setParent(query=True)
+    parentForm = cmds.setParent(query=True)
     
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
-    pm.columnLayout('arnoldSystemColumn', adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
+    cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
     
     # Maya Integration
     #
-    pm.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
+    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
     createArnoldMayaintegrationSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     # Render
     #
-    pm.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=0)
+    cmds.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=0)
     createArnoldRenderSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     # Search paths
     #
-    pm.frameLayout('arnoldPathSettings', label="Search Paths", cll=True, cl=0)
+    cmds.frameLayout('arnoldPathSettings', label="Search Paths", cll=True, cl=0)
     createArnoldPathSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     # Licensing
     #
-    pm.frameLayout('arnoldLicensingSettings', label="Licensing", cll=True, cl=0)
+    cmds.frameLayout('arnoldLicensingSettings', label="Licensing", cll=True, cl=0)
     createArnoldLicensingSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
     
     
 
-    pm.formLayout(parentForm,
+    cmds.formLayout(parentForm,
                     edit=True,
                     af=[('arnoldSystemScrollLayout', "top", 0),
                         ('arnoldSystemScrollLayout', "bottom", 0),
                         ('arnoldSystemScrollLayout', "left", 0),
                         ('arnoldSystemScrollLayout', "right", 0)])
 
-    pm.setParent(parentForm)
+    cmds.setParent(parentForm)
     
     updateRenderSettings()
     
@@ -1354,103 +1355,103 @@ def createArnoldRendererGlobalsTab():
     # Make sure the aiOptions node exists
     core.createOptions()
 
-    parentForm = pm.setParent(query=True)
+    parentForm = cmds.setParent(query=True)
 
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.scrollLayout('arnoldGlobalsScrollLayout', horizontalScrollBarThickness=0)
-    pm.columnLayout('arnoldTabColumn', adjustableColumn=True)
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.scrollLayout('arnoldGlobalsScrollLayout', horizontalScrollBarThickness=0)
+    cmds.columnLayout('arnoldTabColumn', adjustableColumn=True)
 
     # Sampling
     #
-    pm.frameLayout('arnoldSamplingSettings', label='Sampling', cll=True, cl=0)
+    cmds.frameLayout('arnoldSamplingSettings', label='Sampling', cll=True, cl=0)
     createArnoldSamplingSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
     # Ray depth
     #
-    pm.frameLayout('arnoldRayDepthSettings', label="Ray Depth", cll= True, cl=1)
+    cmds.frameLayout('arnoldRayDepthSettings', label="Ray Depth", cll= True, cl=1)
     createArnoldRayDepthSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
     # Environment
     #
-    pm.frameLayout('arnoldEnvironmentSettings', label="Environment", cll= True, cl=1)
+    cmds.frameLayout('arnoldEnvironmentSettings', label="Environment", cll= True, cl=1)
     createArnoldEnvironmentSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
     # Motion Blur
     #
-    pm.frameLayout('arnoldMotionBlurSettings', label="Motion Blur", cll= True, cl=1)
+    cmds.frameLayout('arnoldMotionBlurSettings', label="Motion Blur", cll= True, cl=1)
     createArnoldMotionBlurSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
 
     # Light Linking
     #
-    pm.frameLayout('arnoldLightSettings', label="Lights", cll= True, cl=1)
+    cmds.frameLayout('arnoldLightSettings', label="Lights", cll= True, cl=1)
     createArnoldLightSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
 
     # Gamma correction
     #
     
-    maya_version = versions.shortName()
-    if int(float(maya_version)) < 2016:
-        pm.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
+    maya_version = utils.getMayaVersion()
+    if maya_version < 2016:
+        cmds.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
         createArnoldGammaSettings()
-        pm.setParent('..')
+        cmds.setParent('..')
 
     # Gamma correction
     #
-    pm.frameLayout('arnoldTextureSettings', label="Textures", cll=True, cl=1)
+    cmds.frameLayout('arnoldTextureSettings', label="Textures", cll=True, cl=1)
     createArnoldTextureSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
     
     # Subdivision Surfaces
     #
-    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
+    cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
     createArnoldSubdivSettings()
-    pm.setParent('..')
+    cmds.setParent('..')
 
     pm.attrControlGrp('gpu', 
                         label="GPU Rendering", 
                         attribute='defaultArnoldRenderOptions.gpu')
 
 
-    pm.setParent('..')
+    cmds.setParent('..')
 
-    pm.formLayout(parentForm,
+    cmds.formLayout(parentForm,
                     edit=True,
                     af=[('arnoldGlobalsScrollLayout', "top", 0),
                         ('arnoldGlobalsScrollLayout', "bottom", 0),
                         ('arnoldGlobalsScrollLayout', "left", 0),
                         ('arnoldGlobalsScrollLayout', "right", 0)])
 
-    pm.setParent(parentForm)
+    cmds.setParent(parentForm)
 
     updateArnoldRendererGlobalsTab()
 
 def updateBackgroundSettings(*args):
     background = getBackgroundShader()
-    if pm.textField( 'defaultArnoldRenderOptionsBackgroundTextField', query=True, exists=True):
-        pm.textField('defaultArnoldRenderOptionsBackgroundTextField', edit=True, text=background)
-    if pm.symbolButton( 'defaultArnoldRenderOptionsBackgroundSelectButton', query=True, exists=True):
+    if cmds.textField( 'defaultArnoldRenderOptionsBackgroundTextField', query=True, exists=True):
+        cmds.textField('defaultArnoldRenderOptionsBackgroundTextField', edit=True, text=background)
+    if cmds.symbolButton( 'defaultArnoldRenderOptionsBackgroundSelectButton', query=True, exists=True):
         if not background:
-            pm.symbolButton('defaultArnoldRenderOptionsBackgroundSelectButton', edit=True, enable=False)
+            cmds.symbolButton('defaultArnoldRenderOptionsBackgroundSelectButton', edit=True, enable=False)
         else:
-            pm.symbolButton('defaultArnoldRenderOptionsBackgroundSelectButton', edit=True, enable=True)
+            cmds.symbolButton('defaultArnoldRenderOptionsBackgroundSelectButton', edit=True, enable=True)
             
 def updateAtmosphereSettings(*args):
     atmosphere = getAtmosphereShader()
-    if pm.textField( 'defaultArnoldRenderOptionsAtmosphereTextField', query=True, exists=True):
-        pm.textField('defaultArnoldRenderOptionsAtmosphereTextField', edit=True, text=atmosphere)
-    if pm.symbolButton( 'defaultArnoldRenderOptionsAtmosphereSelectButton', query=True, exists=True):
+    if cmds.textField( 'defaultArnoldRenderOptionsAtmosphereTextField', query=True, exists=True):
+        cmds.textField('defaultArnoldRenderOptionsAtmosphereTextField', edit=True, text=atmosphere)
+    if cmds.symbolButton( 'defaultArnoldRenderOptionsAtmosphereSelectButton', query=True, exists=True):
         if not atmosphere:
-            pm.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=False)
+            cmds.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=False)
         else:
-            pm.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=True)
+            cmds.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=True)
 
 def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()

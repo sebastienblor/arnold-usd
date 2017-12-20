@@ -2,7 +2,6 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.callbacks import *
 import mtoa.core as core
-import pymel.versions as versions
 
 def pushOptionsUITemplate():
     if (not cmds.uiTemplate('oa_optionsTemplate', exists=True)):

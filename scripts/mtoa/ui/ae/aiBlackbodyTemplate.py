@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiBlackbodyTemplate(ShaderAETemplate):
@@ -10,7 +10,7 @@ class AEaiBlackbodyTemplate(ShaderAETemplate):
         self.addControl('normalize', label='Normalize')
         self.addControl('intensity', label='Intensity')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

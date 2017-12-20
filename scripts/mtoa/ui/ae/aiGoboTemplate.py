@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiGoboTemplate(ShaderAETemplate):
@@ -21,7 +21,7 @@ class AEaiGoboTemplate(ShaderAETemplate):
         self.addControl('twrap', label='Wrap T')
         self.endLayout()
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

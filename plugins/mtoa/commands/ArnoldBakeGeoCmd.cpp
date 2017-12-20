@@ -117,14 +117,24 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::ostream os(&fb);
    os << "# Arnold Renderer - OBJ export\n";  // anything else we want to dump in the header ?
 
-   AiBegin();
-   CMayaScene::Begin(MTOA_SESSION_ASS);
+   CMayaScene::Begin(MTOA_SESSION_RENDER);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);   
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
 
    CMayaScene::Export(&selected);
+
+   // We need to ensure that a render camera is set, otherwise subdivision might fail (#3264)
+   AtNode *renderCam = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   if (renderCam == NULL)
+   {      
+      // Please don't tell anyone that I'm creating a dummy camera here,
+      // it will be deleted at the end of this function anyway.
+      renderCam = AiNode("persp_camera");
+      AiNodeSetStr(renderCam, "name", "__mtoa_baking_cam");
+      AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)renderCam);
+   }
 
    //  First, iterate over the geometries to get the matrices
    // Otherwise, as soon as AiRender is called, they are re-initialized

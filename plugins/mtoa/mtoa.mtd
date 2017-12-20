@@ -1368,7 +1368,10 @@
     [attr ao_distance]
         min                 FLOAT 0.0
         softmax             FLOAT 200.0
-
+    [attr roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    
 [node ray_switch_rgba]
     maya.hide               BOOL    true
     maya.id                 INT     0x00115D84
@@ -1905,6 +1908,9 @@
         maya.hide           BOOL    true
     [attr color_space]
         maya.hide           BOOL    true
+    [attr tiled]
+        maya.name           STRING  "deepexrTiled"
+        maya.shortname      STRING  "deepexr_tiled"
     
 [node driver_exr]
     maya.translator         STRING  "exr"
@@ -1915,7 +1921,10 @@
         maya.shortname      STRING  "exr_compression"
     [attr color_space]
         maya.hide           BOOL    true
-
+    [attr tiled]
+        maya.name           STRING  "exrTiled"
+        maya.shortname      STRING  "tiled"
+    
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
     [attr filename]
@@ -1958,6 +1967,10 @@
     [attr format]
         maya.name           STRING  "tiffFormat"
         maya.shortname      STRING  "tiff_format"
+    [attr tiled]
+        maya.name           STRING  "tiffTiled"
+        maya.shortname      STRING  "tiff_tiled"
+    
     [attr color_space]
         maya.hide           BOOL    true
 
@@ -2948,7 +2961,105 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
 
+[node contour_filter]
+    maya.attr_prefix        STRING  ""
+    maya.translator         STRING  "contour"
 
+[node toon]
+    desc                    STRING  "Toon shader"
+    maya.name               STRING  "aiToon"
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8C
+    [attr mask_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_tonemap]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_opacity]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr width_scale]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr uv_threshold]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr angle_threshold]
+        min             FLOAT   0
+        max             FLOAT   180
+    [attr base]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr base_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr base_tonemap]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_anisotropy]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_rotation]
+        softmin         FLOAT   0
+        softmax         FLOAT   1
+    [attr specular_tonemap]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr highlight_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr rim_light_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr highlight_size]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_anisotropy]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_rotation]
+        softmin         FLOAT   0
+        softmax         FLOAT   1
+    [attr emission]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr emission_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr IOR]
+        min             FLOAT   0
+        softmax         FLOAT   3
+
+    [attr indirect_diffuse]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr indirect_specular]
+        min             FLOAT   0
+        max             FLOAT   1
 
 
 

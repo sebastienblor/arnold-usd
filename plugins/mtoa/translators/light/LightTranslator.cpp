@@ -35,14 +35,9 @@ void CLightTranslator::Export(AtNode* light)
    MPlug plug;
    AtMatrix matrix;
 
-   // Early out, light isn't visible so no point exporting anything else.
-   if (!IsRenderable())
-   {
-      AiNodeSetDisabled(GetArnoldNode(), true);
-      //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);
-      return;
-   }
-   AiNodeSetDisabled(GetArnoldNode(), false);
+   // We used to do an early out when the light was disabled,
+   // but this was creating problems when the light was instanced (#2079)
+   AiNodeSetDisabled(GetArnoldNode(), (!IsRenderable()));
 
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.

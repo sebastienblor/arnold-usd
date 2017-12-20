@@ -1216,40 +1216,12 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    return stat;
 }
 
-// CDynamicAttrHelper
-//
 
+// LEGACY
+// We're keeping this to avoid breaking binary compatibility
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
-   MStatus stat;
-   MStatus statAttr;
-   MFnDependencyNode fnNode;
-   fnNode.setObject(m_instance);
-   MFnAttribute fnAttr(attrib);
-   fnAttr.addToCategory("arnold");
-   // Check if an attribute of same name already exists
-   MObject mAttr = fnNode.attribute(fnAttr.name(),&statAttr);
-   if (statAttr == MS::kSuccess)
-   {
-      // If same type then all is good
-      if (fnAttr.type() == MFnAttribute(mAttr).type())
-      {
-         return stat;
-      }
-   }
-   stat = fnNode.addAttribute(attrib);
-   // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
-   if (stat != MS::kSuccess)
-   {
-      AiMsgError("[mtoa.attr] Unable to create dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
-   }
-   else
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.attr] Added dynamic attribute "+fnNode.name()+"."+MFnAttribute(attrib).name());
-   }
-   CHECK_MSTATUS(stat);
-   return stat;
+   return MS::kFailure;
 }
 
 // CExtensionAttrHelper
@@ -1267,39 +1239,5 @@ void CExtensionAttrHelper::AddCommonAttributes()
 
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 {
-   MStatus stat;
-
-   MString nodeType = m_class.typeName();
-   MFnAttribute fnAttr(attrib);
-   fnAttr.addToCategory("arnold");
-   MString attrName = fnAttr.name();
-
-   MDGModifier dgMod;
-   stat = dgMod.addExtensionAttribute(m_class, attrib);
-
-   // FIXME this is causing lots of instabilities, commenting it for now
-   /*
-   if (stat == MStatus::kSuccess)
-   {
-      // FIXME : find a solution to keep a handle on the plugin MObject.
-      // Is it safe to keep a static MObject and initialize it once ?
-      MObject pluginNode = MFnPlugin::findPlugin(MString("mtoa"));
-      if ((!pluginNode.isNull()) && fnAttr.parent().isNull())
-      {
-         stat = dgMod.linkExtensionAttributeToPlugin(pluginNode, attrib);
-      }
-   }
-   */
-   
-   if (stat == MStatus::kSuccess)
-   {
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.attr] Added extension attribute "+nodeType+"."+ attrName);
-
-      stat = dgMod.doIt();
-   } else
-      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
-   
-   CHECK_MSTATUS(stat);
-   return stat;
+   return CExtensionsManager::RegisterExtensionAttribute(m_class, attrib);
 }

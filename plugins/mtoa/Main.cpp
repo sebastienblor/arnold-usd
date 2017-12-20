@@ -37,6 +37,7 @@
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldUpdateTxCmd.h"
 #include "commands/ArnoldSceneCmd.h"
+#include "commands/ArnoldLicenseCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldBakeGeoCmd.h"
@@ -46,7 +47,6 @@
 #include "commands/ArnoldTemperatureCmd.h"
 #include "commands/ArnoldFlushCmd.h"
 #include "commands/ArnoldCopyAsAdminCmd.h"
-#include "commands/ArnoldAIRCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -141,10 +141,10 @@ namespace // <anonymous>
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
       {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
-      {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax},
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
-      {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax}
+      {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
+      {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
@@ -738,6 +738,10 @@ namespace // <anonymous>
          shaders->RegisterTranslator("fluidTexture2D",
                                        "",
                                        CFluidTexture2DTranslator::creator);
+         shaders->RegisterTranslator("blendColors",
+                                       "",
+                                       CMayaBlendColorsTranslator::creator);
+
       }
 
       // Finally register all nodes from the loaded extensions with Maya in load order
@@ -836,6 +840,10 @@ void MtoAInitFailed(MObject object, MFnPlugin &plugin, const std::vector<bool> &
 
    if (initData[MTOA_INIT_ARNOLD_NODES])
       UnregisterArnoldNodes(object);
+
+   // This will only unregister what was previously registered,
+   // so we don't need to test initData
+   CExtensionsManager::UnregisterExtensionAttributes(object);
 
    if (initData[MTOA_INIT_COMMANDS])
       for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
@@ -1184,6 +1192,19 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister Arnold nodes");
    }
 
+   // Unregister all attribute extensions from Maya atributes
+   status = CExtensionsManager::UnregisterExtensionAttributes(object);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold attribute extensions");
+      MGlobal::displayInfo("Successfully deregistered Arnold attribute extensions");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold attribute extensions");
+      MGlobal::displayError("Failed to deregister Arnold attribute extensions");
+   }
    // Deregister in inverse order of registration
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
@@ -1194,7 +1215,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       if (status == MStatus::kSuccess)
       {
          AiMsgDebug("[mtoa] Successfully deregistered '%s' command.", cmd.name);
-         MGlobal::displayInfo(MString("[mtoa] Successfully deregisterdd '") +
+         MGlobal::displayInfo(MString("[mtoa] Successfully deregistered '") +
                      MString(cmd.name) + MString("' command."));
       }
       else
@@ -1238,6 +1259,16 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
        AI_STANDIN_CLASSIFICATION,
        "arnoldStandInNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_SKYDOME_LIGHT_CLASSIFICATION,
+      "arnoldSkyDomeLightNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_SKYNODE_CLASSIFICATION,
+      "arnoldSkyNodeOverride");
    CHECK_MSTATUS(status);
 
    status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(

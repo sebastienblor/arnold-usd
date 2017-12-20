@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiCompareTemplate(ShaderAETemplate):
@@ -10,7 +10,7 @@ class AEaiCompareTemplate(ShaderAETemplate):
         self.addControl('input1', label='Input 1')
         self.addControl('input2', label='Input 2')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

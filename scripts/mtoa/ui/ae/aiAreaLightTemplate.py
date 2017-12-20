@@ -1,4 +1,5 @@
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 import mtoa.ui.ae.lightTemplate as lightTemplate
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
@@ -9,14 +10,14 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
 
     def makeLightExclusive(self, attr):
         lightName = attr.split(".")[0]
-        pm.rowLayout(nc=2, cal=[2, 'left'])
-        pm.text(label="")
-        pm.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
-        pm.setParent('..')
+        cmds.rowLayout(nc=2, cal=[2, 'left'])
+        cmds.text(label="")
+        cmds.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
+        cmds.setParent('..')
         
     def replaceLightExclusive(self, attr):
         lightName = attr.split(".")[0]
-        pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
+        cmds.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
     
     def setup(self):        
         self.addSwatch()
@@ -41,7 +42,7 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         self.endLayout()
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         suppressList = ['aiShadowDensity', 'aiCastShadows', 'update',
