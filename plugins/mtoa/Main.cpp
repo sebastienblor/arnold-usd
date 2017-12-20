@@ -1215,7 +1215,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       if (status == MStatus::kSuccess)
       {
          AiMsgDebug("[mtoa] Successfully deregistered '%s' command.", cmd.name);
-         MGlobal::displayInfo(MString("[mtoa] Successfully deregisterdd '") +
+         MGlobal::displayInfo(MString("[mtoa] Successfully deregistered '") +
                      MString(cmd.name) + MString("' command."));
       }
       else
