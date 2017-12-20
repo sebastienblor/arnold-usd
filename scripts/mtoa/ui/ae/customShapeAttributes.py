@@ -1080,7 +1080,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         self.addControl('exrCompression', label='Compression')
         self.addControl('halfPrecision', label='Half Precision')
         self.addControl('preserveLayerName', label='Preserve Layer Name')
-        self.addControl('tiled', label='Tiled')
+        self.addControl('exrTiled', label='Tiled')
         self.addControl('autocrop', label='Autocrop')
         self.addControl('append', label='Append')
         self.beginLayout("Metadata (name, type, value)", collapse=True)
@@ -1405,7 +1405,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         pass
         
     def setup(self):
-        self.addControl('tiled', label='Tiled')
+        self.addControl('deepexrTiled', label='Tiled')
         self.addControl('append', label='Append')
         self.addControl('subpixelMerge', label='Subpixel Merge')
         self.addControl('useRGBOpacity', label='Use RGB Opacity')

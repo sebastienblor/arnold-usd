@@ -1908,6 +1908,9 @@
         maya.hide           BOOL    true
     [attr color_space]
         maya.hide           BOOL    true
+    [attr tiled]
+        maya.name           STRING  "deepexrTiled"
+        maya.shortname      STRING  "deepexr_tiled"
     
 [node driver_exr]
     maya.translator         STRING  "exr"
@@ -1918,7 +1921,10 @@
         maya.shortname      STRING  "exr_compression"
     [attr color_space]
         maya.hide           BOOL    true
-
+    [attr tiled]
+        maya.name           STRING  "exrTiled"
+        maya.shortname      STRING  "tiled"
+    
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
     [attr filename]
@@ -1961,6 +1967,10 @@
     [attr format]
         maya.name           STRING  "tiffFormat"
         maya.shortname      STRING  "tiff_format"
+    [attr tiled]
+        maya.name           STRING  "tiffTiled"
+        maya.shortname      STRING  "tiff_tiled"
+    
     [attr color_space]
         maya.hide           BOOL    true
 
