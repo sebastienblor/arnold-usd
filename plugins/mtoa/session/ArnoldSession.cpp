@@ -771,7 +771,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          shgElem.add(shadingGroups[shg]);
          MPlug shgPlug;
          shgElem.getPlug(0, shgPlug);
-         // Since we no longer export MayaShadingEngine, we actually want to export the assigned shaders
+
+         ExportNode(shgPlug); // in case the shading group has custom AOVs (#3284)
+
+         // Since we no longer export MayaShadingEngine, we might need to export the assigned shaders
          MFnDependencyNode shEngineNode(shgPlug.node());
          MPlugArray connections;
          MStringArray shaderAttrs;
