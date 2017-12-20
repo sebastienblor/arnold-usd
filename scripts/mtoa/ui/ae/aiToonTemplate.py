@@ -17,10 +17,11 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginLayout("Edge Detection", collapse=False)
         self.beginNoOptimize();
         self.addControl("id_difference", label="ID Difference")
+        self.addControl("shader_difference", label="Shader Difference")
         self.addControl("mask_color", label="Mask Color")
         self.addControl("uv_threshold", label="UV Threshold")
         self.addControl("angle_threshold", label="Angle Threshold")
-        self.addControl("normal_type", label="Edge Detection")
+        self.addControl("normal_type", label="Normal Type")
         self.endNoOptimize();
         self.endLayout()
 
@@ -46,9 +47,6 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("specular_anisotropy", label="Anisotropy")
         self.addControl("specular_rotation", label="Rotation")
         self.addControl("specular_tonemap", label="Tonemap")
-        self.addSeparator()
-        self.addControl("normal", label='Normal')
-        self.addControl("tangent", label='Tangent')
         self.endLayout()
 
         self.beginLayout("Stylized Highlight", collapse=True)
@@ -59,6 +57,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Rim Lighting", collapse=True)
+        self.addControl("rim_light", label="Light")
         self.addControl("rim_light_color", label="Color")
         self.addControl("rim_light_aov", label="AOV")
         self.endLayout()
@@ -78,6 +77,8 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Geometry", collapse=True)
+        self.addControl("normal", label='Normal')
+        self.addControl("tangent", label='Tangent')
         self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
         self.addControl("bump_mode", label="Bump Mapping Mode")
         self.endLayout()
