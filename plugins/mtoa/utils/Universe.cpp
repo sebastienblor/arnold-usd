@@ -73,8 +73,9 @@ bool ArnoldUniverseBegin(int logFlags)
    {
       CRenderSession *renderSession = CMayaScene::GetRenderSession();
       bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
+      AtSessionMode mode = (isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH;
 
-      AiBegin((isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH);
+      AiBegin(mode);
       MtoaSetupLogging(logFlags);
       LoadPlugins();
       ReadMetafile();
@@ -89,7 +90,9 @@ bool ArnoldUniverseOnlyBegin()
    {
       CRenderSession *renderSession = CMayaScene::GetRenderSession();
       bool isInteractiveSession = (renderSession == NULL || renderSession->IsInteractiveSession());
-      AiBegin((isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH);
+      AtSessionMode mode = (isInteractiveSession) ? AI_SESSION_INTERACTIVE : AI_SESSION_BATCH;
+
+      AiBegin(mode);
       return true;
    }
    return false;
