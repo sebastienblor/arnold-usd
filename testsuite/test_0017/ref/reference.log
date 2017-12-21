@@ -1,4 +1,4 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_debug\testsuite\test_0017\test_0017.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0017\test_0017.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2017\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
@@ -22,15 +22,8 @@ Detected 1 OpenCL Platforms:
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-00:00:00   572MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
-00:00:00   572MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-Successfully registered renderer 'arnold'
-File read in  0.92 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_debug/testsuite/test_0017/test.ma
-Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_debug\testsuite\test_0017\test.ma completed.
+00:00:00   495MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   495MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
+File read in  0.25 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0017/test.ma
+Scene D:\arnold\mtoa\build\windows_x86_64\201760\msvc_opt\testsuite\test_0017\test.ma completed.
