@@ -305,7 +305,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                     img_diff_opt = '--threads 1 --hardfail %f --fail %f --failpercent %f --warnpercent %f' % (diff_fail, diff_fail, diff_failpercent, diff_failpercent)
                     img_diff_cmd = ('%s ' + img_diff_opt + ' --diff %s %s') % (oiiotool_path, output, reference)
             
-                    img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o dif_testrender.jpg ' % tuple([channels] + [alpha] * 4)
+                    img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o ' % tuple([channels] + [alpha] * 4)
+                    img_diff_cmd += dif
             
                     f = open(os.path.join(test_dir, "%s.diff.log") % test_name, 'w')
 
@@ -319,8 +320,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                     else:
                         #success !
                         # remove the diff file so that we know there is no difference
-                        if os.path.exists('dif_testrender.jpg'):
-                            os.remove('dif_testrender.jpg')
+                        if os.path.exists(dif):
+                            os.remove(dif)
 
         
                 ## convert these to jpg form for makeweb
