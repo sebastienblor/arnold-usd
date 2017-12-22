@@ -78,7 +78,13 @@ namespace {
             attrName == "MaxBoundingBox0" || attrName == "MaxBoundingBox1" || attrName == "MaxBoundingBox2")
             return; // we don't care about changes to these attributes.  They are set when processing the geometry.
 
-        bool reuse = (attrName == "mode" || attrName == "standInDrawOverride" || attrName == "deferStandinLoad") ? true : false;
+        bool reuse = (attrName == "worldMatrix" || 
+            attrName == "worldInverseMatrix" || 
+            attrName == "parentMatrix" || 
+            attrName == "parentInverseMatrix" || 
+            attrName == "mode" || 
+            attrName == "standInDrawOverride" || 
+            attrName == "deferStandinLoad") ? true : false;
         static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(reuse);
     }
 
@@ -593,13 +599,13 @@ void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape
     }
 
     // create the vertex and index buffers (TODO: Should get the existing ones if they already exists)
-    const MHWRender::MVertexBufferDescriptor posDesc("", MHWRender::MGeometry::kPosition, MHWRender::MGeometry::kFloat, 3);
-    MHWRender::MVertexBuffer* verticesBuffer = new MHWRender::MVertexBuffer(posDesc);
-    MHWRender::MIndexBuffer*  indexBuffer = new MHWRender::MIndexBuffer(MHWRender::MGeometry::kUnsignedInt32);
+    MHWRender::MVertexBuffer verticesBuffer(
+        MHWRender::MVertexBufferDescriptor("", MHWRender::MGeometry::kPosition, MHWRender::MGeometry::kFloat, 3));
+    MHWRender::MIndexBuffer  indexBuffer(MHWRender::MGeometry::kUnsignedInt32);
 
     // acquire the vertex and index streams for write
-    float* vertices = (float*)verticesBuffer->acquire(kCubeCount);
-    unsigned int* indices = (unsigned int*)indexBuffer->acquire(kCubeCount);
+    float* vertices = (float*)verticesBuffer.acquire(kCubeCount, true);
+    unsigned int* indices = (unsigned int*)indexBuffer.acquire(kCubeCount, true);
 
     // Add the cube into the vertex buffer.
     for (int verticesPointerOffset = 0, currentVertex = 0 ; currentVertex < kCubeCount; ++currentVertex)
@@ -610,15 +616,15 @@ void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape
     }
 
     // commit the changes to the vertex and index buffers
-    verticesBuffer->commit(vertices);
-    indexBuffer->commit(indices);
+    verticesBuffer.commit(vertices);
+    indexBuffer.commit(indices);
 
     // create an array to house the vertex buffer
     MHWRender::MVertexBufferArray wireBuffers;
-    wireBuffers.addBuffer("positions", verticesBuffer);
+    wireBuffers.addBuffer("positions", &verticesBuffer);
 
     // pass the geometry to the render item
-    setGeometryForRenderItem(*item, wireBuffers, *indexBuffer, NULL);
+    setGeometryForRenderItem(*item, wireBuffers, indexBuffer, NULL);
 }
 
 void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContainer& container, CArnoldStandInGeom* geom, 
@@ -655,24 +661,22 @@ void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContai
     }
 
     // create the vertex buffer and index buffers (TODO: Should get the existing ones if they already exists)
-    const MHWRender::MVertexBufferDescriptor posDesc("", MHWRender::MGeometry::kPosition, MHWRender::MGeometry::kFloat, 3);
-    MHWRender::MVertexBuffer* verticesBuffer = new MHWRender::MVertexBuffer(posDesc);
-    MHWRender::MIndexBuffer*  indexBuffer = new MHWRender::MIndexBuffer(MHWRender::MGeometry::kUnsignedInt32);
+    MHWRender::MVertexBuffer verticesBuffer(
+        MHWRender::MVertexBufferDescriptor("", MHWRender::MGeometry::kPosition, MHWRender::MGeometry::kFloat, 3));
+    MHWRender::MIndexBuffer  indexBuffer(MHWRender::MGeometry::kUnsignedInt32);
 
     // acquire the streams for write
-    float* vertices = (float*)verticesBuffer->acquire(totalCount);
-    unsigned int* indices = (unsigned int*)indexBuffer->acquire(totalIndexCount);
+    float* vertices = (float*)verticesBuffer.acquire(totalCount, true);
+    unsigned int* indices = (unsigned int*)indexBuffer.acquire(totalIndexCount, true);
 
     // create a vertex buffer for normals if required
-    MHWRender::MVertexBuffer* normalBuffer = NULL;
+    MHWRender::MVertexBuffer normalBuffer(
+        MHWRender::MVertexBufferDescriptor("", MHWRender::MGeometry::kNormal, MHWRender::MGeometry::kFloat, 3));
     float* normals = NULL;
     if (wantNormals)
     {
-        const MHWRender::MVertexBufferDescriptor normDesc("", MHWRender::MGeometry::kNormal, MHWRender::MGeometry::kFloat, 3);
-        normalBuffer = new MHWRender::MVertexBuffer(normDesc);
-
         // acquire the vertex stream for write
-        normals = (float*)normalBuffer->acquire(totalCount);
+        normals = (float*)normalBuffer.acquire(totalCount, true);
     }
 
     // Process each of the stand-in geometry items
@@ -695,19 +699,19 @@ void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContai
     }
 
     // commit the index and vertex buffers for completion
-    indexBuffer->commit(indices);
-    verticesBuffer->commit(vertices);
-    if (normalBuffer)
-        normalBuffer->commit(normals);
+    indexBuffer.commit(indices);
+    verticesBuffer.commit(vertices);
+    if (wantNormals)
+        normalBuffer.commit(normals);
 
     // create an array to house the vertex buffers
     MHWRender::MVertexBufferArray vertexBuffers;
-    vertexBuffers.addBuffer("positions", verticesBuffer);
-    if (normalBuffer)
-        vertexBuffers.addBuffer("normals", normalBuffer);
+    vertexBuffers.addBuffer("positions", &verticesBuffer);
+    if (wantNormals)
+        vertexBuffers.addBuffer("normals", &normalBuffer);
 
     // pass the geometry to the render item
-    setGeometryForRenderItem(*item, vertexBuffers, *indexBuffer, NULL);
+    setGeometryForRenderItem(*item, vertexBuffers, indexBuffer, NULL);
 }
 
 void CArnoldStandInSubSceneOverride::fillBuffers(const CArnoldStandInGeometry& standIn, 
