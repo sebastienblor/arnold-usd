@@ -2413,9 +2413,6 @@ desc STRING "Multiplies the curvature by this factor."
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    true
 
-[node passthrough]
-    maya.hide               BOOL    true
-
 [node pow]
     maya.id                 INT     0x00115D73
     maya.name               STRING  "aiPow"
@@ -2454,7 +2451,12 @@ desc STRING "Multiplies the curvature by this factor."
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
         
-
+[node passthrough]
+    maya.id                 INT     0x00115D8D
+    maya.name               STRING  "aiPassthrough"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true    
+    
 
 [node reciprocal]
     maya.id                 INT     0x00115D82

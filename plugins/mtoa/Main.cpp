@@ -422,7 +422,10 @@ namespace // <anonymous>
                                     "",
                                     CAiSwitchShaderTranslator::creator,
                                     CAiSwitchShaderTranslator::NodeInitializer);
-
+      builtin->RegisterTranslator("aiPassthrough",
+                                    "",
+                                    CAiPassthroughTranslator::creator,
+                                    CAiPassthroughTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiWriteFloat",
                                     "",
                                     CAiAovWriteFloatTranslator::creator,

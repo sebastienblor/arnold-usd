@@ -130,6 +130,7 @@
 #define ARNOLD_NODEID_SHADER_TRIPLANAR          0x00115D8A
 #define ARNOLD_NODEID_SHADER_CAR_PAINT          0x00115D8B
 #define ARNOLD_NODEID_SHADER_TOON               0x00115D8C
+#define ARNOLD_NODEID_SHADER_PASSTHROUGH        0x00115D8D
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
