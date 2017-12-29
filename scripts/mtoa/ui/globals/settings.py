@@ -1415,7 +1415,7 @@ def createArnoldRendererGlobalsTab():
     createArnoldSubdivSettings()
     cmds.setParent('..')
 
-    pm.attrControlGrp('gpu', 
+    cmds.attrControlGrp('gpu', 
                         label="GPU Rendering", 
                         attribute='defaultArnoldRenderOptions.gpu')
 
