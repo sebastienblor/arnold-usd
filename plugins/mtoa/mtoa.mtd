@@ -1976,12 +1976,14 @@
 
 # filters
 
+# we set the default width to 2 for all filters because they'll end up being a single node attribute in Maya. 
+# If each filter has a different value, only the first one to be initialized will be taken into account, and this 
+# can vary depending on the OS / maya version. Ideally we'd want this value to be different for each filter, 
+# but changing this would break existing scenes
+
 [node blackman_harris_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "blackman_harris"
-    # we put 2 as default here to have 2 for gaussian as default. Kinda ugly but since
-    # blackman harris filter is the first to create the filter width attribute on defaultArnoldGlobal
-    # it's the only way we got for the moment.
     [attr width]
         default             FLOAT   2.0
 
@@ -2008,6 +2010,7 @@
 [node mitnet_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "mitnet"
+    
 
 [node sinc_filter]
     maya.attr_prefix        STRING  ""
@@ -2030,6 +2033,12 @@
 [node gaussian_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "gaussian"
+    [attr width]
+        default             FLOAT   2.0
+
+[node contour_filter]
+    maya.attr_prefix        STRING  ""
+    maya.translator         STRING  "contour"
     [attr width]
         default             FLOAT   2.0
 
@@ -2962,10 +2971,6 @@ desc STRING "Apply a gamma correction to the color."
     [attr base_roughness]
         min             FLOAT   0
         max             FLOAT   1
-
-[node contour_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "contour"
 
 [node toon]
     desc                    STRING  "Toon shader"
