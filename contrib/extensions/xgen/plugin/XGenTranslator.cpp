@@ -49,12 +49,15 @@ AtNode *ExportMissingNode(const char *name)
 
    return s_exportTranslator->ExportConnectedNode(plug);
 }
-//#define DEBUG_MTOA 1
+// #define DEBUG_MTOA 1
 
 inline bool alembicExists(const std::string& name)
 {
    struct stat buffer;
-   return (stat (name.c_str(), &buffer) == 0);
+
+   MString nameStr(name.c_str());
+
+   return (stat (nameStr.expandEnvironmentVariablesAndTilde().asChar(), &buffer) == 0);
 }
 
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
