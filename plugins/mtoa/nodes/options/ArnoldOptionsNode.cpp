@@ -82,6 +82,7 @@ MObject CArnoldOptionsNode::s_log_verbosity;
 MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_operator;
 MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
@@ -510,6 +511,11 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setKeyable(false);
    mAttr.setReadable(true);
    addAttribute(s_atmosphere);
+
+   s_operator = mAttr.create("operator", "op");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(true);
+   addAttribute(s_operator);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

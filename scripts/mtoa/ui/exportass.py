@@ -47,10 +47,15 @@ def getMaskValues():
         mask += 128
     if cmds.checkBoxGrp('oa_export_color_manager', q=True, value1=True):
         mask += 2048
+    if cmds.checkBoxGrp('oa_export_operators', q=True, value1=True):
+        mask += 4096
+
 
     return mask
 
 def setMaskValues(mask):
+    cmds.checkBoxGrp('oa_export_operators', edit=True, value1=(mask / 4096))
+    mask = mask % 4096
     cmds.checkBoxGrp('oa_export_color_manager', edit=True, value1=(mask / 2048))
     mask = mask % 2048
     cmds.checkBoxGrp('oa_export_filters', edit=True, value1=(mask / 128))
@@ -196,6 +201,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.checkBoxGrp('oa_export_override', label1='Override Nodes', value1=True)
         cmds.checkBoxGrp('oa_export_drivers', label1='Drivers', value1=True)
         cmds.checkBoxGrp('oa_export_filters', label1='Filters', value1=True)
+        cmds.checkBoxGrp('oa_export_operators', label1='Operators', value1=True)
         cmds.checkBoxGrp('oa_export_color_manager', label1='Color Manager', value1=True)
 
         setMaskValues(settings.get('mask', 255))

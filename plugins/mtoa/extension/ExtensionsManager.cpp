@@ -39,6 +39,7 @@ DefaultTranslatorMap CExtensionsManager::s_defaultTranslators;
 MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
+OperatorsMap CExtensionsManager::s_operators;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
 static unordered_set<std::string>  s_deferredExtensions;
@@ -1016,6 +1017,19 @@ void CExtensionsManager::GetCustomShapes(MStringArray& result)
    {
       MString shapeName((*it).c_str());
       result.append(shapeName);
+   }
+}
+void CExtensionsManager::AddOperator(const MString &op)
+{
+   std::string opStr(op.asChar());
+   s_operators.insert(opStr);
+}
+void CExtensionsManager::GetOperators(MStringArray& result)
+{
+   for (OperatorsMap::const_iterator it = s_operators.begin(); it != s_operators.end(); ++it)
+   {
+      MString opName((*it).c_str());
+      result.append(opName);
    }
 }
 

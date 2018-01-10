@@ -1146,6 +1146,19 @@ void COptionsTranslator::Export(AtNode *options)
 
    ExportAtmosphere(options);   
 
+   conns.clear();
+   MPlug pOP = FindMayaPlug("op");
+   pOP.connectedTo(conns, true, false);
+   if (conns.length() == 1)
+   {
+      AiNodeSetPtr(options, "op", ExportConnectedNode(conns[0]));
+   }
+   else
+   {
+      AiNodeSetPtr(options, "op", NULL);
+   }
+
+
    // subdivision dicing camera
    //
    pBG = FindMayaPlug("subdivDicingCamera");

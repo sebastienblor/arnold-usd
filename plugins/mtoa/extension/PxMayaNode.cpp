@@ -7,6 +7,7 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "nodes/shape/ArnoldProceduralNode.h"
+#include "nodes/ArnoldOperatorNode.h"
 #include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 #include "nodes/shader/ArnoldStandardSurfaceNode.h"
@@ -205,14 +206,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/arnold/standard_surface";
          }
-		 else if (id == ARNOLD_NODEID_STANDARD_HAIR)
-		 {
-			 creator = CArnoldStandardHairNode::creator;
-			 initialize = CArnoldStandardHairNode::initialize;
-			 abstract = &CArnoldStandardHairNode::s_abstract;
-			 if (drawdbClassification.numChars() == 0)
-				 drawdbClassification = ":drawdb/shader/surface/arnold/standard_hair";
-		 }
+         else if (id == ARNOLD_NODEID_STANDARD_HAIR)
+         {
+            creator = CArnoldStandardHairNode::creator;
+            initialize = CArnoldStandardHairNode::initialize;
+            abstract = &CArnoldStandardHairNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/standard_hair";
+         }
          else if (id == ARNOLD_NODEID_SKIN_SSS)
          {
             creator    = CArnoldSkinShaderNode::creator;
@@ -247,6 +248,12 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             initialize = CArnoldProceduralNode::initialize;
             abstract   = &CArnoldProceduralNode::s_abstract;
          }
+      } else if (arnoldNodeTypeName == "op")
+      {
+         creator    = CArnoldOperatorNode::creator;
+         initialize = CArnoldOperatorNode::initialize;
+         abstract   = &CArnoldOperatorNode::s_abstract;
+
       }
    }
    // classification string if none is stored

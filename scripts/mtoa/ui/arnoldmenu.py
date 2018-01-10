@@ -70,6 +70,10 @@ def doCreateCustomShape(shapeName):
     shapeNode = mutils.createLocator(shapeName)
     cmds.select(shapeNode, replace=True)
 
+def doCreateOperator(opName):
+    opNode = cmds.createNode(opName)
+    cmds.select(opNode, replace=True)
+
 def doCreateOldMeshLight():
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
@@ -421,6 +425,12 @@ def createArnoldMenu():
                 cmds.menuItem(customShape, parent='ArnoldCustomShapes', label=customShape,
                     command=lambda arg=None, x=customShape:doCreateCustomShape(x))
 
+        operators = cmds.arnoldPlugins(listOperators=True)
+        if operators and len(operators) > 0:
+            cmds.menuItem('ArnoldOperators', label='Operators', parent='ArnoldMenu', subMenu=True, tearOff=True)
+            for operator in operators:
+                cmds.menuItem(operator, parent='ArnoldOperators', label=operator,
+                    command=lambda arg=None, x=operator:doCreateOperator(x))
 
         cmds.menuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
                     c=lambda *args: doCreateCurveCollector())
