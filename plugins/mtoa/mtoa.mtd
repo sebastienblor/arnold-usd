@@ -84,6 +84,9 @@
     [attr AA_samples_max]
         min                 INT     0
         softmax              INT     10
+    [attr adaptive_threshold]
+        min                 FLOAT     0
+        softmax             FLOAT     1
     [attr AA_sample_clamp_affects_aovs]
         maya.keyable        BOOL    false
         linkable            BOOL    false    

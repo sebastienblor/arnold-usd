@@ -623,7 +623,7 @@ def createArnoldSamplingSettings():
 
     cmds.frameLayout(label='Adaptive Sampling', collapse=True)
     cmds.attrControlGrp('ss_aa_samples_max',
-                        label="Max Camera (AA) Samples",
+                        label="Max. Camera (AA)",
                         cc=updateAdaptiveSettings,
                         attribute='defaultArnoldRenderOptions.AA_samples_max')
 
