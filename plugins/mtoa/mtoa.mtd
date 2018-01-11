@@ -91,6 +91,9 @@
     [attr ignore_textures]
         maya.keyable        BOOL    false
         linkable            BOOL    false
+    [attr ignore_operators]
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_shaders]
         maya.keyable        BOOL    false
         linkable            BOOL    false

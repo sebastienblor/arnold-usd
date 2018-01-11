@@ -1128,6 +1128,9 @@ def createArnoldOverrideSettings():
     cmds.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
 
+    cmds.attrControlGrp('ignore_operators',
+                        attribute='defaultArnoldRenderOptions.ignore_operators')
+
     cmds.attrControlGrp('force_translate_shading_engines',
                        attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
 

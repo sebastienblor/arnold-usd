@@ -459,6 +459,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
+   s_attributes.MakeInput("ignore_operators");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
