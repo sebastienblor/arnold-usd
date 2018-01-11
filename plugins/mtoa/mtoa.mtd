@@ -81,7 +81,9 @@
         softmax             FLOAT   100.0
         linkable            BOOL    false
         maya.orig_shortname STRING  "indsmpclamp"
-
+    [attr AA_samples_max]
+        min                 INT     0
+        softmax              INT     10
     [attr AA_sample_clamp_affects_aovs]
         maya.keyable        BOOL    false
         linkable            BOOL    false    

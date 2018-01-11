@@ -279,6 +279,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
 
+   s_attributes.MakeInput("AA_samples_max");
+   s_attributes.MakeInput("adaptive_threshold");
+
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   

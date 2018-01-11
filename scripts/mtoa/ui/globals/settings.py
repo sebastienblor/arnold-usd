@@ -96,6 +96,12 @@ def updateMotionBlurSettings(*args):
         cmds.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
         cmds.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
 
+
+def updateAdaptiveSettings(*args):
+    flag = cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > 0
+    cmds.attrControlGrp('ss_adaptive_threshold', edit=True, enable=flag)
+    
+
 def updateLogSettings(*args):
     name = cmds.getAttr('defaultArnoldRenderOptions.log_filename')
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
@@ -615,6 +621,16 @@ def createArnoldSamplingSettings():
                         label="Indirect Specular Blur",
                         attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
 
+    cmds.frameLayout(label='Adaptive Sampling', collapse=True)
+    cmds.attrControlGrp('ss_aa_samples_max',
+                        label="Max Camera (AA) Samples",
+                        cc=updateAdaptiveSettings,
+                        attribute='defaultArnoldRenderOptions.AA_samples_max')
+
+    cmds.attrControlGrp('ss_adaptive_threshold',
+                        label="Adaptive threshold",
+                        attribute='defaultArnoldRenderOptions.adaptive_threshold')
+    cmds.setParent('..')
 
     cmds.frameLayout(label='Clamping', collapse=True)
 
@@ -1539,5 +1555,6 @@ def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
     updateSamplingSettings()
     updateMotionBlurSettings()
+    updateAdaptiveSettings()
     updateAutotileSettings()
     
