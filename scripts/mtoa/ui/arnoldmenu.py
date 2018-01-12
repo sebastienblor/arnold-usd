@@ -471,8 +471,7 @@ def createArnoldMenu():
                     c=lambda *args: arnoldLicensingGetDiagnostics())
         cmds.menuItem('ArnoldTroubleshootWatermarks', label='Troubleshoot Watermarks', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/x/LAAzAg'))
-        cmds.separator()
-
+        
         cmds.menuItem('ArnoldSuscribe',  label='Suscribe to Arnold', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/buy/'))
         cmds.menuItem('ArnoldGetMacAddress', label='Get MAC Address', parent='ArnoldLicensingMenu',
@@ -491,7 +490,6 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldSetupLicenseServer', label='Setup License Server', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage=setupServerLink))
 
-        cmds.separator()
         cmds.menuItem('ArnoldInstallNodeLocked', label='Install Node-locked license (Legacy)', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingNodeLocked())
 
