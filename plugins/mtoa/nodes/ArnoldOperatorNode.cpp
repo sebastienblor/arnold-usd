@@ -78,6 +78,5 @@ MStatus CArnoldOperatorNode::initialize()
    s_nodeHelpers.push_back(helper);
 
    return MS::kSuccess;
-   return MStatus::kSuccess;
 }
 

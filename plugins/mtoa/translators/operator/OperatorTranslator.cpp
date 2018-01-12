@@ -51,24 +51,5 @@ void COperatorTranslator::Export(AtNode *shader)
 }
 
 void COperatorTranslator::NodeInitializer(CAbTranslator context)
-{
-   MString maya = context.maya;
-   MString arnold = context.arnold;
-   MString provider = context.provider;
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
-
-   CExtensionAttrHelper helper(maya, nodeEntry);
-   // inputs
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
-   while (!AiParamIteratorFinished(nodeParam))
-   {
-      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
-      if (!helper.IsHidden(paramName))
-      {
-         helper.MakeInput(paramName);
-      }
-   }
-   AiParamIteratorDestroy(nodeParam);
-
+{   
 }
