@@ -1023,11 +1023,10 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
-void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+MString CNodeTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {
    MString name = CNodeTranslator::GetArnoldNaming(m_tr.GetMayaObject());
 
-   char nodeName[MAX_NAME_SIZE];
    if (m_tr.DependsOnOutputPlug())
    {
       MString outputAttr = m_handle.attribute();
@@ -1040,12 +1039,15 @@ void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    // If name is alredy used, create a new one
    if(AiNodeLookUpByName(name.asChar()))
    {
-      AiNodeSetStr(arnoldNode, "name", NodeUniqueName(arnoldNode, nodeName));
+      // FIXME this was copied from NodeUniqueName in time.h,
+      // remember to change the original function in next ABI-breaking release
+      char tmpName[MAX_NAME_SIZE];
+      sprintf(tmpName, "%s_%08X%08llX",
+         nodeType, MtoaTime(), MtoaTicks());
+      
+      name = tmpName;
    }
-   else
-   {
-      AiNodeSetStr(arnoldNode, "name", name.asChar());
-   }
+   return name;
 }
 
 

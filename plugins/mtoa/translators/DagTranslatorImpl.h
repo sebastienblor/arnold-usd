@@ -11,7 +11,7 @@ public :
    ~CDagTranslatorImpl() {}
 
    virtual bool IsMayaTypeDag() const {return true;}
-   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
+   virtual MString MakeArnoldName(const char *nodeType, const char* tag = NULL);
    virtual void ExportUserAttribute(AtNode *anode);
    virtual MStatus ExportOverrideSets();
    
