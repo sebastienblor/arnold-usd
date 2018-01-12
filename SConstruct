@@ -266,6 +266,7 @@ env['ENABLE_BIFROST'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
+env['ENABLE_GPU_CACHE'] = 1
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -1047,7 +1048,8 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_BIFROST'] == 1 and ext == bifrost_ext) or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
-            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
+            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor') or
+            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
