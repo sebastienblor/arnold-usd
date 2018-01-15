@@ -22,6 +22,7 @@ public:
    {
       return new CGpuCacheTranslator();
    }
+   virtual void ExportShaders();
    
 private:                         
 

@@ -47,7 +47,28 @@ void COperatorTranslator::Export(AtNode *shader)
          AiArraySetStr(array, i, elemName);
       }
    }
-   AiNodeSetArray(shader, "inputs", array);
+
+   AtArray *prevArray = AiNodeGetArray(shader, "inputs");
+   bool needUpdate = true;
+   if (prevArray)
+   {
+      unsigned prevArrayElems = AiArrayGetNumElements(prevArray);
+      if (prevArrayElems == nelems)
+      {
+         needUpdate = false;
+         for (unsigned i = 0; i < nelems; ++i)
+         {
+            if (AiArrayGetStr(array, i) != AiArrayGetStr(prevArray, i))
+            {
+               needUpdate = true;
+               break;
+            }
+         }
+      }
+   }
+
+   if (needUpdate) // only set the parameter if inputs have actually changed
+      AiNodeSetArray(shader, "inputs", array);
 }
 
 void COperatorTranslator::NodeInitializer(CAbTranslator context)

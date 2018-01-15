@@ -19,15 +19,11 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    CShapeTranslator::MakeCommonAttributes(helper);
 
    CAttrData data;
-   data.defaultValue.BOOL() = true;
-   data.name = "overrideLightLinking";
-   data.shortName = "oll";
+   data.defaultValue.BOOL() = false;
+   data.name = "pullUserParams";
+   data.shortName = "pup";
    helper.MakeInputBoolean(data);
-   
-   data.defaultValue.BOOL() = true;
-   data.name = "overrideShaders";
-   data.shortName = "osh";
-   helper.MakeInputBoolean(data);
+      
 
 }
 
@@ -60,6 +56,35 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    {
       MString geomPath = geomPlug.asString();
       AiNodeSetStr(shape, "objectPath", geomPath.asChar());
+   }
+   if (RequiresShaderExport())
+      ExportShaders();
+
+   AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
+   AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
+}
+
+
+void CGpuCacheTranslator::ExportShaders()
+{
+   AtNode *node = GetArnoldNode();
+   if (node == NULL)
+      return;
+
+   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+
+   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+   if (!shadingGroupPlug.isNull())
+   {
+      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
+      if (shader != NULL)
+      {
+         AiNodeSetPtr(node, "shader", shader);
+      }
+      else
+      {         
+         AiNodeSetPtr(node, "shader", NULL);
+      }
    }
 }
 
