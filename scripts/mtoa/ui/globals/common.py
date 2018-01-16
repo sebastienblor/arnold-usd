@@ -1907,12 +1907,17 @@ def updateArnoldPixelDeviceRatios(node):
     This is called when the resolution changes. Update the pixel or the
     device aspect ration as necessary.
     '''
-    aspect = float(cmds.getAttr('{}.width'.format(node))) / float(cmds.getAttr('{}.width'.format(node)))
+    aspect = 0
+    width = float(cmds.getAttr('{}.width'.format(node)))
+    height = float(cmds.getAttr('{}.height'.format(node)))
+
+    if width > 0 and height > 0:
+        aspect =  width / height
 
     if cmds.getAttr('{}.lockDeviceAspectRatio'.format(node)) == 0:
         aspect = aspect * float(cmds.getAttr('{}.pixelAspect'.format(node)))
         cmds.setAttr('{}.deviceAspectRatio'.format(node), aspect)
-    else:
+    elif aspect > 0:
         aspect = float(cmds.getAttr('{}.deviceAspectRatio'.format(node))) / aspect
         cmds.setAttr('{}.pixelAspect'.format(node), aspect)
 
@@ -1920,7 +1925,10 @@ def checkArnoldAspectLockWidth(node):
     if cmds.getAttr('{}.aspectLock'.format(node)):
         value = cmds.getAttr('{}.width'.format(node))
         aspect = cmds.getAttr('{}.pixelAspect'.format(node))
-        aspect /= float(cmds.getAttr('{}.deviceAspectRatio'.format(node)))
+        deviceAspectRatio = float(cmds.getAttr('{}.deviceAspectRatio'.format(node)))
+
+        if deviceAspectRatio > 0:
+            aspect /= deviceAspectRatio
 
         #fix for bug#269698, plus 0.5 to give round value
         rez = (aspect * value) + 0.5
@@ -2079,10 +2087,16 @@ def adjustArnoldPixelAspect(node):
     setParentToArnoldCommonTab()
 
     aspect = cmds.getAttr('{}.deviceAspectRatio'.format(node))
-    width = cmds.getAttr('{}.width'.format(node))
-    height = cmds.getAttr('{}.height'.format(node))
-    pixelAspect = float(width) / float(height)
-    pixelAspect = aspect / pixelAspect
+    width = float(cmds.getAttr('{}.width'.format(node)))
+    height = float(cmds.getAttr('{}.height'.format(node)))
+    pixelAspect = 0
+
+    if width > 0 and height > 0:
+        pixelAspect = width / height
+
+    if pixelAspect > 0 and aspect > 0:
+        pixelAspect = aspect / pixelAspect
+
     cmds.floatFieldGrp('pixRatio', e=True, v1=pixelAspect)
 
     cmds.setParent(oldParent)
@@ -2093,11 +2107,13 @@ def adjustArnoldDeviceAspect(node):
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    width = cmds.getAttr('{}.width'.format(node))
-    height = cmds.getAttr('{}.height'.format(node))
+    width = float(cmds.getAttr('{}.width'.format(node)))
+    height = float(cmds.getAttr('{}.height'.format(node)))
 
     pixelAspect = cmds.floatFieldGrp('pixRatio', q=True, v1=True)
-    aspect = float(width) / float(height)
+    aspect = 0
+    if width > 0 and height > 0:
+        aspect = width / height
     aspect = pixelAspect * aspect
     cmds.setAttr('{}.deviceAspectRatio'.format(node), aspect)
     cmds.floatFieldGrp('resRatio', edit=True, v1=aspect)
