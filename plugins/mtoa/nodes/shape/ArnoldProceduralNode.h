@@ -13,7 +13,8 @@
 /**
  *    This class is meant for procedural nodes created automatically by arnold procedural dlls
  **/
-class CArnoldProceduralNode
+
+class DLLEXPORT CArnoldProceduralNode
    :  public MPxSurfaceShape
 {
 
@@ -24,7 +25,17 @@ public:
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
    virtual bool isBounded() const {return true;}
    virtual MBoundingBox boundingBox() const;
+   
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
    virtual MSelectionMask getShapeSelectionMask() const;
+   virtual MStatus setDependentsDirty( const MPlug& plug, MPlugArray& plugArray);
+#endif
+#endif
+
+
+
+   MBoundingBox* geometry();
 
    CAbMayaNode m_abstract;
 
@@ -33,10 +44,15 @@ public:
 
    static CAbMayaNode s_abstract;
 
+   
+
    // Input attributes
    static MObject SAttr[];
 
    static std::vector<CStaticAttrHelper> s_nodeHelpers;
+
+
+   MBoundingBox m_bbox;
 
 };  // class CArnoldShaderNode
 

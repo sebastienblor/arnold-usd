@@ -15,12 +15,14 @@
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include "viewport2/ArnoldVolumeGeometryOverride.h"
+#include "viewport2/ArnoldProceduralGeometryOverride.h"
 #include "viewport2/ArnoldStandInSubSceneOverride.h"
 #include <maya/MSelectionMask.h>
 #else
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldLightBlockerDrawOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
+#include "viewport2/ArnoldProceduralDrawOverride.h"
 #endif
 #include <maya/MDrawRegistry.h>
 #endif
@@ -170,6 +172,7 @@ namespace // <anonymous>
 #else
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
 #endif
+   const MString AI_PROCEDURAL_CLASSIFICATION = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
    const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
@@ -322,6 +325,11 @@ namespace // <anonymous>
          "arnoldStandInNodeOverride",
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
+      } ,
+      {
+         "arnoldProceduralNodeOverride",
+         AI_PROCEDURAL_CLASSIFICATION,
+         CArnoldProceduralDrawOverride::creator
       } ,
 
 #endif
@@ -1156,6 +1164,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       "arnoldVolumeNodeOverride",
 	  CArnoldVolumeGeometryOverride::Creator);
    CHECK_MSTATUS(status); 
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_PROCEDURAL_CLASSIFICATION,
+      "arnoldProceduralNodeOverride",
+      CArnoldProceduralGeometryOverride::Creator);
 #endif
 #endif
    
@@ -1267,6 +1280,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       CArnoldAreaLightDrawOverride::clearGPUResources();
       CArnoldLightPortalDrawOverride::clearGPUResources();
       CArnoldStandInDrawOverride::clearGPUResources();
+      CArnoldProceduralDrawOverride::clearGPUResources();
+
 #endif
    }
 #if MAYA_API_VERSION >= 201700
@@ -1293,6 +1308,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
       AI_VOLUME_CLASSIFICATION,
       "arnoldVolumeNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_PROCEDURAL_CLASSIFICATION,
+      "arnoldProceduralNodeOverride");
    CHECK_MSTATUS(status);
 
    // Register a custom selection mask
