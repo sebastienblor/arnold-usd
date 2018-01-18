@@ -9,6 +9,8 @@
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
 
+#include <algorithm>
+#include <string>
 static bool s_alembicSupported = false;
 
 void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
@@ -20,10 +22,15 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
    data.defaultValue.BOOL() = false;
-   data.name = "pullUserParams";
-   data.shortName = "pup";
+   data.name = "aiPullUserParams";
+   data.shortName = "apup";
    helper.MakeInputBoolean(data);
-      
+
+   data.defaultValue.BOOL() = false;
+   data.name = "aiInfo";
+   data.shortName = "aiin";
+   helper.MakeInputBoolean(data);
+         
 
 }
 
@@ -33,7 +40,6 @@ AtNode* CGpuCacheTranslator::CreateArnoldNodes()
 
    return AddArnoldNode("alembic");
 }
-
 
 void CGpuCacheTranslator::Export( AtNode *shape )
 {
@@ -54,9 +60,11 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    MPlug geomPlug = FindMayaPlug("cacheGeomPath");
    if (!geomPlug.isNull())
    {
-      MString geomPath = geomPlug.asString();
-      AiNodeSetStr(shape, "objectPath", geomPath.asChar());
-   }
+      std::string geomPath = geomPlug.asString().asChar();
+      std::replace( geomPath.begin(), geomPath.end(), '|', '/'); // Maya converts '/' into '|' 
+      AiNodeSetStr(shape, "objectpath", geomPath.c_str());
+   } 
+
    if (RequiresShaderExport())
       ExportShaders();
 
@@ -100,4 +108,13 @@ void CGpuCacheTranslator::ExportMotion(AtNode *shape)
    ExportMatrix(shape);
 
 }
- 
+
+void CGpuCacheTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShapeTranslator::NodeChanged(node, plug);
+}
+   
+

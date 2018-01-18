@@ -23,6 +23,7 @@ public:
       return new CGpuCacheTranslator();
    }
    virtual void ExportShaders();
+   virtual void NodeChanged(MObject& node, MPlug& plug);
    
 private:                         
 
