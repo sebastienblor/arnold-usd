@@ -1619,7 +1619,7 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
       }
    }
 
-   m_fnParticleSystem.position(*positionArray);
+   m_fnParticleSystem.position(*positionArray); // this position array is in world space
 
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.acceleration(accelerationArray);
@@ -1629,6 +1629,30 @@ void CParticleTranslator::GatherStandardPPData( MTime           curTime,
    particleId.setLength(particleIdCount);
    for (unsigned int i = 0; i < particleIdCount; ++i)
       particleId[i] = static_cast<int>(tempDoubleParticleId[i]);
+}
+
+// We need to override getMatrix, so that instances return the expected result (#3281)
+// Since particle system return information in world space, we export them
+// with an identity matrix. Therefore, in the (rare) cases where this particle system
+// is instanced, the exported ginstance must take into account the matrix of the 
+// master dag to get the expected result
+void CParticleTranslator::GetMatrix(AtMatrix& matrix)
+{
+   CShapeTranslator::GetMatrix(matrix);
+   if (IsMasterInstance())
+      return;
+
+   MDagPath &dagMaster = GetMasterInstance();
+
+   MStatus stat;
+   MMatrix tm = dagMaster.inclusiveMatrix(&stat);
+   if (MStatus::kSuccess == stat)
+   {
+      AtMatrix masterMatrix = AiM4Identity();
+      ConvertMatrix(masterMatrix, tm);
+      AtMatrix invMasterMatrix = AiM4Invert(masterMatrix);
+      matrix = AiM4Mult(matrix, invMasterMatrix);
+   }   
 }
 
 
@@ -1754,7 +1778,8 @@ void CParticleTranslator::Export(AtNode* anode)
       // During Updates we only re-exported the render flags
       // make sure it's really what we want !
       ProcessRenderFlags(anode);
-      ExportMatrix(anode);
+      // no longer export the matrix (#3281)
+      //ExportMatrix(anode);
 
       // shouldn't we re-export the shaders ?
       return;
@@ -1776,7 +1801,8 @@ void CParticleTranslator::Export(AtNode* anode)
       m_exportedSteps.assign(GetNumMotionSteps(), false);
       int step = GetMotionStep();
       m_exportedSteps[step]=true;
-      ExportMatrix(anode);
+      // no longer export the matrix (#3281)
+      //ExportMatrix(anode);
 
       ExportParticleNode(anode, step);
 
@@ -1801,9 +1827,9 @@ void CParticleTranslator::ExportMotion(AtNode* anode)
 {
    if (IsExported())
    {
-      // FIXME: This used to crash with IPR & motion blurred particles (#691)
+      // This used to crash with IPR & motion blurred particles (#691)
       // so let's check if this is obsolete now...we do need to exported the motion matrix
-      ExportMatrix(anode);
+      //ExportMatrix(anode);
       return;
    }
 
@@ -1812,7 +1838,9 @@ void CParticleTranslator::ExportMotion(AtNode* anode)
    {
       m_exportedSteps[step] = true;
       // matrix export used to be commented. Check if it works fine now
-      ExportMatrix(anode);
+
+      // no longer export the matrix (#3281)
+      //ExportMatrix(anode);
       if (m_motionDeform)
          ExportParticleNode(anode, step);
       else
