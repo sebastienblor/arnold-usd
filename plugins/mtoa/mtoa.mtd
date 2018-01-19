@@ -2538,13 +2538,22 @@ maya.swatch             BOOL    false
 
 
 [node state_float]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D91
+    maya.name               STRING  "aiStateFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    false
 
 [node state_int]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D92
+    maya.name               STRING  "aiStateInt"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    false
 
 [node state_vector]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D93   
+    maya.name               STRING  "aiStateVector"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    false
 
 [node subtract]
     maya.id                 INT     0x00115D7A
