@@ -596,9 +596,11 @@ void CMayaScene::FileOpenCallback(void *)
    // for now we only call End() for the RenderView or MaterialView
    // as IPR already handles it by calling IPR "stop"
    if (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
-   {
+   {      
       End();
    }
+   // We want to clear the caches, since the scene is changing (#3277)
+   AiUniverseCacheFlush(AI_CACHE_ALL);
 }
 
 
