@@ -28,7 +28,7 @@ void COperatorTranslator::Export(AtNode *shader)
    MPlug inputs = FindMayaPlug("inputs");
    unsigned nelems = inputs.numElements();
    MPlug elemPlug;
-   AtArray* array = AiArrayAllocate(nelems, 1, AI_TYPE_STRING);
+   AtArray* array = AiArrayAllocate(nelems, 1, AI_TYPE_NODE);
       
    for (unsigned int i = 0; i < nelems; ++i)
    {
@@ -43,8 +43,7 @@ void COperatorTranslator::Export(AtNode *shader)
       }
       if (linkedNode)
       {
-         const char *elemName = AiNodeGetName(linkedNode);
-         AiArraySetStr(array, i, elemName);
+         AiArraySetPtr(array, i, (void*)linkedNode);
       }
    }
 
@@ -58,7 +57,7 @@ void COperatorTranslator::Export(AtNode *shader)
          needUpdate = false;
          for (unsigned i = 0; i < nelems; ++i)
          {
-            if (AiArrayGetStr(array, i) != AiArrayGetStr(prevArray, i))
+            if (AiArrayGetPtr(array, i) != AiArrayGetPtr(prevArray, i))
             {
                needUpdate = true;
                break;
