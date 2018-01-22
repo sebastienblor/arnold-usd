@@ -1244,6 +1244,11 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
 
+if env['ENABLE_GPU_CACHE'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'gpuCache', 'plugin', '*.py'), 'extensions'])
+
+
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
