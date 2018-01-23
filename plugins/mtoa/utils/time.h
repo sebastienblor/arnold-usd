@@ -62,6 +62,9 @@ inline unsigned MtoaTime()
  * \param      node    the node we want to give a default name to
  * \param[out] string  pre-allocated buffer for the new name string
  * \return             the new name string (again)
+ *
+ * FIXME : this was copied in CNodeTranslatorImpl::MakeArnoldNode, make sure to centralize this
+ * in a future ABI-breaking release
  */
 inline char *NodeUniqueName(AtNode *node, char *string)
 {

@@ -51,7 +51,10 @@ public:
    static void NodeInitializer(CAbTranslator context);
    virtual void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode);
-   
+
+   // We need to override getMatrix, 
+   // so that instances return the expected result (#3281)
+   virtual void GetMatrix(AtMatrix& matrix);
 
 protected:
 

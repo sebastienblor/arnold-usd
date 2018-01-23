@@ -96,6 +96,12 @@ def updateMotionBlurSettings(*args):
         cmds.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
         cmds.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
 
+
+def updateAdaptiveSettings(*args):
+    flag = cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > 0
+    cmds.attrControlGrp('ss_adaptive_threshold', edit=True, enable=flag)
+    
+
 def updateLogSettings(*args):
     name = cmds.getAttr('defaultArnoldRenderOptions.log_filename')
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
@@ -111,6 +117,60 @@ def selectBackground(*args):
     node = getBackgroundShader()
     if node:
         cmds.select(node, r=True)
+
+## Operator
+def getOperator(*args):
+    if cmds.objExists('defaultArnoldRenderOptions.operator'):
+        conns = cmds.listConnections('defaultArnoldRenderOptions.operator', s=True, d=False, p=True)
+        if conns:
+            return conns[0].split('.')[0]
+    return ""
+
+def changeOperator(node, field, select):
+    connection = cmds.listConnections('defaultArnoldRenderOptions.operator')
+    if connection:
+        if str(connection[0]) == str(node):
+            selectOperator()
+            return 0
+    cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.operator', force=True)
+    if field is not None:
+        cmds.textField(field, edit=True, text=node)
+        cmds.symbolButton(select, edit=True, enable=True)
+    selectOperator()
+
+def buildOperatorMenu(popup, field, select):
+    cmds.popupMenu(popup, edit=True, deleteAllItems=True)
+    operators = cmds.arnoldPlugins(listOperators=True) or []
+
+    for operator in operators:
+        opNodes = cmds.ls(type=operator) or []
+        for opNode in opNodes:
+            cmds.menuItem(parent=popup, label=opNode, command=Callback(changeOperator, opNode, field, select))
+
+    cmds.menuItem(parent=popup, divider=True)
+    for operator in operators:
+        cmdsLbl = 'Create {}'.format(operator)
+        cmds.menuItem(parent=popup, label=cmdsLbl, command=Callback(createOperator, operator, field, select))
+
+def selectOperator(*args):
+    node = getOperator()
+    if node:
+        cmds.select(node, r=True)
+
+def createOperator(type, field, select):
+    bg = getOperator()
+    opNode = cmds.createNode(type)
+    changeOperator(opNode, field, select)
+
+def removeOperator(field, doDelete, select):
+    node = getOperator()
+    if node:
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.operator')
+        cmds.textField(field, edit=True, text="")
+        cmds.symbolButton(select, edit=True, enable=False)
+        if doDelete:
+            cmds.delete(node)
+
 
 def changeBackground(node, field, select):
     connection = cmds.listConnections('defaultArnoldRenderOptions.background')
@@ -561,6 +621,16 @@ def createArnoldSamplingSettings():
                         label="Indirect Specular Blur",
                         attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
 
+    cmds.frameLayout(label='Adaptive Sampling', collapse=True)
+    cmds.attrControlGrp('ss_aa_samples_max',
+                        label="Max. Camera (AA)",
+                        cc=updateAdaptiveSettings,
+                        attribute='defaultArnoldRenderOptions.AA_samples_max')
+
+    cmds.attrControlGrp('ss_adaptive_threshold',
+                        label="Adaptive threshold",
+                        attribute='defaultArnoldRenderOptions.adaptive_threshold')
+    cmds.setParent('..')
 
     cmds.frameLayout(label='Clamping', collapse=True)
 
@@ -728,6 +798,33 @@ def createArnoldEnvironmentSettings():
     if conns:
         cmds.textField(backgroundTextField, edit=True, text=conns[0])
         cmds.symbolButton(backgroundSelectButton, edit=True, enable=True)
+
+    cmds.separator(style="none")
+    
+    cmds.setParent('..')
+
+    cmds.setUITemplate(popTemplate=True)
+
+def createArnoldOperatorSettings():
+
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+    
+    cmds.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    cmds.text('es_operators_text', label="Target Operator")
+    cmds.connectControl('es_operators_text', 'defaultArnoldRenderOptions.operator')
+    operatorTextField = cmds.textField("defaultArnoldRenderOptionsOperatorTextField",editable=False)
+    operatorButton = cmds.symbolButton(image="navButtonUnconnected.png")
+    operatorSelectButton = cmds.symbolButton("defaultArnoldRenderOptionsOperatorSelectButton", image="navButtonConnected.png", command=selectOperator, enable=False)
+    oppopup = cmds.popupMenu(parent=operatorButton, button=1)
+    cmds.popupMenu(oppopup, edit=True, postMenuCommand=Callback(buildOperatorMenu, oppopup, operatorTextField, operatorSelectButton))
+    
+    cmds.setParent('..')
+
+    conns = cmds.listConnections('defaultArnoldRenderOptions.operator', s=True, d=False)
+    if conns:
+        cmds.textField(operatorTextField, edit=True, text=conns[0])
+        cmds.symbolButton(operatorSelectButton, edit=True, enable=True)
 
     cmds.separator(style="none")
     
@@ -1030,6 +1127,9 @@ def createArnoldOverrideSettings():
                         
     cmds.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
+
+    cmds.attrControlGrp('ignore_operators',
+                        attribute='defaultArnoldRenderOptions.ignore_operators')
 
     cmds.attrControlGrp('force_translate_shading_engines',
                        attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
@@ -1385,6 +1485,12 @@ def createArnoldRendererGlobalsTab():
     createArnoldMotionBlurSettings()
     cmds.setParent('..')
 
+    # Operators
+    #
+    cmds.frameLayout('arnoldOperatorSettings', label="Operators", cll= True, cl=1)
+    createArnoldOperatorSettings()
+    cmds.setParent('..')
+
 
     # Light Linking
     #
@@ -1408,7 +1514,6 @@ def createArnoldRendererGlobalsTab():
     createArnoldTextureSettings()
     cmds.setParent('..')
 
-    
     # Subdivision Surfaces
     #
     cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
@@ -1457,5 +1562,6 @@ def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
     updateSamplingSettings()
     updateMotionBlurSettings()
+    updateAdaptiveSettings()
     updateAutotileSettings()
     

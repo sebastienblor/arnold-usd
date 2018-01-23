@@ -4,8 +4,9 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiToonTemplate(ShaderAETemplate):
     def setup(self):
         self.addSwatch()
-
         self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+
         self.beginLayout("Edge", collapse=False)
         self.addControl("enable", label="Edge (requires contour filter)")
         self.addSeparator()
@@ -53,13 +54,11 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("light", label="Light")
         self.addControl("highlight_color", label="Color")
         self.addControl("highlight_size", label="Size")
-        self.addControl("highlight_aov", label="AOV")
         self.endLayout()
 
         self.beginLayout("Rim Lighting", collapse=True)
         self.addControl("rim_light", label="Light")
         self.addControl("rim_light_color", label="Color")
-        self.addControl("rim_light_aov", label="AOV")
         self.endLayout()
 
         self.beginLayout("Transmission", collapse=True)
@@ -81,6 +80,11 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("tangent", label='Tangent')
         self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
         self.addControl("bump_mode", label="Bump Mapping Mode")
+        self.endLayout()
+
+        self.beginLayout("AOVs", collapse=True)
+        self.addControl("highlight_aov", label="Highlight")
+        self.addControl("rim_light_aov", label="Rim Light")
         self.endLayout()
 
         self.beginLayout("Advanced", collapse=True)

@@ -82,6 +82,7 @@ MObject CArnoldOptionsNode::s_log_verbosity;
 MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_operator;
 MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
@@ -279,6 +280,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
 
+   s_attributes.MakeInput("AA_samples_max");
+   s_attributes.MakeInput("adaptive_threshold");
+
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
@@ -461,6 +465,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
+   s_attributes.MakeInput("ignore_operators");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
@@ -516,6 +521,11 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setKeyable(false);
    mAttr.setReadable(true);
    addAttribute(s_atmosphere);
+
+   s_operator = mAttr.create("operator", "op");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(true);
+   addAttribute(s_operator);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

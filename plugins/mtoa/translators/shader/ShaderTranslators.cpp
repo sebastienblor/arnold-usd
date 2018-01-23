@@ -874,7 +874,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userScalar5PP"
          )
    {
-      return AddArnoldNode("MtoaUserDataFloat");
+      return AddArnoldNode("user_data_float");
    }
    else
       return NULL;
@@ -894,7 +894,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
    }
    else if ( outputAttr == "opacityPP" || outputAttr == "opacity")
    {
-      AiNodeSetStr(shader, "floatAttrName" , "opacityPP");
+      AiNodeSetStr(shader, "attribute" , "opacityPP");
    }
    else if (outputAttr == "outIncandescence" || outputAttr == "incandescensePP" || outputAttr == "incandescense" )
    {
@@ -902,11 +902,11 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
    }
    else if (outputAttr == "lifespanPP" || outputAttr == "lifespan")
    {
-      AiNodeSetStr(shader, "floatAttrName", "lifespanPP");
+      AiNodeSetStr(shader, "attribute", "lifespanPP");
    }
    else if (outputAttr == "radiusPP" || outputAttr == "radius")
    {
-      AiNodeSetStr(shader, "floatAttrName", "radiusPP");
+      AiNodeSetStr(shader, "attribute", "radiusPP");
    }
 
    else if(
@@ -946,7 +946,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
             outputAttr == "userScalar5PP"
             )
       {
-         AiNodeSetStr(shader, "floatAttrName", outputAttr.asChar());
+         AiNodeSetStr(shader, "attribute", outputAttr.asChar());
       }
 }
 
@@ -2279,6 +2279,44 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
 void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
 {
 }
+
+//////////////////////////////////////////////////////
+// PASSTHROUGH SHADER
+
+// MIX SHADER : presented as the "closure" version.
+// But if someone uses it in the middle of the shading tree to mix between different shaders, 
+// we switch to the "rgba" version
+AtNode* CAiPassthroughTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("passthrough");
+}
+
+void CAiPassthroughTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "passthrough", AI_TYPE_CLOSURE, "passthrough");
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlugArray conns;
+
+
+   for (unsigned int i = 0; i < 20; ++i)
+   {
+      MString attrName = "eval";
+      attrName += (int)i;
+
+      MPlug inputPlug = dnode.findPlug(attrName);
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+         ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
+      else
+         AiNodeResetParameter(shader, AtString(attrName.asChar()));
+   }
+   //ExportBump(shader);
+}
+
+void CAiPassthroughTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
 
 //////////////////////////////////////////////////////
 AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()

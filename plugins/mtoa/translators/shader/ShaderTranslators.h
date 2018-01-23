@@ -178,6 +178,15 @@ public:
    AtNode* CreateArnoldNodes();
 
 };
+class CAiPassthroughTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiPassthroughTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+
+};
 
 class CRampTranslator : public CShaderTranslator{
 public:

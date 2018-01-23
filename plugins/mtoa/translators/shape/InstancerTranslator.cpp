@@ -650,6 +650,8 @@ void CInstancerTranslator::PostExport(AtNode *node)
    if(m_particleIDMap.size() == 0)
       return;
    
+   MString baseName = CDagTranslator::GetArnoldNaming(GetMayaDagPath());
+
    int globalIndex = 0;
    
    for (unordered_map<int,int>::iterator it = m_particleIDMap.begin();
@@ -672,8 +674,11 @@ void CInstancerTranslator::PostExport(AtNode *node)
 
          if (m_cloneInstances[idx])
          {
+            MString instName = baseName + MString("@") + instanceKey;
+         
             // Clone the master node (lights can't be instanced in arnold)
-            instance  = AiNodeClone(obj);
+            instance  = AiNodeClone(obj, AtString(instName.asChar()));
+   
             AddExistingArnoldNode(instance, instanceKey.asChar());
             AiNodeSetDisabled(instance, false);
             // no motion blur on lighs

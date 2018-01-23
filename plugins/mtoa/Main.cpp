@@ -15,12 +15,14 @@
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include "viewport2/ArnoldVolumeGeometryOverride.h"
+#include "viewport2/ArnoldProceduralGeometryOverride.h"
 #include "viewport2/ArnoldStandInSubSceneOverride.h"
 #include <maya/MSelectionMask.h>
 #else
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldLightBlockerDrawOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
+#include "viewport2/ArnoldProceduralDrawOverride.h"
 #endif
 #include <maya/MDrawRegistry.h>
 #endif
@@ -109,6 +111,8 @@
 
 #include <ai.h>
 
+static MString s_arnold_plugin_path_orig = MString("");
+static MString s_mtoa_extensions_path_orig = MString("");
 namespace // <anonymous>
 {
    MCallbackId connectionCallback;
@@ -168,6 +172,7 @@ namespace // <anonymous>
 #else
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
 #endif
+   const MString AI_PROCEDURAL_CLASSIFICATION = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
    const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
@@ -321,6 +326,11 @@ namespace // <anonymous>
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
       } ,
+      {
+         "arnoldProceduralNodeOverride",
+         AI_PROCEDURAL_CLASSIFICATION,
+         CArnoldProceduralDrawOverride::creator
+      } ,
 
 #endif
       {
@@ -420,7 +430,10 @@ namespace // <anonymous>
                                     "",
                                     CAiSwitchShaderTranslator::creator,
                                     CAiSwitchShaderTranslator::NodeInitializer);
-
+      builtin->RegisterTranslator("aiPassthrough",
+                                    "",
+                                    CAiPassthroughTranslator::creator,
+                                    CAiPassthroughTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiWriteFloat",
                                     "",
                                     CAiAovWriteFloatTranslator::creator,
@@ -615,14 +628,23 @@ namespace // <anonymous>
          MString proceduralsPath = pluginPath + MString("procedurals");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
-         if (envVar != 0)
-            SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath));
+         MString envVarStr = (envVar) ? MString(envVar) : MString("");
+         if (envVarStr.length() > 0 && envVarStr != modulePluginPath && envVarStr != proceduralsPath)
+         {
+            // store current variable to restore at unload
+            s_arnold_plugin_path_orig = envVarStr;
+            SetEnv("ARNOLD_PLUGIN_PATH", envVarStr + MString(PATH_SEPARATOR) + modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
+         }
          else
             SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath + MString(PATH_SEPARATOR) + proceduralsPath);
          envVar = getenv("MTOA_EXTENSIONS_PATH");
-         if (envVar != 0)
-            SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath
-               + MString(PATH_SEPARATOR) + proceduralsPath));
+         envVarStr = (envVar) ? MString(envVar) : MString("");
+         if (envVarStr.length() > 0 && envVarStr != moduleExtensionPath)
+         {
+            // store current variable to restore at unload
+            s_mtoa_extensions_path_orig = envVarStr;
+            SetEnv("MTOA_EXTENSIONS_PATH", envVarStr + MString(PATH_SEPARATOR) + moduleExtensionPath);
+         }
          else
             SetEnv("MTOA_EXTENSIONS_PATH", moduleExtensionPath);
       }
@@ -1142,6 +1164,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       "arnoldVolumeNodeOverride",
 	  CArnoldVolumeGeometryOverride::Creator);
    CHECK_MSTATUS(status); 
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_PROCEDURAL_CLASSIFICATION,
+      "arnoldProceduralNodeOverride",
+      CArnoldProceduralGeometryOverride::Creator);
 #endif
 #endif
    
@@ -1253,6 +1280,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       CArnoldAreaLightDrawOverride::clearGPUResources();
       CArnoldLightPortalDrawOverride::clearGPUResources();
       CArnoldStandInDrawOverride::clearGPUResources();
+      CArnoldProceduralDrawOverride::clearGPUResources();
+
 #endif
    }
 #if MAYA_API_VERSION >= 201700
@@ -1279,6 +1308,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
       AI_VOLUME_CLASSIFICATION,
       "arnoldVolumeNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_PROCEDURAL_CLASSIFICATION,
+      "arnoldProceduralNodeOverride");
    CHECK_MSTATUS(status);
 
    // Register a custom selection mask
@@ -1361,6 +1395,10 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       AiMsgError("Failed to deregister Arnold ass file importer");
       MGlobal::displayError("Failed to deregister Arnold ass file importer");
    }
+
+   // Restore the original env variables, so that they don't accumulate if we re-load MtoA
+   SetEnv("MTOA_EXTENSIONS_PATH", s_mtoa_extensions_path_orig);
+   SetEnv("ARNOLD_PLUGIN_PATH", s_arnold_plugin_path_orig);
 
    MMessage::removeCallback(connectionCallback);
    

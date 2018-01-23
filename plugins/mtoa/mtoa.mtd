@@ -81,12 +81,20 @@
         softmax             FLOAT   100.0
         linkable            BOOL    false
         maya.orig_shortname STRING  "indsmpclamp"
-
+    [attr AA_samples_max]
+        min                 INT     0
+        softmax              INT     10
+    [attr adaptive_threshold]
+        min                 FLOAT     0
+        softmax             FLOAT     1
     [attr AA_sample_clamp_affects_aovs]
         maya.keyable        BOOL    false
         linkable            BOOL    false    
         maya.name           STRING  "use_sample_clamp_AOVs"
     [attr ignore_textures]
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
+    [attr ignore_operators]
         maya.keyable        BOOL    false
         linkable            BOOL    false
     [attr ignore_shaders]
@@ -1976,12 +1984,14 @@
 
 # filters
 
+# we set the default width to 2 for all filters because they'll end up being a single node attribute in Maya. 
+# If each filter has a different value, only the first one to be initialized will be taken into account, and this 
+# can vary depending on the OS / maya version. Ideally we'd want this value to be different for each filter, 
+# but changing this would break existing scenes
+
 [node blackman_harris_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "blackman_harris"
-    # we put 2 as default here to have 2 for gaussian as default. Kinda ugly but since
-    # blackman harris filter is the first to create the filter width attribute on defaultArnoldGlobal
-    # it's the only way we got for the moment.
     [attr width]
         default             FLOAT   2.0
 
@@ -2008,6 +2018,7 @@
 [node mitnet_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "mitnet"
+    
 
 [node sinc_filter]
     maya.attr_prefix        STRING  ""
@@ -2030,6 +2041,12 @@
 [node gaussian_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "gaussian"
+    [attr width]
+        default             FLOAT   2.0
+
+[node contour_filter]
+    maya.attr_prefix        STRING  ""
+    maya.translator         STRING  "contour"
     [attr width]
         default             FLOAT   2.0
 
@@ -2413,9 +2430,6 @@ desc STRING "Multiplies the curvature by this factor."
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    true
 
-[node passthrough]
-    maya.hide               BOOL    true
-
 [node pow]
     maya.id                 INT     0x00115D73
     maya.name               STRING  "aiPow"
@@ -2454,7 +2468,12 @@ desc STRING "Multiplies the curvature by this factor."
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
         
-
+[node passthrough]
+    maya.id                 INT     0x00115D8D
+    maya.name               STRING  "aiPassthrough"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true    
+    
 
 [node reciprocal]
     maya.id                 INT     0x00115D82
@@ -2551,13 +2570,22 @@ maya.swatch             BOOL    false
 
 
 [node state_float]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D91
+    maya.name               STRING  "aiStateFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    false
 
 [node state_int]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D92
+    maya.name               STRING  "aiStateInt"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    false
 
 [node state_vector]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D93   
+    maya.name               STRING  "aiStateVector"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    false
 
 [node subtract]
     maya.id                 INT     0x00115D7A
@@ -2961,10 +2989,6 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
 
-[node contour_filter]
-    maya.attr_prefix        STRING  ""
-    maya.translator         STRING  "contour"
-
 [node toon]
     desc                    STRING  "Toon shader"
     maya.name               STRING  "aiToon"
@@ -3060,6 +3084,35 @@ desc STRING "Apply a gamma correction to the color."
     [attr indirect_specular]
         min             FLOAT   0
         max             FLOAT   1
+    [attr highlight_aov]
+        aov.type        INT     0x05
+    [attr rim_light_aov]
+        aov.type        INT     0x05
+
+# Operators
+[node merge]
+    desc                    STRING  "Merge operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8E
+
+[node node_disable]
+    desc                    STRING  "Node Disable operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8F
+
+[node parameter_set]
+    desc                    STRING  "Parameter Set operator"
+    maya.classification     STRING  "operator"
+    maya.swatch             BOOL    false
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D90
+
+
 
 
 

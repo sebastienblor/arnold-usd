@@ -160,7 +160,7 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2018', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
@@ -266,10 +266,11 @@ env['ENABLE_BIFROST'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
+env['ENABLE_GPU_CACHE'] = 1
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
-if not env['MAYA_MAINLINE_2018']:
+if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
     maya_version = '201900'
@@ -1047,7 +1048,8 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_BIFROST'] == 1 and ext == bifrost_ext) or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
-            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
+            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor') or
+            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1241,6 +1243,11 @@ if env['ENABLE_RENDERSETUP'] == 1:
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
+
+if env['ENABLE_GPU_CACHE'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'gpuCache', 'plugin', '*.py'), 'extensions'])
+
 
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]

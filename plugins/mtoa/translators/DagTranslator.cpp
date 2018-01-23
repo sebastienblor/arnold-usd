@@ -87,7 +87,7 @@ MString CDagTranslator::GetArnoldNaming(const MDagPath &dagPath)
 }
 
 
-void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+MString CDagTranslatorImpl::MakeArnoldName(const char *nodeType, const char* tag)
 {
    CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
    MString name = CDagTranslator::GetArnoldNaming(dagTr->GetMayaDagPath());
@@ -95,18 +95,14 @@ void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    if (DependsOnOutputPlug())
    {
       MString outputAttr = m_handle.attribute();
-
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
    }
    if (tag != NULL && strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
-   AiNodeSetStr(arnoldNode, "name", name.asChar());
+   return name;
 }
-
-
-
 
 void CDagTranslator::AddUpdateCallbacks()
 {

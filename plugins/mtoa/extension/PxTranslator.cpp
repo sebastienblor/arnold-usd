@@ -8,6 +8,7 @@
 #include "translators/shader/ShaderTranslator.h"
 #include "translators/driver/DriverTranslator.h"
 #include "translators/filter/FilterTranslator.h"
+#include "translators/operator/OperatorTranslator.h"
 
 // A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -80,6 +81,12 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
          creator = CFilterTranslator::creator;
          initialize = CFilterTranslator::NodeInitializer;
       }
+      else if (arnoldNodeTypeName == "op")
+      {
+         creator = COperatorTranslator::creator;
+         initialize = COperatorTranslator::NodeInitializer;
+      }
+
       // No default strategy to create the rest
    }
    

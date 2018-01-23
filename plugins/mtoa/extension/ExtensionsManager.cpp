@@ -39,6 +39,7 @@ DefaultTranslatorMap CExtensionsManager::s_defaultTranslators;
 MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
+OperatorsMap CExtensionsManager::s_operators;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
 static unordered_set<std::string>  s_deferredExtensions;
@@ -193,8 +194,8 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
          if (pluginLib == NULL)
          {
-            if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa] Error loading extension library: "+ MString(LibraryLastError()));
+            MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
+            AiMsgWarning(msg.asChar());
 
             DeleteExtension(extension);
             status = MStatus::kFailure;
@@ -203,9 +204,9 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          extension->m_impl->m_library = pluginLib;
          void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
          if (initializer == NULL)
-         {
-            if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa] Error initializing extension library: " + MString(LibraryLastError()));
+         {            
+            MString msg = MString("[mtoa] Error initializing extension library: ") + MString(LibraryLastError());
+            AiMsgWarning(msg.asChar());
 
             LibraryUnload(pluginLib);
             DeleteExtension(extension);
@@ -1016,6 +1017,19 @@ void CExtensionsManager::GetCustomShapes(MStringArray& result)
    {
       MString shapeName((*it).c_str());
       result.append(shapeName);
+   }
+}
+void CExtensionsManager::AddOperator(const MString &op)
+{
+   std::string opStr(op.asChar());
+   s_operators.insert(opStr);
+}
+void CExtensionsManager::GetOperators(MStringArray& result)
+{
+   for (OperatorsMap::const_iterator it = s_operators.begin(); it != s_operators.end(); ++it)
+   {
+      MString opName((*it).c_str());
+      result.append(opName);
    }
 }
 

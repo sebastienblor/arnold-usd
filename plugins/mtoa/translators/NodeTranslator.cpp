@@ -295,8 +295,9 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
       AiMsgError("[mtoa.translator]   %s: Arnold node type %s does not exist.", GetTranslatorName().asChar(), type);
       return NULL;
    }
-
-   AtNode* node = AiNode(type);
+   MString nodeName = m_impl->MakeArnoldName(type, tag);
+   AtString nodeNameStr(nodeName.asChar());
+   AtNode* node = AiNode(type, nodeNameStr);
    AddExistingArnoldNode(node, tag);
    return node;
 }
@@ -305,7 +306,7 @@ void CNodeTranslator::AddExistingArnoldNode(AtNode *node, const char *tag)
 {
    if (node == NULL) return;
 
-   m_impl->SetArnoldNodeName(node, tag);
+   // We no longer set the name here. We assume that the user might have already set the desired one
 
    if (tag != NULL && strlen(tag))
    {
@@ -417,9 +418,15 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
-      translator->m_impl->SetArnoldNodeName(translator->GetArnoldNode());
-      if (MtoaTranslationInfo())
-         MtoaDebugLog("[mtoa.translator.ipr]  "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": NameChangedCallback");
+      AtNode *arnoldNode = translator->GetArnoldNode();
+      if (arnoldNode)
+      {
+         MString name = translator->m_impl->MakeArnoldName(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+         AiNodeSetStr(arnoldNode, "name", name.asChar());
+
+         if (MtoaTranslationInfo())
+            MtoaDebugLog("[mtoa.translator.ipr]  "+translator->GetMayaNodeName()+" | "+translator->GetTranslatorName()+": NameChangedCallback");
+      }
    }
    else
    {

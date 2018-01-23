@@ -56,8 +56,7 @@ public :
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    
-   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
-
+   virtual MString MakeArnoldName(const char *nodeType, const char* tag = NULL);
    
 
    AtNode* DoExport();
@@ -101,6 +100,7 @@ public :
    bool HasAnimatedArrays() const;
 
    inline bool DependsOnOutputPlug() {return m_tr.DependsOnOutputPlug();}
+
    /// Get the name of the Arnold node
    const char* GetArnoldNodeName();
    /// Get the type of the Arnold node
