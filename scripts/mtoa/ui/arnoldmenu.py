@@ -369,16 +369,17 @@ def arnoldMtoARenderView():
     core.createOptions()
     cmds.arnoldRenderView()
 
-def addRuntimeMenuItem(name, parent, command, label = '', tearOff=False, optionBox=False, image='', annotation='', category='', keywords ='', tags=''):
+def addRuntimeMenuItem(name, parent, command, label = '', rtcLabel = '', tearOff=False, optionBox=False, image='', annotation='', category='', keywords ='', tags=''):
     
     tags = 'Render;Arnold' if (tags == '') else 'Render;Arnold;{}'.format(tags)
     category = 'Menu items.Mainframe.Arnold' if (category == '') else 'Menu items.Mainframe.Arnold.{}'.format(category)
-    
+    rtcLabel = 'Arnold: {}'.format(label) if (rtcLabel == '') else rtcLabel
+
     if _maya_version < 2019:
         cmds.menuItem(name, label=label, parent=parent, c=command, tearOff=tearOff, optionBox=optionBox, image=image)
     else:
-        cmds.runTimeCommand('cmd{}'.format(name), d=True, label=label, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
-        cmds.menuItem(name, parent=parent, rtc='cmd{}'.format(name), sourceType= 'mel', optionBox=optionBox, tearOff=tearOff)
+        cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
+        cmds.menuItem(name, parent=parent, rtc='cmd{}'.format(name), label = label, sourceType= 'mel', optionBox=optionBox, tearOff=tearOff)
 
 
 def createArnoldMenu():
@@ -393,7 +394,7 @@ def createArnoldMenu():
         addRuntimeMenuItem('ArnoldRender', label='Render', parent='ArnoldMenu', image='RenderShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldMtoARenderView()', keywords='arv', annotation ='Render with the Arnold RenderView')
         
-        addRuntimeMenuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',  image='RenderViewShelf.png',
+        addRuntimeMenuItem('ArnoldMtoARenderView', label='Open Arnold RenderView', rtcLabel = 'Arnold: Open RenderView', parent='ArnoldMenu',  image='RenderViewShelf.png',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldOpenMtoARenderView()', keywords='arv', annotation='Open the Arnold RenderView window')
         cmds.menuItem(parent='ArnoldMenu', divider=True)
 
@@ -402,61 +403,61 @@ def createArnoldMenu():
         addRuntimeMenuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create StandIn", image='StandinShelf.png',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.createStandIn()', category='StandIn', keywords='standin', annotation='Create a StandIn to load a .ass file')
         addRuntimeMenuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,  
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateStandInFile()', category='StandIn', keywords='standin', annotation='Create a StandIn to load a .ass file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateStandInFile()', rtcLabel='Arnold: Create StandIn from File', category='StandIn', keywords='standin', annotation='Create a StandIn to load a .ass file')
         addRuntimeMenuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export StandIn', image='ExportStandinShelf.png',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn()', category='StandIn', keywords='standin', annotation='Export the selection as a Standin .ass file')
-        addRuntimeMenuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsStandIn()', category='StandIn', keywords='standin', annotation='Export the selection as a Standin .ass file')
+        cmds.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsStandIn()')
 
         cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
-        addRuntimeMenuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light", image='AreaLightShelf.png',
-                    command='import mtoa.utils;mtoa.utils.createLocator("aiAreaLight", asLight=True)', category='Lights', annotation='Create an Arnold Area Light')
-        addRuntimeMenuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light", image='SkydomeLightShelf.png',
-                    command='import mtoa.utils;mtoa.utils.createLocator("aiSkyDomeLight", asLight=True)', category='Lights', keywords='ibl', annotation='Create an Arnold Skydome Light')
-        addRuntimeMenuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light', image='MeshLightShelf.png',
+        addRuntimeMenuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",rtcLabel = 'Arnold: Create Area Light', image='AreaLightShelf.png',
+                    command='import mtoa.utils;mtoa.utils.createLocator("aiAreaLight", asLight=True)', category='Lights', annotation='Create an Arnold Area Light (Quad/Cylinder/Disk)')
+        addRuntimeMenuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light", rtcLabel='Arnold: Create Skydome Light', image='SkydomeLightShelf.png',
+                    command='import mtoa.utils;mtoa.utils.createLocator("aiSkyDomeLight", asLight=True)', category='Lights', keywords='ibl', annotation='Create an Arnold Skydome Light for Environment/IBL lighting')
+        addRuntimeMenuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light', rtcLabel='Arnold: Create Mesh Light', image='MeshLightShelf.png',
                     command='import mtoa.utils;mtoa.utils.createMeshLight()', category='Lights', annotation='Convert the selected Mesh to an Arnold Mesh Light')
-        addRuntimeMenuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", image='PhotometricLightShelf.png',
-                    command='import mtoa.utils;mtoa.utils.createLocator("aiPhotometricLight", asLight=True)', category='Lights', annotation='Create an Arnold Photometric Light')
-        addRuntimeMenuItem('LightPortal', parent='ArnoldLights', label="Light Portal", image='LightPortalShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateLightPortal()', category='Lights')
-        addRuntimeMenuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", image='PhysicalSkyShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreatePhysicalSky()', category='Lights', annotation='Create an Arnold Skydome and Physical Sky')
+        addRuntimeMenuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", rtcLabel="Arnold: Create Photometric Light", image='PhotometricLightShelf.png',
+                    command='import mtoa.utils;mtoa.utils.createLocator("aiPhotometricLight", asLight=True)', category='Lights', annotation='Create an Arnold Photometric Light to load IES files')
+        addRuntimeMenuItem('LightPortal', parent='ArnoldLights', label="Light Portal", rtcLabel="Arnold: Create Light Portal", image='LightPortalShelf.png',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateLightPortal()', annotation='Portals can optimize Skydomes interior lighting', category='Lights')
+        addRuntimeMenuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", rtcLabel="Arnold: Create Physical Sky", image='PhysicalSkyShelf.png',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreatePhysicalSky()', category='Lights', annotation='Create an Arnold Skydome w/ Physical Sky illumination')
         
         customShapes = cmds.arnoldPlugins(listCustomShapes=True)
         if customShapes and len(customShapes) > 0:
             cmds.menuItem('ArnoldCustomShapes', label='Custom Shapes', parent='ArnoldMenu', subMenu=True, tearOff=True)
             for customShape in customShapes:
-                addRuntimeMenuItem(customShape, parent='ArnoldCustomShapes', label=customShape,
+                addRuntimeMenuItem(customShape, parent='ArnoldCustomShapes', label=customShape, rtcLabel='Arnold: Create {} Shape'.format(customShape),
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateCustomShape("{}")'.format(customShape), category='Custom Shapes')
 
         operators = cmds.arnoldPlugins(listOperators=True)
         if operators and len(operators) > 0:
             cmds.menuItem('ArnoldOperators', label='Operators', parent='ArnoldMenu', subMenu=True, tearOff=True)
             for operator in operators:
-                addRuntimeMenuItem(operator, parent='ArnoldOperators', label=operator,
+                addRuntimeMenuItem(operator, parent='ArnoldOperators', label=operator, rtcLabel='Arnold: Create {} Operator'.format(operator),
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateOperator("{}")'.format(operator), category = 'Operators')
 
-        addRuntimeMenuItem('CurveCollector', label='Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
+        addRuntimeMenuItem('CurveCollector', label='Curve Collector', rtcLabel='Arnold: Create Curve Collector', parent='ArnoldMenu', image='CurveCollectorShelf.png',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateCurveCollector()', annotation="Group the selected curves in an Arnold Curve Collector")
-        addRuntimeMenuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu', image='VolumeShelf.png', 
+        addRuntimeMenuItem('ArnoldVolume', label='Volume', rtcLabel='Arnold: Create Volume', parent='ArnoldMenu', image='VolumeShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.createVolume()', keywords='vdb;openvdb', annotation="Create an Arnold Volume node to load a VDB file")
                     
         cmds.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        addRuntimeMenuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures", image='FlushTextureShelf.png', 
-                    command='import maya.cmds;maya.cmds.arnoldFlushCache(textures=True)', category="Flush Caches", annotation="Flush the Arnold texture cache")
-        addRuntimeMenuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures",  image='FlushTextureShelf.png', 
-                    command='import maya.cmds;maya.cmds.arnoldFlushCache(selected_textures=True)', category="Flush Caches", annotation="Flush the selected textures from the Arnold texture cache")
-        addRuntimeMenuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights", image='FlushBackgroundShelf.png',
-                    command='import maya.cmds;maya.cmds.arnoldFlushCache(skydome=True)', category="Flush Caches", annotation="Flush the Arnold background (Skydome) cache")
-        addRuntimeMenuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights", image='FlushQuadLightShelf.png',
-                    command='import maya.cmds; maya.cmds.arnoldFlushCache(quads=True)', category="Flush Caches", annotation="Flush the Arnold Quad Lights cache")
-        addRuntimeMenuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All", image='FlushAllCachesShelf.png',
-                    command='import maya.cmds; maya.cmds.arnoldFlushCache(flushall=True)', category="Flush Caches", annotation="Flush all Arnold caches")
+        addRuntimeMenuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures", rtcLabel='Arnold: Flush Texture Cache', image='FlushTextureShelf.png', 
+                    command='import maya.cmds;maya.cmds.arnoldFlushCache(textures=True)', category="Flush Caches")
+        addRuntimeMenuItem('ArnoldFlushSelectedTextures', parent='ArnoldFlush', label="Selected Textures", rtcLabel = 'Arnold: Flush selected textures', image='FlushTextureShelf.png', 
+                    command='import maya.cmds;maya.cmds.arnoldFlushCache(selected_textures=True)', category="Flush Caches")
+        addRuntimeMenuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights", rtcLabel = 'Arnold: Flush Skydome Cache', image='FlushBackgroundShelf.png',
+                    command='import maya.cmds;maya.cmds.arnoldFlushCache(skydome=True)', category="Flush Caches")
+        addRuntimeMenuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights", rtcLabel='Arnold: Flush Area Lights Cache', image='FlushQuadLightShelf.png',
+                    command='import maya.cmds; maya.cmds.arnoldFlushCache(quads=True)', category="Flush Caches")
+        addRuntimeMenuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All", rtcLabel='Arnold: Flush All Caches', image='FlushAllCachesShelf.png',
+                    command='import maya.cmds; maya.cmds.arnoldFlushCache(flushall=True)', category="Flush Caches")
                     
         cmds.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
         addRuntimeMenuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities', image='BakeGeometryShelf.png', 
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldBakeGeo()', category="Utilities", annotation='Bake the selected geometry (including subdivision and displacement) to a .obj file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldBakeGeo()', category="Utilities", annotation='Bake the selected geometry to OBJ (w/ subdivision and displacement)')
         addRuntimeMenuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',  image='RenderToTextureShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldRenderToTexture()', category="Utilities", keywords='bake;baking', annotation="Shade the selected shape and bake it on a UV texture")
         addRuntimeMenuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', 
