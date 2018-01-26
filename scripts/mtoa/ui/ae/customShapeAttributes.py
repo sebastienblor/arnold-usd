@@ -160,12 +160,12 @@ def ProceduralTemplateDsoNew(nodeName) :
     cmds.text(label='Path ')
     path = cmds.textField('proceduralDsoPath',changeCommand=lambda *args: ProceduralDsoEdit(nodeName, *args))
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
-    cmds.symbolButton('ProceduralPathButton', image='navButtonBrowse.png', command=lambda *args: LoadProceduralButtonPush(nodeName))
+    cmds.symbolButton('ProceduralPathButton', image='navButtonBrowse.png', command=lambda arg=None,x=nodeName: LoadProceduralButtonPush(x))
 
 def ProceduralTemplateDsoReplace(plugName) :
     cmds.textField( 'proceduralDsoPath', edit=True, changeCommand=lambda *args: ProceduralDsoEdit(plugName, *args))
     cmds.textField( 'proceduralDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.symbolButton('ProceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadProceduralButtonPush(plugName))
+    cmds.symbolButton('ProceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda arg=None,x=nodeName: LoadProceduralButtonPush(x))
 
 class ProceduralTemplate(templates.ShapeTranslatorTemplate):
 
