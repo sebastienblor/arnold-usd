@@ -1,5 +1,5 @@
-import pymel.core as pm
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import maya.mel
 
 class AEaiToonTemplate(ShaderAETemplate):
     def setup(self):
@@ -92,7 +92,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("indirect_specular", label="Indirect Specular")
         self.endLayout()
 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

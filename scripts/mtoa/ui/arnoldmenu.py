@@ -17,9 +17,11 @@ import sys
 
 defaultFolder = ""
 
+_maya_version = mutils.getMayaVersion()
+
 def doCreateStandInFile():
     node = createStandIn()
-    LoadStandInButtonPush(node.name())
+    LoadStandInButtonPush(node)
 
 
 def doExportStandIn():
