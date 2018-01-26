@@ -114,6 +114,7 @@ MObject CArnoldOptionsNode::s_aov_shaders;
 MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
 MObject CArnoldOptionsNode::s_gpu;
+MObject CArnoldOptionsNode::s_render_devices;
 
 
 
@@ -451,6 +452,10 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_gpu);
 
+   s_render_devices = nAttr.create("render_devices", "rndev", MFnNumericData::kInt);
+   nAttr.setKeyable(false);
+   nAttr.setArray(true);
+   addAttribute(s_render_devices);   
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");

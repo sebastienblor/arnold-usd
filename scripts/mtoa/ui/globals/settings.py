@@ -361,6 +361,13 @@ def changeRenderType():
                             enable=enabled)
     except:
         pass
+def changeGpu():
+    try:
+        gpuEnabled = cmds.getAttr('defaultArnoldRenderOptions.gpu')
+        cmds.textScrollList('os_render_devices', edit=True, enable=gpuEnabled)
+    except:
+        pass
+
 
 def changeFrustumCulling(*args):
     frustumCulling = cmds.getAttr('defaultArnoldRenderOptions.subdiv_frustum_culling')
@@ -381,6 +388,60 @@ def selectOrigin(*args, **kwargs):
             cmds.connectAttr('%s.message' % tr, 'defaultArnoldRenderOptions.origin', force=1)
     setupOriginText()
 
+def renderDevicesListEdit(*args):
+    gpuDeviceIds = ai.AiGetDeviceIdsByType(ai.AI_DEVICE_TYPE_GPU) or []
+    selList = cmds.textScrollList('os_render_devices', query=True, sii=True)
+    idsList = []
+
+    for i in selList:
+        if i <= len(gpuDeviceIds):
+            idsList.append(gpuDeviceIds[i-1])
+
+    prevSize = cmds.getAttr('defaultArnoldRenderOptions.render_devices', s=True)
+    selCount = len(idsList)
+    for i in range(selCount):
+        cmds.setAttr('defaultArnoldRenderOptions.render_devices[{}]'.format(i), idsList[i])
+
+    if selCount < prevSize:
+        for i in range(selCount, prevSize):
+            cmds.removeMultiInstance('defaultArnoldRenderOptions.render_devices[{}]'.format(i))
+
+
+def createGpuSettings():
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+    cmds.attrControlGrp('gpu', 
+                        label="GPU Rendering", 
+                        changeCommand=changeGpu,
+                        attribute='defaultArnoldRenderOptions.gpu')
+
+    gpuEnabled = cmds.getAttr('defaultArnoldRenderOptions.gpu')
+    cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=gpuEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
+    # fill attribute
+    
+    gpuDevices = ai.AiGetDeviceNamesByType(ai.AI_DEVICE_TYPE_GPU) or []
+    gpuDeviceIds = ai.AiGetDeviceIdsByType(ai.AI_DEVICE_TYPE_GPU) or []
+        
+    cmds.textScrollList('os_render_devices', edit=True, removeAll=True)
+
+    for gpuDevice in gpuDevices:
+        cmds.textScrollList('os_render_devices', edit=True, append=str(gpuDevice))
+
+    attrIds = cmds.getAttr('defaultArnoldRenderOptions.render_devices', mi=True) or []
+
+    if len(attrIds) == 0:
+        attrIds.append(0)
+
+    for i in attrIds:
+        attrVal = cmds.getAttr('defaultArnoldRenderOptions.render_devices[{}]'.format(i))
+        if attrVal < 0:
+            continue
+
+        if attrVal in gpuDeviceIds:
+            cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=i+1)
+
+    cmds.setParent('..')
+        
 def createArnoldRenderSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -1409,6 +1470,13 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
+    cmds.frameLayout('arnoldGpuSettings', label="GPU Rendering", cll=True, cl=0)
+    createGpuSettings()
+    cmds.setParent('..')
+
+
+    
+
     
     # Maya Integration
     #
@@ -1519,14 +1587,7 @@ def createArnoldRendererGlobalsTab():
     cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
     createArnoldSubdivSettings()
     cmds.setParent('..')
-
-    cmds.attrControlGrp('gpu', 
-                        label="GPU Rendering", 
-                        attribute='defaultArnoldRenderOptions.gpu')
-
-
-    cmds.setParent('..')
-
+    
     cmds.formLayout(parentForm,
                     edit=True,
                     af=[('arnoldGlobalsScrollLayout', "top", 0),

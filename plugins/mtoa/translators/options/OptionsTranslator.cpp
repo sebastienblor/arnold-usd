@@ -1289,12 +1289,30 @@ void COptionsTranslator::Export(AtNode *options)
    if (!gpuPlug.isNull() && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
       bool gpu = gpuPlug.asBool();
-      AtDeviceType deviceType = (gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU;
-      std::vector<int> devices(AiCountRenderDevicesByType(deviceType));
-      for (size_t i = 0; i < devices.size(); ++i)
-         devices[i] = (int)i;
-
-      AiSelectRenderDevices(deviceType,  (int)devices.size(), &devices[0]);
+      std::vector<int> devices;
+      if (gpu)
+      {
+         MPlug gpuDevices = FindMayaPlug("render_devices");
+         if (!gpuDevices.isNull())
+         {
+            unsigned int numElements = gpuDevices.numElements();
+            for (unsigned int i = 0; i < numElements; ++i)
+            {
+               MPlug elemPlug = gpuDevices[i];
+               if (!elemPlug.isNull())
+               {
+                  devices.push_back(elemPlug.asInt());
+               }
+            }
+         }
+      } else
+      {
+         devices.resize(AiCountRenderDevicesByType(AI_DEVICE_TYPE_CPU));
+         for (size_t i = 0; i < devices.size(); ++i)
+            devices[i] = (int)i;
+      }
+      if (!devices.empty())
+         AiSelectRenderDevices((gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU, (int)devices.size(), &devices[0]);
    }
 }
 

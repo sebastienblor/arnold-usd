@@ -143,4 +143,5 @@ public:
    static MObject s_legacy_gi_refraction_samples;
 
    static MObject s_gpu;   
+   static MObject s_render_devices;   
 };  // class CArnoldOptionsNode
