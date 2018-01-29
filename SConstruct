@@ -813,8 +813,8 @@ if int(maya_version) < 201500:
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
     arv_lib = maya_version_base
-    if int(arv_lib) > 2018:
-        arv_lib = "2018"
+    if int(arv_lib) > 2017:
+        arv_lib = "2017"
     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', arv_lib, RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
