@@ -13,4 +13,7 @@
 		<property name='outColor'/>
 		<property name='inputColor'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiRandom'>
+		<property name='outColor'/>
+	</view>
 </templates>

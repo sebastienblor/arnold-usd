@@ -17,4 +17,7 @@
 		<property name='reflectivity'/>
 		<property name='edgetint'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiComplexIor'>
+		<property name='outColor'/>
+	</view>
 </templates>

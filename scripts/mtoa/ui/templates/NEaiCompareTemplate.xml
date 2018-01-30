@@ -17,4 +17,7 @@
 		<property name='input1'/>
 		<property name='input2'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiCompare'>
+		<property name='outValue'/>
+	</view>
 </templates>

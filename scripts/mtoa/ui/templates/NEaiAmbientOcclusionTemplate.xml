@@ -29,4 +29,7 @@
 		<property name='black'/>
 		<property name='normal'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiAmbientOcclusion'>
+		<property name='outColor'/>
+	</view>
 </templates>

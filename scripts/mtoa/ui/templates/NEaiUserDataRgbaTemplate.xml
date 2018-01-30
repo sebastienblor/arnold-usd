@@ -9,4 +9,8 @@
 	<view name='NEDefault' template='NEaiUserDataRgba'>
 		<property name='outColor'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiUserDataRgba'>
+		<property name='outColor'/>
+	</view>
+
 </templates>

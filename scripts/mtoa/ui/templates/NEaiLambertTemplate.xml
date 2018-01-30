@@ -21,4 +21,7 @@
 		<property name='KdColor'/>
 		<property name='opacity'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiLambert'>
+		<property name='outColor'/>
+	</view>
 </templates>

@@ -13,4 +13,7 @@
 		<property name='outColor'/>
 		<property name='thickness'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiThinFilm'>
+		<property name='outColor'/>
+	</view>
 </templates>

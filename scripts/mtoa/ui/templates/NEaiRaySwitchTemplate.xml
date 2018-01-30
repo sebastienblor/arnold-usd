@@ -41,4 +41,7 @@
 		<property name='specularTransmission'/>
 		<property name='volume'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiRaySwitch'>
+		<property name='outColor'/>
+	</view>
 </templates>

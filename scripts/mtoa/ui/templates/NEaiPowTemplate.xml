@@ -17,4 +17,7 @@
 		<property name='base'/>
 		<property name='exponent'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiPow'>
+		<property name='outColor'/>
+	</view>
 </templates>

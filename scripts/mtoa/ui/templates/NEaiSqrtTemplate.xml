@@ -13,4 +13,8 @@
 		<property name='outColor'/>
 		<property name='input'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiSqrt'>
+		<property name='outColor'/>
+	</view>
+
 </templates>

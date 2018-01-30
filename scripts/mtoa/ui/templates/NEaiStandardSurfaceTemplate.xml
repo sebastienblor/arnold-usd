@@ -93,4 +93,7 @@
 		<property name='opacity'/>
 		<property name='normalCamera'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiStandardSurface'>
+		<property name='outColor'/>
+	</view>
 </templates>

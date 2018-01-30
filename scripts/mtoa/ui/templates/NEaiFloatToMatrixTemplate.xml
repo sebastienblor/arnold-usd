@@ -21,4 +21,7 @@
 		<property name='input01'/>
 		<property name='input02'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiFloatToMatrix'>
+		<property name='outValue'/>
+	</view>
 </templates>

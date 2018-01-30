@@ -21,4 +21,7 @@
 		<property name='A'/>
 		<property name='B'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiComposite'>
+		<property name='outColor'/>
+	</view>
 </templates>

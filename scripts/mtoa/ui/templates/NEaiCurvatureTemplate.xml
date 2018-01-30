@@ -33,4 +33,7 @@
 		<property name='bias'/>
 		<property name='multiply'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiCurvature'>
+		<property name='outColor'/>
+	</view>
 </templates>

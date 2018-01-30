@@ -19,6 +19,6 @@
 		<property name='input'/>
 	</view>
 	<view name='NEDefaultSoloOutput' template='NEaiWriteColor'>
-		<property name='outValue'/>
+		<property name='outColor'/>
 	</view>
 </templates>

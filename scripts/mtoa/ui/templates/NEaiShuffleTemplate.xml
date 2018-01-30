@@ -21,4 +21,7 @@
 		<property name='color'/>
 		<property name='alpha'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiShuffle'>
+		<property name='outColor'/>
+	</view>
 </templates>

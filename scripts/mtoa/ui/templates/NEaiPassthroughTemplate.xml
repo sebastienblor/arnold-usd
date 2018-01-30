@@ -21,4 +21,7 @@
 		<property name='eval1'/>
 		<property name='eval2'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiPassthrough'>
+		<property name='outColor'/>
+	</view>
 </templates>

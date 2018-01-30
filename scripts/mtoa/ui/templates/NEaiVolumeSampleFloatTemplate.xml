@@ -37,4 +37,7 @@
 		<property name='outputMin'/>
 		<property name='outputMax'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiVolumeSampleFloat'>
+		<property name='outValue'/>
+	</view>
 </templates>

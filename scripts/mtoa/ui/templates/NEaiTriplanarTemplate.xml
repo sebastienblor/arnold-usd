@@ -34,4 +34,7 @@
 		<property name='P'/>
 		<property name='blend'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiTriplanar'>
+		<property name='outColor'/>
+	</view>
 </templates>

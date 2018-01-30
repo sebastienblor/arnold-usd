@@ -13,4 +13,7 @@
 		<property name='outColor'/>
 		<property name='input'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiRampRgb'>
+		<property name='outColor'/>
+	</view>
 </templates>

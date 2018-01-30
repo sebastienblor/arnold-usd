@@ -25,4 +25,8 @@
 		<property name='aiShadowDensity'/>
 		<property name='aiShadowColor'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiPhotometricLight'>
+		<property name='outColor'/>
+	</view>
+
 </templates>
