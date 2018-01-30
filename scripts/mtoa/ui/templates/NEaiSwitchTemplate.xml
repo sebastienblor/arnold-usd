@@ -53,4 +53,7 @@
 		<property name='input8'/>
 		<property name='input9'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiSwitch'>
+		<property name='outColor'/>
+	</view>
 </templates>

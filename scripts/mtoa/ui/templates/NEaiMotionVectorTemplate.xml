@@ -9,4 +9,7 @@
 	<view name='NEDefault' template='NEaiMotionVector'>
 		<property name='outColor'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiMotionVector'>
+		<property name='outColor'/>
+	</view>
 </templates>

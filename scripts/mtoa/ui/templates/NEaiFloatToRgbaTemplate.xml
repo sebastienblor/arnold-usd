@@ -25,4 +25,7 @@
 		<property name='b'/>
 		<property name='a'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiFloatToRgba'>
+		<property name='outColor'/>
+	</view>
 </templates>

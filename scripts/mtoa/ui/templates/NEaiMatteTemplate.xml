@@ -21,4 +21,7 @@
 		<property name='passthrough'/>
 		<property name='color'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiMatte'>
+		<property name='outColor'/>
+	</view>
 </templates>

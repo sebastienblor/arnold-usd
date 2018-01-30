@@ -13,4 +13,7 @@
 		<property name='outColor'/>
 		<property name='passthrough'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiAovWriteInt'>
+		<property name='outColor'/>
+	</view>
 </templates>

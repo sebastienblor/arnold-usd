@@ -13,4 +13,7 @@
 		<property name='outColor'/>
 		<property name='color'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiFlat'>
+		<property name='outColor'/>
+	</view>
 </templates>

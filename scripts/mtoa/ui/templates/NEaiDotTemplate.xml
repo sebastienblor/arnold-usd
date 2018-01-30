@@ -17,4 +17,7 @@
 		<property name='input1'/>
 		<property name='input2'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiDot'>
+		<property name='outValue'/>
+	</view>
 </templates>

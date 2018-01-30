@@ -25,4 +25,7 @@
 		<property name='input2'/>
 		<property name='mix'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiMixRgba'>
+		<property name='outColor'/>
+	</view>
 </templates>

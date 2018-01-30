@@ -2,6 +2,9 @@
 <templates>
 	<using package='maya'/>
 	<template name='NEaiUvTransform'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
 		<attribute name='passthrough' type='maya.float3'>
 			<label>Passthrough</label>
 		</attribute>
@@ -38,10 +41,15 @@
 		<attribute name='noise' type='maya.float2'>
 			<label>Noise</label>
 		</attribute>
+
 	</template>
 	<view name='NEDefault' template='NEaiUvTransform'>
+		<property name='outColor'/>
 		<property name='passthrough'/>
 		<property name='offset'/>
 		<property name='rotate'/>
+	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiUvTransform'>
+		<property name='outColor'/>
 	</view>
 </templates>

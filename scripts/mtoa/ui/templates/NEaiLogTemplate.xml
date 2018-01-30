@@ -17,4 +17,7 @@
 		<property name='input'/>
 		<property name='base'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiLog'>
+		<property name='outColor'/>
+	</view>
 </templates>

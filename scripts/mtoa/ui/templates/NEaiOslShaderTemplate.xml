@@ -17,4 +17,8 @@
 		<property name='outValue'/>
 		<property name='outTransparency'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiOslShader'>
+		<property name='outValue'/>
+	</view>
+
 </templates>

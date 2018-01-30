@@ -29,4 +29,7 @@
 		<property name='outputMin'/>
 		<property name='outputMax'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiRange'>
+		<property name='outColor'/>
+	</view>
 </templates>

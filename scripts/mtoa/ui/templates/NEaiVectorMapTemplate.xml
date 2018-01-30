@@ -21,4 +21,7 @@
 		<property name='tangent'/>
 		<property name='normal'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiVectorMap'>
+		<property name='outValue'/>
+	</view>
 </templates>

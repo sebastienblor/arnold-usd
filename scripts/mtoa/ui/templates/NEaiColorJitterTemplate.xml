@@ -17,4 +17,7 @@
 		<property name='outAlpha'/>
 		<property name='input'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiColorJitter'>
+		<property name='outColor'/>
+	</view>
 </templates>

@@ -17,4 +17,7 @@
 		<property name='temperature'/>
 		<property name='intensity'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiBlackbody'>
+		<property name='outColor'/>
+	</view>
 </templates>

@@ -41,4 +41,7 @@
 		<property name='add'/>
 		<property name='mask'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiColorCorrect'>
+		<property name='outColor'/>
+	</view>
 </templates>

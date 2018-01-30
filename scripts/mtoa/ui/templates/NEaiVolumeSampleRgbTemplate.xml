@@ -25,4 +25,7 @@
 		<property name='exposure'/>
 		<property name='multiply'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiVolumeSampleRgb'>
+		<property name='outColor'/>
+	</view>
 </templates>

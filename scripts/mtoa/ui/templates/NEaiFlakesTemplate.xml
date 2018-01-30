@@ -2,9 +2,6 @@
 <templates>
 	<using package='maya'/>
 	<template name='NEaiFlakes'>
-		<attribute name='message' type='maya.message'>
-			<label>Message</label>
-		</attribute>
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
@@ -19,10 +16,12 @@
 		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiFlakes'>
-		<property name='message'/>
 		<property name='outColor'/>
 		<property name='scale'/>
 		<property name='size'/>
 		<property name='normalRandomize'/>
+	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiFlakes'>
+		<property name='outColor'/>
 	</view>
 </templates>

@@ -21,4 +21,7 @@
 		<property name='shader1'/>
 		<property name='shader2'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiMixShader'>
+		<property name='outColor'/>
+	</view>
 </templates>

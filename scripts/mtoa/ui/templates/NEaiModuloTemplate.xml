@@ -17,4 +17,7 @@
 		<property name='input'/>
 		<property name='divisor'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiModulo'>
+		<property name='outColor'/>
+	</view>
 </templates>

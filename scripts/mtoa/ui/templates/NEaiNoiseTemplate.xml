@@ -5,9 +5,6 @@
 		<attribute name='outColor' type='maya.float3'>
 			<label>Out Color</label>
 		</attribute>
-		<attribute name='outTransparency' type='maya.float3'>
-			<label>Out Transparency</label>
-		</attribute>
 		<attribute name='amplitude' type='maya.float'>
 			<label>Amplitude</label>
 		</attribute>
@@ -32,7 +29,6 @@
 	</template>
 	<view name='NEDefault' template='NEaiNoise'>
 		<property name='outColor'/>
-		<property name='outTransparency'/>
 		<property name='amplitude'/>
 		<property name='scale'/>
 		<property name='offset'/>
@@ -40,5 +36,8 @@
 		<property name='time'/>
 		<property name='color1'/>
 		<property name='color2'/>
+	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiNoise'>
+		<property name='outColor'/>
 	</view>
 </templates>

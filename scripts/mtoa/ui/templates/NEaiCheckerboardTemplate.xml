@@ -21,4 +21,7 @@
 		<property name='color2'/>
 		<property name='contrast'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiCheckerboard'>
+		<property name='outColor'/>
+	</view>
 </templates>

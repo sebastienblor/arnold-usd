@@ -53,4 +53,7 @@
 		<property name='blackbodyKelvin'/>
 		<property name='blackbodyIntensity'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiStandardVolume'>
+		<property name='outColor'/>
+	</view>
 </templates>
