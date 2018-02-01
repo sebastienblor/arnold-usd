@@ -8,6 +8,7 @@
 #include <maya/MFnPfxGeometry.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
+#include <maya/MAnimControl.h>
 
 #include <algorithm>
 #include <string>
@@ -68,6 +69,22 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    if (RequiresShaderExport())
       ExportShaders();
 
+   MTime curTime = MAnimControl::currentTime();
+   AiNodeSetFlt(shape, "frame", curTime.value());
+
+   float fps = 24.0f;
+   MTime::Unit unit = curTime.unit();
+   if (unit!=MTime::kInvalid)
+   {
+     MTime time(1.0, MTime::kSeconds);
+     fps = static_cast<float>(time.as(unit));
+   }
+   if (fps <= 0.f )
+   {
+     fps = 24.0f;
+   }
+
+   AiNodeSetFlt(shape, "fps", fps);
    AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
    AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
 }
