@@ -317,6 +317,11 @@ AtByte CDagTranslator::ComputeVisibility()
       visibility &= ~(AI_RAY_SPECULAR_TRANSMIT);
    }
 
+   plug = FindMayaPlug("aiVisibleInVolume");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_VOLUME;
+   }
 
    return visibility;
 }
