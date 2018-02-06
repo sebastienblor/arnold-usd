@@ -53,6 +53,7 @@
 #include "display/renderview_mtoa.h"
 static CRenderViewMtoA  *s_renderView = NULL;
 
+static bool s_closeRenderViewWithSession = true;
 
 
 extern AtNodeMethods* mtoa_driver_mtd;
@@ -141,6 +142,7 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
       return MStatus::kFailure;
    }
+   s_closeRenderViewWithSession = true;
 }
 
 void CRenderSession::SetRendering(bool renderState)
@@ -185,7 +187,7 @@ MStatus CRenderSession::End()
       // from InteractiveRenderThread
       InterruptRender();
 
-      if (s_renderView)
+      if (s_renderView && s_closeRenderViewWithSession)
       {
          s_renderView->CloseRenderView();
       } 
@@ -975,4 +977,8 @@ void CRenderSession::UpdateRenderOptions()
       s_renderView->SetLogging(m_renderOptions.GetLogConsoleVerbosity(), m_renderOptions.GetLogFileVerbosity());
    }
 #endif
+}
+void CRenderSession::CloseRenderViewWithSession(bool b)
+{
+	s_closeRenderViewWithSession = b;
 }

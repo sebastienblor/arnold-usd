@@ -217,8 +217,9 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          }
          // giving ARV the list of cameras
          renderSession->SetRenderViewOption("Cameras", camerasList);
+		 renderSession->CloseRenderViewWithSession(false); // but DON't close ARV with CMayaScene::End()
          CMayaScene::End();
-         return MS::kSuccess;
+		 return MS::kSuccess;
       }
       MDagPath defaultCamera;
 

@@ -192,6 +192,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    {
       // renderOptions.SetBatch(false);
       status = SetupIPRCallbacks();
+	  s_renderSession->CloseRenderViewWithSession(true);
    }
    else if (mode == MTOA_SESSION_RENDER || mode == MTOA_SESSION_SEQUENCE)
    {
