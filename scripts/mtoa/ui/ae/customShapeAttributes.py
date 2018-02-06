@@ -1083,6 +1083,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         self.addControl('exrTiled', label='Tiled')
         self.addControl('autocrop', label='Autocrop')
         self.addControl('append', label='Append')
+        self.addControl('mergeAOVs', label='Merge AOVs')
         self.beginLayout("Metadata (name, type, value)", collapse=True)
         self.addCustom('custom_attributes', self.metadataNew, self.metadataReplace)
         self.endLayout()
@@ -1407,6 +1408,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
     def setup(self):
         self.addControl('deepexrTiled', label='Tiled')
         self.addControl('append', label='Append')
+        self.addControl('mergeAOVs', label='Merge AOVs')
         self.addControl('subpixelMerge', label='Subpixel Merge')
         self.addControl('useRGBOpacity', label='Use RGB Opacity')
         self.beginLayout("Tolerance Values", collapse=False)
