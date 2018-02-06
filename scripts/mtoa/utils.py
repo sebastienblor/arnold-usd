@@ -271,6 +271,8 @@ def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
 def translatorToExtension(translatorName):
     if (translatorName == "deepexr") :
         return "exr"
+    elif (translatorName == "jpeg") :
+        return "jpg"
     else :
         return translatorName
     
