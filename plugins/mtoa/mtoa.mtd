@@ -2169,7 +2169,7 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
     [attr exposure]
-        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr alpha_multiply]
         min                 FLOAT   0.0
