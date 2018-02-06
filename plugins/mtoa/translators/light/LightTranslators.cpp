@@ -650,3 +650,20 @@ void CMeshLightNewTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("cast_shadows");
    helper.MakeInput("cast_volumetric_shadows");
 }
+
+void CMeshLightNewTranslator::AddUpdateCallbacks()
+{
+   // Need to add the update callbacks for the mesh object as well
+   MObject meshObj = GetMeshObject();
+   if (meshObj != MObject::kNullObj)
+   {
+      MStatus status;
+      MCallbackId id = MNodeMessage::addNodeDirtyCallback(meshObj,
+                                                          NodeDirtyCallback,
+                                                          this,
+                                                          &status);
+      if (MS::kSuccess == status) RegisterUpdateCallback(id);
+   }
+   // Call the base class to get the others.
+   CNodeTranslator::AddUpdateCallbacks();
+}

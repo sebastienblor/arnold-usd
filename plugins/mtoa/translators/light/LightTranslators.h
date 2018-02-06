@@ -188,6 +188,8 @@ public:
    virtual MObject GetMeshObject() const;
    static void NodeInitializer(CAbTranslator context);
    
+   /// Customize the callbacks invoked during IPR updates for DAG nodes
+   virtual void AddUpdateCallbacks();
 
    static void* creator()
    {
