@@ -604,6 +604,20 @@ void CMeshLightTranslator::ExportMotion(AtNode* light)
       
    }  
 }
+void CMeshLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
+   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
+   recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
+   
+   if (recreate_geom)
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CLightTranslator::NodeChanged(node, plug);
+}
+
 
 MObject CMeshLightNewTranslator::GetMeshObject() const
 {
@@ -626,19 +640,6 @@ MObject CMeshLightNewTranslator::GetMeshObject() const
       
    }
    return MObject::kNullObj;
-}
-void CMeshLightNewTranslator::NodeChanged(MObject& node, MPlug& plug)
-{
-
-   const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-   bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
-   recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
-   recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1);
-   
-   if (recreate_geom)
-      SetUpdateMode(AI_RECREATE_NODE);
-   
-   CMeshLightTranslator::NodeChanged(node, plug);
 }
 
 void CMeshLightNewTranslator::NodeInitializer(CAbTranslator context)

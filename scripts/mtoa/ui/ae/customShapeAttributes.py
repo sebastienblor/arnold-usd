@@ -166,7 +166,7 @@ def ProceduralTemplateDsoNew(nodeName) :
 def ProceduralTemplateDsoReplace(plugName) :
     cmds.textField( 'proceduralDsoPath', edit=True, changeCommand=lambda *args: ProceduralDsoEdit(plugName, *args))
     cmds.textField( 'proceduralDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.symbolButton('ProceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadProceduralButtonPush(plugName))
+    cmds.symbolButton('ProceduralPathButton', edit=True, image='navButtonBrowse.png' , command=lambda arg=None,x=plugName: LoadProceduralButtonPush(x))
 
 class ProceduralTemplate(templates.ShapeTranslatorTemplate):
 

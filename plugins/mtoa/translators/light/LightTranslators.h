@@ -166,6 +166,9 @@ public:
 
    virtual void ExportMotion(AtNode* light);
 protected:
+
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
    MPlug GetPlug(const MObject& obj, const MString &attrName, MStatus* ReturnStatus = NULL) const
    {
       MFnDependencyNode fnNode(obj);
@@ -196,8 +199,6 @@ public:
       return new CMeshLightNewTranslator();
    }
 
-protected:
-   virtual void NodeChanged(MObject& node, MPlug& plug);
 };
 
 
