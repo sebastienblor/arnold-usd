@@ -171,6 +171,8 @@ public:
 
    bool RenderSequence();
    void UpdateRenderOptions();
+   
+   static void CloseRenderViewWithSession(bool b);
       
 private:
 
