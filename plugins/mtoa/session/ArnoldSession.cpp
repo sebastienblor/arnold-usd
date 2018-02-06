@@ -72,6 +72,7 @@ namespace // <anonymous>
         return false;
 
       MPlug templatePlug = node.findPlug("template", &status);
+      MPlug overEnablePlug = node.findPlug("overrideEnabled", &status);
       MPlug overDispPlug = node.findPlug("overrideDisplayType", &status);
 
       if (status == MStatus::kFailure)
@@ -80,7 +81,7 @@ namespace // <anonymous>
       if (templatePlug.asBool())
         return true;
       else
-         if (overDispPlug.asInt()==1)
+         if (overEnablePlug.asBool() && overDispPlug.asInt()==1)
             return true;
          else
             return false;
