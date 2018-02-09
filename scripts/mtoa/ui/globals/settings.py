@@ -419,7 +419,7 @@ def createGpuSettings():
     cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=gpuEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
     # fill attribute
     
-    gpuDevices = ai.AiGetDeviceNamesByType(ai.AI_DEVICE_TYPE_GPU) or []
+    gpuDevices = ai.AiGetDeviceAttributesByType(ai.AI_DEVICE_TYPE_GPU, ai.AI_DEVICE_ATTRIBUTE_NAME) or []
     gpuDeviceIds = ai.AiGetDeviceIdsByType(ai.AI_DEVICE_TYPE_GPU) or []
         
     cmds.textScrollList('os_render_devices', edit=True, removeAll=True)
