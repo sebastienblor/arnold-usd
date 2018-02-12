@@ -37,14 +37,16 @@ if system.os() =='windows':
     common_env.Append(CPPPATH = ['.'])   
     common_env.Append(LIBS=Split('ai.lib'))
 
-    if int(maya_version) <= 201800:
+    if int(maya_version) < 201900:
         common_env.Append(LIBS=Split('libAdskSeExpr.lib'))
-    common_env.Append(LIBS=Split('libAdskXGen.lib'))
+        common_env.Append(LIBS=Split('libAdskXGen.lib'))
+    else:
+        common_env.Append(LIBS=Split('AdskSeExpr.lib'))
+        common_env.Append(LIBS=Split('AdskXGen.lib'))
 else:
     common_env.Append(CPPPATH = ['.'])
     common_env.Append(LIBS=Split('ai'))
-    if int(maya_version) <= 201800:
-        common_env.Append(LIBS=Split('AdskSeExpr'))
+    common_env.Append(LIBS=Split('AdskSeExpr'))
     common_env.Append(LIBS=Split('AdskXGen'))
     common_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     
@@ -96,15 +98,17 @@ local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 if system.os() =='windows':
     local_env.Append(CPPPATH = ['.'])   
     local_env.Append(LIBS=Split('ai.lib'))
-    if int(maya_version) <= 201800:
+    if int(maya_version) < 201900:
         local_env.Append(LIBS=Split('libAdskSeExpr.lib'))
-    local_env.Append(LIBS=Split('libAdskXGen.lib'))
+        local_env.Append(LIBS=Split('libAdskXGen.lib'))
+    else:
+        local_env.Append(LIBS=Split('AdskSeExpr.lib'))
+        local_env.Append(LIBS=Split('AdskXGen.lib'))
 else:
     local_env.Append(CPPPATH = ['.'])
     local_env.Append(LIBS=Split('ai'))
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
-    if int(maya_version) <= 201800:
-        local_env.Append(LIBS=Split('AdskSeExpr'))
+    local_env.Append(LIBS=Split('AdskSeExpr'))
     local_env.Append(LIBS=Split('AdskXGen'))
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     
@@ -190,14 +194,16 @@ maya_version = proc_env['MAYA_VERSION']
 if system.os() =='windows':
     proc_env.Append(CPPPATH = ['.'])   
     proc_env.Append(LIBS=Split('ai.lib'))
-    if int(maya_version) <= 201800:
+    if int(maya_version) < 201900:
         proc_env.Append(LIBS=Split('libAdskSeExpr.lib'))
-    proc_env.Append(LIBS=Split('libAdskXGen.lib'))
+        proc_env.Append(LIBS=Split('libAdskXGen.lib'))
+    else:
+        proc_env.Append(LIBS=Split('AdskSeExpr.lib'))
+        proc_env.Append(LIBS=Split('AdskXGen.lib'))
 else:
     proc_env.Append(CPPPATH = ['.'])
     proc_env.Append(LIBS=Split('ai'))
-    if int(maya_version) <= 201800:
-        proc_env.Append(LIBS=Split('AdskSeExpr'))
+    proc_env.Append(LIBS=Split('AdskSeExpr'))
     proc_env.Append(LIBS=Split('AdskXGen'))
     proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     
