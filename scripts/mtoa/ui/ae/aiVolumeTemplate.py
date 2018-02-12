@@ -252,7 +252,6 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         self.addControl('frame')
         
-        self.addControl('padding')
         self.addControl('MinBoundingBox')
         self.addControl('MaxBoundingBox')
         self.addControl('autoStepSize', label = "Automatic Step Size", changeCommand=ArnoldVolumeAutoStepChange)

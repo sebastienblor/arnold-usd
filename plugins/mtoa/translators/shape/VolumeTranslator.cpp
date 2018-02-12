@@ -228,9 +228,6 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
       AiNodeDeclare( volume, "motion_end", "constant FLOAT" );
       AiNodeSetFlt(volume, "motion_end", m_DagNode.findPlug("motionEnd").asFloat());
       
-      AiNodeDeclare(volume, "volume_padding", "constant FLOAT" );
-      AiNodeSetFlt(volume, "volume_padding", m_DagNode.findPlug("padding").asFloat());
-
       AiNodeDeclare( volume, "velocity_outlier_threshold", "constant FLOAT" );
       AiNodeSetFlt(volume, "velocity_outlier_threshold", m_DagNode.findPlug("velocityThreshold").asFloat());         
          
