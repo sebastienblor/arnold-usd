@@ -227,3 +227,11 @@ public:
    AtNode* CreateArnoldNodes();
 
 };
+class CToonTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CToonTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes(); 
+};

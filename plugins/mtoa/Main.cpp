@@ -613,6 +613,11 @@ namespace // <anonymous>
                                     CObjectSetTranslator::creator,
                                     CObjectSetTranslator::NodeInitializer);
 
+      builtin->RegisterTranslator("aiToon",
+                                    "",
+                                    CToonTranslator::creator,
+                                    CToonTranslator::NodeInitializer);
+
       // Load all plugins path or only shaders?
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
