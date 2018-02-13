@@ -839,7 +839,7 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
 def GetViewportShaders(maya_version):
 
     vp2ShadersList = []
-    vp2ShaderExtensions = ['.xml']
+    vp2ShaderExtensions = ['.xml', '.cgfx', '.fx', '.ogsfx']
     
     if system.os() == 'windows':
         vp2ShaderExtensions.append('.hlsl')

@@ -105,6 +105,8 @@ namespace
 
 MStatus CRenderSession::Begin(const CRenderOptions &options)
 {
+    mViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
@@ -744,6 +746,23 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+void CRenderSession::RunInteractiveRenderer()
+{
+    if (s_renderView == NULL)
+        s_renderView = new CRenderViewMtoA;
+
+    InterruptRender(); // clear the previous thread  
+    SetRendering(true);
+    s_renderView->RenderInteractive();
+}
+
+void* CRenderSession::GetInteractiveResults()
+{
+    if (s_renderView != NULL)
+        return s_renderView->GetInteractiveResults();
+
+    return nullptr;
+}
 
 void CRenderSession::RunRenderView()
 {
@@ -764,6 +783,18 @@ void CRenderSession::StartRenderView()
    if (session)
       s_renderView->SetFrame((float)session->GetExportFrame());
    
+}
+
+bool CRenderSession::IsRegionCropped() const { return s_renderView ? s_renderView->IsRegionCropped() : false; }
+void CRenderSession::SetRegionCropped(bool val) { if (s_renderView) s_renderView->SetRegionCropped(val); }
+
+void CRenderSession::OpenInteractiveRendererOptions()
+{
+    if (s_renderView == NULL)
+    {
+        s_renderView = new CRenderViewMtoA;
+    }
+    s_renderView->OpenMtoAViewportRendererOptions();
 }
 
 void CRenderSession::UpdateRenderView()

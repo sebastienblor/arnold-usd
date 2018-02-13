@@ -467,6 +467,71 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 #endif
 }
 
+void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
+{
+#ifdef ARV_DOCKED
+
+    // Docking in maya workspaces only supported from maya 2017.
+    // For older versions, we tried using QDockWindows (see branch FB-2470)
+    // but the docking was way too sensitive, and not very usable in practice
+
+    //s_creatingARV = true;
+    MString workspaceCmd = "workspaceControl ";
+
+    bool firstCreation = true;
+    if (s_workspaceControl)
+    {
+        workspaceCmd += " -edit -visible true ";
+        firstCreation = false;
+    }
+    else
+    {
+        workspaceCmd += " -li 1"; // load immediately
+//         workspaceCmd += " -iw "; // initial width
+//         workspaceCmd += width;
+//         workspaceCmd += " -ih "; // initiall height
+//         workspaceCmd += height;
+
+        workspaceCmd += " -requiredPlugin \"mtoa\"";
+
+        // command called when closed. It's not ARV itself that is closed now, but the workspace !
+        // Now we need to rely on the visibilityChange callback
+        workspaceCmd += " -l \"Arnold ViewportRenderer Options\" "; // label
+    }
+    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
+
+
+    CRenderViewInterface::OpenInteractiveRendererOptions(MQtUtil::mainWindow());
+
+    QMainWindow *optWin = GetInteractiveRendererOptions();
+    optWin->setWindowFlags(Qt::Widget);
+
+    MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+
+    if (firstCreation)
+    {
+        // returns a pointer to th workspace called above, 
+        // but only for the creation ! if I call it with "-edit visible true" it can return 0
+        s_workspaceControl = MQtUtil::getCurrentParent();
+        MQtUtil::addWidgetToMayaLayout(optWin, s_workspaceControl);  // attaches ARV to the workspace
+        optWin->show();
+        s_workspaceControl->show();
+    }
+    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+    MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" \"ArnoldViewportRendererOptions\"");
+    MGlobal::executeCommand(uiScriptCommand);
+
+    //s_creatingARV = false;
+#else
+    CRenderViewInterface::OpenInteractiveRendererOptions(MQtUtil::mainWindow());
+#endif
+}
+
+void CRenderViewMtoA::InteractiveResultsReady()
+{
+    MGlobal::executeCommandOnIdle("refresh -f;");
+}
+
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h

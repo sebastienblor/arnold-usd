@@ -19,6 +19,7 @@ public:
 
    void CloseRenderView(){}
    void Render(){}
+   void RenderInteractive() {}
    void SceneChanged(){}
    void HostSelectionChanged(const AtNode **selection, unsigned int size){}
    void InterruptRender(){}
@@ -58,6 +59,8 @@ public:
 	CRenderViewMtoA();
 	virtual ~CRenderViewMtoA();
 
+    void InteractiveResultsReady() override;
+
    virtual void UpdateSceneChanges();
 
    virtual unsigned int GetSelectionCount();
@@ -93,6 +96,7 @@ public:
    static void SequenceRenderCallback(float, float, void *);
    
    void OpenMtoARenderView(int width, int height);
+   void OpenMtoAViewportRendererOptions();
 
    MStatus RenderSequence(float first, float last, float step);
 

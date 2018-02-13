@@ -25,6 +25,8 @@
 
 
 class CRenderViewMainWindow;
+class CInteractiveRenderer;
+class CInteractiveRendererOptionsWindow;
 class CRenderViewPanManipulator;
 class CRenderViewZoomManipulator;
 class CRenderViewRotateManipulator;
@@ -41,15 +43,15 @@ class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
-   CRenderViewInterface() : m_mainWindow(NULL) {}
-   virtual ~CRenderViewInterface() {DestroyRenderView();}
+    CRenderViewInterface() : m_mainWindow(nullptr), m_viewportRenderer(nullptr), m_viewportOptions(nullptr) {}
+    virtual ~CRenderViewInterface() { DestroyRenderView(); DestroyInteractiveRenderer(); }
 
-   void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
-   void CloseRenderView();
+    void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
+    void CloseRenderView();
 
-   void DestroyRenderView();
+    void DestroyRenderView();
 
-
+    void SetResultsReady();
 /**
  *   Functions to be invoked by the Host
  *   interrogating the RenderView
@@ -61,6 +63,17 @@ public:
    // Render the scene.
    // This function assumes that the Arnold scene already exists
    void Render();
+
+   // Interactive renderer methods
+   void OpenInteractiveRendererOptions(QWidget *parent = 0);
+   QMainWindow *GetInteractiveRendererOptions() { return (QMainWindow *)m_viewportOptions; }
+   void DestroyInteractiveRenderer();
+
+   void RenderInteractive();
+   void* GetInteractiveResults();
+
+   bool IsRegionCropped() const;
+   void SetRegionCropped(bool val);
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
@@ -98,7 +111,6 @@ public:
    // Get a serialized definition of the RenderView options
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);
    void SetFromSerialized(const char *);
-   
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
@@ -138,6 +150,8 @@ public:
    // in case the host application needs to be adverted
    virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
 
+   virtual void InteractiveResultsReady() {}
+
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
@@ -162,7 +176,8 @@ private:
    // internal method, used to avoid linking issues with
    void ResizeMainWindow(int w, int h);
    CRenderViewMainWindow *m_mainWindow;
-
+   CInteractiveRenderer* m_viewportRenderer;
+   CInteractiveRendererOptionsWindow *m_viewportOptions;
 };
 
 // In the Future these Manipulator classes should be removed and handled
