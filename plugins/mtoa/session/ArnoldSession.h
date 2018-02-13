@@ -247,8 +247,8 @@ private:
    static void HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData);
    void SetDagVisible(MDagPath &path);
 
-   bool IsVisible(MFnDagNode &node) const;
-   bool IsVisiblePath(MDagPath dagPath) const;
+   static bool IsVisible(MFnDagNode &node);
+   static bool IsVisiblePath(MDagPath dagPath);
 
    
    void RecursiveUpdateDagChildren(MDagPath &parent);

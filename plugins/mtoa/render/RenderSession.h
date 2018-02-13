@@ -103,7 +103,8 @@ public:
    void InterruptRender(bool waitFinished = true);
 
    void RunRenderView();
-   void SetRenderViewOption(const MString &option, const MString &value);
+   static void SetRenderViewOption(const MString &option, const MString &value);
+   static void FillRenderViewCameras();
 
    /// Start and IPR render.
    void DoIPRRender();

@@ -653,6 +653,8 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
 
    if (arv->isVisible())
    {
+      CMayaScene::GetRenderSession()->FillRenderViewCameras();
+
       // assign the ARV_options parameter as it is the first time since I opened this scene
       int exists = 0;
       MGlobal::executeCommand("objExists defaultArnoldRenderOptions", exists);

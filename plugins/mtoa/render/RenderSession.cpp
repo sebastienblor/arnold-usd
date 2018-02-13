@@ -785,9 +785,68 @@ void CRenderSession::CloseRenderView()
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
    }
-
 }
 
+void CRenderSession::FillRenderViewCameras()
+{
+
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   MString camerasList;
+      
+   M3dView view;
+   MDagPath activeCameraPath;
+   MStatus viewStatus;
+   view = M3dView::active3dView(&viewStatus);
+   MString viewCam;
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+
+   if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+   {
+      if (renderSession)
+         camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
+      else
+         camerasList = viewCam = activeCameraPath.partialPathName();
+      
+   }
+   
+   MDagPath path;
+   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+   
+   MFnDagNode cameraNode;
+
+   // FIXME dummy exportFilter that is needed in FilteredStatus
+   CMayaExportFilter exportFilter;
+
+   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
+   {
+      if (dagIterCameras.getPath(path))
+      {
+         // we're exporting the cameras if they're *either* accepted by the filter status
+         // *or* if they're set as renderable
+         // FIXME the filter status is useless here, it's always set to MTOA_FILTER_ALL
+         if(arnoldSession->FilteredStatus(path, &exportFilter) != MTOA_EXPORT_ACCEPTED)
+         {
+            // this camera is hidden, check if it's renderable
+            MStatus stat;
+            MFnDagNode cameraNode(path);
+            MPlug renderable = cameraNode.findPlug("renderable", false, &stat);
+
+            if (stat != MS::kSuccess || (!renderable.asBool()))
+               continue;
+         }
+         // we can't call GetArnoldNaming if there's no active session
+         MString camName = (renderSession) ? CDagTranslator::GetArnoldNaming(path) : path.partialPathName();
+         if (camName == viewCam) continue; // we've already set this camera in the list
+
+         if (camerasList.length() > 0)
+            camerasList += ";";
+
+         camerasList += camName;
+      }
+   }
+   // giving ARV the list of cameras
+   SetRenderViewOption("Cameras", camerasList);
+}
 
 void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 {
