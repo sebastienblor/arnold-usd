@@ -31,13 +31,13 @@ common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include
 common_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 common_env.Append(CPPDEFINES = Split('_BOOL'))
-maya_version = common_env['MAYA_VERSION']
+maya_version_base = common_env['MAYA_VERSION_BASE']
 
 if system.os() =='windows':
     common_env.Append(CPPPATH = ['.'])   
     common_env.Append(LIBS=Split('ai.lib'))
 
-    if int(maya_version) < 201900:
+    if int(maya_version_base) < 2019:
         common_env.Append(LIBS=Split('libAdskSeExpr.lib'))
         common_env.Append(LIBS=Split('libAdskXGen.lib'))
     else:
@@ -91,14 +91,14 @@ mayaRoot = local_env['MAYA_ROOT']
 if system.os() == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
     mayaRoot = mayaRoot.replace('//', '/')
-maya_version = ext_env['MAYA_VERSION']
+maya_version_base = ext_env['MAYA_VERSION_BASE']
     
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
 if system.os() =='windows':
     local_env.Append(CPPPATH = ['.'])   
     local_env.Append(LIBS=Split('ai.lib'))
-    if int(maya_version) < 201900:
+    if int(maya_version_base) < 2019:
         local_env.Append(LIBS=Split('libAdskSeExpr.lib'))
         local_env.Append(LIBS=Split('libAdskXGen.lib'))
     else:
@@ -189,12 +189,12 @@ proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 include_files  += [os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'xgen', 'common', 'XgArnoldExpand.h')]
 
 proc_env.Append(CPPDEFINES = Split('_BOOL'))
-maya_version = proc_env['MAYA_VERSION']
+maya_version_base = proc_env['MAYA_VERSION_BASE']
 
 if system.os() =='windows':
     proc_env.Append(CPPPATH = ['.'])   
     proc_env.Append(LIBS=Split('ai.lib'))
-    if int(maya_version) < 201900:
+    if int(maya_version_base) < 2019:
         proc_env.Append(LIBS=Split('libAdskSeExpr.lib'))
         proc_env.Append(LIBS=Split('libAdskXGen.lib'))
     else:
