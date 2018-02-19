@@ -1198,6 +1198,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       "arnoldProceduralNodeOverride",
       CArnoldProceduralGeometryOverride::Creator);
 
+#if MAYA_API_VERSION >= 201800
    MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
    if (renderer)
    {
@@ -1208,7 +1209,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
            renderer->registerOverride(overridePtr);
        }
    }
-
+#endif
    char nodeName[] = "aiViewRegion";
    status = plugin.registerNode(
        nodeName,

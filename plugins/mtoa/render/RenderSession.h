@@ -104,8 +104,10 @@ public:
    void InterruptRender(bool waitFinished = true);
 
    void RunInteractiveRenderer();
-   void* GetInteractiveResults();
    
+
+   bool HasRenderResults(AtBBox2 &box);
+
    void RunRenderView();
    static void SetRenderViewOption(const MString &option, const MString &value);
    static void FillRenderViewCameras();
@@ -122,6 +124,7 @@ public:
    void UpdateRenderView();
    void CloseRenderView();
    void OpenInteractiveRendererOptions();
+   void SetViewportRendering(bool b);
 
    void ObjectNameChanged(MObject& node, const MString& str);
 
@@ -182,9 +185,12 @@ public:
    static void CloseRenderViewWithSession(bool b);
       
    MFloatPoint mViewRectangle;
-
+   bool IsRegionCropped() const {return false;}
+   const AtRGBA *GetRenderBuffer(int aovIndex=-1);
+   void PostDisplay();
+/*
    bool IsRegionCropped() const;
-   void SetRegionCropped(bool val);
+   void SetRegionCropped(bool val);*/
 private:
 
    // interactive session is related to arnold's AiBegin(AI_SESSION_INTERACTIVE)

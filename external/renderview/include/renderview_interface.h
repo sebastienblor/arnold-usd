@@ -24,7 +24,8 @@
 #endif
 
 
-class CRenderViewMainWindow;
+class CRenderViewWindow;
+class CRenderer;
 class CInteractiveRenderer;
 class CInteractiveRendererOptionsWindow;
 class CRenderViewPanManipulator;
@@ -43,15 +44,13 @@ class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
-    CRenderViewInterface() : m_mainWindow(nullptr), m_viewportRenderer(nullptr), m_viewportOptions(nullptr) {}
-    virtual ~CRenderViewInterface() { DestroyRenderView(); DestroyInteractiveRenderer(); }
+    CRenderViewInterface() : m_mainWindow(NULL), m_renderer(NULL)/*m_viewportRenderer(nullptr), m_viewportOptions(nullptr)*/ {}
+    virtual ~CRenderViewInterface() { DestroyRenderView();  }
 
     void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
     void CloseRenderView();
-
     void DestroyRenderView();
 
-    void SetResultsReady();
 /**
  *   Functions to be invoked by the Host
  *   interrogating the RenderView
@@ -64,16 +63,16 @@ public:
    // This function assumes that the Arnold scene already exists
    void Render();
 
-   // Interactive renderer methods
-   void OpenInteractiveRendererOptions(QWidget *parent = 0);
-   QMainWindow *GetInteractiveRendererOptions() { return (QMainWindow *)m_viewportOptions; }
-   void DestroyInteractiveRenderer();
+   // function needed to get the buffer region that needs to be updated.
+   // Note that it's necessary to invoke this function when a paint is done, so that 
+   // the renderer can reset its data and advert us again next time new buckets are computed
+   bool HasRenderResults(AtBBox2 &region);
 
-   void RenderInteractive();
-   void* GetInteractiveResults();
+   // FIXME temp. function to be removed after we switch to new Render Control API
+   void PostDisplay();
 
-   bool IsRegionCropped() const;
-   void SetRegionCropped(bool val);
+   // Return the renderer's buffer, eventually for a specific AOV
+   AtRGBA *GetBuffer(int aovIndex = -1);
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
@@ -150,7 +149,10 @@ public:
    // in case the host application needs to be adverted
    virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
 
-   virtual void InteractiveResultsReady() {}
+
+   // Renderer telling us that something has changed in the render results
+   // If you override it, you have to invoke this parent class so that the window can be refreshed
+   virtual void RenderChanged();
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
@@ -175,9 +177,9 @@ private:
 
    // internal method, used to avoid linking issues with
    void ResizeMainWindow(int w, int h);
-   CRenderViewMainWindow *m_mainWindow;
-   CInteractiveRenderer* m_viewportRenderer;
-   CInteractiveRendererOptionsWindow *m_viewportOptions;
+   CRenderViewWindow *m_mainWindow;
+   CRenderer *m_renderer;
+   
 };
 
 // In the Future these Manipulator classes should be removed and handled

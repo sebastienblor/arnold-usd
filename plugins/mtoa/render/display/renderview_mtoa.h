@@ -59,9 +59,9 @@ public:
 	CRenderViewMtoA();
 	virtual ~CRenderViewMtoA();
 
-    void InteractiveResultsReady() override;
-
+    
    virtual void UpdateSceneChanges();
+   virtual void RenderChanged();
 
    virtual unsigned int GetSelectionCount();
    virtual void GetSelection(AtNode **selectedNodes);
@@ -100,6 +100,8 @@ public:
 
    MStatus RenderSequence(float first, float last, float step);
 
+   void SetViewportRendering(bool b) {m_viewportRendering = b;}   
+
 
 private:
    void UpdateColorManagement();
@@ -128,6 +130,8 @@ private:
    bool m_hasProgressiveRenderStarted;
    bool m_hasProgressiveRenderFinished;
    
+   bool m_viewportRendering;
+
    MString m_preProgressiveStep;
    MString m_postProgressiveStep;
    MString m_progressiveRenderStarted;

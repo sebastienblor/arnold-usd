@@ -139,8 +139,8 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasPreProgressiveStep(false),
    m_hasPostProgressiveStep(false),
    m_hasProgressiveRenderStarted(false),
-   m_hasProgressiveRenderFinished(false)
-
+   m_hasProgressiveRenderFinished(false),
+   m_viewportRendering(false)
 {   
 #ifdef MAYA_MAINLINE
    m_colorPickingCallback = 0x0;
@@ -468,7 +468,10 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 }
 
 void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
-{
+{  /*
+
+   FIXME to be reintroduced
+
 #ifdef ARV_DOCKED
 
     // Docking in maya workspaces only supported from maya 2017.
@@ -525,11 +528,15 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 #else
     CRenderViewInterface::OpenInteractiveRendererOptions(MQtUtil::mainWindow());
 #endif
+*/
 }
 
-void CRenderViewMtoA::InteractiveResultsReady()
+void CRenderViewMtoA::RenderChanged()
 {
-    MGlobal::executeCommandOnIdle("refresh -f;");
+   CRenderViewInterface::RenderChanged();
+    
+   if (m_viewportRendering)
+      MGlobal::executeCommandOnIdle("refresh -f;");
 }
 
 /**

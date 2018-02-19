@@ -173,7 +173,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          renderSession->StartRenderView();
          s_arvExists = true;
          renderSession->SetRenderViewOption("Run IPR", "0");
-         renderSession->SetRenderViewOption("Full IPR Update", "1");
+// (why were we calling this function ?) renderSession->SetRenderViewOption("Full IPR Update", "1");
+
 
 
 		 renderSession->CloseRenderViewWithSession(false); // but DON't close ARV with CMayaScene::End()

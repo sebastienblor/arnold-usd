@@ -5,6 +5,8 @@
 // provided at the time of installation or download, or which otherwise
 // accompanies this software in either electronic or hard copy form.
 //+
+
+
 #include "ArnoldViewOverride.h"
 #include <maya/MItDependencyNodes.h>
 #include <maya/MFnDependencyNode.h>
@@ -14,6 +16,8 @@
 #include <maya/M3dView.h>
 
 #include "scene/MayaScene.h"
+
+#if MAYA_API_VERSION >= 201800
 
 // For override creation we return a UI name so that it shows up in as a
 // renderer in the 3d viewport menus.
@@ -85,6 +89,8 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 
     // Set resolution and camera as passed in.
     CMayaScene::GetRenderSession()->SetResolution(width, height);
+    AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
+    AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
     CMayaScene::GetRenderSession()->SetCamera(camera);
 }
 
@@ -165,19 +171,25 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         return MS::kFailure;
     }
 
-    renderSession->SetResolution(width, height);
-
     if (started)
     {
         // Set the render session camera.
-        renderSession->SetCamera(camera);
-
+        // renderSession->SetCamera(camera);
+        renderSession->SetViewportRendering(true);
         renderSession->RunInteractiveRenderer();
     }
 
     // now get the current bits
     // and create a texture from them.
-    void *buffer = renderSession->GetInteractiveResults();
+    AtBBox2 bounds;
+    // even if there are no new results provided by the renderview, 
+    // we need to proceed, otherwise we'll be painting black.
+    // Note that we're not using the "bounds" region here, about which region
+    // of the buffer needs to be updated
+    renderSession->HasRenderResults(bounds);
+    
+    // FIXME show the desired AOV
+    const AtRGBA *buffer = renderSession->GetRenderBuffer(-1);
     if (buffer)
     {
         if (mTexture == nullptr)
@@ -200,6 +212,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
+    // FIXME temp. function that we need to call for now. We'll manage to remove it
+    // after the renderview switches to the new Render Control API
+    renderSession->PostDisplay();
 
     return MStatus::kSuccess;
 }
@@ -317,3 +332,5 @@ const MSelectionList* UIObjectDraw::objectSetOverride()
     MGlobal::getActiveSelectionList(m_selectionList);
     return &m_selectionList;
 }
+
+#endif

@@ -14,6 +14,7 @@
 #include <maya/MUiMessage.h>
 #include <maya/MSelectionList.h>
 
+#if MAYA_API_VERSION >= 201800
 //
 // Simple override class derived from MRenderOverride
 //
@@ -103,5 +104,7 @@ public:
 protected:
     MSelectionList m_selectionList;
 };
+
+#endif 
 
 #endif

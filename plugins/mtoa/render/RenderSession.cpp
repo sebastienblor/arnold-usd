@@ -748,20 +748,33 @@ void CRenderSession::DoIPRRender()
 
 void CRenderSession::RunInteractiveRenderer()
 {
-    if (s_renderView == NULL)
-        s_renderView = new CRenderViewMtoA;
+   if (s_renderView == NULL)
+      s_renderView = new CRenderViewMtoA;
 
-    InterruptRender(); // clear the previous thread  
-    SetRendering(true);
-    s_renderView->RenderInteractive();
+   InterruptRender(); // clear the previous thread  
+   SetRendering(true);
+
+   s_renderView->Render();
 }
 
-void* CRenderSession::GetInteractiveResults()
+void CRenderSession::PostDisplay()
 {
-    if (s_renderView != NULL)
-        return s_renderView->GetInteractiveResults();
+   if(s_renderView)
+      s_renderView->PostDisplay();
 
-    return nullptr;
+}
+void CRenderSession::SetViewportRendering(bool b)
+{
+   if (s_renderView)
+      s_renderView->SetViewportRendering(b);
+
+}
+bool CRenderSession::HasRenderResults(AtBBox2 &box)
+{
+   if (s_renderView)
+      return s_renderView->HasRenderResults(box);
+
+   return false;
 }
 
 void CRenderSession::RunRenderView()
@@ -784,10 +797,19 @@ void CRenderSession::StartRenderView()
       s_renderView->SetFrame((float)session->GetExportFrame());
    
 }
-
+/*
 bool CRenderSession::IsRegionCropped() const { return s_renderView ? s_renderView->IsRegionCropped() : false; }
 void CRenderSession::SetRegionCropped(bool val) { if (s_renderView) s_renderView->SetRegionCropped(val); }
+*/
+const AtRGBA *CRenderSession::GetRenderBuffer(int aovIndex)
+{
+   if(s_renderView)
+      return s_renderView->GetBuffer(aovIndex);
 
+   return NULL;
+
+
+}
 void CRenderSession::OpenInteractiveRendererOptions()
 {
     if (s_renderView == NULL)
