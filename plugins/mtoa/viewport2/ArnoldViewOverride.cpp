@@ -189,7 +189,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     renderSession->HasRenderResults(bounds);
     
     // FIXME show the desired AOV
-    const AtRGBA *buffer = renderSession->GetRenderBuffer(-1);
+    const AtRGBA *buffer = renderSession->GetDisplayedBuffer();
     if (buffer)
     {
         if (mTexture == nullptr)

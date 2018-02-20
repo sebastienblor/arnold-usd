@@ -801,10 +801,10 @@ void CRenderSession::StartRenderView()
 bool CRenderSession::IsRegionCropped() const { return s_renderView ? s_renderView->IsRegionCropped() : false; }
 void CRenderSession::SetRegionCropped(bool val) { if (s_renderView) s_renderView->SetRegionCropped(val); }
 */
-const AtRGBA *CRenderSession::GetRenderBuffer(int aovIndex)
+const AtRGBA *CRenderSession::GetDisplayedBuffer()
 {
    if(s_renderView)
-      return s_renderView->GetBuffer(aovIndex);
+      return s_renderView->GetDisplayedBuffer();
 
    return NULL;
 

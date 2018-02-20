@@ -44,20 +44,28 @@ class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
-    CRenderViewInterface() : m_mainWindow(NULL), m_renderer(NULL)/*m_viewportRenderer(nullptr), m_viewportOptions(nullptr)*/ {}
-    virtual ~CRenderViewInterface() { DestroyRenderView();  }
-
-    void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
-    void CloseRenderView();
-    void DestroyRenderView();
+   CRenderViewInterface();
+   virtual ~CRenderViewInterface();
 
 /**
  *   Functions to be invoked by the Host
  *   interrogating the RenderView
  **/
 
+   // RenderView functions
+   void OpenRenderView(int width, int height, QWidget *parent = NULL, bool showWin = true);
+   void CloseRenderView();
+   void DestroyRenderView();
    // return the renderView Qt Window
-   QMainWindow *GetRenderView() {return (QMainWindow *)m_mainWindow;}
+   QMainWindow *GetRenderView();
+
+   // Options Window doesn't show the render itself, only the menus
+   void OpenOptionsWindow(int width, int height, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
+   void CloseOptionsWindow();
+   void DestroyOptionsWindow();
+   // return the Qt Options Window
+   QMainWindow *GetOptionsWindow();
+
 
    // Render the scene.
    // This function assumes that the Arnold scene already exists
@@ -71,8 +79,11 @@ public:
    // FIXME temp. function to be removed after we switch to new Render Control API
    void PostDisplay();
 
+   // Get the buffer currently being displayed
+   AtRGBA *GetDisplayedBuffer();
    // Return the renderer's buffer, eventually for a specific AOV
    AtRGBA *GetBuffer(int aovIndex = -1);
+
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
@@ -177,8 +188,7 @@ private:
 
    // internal method, used to avoid linking issues with
    void ResizeMainWindow(int w, int h);
-   CRenderViewWindow *m_mainWindow;
-   CRenderer *m_renderer;
+   
    
 };
 

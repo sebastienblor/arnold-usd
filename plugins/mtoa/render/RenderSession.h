@@ -186,7 +186,7 @@ public:
       
    MFloatPoint mViewRectangle;
    bool IsRegionCropped() const {return false;}
-   const AtRGBA *GetRenderBuffer(int aovIndex=-1);
+   const AtRGBA *GetDisplayedBuffer();
    void PostDisplay();
 /*
    bool IsRegionCropped() const;
