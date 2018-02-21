@@ -124,8 +124,7 @@ public:
    void UpdateRenderView();
    void CloseRenderView();
    void OpenInteractiveRendererOptions();
-   void SetViewportRendering(bool b);
-
+   
    void ObjectNameChanged(MObject& node, const MString& str);
 
 

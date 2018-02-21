@@ -175,7 +175,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         // Set the render session camera.
         // renderSession->SetCamera(camera);
-        renderSession->SetViewportRendering(true);
         renderSession->RunInteractiveRenderer();
     }
 

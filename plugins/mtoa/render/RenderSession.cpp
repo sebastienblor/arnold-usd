@@ -751,6 +751,7 @@ void CRenderSession::RunInteractiveRenderer()
    if (s_renderView == NULL)
       s_renderView = new CRenderViewMtoA;
 
+   s_renderView->SetViewportRendering(true);
    InterruptRender(); // clear the previous thread  
    SetRendering(true);
 
@@ -761,12 +762,6 @@ void CRenderSession::PostDisplay()
 {
    if(s_renderView)
       s_renderView->PostDisplay();
-
-}
-void CRenderSession::SetViewportRendering(bool b)
-{
-   if (s_renderView)
-      s_renderView->SetViewportRendering(b);
 
 }
 bool CRenderSession::HasRenderResults(AtBBox2 &box)
