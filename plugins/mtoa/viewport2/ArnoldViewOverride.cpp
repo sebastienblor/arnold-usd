@@ -19,6 +19,7 @@
 
 #if MAYA_API_VERSION >= 201800
 
+static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
 // For override creation we return a UI name so that it shows up in as a
 // renderer in the 3d viewport menus.
 // 
@@ -86,12 +87,34 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 
     // SetExportCamera mus be called AFTER CMayaScene::Export
     CMayaScene::GetArnoldSession()->SetExportCamera(camera);
-
+    CRenderSession *renderSession = CMayaScene::GetRenderSession();
     // Set resolution and camera as passed in.
-    CMayaScene::GetRenderSession()->SetResolution(width, height);
-    AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
-    AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
-    CMayaScene::GetRenderSession()->SetCamera(camera);
+    if (renderSession)
+    {
+        renderSession->SetResolution(width, height);
+        renderSession->RenderOptions()->UpdateImageDimensions();
+        renderSession->SetCamera(camera);
+
+        CRenderOptions *renderOptions = renderSession->RenderOptions();
+
+		if (renderOptions->useRenderRegion())
+		{
+			// the crop region was already enabled (perhaps from the render settings)
+			// set viewRectangle as in the render options
+	        int width = renderOptions->width();
+			int height = renderOptions->height();
+			int minx = renderOptions->minX();
+			int miny = renderOptions->minY();
+			int maxx = renderOptions->maxX();
+			int maxy = renderOptions->maxY();
+
+			s_ViewRectangle.x = (float)minx / (float)width;
+			s_ViewRectangle.y = 1.f - ((float)maxy / (float)height);
+			s_ViewRectangle.z = (float)maxx / (float)width;
+			s_ViewRectangle.w = 1.f - ((float)miny / (float)height);
+		}
+    }
+
 }
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
@@ -164,6 +187,35 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
     // Create a new texture from an arnold image buffer
     CRenderSession* renderSession = CMayaScene::GetRenderSession();
+    CRenderOptions *renderOptions = renderSession->RenderOptions();
+
+	if (renderSession->IsRegionCropped() != renderOptions->useRenderRegion())
+	{
+		// ARV settings are different from the ones in the render options. ARV wins !
+		if (renderSession->IsRegionCropped())
+		{
+	        renderOptions->SetRegion(int(s_ViewRectangle.x * width), int(s_ViewRectangle.z * width),
+				    int((1.f - s_ViewRectangle.w ) * height), int((1.f - s_ViewRectangle.y) * height)); // expected order is left, right, bottom, top*/
+
+		} else
+		{
+			renderOptions->ClearRegion();
+		}
+	}
+	if (renderOptions && renderOptions->useRenderRegion())
+    {
+        int width = renderOptions->width();
+        int height = renderOptions->height();
+        int minx = renderOptions->minX();
+        int miny = renderOptions->minY();
+        int maxx = renderOptions->maxX();
+        int maxy = renderOptions->maxY();
+
+        s_ViewRectangle.x = (float)minx / (float)width;
+        s_ViewRectangle.y = 1.f - ((float)maxy / (float)height);
+        s_ViewRectangle.z = (float)(maxx) / (float)width;
+        s_ViewRectangle.w = 1.f - ((float)miny / (float)height);
+    }
 
     if (!CMayaScene::IsActive())
     {
@@ -173,8 +225,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
     if (started)
     {
-        // Set the render session camera.
-        // renderSession->SetCamera(camera);
         renderSession->RunInteractiveRenderer();
     }
 
@@ -291,11 +341,15 @@ const MHWRender::MShaderInstance * TextureBlit::shader()
             mShaderInstance = shaderMgr->getEffectsFileShader("aiCopy", "");
         }
     }
-
     MStatus status = MStatus::kFailure;
+
     if (mShaderInstance)
     {
-        mShaderInstance->setParameter("gUseScissorRect", CMayaScene::GetRenderSession()->IsRegionCropped());
+		CRenderSession *renderSession = CMayaScene::GetRenderSession();
+
+        bool regionCropped = (renderSession) ? renderSession->IsRegionCropped() : false; // check if option is enabled in ARV
+		
+        mShaderInstance->setParameter("gUseScissorRect", regionCropped);
         mShaderInstance->setParameter("gScissorRect", &ViewRectangle()[0]);
 
         // If texture changed then bind new texture to the shader
@@ -322,8 +376,8 @@ TextureBlit::clearOperation()
     return mClearOperation;
 }
 
-MFloatPoint TextureBlit::ViewRectangle() const { return CMayaScene::GetRenderSession()->mViewRectangle; }
-MFloatPoint UIObjectDraw::ViewRectangle() const { return CMayaScene::GetRenderSession()->mViewRectangle; }
+MFloatPoint TextureBlit::ViewRectangle() const { return s_ViewRectangle; }
+MFloatPoint UIObjectDraw::ViewRectangle() const { return s_ViewRectangle; }
 
 const MSelectionList* UIObjectDraw::objectSetOverride()
 {

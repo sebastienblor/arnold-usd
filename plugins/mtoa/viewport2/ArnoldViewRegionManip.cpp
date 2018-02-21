@@ -72,8 +72,28 @@ ArnoldViewRegionManipulator::ArnoldViewRegionManipulator()
 , fMousePoint(MPoint())
 , fDrawAsMouseOver(false)
 {
-    mViewRectangle = CMayaScene::GetRenderSession() ?
-        CMayaScene::GetRenderSession()->mViewRectangle : MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+
+    mViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+    // order here is left, top, right, bottom
+
+    // Eventually get the crop region value in the render session
+    CRenderSession *renderSession = CMayaScene::GetRenderSession();
+    CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+	
+    if (renderOptions && renderOptions->useRenderRegion() && renderSession->IsRegionCropped())
+    {
+        int width = renderOptions->width();
+        int height = renderOptions->height();
+        int minx = renderOptions->minX();
+        int miny = renderOptions->minY();
+        int maxx = renderOptions->maxX();
+        int maxy = renderOptions->maxY();
+
+        mViewRectangle.x = (float)minx / (float)width;
+        mViewRectangle.y = 1.f - ((float)maxy / (float)height);
+        mViewRectangle.z = (float)maxx / (float)width;
+        mViewRectangle.w = 1.f - ((float)miny / (float)height);
+    }
 }
 
 ArnoldViewRegionManipulator::~ArnoldViewRegionManipulator()
@@ -127,9 +147,9 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
     MPoint tempPt;
 
     float xPos = mViewRectangle.x * width;
-    float yPos = (1.0 - mViewRectangle.y) * height;
+    float yPos = (1.f - mViewRectangle.y) * height;
     float xPos2 = mViewRectangle.z * width;
-    float yPos2 = (1.0 - mViewRectangle.w) * height;
+    float yPos2 = (1.f - mViewRectangle.w) * height;
 
     float endPointOffset = 0.1f;
 
@@ -390,7 +410,7 @@ MStatus	ArnoldViewRegionManipulator::doDrag(M3dView& view)
 
     float xDelta = float(currentX - startX) / (float)view.portWidth();
     float yDelta = float(currentY - startY) / (float)view.portHeight();
-    const float minSize = 0.01;
+    const float minSize = 0.01f;
 
     if (glActiveName(fActiveName))
     {
@@ -463,14 +483,25 @@ MStatus	ArnoldViewRegionManipulator::doDrag(M3dView& view)
         }
     }
 
-    CMayaScene::GetRenderSession()->mViewRectangle = mViewRectangle;
-
 	return MS::kSuccess;
 }
 
 // virtual
 MStatus ArnoldViewRegionManipulator::doRelease(M3dView& view)
-{
+{    
+    CRenderSession *renderSession = CMayaScene::GetRenderSession();
+    CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+	if (!renderSession->IsRegionCropped()) return MS::kSuccess;
+    if (renderOptions == NULL) return MS::kFailure;
+
+    renderSession->InterruptRender(true);
+    int width = renderOptions->width();
+    int height = renderOptions->height();
+
+    renderOptions->SetRegion(int(mViewRectangle.x * width), int(mViewRectangle.z * width),
+            int((1.f - mViewRectangle.w ) * height), int((1.f - mViewRectangle.y) * height)); // expected order is left, right, bottom, top
+    
+	renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
 	return MS::kSuccess;
 }
 
@@ -483,7 +514,9 @@ bool ArnoldViewRegionManipulator::shouldDraw(const MDagPath& cameraPath) const
 		return false;
 	}
 
-    return CMayaScene::GetRenderSession()->IsRegionCropped();
+    CRenderSession *renderSession = CMayaScene::GetRenderSession();
+    CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+    return (renderOptions) ? renderOptions->useRenderRegion() : false;
 }
 
 //

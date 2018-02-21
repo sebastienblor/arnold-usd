@@ -105,8 +105,6 @@ namespace
 
 MStatus CRenderSession::Begin(const CRenderOptions &options)
 {
-    mViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
-
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
@@ -378,6 +376,14 @@ void CRenderSession::InterruptRender(bool waitFinished)
    }
 }
 
+bool CRenderSession::IsRegionCropped()
+{
+   if (s_renderView)
+      return s_renderView->IsRegionCropped();
+   
+   return false;
+
+}
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -758,6 +764,7 @@ void CRenderSession::RunInteractiveRenderer()
    s_renderView->Render();
 }
 
+
 void CRenderSession::PostDisplay()
 {
    if(s_renderView)
@@ -792,10 +799,7 @@ void CRenderSession::StartRenderView()
       s_renderView->SetFrame((float)session->GetExportFrame());
    
 }
-/*
-bool CRenderSession::IsRegionCropped() const { return s_renderView ? s_renderView->IsRegionCropped() : false; }
-void CRenderSession::SetRegionCropped(bool val) { if (s_renderView) s_renderView->SetRegionCropped(val); }
-*/
+
 const AtRGBA *CRenderSession::GetDisplayedBuffer()
 {
    if(s_renderView)

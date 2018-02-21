@@ -78,12 +78,13 @@ public:
 
    // FIXME temp. function to be removed after we switch to new Render Control API
    void PostDisplay();
-
+   // FIXME temp. to be replaced by a more generic GetOptionValue that would return the value for any option in ARV
+   bool IsRegionCropped();
+   
    // Get the buffer currently being displayed
    AtRGBA *GetDisplayedBuffer();
    // Return the renderer's buffer, eventually for a specific AOV
    AtRGBA *GetBuffer(int aovIndex = -1);
-
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not

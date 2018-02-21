@@ -168,6 +168,10 @@ public:
 
       UpdateImageDimensions();
    }
+   void ClearRegion()
+   {
+      m_useRenderRegion = false;
+   }
 
    MDagPath GetCamera() const
    {

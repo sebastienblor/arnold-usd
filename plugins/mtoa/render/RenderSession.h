@@ -103,9 +103,10 @@ public:
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender(bool waitFinished = true);
 
-   void RunInteractiveRenderer();
-   
+   // FIXME tmp function, to be replaced by a more generic GetOptionValue that returns the value of any ARV option
+   bool IsRegionCropped();
 
+   void RunInteractiveRenderer();
    bool HasRenderResults(AtBBox2 &box);
 
    void RunRenderView();
@@ -183,13 +184,9 @@ public:
    
    static void CloseRenderViewWithSession(bool b);
       
-   MFloatPoint mViewRectangle;
-   bool IsRegionCropped() const {return false;}
    const AtRGBA *GetDisplayedBuffer();
    void PostDisplay();
-/*
-   bool IsRegionCropped() const;
-   void SetRegionCropped(bool val);*/
+
 private:
 
    // interactive session is related to arnold's AiBegin(AI_SESSION_INTERACTIVE)
