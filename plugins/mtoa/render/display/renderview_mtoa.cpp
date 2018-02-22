@@ -501,7 +501,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    }
    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
 
-   std::string menusFilter = "AOVs;Crop Region;Refresh Render;Update Full Scene;Abort Render";
+   std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow());
 
    QMainWindow *optWin = GetOptionsWindow();
