@@ -1561,6 +1561,11 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
 
    if(updateRender)
    {
+      /* FIXME we could probably do a simple re-render
+      renderSession->InterruptRender(true);
+      renderSession->SetResolution(width, height);
+      renderViewMtoA->SetOption("Refresh Render", "1");
+      */
       renderViewMtoA->SetOption("Full IPR Update", "1");
 
       // want to resize the window

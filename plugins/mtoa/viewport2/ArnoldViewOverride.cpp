@@ -179,13 +179,52 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     }
 
     bool started = false;
-    if (!CMayaScene::IsActive())
+    if (CMayaScene::IsActive())
+	{
+		CRenderSession* renderSession = CMayaScene::GetRenderSession();
+		CRenderOptions *renderOptions = renderSession->RenderOptions();
+
+        // A render had already started, we want to check if the window size has changed
+		int previousWidth = renderOptions->width();
+		int previousHeight = renderOptions->height();
+		if (previousWidth != width || previousHeight != height)
+		{
+			AtBBox2 bounds;
+
+			renderSession->HasRenderResults(bounds);
+			renderSession->PostDisplay();
+			renderSession->InterruptRender(true);
+			renderSession->SetResolution(width, height);
+			renderOptions->UpdateImageDimensions();
+		
+			if (mTexture)
+			{
+                // clear the texture so that it's generated at next display
+				MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
+				MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
+				textureManager->releaseTexture(mTexture);
+				mTexture = NULL;
+			}
+			if (renderOptions->useRenderRegion())
+			{
+                // eventually adapt the arnold crop region
+				renderOptions->SetRegion(int(s_ViewRectangle.x * width), int(s_ViewRectangle.z * width),
+				    int((1.f - s_ViewRectangle.w ) * height), int((1.f - s_ViewRectangle.y) * height)); // expected order is left, right, bottom, top*/
+
+			}
+
+            // now restart the render and early out. We'll be called here again in the next refresh.
+    		renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+			return MS::kSuccess;
+		}
+
+	} else
     {
         startRenderView(camera, width, height);
         started = true;
     }
+	
 
-    // Create a new texture from an arnold image buffer
     CRenderSession* renderSession = CMayaScene::GetRenderSession();
     CRenderOptions *renderOptions = renderSession->RenderOptions();
 
