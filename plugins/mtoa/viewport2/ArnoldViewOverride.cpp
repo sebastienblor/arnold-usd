@@ -112,13 +112,21 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 			s_ViewRectangle.y = 1.f - ((float)maxy / (float)height);
 			s_ViewRectangle.z = (float)maxx / (float)width;
 			s_ViewRectangle.w = 1.f - ((float)miny / (float)height);
-		}
+		} else
+        {
+            renderOptions->SetRegion(int(s_ViewRectangle.x * width), int(s_ViewRectangle.z * width),
+                        int((1.f - s_ViewRectangle.w ) * height), int((1.f - s_ViewRectangle.y) * height)); // expected order is left, right, bottom, top*/     
+        }
+        renderSession->SetRenderViewOption(MString("Crop Region"), MString("1"));
+
     }
 
 }
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
+    bool firstRender = !CMayaScene::IsActive();
+
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
         return MStatus::kFailure;
@@ -178,8 +186,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mView.getCamera(camera);
     }
 
-    bool started = false;
-    if (CMayaScene::IsActive())
+    if (firstRender)
+    {
+        startRenderView(camera, width, height);
+    } else
 	{
 		CRenderSession* renderSession = CMayaScene::GetRenderSession();
 		CRenderOptions *renderOptions = renderSession->RenderOptions();
@@ -218,11 +228,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 			return MS::kSuccess;
 		}
 
-	} else
-    {
-        startRenderView(camera, width, height);
-        started = true;
-    }
+	} 
 	
 
     CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -262,9 +268,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         return MS::kFailure;
     }
 
-    if (started)
+    if (firstRender)
     {
         renderSession->RunInteractiveRenderer();
+    
     }
 
     // now get the current bits
