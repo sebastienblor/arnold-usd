@@ -376,6 +376,14 @@ void CRenderSession::InterruptRender(bool waitFinished)
    }
 }
 
+bool CRenderSession::IsRegionCropped()
+{
+   if (s_renderView)
+      return s_renderView->IsRegionCropped();
+   
+   return false;
+
+}
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -744,6 +752,32 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+void CRenderSession::RunInteractiveRenderer()
+{
+   if (s_renderView == NULL)
+      s_renderView = new CRenderViewMtoA;
+
+   s_renderView->SetViewportRendering(true);
+   InterruptRender(); // clear the previous thread  
+   SetRendering(true);
+
+   s_renderView->Render();
+}
+
+
+void CRenderSession::PostDisplay()
+{
+   if(s_renderView)
+      s_renderView->PostDisplay();
+
+}
+bool CRenderSession::HasRenderResults(AtBBox2 &box)
+{
+   if (s_renderView)
+      return s_renderView->HasRenderResults(box);
+
+   return false;
+}
 
 void CRenderSession::RunRenderView()
 {
@@ -764,6 +798,24 @@ void CRenderSession::StartRenderView()
    if (session)
       s_renderView->SetFrame((float)session->GetExportFrame());
    
+}
+
+const AtRGBA *CRenderSession::GetDisplayedBuffer()
+{
+   if(s_renderView)
+      return s_renderView->GetDisplayedBuffer();
+
+   return NULL;
+
+
+}
+void CRenderSession::OpenInteractiveRendererOptions()
+{
+    if (s_renderView == NULL)
+    {
+        s_renderView = new CRenderViewMtoA;
+    }
+    s_renderView->OpenMtoAViewportRendererOptions();
 }
 
 void CRenderSession::UpdateRenderView()

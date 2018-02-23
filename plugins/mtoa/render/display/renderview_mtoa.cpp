@@ -46,7 +46,8 @@ void CRenderViewMtoA::Resize(int w, int h){}
 
 #if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
-static QWidget *s_workspaceControl = NULL;
+static QWidget *s_arvWorkspaceControl = NULL;
+static QWidget *s_optWorkspaceControl = NULL;
 #else
 #include "QtGui/qmainwindow.h"
 #endif
@@ -139,8 +140,8 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasPreProgressiveStep(false),
    m_hasPostProgressiveStep(false),
    m_hasProgressiveRenderStarted(false),
-   m_hasProgressiveRenderFinished(false)
-
+   m_hasProgressiveRenderFinished(false),
+   m_viewportRendering(false)
 {   
 #ifdef MAYA_MAINLINE
    m_colorPickingCallback = 0x0;
@@ -273,7 +274,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    MString workspaceCmd = "workspaceControl ";
 
    bool firstCreation = true;
-   if (s_workspaceControl)
+   if (s_arvWorkspaceControl)
    {
       workspaceCmd += " -edit -visible true ";
       firstCreation = false;
@@ -308,10 +309,10 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    {
       // returns a pointer to th workspace called above, 
       // but only for the creation ! if I call it with "-edit visible true" it can return 0
-      s_workspaceControl = MQtUtil::getCurrentParent(); 
-      MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
+      s_arvWorkspaceControl = MQtUtil::getCurrentParent(); 
+      MQtUtil::addWidgetToMayaLayout(arv, s_arvWorkspaceControl);  // attaches ARV to the workspace
       arv->show();
-      s_workspaceControl->show();
+      s_arvWorkspaceControl->show();
 
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
@@ -465,6 +466,75 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MColorPickerUtilities::doRegisterToColorPicking(GetRenderView(), m_colorPickingCallback);
    }
 #endif
+}
+
+void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
+{ 
+#ifdef ARV_DOCKED
+
+   // Docking in maya workspaces only supported from maya 2017.
+   // For older versions, we tried using QDockWindows (see branch FB-2470)
+   // but the docking was way too sensitive, and not very usable in practice
+
+   //s_creatingARV = true;
+   MString workspaceCmd = "workspaceControl ";
+
+   bool firstCreation = true;
+   if (s_optWorkspaceControl)
+   {
+      workspaceCmd += " -edit -visible true ";
+      firstCreation = false;
+   }
+   else
+   {
+      workspaceCmd += " -li 1"; // load immediately
+//         workspaceCmd += " -iw "; // initial width
+//         workspaceCmd += width;
+//         workspaceCmd += " -ih "; // initiall height
+//         workspaceCmd += height;
+
+      workspaceCmd += " -requiredPlugin \"mtoa\"";
+
+      // command called when closed. It's not ARV itself that is closed now, but the workspace !
+      // Now we need to rely on the visibilityChange callback
+      workspaceCmd += " -l \"Arnold ViewportRenderer Options\" "; // label
+   }
+   workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
+
+   std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
+   menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR";
+   CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow());
+   QMainWindow *optWin = GetOptionsWindow();
+   optWin->setWindowFlags(Qt::Widget);
+
+   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+
+   if (firstCreation)
+   {
+      // returns a pointer to th workspace called above, 
+      // but only for the creation ! if I call it with "-edit visible true" it can return 0
+      s_optWorkspaceControl = MQtUtil::getCurrentParent();
+      MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
+      optWin->show();
+      s_optWorkspaceControl->show();
+   }
+   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" \"ArnoldViewportRendererOptions\"");
+   MGlobal::executeCommand(uiScriptCommand);
+
+    //s_creatingARV = false;
+#else
+    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow());
+#endif
+
+}
+
+void CRenderViewMtoA::RenderChanged()
+{
+   CRenderViewInterface::RenderChanged();
+    
+   if (m_viewportRendering)
+      MGlobal::executeCommandOnIdle("refresh -f;");
 }
 
 /**
@@ -865,9 +935,15 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
 
+   if (!s_arvWorkspaceControl)
+      return;
+
 #ifdef ARV_DOCKED
+   
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
    MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+
+   
 #else
 
    // closing ARV, we want to get the previous width / height
@@ -1485,6 +1561,11 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
 
    if(updateRender)
    {
+      /* FIXME we could probably do a simple re-render
+      renderSession->InterruptRender(true);
+      renderSession->SetResolution(width, height);
+      renderViewMtoA->SetOption("Refresh Render", "1");
+      */
       renderViewMtoA->SetOption("Full IPR Update", "1");
 
       // want to resize the window
@@ -1679,6 +1760,9 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 
 void CRenderViewMtoA::Resize(int width, int height)
 {
+   if (s_arvWorkspaceControl == NULL)
+      return;
+
    CRenderViewInterface::Resize(width, height);
 
    if(MGlobal::apiVersion() < 201760) // this option was only implemented in Maya 2017 Update 4

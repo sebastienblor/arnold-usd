@@ -19,6 +19,7 @@ public:
 
    void CloseRenderView(){}
    void Render(){}
+   void RenderInteractive() {}
    void SceneChanged(){}
    void HostSelectionChanged(const AtNode **selection, unsigned int size){}
    void InterruptRender(){}
@@ -58,7 +59,9 @@ public:
 	CRenderViewMtoA();
 	virtual ~CRenderViewMtoA();
 
+    
    virtual void UpdateSceneChanges();
+   virtual void RenderChanged();
 
    virtual unsigned int GetSelectionCount();
    virtual void GetSelection(AtNode **selectedNodes);
@@ -93,8 +96,11 @@ public:
    static void SequenceRenderCallback(float, float, void *);
    
    void OpenMtoARenderView(int width, int height);
+   void OpenMtoAViewportRendererOptions();
 
    MStatus RenderSequence(float first, float last, float step);
+
+   void SetViewportRendering(bool b) {m_viewportRendering = b;}   
 
 
 private:
@@ -124,6 +130,8 @@ private:
    bool m_hasProgressiveRenderStarted;
    bool m_hasProgressiveRenderFinished;
    
+   bool m_viewportRendering;
+
    MString m_preProgressiveStep;
    MString m_postProgressiveStep;
    MString m_progressiveRenderStarted;

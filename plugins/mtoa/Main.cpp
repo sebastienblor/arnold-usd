@@ -18,6 +18,9 @@
 #include "viewport2/ArnoldProceduralGeometryOverride.h"
 #include "viewport2/ArnoldStandInSubSceneOverride.h"
 #include <maya/MSelectionMask.h>
+#include <maya/MViewport2Renderer.h>
+#include "viewport2/ArnoldViewOverride.h"
+#include "viewport2/ArnoldViewRegionManip.h"
 #else
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldLightBlockerDrawOverride.h"
@@ -50,6 +53,7 @@
 #include "commands/ArnoldFlushCmd.h"
 #include "commands/ArnoldCopyAsAdminCmd.h"
 #include "commands/ArnoldRenderViewCmd.h"
+#include "commands/ArnoldViewportRendererOptionsCmd.h"
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
@@ -108,6 +112,7 @@
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
+#include <maya/MTemplateCommand.h>
 
 #include <ai.h>
 
@@ -148,7 +153,8 @@ namespace // <anonymous>
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax},
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
-      {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax}
+      {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
+      {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, 0}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
@@ -345,6 +351,23 @@ namespace // <anonymous>
       }  
    };
 #endif
+
+   //
+   // Template command that creates and deletes the manipulator
+   //
+   class aiViewRegionCmd;
+   char cmdName[] = "aiViewRegionCmd";
+   char nodeName[] = "aiViewRegion";
+
+   class aiViewRegionCmd : public MTemplateCreateNodeCommand<aiViewRegionCmd, cmdName, nodeName>
+   {
+   public:
+       //
+       aiViewRegionCmd()
+       {}
+   };
+
+   static aiViewRegionCmd _aiViewRegionCmd;
 
    template < typename T, size_t N >
    size_t sizeOfArray(T const (&array)[ N ])
@@ -1174,6 +1197,35 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       AI_PROCEDURAL_CLASSIFICATION,
       "arnoldProceduralNodeOverride",
       CArnoldProceduralGeometryOverride::Creator);
+
+#if MAYA_API_VERSION >= 201800
+   MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+   if (renderer)
+   {
+       // We register with a given name
+       ArnoldViewOverride *overridePtr = new ArnoldViewOverride("arnoldViewOverride");
+       if (overridePtr)
+       {
+           renderer->registerOverride(overridePtr);
+       }
+   }
+#endif
+   char nodeName[] = "aiViewRegion";
+   status = plugin.registerNode(
+       nodeName,
+       ArnoldViewRegionManipulator::id,
+       ArnoldViewRegionManipulator::creator,
+       ArnoldViewRegionManipulator::initialize,
+       MPxNode::kManipulatorNode);
+   if (!status) {
+       status.perror("registerNode");
+   }
+
+   status = _aiViewRegionCmd.registerCommand(object);
+   if (!status) {
+       status.perror("registerCommand");
+   }
+
 #endif
 #endif
    
@@ -1322,6 +1374,30 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    // Register a custom selection mask
    MSelectionMask::deregisterSelectionType("arnoldLightSelection");
+
+   MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+   if (renderer)
+   {
+       // Find override with the given name and deregister
+       const MHWRender::MRenderOverride* overridePtr = renderer->findRenderOverride("arnoldViewOverride");
+       if (overridePtr)
+       {
+           renderer->deregisterOverride(overridePtr);
+           delete overridePtr;
+       }
+   }
+
+   status = plugin.deregisterNode(ArnoldViewRegionManipulator::id);
+   if (!status) {
+       status.perror("deregisterNode");
+       }
+
+   status = _aiViewRegionCmd.deregisterCommand(object);
+   if (!status) {
+       status.perror("deregisterCommand");
+       return status;
+   }
+
 #endif
 #endif
 
