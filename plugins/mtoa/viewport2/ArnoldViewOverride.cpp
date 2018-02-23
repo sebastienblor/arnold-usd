@@ -16,6 +16,7 @@
 #include <maya/M3dView.h>
 
 #include "scene/MayaScene.h"
+#include "translators/DagTranslator.h"
 
 #if MAYA_API_VERSION >= 201800
 
@@ -186,6 +187,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mView.getCamera(camera);
     }
 
+
     if (firstRender)
     {
         startRenderView(camera, width, height);
@@ -200,7 +202,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 		if (previousWidth != width || previousHeight != height)
 		{
 			AtBBox2 bounds;
-
 			renderSession->HasRenderResults(bounds);
 			renderSession->PostDisplay();
 			renderSession->InterruptRender(true);
@@ -227,6 +228,22 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     		renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
 			return MS::kSuccess;
 		}
+        if (!(renderSession->GetCamera() == camera))
+        {
+            // the camera has changed
+            renderSession->InterruptRender(true);
+            CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+            // SetExportCamera mus be called AFTER CMayaScene::Export
+            CMayaScene::GetArnoldSession()->SetExportCamera(camera);
+            renderSession->SetCamera(camera);
+            AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
+            if (camNode)
+                AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
+
+            // now restart the render and early out. We'll be called here again in the next refresh.
+            renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+            return MS::kSuccess;
+        }
 
 	} 
 	
@@ -339,9 +356,22 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
     void* clientData)
 {
     if (oldOverride == "arnoldViewOverride")
+    {
+        // Kill everything !!
         MGlobal::executeCommand("aiViewRegionCmd -delete;");
+        CRenderSession* renderSession = CMayaScene::GetRenderSession();
+        if (renderSession)
+        {
+            renderSession->InterruptRender(true);
+            renderSession->CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
+            CMayaScene::End();
+        }
+    }
     if (newOverride == "arnoldViewOverride")
+    {
+        MGlobal::executeCommand("aiViewRegionCmd -delete;");
         MGlobal::executeCommand("aiViewRegionCmd -create;");
+    }
 }
 
 //
