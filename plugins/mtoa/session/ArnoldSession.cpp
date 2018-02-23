@@ -72,6 +72,7 @@ namespace // <anonymous>
         return false;
 
       MPlug templatePlug = node.findPlug("template", &status);
+      MPlug overEnablePlug = node.findPlug("overrideEnabled", &status);
       MPlug overDispPlug = node.findPlug("overrideDisplayType", &status);
 
       if (status == MStatus::kFailure)
@@ -80,7 +81,7 @@ namespace // <anonymous>
       if (templatePlug.asBool())
         return true;
       else
-         if (overDispPlug.asInt()==1)
+         if (overEnablePlug.asBool() && overDispPlug.asInt()==1)
             return true;
          else
             return false;
@@ -712,11 +713,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          status = ExportCameras();
       }
-      // Then we filter them out to avoid double exporting cameras
-      // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
       // For render selected we need all the lights (including unselected ones)
       status = ExportLights();
-      // m_sessionOptions.m_filter.excluded.insert(MFn::kLight);
       status = ExportDag(selected);
    }
    else if (exportMode == MTOA_SESSION_ASS)
@@ -742,8 +740,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          {
             status = ExportCameras();
          }
-         // Then we filter them out to avoid double exporting cameras
-         // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
          // Update light linking info
          // FIXME: use a translator for light linker node(s)
          status = ExportLights();
@@ -1045,9 +1041,11 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
             MString name = node.name();
             if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
                continue;
-            if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
+
+            // FIXME both filters below happen to always be enabled 
+            if (/*(mask & MTOA_FILTER_TEMPLATED) && */ IsTemplatedPath(path))
                continue;
-            if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
+            if (/*(mask & MTOA_FILTER_HIDDEN) &&*/ !IsVisiblePath(path))
                continue;
             
             MStatus stat;
@@ -1407,15 +1405,17 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExpo
    if (NULL == filter) filter = &GetExportFilter();
    // Tests that cause the whole branch to be pruned
    unsigned int mask = filter->state_mask;
-   if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
+   // FIXME both filters below appear to always be enabled
+   if (/*(mask & MTOA_FILTER_TEMPLATED) &&*/ IsTemplatedPath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
-   if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
+   if (/*(mask & MTOA_FILTER_HIDDEN) &&*/ !IsVisiblePath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
    // Tests that cause the node to be ignored
    if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
       return MTOA_EXPORT_REJECTED_NODE;
 
    // Then test against all types passed in the MFN::Types array
+   /* This is no longer used
    MObject obj = path.node();
    MFnDagNode node(obj);
    MString name = node.name();
@@ -1423,7 +1423,7 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExpo
    for(; sit!=send;++sit)
       if (obj.hasFn(*sit))
          return MTOA_EXPORT_REJECTED_NODE;
-
+   */
    return MTOA_EXPORT_ACCEPTED;
 }
 
@@ -2142,7 +2142,7 @@ const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
 }
 
 
-bool CArnoldSession::IsVisible(MFnDagNode &node) const
+bool CArnoldSession::IsVisible(MFnDagNode &node)
 {
    MStatus status;
 
@@ -2152,7 +2152,8 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    // The material view objects in Maya has always visibility disabled
    // to not show up by default in the scenes. So we need to override
    // that here and always return true for objects in material view session
-   if (GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+   if (session && session->GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
       return true;
 
    MPlug visPlug = node.findPlug("visibility", &status);
@@ -2181,7 +2182,7 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    return true;
 }
 
-bool CArnoldSession::IsVisiblePath(MDagPath dagPath) const
+bool CArnoldSession::IsVisiblePath(MDagPath dagPath)
 {
    MStatus stat = MStatus::kSuccess;
    while (stat == MStatus::kSuccess)

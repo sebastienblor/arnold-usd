@@ -24,7 +24,10 @@
 #endif
 
 
-class CRenderViewMainWindow;
+class CRenderViewWindow;
+class CRenderer;
+class CInteractiveRenderer;
+class CInteractiveRendererOptionsWindow;
 class CRenderViewPanManipulator;
 class CRenderViewZoomManipulator;
 class CRenderViewRotateManipulator;
@@ -41,26 +44,47 @@ class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
-   CRenderViewInterface() : m_mainWindow(NULL) {}
+   CRenderViewInterface() {};
    virtual ~CRenderViewInterface() {DestroyRenderView();}
-
-   void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
-   void CloseRenderView();
-
-   void DestroyRenderView();
-
 
 /**
  *   Functions to be invoked by the Host
  *   interrogating the RenderView
  **/
 
+   // RenderView functions
+   void OpenRenderView(int width, int height, QWidget *parent = NULL, bool showWin = true);
+   void CloseRenderView();
+   void DestroyRenderView();
    // return the renderView Qt Window
-   QMainWindow *GetRenderView() {return (QMainWindow *)m_mainWindow;}
+   QMainWindow *GetRenderView();
+
+   // Options Window doesn't show the render itself, only the menus
+   void OpenOptionsWindow(int width, int height, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
+   void CloseOptionsWindow();
+   void DestroyOptionsWindow();
+   // return the Qt Options Window
+   QMainWindow *GetOptionsWindow();
+
 
    // Render the scene.
    // This function assumes that the Arnold scene already exists
    void Render();
+
+   // function needed to get the buffer region that needs to be updated.
+   // Note that it's necessary to invoke this function when a paint is done, so that 
+   // the renderer can reset its data and advert us again next time new buckets are computed
+   bool HasRenderResults(AtBBox2 &region);
+
+   // FIXME temp. function to be removed after we switch to new Render Control API
+   void PostDisplay();
+   // FIXME temp. to be replaced by a more generic GetOptionValue that would return the value for any option in ARV
+   bool IsRegionCropped();
+   
+   // Get the buffer currently being displayed
+   AtRGBA *GetDisplayedBuffer();
+   // Return the renderer's buffer, eventually for a specific AOV
+   AtRGBA *GetBuffer(int aovIndex = -1);
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
@@ -98,7 +122,6 @@ public:
    // Get a serialized definition of the RenderView options
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);
    void SetFromSerialized(const char *);
-   
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
@@ -138,6 +161,11 @@ public:
    // in case the host application needs to be adverted
    virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
 
+
+   // Renderer telling us that something has changed in the render results
+   // If you override it, you have to invoke this parent class so that the window can be refreshed
+   virtual void RenderChanged() {UpdateGlWidget();}
+
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
@@ -161,8 +189,8 @@ private:
 
    // internal method, used to avoid linking issues with
    void ResizeMainWindow(int w, int h);
-   CRenderViewMainWindow *m_mainWindow;
-
+   void UpdateGlWidget();
+   
 };
 
 // In the Future these Manipulator classes should be removed and handled

@@ -998,7 +998,8 @@ void CBaseAttrHelper::MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrDat
    MAKE_OUTPUT(nAttr, attrib);
 
    attribA = nAttr.create(OUT_ALPHA_NAME, data.shortName + "a", MFnNumericData::kFloat);
-   nAttr.setHidden(true);
+   // why were we hiding this attribute ? see #3227 
+   //nAttr.setHidden(true);
    MAKE_OUTPUT(nAttr, attribA);
 }
 

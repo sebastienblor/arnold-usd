@@ -169,6 +169,7 @@ void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)
    bool recreate_geom = (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache");
    recreate_geom = recreate_geom || (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv")/*|| node.apiType() == MFn::kPluginShape*/;
    recreate_geom = recreate_geom || (plugName.indexW("mooth") >= 1); // parameters relative to smooth
+   recreate_geom = recreate_geom || (plugName.length() > 7 && plugName.substring(0,6) == ".aiDisp");
    
    // UVs being changed. Most of the time they trigger a change in .inMesh
    // but not always

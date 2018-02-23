@@ -469,9 +469,9 @@ class NodeLocked(object):
         cmds.text(align="left",label="License file (.lic)")
         file = cmds.textField()
         cmds.text(label="")
-        cmds.button( label='...', command=lambda *args: self.dotDotDotButtonPush(file) )
+        cmds.button( label='...', command=lambda arg=None,x=file: self.dotDotDotButtonPush(x) )
         cmds.text(label="")
-        cmds.button( label='Install', command=lambda *args: self.installButtonPush(file) )
+        cmds.button( label='Install', command=lambda arg=None,x=file: self.installButtonPush(x) )
         cmds.text(label="")
 
         cmds.text(label="")

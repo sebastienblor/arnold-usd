@@ -221,13 +221,10 @@ MStatus CArnoldVolumeShape::initialize()
    addAttribute(s_frame);
    
    s_padding = nAttr.create("padding", "padd", MFnNumericData::kFloat, 0.0f);
-   nAttr.setStorable(true);
-   nAttr.setKeyable(true);
-   nAttr.setSoftMin(0.0);
-   nAttr.setSoftMax(1.0);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
    addAttribute(s_padding);
-   
-   
+      
    
    s_velocity_grids = tAttr.create("velocityGrids", "vGrids", MFnData::kString);
    tAttr.setHidden(false);
@@ -365,7 +362,7 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    plug.setAttribute(s_frame);
    plug.getValue(m_frame);
    
-   plug.setAttribute(s_padding);
+   plug.setAttribute(s_volume_padding);
    plug.getValue(m_padding);
    
    

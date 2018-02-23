@@ -18,12 +18,11 @@
 #include <maya/MFnAttribute.h>
 #include <maya/MMatrix.h>
 
-
 #include <maya/MColor.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MEulerRotation.h>
 #include <maya/MAngle.h>
-
+#include <maya/MSelectionList.h>
 #include <maya/MRenderUtil.h>
 
 #include <string>
@@ -2485,3 +2484,52 @@ void* CreateQuadShadingSwitchTranslator()
    return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }
 
+
+
+
+// Toon
+//
+void CToonTranslator::NodeInitializer(CAbTranslator context)
+{
+   CNodeTranslator::NodeInitializer(context);
+}
+
+void CToonTranslator::Export(AtNode* shader)
+{
+   CShaderTranslator::Export(shader);
+
+   // Now we need to do something special for attribute "rim_light".
+   // It is a string in arnold, but it's actually an implicit connection to another node.
+   // We need to ensure this connection is created in the translator by calling ExportConnectedNode,
+   // and we need to use the real name of the light node, which might be different from the maya name.
+   MPlug lightPlug = FindMayaPlug("rimLight");
+   if (!lightPlug.isNull())
+   {
+      MString lightName = lightPlug.asString();
+      if (lightName.length() > 0)
+      {
+         MSelectionList activeList;
+         activeList.add(lightName);
+         if (activeList.length() > 0)
+         {
+            MObject lightObj;
+            activeList.getDependNode(0, lightObj);
+            if (!lightObj.isNull())
+            {
+               MPlug dummyPlug = MFnDependencyNode(lightObj).findPlug("message");
+               if (!dummyPlug.isNull())
+               {
+                  AtNode *lightArnoldNode = ExportConnectedNode(dummyPlug);
+                  AtString lightArnoldName = (lightArnoldNode) ? AtString(AiNodeGetName(lightArnoldNode)) : AtString("");
+                  AiNodeSetStr(shader, "rim_light", lightArnoldName); 
+               }               
+            }
+         }
+      }
+   }
+}
+
+AtNode* CToonTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("toon");
+}

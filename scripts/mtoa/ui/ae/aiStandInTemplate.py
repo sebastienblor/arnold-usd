@@ -28,12 +28,12 @@ def ArnoldStandInTemplateDsoNew(attrName) :
     cmds.text(label='Path ')
     path = cmds.textField('standInDsoPath',changeCommand=lambda *args: ArnoldStandInDsoEdit(attrName, *args))
     cmds.textField( path, edit=True, text=cmds.getAttr(attrName) )
-    cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda *args: LoadStandInButtonPush(attrName))
+    cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda arg=None, x=attrName: LoadStandInButtonPush(x))
 
 def ArnoldStandInTemplateDsoReplace(attrName) :
     cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(attrName, *args))
     cmds.textField( 'standInDsoPath', edit=True, text=cmds.getAttr(attrName) )
-    cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadStandInButtonPush(attrName))
+    cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda arg=None, x=attrName: LoadStandInButtonPush(x))
 
 
 def ArnoldStandInUpdateUI(attrName) :

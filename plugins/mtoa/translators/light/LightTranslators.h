@@ -166,6 +166,9 @@ public:
 
    virtual void ExportMotion(AtNode* light);
 protected:
+
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
    MPlug GetPlug(const MObject& obj, const MString &attrName, MStatus* ReturnStatus = NULL) const
    {
       MFnDependencyNode fnNode(obj);
@@ -188,14 +191,14 @@ public:
    virtual MObject GetMeshObject() const;
    static void NodeInitializer(CAbTranslator context);
    
+   /// Customize the callbacks invoked during IPR updates for DAG nodes
+   virtual void AddUpdateCallbacks();
 
    static void* creator()
    {
       return new CMeshLightNewTranslator();
    }
 
-protected:
-   virtual void NodeChanged(MObject& node, MPlug& plug);
 };
 
 

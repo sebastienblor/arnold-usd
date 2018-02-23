@@ -45,6 +45,7 @@ enum ArnoldShadowLinkMode
 };
 
 // Filters
+// FIXME we just use the layer filter, in case we're exporting a selection
 #define MTOA_FILTER_DISABLE   0x0000
 #define MTOA_FILTER_HIDDEN    0x0001
 #define MTOA_FILTER_TEMPLATED 0x0002
@@ -53,7 +54,8 @@ enum ArnoldShadowLinkMode
 
 typedef unordered_set<MFn::Type, hash<int> > MFnTypeSet;
 
-struct CMayaExportFilter
+// FIXME This should be removed as it's legacy
+struct CMayaExportFilter  
 {
    unsigned int state_mask;
    MFnTypeSet excluded;

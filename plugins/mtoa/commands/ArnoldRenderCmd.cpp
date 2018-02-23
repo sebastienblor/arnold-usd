@@ -540,8 +540,11 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       // Start the render.
       int stat = renderSession->DoInteractiveRender();
-      if (stat != AI_SUCCESS)
+      
+      //See #3283 : we actually don't want the maya command to return failure. when we interrupt the render
+      if (stat != AI_SUCCESS && stat != AI_INTERRUPT)
          status = MS::kFailure;
+        
 
       CMayaScene::End();
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);

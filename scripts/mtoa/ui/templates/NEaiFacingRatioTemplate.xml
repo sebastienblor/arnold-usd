@@ -17,4 +17,7 @@
 		<property name='bias'/>
 		<property name='gain'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiFacingRatio'>
+		<property name='outValue'/>
+	</view>
 </templates>

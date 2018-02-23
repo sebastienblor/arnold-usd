@@ -9,4 +9,7 @@
 	<view name='NEDefault' template='NEaiStateFloat'>
 		<property name='outValue'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiStateFloat'>
+		<property name='outValue'/>
+	</view>
 </templates>

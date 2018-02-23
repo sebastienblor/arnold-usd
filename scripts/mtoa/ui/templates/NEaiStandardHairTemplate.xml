@@ -65,4 +65,7 @@
 		<property name='emission'/>
 		<property name='emissionColor'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiStandardHair'>
+		<property name='outColor'/>
+	</view>
 </templates>

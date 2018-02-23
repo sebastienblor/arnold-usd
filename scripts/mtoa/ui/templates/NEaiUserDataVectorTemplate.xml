@@ -13,4 +13,7 @@
 		<property name='outValue'/>
 		<property name='defaultValue'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiUserDataVector'>
+		<property name='outValue'/>
+	</view>
 </templates>

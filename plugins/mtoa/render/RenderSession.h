@@ -13,6 +13,7 @@
 #include <maya/MThreadAsync.h>
 #include <maya/MComputation.h>
 #include <maya/MImage.h>
+#include <maya/MFloatPoint.h>
 
 
 /** CRenderSession handles the management of Arnold and rendering.
@@ -102,8 +103,15 @@ public:
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender(bool waitFinished = true);
 
+   // FIXME tmp function, to be replaced by a more generic GetOptionValue that returns the value of any ARV option
+   bool IsRegionCropped();
+
+   void RunInteractiveRenderer();
+   bool HasRenderResults(AtBBox2 &box);
+
    void RunRenderView();
-   void SetRenderViewOption(const MString &option, const MString &value);
+   static void SetRenderViewOption(const MString &option, const MString &value);
+   static void FillRenderViewCameras();
 
    /// Start and IPR render.
    void DoIPRRender();
@@ -116,7 +124,8 @@ public:
    void StartRenderView();
    void UpdateRenderView();
    void CloseRenderView();
-
+   void OpenInteractiveRendererOptions();
+   
    void ObjectNameChanged(MObject& node, const MString& str);
 
 
@@ -172,16 +181,21 @@ public:
 
    bool RenderSequence();
    void UpdateRenderOptions();
+   
+   static void CloseRenderViewWithSession(bool b);
       
+   const AtRGBA *GetDisplayedBuffer();
+   void PostDisplay();
+
 private:
 
    // interactive session is related to arnold's AiBegin(AI_SESSION_INTERACTIVE)
    CRenderSession(bool interactiveSession = true)
       : m_paused_ipr(false)
       , m_is_active(false)
-      , m_render_thread(NULL)
-      , m_rendering(0)
       , m_interactiveSession(interactiveSession)
+      , m_render_thread(NULL)
+      , m_rendering(0)      
    {
    }
 
@@ -199,8 +213,6 @@ private:
    /// This is the static method for performing an interactive render.
    /// data should be a CRenderSession pointer.
    static unsigned int InteractiveRenderThread(void* data);
-
-
 
 private:
 

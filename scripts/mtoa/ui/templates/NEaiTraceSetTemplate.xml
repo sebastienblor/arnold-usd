@@ -13,4 +13,8 @@
 		<property name='outColor'/>
 		<property name='passthrough'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiTraceSet'>
+		<property name='outColor'/>
+	</view>
+
 </templates>

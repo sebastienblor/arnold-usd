@@ -13,4 +13,7 @@
 		<property name='outValue'/>
 		<property name='input'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiRampFloat'>
+		<property name='outValue'/>
+	</view>
 </templates>

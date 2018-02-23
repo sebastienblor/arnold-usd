@@ -53,6 +53,7 @@
 #include "display/renderview_mtoa.h"
 static CRenderViewMtoA  *s_renderView = NULL;
 
+static bool s_closeRenderViewWithSession = true;
 
 
 extern AtNodeMethods* mtoa_driver_mtd;
@@ -141,6 +142,7 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
       return MStatus::kFailure;
    }
+   s_closeRenderViewWithSession = true;
 }
 
 void CRenderSession::SetRendering(bool renderState)
@@ -185,7 +187,7 @@ MStatus CRenderSession::End()
       // from InteractiveRenderThread
       InterruptRender();
 
-      if (s_renderView)
+      if (s_renderView && s_closeRenderViewWithSession)
       {
          s_renderView->CloseRenderView();
       } 
@@ -374,6 +376,14 @@ void CRenderSession::InterruptRender(bool waitFinished)
    }
 }
 
+bool CRenderSession::IsRegionCropped()
+{
+   if (s_renderView)
+      return s_renderView->IsRegionCropped();
+   
+   return false;
+
+}
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -742,6 +752,32 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+void CRenderSession::RunInteractiveRenderer()
+{
+   if (s_renderView == NULL)
+      s_renderView = new CRenderViewMtoA;
+
+   s_renderView->SetViewportRendering(true);
+   InterruptRender(); // clear the previous thread  
+   SetRendering(true);
+
+   s_renderView->Render();
+}
+
+
+void CRenderSession::PostDisplay()
+{
+   if(s_renderView)
+      s_renderView->PostDisplay();
+
+}
+bool CRenderSession::HasRenderResults(AtBBox2 &box)
+{
+   if (s_renderView)
+      return s_renderView->HasRenderResults(box);
+
+   return false;
+}
 
 void CRenderSession::RunRenderView()
 {
@@ -764,6 +800,24 @@ void CRenderSession::StartRenderView()
    
 }
 
+const AtRGBA *CRenderSession::GetDisplayedBuffer()
+{
+   if(s_renderView)
+      return s_renderView->GetDisplayedBuffer();
+
+   return NULL;
+
+
+}
+void CRenderSession::OpenInteractiveRendererOptions()
+{
+    if (s_renderView == NULL)
+    {
+        s_renderView = new CRenderViewMtoA;
+    }
+    s_renderView->OpenMtoAViewportRendererOptions();
+}
+
 void CRenderSession::UpdateRenderView()
 {  
    if(s_renderView != NULL) // for now always return true
@@ -783,9 +837,68 @@ void CRenderSession::CloseRenderView()
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
    }
-
 }
 
+void CRenderSession::FillRenderViewCameras()
+{
+
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   MString camerasList;
+      
+   M3dView view;
+   MDagPath activeCameraPath;
+   MStatus viewStatus;
+   view = M3dView::active3dView(&viewStatus);
+   MString viewCam;
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+
+   if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+   {
+      if (renderSession)
+         camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
+      else
+         camerasList = viewCam = activeCameraPath.partialPathName();
+      
+   }
+   
+   MDagPath path;
+   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+   
+   MFnDagNode cameraNode;
+
+   // FIXME dummy exportFilter that is needed in FilteredStatus
+   CMayaExportFilter exportFilter;
+
+   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
+   {
+      if (dagIterCameras.getPath(path))
+      {
+         // we're exporting the cameras if they're *either* accepted by the filter status
+         // *or* if they're set as renderable
+         // FIXME the filter status is useless here, it's always set to MTOA_FILTER_ALL
+         if(arnoldSession->FilteredStatus(path, &exportFilter) != MTOA_EXPORT_ACCEPTED)
+         {
+            // this camera is hidden, check if it's renderable
+            MStatus stat;
+            MFnDagNode cameraNode(path);
+            MPlug renderable = cameraNode.findPlug("renderable", false, &stat);
+
+            if (stat != MS::kSuccess || (!renderable.asBool()))
+               continue;
+         }
+         // we can't call GetArnoldNaming if there's no active session
+         MString camName = (renderSession) ? CDagTranslator::GetArnoldNaming(path) : path.partialPathName();
+         if (camName == viewCam) continue; // we've already set this camera in the list
+
+         if (camerasList.length() > 0)
+            camerasList += ";";
+
+         camerasList += camName;
+      }
+   }
+   // giving ARV the list of cameras
+   SetRenderViewOption("Cameras", camerasList);
+}
 
 void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 {
@@ -975,4 +1088,8 @@ void CRenderSession::UpdateRenderOptions()
       s_renderView->SetLogging(m_renderOptions.GetLogConsoleVerbosity(), m_renderOptions.GetLogFileVerbosity());
    }
 #endif
+}
+void CRenderSession::CloseRenderViewWithSession(bool b)
+{
+	s_closeRenderViewWithSession = b;
 }

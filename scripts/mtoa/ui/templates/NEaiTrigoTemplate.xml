@@ -21,4 +21,7 @@
 		<property name='frequency'/>
 		<property name='phase'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiTrigo'>
+		<property name='outColor'/>
+	</view>
 </templates>

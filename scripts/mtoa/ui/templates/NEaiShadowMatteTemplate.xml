@@ -38,4 +38,7 @@
 		<property name='diffuseColor'/>
 		<property name='shadowOpacity'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiShadowMatte'>
+		<property name='outColor'/>
+	</view>
 </templates>

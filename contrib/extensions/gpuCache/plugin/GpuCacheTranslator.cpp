@@ -8,10 +8,20 @@
 #include <maya/MFnPfxGeometry.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
+#include <maya/MAnimControl.h>
 
 #include <algorithm>
 #include <string>
 static bool s_alembicSupported = false;
+
+const char* NodeTypes[] =
+{
+   "polymesh",
+   "curves",
+   "nurbs",
+   "points",
+   NULL
+};
 
 void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -30,7 +40,37 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiInfo";
    data.shortName = "aiin";
    helper.MakeInputBoolean(data);
-         
+
+   //// userattrs
+
+   std::vector<CAttrData> children(3);
+
+   children[0].name = "attrName";
+   children[0].shortName = "attr_name";
+   children[0].type = AI_TYPE_STRING;
+
+   children[1].name = "attrValue";
+   children[1].shortName = "attr_value";
+   children[1].type = AI_TYPE_STRING;
+
+   MStringArray  enumTypes;
+
+   for (unsigned int i = 0; NodeTypes[i] != NULL; i++)
+   {
+      enumTypes.append ( NodeTypes[i] );
+   }
+
+   children[2].defaultValue.INT() = 0;
+   children[2].enums= enumTypes;
+   children[2].name = "attrNodeType";
+   children[2].shortName = "attr_node_type";
+   children[2].type = AI_TYPE_ENUM;
+
+   data.name = "aiNodeAttrs";
+   data.shortName = "aina";
+   data.isArray = true;
+
+   helper.MakeInputCompound(data, children);
 
 }
 
@@ -68,8 +108,66 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    if (RequiresShaderExport())
       ExportShaders();
 
+   MTime curTime = MAnimControl::currentTime();
+   AiNodeSetFlt(shape, "frame", curTime.value());
+
+   float fps = 24.0f;
+   MTime::Unit unit = curTime.unit();
+   if (unit!=MTime::kInvalid)
+   {
+     MTime time(1.0, MTime::kSeconds);
+     fps = static_cast<float>(time.as(unit));
+   }
+   if (fps <= 0.f )
+   {
+     fps = 24.0f;
+   }
+
+   AiNodeSetFlt(shape, "fps", fps);
    AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
    AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
+
+   AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
+   // now the user attributes
+   MPlug arrayPlug = FindMayaPlug("aiNodeAttrs");
+
+   for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
+   {
+      MPlug namePlug = arrayPlug[i].child(0);
+      MPlug valuePlug = arrayPlug[i].child(1);
+      MPlug typePlug = arrayPlug[i].child(2);
+
+      const char* node_type = NodeTypes[typePlug.asInt()];
+
+      std::string attribute_name, attribute_set;
+      attribute_name = std::string(node_type) + ":" + std::string(namePlug.asString().asChar());
+
+      attribute_set = attribute_name + " " + std::string(valuePlug.asString().asChar());
+
+      // get attr_type
+
+      const AtNodeEntry* entry = AiNodeEntryLookUp(node_type);
+
+      const AtParamEntry* param = AiNodeEntryLookUpParameter(entry, namePlug.asString().asChar());
+
+      if (param != NULL)
+      {
+
+         int arnold_type = AiParamGetType(param);
+
+         std::string declStr = "constant ";
+         declStr += arnold_type == AI_TYPE_ENUM ? "STRING" : AiParamGetTypeName(arnold_type);
+         if (arnold_type == AI_TYPE_ARRAY)
+         {
+            int array_type = AiArrayGetType(AiParamGetDefault(param)->ARRAY());
+            declStr += " ";
+            declStr += AiParamGetTypeName(array_type);
+         }
+
+         AiNodeDeclare( shape, attribute_name.c_str(), declStr.c_str() );
+         AiNodeSetAttributes(shape, attribute_set.c_str());
+      }
+   }
 }
 
 

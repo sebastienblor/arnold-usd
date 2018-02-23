@@ -17,4 +17,7 @@
 		<property name='x'/>
 		<property name='y'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiAtan'>
+		<property name='outColor'/>
+	</view>
 </templates>

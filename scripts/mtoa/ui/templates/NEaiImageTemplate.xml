@@ -25,4 +25,7 @@
 		<property name='offset'/>
 		<property name='uvcoords'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiImage'>
+		<property name='outColor'/>
+	</view>
 </templates>

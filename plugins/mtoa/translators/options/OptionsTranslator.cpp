@@ -487,6 +487,9 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
                if (ext == AtString("deepexr"))
                   ext = AtString("exr");
+               else if (ext == AtString("jpeg"))
+                  ext = AtString("jpg");
+                              
                
                MString tokens = aovData.tokens;
                MString path = output.prefix;

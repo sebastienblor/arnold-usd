@@ -21,4 +21,7 @@
 		<property name='min'/>
 		<property name='max'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiClamp'>
+		<property name='outColor'/>
+	</view>
 </templates>

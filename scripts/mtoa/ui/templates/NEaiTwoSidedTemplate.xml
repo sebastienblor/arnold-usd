@@ -17,4 +17,7 @@
 		<property name='front'/>
 		<property name='back'/>
 	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiTwoSided'>
+		<property name='outColor'/>
+	</view>
 </templates>

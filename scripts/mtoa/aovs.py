@@ -580,7 +580,7 @@ def createAliases(sg):
     if cmds.attributeQuery('attributeAliasList', node=sg, exists=True):
         alias_list = '{}.attributeAliasList'.format(sg)
         if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :
-            print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg.name()
+            print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg
             alias_list.delete()
 
     aovList = getAOVNodes(True)
