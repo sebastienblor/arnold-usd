@@ -193,9 +193,9 @@ private:
    CRenderSession(bool interactiveSession = true)
       : m_paused_ipr(false)
       , m_is_active(false)
-      , m_render_thread(NULL)
-      , m_rendering(0)
       , m_interactiveSession(interactiveSession)
+      , m_render_thread(NULL)
+      , m_rendering(0)      
    {
    }
 

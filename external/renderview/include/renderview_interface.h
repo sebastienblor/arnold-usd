@@ -44,8 +44,8 @@ class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
-   CRenderViewInterface();
-   virtual ~CRenderViewInterface();
+   CRenderViewInterface() {};
+   virtual ~CRenderViewInterface() {DestroyRenderView();}
 
 /**
  *   Functions to be invoked by the Host
@@ -164,7 +164,7 @@ public:
 
    // Renderer telling us that something has changed in the render results
    // If you override it, you have to invoke this parent class so that the window can be refreshed
-   virtual void RenderChanged();
+   virtual void RenderChanged() {UpdateGlWidget();}
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
@@ -189,7 +189,7 @@ private:
 
    // internal method, used to avoid linking issues with
    void ResizeMainWindow(int w, int h);
-   
+   void UpdateGlWidget();
    
 };
 
