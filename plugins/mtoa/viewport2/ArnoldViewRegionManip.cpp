@@ -498,8 +498,8 @@ MStatus ArnoldViewRegionManipulator::doRelease(M3dView& view)
     int width = renderOptions->width();
     int height = renderOptions->height();
 
-    renderOptions->SetRegion(int(mViewRectangle.x * width), int(mViewRectangle.z * width),
-            int((1.f - mViewRectangle.w ) * height), int((1.f - mViewRectangle.y) * height)); // expected order is left, right, bottom, top
+    renderOptions->SetRegion(AiClamp(int(mViewRectangle.x * width), 0, width -1), AiClamp(int(mViewRectangle.z * width), 0, width -1),
+            AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
     
 	renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
 	return MS::kSuccess;

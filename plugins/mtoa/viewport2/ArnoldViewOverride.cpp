@@ -115,8 +115,8 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 			s_ViewRectangle.w = 1.f - ((float)miny / (float)height);
 		} else
         {
-            renderOptions->SetRegion(int(s_ViewRectangle.x * width), int(s_ViewRectangle.z * width),
-                        int((1.f - s_ViewRectangle.w ) * height), int((1.f - s_ViewRectangle.y) * height)); // expected order is left, right, bottom, top*/     
+            renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width -1), AiClamp(int(s_ViewRectangle.z * width), 0, width -1),
+                        AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/     
         }
         renderSession->SetRenderViewOption(MString("Crop Region"), MString("1"));
 
@@ -219,8 +219,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 			if (renderOptions->useRenderRegion())
 			{
                 // eventually adapt the arnold crop region
-				renderOptions->SetRegion(int(s_ViewRectangle.x * width), int(s_ViewRectangle.z * width),
-				    int((1.f - s_ViewRectangle.w ) * height), int((1.f - s_ViewRectangle.y) * height)); // expected order is left, right, bottom, top*/
+				renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width - 1), AiClamp(int(s_ViewRectangle.z * width), 0, width - 1),
+				    AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
 
 			}
 
@@ -256,8 +256,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 		// ARV settings are different from the ones in the render options. ARV wins !
 		if (renderSession->IsRegionCropped())
 		{
-	        renderOptions->SetRegion(int(s_ViewRectangle.x * width), int(s_ViewRectangle.z * width),
-				    int((1.f - s_ViewRectangle.w ) * height), int((1.f - s_ViewRectangle.y) * height)); // expected order is left, right, bottom, top*/
+	        renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width - 1), AiClamp(int(s_ViewRectangle.z * width), 0, width - 1),
+				    AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
 
 		} else
 		{
