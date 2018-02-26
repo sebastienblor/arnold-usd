@@ -419,11 +419,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          dagPath.extendToShape();
       }
       MFnDagNode dagNode(dagPath);
-      MString meshName = dagNode.partialPathName();
-
+      MString meshName = CDagTranslator::GetArnoldNaming(dagPath);
       AtNode* node = AiNodeLookUpByName(meshName.asChar());
+
       if (node == NULL)
       {
+         // Shouldn't have to do this ?
          const char *arnoldName = arnoldSession->GetArnoldObjectName(meshName.asChar());
          if ((arnoldName != NULL) && (arnoldName[0] != '\0'))
          {
@@ -546,9 +547,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             shader_name = AiNodeGetName(shader);
       }
 
-      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshName));
-
       std::string meshNameStr = meshName;
+      if (AiNodeLookUpUserParameter(mesh, "dcc_name"))
+      {
+         // if the user data "dcc_name" exists, I want to use it for the output image filename
+         meshNameStr = AiNodeGetStr(mesh, "dcc_name"); 
+      }
+      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshNameStr.c_str()));
+
       std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
       std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
 
