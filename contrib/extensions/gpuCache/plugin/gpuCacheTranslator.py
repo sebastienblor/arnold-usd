@@ -13,13 +13,14 @@ from arnold import *
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
+BLACK_LIST_PARAMS = ['id', 'name', 'visibility', 'sidedness', 'matrix', 'motion_start', 'motion_end',
+                     'use_shadow_group', 'use_light_group', 'degree_u', 'degree_v', 'transform_type']
+
 def ArnoldUniverseOnlyBegin():
    if not AiUniverseIsActive():
       AiBegin()
       return True
-
    return False
-
 
 def ArnoldUniverseEnd():
    if AiUniverseIsActive():
@@ -106,7 +107,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             param_type = AiParamGetType(this_param)
 
             # check this param is not in the black list
-            if param_name not in ['name', 'visibility', 'sidedness', 'matrix', 'motion_start', 'motion_end']:
+            if param_name not in BLACK_LIST_PARAMS:
                 if param_type not in [AI_TYPE_ARRAY]:
                     self.user_attrs[node_type][param_name] = self._createControl(node_type, param_name, param_type, this_param)
 
@@ -167,12 +168,34 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         return value
 
+    def createSubSections(self, node_type):
+        section = {}
+        section['common'] = cmds.frameLayout(label='Common', collapse=False)
+        cmds.setParent('..')
+        if node_type == 'polymesh':
+            section['subdiv'] = cmds.frameLayout(label='Subdivision', collapse=True)
+            cmds.setParent('..')
+            section['disp'] = cmds.frameLayout(label='Displacement', collapse=True)
+            cmds.setParent('..')
+            section['volume'] = cmds.frameLayout(label='Volume', collapse=True)
+            cmds.setParent('..')
+        if node_type == 'nurbs':
+            section['disp'] = cmds.frameLayout(label='Displacement', collapse=True)
+            cmds.setParent('..')
+        if node_type == 'points':
+            section['volume'] = cmds.frameLayout(label='Volume', collapse=True)
+            cmds.setParent('..')
+        return section
+
     def userAttrsNew(self, nodeAttrName):
         AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        subsections = {}
         for node_type in NODE_TYPES:
             layout = cmds.frameLayout(label=node_type.title(), collapse=True)
             self.attr_ctrls[node_type] = {}
-            # self.populateParams(node)
+            # add specific sub-sections
+            subsections[node_type] = self.createSubSections(node_type)
+            cmds.setParent('..')
             node_entry = AiNodeEntryLookUp(node_type)
             parmaIter = AiNodeEntryGetParamIterator(node_entry)
             param_default = None
@@ -180,6 +203,13 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 this_param = AiParamIteratorGetNext(parmaIter)
                 param_name = AiParamGetName(this_param)
                 param_type = AiParamGetType(this_param)
+                sub_param = 'common'
+                if param_name.startswith('subdiv'):
+                    sub_param = 'subdiv'
+                if param_name.startswith('disp'):
+                    sub_param = 'disp'
+                if param_name in ['step_size', 'volume_padding']:
+                    sub_param = 'volume'
                 # special catch for polymesh:smoothing
                 if node_type == "polymesh" and param_name == "smoothing":
                     param_default = True
@@ -187,11 +217,13 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     param_default = self._getDefaultValue(this_param, param_type)
 
                 # check this param is not in the black list
-                if param_name not in ['name', 'visibility', 'sidedness', 'matrix', 'motion_start', 'motion_end']:
+                if param_name not in BLACK_LIST_PARAMS:
                     if param_type not in [AI_TYPE_ARRAY]:
+                        cmds.setParent(subsections[node_type][sub_param])
                         self.attr_ctrls[node_type][param_name] = {'control':self._createControl(node_type, param_name, param_type, this_param),
                                                                   'type': AiParamGetTypeName(param_type),
                                                                   'default': param_default}
+                        cmds.setParent('..')
             cmds.setParent('..')
         if AiUniverseCreated: ArnoldUniverseEnd()
 
@@ -237,6 +269,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 ctrl = cmds.textFieldGrp(details['control'], edit=True, value1=str(value), changeCommand=lambda *args:self.setUserAttr(nodeAttrName, nodeParamName, *args))
             elif details['type'] == 'ENUM':
                 ctrl = cmds.optionMenuGrp(details['control'], edit=True, value=str(value), changeCommand=lambda *args:self.setUserAttr(nodeAttrName, nodeParamName, *args))
+            else:
+                cmds.warning('[gpuCache][mtoa] Could not make control for param {}.{}'.format(node_type, param_name))
 
     def setUserAttr(self, nodeAttrName, nodeParamName, value=None):
         node_type, param_name = nodeParamName.split(':')[:2]
@@ -288,4 +322,4 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         # self.addControl('aiNodeAttrs', label="Set User Params")
         self.endLayout()
 
-templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "gpuCacheTranslator")
+templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "alembic")
