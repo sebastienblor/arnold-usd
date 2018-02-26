@@ -408,6 +408,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    std::vector<CAOVOutputArray> stereoAovData;
    MString rightCameraName = "";
    MString leftCameraName = "";
+   MDagPath rightCameraDag = camera;
+   MDagPath leftCameraDag = camera;
 
    if (stereo)
    {   
@@ -423,8 +425,16 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
          // if there's a way to get the Right-Left cameras through the Maya API it would be way better...
          // for now we're going through the cameras names, but this could fail if manually renamed.
-         if(rightCameraName.numChars() == 0 && childNameStr.find("Right") != std::string::npos) rightCameraName = childName;
-         else if (leftCameraName.numChars() == 0 && childNameStr.find("Left") != std::string::npos) leftCameraName = childName;
+         if(rightCameraName.numChars() == 0 && childNameStr.find("Right") != std::string::npos)
+         {
+            rightCameraName = childName;
+            rightCameraDag = camChildPath;
+         }
+         else if (leftCameraName.numChars() == 0 && childNameStr.find("Left") != std::string::npos)
+         {
+            leftCameraName = childName;
+            leftCameraDag = camChildPath;
+         }
       }
       if (rightCameraName.numChars() > 0 && leftCameraName.numChars() > 0) numEyes = 2;
       else  stereo = false;
@@ -444,13 +454,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          CAOVOutputArray& aovData = (eye > 0) ? stereoAovData[i] : m_aovData[i];
 
          MString aovCamera = nameCamera;
+         MDagPath aovCameraDag = camera;
 
          if (aovData.cameraTranslator)
          {
             // replace the camera name by the one specified in the AOV itself
-            MDagPath aovCameraPath = static_cast<CDagTranslator*>(aovData.cameraTranslator)->GetMayaDagPath();
+            aovCameraDag = static_cast<CDagTranslator*>(aovData.cameraTranslator)->GetMayaDagPath();
 
-            MFnDagNode aovCamDagTransform(aovCameraPath);
+            MFnDagNode aovCamDagTransform(aovCameraDag);
+
             aovCamera = aovCamDagTransform.name();
             if (GetSessionOptions().IsInteractiveRender() && (aovCamera != nameCamera))
             {
@@ -509,10 +521,12 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   {
                      eyeToken = "Left";
                      aovCamera = leftCameraName;
+                     aovCameraDag = leftCameraDag;
                   } else
                   {
                      eyeToken = "Right";
                      aovCamera = rightCameraName;
+                     aovCameraDag = rightCameraDag;
                   }
                }
 
@@ -655,7 +669,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   if (eye != 0)
                      continue; // nothing to do here, we just want one eye for display
 
-                  aovCamera = leftCameraName; // the display camera will be the left one                  
+                  aovCamera = leftCameraName; // the display camera will be the left one       
+                  aovCameraDag = leftCameraDag;           
                }                   
             }
 
@@ -669,7 +684,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             {
                if (aovCamera != nameCamera)
                {
-                  sprintf(str, "%s %s %s %s %s", aovCamera.asChar(),  aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  MString aovCameraArnoldName = CDagTranslator::GetArnoldNaming(aovCameraDag);
+                  sprintf(str, "%s %s %s %s %s", aovCameraArnoldName.asChar(),  aovData.name.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                }
                else
