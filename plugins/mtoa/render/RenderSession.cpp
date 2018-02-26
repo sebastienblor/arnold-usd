@@ -853,11 +853,12 @@ void CRenderSession::FillRenderViewCameras()
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
 
    if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
-   {
-      if (renderSession)
-         camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
-      else
-         camerasList = viewCam = activeCameraPath.partialPathName();
+   {      
+ //     if (renderSession)
+ //        camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
+ //     else
+      // Now we always export the short name. We'll let ARV find the corresponding AtNode based on the user data dcc_name
+      camerasList = viewCam = activeCameraPath.partialPathName();
       
    }
    

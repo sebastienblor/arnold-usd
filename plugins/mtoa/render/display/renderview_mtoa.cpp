@@ -789,12 +789,13 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
    for (unsigned int i = 0; i < count; ++i)
    {
       activeList.getDependNode(i, objNode);
+      MDagPath dagSel;
       if (objNode.hasFn(MFn::kTransform))
       {
          // from Transform to Shape
-         MDagPath dagPath;
-         activeList.getDagPath(i, dagPath);
-         objNode = dagPath.child(0);
+         activeList.getDagPath(i, dagSel);
+         objNode = dagSel.child(0);
+         dagSel.push(objNode);
       }
       if (objNode.hasFn(MFn::kDisplacementShader))
       {
@@ -811,7 +812,13 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
 
       MFnDependencyNode nodeFn( objNode );
 
-      AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
+      AtNode *selected_shader = AiNodeLookUpByName (nodeFn.name().asChar());
+      if (selected_shader == NULL && dagSel.isValid())
+      {
+         MString selName = CDagTranslator::GetArnoldNaming(dagSel);
+         selected_shader = AiNodeLookUpByName(selName.asChar());
+      }
+
       if(selected_shader) selection.push_back(selected_shader);
    }
 
