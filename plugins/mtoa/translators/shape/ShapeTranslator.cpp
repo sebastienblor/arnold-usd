@@ -86,6 +86,18 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
       AiNodeSetFlt(node, "motion_start", (float)motionStart);
       AiNodeSetFlt(node, "motion_end", (float)motionEnd);
    }
+
+   // eventually export dcc_name user attribute
+   // FIXME this could be moved to a separate function but this might be temporary
+   if (GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(node, "dcc_name") == NULL)
+         AiNodeDeclare(node, "dcc_name", "constant STRING");
+   
+      MString partialName = m_dagPath.partialPathName();
+      AiNodeSetStr(node, "dcc_name", AtString(partialName.asChar()));
+   }
+
 }
 
 
