@@ -2025,7 +2025,10 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputBoolean(data);
 
    // This registers the flename attribute so that it appears in the filepath editor
-   MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
+   MString typeLabel;
+   MGlobal::executeCommand("filePathEditor -query -typeLabel aiImage.filename", typeLabel);
+   if (typeLabel != MString("Image"))
+      MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
 }
 
 

@@ -303,7 +303,10 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("filename");
 
    // Register this parameter so that it appears in file path editor
-   MGlobal::executeCommand("filePathEditor -registerType aiPhotometricLight.aiFilename -typeLabel \"IES\"");
+   MString typeLabel;
+   MGlobal::executeCommand("filePathEditor -query -typeLabel aiPhotometricLight.aiFilename", typeLabel);
+   if (typeLabel != MString("IES"))
+      MGlobal::executeCommand("filePathEditor -registerType aiPhotometricLight.aiFilename -typeLabel \"IES\"");
 }
 
 // Mesh AreaLight
