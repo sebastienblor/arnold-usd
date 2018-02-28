@@ -1308,7 +1308,7 @@ void COptionsTranslator::Export(AtNode *options)
    if (!gpuPlug.isNull() && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
       bool gpu = gpuPlug.asBool();
-      std::vector<int> devices;
+      std::vector<unsigned int> devices;
       if (gpu)
       {
          MPlug gpuDevices = FindMayaPlug("render_devices");
@@ -1326,12 +1326,16 @@ void COptionsTranslator::Export(AtNode *options)
          }
       } else
       {
-         devices.resize(AiCountRenderDevicesByType(AI_DEVICE_TYPE_CPU));
+         devices.resize(AiDeviceGetCount(AI_DEVICE_TYPE_CPU));
          for (size_t i = 0; i < devices.size(); ++i)
             devices[i] = (int)i;
       }
       if (!devices.empty())
-         AiSelectRenderDevices((gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU, (int)devices.size(), &devices[0]);
+      {
+         AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+         AiDeviceSelect((gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU, selectDevices);
+         AiArrayDestroy(selectDevices);
+      }
    }
 }
 

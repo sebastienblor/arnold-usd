@@ -389,7 +389,12 @@ def selectOrigin(*args, **kwargs):
     setupOriginText()
 
 def renderDevicesListEdit(*args):
-    gpuDeviceIds = ai.AiGetDeviceIdsByType(ai.AI_DEVICE_TYPE_GPU) or []
+    gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
+    gpuDeviceIds = []
+    gpuDeviceCount = ai.AiArrayGetNumElements(gpuDeviceIdsArray)
+    for i in range(gpuDeviceCount):
+        gpuDeviceIds.append(ai.AiArrayGetUInt(gpuDeviceIdsArray, i))
+
     selList = cmds.textScrollList('os_render_devices', query=True, sii=True)
     idsList = []
 
@@ -419,13 +424,18 @@ def createGpuSettings():
     cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=gpuEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
     # fill attribute
     
-    gpuDevices = ai.AiGetDeviceAttributesByType(ai.AI_DEVICE_TYPE_GPU, ai.AI_DEVICE_ATTRIBUTE_NAME) or []
-    gpuDeviceIds = ai.AiGetDeviceIdsByType(ai.AI_DEVICE_TYPE_GPU) or []
+    gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
+    gpuDeviceCount = ai.AiArrayGetNumElements(gpuDeviceIdsArray)
+    gpuDeviceIds = []
+
+    for i in range(gpuDeviceCount):
+        gpuDeviceIds.append(ai.AiArrayGetUInt(gpuDeviceIdsArray, i))
         
     cmds.textScrollList('os_render_devices', edit=True, removeAll=True)
 
-    for gpuDevice in gpuDevices:
-        cmds.textScrollList('os_render_devices', edit=True, append=str(gpuDevice))
+    for gpuDevice in gpuDeviceIds:
+        deviceName = ai.AiDeviceGetName(ai.AI_DEVICE_TYPE_GPU, gpuDevice)
+        cmds.textScrollList('os_render_devices', edit=True, append=str(deviceName))
 
     attrIds = cmds.getAttr('defaultArnoldRenderOptions.render_devices', mi=True) or []
 
