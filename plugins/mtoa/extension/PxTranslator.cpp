@@ -81,7 +81,7 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
          creator = CFilterTranslator::creator;
          initialize = CFilterTranslator::NodeInitializer;
       }
-      else if (arnoldNodeTypeName == "op")
+      else if (arnoldNodeTypeName == "operator")
       {
          creator = COperatorTranslator::creator;
          initialize = COperatorTranslator::NodeInitializer;

@@ -249,7 +249,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             abstract   = &CArnoldProceduralNode::s_abstract;
             classification = "drawdb/geometry/arnold/procedural"; // should we also be using "subscene" for versions >= 2017 as the standin do ?
          }
-      } else if (arnoldNodeTypeName == "op")
+      } else if (arnoldNodeTypeName == "operator")
       {
          creator    = CArnoldOperatorNode::creator;
          initialize = CArnoldOperatorNode::initialize;

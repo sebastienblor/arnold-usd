@@ -1166,15 +1166,15 @@ void COptionsTranslator::Export(AtNode *options)
    ExportAtmosphere(options);   
 
    conns.clear();
-   MPlug pOP = FindMayaPlug("op");
+   MPlug pOP = FindMayaPlug("operator");
    pOP.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "op", ExportConnectedNode(conns[0]));
+      AiNodeSetPtr(options, "operator", ExportConnectedNode(conns[0]));
    }
    else
    {
-      AiNodeSetPtr(options, "op", NULL);
+      AiNodeSetPtr(options, "operator", NULL);
    }
 
 

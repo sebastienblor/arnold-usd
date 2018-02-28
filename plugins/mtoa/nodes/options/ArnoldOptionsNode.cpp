@@ -516,7 +516,7 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setReadable(true);
    addAttribute(s_atmosphere);
 
-   s_operator = mAttr.create("operator", "op");
+   s_operator = mAttr.create("operator", "operator");
    mAttr.setKeyable(false);
    mAttr.setReadable(true);
    addAttribute(s_operator);
