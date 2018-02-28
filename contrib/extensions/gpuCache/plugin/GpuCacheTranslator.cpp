@@ -27,7 +27,7 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
 {
    s_alembicSupported = (AiNodeEntryLookUp("alembic") != NULL);
 
-   CExtensionAttrHelper helper(context.maya, "procedural");
+   CExtensionAttrHelper helper(context.maya, "alembic");
    CShapeTranslator::MakeCommonAttributes(helper);
 
    CAttrData data;

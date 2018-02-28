@@ -2094,6 +2094,19 @@
         maya.name           STRING  "beauty"
     [attr blend_opacity]
         maya.name           STRING  "blend"
+
+[node aov_write_rgba]
+    maya.name               STRING  "aiWriteRgba"
+    maya.id                 INT     0x00115D98
+    maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    [attr blend_opacity]
+        maya.name           STRING  "blend"
     
 
 [node atan]
@@ -3100,20 +3113,36 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D8E
 
-[node node_disable]
+[node disable]
     desc                    STRING  "Node Disable operator"
     maya.classification     STRING  "operator"
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D8F
 
-[node parameter_set]
+[node set_parameter]
     desc                    STRING  "Parameter Set operator"
     maya.classification     STRING  "operator"
     maya.swatch             BOOL    false
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D90
+
+[node set_transform]
+    desc                    STRING  "Transform operator"
+    maya.classification     STRING  "operator"
+    maya.swatch             BOOL    false
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D95
+
+[node switch_operator]
+    desc                    STRING  "Switch operator"
+    maya.classification     STRING  "operator"
+    maya.swatch             BOOL    false
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D96
 
 
 

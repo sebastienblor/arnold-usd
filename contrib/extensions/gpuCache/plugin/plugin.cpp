@@ -9,7 +9,7 @@ extern "C"
 
         extension.Requires ( "gpuCache" );
         extension.RegisterTranslator("gpuCache",
-                                    "",
+                                    "alembic",
                                     CGpuCacheTranslator::creator,
                                     CGpuCacheTranslator::NodeInitializer);
       

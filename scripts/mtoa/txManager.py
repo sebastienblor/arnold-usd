@@ -58,7 +58,7 @@ class MakeTxThread (threading.Thread):
             
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7'])
         utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True)
-        maya_version = utils.getMayaVersion()
+        maya_version = mutils.getMayaVersion()
 
         # first we need to make sure the options & color manager node were converted to arnold
         arnoldUniverseActive = AiUniverseIsActive()
@@ -385,7 +385,7 @@ class MtoATxManager(object):
                 texturePrefix = '~~  '
 
             textureSuffix = ''
-            maya_version = utils.getMayaVersion()
+            maya_version = mutils.getMayaVersion()
             if maya_version >= 2016:
                 textureSuffix =' ('+txItem[2]+')'
 
@@ -572,7 +572,7 @@ class MtoATxManager(object):
         ctrlPath = '|'.join([self.window, 'groupBox_4', 'checkBox']);
         recursive = cmds.checkBox(ctrlPath, query=True, value=True);
         
-        maya_version = utils.getMayaVersion()
+        maya_version = mutils.getMayaVersion()
         self.selectedItems = []
         if os.path.isdir(folder):
             if recursive:

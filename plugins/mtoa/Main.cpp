@@ -678,11 +678,11 @@ namespace // <anonymous>
       }
 
       status = CExtensionsManager::LoadExtensions(EXTENSION_SEARCH);
-      CHECK_MSTATUS(status);
+      //CHECK_MSTATUS(status); no longer return error if an extension didn't load properly
 
       // Will load all found plugins and try to register nodes and translators
       status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
-      CHECK_MSTATUS(status);
+      //CHECK_MSTATUS(status);
 
       // I need to retrieve the mtoa_shaders extension, so that I can register its translators
       shaders = CExtensionsManager::GetExtensionByName("mtoa_shaders"); 
