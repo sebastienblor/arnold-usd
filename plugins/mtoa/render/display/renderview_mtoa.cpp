@@ -503,7 +503,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR";
-   CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow());
+   CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
 
@@ -524,7 +524,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
     //s_creatingARV = false;
 #else
-    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow());
+    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
 #endif
 
 }
