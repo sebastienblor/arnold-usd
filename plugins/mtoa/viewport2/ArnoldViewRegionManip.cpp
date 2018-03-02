@@ -25,6 +25,9 @@
 #include <maya/MUserData.h>
 #include <maya/MStateManager.h>
 
+
+#if MAYA_API_VERSION >= 201800
+
 // Statics
 MTypeId ArnoldViewRegionManipulator::id(0x81046); // TODO: Need a new ID for this
 MString ArnoldViewRegionManipulator::registrantId("ArnoldViewRegionManipulatorPlugin");
@@ -508,3 +511,4 @@ MStatus ArnoldViewRegionManipulator::initialize()
 	return MS::kSuccess;
 }
 
+#endif
