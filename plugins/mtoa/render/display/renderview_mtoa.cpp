@@ -943,10 +943,10 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
 
-   if (!s_arvWorkspaceControl)
-      return;
 
 #ifdef ARV_DOCKED
+   if (!s_arvWorkspaceControl)
+      return;
    
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
    MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
@@ -1768,9 +1768,11 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 
 void CRenderViewMtoA::Resize(int width, int height)
 {
+#ifdef ARV_DOCKED
    if (s_arvWorkspaceControl == NULL)
       return;
-
+#endif
+   
    CRenderViewInterface::Resize(width, height);
 
    if(MGlobal::apiVersion() < 201760) // this option was only implemented in Maya 2017 Update 4
