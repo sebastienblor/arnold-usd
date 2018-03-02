@@ -31,7 +31,9 @@
         <float name="IOR" />
         <float3 name="IrradianceEnv" />
         <float3 name="SpecularEnv" />
-      <struct name="lightingData" struct_name="standardShaderLightingData" />
+        <float3 name="ambientColor" />
+        <float3 name="ambientIn" />
+       <struct name="lightingData" struct_name="standardShaderLightingData" />
       <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
@@ -42,6 +44,8 @@
         <float3 name="emissionInput" value="0.0 0.0 0.0" />
         <float3 name="IrradianceEnv" value="0.0 0.0 0.0" />
         <float3 name="SpecularEnv" value="0.0 0.0 0.0" />
+        <float3 name="ambientColor" value="0.0 0.0 0.0"/>
+        <float3 name="ambientIn" value="0.0 0.0 0.0"/>
     </values>
     <outputs>
         <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
@@ -82,6 +86,8 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 float IOR,
                 float3 IrradianceEnv,
                 float3 SpecularEnv,
+                float3 ambientColor,
+                float3 ambientIn,
                 standardShaderLightingData lightingData)
 {
     mayaSurfaceShaderOutput result;
@@ -180,7 +186,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // energy conservation for metalness and coat contributions
     diffuse *= 1.0 - min(1.0, max(coatFresnel * coat, metalness));
     
-    result.outColor = diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
+    result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
     result.outTransparency = max((1.0 - metalness) * transmission * transAmount, (1.0 - opacity));
     
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
@@ -227,6 +233,8 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 float IOR,
                 float3 IrradianceEnv,
                 float3 SpecularEnv,
+                float3 ambientColor,
+                float3 ambientIn,                               
                 standardShaderLightingData lightingData)
 {
     mayaSurfaceShaderOutput result;
@@ -334,7 +342,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // energy conservation for metalness and coat contributions
     diffuse *= 1.0 - min(1.0, max(coatFresnel * coat, metalness));
     
-    result.outColor = diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
+    result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
     result.outTransparency = max((1.0 - metalness) * transmission * transAmount, (1.0 - opacity));
     
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
@@ -380,6 +388,8 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 float IOR,
                 vec3 IrradianceEnv,
                 vec3 SpecularEnv,
+                vec3 ambientColor,
+                vec3 ambientIn,                
                 standardShaderLightingData lightingData)
 {
     mayaSurfaceShaderOutput result;
@@ -480,8 +490,8 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     
     // lower the specular in the straight-on angles when the roughness is low.   
     specular *= lerp(1.0 - transp, 1.0, transmissionRoughness * (1.0 - transmission));
-    
-    result.outColor = diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
+
+    result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
     result.outTransparency = max((1.0 - metalness) * transmission * transAmount, (1.0 - opacity));
     
     result.outGlowColor = vec3(0.0f, 0.0f, 0.0f);

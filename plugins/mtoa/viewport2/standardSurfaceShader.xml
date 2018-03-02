@@ -76,7 +76,10 @@
       
         <float3 name="IrradianceEnv" ref="standardShaderCombiner.IrradianceEnv" />
         <float3 name="SpecularEnv" ref="standardShaderCombiner.SpecularEnv" />
-      
+
+        <float3 name="ambientColor" ref="standardShaderCombiner.ambientColor"/>
+        <float3 name="ambientIn" ref="standardShaderCombiner.ambientIn"/>
+       
         <float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
         <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />
@@ -98,6 +101,8 @@
     <float name="fogDensity" value="0.100000"  />
     <float4 name="fogColor" value="0.500000,0.500000,0.500000,1.000000"  />
     <float name="fogMultiplier" value="1.000000"  />
+    <float3 name="ambientColor" value="0.0 0.0 0.0"/>
+    <float3 name="ambientIn" value="0.0 0.0 0.0"/> 
   </values>
     <outputs>
       <struct  name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
