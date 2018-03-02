@@ -20,9 +20,6 @@
 		<attribute name='rotate' type='maya.float3'>
 			<label>Rotate</label>
 		</attribute>
-		<attribute name='P' type='maya.float3'>
-			<label>P</label>
-		</attribute>
 		<attribute name='blend' type='maya.float'>
 			<label>Blend</label>
 		</attribute>
