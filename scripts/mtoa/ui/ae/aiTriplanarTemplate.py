@@ -18,7 +18,7 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         self.addControl("input", label="Input")
         self.addSeparator()
         self.addControl("coordSpace")
-        self.addControl("P")
+        self.addControl("prefName")
         self.addControl("blend")
 
         self.beginLayout("Transform", collapse=False)

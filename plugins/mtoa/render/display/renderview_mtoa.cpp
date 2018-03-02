@@ -18,6 +18,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
 void CRenderViewMtoA::RenderViewClosed() {}
+void CRenderViewMtoA::RenderChanged(){}
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
 CRenderViewZoomManipulator *CRenderViewMtoA::GetZoomManipulator() {return NULL;}
@@ -503,7 +504,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR";
-   CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow());
+   CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
 
@@ -524,7 +525,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
     //s_creatingARV = false;
 #else
-    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow());
+    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
 #endif
 
 }
@@ -942,10 +943,10 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
 
-   if (!s_arvWorkspaceControl)
-      return;
 
 #ifdef ARV_DOCKED
+   if (!s_arvWorkspaceControl)
+      return;
    
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
    MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
@@ -1767,9 +1768,11 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 
 void CRenderViewMtoA::Resize(int width, int height)
 {
+#ifdef ARV_DOCKED
    if (s_arvWorkspaceControl == NULL)
       return;
-
+#endif
+   
    CRenderViewInterface::Resize(width, height);
 
    if(MGlobal::apiVersion() < 201760) // this option was only implemented in Maya 2017 Update 4
