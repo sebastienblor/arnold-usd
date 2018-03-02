@@ -18,6 +18,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
 void CRenderViewMtoA::RenderViewClosed() {}
+void CRenderViewMtoA::RenderChanged(){}
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
 CRenderViewZoomManipulator *CRenderViewMtoA::GetZoomManipulator() {return NULL;}
