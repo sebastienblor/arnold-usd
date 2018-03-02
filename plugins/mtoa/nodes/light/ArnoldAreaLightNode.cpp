@@ -98,6 +98,10 @@ void CArnoldAreaLightNode::postConstructor()
    MStatus stat;
    MPlug plg = node.findPlug("aiExposure", &stat);
    node.setAlias("exposure", "aiExposure", plg, true /*add*/, &stat);
+
+   // Alias aiExposure as exposure for internal attribute name recognition
+   plg = node.findPlug("aiNormalize", &stat);
+   node.setAlias("normalize", "aiNormalize", plg, true /*add*/, &stat);
 }
 
 // Map node's attribute value changes to ones understood by Maya

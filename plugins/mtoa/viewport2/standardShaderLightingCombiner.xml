@@ -3,8 +3,8 @@
     <properties>
         <float3 name="N" flags="varyingInputParam" />
         <float3 name="V" flags="varyingInputParam" />
-        <float3 name="L" flags="varyingInputParam" />
-        <float3 name="SL" flags="varyingInputParam" />
+        <float3 name="L" />
+        <float3 name="SL" />
         <float3 name="diffuse" />
         <float3 name="specular" />
     </properties>
