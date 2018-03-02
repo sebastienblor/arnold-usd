@@ -26,7 +26,7 @@
 #include <maya/MStateManager.h>
 
 
-#if MAYA_API_VERSION >= 201800
+#if MAYA_API_VERSION >= 201700
 
 // Statics
 MTypeId ArnoldViewRegionManipulator::id(0x81046); // TODO: Need a new ID for this

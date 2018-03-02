@@ -14,7 +14,7 @@
 #include <maya/MUiMessage.h>
 #include <maya/MSelectionList.h>
 
-#if MAYA_API_VERSION >= 201800
+#if MAYA_API_VERSION >= 201700
 //
 // Simple override class derived from MRenderOverride
 //
@@ -85,7 +85,9 @@ protected:
     bool mColorTextureChanged;
 };
 
-class UIObjectDraw : public MSceneRender
+
+
+class UIObjectDraw : public MHWRender::MSceneRender
 {
 public:
     UIObjectDraw() : MSceneRender(MHWRender::MRenderOperation::kStandardSceneName)
