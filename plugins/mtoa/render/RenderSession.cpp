@@ -186,12 +186,12 @@ MStatus CRenderSession::End()
       // IsRendering check prevents thread lock when CMayaScene::End is called
       // from InteractiveRenderThread
       InterruptRender();
-
+#ifndef MTOA_DISABLE_RV
       if (s_renderView && s_closeRenderViewWithSession)
       {
          s_renderView->CloseRenderView();
       } 
-
+#endif
    }
    
    if (AiUniverseIsActive())
@@ -214,13 +214,13 @@ MStatus CRenderSession::End()
 }
 void CRenderSession::DeleteRenderView()
 {
-
+#ifndef MTOA_DISABLE_RV
    if (s_renderView != NULL)
    {
       delete s_renderView;
       s_renderView = NULL;
    }
-
+#endif
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -352,10 +352,13 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
 
 void CRenderSession::InterruptRender(bool waitFinished)
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView != NULL) 
    {
       s_renderView->InterruptRender();
    }
+#endif
+
    if (IsRendering() && AiRendering()) AiRenderInterrupt();
       
    if (waitFinished)
@@ -378,9 +381,10 @@ void CRenderSession::InterruptRender(bool waitFinished)
 
 bool CRenderSession::IsRegionCropped()
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView)
       return s_renderView->IsRegionCropped();
-   
+#endif   
    return false;
 
 }
@@ -754,6 +758,7 @@ void CRenderSession::DoIPRRender()
 
 void CRenderSession::RunInteractiveRenderer()
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView == NULL)
       s_renderView = new CRenderViewMtoA;
 
@@ -762,20 +767,23 @@ void CRenderSession::RunInteractiveRenderer()
    SetRendering(true);
 
    s_renderView->Render();
+#endif
 }
 
 
 void CRenderSession::PostDisplay()
 {
+#ifndef MTOA_DISABLE_RV
    if(s_renderView)
       s_renderView->PostDisplay();
-
+#endif
 }
 bool CRenderSession::HasRenderResults(AtBBox2 &box)
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView)
       return s_renderView->HasRenderResults(box);
-
+ #endif
    return false;
 }
 
@@ -783,11 +791,14 @@ void CRenderSession::RunRenderView()
 {
    InterruptRender(); // clear the previous thread  
    SetRendering(true);
+#ifndef MTOA_DISABLE_RV
    s_renderView->Render();
+#endif
 }
 
 void CRenderSession::StartRenderView()
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
@@ -797,46 +808,52 @@ void CRenderSession::StartRenderView()
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    if (session)
       s_renderView->SetFrame((float)session->GetExportFrame());
-   
+#endif   
 }
 
 const AtRGBA *CRenderSession::GetDisplayedBuffer()
 {
+#ifndef MTOA_DISABLE_RV
    if(s_renderView)
       return s_renderView->GetDisplayedBuffer();
-
+#endif
    return NULL;
 
 
 }
 void CRenderSession::OpenInteractiveRendererOptions()
 {
+#ifndef MTOA_DISABLE_RV
     if (s_renderView == NULL)
     {
         s_renderView = new CRenderViewMtoA;
     }
     s_renderView->OpenMtoAViewportRendererOptions();
+#endif
 }
 
 void CRenderSession::UpdateRenderView()
 {  
+#ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->SceneChanged();
    }
-
+#endif
 }
 
 void CRenderSession::CloseRenderView()
 {  
+#ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
    }
+#endif
 }
 
 void CRenderSession::FillRenderViewCameras()
@@ -906,6 +923,7 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
    if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;
 
    // in renderView mode, we must advert the renderview that an object name has changed
+#ifndef MTOA_DISABLE_RV
    if (s_renderView != NULL)
    {
       MFnDependencyNode fnNode(node);
@@ -913,7 +931,7 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
       const char *oldName = str.asChar();
       s_renderView->ObjectNameChanged(newName, oldName);
    }
-
+#endif
 }
 
 
@@ -1041,11 +1059,13 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
 }
 void CRenderSession::SetRenderViewOption(const MString &option, const MString &value)
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
    }
    s_renderView->SetOption(option.asChar(), value.asChar());
+#endif
 }
 
 bool CRenderSession::RenderSequence()
@@ -1074,7 +1094,9 @@ bool CRenderSession::RenderSequence()
    StartRenderView();
    SetRendering(true);
 
+#ifndef MTOA_DISABLE_RV
    s_renderView->RenderSequence(startFrame, endFrame, frameStep);
+#endif
    return true;
 }
 
