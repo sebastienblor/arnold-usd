@@ -279,6 +279,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
 
+   s_attributes.MakeInput("enable_adaptive_sampling");
    s_attributes.MakeInput("AA_samples_max");
    s_attributes.MakeInput("adaptive_threshold");
 

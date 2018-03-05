@@ -98,7 +98,10 @@ def updateMotionBlurSettings(*args):
 
 
 def updateAdaptiveSettings(*args):
-    flag = cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > 0
+    flag = cmds.getAttr('defaultArnoldRenderOptions.enable_adaptive_sampling')
+    cmds.attrControlGrp('ss_aa_samples_max', edit=True, enable=flag)
+
+    flag = flag and (cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > 0)
     cmds.attrControlGrp('ss_adaptive_threshold', edit=True, enable=flag)
     
 
@@ -622,6 +625,12 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
 
     cmds.frameLayout(label='Adaptive Sampling', collapse=True)
+
+    cmds.attrControlGrp('ss_enable_adaptive_sampling',
+                        label="Enable Adaptive Sampling",
+                        cc=updateAdaptiveSettings,
+                        attribute='defaultArnoldRenderOptions.enable_adaptive_sampling')
+
     cmds.attrControlGrp('ss_aa_samples_max',
                         label="Max. Camera (AA)",
                         cc=updateAdaptiveSettings,
