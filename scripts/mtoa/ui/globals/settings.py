@@ -81,6 +81,8 @@ def updateComputeSamples(*args):
             edit=True, 
             label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
 
+    updateAdaptiveSettings()
+
 def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     cmds.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
@@ -101,7 +103,7 @@ def updateAdaptiveSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.enable_adaptive_sampling')
     cmds.attrControlGrp('ss_aa_samples_max', edit=True, enable=flag)
 
-    flag = flag and (cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > 0)
+    flag = flag and (cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > cmds.getAttr('defaultArnoldRenderOptions.AASamples'))
     cmds.attrControlGrp('ss_adaptive_threshold', edit=True, enable=flag)
     
 
@@ -607,27 +609,12 @@ def createArnoldSamplingSettings():
     cmds.attrControlGrp('ss_volume_samples',
                         label='Volume Indirect',
                         attribute='defaultArnoldRenderOptions.GI_volume_samples')
-
-    cmds.separator()
     
-    cmds.attrControlGrp('ss_lock_sampling_noise',
-                        label="Lock Sampling Pattern",
-                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
-
-    cmds.attrControlGrp('ss_use_autobump',
-                        label='Use Autobump in SSS',
-                        attribute='defaultArnoldRenderOptions.sssUseAutobump',
-                        annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
-    
-    cmds.separator()
-    cmds.attrControlGrp('ss_indirect_specular_blur',
-                        label="Indirect Specular Blur",
-                        attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
-
     cmds.frameLayout(label='Adaptive Sampling', collapse=True)
-
+    cmds.columnLayout(adjustableColumn=True)
+    
     cmds.attrControlGrp('ss_enable_adaptive_sampling',
-                        label="Enable Adaptive Sampling",
+                        label="Enable",
                         cc=updateAdaptiveSettings,
                         attribute='defaultArnoldRenderOptions.enable_adaptive_sampling')
 
@@ -637,12 +624,14 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.AA_samples_max')
 
     cmds.attrControlGrp('ss_adaptive_threshold',
-                        label="Adaptive threshold",
+                        label="Adaptive Threshold",
                         attribute='defaultArnoldRenderOptions.adaptive_threshold')
     cmds.setParent('..')
-
+    cmds.setParent('..')
+    
     cmds.frameLayout(label='Clamping', collapse=True)
-
+    cmds.columnLayout(adjustableColumn=True)
+    
     cmds.checkBoxGrp('ss_clamp_sample_values',
                     cc=updateSamplingSettings,
                     label='Clamp AA Samples')
@@ -666,17 +655,41 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.indirectSampleClamp')
                         
     cmds.setParent('..')
+    cmds.setParent('..')
     
     cmds.frameLayout(label="Filter", collapse=True)
+    cmds.columnLayout(adjustableColumn=True)
     
     createTranslatorMenu('defaultArnoldFilter',
                             label='Type',
                             nodeType='aiAOVFilter',
                             default='gaussian')
-     
+
+    cmds.setParent('..')
+    cmds.setParent('..')
+    
+    cmds.frameLayout(label='Advanced', collapse=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    cmds.attrControlGrp('ss_lock_sampling_noise',
+                        label="Lock Sampling Pattern",
+                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+
+    cmds.attrControlGrp('ss_use_autobump',
+                        label='Use Autobump in SSS',
+                        attribute='defaultArnoldRenderOptions.sssUseAutobump',
+                        annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
+    
+    cmds.separator()
+    cmds.attrControlGrp('ss_indirect_specular_blur',
+                        label="Indirect Specular Blur",
+                        attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
+
+    cmds.setParent('..')
+    
     cmds.setParent('..')
     cmds.setParent('..') # column layout
-
+    
     cmds.setUITemplate(popTemplate=True)
     updateArnoldFilterOptions()
 

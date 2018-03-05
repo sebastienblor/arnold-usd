@@ -35,7 +35,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Silhouette", collapse=False)
-        self.addControl("enable_silhouette", label="Enable Silhouette")
+        self.addControl("enable_silhouette", label="Enable")
         self.addControl("silhouette_color", label="Color")
         self.addControl("silhouette_tonemap", label="Tonemap")
         self.addControl("silhouette_opacity", label="Opacity")
@@ -98,6 +98,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginLayout("Advanced", collapse=True)
         self.addControl("indirect_diffuse", label="Indirect Diffuse")
         self.addControl("indirect_specular", label="Indirect Specular")
+        self.addControl("energy_conserving", label="Energy Conserving")
         self.endLayout()
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
