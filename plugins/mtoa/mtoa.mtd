@@ -3093,6 +3093,12 @@ desc STRING "Apply a gamma correction to the color."
     [attr IOR]
         min             FLOAT   0
         softmax         FLOAT   3
+    [attr silhouette_opacity]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr silhouette_width_scale]
+        min             FLOAT   0
+        softmax         FLOAT   1
 
     [attr indirect_diffuse]
         min             FLOAT   0

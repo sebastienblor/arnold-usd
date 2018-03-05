@@ -29,10 +29,17 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginLayout("Advanced Edge Control", collapse=True)
         self.beginNoOptimize();
         self.addControl("priority", label="Priority")
-        self.addControl("scale_silhouette", label="Scale Silhouette")
         self.addControl("ignore_throughput", label="Ignore Throughput")
         self.endNoOptimize();
         self.endLayout()
+        self.endLayout()
+
+        self.beginLayout("Silhouette", collapse=False)
+        self.addControl("enable_silhouette", label="Enable Silhouette")
+        self.addControl("silhouette_color", label="Color")
+        self.addControl("silhouette_tonemap", label="Tonemap")
+        self.addControl("silhouette_opacity", label="Opacity")
+        self.addControl("silhouette_width_scale", label="Width Scale")
         self.endLayout()
 
         self.beginLayout("Base", collapse=False)
@@ -59,6 +66,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginLayout("Rim Lighting", collapse=True)
         self.addControl("rim_light", label="Light")
         self.addControl("rim_light_color", label="Color")
+        self.addControl("rim_light_width", label="Width")
         self.endLayout()
 
         self.beginLayout("Transmission", collapse=True)
