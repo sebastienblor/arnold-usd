@@ -265,13 +265,13 @@ void CFileTranslator::Export(AtNode* shader)
             if (srcNodeFn.findPlug("wrapU").asBool())
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
             else
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color"); // FIXME it should be "missing_textures_color"
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
                
 
             if (srcNodeFn.findPlug("wrapV").asBool())
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
             else
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color"); // FIXME it should be "missing_textures_color"
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
             
 
             ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
@@ -297,7 +297,7 @@ void CFileTranslator::Export(AtNode* shader)
                   AiNodeSetStr(shader, "swrap", "periodic");
                
             } else
-               AiNodeSetStr(shader, "swrap", "black"); // FIXME it should be "missing_textures_color"
+               AiNodeSetStr(shader, "swrap", "missing");
 
             if (srcNodeFn.findPlug("wrapV").asBool())
             {
@@ -307,7 +307,7 @@ void CFileTranslator::Export(AtNode* shader)
                   AiNodeSetStr(shader, "twrap", "periodic");
                
             } else
-               AiNodeSetStr(shader, "twrap", "black"); // FIXME it should be "missing_textures_color"
+               AiNodeSetStr(shader, "twrap", "missing");
             
             MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV");
             if (!repeatUVPlug.isNull())
