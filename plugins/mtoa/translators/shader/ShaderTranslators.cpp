@@ -465,14 +465,14 @@ void CFileTranslator::Export(AtNode* shader)
       if (requestUpdateTx) RequestTxUpdate();
    } 
 
-   ProcessParameter(shader, "mipBias", AI_TYPE_INT);
+   ProcessParameter(shader, "mipmap_bias", AI_TYPE_INT, "aiMipBias");
    AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
   
    // FIXME : in Maya File, the default color is also seen out of the UV range, when UV wrapping is disabled
    // In Arnold image node, the only choice we have is "black"
    AiNodeSetBool(shader, "ignore_missing_textures", FindMayaPlug("aiUseDefaultColor").asBool());
    ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGBA, "defaultColor");
-
+   
    ProcessParameter(shader, "offset", AI_TYPE_RGB, "colorOffset");
 
    MPlug colorGainPlug = FindMayaPlug("colorGain");
@@ -596,10 +596,11 @@ void CFileTranslator::ReplaceFileToken(MString &filename, const MString &tokenIn
 void CFileTranslator::NodeInitializer(CAbTranslator context)
 {
 
-   CExtensionAttrHelper helper(context.maya, "MayaFile");
-   helper.MakeInput("mipBias");
+   CExtensionAttrHelper helper(context.maya, "image");
+
+   helper.MakeInput("mipmap_bias");
    helper.MakeInput("filter");
-   helper.MakeInput("useDefaultColor");
+   helper.MakeInput("ignore_missing_textures");
 
    CAttrData data;
    data.defaultValue.BOOL() = true;

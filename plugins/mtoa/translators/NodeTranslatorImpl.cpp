@@ -622,7 +622,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             }
             else
             {
-               AiMsgWarning("[mtoa] RGBA attribute %s has no alpha component: exporting as RGBA",
+               AiMsgInfo("[mtoa] RGBA attribute %s has no alpha component: exporting as RGBA",
                             plug.partialName(true, false, false, false, false, true).asChar());
                AiNodeSetRGBA(arnoldNode, arnoldParamName,
                             plug.child(0).asFloat(),
