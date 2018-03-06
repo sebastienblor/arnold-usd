@@ -18,7 +18,9 @@
         <float name="IOR" />
         <float3 name="IrradianceEnv" />
         <float3 name="SpecularEnv" />
-        <undefined name="GPUStage" semantic="GPUStage" />
+        <float3 name="ambientColor" />
+        <float3 name="ambientIn" />
+       <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
         <float3 name="color" value="1.0 1.0 1.0" />
@@ -28,6 +30,8 @@
         <float3 name="emissionInput" value="0.0 0.0 0.0" />
         <float3 name="IrradianceEnv" value="0.0 0.0 0.0" />
         <float3 name="SpecularEnv" value="0.0 0.0 0.0" />
+        <float3 name="ambientColor" value="0.0 0.0 0.0"/>
+        <float3 name="ambientIn" value="0.0 0.0 0.0"/>
     </values>
     <outputs>
         <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
@@ -54,7 +58,9 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 float Kd,
                 float IOR,
                 float3 IrradianceEnv,
-                float3 SpecularEnv)
+                float3 SpecularEnv,
+                float3 ambientColor,
+                float3 ambientIn)
 {
     mayaSurfaceShaderOutput result;
     float3 diffuse = color * ((diffuseInput * directDiffuse) + IrradianceEnv) * Kd;
@@ -82,7 +88,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
             diffuse *= 1.0f - fresnel * Ks;
     }
 
-    result.outColor = diffuse + specular + emissionInput;
+    result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + emissionInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -113,7 +119,9 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 float Kd,
                 float IOR,
                 float3 IrradianceEnv,
-                float3 SpecularEnv)
+                float3 SpecularEnv,
+                float3 ambientColor,
+                float3 ambientIn)                
 {
     mayaSurfaceShaderOutput result;
     float3 diffuse = color * ((diffuseInput * directDiffuse) + IrradianceEnv) * Kd;
@@ -141,7 +149,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
             diffuse *= 1.0f - fresnel * Ks;
     }
 
-    result.outColor = diffuse + specular + emissionInput;
+    result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + emissionInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -172,7 +180,9 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 float Kd,
                 float IOR,
                 vec3 IrradianceEnv,
-                vec3 SpecularEnv)
+                vec3 SpecularEnv,
+                vec3 ambientColor,
+                vec3 ambientIn)                
 {
     mayaSurfaceShaderOutput result;
     vec3 diffuse = color * ((diffuseInput * directDiffuse) + IrradianceEnv) * Kd;
@@ -200,7 +210,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
             diffuse *= 1.0f - fresnel * Ks;
     }
 
-    result.outColor = diffuse + specular + emissionInput;
+    result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + emissionInput;
     result.outTransparency = vec3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = vec3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = vec3(-1.0e+06f, -1.0e+06f, -1.0e+06f);

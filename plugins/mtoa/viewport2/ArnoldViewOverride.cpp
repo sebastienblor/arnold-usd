@@ -18,7 +18,7 @@
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
 
-#if MAYA_API_VERSION >= 201800
+#if MAYA_API_VERSION >= 201700
 
 static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
 // For override creation we return a UI name so that it shows up in as a
@@ -151,15 +151,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (mOperations.length() == 0)
     {
         // create and setup the clear operation
-        MClearOperation* clearOp = new MClearOperation(MRenderOperation::kStandardBackgroundName);
+        MHWRender::MClearOperation* clearOp = new MHWRender::MClearOperation(MHWRender::MRenderOperation::kStandardBackgroundName);
         clearOp->setOverridesColors(false);
 
         // create and setup the scene operation
-        MSceneRender* sceneOp = new MSceneRender(MRenderOperation::kStandardSceneName);
-        sceneOp->clearOperation().setMask(MClearOperation::kClearNone);
+        MHWRender::MSceneRender* sceneOp = new MHWRender::MSceneRender(MHWRender::MRenderOperation::kStandardSceneName);
+        sceneOp->clearOperation().setMask(MHWRender::MClearOperation::kClearNone);
 
         UIObjectDraw* uiOp = new UIObjectDraw();
-        uiOp->clearOperation().setMask(MClearOperation::kClearNone);
+        uiOp->clearOperation().setMask(MHWRender::MClearOperation::kClearNone);
 
         mOperations.append(clearOp);
         mOperations.append(sceneOp);
