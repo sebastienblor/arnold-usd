@@ -78,72 +78,52 @@ float SQR(float a)
     return a * a;
 }
 
-// Specular Functions
-float specD(float NH, float roughness2) // Normal Distribution Function - GGX/Trowbridge-Reitz
-{
-    const float M_PI = 3.14159265358;
-    float alpha = roughness2;
-    float alpha2 = alpha * alpha;
-    float finalTerm = ((NH * NH) * (alpha2 - 1.0) + 1.0);
-    return saturate(alpha2 / (M_PI * (finalTerm * finalTerm)));
-}
-
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
         float roughness)
 {
-    const float M_PI = 3.14159265358;
-    const float kMaxRoughness = 1.0f;
     
-    float rx = SQR(saturate(roughness) * kMaxRoughness);    
-    rx = max(rx, 0.002f);   
-    float rx2 = SQR(rx);
-    
-    float NL = saturate(dot(lightingData.N, lightingData.SL)); 
-    if (NL == 0.0f)
+    float LdotN = saturate(dot(lightingData.SL, lightingData.N));
+    if (LdotN == 0.0f)
         return float3(0.0f, 0.0f, 0.0f);
-	  float NV = saturate(dot(lightingData.N, lightingData.V)); 
-    if (NV == 0.0f)
+    float VdotN = saturate(dot(lightingData.V, lightingData.N));
+    if (VdotN == 0.0f)
         return float3(0.0f, 0.0f, 0.0f);
-    
-    float3 microfacet = normalize(normalize(lightingData.SL) + lightingData.V);
-    //microfacet *= float3(0.5f, 0.5f, 0.5f);
-    
-    float MdotN = dot(microfacet, lightingData.N);
-    MdotN = saturate(MdotN);
-    
+
+    float3 iPlusO = lightingData.L + lightingData.V;
+    float3 microfacet = normalize(iPlusO);
+
+    float LdotM = saturate(dot(lightingData.SL, microfacet));
+    if (LdotM == 0.0f) return float3(0.0f, 0.0f, 0.0f);
+    float VdotM = saturate(dot(lightingData.V, microfacet));
+    if (VdotM == 0.0f) return float3(0.0f, 0.0f, 0.0f);
+    float MdotN = saturate(dot(microfacet, lightingData.N));
     if (MdotN == 0.0f) return float3(0.0f, 0.0f, 0.0f);
+
+    float LdotN2 = SQR(LdotN);
+    float VdotN2 = SQR(VdotN);
     float MdotN2 = SQR(MdotN);
     float MdotN4 = SQR(MdotN2);
-    
+
+    float rx = SQR(saturate(roughness));
+
+    float rx2 = SQR(rx);
+    float tanThetaL  = sqrt(1.0f - LdotN2) / LdotN;
+    float tanThetaV  = sqrt(1.0f - VdotN2) / VdotN;
     float tan2ThetaM = (1.0f - MdotN2 ) / MdotN2;
 
-    //float D = specD(MdotN, rx);
-    float D = exp(-tan2ThetaM / rx2) / (1.0f + M_PI * rx2 * MdotN4);
-    
-    // ggx distribution function????    
-    //float D = e^((-(1.0f - NH^2) / (NH^2)) / rougness^4) / (1.0f + M_PI * roughness^4 * NH^4);
-    
-    float k = SQR(roughness+1.0f)/8.0f;
-    float G1 = NV / (NV * (1.0 - k) + k);
-    float G2 = NL / (NL * (1.0 - k) + k);
-    float G = (G1 * G2);
-    
-    float dist = length(lightingData.SL);
-    
-    float specStrength = 1.0f - roughness;
-    //dist *= (specStrength*specStrength);
-    //dist *= exp(roughness*roughness);
-    
-    float distAtten = (dist * dist) / (M_PI * 2.0);
-    float atten = (1.0 + distAtten*roughness*roughness); // increase the spec as dist increases to counteract falloff
-    
-    float spec = (lightingData.specular / atten);
-    
-    //return float3(MdotN, MdotN, MdotN);
-    
-    return (((D * G) / ( 4.0 * NL * NV )) * spec);
-}    
+    float a_im = 1.0f / (rx * tanThetaL);
+    float a_im2 = SQR(a_im);
+    float g1im = (a_im < 1.6f) ? (3.535f * a_im + 2.181f * a_im2) / (1.0f + 2.276f * a_im + 2.577f * a_im2) : 1.0f;
+    float a_om = 1.0f / (rx * tanThetaV);
+    float a_om2 = SQR(a_om);
+    float g1om = (a_om < 1.6f) ? (3.535f * a_om + 2.181f * a_om2) / (1.0f + 2.276f * a_om + 2.577f * a_om2) : 1.0f;
+    float G = g1im * g1om;
+
+    float D = (rx2 > 0.0f) ? exp(-tan2ThetaM / rx2) / (3.14159f * rx2 * MdotN4) : 0.0f;
+
+    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * lightingData.specular);
+}
                 ]]>
             </source>
         </implementation>
