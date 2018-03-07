@@ -1558,6 +1558,13 @@
     [attr offset]
         linkable            BOOL    true
         maya.channelbox     BOOL    true
+    [attr mipmap_bias]
+        maya.name          STRING  "aiMipBias"
+        maya.shortname     STRING  "ai_mipmap_bias"
+    [attr ignore_missing_textures]
+        maya.name          STRING  "aiUseDefaultColor"
+        maya.shortname     STRING  "ai_ignore_missing_textures"
+        default            BOOL     true
 
 [node motion_vector]
     desc                    STRING  "Motion vectors"

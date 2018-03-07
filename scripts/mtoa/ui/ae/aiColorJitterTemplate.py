@@ -13,7 +13,6 @@ class AEaiColorJitterTemplate(ShaderAETemplate):
             cmds.addAttr(node, longName=attr, at="enum", enumName=":".join(PANELS) )
 
     def changePanel(self, choice):
-        print "[aiColorJitter] changePanel :: {}".format(choice)
         if not self.typeCtrl or not cmds.attrEnumOptionMenu(self.typeCtrl, exists=True):
             # not built yet
             return
@@ -32,7 +31,6 @@ class AEaiColorJitterTemplate(ShaderAETemplate):
         children = cmds.layout(gparent, query=True, childArray=True)
 
         for child in children:
-            print child
             objType = cmds.objectTypeUI(child)
             if objType == 'frameLayout':
                 label = cmds.frameLayout(child, query=True, label=True)

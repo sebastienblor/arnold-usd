@@ -572,11 +572,11 @@ def removeAOVChangedCallback(key):
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown
     sg = str(sg)
-    if not sg:
+    if sg == '' or not cmds.objExists(sg):
         return
     if sg == "swatchShadingGroup":
         return
-
+    
     if cmds.attributeQuery('attributeAliasList', node=sg, exists=True):
         alias_list = '{}.attributeAliasList'.format(sg)
         if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :

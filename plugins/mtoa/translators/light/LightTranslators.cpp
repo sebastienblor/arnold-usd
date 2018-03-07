@@ -454,6 +454,13 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
    }
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(meshNode, "motion_start", (float)motionStart);
+      AiNodeSetFlt(meshNode, "motion_end", (float)motionEnd);
+   }
    return meshNode;
 }
 
