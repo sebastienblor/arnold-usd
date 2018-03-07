@@ -3012,6 +3012,179 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
 
+[node layer_shader]
+    desc                    STRING  "Layer shader"
+    maya.name               STRING  "aiLayerShader"
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D9B
+    [attr mix1]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix2]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix3]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix5]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix6]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix7]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix8]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr enable2]
+        default         BOOL    false
+    [attr enable3]
+        default         BOOL    false
+    [attr enable4]
+        default         BOOL    false
+    [attr enable5]
+        default         BOOL    false
+    [attr enable6]
+        default         BOOL    false
+    [attr enable7]
+        default         BOOL    false
+    [attr enable8]
+        default         BOOL    false
+
+    
+    
+[node layer_rgba]
+    desc                    STRING  "Layer RGBA"
+    maya.name               STRING  "aiLayerRgba"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115D9A
+    [attr mix1]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix2]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix3]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix5]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix6]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix7]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix8]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr enable2]
+        default         BOOL    false
+    [attr enable3]
+        default         BOOL    false
+    [attr enable4]
+        default         BOOL    false
+    [attr enable5]
+        default         BOOL    false
+    [attr enable6]
+        default         BOOL    false
+    [attr enable7]
+        default         BOOL    false
+    [attr enable8]
+        default         BOOL    false
+
+
+[node layer_float]
+    desc                    STRING  "Layer Float"
+    maya.name               STRING  "aiLayerFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115D99
+    [attr input1]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input2]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input3]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input4]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input4]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input5]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input6]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input7]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input8]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr mix1]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix2]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix3]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix5]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix6]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix7]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix8]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr enable2]
+        default         BOOL    false
+    [attr enable3]
+        default         BOOL    false
+    [attr enable4]
+        default         BOOL    false
+    [attr enable5]
+        default         BOOL    false
+    [attr enable6]
+        default         BOOL    false
+    [attr enable7]
+        default         BOOL    false
+    [attr enable8]
+        default         BOOL    false
+
 [node toon]
     desc                    STRING  "Toon shader"
     maya.name               STRING  "aiToon"
@@ -3156,6 +3329,13 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_name        STRING  "out"
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D96
+
+[node collection]
+    desc                    STRING  "Collection operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D97
 
 
 
