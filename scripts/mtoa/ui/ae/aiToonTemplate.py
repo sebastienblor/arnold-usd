@@ -13,7 +13,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("edge_color", label="Edge Color")
         self.addControl("edge_tonemap", label="Edge Tonemap")
         self.addControl("edge_opacity", label="Edge Opacity")
-        self.addControl("width_scale", label="Width Scaling")
+        self.addControl("edge_width_scale", label="Width Scaling")
 
         self.beginLayout("Edge Detection", collapse=False)
         self.beginNoOptimize();

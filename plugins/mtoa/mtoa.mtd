@@ -3204,7 +3204,7 @@ desc STRING "Apply a gamma correction to the color."
     [attr edge_opacity]
         min             FLOAT   0
         max             FLOAT   1
-    [attr width_scale]
+    [attr edge_width_scale]
         min             FLOAT   0
         max             FLOAT   1
     [attr uv_threshold]
