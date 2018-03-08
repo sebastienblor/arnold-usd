@@ -58,7 +58,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.beginLayout("Stylized Highlight", collapse=True)
-        self.addControl("light", label="Light")
+        self.addControl("lights", label="Lights")
         self.addControl("highlight_color", label="Color")
         self.addControl("highlight_size", label="Size")
         self.endLayout()
