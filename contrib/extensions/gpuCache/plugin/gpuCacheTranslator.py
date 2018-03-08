@@ -8,6 +8,7 @@ from ast import literal_eval
 from alembic.AbcCoreAbstract import *
 from alembic.Abc import *
 from alembic.Util import *
+from alembic.AbcGeom import GetVisibility, ObjectVisibility
 
 from arnold import *
 
@@ -15,6 +16,10 @@ NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
 BLACK_LIST_PARAMS = ['id', 'name', 'visibility', 'sidedness', 'matrix', 'motion_start', 'motion_end',
                      'use_shadow_group', 'use_light_group', 'degree_u', 'degree_v', 'transform_type']
+
+CACHE_ATTR = 'ai_abccache'
+
+VISIBILITY = ['differed', 'hidden', 'visible']
 
 def ArnoldUniverseOnlyBegin():
    if not AiUniverseIsActive():
@@ -32,70 +37,106 @@ def ArnoldUniverseEnd():
 
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
-    def selectGeomPath(self):
-        selectedGeomPath = cmds.textScrollList(self.abcInfoPath, q=True, si=True)
-        if selectedGeomPath:
-            selectedGeomPath = selectedGeomPath[0]
-        for key in self.abcItems:
-            if self.abcItems[key] == selectedGeomPath:
-                cmds.setAttr('{}.cacheGeomPath'.format(self.nodeName), key, type='string')
+    def createCacheAttr(self, node):
+        if not cmds.attributeQuery(CACHE_ATTR, node=node, exists=True):
+            # make the attr
+            cmds.addAttr(node, longName=CACHE_ATTR, dt="stringArray" )
 
-    def abcInfoNew(self, nodeName) :
+    def selectGeomPath(self, itemName, itemLabel):
+        # if itemName in self.abcItems:
+        for item in self.abcItems:
+            if itemName == item[0] and item[3] != VISIBILITY[1]:
+                cmds.setAttr('{}.cacheGeomPath'.format(self.nodeName), itemName.replace('/', '|'), type='string')
+
+    def abcInfoNew(self, nodeAttr) :
         cmds.rowLayout(nc=2)
         cmds.text(label='')
         self.inspectAlembicPath = cmds.button(align="center", label='Inspect Alembic File', command=lambda *args: self.inspectAlembic())
         cmds.setParent('..') # rowLayout
-        self.abcInfoPath = cmds.textScrollList(height=300,allowMultiSelection=False, doubleClickCommand=self.selectGeomPath)
-        self.abcInfoReplace(nodeName)
+        self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=0, allowReparenting=False, itemDblClickCommand2=self.selectGeomPath)
+        self.abcInfoReplace(nodeAttr)
 
         fileAttr = self.nodeName + ".cacheFileName"
         cmds.scriptJob(attributeChange=[fileAttr,self.updateAlembicFile],
                      replacePrevious=True, parent=self.inspectAlembicPath)
 
     def updateAlembicFile(self):
-        cmds.textScrollList(self.abcInfoPath, edit=True, visible=False)
+        # clear the cache
+        self.abcItems = []
+        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
+
+        cmds.treeView(self.abcInfoPath, edit=True, visible=False)
         cmds.button(self.inspectAlembicPath, edit=True, visible=True)
-        cmds.textScrollList(self.abcInfoPath, edit=True, removeAll=True)
+        cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
 
-    def visitObject(self, iObj, iIndent = 0 ):
+    def visitObject(self, iObj, parent="", visibility="visible"):
 
-        path = str(iObj)
-        indent = "-" * iIndent
+        path = iObj.getFullName()
+        name = iObj.getName()
 
-        strLine = "%s%s" % ( indent,  path )
-        cmds.textScrollList(self.abcInfoPath, edit=True, append=str(strLine))
+        print visibility, VISIBILITY[1]
+
+        if visibility != VISIBILITY[1]:
+            visibility = VISIBILITY[ int(GetVisibility(iObj))+1 ]
+
         geomPath = path.replace('/', '|')
-        self.abcItems[geomPath] = strLine
+        self.abcItems.append([path, name, parent, visibility])
 
-        iIndent += 2
         for child in iObj.children:
-            self.visitObject( child, iIndent )
+            self.visitObject( child, path, visibility)
+
+    def displayTree(self):
+        cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
+        cmds.treeView(self.abcInfoPath, edit=True, visible=True)
+        cmds.button(self.inspectAlembicPath, edit=True, visible=False)
+
+        for i in self.abcItems:
+            label = i[1]
+            if i[3] == VISIBILITY[1]:
+                label += " (hidden)"
+            cmds.treeView(self.abcInfoPath, edit=True, addItem=(i[0], i[2]))
+            cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(i[0], label))
+
+        geomPathAttr = self.nodeName + '.cacheGeomPath'
+        geomPath = cmds.getAttr(geomPathAttr).replace('|', '/')
+
+        # if geomPath in self.abcItems:
+        for item in self.abcItems:
+            if geomPath == item[0]:
+                cmds.treeView(self.abcInfoPath, edit=True, selectItem=[geomPath, True])
 
     def inspectAlembic(self):
         filenameAttr = self.nodeName + '.cacheFileName'
         filename = cmds.getAttr(filenameAttr)
-        cmds.textScrollList(self.abcInfoPath, edit=True, removeAll=True)
-        cmds.textScrollList(self.abcInfoPath, edit=True, visible=True)
-        cmds.button(self.inspectAlembicPath, edit=True, visible=False)
+
         if not os.path.exists(filename):
             return
 
         iArchive = IArchive(str(filename))
         self.visitObject( iArchive.getTop() )
 
-        allItems = cmds.textScrollList(self.abcInfoPath, query=True, allItems=True) or []
-        
-        geomPathAttr = self.nodeName + '.cacheGeomPath'
-        geomPath = cmds.getAttr(geomPathAttr)
-        
-        if geomPath in self.abcItems:
-            cmds.textScrollList(self.abcInfoPath, edit=True, selectItem=self.abcItems[geomPath])
+        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), len(self.abcItems), *[','.join(a) for a in self.abcItems], type="stringArray")
 
-    def abcInfoReplace(self, nodeName) :
-        self.abcItems = {}
-        cmds.textScrollList(self.abcInfoPath, edit=True, visible=False)
-        cmds.button(self.inspectAlembicPath, edit=True, visible=True)
-        cmds.textScrollList(self.abcInfoPath, edit=True, removeAll=True)
+        self.displayTree()
+
+    def populateItems(self):
+        self.abcItems = []
+        # get the items in the cache
+        cache_str_list = cmds.getAttr('{}.{}'.format(self.nodeName, CACHE_ATTR)) or []
+        for s in cache_str_list:
+            self.abcItems.append(s.split(','))
+
+    def abcInfoReplace(self, nodeAttr) :
+        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
+            # make the attr
+            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
+        self.populateItems()
+        if len(self.abcItems):
+            self.displayTree()
+        else:
+            cmds.treeView(self.abcInfoPath, edit=True, visible=False)
+            cmds.button(self.inspectAlembicPath, edit=True, visible=True)
+            cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
 
     def populateParams(self, node_type):
         # iterate over params
@@ -319,7 +360,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.beginLayout("Alembic Overrides", collapse=False)
         self.addControl("aiPullUserParams", label="Pull User Params")
         self.addCustom('aiNodeAttrs', self.userAttrsNew, self.userAttrsReplace)
-        # self.addControl('aiNodeAttrs', label="Set User Params")
         self.endLayout()
 
 templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "alembic")
