@@ -358,7 +358,6 @@ def arnoldRenderToTexture():
     win.create()
 
 def arnoldOpenMtoARenderView():
-    core.createOptions()
     cmds.arnoldRenderView(mode ="open")
 
 def arnoldMtoARenderView():
@@ -366,7 +365,6 @@ def arnoldMtoARenderView():
     #if core.ACTIVE_CAMERA != None:
     #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
     # so instead we're calling it without any argument
-    core.createOptions()
     cmds.arnoldRenderView()
 
 def addRuntimeMenuItem(name, parent, command, label = '', rtcLabel = '', tearOff=False, optionBox=False, image='', annotation='', category='', keywords ='', tags=''):
