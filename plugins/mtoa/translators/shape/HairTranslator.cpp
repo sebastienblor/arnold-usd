@@ -387,6 +387,15 @@ void CHairTranslator::Export( AtNode *curve )
       MString partialName = m_dagPath.partialPathName();
       AiNodeSetStr(curve, "dcc_name", AtString(partialName.asChar()));
    }
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(curve, "maya_full_name") == NULL)
+         AiNodeDeclare(curve, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(curve, "maya_full_name", AtString(fullName.asChar()));
+   }
+
 
 }
 

@@ -154,6 +154,15 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       MString partialName = m_dagPath.partialPathName();
       AiNodeSetStr(camera, "dcc_name", AtString(partialName.asChar()));
    }
+
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(camera, "maya_full_name") == NULL)
+         AiNodeDeclare(camera, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(camera, "maya_full_name", AtString(fullName.asChar()));
+   }
 }
 
 double CCameraTranslator::GetDeviceAspect()
