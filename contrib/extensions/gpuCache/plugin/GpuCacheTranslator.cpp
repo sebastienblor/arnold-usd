@@ -111,7 +111,7 @@ void CGpuCacheTranslator::Export( AtNode *shape )
       ExportShaders();
 
    MTime curTime = MAnimControl::currentTime();
-   AiNodeSetFlt(shape, "frame", curTime.value());
+   AiNodeSetFlt(shape, "frame", float(curTime.value()));
 
    float fps = 24.0f;
    MTime::Unit unit = curTime.unit();
