@@ -182,7 +182,7 @@ def changeBackground(node, field, select):
     if connection:
         if cmds.nodeType(connection[0]) == 'transform':
             connection = cmds.listRelatives(connection[0], s=True)
-        if str(connection[0]) == str(node):
+        if connection and len(connection) and (str(connection[0]) == str(node)):
             selectBackground()
             return 0
     cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
@@ -256,7 +256,7 @@ def changeAtmosphere(node, field, select):
     if connection:
         if cmds.nodeType(connection[0]) == 'transform':
             connection = cmds.listRelatives(connection[0], s=True)
-        if str(connection[0]) == str(node):
+        if connection and len(connection) and (str(connection[0]) == str(node)):
             selectAtmosphere()
             return 0
     cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.atmosphere', force=True)
@@ -315,7 +315,7 @@ def changeSubdivDicingCamera(node, field, select):
     if connection:
         if cmds.nodeType(connection[0]) == 'transform':
             connection = cmds.listRelatives(connection[0], s=True)
-        if str(connection[0]) == str(node):
+        if connection and len(connection) and (str(connection[0]) == str(node)):
             selectSubdivDicingCamera()
             return 0
     cmds.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.subdivDicingCamera', force=True)
