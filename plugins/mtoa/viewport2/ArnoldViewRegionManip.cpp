@@ -9,31 +9,6 @@
 // ==========================================================================
 //+
 
-//
-//	squareScaleManip.cpp
-//		Creates manipulator node squareScaleManipulator
-//		Creates command squareManipCmd
-//
-//	This example demonstrates how to use the MPxManipulatorNode
-//	class along with a command to create a user defined
-//	manipulator.  The manipulator created is a simple square
-//	with the 4 sides as OpenGL pickable components.  As you
-//	move the pickable component, selected transforms have
-//	their scale attribute modified.
-//	A corresponding command is used to create and delete
-//	the manipulator node and to support undo/redo etc.
-
-/*
-
-// To show this example using MEL, run the following:
-loadPlugin squareScaleManip.so;
-squareManipCmd -create;
-
-// To delete the manipulator using MEL:
-squareManipCmd -delete;
-
-*/
-
 #include "ArnoldViewRegionManip.h"
 
 #include "scene/MayaScene.h"
@@ -54,8 +29,8 @@ squareManipCmd -delete;
 #if MAYA_API_VERSION >= 201700
 
 // Statics
-MTypeId ArnoldViewRegionManipulator::id(0x81046);
-MString ArnoldViewRegionManipulator::registrantId("SquareScaleManipPlugin");
+MTypeId ArnoldViewRegionManipulator::id(0x81046); // TODO: Need a new ID for this
+MString ArnoldViewRegionManipulator::registrantId("ArnoldViewRegionManipulatorPlugin");
 
 //
 // class implementation
