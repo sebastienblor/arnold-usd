@@ -1,0 +1,59 @@
+<!--
+===========================================================================
+Copyright 2018 Autodesk, Inc. All rights reserved.
+
+Use of this software is subject to the terms of the Autodesk license
+agreement provided at the time of installation or download, or which
+otherwise accompanies this software in either electronic or hard copy form.
+===========================================================================
+-->
+<fragment  uiName="aiCross" name="aiCross" type="plumbing" class="ShadeFragment" version="1.0" feature_level="20" >
+  <description>
+    <![CDATA[cross product function]]>
+  </description>
+  <keyword value="arnold" />
+  <properties>
+    <float3  name="input1" />
+    <float3  name="input2" />
+  </properties>
+  <values>
+  </values>
+  <outputs>
+    <float3  name="outValue" />
+  </outputs>
+  <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+      <function_name val="aiCross" />
+      <source>
+        <![CDATA[
+float3 aiCross(float3 val1, float3 val2)
+{
+    return cross(val1, val2);
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
+      <function_name val="aiCross" />
+      <source>
+        <![CDATA[
+float3 aiCross(float3 val1, float3 val2)
+{
+    return cross(val1, val2);
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+      <function_name val="aiCross" />
+      <source>
+        <![CDATA[
+vec3 aiCross(vec3 val1, vec3 val2)
+{
+    return cross(val1, val2);
+}
+            ]]>
+      </source>
+    </implementation>
+  </implementation>
+</fragment>
