@@ -26,6 +26,8 @@ const char* NodeTypes[] =
 void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
 {
    s_alembicSupported = (AiNodeEntryLookUp("alembic") != NULL);
+   if (!s_alembicSupported)
+      return;
 
    CExtensionAttrHelper helper(context.maya, "alembic");
    CShapeTranslator::MakeCommonAttributes(helper);
@@ -109,7 +111,7 @@ void CGpuCacheTranslator::Export( AtNode *shape )
       ExportShaders();
 
    MTime curTime = MAnimControl::currentTime();
-   AiNodeSetFlt(shape, "frame", curTime.value());
+   AiNodeSetFlt(shape, "frame", float(curTime.value()));
 
    float fps = 24.0f;
    MTime::Unit unit = curTime.unit();
@@ -173,6 +175,9 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 
 void CGpuCacheTranslator::ExportShaders()
 {
+   if (s_alembicSupported == false)
+      return;
+
    AtNode *node = GetArnoldNode();
    if (node == NULL)
       return;
@@ -209,6 +214,10 @@ void CGpuCacheTranslator::ExportMotion(AtNode *shape)
 
 void CGpuCacheTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
+   if (s_alembicSupported == false)
+      return;
+   
+   // Check if
    if (!IsTransformPlug(plug))
       SetUpdateMode(AI_RECREATE_NODE);
 

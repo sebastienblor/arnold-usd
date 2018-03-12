@@ -180,6 +180,16 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
       MString partialName = m_dagPath.partialPathName();
       AiNodeSetStr(node, "dcc_name", AtString(partialName.asChar()));
    }
+
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(node, "maya_full_name") == NULL)
+         AiNodeDeclare(node, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(node, "maya_full_name", AtString(fullName.asChar()));
+   }
+
 }
 
 void CProceduralTranslator::Export(AtNode* anode)

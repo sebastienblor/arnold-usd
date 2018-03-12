@@ -551,7 +551,7 @@ def createMeshLight(legacy=False, centerPivot=True):
 
         # Make sure the shape has only a single parent
         # Multiple light instances are not supported
-        allPaths = cmds.listRelatives(meshShape, allParents=True, fullPath=True)
+        allPaths = cmds.listRelatives(meshShape, allParents=True, fullPath=True) or []
         if len(allPaths) != 1:
             cmds.confirmDialog(title='Error', message='The mesh has multiple instances. Light instances are not supported!', button='Ok')
             return

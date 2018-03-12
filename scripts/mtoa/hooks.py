@@ -134,7 +134,9 @@ def fileTokenCamera(path, tokens, **kwargs):
             if not kwargs['leaveUnmatchedTokens']:
                 raise ValueError("[mtoa] Multiple renderable cameras: you must provide a value for <Camera> token")
         elif len(renderable) == 1:
-            tokens['Camera'] = cmds.listRelatives(renderable[0], parent=True)
+            parents = cmds.listRelatives(renderable[0], parent=True)
+            if parents and len(parents):
+                tokens['Camera'] = parents[0]
         else:
             if not kwargs['leaveUnmatchedTokens']:
                 raise ValueError("[mtoa] No renderable cameras: you must provide a value for <Camera> token")

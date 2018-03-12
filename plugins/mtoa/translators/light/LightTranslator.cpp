@@ -112,6 +112,15 @@ void CLightTranslator::Export(AtNode* light)
       MString partialName = m_dagPath.partialPathName();
       AiNodeSetStr(light, "dcc_name", AtString(partialName.asChar()));
    }
+
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(light, "maya_full_name") == NULL)
+         AiNodeDeclare(light, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(light, "maya_full_name", AtString(fullName.asChar()));
+   }
 }
 
 void CLightTranslator::ExportMotion(AtNode* light)

@@ -598,15 +598,24 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
 
    CExtensionAttrHelper helper(context.maya, "image");
 
-   helper.MakeInput("mipmap_bias");
    helper.MakeInput("filter");
-   helper.MakeInput("ignore_missing_textures");
 
    CAttrData data;
    data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
+
+   data.defaultValue.INT() = 0;
+   data.name = "aiMipBias";
+   data.shortName = "ai_mipmap_bias";
+   helper.MakeInputInt(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiUseDefaultColor";
+   data.shortName = "ai_ignore_missing_textures";
+   helper.MakeInputBoolean(data);
+
 }
 
 // Bump2d

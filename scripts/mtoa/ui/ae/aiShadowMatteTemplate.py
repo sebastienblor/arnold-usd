@@ -34,8 +34,6 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
         self.addControl("shadowColor", label="Shadow Color")
         self.addControl("shadowOpacity", label="Shadow Opacity")
         self.addControl("backlighting", label="Backlighting")
-        self.addControl("enableTransparency", label="Enable Transparency")
-        self.addControl("shadowTransparency", label="Shadow Transparency")
         self.addControl("alphaMask", label="Alpha Mask")
         
         self.endLayout()
@@ -54,7 +52,9 @@ class AEaiShadowMatteTemplate(ShaderAETemplate):
         self.addControl("specularRoughness", label="Roughness")
         self.addControl("specularIOR", label="IOR")        
         self.endLayout()
-
+        self.beginLayout("Lights", collapse=True)
+        self.addControl("aovGroup", label="Light Group")
+        self.endLayout()
         self.beginLayout("AOVs", collapse=True)
         self.addControl("aovShadow", label="Shadow")
         self.addControl("aovShadowDiff", label="Shadow Diff")

@@ -27,7 +27,7 @@ static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
 ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     : MRenderOverride(name)
     , mUIName("Arnold")
-    , mTexture(nullptr)
+    , mTexture(NULL)
     , mRendererChangeCB(0)
     , mRenderOverrideChangeCB(0)
 {
@@ -136,13 +136,13 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // will be printed unless mDebugOverride is true)
     if (!mRendererChangeCB)
     {
-        mRendererChangeCB = MUiMessage::add3dViewRendererChangedCallback(destination, sRendererChangeFunc, nullptr);
+        mRendererChangeCB = MUiMessage::add3dViewRendererChangedCallback(destination, sRendererChangeFunc, NULL);
     }
     if (!mRenderOverrideChangeCB)
     {
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
         MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox;");
-        mRenderOverrideChangeCB = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, nullptr);
+        mRenderOverrideChangeCB = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, NULL);
     }
 
     MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
@@ -304,7 +304,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     const AtRGBA *buffer = renderSession->GetDisplayedBuffer();
     if (buffer)
     {
-        if (mTexture == nullptr)
+        if (mTexture == NULL)
         {
             MHWRender::MTextureDescription desc;
             desc.setToDefault2DTexture();
