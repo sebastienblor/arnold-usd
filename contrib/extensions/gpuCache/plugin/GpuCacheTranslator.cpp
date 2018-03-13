@@ -9,6 +9,10 @@
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
 #include <maya/MAnimControl.h>
+#include <maya/MSelectionList.h>
+#include <maya/MDGModifier.h>
+#include <maya/MDGMessage.h>
+#include <maya/MEventMessage.h>
 
 #include <algorithm>
 #include <string>
@@ -81,6 +85,34 @@ AtNode* CGpuCacheTranslator::CreateArnoldNodes()
    if (!s_alembicSupported) return NULL;
 
    return AddArnoldNode("alembic");
+}
+
+// Callback is called whenever a gpuCache node is created
+void CGpuCacheTranslator::timeChangedCallback(void* clientData)
+{
+
+   CGpuCacheTranslator * translator = static_cast< CGpuCacheTranslator* >(clientData);
+   if (translator != NULL)
+   {
+      translator->RequestUpdate();
+   }
+}
+
+void CGpuCacheTranslator::AddUpdateCallbacks()
+{
+
+   MStatus status;
+   MCallbackId id;
+
+   MObject object = GetMayaObject();
+   id = MEventMessage::addEventCallback("timeChanged", 
+                                        CGpuCacheTranslator::timeChangedCallback,
+                                        this,
+                                        &status);
+
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
+
+   CShapeTranslator::AddUpdateCallbacks();
 }
 
 void CGpuCacheTranslator::Export( AtNode *shape )
@@ -220,7 +252,6 @@ void CGpuCacheTranslator::NodeChanged(MObject& node, MPlug& plug)
    // Check if
    if (!IsTransformPlug(plug))
       SetUpdateMode(AI_RECREATE_NODE);
-
    CShapeTranslator::NodeChanged(node, plug);
 }
    
