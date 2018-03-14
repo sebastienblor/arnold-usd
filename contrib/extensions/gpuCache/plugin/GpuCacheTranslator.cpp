@@ -94,6 +94,7 @@ void CGpuCacheTranslator::timeChangedCallback(void* clientData)
    CGpuCacheTranslator * translator = static_cast< CGpuCacheTranslator* >(clientData);
    if (translator != NULL)
    {
+      translator->SetUpdateMode(AI_RECREATE_NODE);
       translator->RequestUpdate();
    }
 }
