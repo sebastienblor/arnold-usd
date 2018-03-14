@@ -496,10 +496,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 1);
    nAttr.setKeyable(false);
    eAttr.addField("Errors", MTOA_LOG_ERRORS);
-   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Warnings", MTOA_LOG_WARNINGS);
+   eAttr.addField("Info", MTOA_LOG_INFO);
    eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
 

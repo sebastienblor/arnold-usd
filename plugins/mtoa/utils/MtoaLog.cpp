@@ -10,9 +10,11 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
 
    switch(level)
    {
-   case MTOA_LOG_DEBUG:  flags = AI_LOG_ALL; break;
-   case MTOA_LOG_WANINGS_INFO:  flags |= AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_STATS | AI_LOG_PLUGINS | AI_LOG_PROGRESS;
-   case MTOA_LOG_ERRORS:  flags |= AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_MEMORY | AI_LOG_BACKTRACE ; break; 
+      case MTOA_LOG_DEBUG:  flags = AI_LOG_ALL; break;
+      case MTOA_LOG_INFO:  flags |= AI_LOG_INFO | AI_LOG_STATS | AI_LOG_PLUGINS | AI_LOG_PROGRESS;
+      default:
+      case MTOA_LOG_WARNINGS:  flags |= AI_LOG_WARNINGS;
+      case MTOA_LOG_ERRORS:  flags |= AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_MEMORY | AI_LOG_BACKTRACE ; break; 
    }
 
    return flags;
