@@ -224,11 +224,171 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          }
          else if(id == ARNOLD_NODEID_IMAGE)
          {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/image";
+         }
+         else if(id == ARNOLD_NODEID_SHADER_ABS)
+         {
             creator    = CArnoldShaderNode::creator;
             initialize = CArnoldShaderNode::initialize;
             abstract   = &CArnoldShaderNode::s_abstract;
             if (drawdbClassification.numChars() == 0)
-               drawdbClassification = ":drawdb/shader/surface/arnold/image";             
+                drawdbClassification = ":drawdb/shader/utility/math/arnold/abs";             
+         }
+         else if (id == ARNOLD_NODEID_SHADER_ADD)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+                drawdbClassification = ":drawdb/shader/utility/math/arnold/add";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_ATAN)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+                drawdbClassification = ":drawdb/shader/utility/math/arnold/atan";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_MIN)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+                drawdbClassification = ":drawdb/shader/utility/math/arnold/min";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_MAX)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+                drawdbClassification = ":drawdb/shader/utility/math/arnold/max";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_NEGATE)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+                drawdbClassification = ":drawdb/shader/utility/math/arnold/negate";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_MULTIPLY)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+            drawdbClassification = ":drawdb/shader/utility/math/arnold/multiply";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_DIVIDE)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/divide";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_SUBSTRACT)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/subtract";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_POW)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/pow";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_SQRT)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/sqrt";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_DOT)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/dot";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_LOG)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/log";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_EXP)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/exp";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_CROSS)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/cross";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_LENGTH)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/length";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_NORMALIZE)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/normalize";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_MODULO)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/modulo";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_FRACTION)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/fraction";
+         }
+         else if (id == ARNOLD_NODEID_SHADER_CLAMP)
+         {
+             creator = CArnoldShaderNode::creator;
+             initialize = CArnoldShaderNode::initialize;
+             abstract = &CArnoldShaderNode::s_abstract;
+             if (drawdbClassification.numChars() == 0)
+                 drawdbClassification = ":drawdb/shader/utility/math/arnold/clamp";
          }
          else
          {

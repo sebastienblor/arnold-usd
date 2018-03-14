@@ -5,6 +5,7 @@
 #include "viewport2/ArnoldStandardHairShaderOverride.h"
 #include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ArnoldAiImageShaderOverride.h"
+#include "viewport2/ArnoldUtilityShaderOverrides.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
@@ -299,7 +300,87 @@ namespace // <anonymous>
           "drawdb/shader/surface/arnold/image",
           "arnoldAiImageShaderOverride",
           ArnoldAiImageShaderOverride::creator
-      }
+       } ,{
+           "drawdb/shader/utility/math/arnold/abs",
+           "arnoldAiAbsShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Abs
+       } ,{
+           "drawdb/shader/utility/math/arnold/add",
+           "arnoldAiAddShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Add
+       } ,{
+           "drawdb/shader/utility/math/arnold/atan",
+           "arnoldAiAtanShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Atan
+       } ,{
+           "drawdb/shader/utility/math/arnold/max",
+           "arnoldAiMaxShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Max
+       } ,{
+           "drawdb/shader/utility/math/arnold/min",
+           "arnoldAiMinShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Min
+       },{
+           "drawdb/shader/utility/math/arnold/negate",
+           "arnoldAiNegateShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Negate
+       },{
+           "drawdb/shader/utility/math/arnold/multiply",
+           "arnoldAiMultiplyShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Multiply
+       },{
+           "drawdb/shader/utility/math/arnold/divide",
+           "arnoldAiDivideShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Divide
+       },{
+           "drawdb/shader/utility/math/arnold/subtract",
+           "arnoldAiSubtractShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Subtract
+       },{
+           "drawdb/shader/utility/math/arnold/pow",
+           "arnoldAiPowShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Pow
+       } ,{
+           "drawdb/shader/utility/math/arnold/sqrt",
+           "arnoldAiSqrtShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Sqrt
+       },{
+           "drawdb/shader/utility/math/arnold/dot",
+           "arnoldAiDotShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Dot
+       },{
+           "drawdb/shader/utility/math/arnold/log",
+           "arnoldAiLogShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Log
+       },{
+           "drawdb/shader/utility/math/arnold/exp",
+           "arnoldAiExpShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Exp
+       },{
+           "drawdb/shader/utility/math/arnold/cross",
+           "arnoldAiCrossShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Cross
+       },{
+           "drawdb/shader/utility/math/arnold/normalize",
+           "arnoldAiNormalizeShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Normalize
+       },{
+           "drawdb/shader/utility/math/arnold/length",
+           "arnoldAiLengthShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Length
+       },{
+           "drawdb/shader/utility/math/arnold/modulo",
+           "arnoldAiModuloShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Modulo
+       },{
+           "drawdb/shader/utility/math/arnold/fraction",
+           "arnoldAiFractionShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Fraction
+       }, {
+           "drawdb/shader/utility/math/arnold/clamp",
+           "arnoldAiClampShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Clamp
+       }
    };
 
    struct drawOverride{
@@ -358,16 +439,13 @@ namespace // <anonymous>
    class aiViewRegionCmd;
    char cmdName[] = "aiViewRegionCmd";
    char nodeName[] = "aiViewRegion";
-
    class aiViewRegionCmd : public MTemplateCreateNodeCommand<aiViewRegionCmd, cmdName, nodeName>
    {
    public:
-       //
-       aiViewRegionCmd()
-       {}
+       aiViewRegionCmd() {}
    };
-
    static aiViewRegionCmd _aiViewRegionCmd;
+
 
    template < typename T, size_t N >
    size_t sizeOfArray(T const (&array)[ N ])
