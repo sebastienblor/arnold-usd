@@ -568,6 +568,8 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    }
 
+   // Make sure the caches are flushed (#3369)
+   AiUniverseCacheFlush(AI_CACHE_ALL);
 
    // Re-export everything !
    MDagPathArray cameras;
