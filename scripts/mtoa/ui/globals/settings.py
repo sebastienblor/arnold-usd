@@ -41,6 +41,8 @@ def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
     return (computed, computedDepth)
 
 def updateComputeSamples(*args):
+    updateAdaptiveSettings()
+
     AASamples = cmds.getAttr('defaultArnoldRenderOptions.AASamples')
     GISamples = cmds.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
     specularSamples = cmds.getAttr('defaultArnoldRenderOptions.GISpecularSamples')
@@ -61,27 +63,65 @@ def updateComputeSamples(*args):
     totalSamples = AASamplesComputed + GISamplesComputed + specularSamplesComputed + transmissionSamplesComputed
     totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + specularSamplesComputedDepth + transmissionSamplesComputedDepth
 
-    cmds.text("textAASamples",
-            edit=True, 
-            label='Camera (AA) Samples : %i' % AASamplesComputed)
+    adaptive = cmds.getAttr('defaultArnoldRenderOptions.enable_adaptive_sampling') and (cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > cmds.getAttr('defaultArnoldRenderOptions.AASamples'))
 
-    cmds.text("textGISamples",
-            edit=True, 
-            label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
-    
-    cmds.text("textSpecularSamples",
-            edit=True, 
-            label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
-        
-    cmds.text("textTransmissionSamples",
-            edit=True, 
-            label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
-        
-    cmds.text("textTotalSamples",
-            edit=True, 
-            label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
+    if adaptive:
 
-    updateAdaptiveSettings()
+        AASamplesComputedMax = cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max')
+        if AASamplesComputedMax <= 0:
+            AASamplesComputedMax = 1
+        AASamplesComputedMax = AASamplesComputedMax * AASamplesComputedMax
+
+        GISamplesComputedMax, GISamplesComputedDepthMax = calculateRayCounts(AASamplesComputedMax, GISamples, diffuseDepth)
+        specularSamplesComputedMax, specularSamplesComputedDepthMax = calculateRayCounts(AASamplesComputedMax, specularSamples, specularDepth)
+        transmissionSamplesComputedMax, transmissionSamplesComputedDepthMax = calculateRayCounts(AASamplesComputedMax, transmissionSamples, transmissionDepth)
+        
+        totalSamplesMax = AASamplesComputedMax + GISamplesComputedMax + specularSamplesComputedMax + transmissionSamplesComputedMax
+        totalSamplesDepthMax = AASamplesComputedMax + GISamplesComputedDepthMax + specularSamplesComputedDepthMax + transmissionSamplesComputedDepthMax
+
+        cmds.text("textAASamples",
+                edit=True, 
+                label='Camera (AA) Samples : %i to %i' % (AASamplesComputed, AASamplesComputedMax))
+
+        cmds.text("textGISamples",
+                edit=True, 
+                label='Diffuse Samples : %i to %i (max : %i to %i)' % (GISamplesComputed, GISamplesComputedMax, GISamplesComputedDepth, GISamplesComputedDepthMax))
+        
+        cmds.text("textSpecularSamples",
+                edit=True, 
+                label='Specular Samples : %i to %i (max : %i to %i)' % (specularSamplesComputed, specularSamplesComputedMax, specularSamplesComputedDepth, specularSamplesComputedDepthMax))
+            
+        cmds.text("textTransmissionSamples",
+                edit=True, 
+                label='Transmission Samples : %i to %i (max : %i to %i)' % (transmissionSamplesComputed, transmissionSamplesComputedMax, transmissionSamplesComputedDepth, transmissionSamplesComputedDepthMax))
+            
+        cmds.text("textTotalSamples",
+                edit=True, 
+                label='Total (no lights) : %i to %i (max : %i to %i)' % (totalSamples, totalSamplesMax, totalSamplesDepth, totalSamplesDepthMax))
+
+
+    else:
+        cmds.text("textAASamples",
+                edit=True, 
+                label='Camera (AA) Samples : %i' % AASamplesComputed)
+
+        cmds.text("textGISamples",
+                edit=True, 
+                label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
+        
+        cmds.text("textSpecularSamples",
+                edit=True, 
+                label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
+            
+        cmds.text("textTransmissionSamples",
+                edit=True, 
+                label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
+            
+        cmds.text("textTotalSamples",
+                edit=True, 
+                label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
+
+
 
 def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
@@ -615,12 +655,12 @@ def createArnoldSamplingSettings():
     
     cmds.attrControlGrp('ss_enable_adaptive_sampling',
                         label="Enable",
-                        cc=updateAdaptiveSettings,
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples),
                         attribute='defaultArnoldRenderOptions.enable_adaptive_sampling')
 
     cmds.attrControlGrp('ss_aa_samples_max',
                         label="Max. Camera (AA)",
-                        cc=updateAdaptiveSettings,
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples),
                         attribute='defaultArnoldRenderOptions.AA_samples_max')
 
     cmds.attrControlGrp('ss_adaptive_threshold',
