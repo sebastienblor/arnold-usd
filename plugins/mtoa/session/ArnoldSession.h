@@ -245,6 +245,7 @@ private:
    //void ProcessAOVs();
 
    static void HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData);
+   static void DoHiddenCallback(void* clientData);
    void SetDagVisible(MDagPath &path);
 
    static bool IsVisible(MFnDagNode &node);

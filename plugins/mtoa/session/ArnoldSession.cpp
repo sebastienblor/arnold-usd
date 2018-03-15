@@ -1115,6 +1115,23 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    return status;
 }
 
+// When a hidden node gets "unhidden", we need to go through an "idle" callback
+// so that Maya has time to process its visibility status properly
+static MCallbackId s_hiddeNodeCb = 0;
+static MDagPathArray s_hiddenNodesArray;
+void CArnoldSession::DoHiddenCallback(void* clientData)
+{
+   MMessage::removeCallback(s_hiddeNodeCb);
+   s_hiddeNodeCb = 0;
+   MStatus status;
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   if (session)
+   {
+      for (unsigned int i = 0; i< s_hiddenNodesArray.length(); i++)
+         session->SetDagVisible(s_hiddenNodesArray[i]);
+   }
+   s_hiddenNodesArray.clear();
+}
 // This callback is invoked when one of the skipped (hidden) objects is modified 
 // during an IPR session. We have to check if it became visible in order to export it
 void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
@@ -1126,11 +1143,23 @@ void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* client
 
    if(!path.isValid()) return;
 
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
    CArnoldSession *session = (CArnoldSession*)clientData;
    DagFiltered filtered = session->FilteredStatus(path);
-   if (filtered != MTOA_EXPORT_ACCEPTED) return; // this object is still hidden
+   if (filtered != MTOA_EXPORT_ACCEPTED && plugName != "visibility")
+    return; // this object is still hidden
 
-   session->SetDagVisible(path);
+   // We need to go through an "idle" callback, otherwise Maya won't have time to process the 
+   // visibility status of this node 
+   if(s_hiddeNodeCb == 0)
+   {
+      s_hiddeNodeCb = MEventMessage::addEventCallback("idle",
+                                                  CArnoldSession::DoHiddenCallback,
+                                                  clientData
+                                                  );
+   } 
+   s_hiddenNodesArray.append(path);
 }
 
 void CArnoldSession::SetDagVisible(MDagPath &path)
@@ -1199,21 +1228,25 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
             continue;
          }
          MStatus stat;
-         CDagTranslator *tr = ExportDagPath(path, true, &stat);
+
+         // We shouldn't call this function during a render !
+         // It's going to create new nodes (#3355)
+         //CDagTranslator *tr = ExportDagPath(path, true, &stat);
          QueueForUpdate(path);
          if (stat != MStatus::kSuccess)
             status = MStatus::kFailure;
 
+/*
+         // Since we're not calling ExportDagPath anymore, we don't have any translator and we don't know
          if (tr != NULL && !tr->ExportDagChildren())
          {
             pruneDag = true;
             parentPruneDag = path;
             parentPruneDag.pop();
             dagIterator.prune();
-         }
+         }*/
       }
    }
-
    RequestUpdate();
 }
 
