@@ -223,6 +223,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         if node_type == 'nurbs':
             section['disp'] = cmds.frameLayout(label='Displacement', collapse=True)
             cmds.setParent('..')
+            section['volume'] = cmds.frameLayout(label='Volume', collapse=True)
+            cmds.setParent('..')
         if node_type == 'points':
             section['volume'] = cmds.frameLayout(label='Volume', collapse=True)
             cmds.setParent('..')
