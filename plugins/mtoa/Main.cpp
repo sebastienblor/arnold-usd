@@ -173,7 +173,7 @@ namespace // <anonymous>
 #else
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
 #endif
-   const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/arnold/skynode";
+   const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/light/arnold/skynode";
 #if MAYA_API_VERSION >= 201700
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
 #else
