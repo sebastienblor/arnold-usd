@@ -1,0 +1,66 @@
+<!--
+===========================================================================
+Copyright 2018 Autodesk, Inc. All rights reserved.
+
+Use of this software is subject to the terms of the Autodesk license
+agreement provided at the time of installation or download, or which
+otherwise accompanies this software in either electronic or hard copy form.
+===========================================================================
+-->
+
+<fragment  uiName="aiLog" name="aiLog" type="plumbing" class="ShadeFragment" version="1.0" feature_level="20" >
+  <description>
+    <![CDATA[log function]]>
+  </description>
+  <keyword value="arnold" />
+  <properties>
+    <float3  name="input" />
+    <float3  name="base" />
+  </properties>
+  <values>
+  </values>
+  <outputs>
+    <float3  name="outColor" />
+  </outputs>
+  <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+      <function_name val="aiLog" />
+      <source>
+        <![CDATA[
+float3 aiLog(float3 val, float3 base)
+{
+    // note we do not currently support any other base than e.  
+    // Cg intrinsics supports, e, and 2 but not an arbitrary base. 
+    return float3(log(val.x), log(val.y), log(val.z));
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
+      <function_name val="aiLog" />
+      <source>
+        <![CDATA[
+float3 aiLog(float3 val, float3 base)
+{
+    // note we do not currently support any other base than e.  
+    // HLSL intrinsics supports, e, 2, and 10, but not an arbitrary base. 
+    return float3(log(val.x), log(val.y), log(val.z));
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+      <function_name val="aiLog" />
+      <source>
+        <![CDATA[
+vec3 aiLog(vec3 val, vec3 base)
+{
+    // note we do not currently support any other base than e.  
+    // GLSL intrinsics supports, e, 2, and 10, but not an arbitrary base. 
+    return vec3(log(val.x), log(val.y), log(val.z));
+}
+            ]]>
+      </source>
+    </implementation>
+  </implementation>
+</fragment>

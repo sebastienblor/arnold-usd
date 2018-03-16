@@ -1024,6 +1024,10 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "thread_priority") == 0)
          {
             //AiNodeSetInt(options, "thread_priority", 2 );
+         } else if (strcmp(paramName, "GI_glossy_samples") == 0 || strcmp(paramName, "GI_refraction_samples") == 0 ||
+            strcmp(paramName, "sss_bssrdf_samples") == 0 || strcmp(paramName, "volume_indirect_samples") == 0)
+         {
+            // deprecated parameters, don't do anything
          }
          else
          {

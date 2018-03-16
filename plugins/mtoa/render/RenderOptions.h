@@ -29,7 +29,8 @@ enum RenderType
 enum LogVerbosity
 {
    MTOA_LOG_ERRORS,
-   MTOA_LOG_WANINGS_INFO,
+   MTOA_LOG_WARNINGS,
+   MTOA_LOG_INFO,
    MTOA_LOG_DEBUG
 };
 

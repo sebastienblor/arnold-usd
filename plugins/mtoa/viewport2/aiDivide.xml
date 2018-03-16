@@ -1,0 +1,69 @@
+<!--
+===========================================================================
+Copyright 2018 Autodesk, Inc. All rights reserved.
+
+Use of this software is subject to the terms of the Autodesk license
+agreement provided at the time of installation or download, or which
+otherwise accompanies this software in either electronic or hard copy form.
+===========================================================================
+-->
+
+<fragment  uiName="aiDivide" name="aiDivide" type="plumbing" class="ShadeFragment" version="1.0" feature_level="20" >
+    <description>
+    <![CDATA[divide one value by another]]>
+    </description>
+    <keyword value="arnold" />
+    <properties>
+        <float3  name="input1" />
+        <float3  name="input2" />
+    </properties>
+    <values>
+    </values>
+    <outputs>
+        <float3  name="outColor" />
+    </outputs>
+    <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+        <function_name val="aiDivide" />
+        <source>
+            <![CDATA[
+float3 aiDivide(float3 val1, float3 val2)
+{
+    return float3(
+        val2.x == 0.0 ? 0.0 : val1.x / val2.x,
+        val2.y == 0.0 ? 0.0 : val1.y / val2.y,
+        val2.z == 0.0 ? 0.0 : val1.z / val2.z);    
+}
+            ]]>
+        </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
+        <function_name val="aiDivide" />
+        <source>
+            <![CDATA[
+float3 aiDivide(float3 val1, float3 val2)
+{
+    return float3(
+        val2.x == 0.0 ? 0.0 : val1.x / val2.x,
+        val2.y == 0.0 ? 0.0 : val1.y / val2.y,
+        val2.z == 0.0 ? 0.0 : val1.z / val2.z);    
+}
+            ]]>
+        </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+        <function_name val="aiDivide" />
+        <source>
+            <![CDATA[
+vec3 aiDivide(vec3 val1, vec3 val2)
+{
+    return vec3(
+        val2.x == 0.0 ? 0.0 : val1.x / val2.x,
+        val2.y == 0.0 ? 0.0 : val1.y / val2.y,
+        val2.z == 0.0 ? 0.0 : val1.z / val2.z);    
+}
+            ]]>
+        </source>
+    </implementation>
+    </implementation>
+</fragment>
