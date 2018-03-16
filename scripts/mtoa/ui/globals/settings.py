@@ -650,6 +650,11 @@ def createArnoldSamplingSettings():
                         label='Volume Indirect',
                         attribute='defaultArnoldRenderOptions.GI_volume_samples')
     
+    cmds.separator()
+    cmds.attrControlGrp('ss_progressive_render',
+                        label="Progressive Render",
+                        attribute='defaultArnoldRenderOptions.progressive_render')
+
     cmds.frameLayout(label='Adaptive Sampling', collapse=True)
     cmds.columnLayout(adjustableColumn=True)
     
@@ -724,7 +729,6 @@ def createArnoldSamplingSettings():
     cmds.attrControlGrp('ss_indirect_specular_blur',
                         label="Indirect Specular Blur",
                         attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
-
     cmds.setParent('..')
     
     cmds.setParent('..')

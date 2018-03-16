@@ -37,7 +37,7 @@ MObject CArnoldOptionsNode::s_driver;
 MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
-MObject CArnoldOptionsNode::s_progressive_rendering;
+MObject CArnoldOptionsNode::s_progressive_rendering; // Warning, this parameter in about maya render view. It's *not* options.progressive_render
 MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
 MObject CArnoldOptionsNode::s_force_texture_cache_flush_after_render;
@@ -282,7 +282,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("enable_adaptive_sampling");
    s_attributes.MakeInput("AA_samples_max");
    s_attributes.MakeInput("adaptive_threshold");
-
+   s_attributes.MakeInput("progressive_render");
+   
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
