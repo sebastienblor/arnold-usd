@@ -1,41 +1,3 @@
-# options                     0x00115C00
-# barndoor                    0x00115C80
-# gobo                        0x00115C81
-# light_blocker               0x00115C82
-# light_decay                 0x00115C83
-# sky                         0x00115C84
-# skydome_light               0x00115C85
-# area_light                  0x00115C86
-# mesh_light                  0x00115C88
-
-# standard                    0x00115D01
-# utility                     0x00115D03
-# ray_switch_rgba             0x00115D04
-# ambient_occlusion           0x00115D07
-# wireframe                   0x00115D08
-# fog                         0x00115D0A
-# volume_scattering           0x00115D0B
-# bump2d                      0x00115D0C
-# noise                       0x00115D0D
-# bump3d                      0x00115D0E
-# motion_vector               0x00115D0F
-# image                       0x00115D17
-# physical_sky                0x00115D1E
-
-# Arnold 5 nodes
-# standard_surface            0x00115D51
-# standard_hair               0x00115D52
-# standard_volume             0x00115D53
-# shader_mix                  0x00115D54
-# ray_switch_shader           0x00115D55
-# osl_shader                  0x00115D56
-
-# Common Shaders
-# blackbody                   0x00115D57
-# flakes                      0x00115D58
-# two_sided                   0x00115D59
-
-
 # For the Maya IDs, please refer to nodes/ArnoldNodeIDs.h where each of them is listed
 
 
@@ -3330,6 +3292,13 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D97
 
+
+[node materialx]
+    desc                    STRING  "MaterialX operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D9C
 
 
 
