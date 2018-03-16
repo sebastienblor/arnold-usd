@@ -1240,7 +1240,17 @@ def createArnoldMayaintegrationSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
-    
+                  
+    cmds.attrControlGrp('os_enable_swatch_render',
+                        label="Enable Swatch Render",
+                        attribute='defaultArnoldRenderOptions.enable_swatch_render')
+
+    cmds.attrControlGrp('os_standin_draw_override',
+                        label="StandIn Viewport Display",
+                        attribute='defaultArnoldRenderOptions.standin_draw_override')
+
+    cmds.separator()
+    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Render View", cll=True, cl=1)
     cmds.attrControlGrp('os_progressive_rendering',
                         label='Progressive Refinement',
                         attribute='defaultArnoldRenderOptions.progressive_rendering')
@@ -1263,17 +1273,11 @@ def createArnoldMayaintegrationSettings():
                         label='Force Texture Cache Flush After Render',
                         attribute='defaultArnoldRenderOptions.force_texture_cache_flush_after_render')
                    
-    cmds.separator()
-                  
-    cmds.attrControlGrp('os_enable_swatch_render',
-                        label="Enable Swatch Render",
-                        attribute='defaultArnoldRenderOptions.enable_swatch_render')
-
-    cmds.attrControlGrp('os_standin_draw_override',
-                        label="StandIn Viewport Override",
-                        attribute='defaultArnoldRenderOptions.standin_draw_override')
+    
 
     cmds.setParent('..')
+    cmds.setParent('..')
+    
 
     cmds.setUITemplate(popTemplate=True)
     
@@ -1475,19 +1479,18 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
-    
-    # Maya Integration
-    #
-    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
-    createArnoldMayaintegrationSettings()
-    cmds.setParent('..')
-    
     # Render
     #
     cmds.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=0)
     createArnoldRenderSettings()
     cmds.setParent('..')
     
+    # Maya Integration
+    #
+    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
+    createArnoldMayaintegrationSettings()
+    cmds.setParent('..')
+
     # Search paths
     #
     cmds.frameLayout('arnoldPathSettings', label="Search Paths", cll=True, cl=0)
