@@ -35,7 +35,7 @@ class AEaiLayerShaderTemplate(ShaderAETemplate):
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
-        for i in range(1, 8):        
+        for i in range(1, 9):        
             self.beginLayout('Layer {}'.format(i), collapse=(i > 2))
             enableAttr = 'enable{}'.format(i)
             self.addControl(enableAttr, label='Enable', annotation='Enable Layer {}'.format(i),  changeCommand=lambda arg=None, x=enableAttr: self.EnableLayerChange(x))
