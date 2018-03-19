@@ -1312,33 +1312,41 @@ void COptionsTranslator::Export(AtNode *options)
    if (!gpuPlug.isNull() && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
       bool gpu = gpuPlug.asBool();
-      std::vector<unsigned int> devices;
       if (gpu)
       {
-         MPlug gpuDevices = FindMayaPlug("render_devices");
-         if (!gpuDevices.isNull())
+         AiNodeSetStr(options, "render_device", "GPU");
+         MPlug autoDevices = FindMayaPlug("auto_select_devices");
+         if (autoDevices.isNull() || !autoDevices.asBool())
          {
-            unsigned int numElements = gpuDevices.numElements();
-            for (unsigned int i = 0; i < numElements; ++i)
+            std::vector<unsigned int> devices;
+            // Manual Device selection
+            MPlug gpuDevices = FindMayaPlug("render_devices");
+            if (!gpuDevices.isNull())
             {
-               MPlug elemPlug = gpuDevices[i];
-               if (!elemPlug.isNull())
+               unsigned int numElements = gpuDevices.numElements();
+               for (unsigned int i = 0; i < numElements; ++i)
                {
-                  devices.push_back(elemPlug.asInt());
+                  MPlug elemPlug = gpuDevices[i];
+                  if (!elemPlug.isNull())
+                  {
+                     devices.push_back(elemPlug.asInt());
+                  }
                }
             }
+            if (!devices.empty())
+            {
+               AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+               AiDeviceSelect((gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU, selectDevices);
+               AiArrayDestroy(selectDevices);
+            }
+         } else
+         {
+            // automatically select the GPU devices
+            AiDeviceAutoSelect();
          }
       } else
       {
-         devices.resize(AiDeviceGetCount(AI_DEVICE_TYPE_CPU));
-         for (size_t i = 0; i < devices.size(); ++i)
-            devices[i] = (int)i;
-      }
-      if (!devices.empty())
-      {
-         AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
-         AiDeviceSelect((gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU, selectDevices);
-         AiArrayDestroy(selectDevices);
+         AiNodeSetStr(options, "render_device", "CPU");
       }
    }
 }

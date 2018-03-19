@@ -115,7 +115,7 @@ MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
 MObject CArnoldOptionsNode::s_gpu;
 MObject CArnoldOptionsNode::s_render_devices;
-
+MObject CArnoldOptionsNode::s_auto_select_devices;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -453,6 +453,10 @@ MStatus CArnoldOptionsNode::initialize()
    s_gpu = nAttr.create("gpu", "gpu", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
    addAttribute(s_gpu);
+
+   s_auto_select_devices = nAttr.create("auto_select_devices", "autoseldev", MFnNumericData::kBoolean, true);
+   nAttr.setKeyable(false);
+   addAttribute(s_auto_select_devices);
 
    s_render_devices = nAttr.create("render_devices", "rndev", MFnNumericData::kInt);
    nAttr.setKeyable(false);

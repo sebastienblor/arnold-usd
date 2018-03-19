@@ -408,8 +408,8 @@ def changeRenderType():
         pass
 def changeGpu():
     try:
-        gpuEnabled = cmds.getAttr('defaultArnoldRenderOptions.gpu')
-        cmds.textScrollList('os_render_devices', edit=True, enable=gpuEnabled)
+        devicesEnabled = not cmds.getAttr('defaultArnoldRenderOptions.auto_select_devices')
+        cmds.textScrollList('os_render_devices', edit=True, enable=devicesEnabled)
     except:
         pass
 
@@ -465,8 +465,13 @@ def createGpuSettings():
                         changeCommand=changeGpu,
                         attribute='defaultArnoldRenderOptions.gpu')
 
-    gpuEnabled = cmds.getAttr('defaultArnoldRenderOptions.gpu')
-    cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=gpuEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
+    cmds.attrControlGrp('auto_select_devices', 
+                        label="Use All Compatible GPUs", 
+                        changeCommand=changeGpu,
+                        attribute='defaultArnoldRenderOptions.auto_select_devices')
+
+    devicesEnabled = not cmds.getAttr('defaultArnoldRenderOptions.auto_select_devices')
+    cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=devicesEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
     # fill attribute
     
     gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
@@ -1550,7 +1555,7 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
-    cmds.frameLayout('arnoldGpuSettings', label="GPU Rendering", cll=True, cl=0)
+    cmds.frameLayout('arnoldGpuSettings', label="Hardware Settings", cll=True, cl=0)
     createGpuSettings()
     cmds.setParent('..')
 

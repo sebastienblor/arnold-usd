@@ -144,4 +144,5 @@ public:
 
    static MObject s_gpu;   
    static MObject s_render_devices;   
+   static MObject s_auto_select_devices;
 };  // class CArnoldOptionsNode
