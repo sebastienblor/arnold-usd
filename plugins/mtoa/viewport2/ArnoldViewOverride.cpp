@@ -50,9 +50,10 @@ ArnoldViewOverride::~ArnoldViewOverride()
     {
         MMessage::removeCallback(mRendererChangeCB);
     }
-    if (mRenderOverrideChangeCB)
+
+    for (auto it = callbackIdMap.begin(); it != callbackIdMap.end(); ++it)
     {
-        MMessage::removeCallback(mRenderOverrideChangeCB);
+        MMessage::removeCallback(it->second);
     }
 }
 
@@ -118,32 +119,54 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
             renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width -1), AiClamp(int(s_ViewRectangle.z * width), 0, width -1),
                         AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/     
         }
-        renderSession->SetRenderViewOption(MString("Crop Region"), MString("1"));
-
+        renderSession->SetRenderViewOption(MString("Crop Region"), MString("0"));
     }
-
 }
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
-    bool firstRender = !CMayaScene::IsActive();
-
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
         return MStatus::kFailure;
 
-    // Track changes to the renderer and override for this viewport (nothing
-    // will be printed unless mDebugOverride is true)
+    // Track changes to the renderer and override for this viewport
     if (!mRendererChangeCB)
     {
         mRendererChangeCB = MUiMessage::add3dViewRendererChangedCallback(destination, sRendererChangeFunc, NULL);
     }
-    if (!mRenderOverrideChangeCB)
+
+    // If this is the first time the override was used for this panel we need to do a couple things.
+    // 1) Switch off any existing render overrides.  If one existed the current rendering will be stopped.
+    //    and a new render will be started below.
+    // 2) Register an override changed callback to catch when the override for this panel is turned off.
+    //    The callback is used to stop any active rendering when the override is turned off.
+    // 3) Initialize some default state for this panel
+    RegionRenderState state;
+    if (callbackIdMap.find(destination.asChar()) == callbackIdMap.end())
     {
+        stopExistingOverrides(destination);
+
+        auto callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, NULL);
+        callbackIdMap[destination.asChar()] = callbackID;
+
+        state.enabled = false;
+        state.useRegion = true;
+        state.viewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+        mRegionRenderStateMap[destination.asChar()] = state;
+
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
         MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox;");
-        mRenderOverrideChangeCB = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, NULL);
     }
+    else
+    {
+        state = mRegionRenderStateMap[destination.asChar()];
+    }
+
+    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+    bool hasSession = renderSession != NULL;
+    if (!hasSession)
+        renderSession = CMayaScene::StartEmptyRenderSession();
+    bool firstRender = !renderSession->IsActive();
 
     MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
 
@@ -168,6 +191,21 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mOperations.append(new MHWRender::MHUDRender());
         mOperations.append(new MHWRender::MPresentTarget("viewOverrideArnold_Present"));
     }
+    if (firstRender)
+    {
+        renderSession->SetRenderViewOption(MString("Run IPR"), MString(std::to_string(state.enabled)));
+        //renderSession->SetRenderViewOption(MString("Crop Region"), MString("0"));
+    }
+    // disable the arnold operation of paused
+    if (renderSession->IsIPRPaused())
+    {
+        mOperations[2]->setEnabled(false);
+        return MS::kSuccess;
+    }
+    else
+    {
+        mOperations[2]->setEnabled(true);
+    }
 
     int width = 0, height = 0;
     MDagPath camera;
@@ -187,14 +225,23 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mView.getCamera(camera);
     }
 
-
     if (firstRender)
     {
         startRenderView(camera, width, height);
-    } else
+
+        if (mTexture)
+        {
+            // clear the texture so that it's generated at next display
+            MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
+            MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
+            textureManager->releaseTexture(mTexture);
+            mTexture = NULL;
+        }
+    } 
+
+    if (!firstRender)
 	{
-		CRenderSession* renderSession = CMayaScene::GetRenderSession();
-		CRenderOptions *renderOptions = renderSession->RenderOptions();
+        CRenderOptions *renderOptions = renderSession->RenderOptions();
 
         // A render had already started, we want to check if the window size has changed
 		int previousWidth = renderOptions->width();
@@ -208,14 +255,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 			renderSession->SetResolution(width, height);
 			renderOptions->UpdateImageDimensions();
 		
-			if (mTexture)
-			{
-                // clear the texture so that it's generated at next display
-				MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
-				MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
-				textureManager->releaseTexture(mTexture);
-				mTexture = NULL;
-			}
 			if (renderOptions->useRenderRegion())
 			{
                 // eventually adapt the arnold crop region
@@ -246,11 +285,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         }
 
 	} 
-	
 
-    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+    renderSession = CMayaScene::GetRenderSession();
     CRenderOptions *renderOptions = renderSession->RenderOptions();
-
 	if (renderSession->IsRegionCropped() != renderOptions->useRenderRegion())
 	{
 		// ARV settings are different from the ones in the render options. ARV wins !
@@ -288,7 +325,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (firstRender)
     {
         renderSession->RunInteractiveRenderer();
-    
     }
 
     // now get the current bits
@@ -300,7 +336,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // of the buffer needs to be updated
     renderSession->HasRenderResults(bounds);
     
-    // FIXME show the desired AOV
     const AtRGBA *buffer = renderSession->GetDisplayedBuffer();
     if (buffer)
     {
@@ -314,7 +349,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
             mTexture = textureManager->acquireTexture("arnoldResults", desc, buffer, false);
         }
-        mTexture->update(buffer, false);
+        else
+            mTexture->update(buffer, false);
 
         int blitIndex = mOperations.indexOf("viewOverrideArnold_Blit");
         if (blitIndex >= 0)
@@ -324,6 +360,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureBlit->setColorTexture(mTexture);
         }
     }
+
     // FIXME temp. function that we need to call for now. We'll manage to remove it
     // after the renderview switches to the new Render Control API
     renderSession->PostDisplay();
@@ -359,18 +396,30 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
     {
         // Kill everything !!
         MGlobal::executeCommand("aiViewRegionCmd -delete;");
+        MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox -close;");
         CRenderSession* renderSession = CMayaScene::GetRenderSession();
         if (renderSession)
         {
             renderSession->InterruptRender(true);
-            renderSession->CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
             CMayaScene::End();
         }
     }
     if (newOverride == "arnoldViewOverride")
     {
-        MGlobal::executeCommand("aiViewRegionCmd -delete;");
-        MGlobal::executeCommand("aiViewRegionCmd -create;");
+        // If this panel is switched back to an arnold render override
+        // then stop any existing render overrides.
+        stopExistingOverrides(panelName);
+        MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
+        MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox;");
+    }
+}
+
+void ArnoldViewOverride::stopExistingOverrides(const MString & destination)
+{
+    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+    if (renderSession)
+    {
+        renderSession->CloseOtherViews(destination);
     }
 }
 

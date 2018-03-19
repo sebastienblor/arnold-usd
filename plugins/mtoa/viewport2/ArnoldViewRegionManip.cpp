@@ -47,6 +47,7 @@ ArnoldViewRegionManipulator::ArnoldViewRegionManipulator()
 , fBottomLeftName(0)
 , fBottomRightName(0)
 , fAllName(0)
+, fNoneName(0)
 , fMousePoint(MPoint())
 , fDrawAsMouseOver(false)
 {
@@ -94,6 +95,7 @@ void ArnoldViewRegionManipulator::postConstructor()
     fBottomLeftName = glPickableItem++;
     fBottomRightName = glPickableItem++;
     fAllName = glPickableItem++;
+    fNoneName = glPickableItem++;
 
     registerForMouseMove();
 }
@@ -104,7 +106,43 @@ void ArnoldViewRegionManipulator::preDrawUI( const M3dView &view )
 	M3dView *viewPtr = const_cast<M3dView*>( &view );
 	MDagPath dpath;
 	viewPtr->getCamera(dpath);
-	fDrawManip = shouldDraw(dpath);
+     fDrawManip = shouldDraw(dpath)
+        && view.renderOverrideName() == "arnoldViewOverride";
+}
+
+namespace {
+    static const bool kDrawScreenSpace = false;
+
+    void lerp(MPoint& pt1, const MPoint& pt2, float offset)
+    {
+        pt1 = pt1 * (1.0f - offset) + pt2 * offset;
+    }
+
+    void transformPoint(const MHWRender::MFrameContext& frameContext, float x, float y, MPoint& pt)
+    {
+        static const float kPointDepth = 0.5f;
+
+        if (kDrawScreenSpace)
+        {
+            pt.x = x;
+            pt.y = y;
+            pt.z = kPointDepth;
+        }
+        else
+        {
+            MPoint tempPt;
+            frameContext.viewportToWorld(x, y, pt, tempPt);
+            lerp(pt, tempPt, kPointDepth);
+        }
+    }
+
+    void drawLine(MHWRender::MUIDrawManager& drawManager, const MPoint& pt1, const MPoint& pt2)
+    {
+        if (kDrawScreenSpace)
+            drawManager.line2d(pt1, pt2);
+        else
+            drawManager.line(pt1, pt2);
+    }
 }
 
 //virtual 
@@ -121,8 +159,8 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
 
     MPoint pt1, pt1_1, pt1_2;
     MPoint pt2, pt2_1, pt2_2;
-    MPoint pt3, pt3_1, pt3_2, pt4, pt4_1, pt4_2;
-    MPoint tempPt;
+    MPoint pt3, pt3_1, pt3_2;
+    MPoint pt4, pt4_1, pt4_2;
 
     float xPos = mViewRectangle.x * width;
     float yPos = (1.f - mViewRectangle.y) * height;
@@ -131,20 +169,17 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
 
     float endPointOffset = 0.1f;
 
+    int lineWidth = 3;
+
     float midPointX;
     float midPointY;
+    float ptDepth = 0.5f;
 
-    frameContext.viewportToWorld(xPos, yPos, pt1, tempPt);
-    pt1 = (pt1 + tempPt) * 0.5f;
+    transformPoint(frameContext, xPos, yPos, pt1);
+    transformPoint(frameContext, xPos2, yPos2, pt2);
+    transformPoint(frameContext, xPos, yPos2, pt3);
+    transformPoint(frameContext, xPos2, yPos, pt4);
 
-    frameContext.viewportToWorld(xPos2, yPos2, pt2, tempPt);
-    pt2 = (pt2 + tempPt) * 0.5f;
-
-    frameContext.viewportToWorld(xPos, yPos2, pt3, tempPt);
-    pt3 = (pt3 + tempPt) * 0.5f;
-
-    frameContext.viewportToWorld(xPos2, yPos, pt4, tempPt);
-    pt4 = (pt4 + tempPt) * 0.5f;
     const short defaultCol = mainColor();
 
     if (fDrawAsMouseOver)
@@ -152,16 +187,14 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
         { // upper left corner
             midPointX = xPos * (1.0f - endPointOffset) + xPos2 * endPointOffset;
             midPointY = yPos * (1.0f - endPointOffset) + yPos2 * endPointOffset;
-            frameContext.viewportToWorld(midPointX, yPos, pt1_1, tempPt);
-            pt1_1 = (pt1_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(xPos, midPointY, pt1_2, tempPt);
-            pt1_2 = (pt1_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, midPointX, yPos, pt1_1);
+            transformPoint(frameContext, xPos, midPointY, pt1_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fTopLeftName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fTopLeftName, defaultCol);
-            drawManager.line(pt1, pt1_1);
-            drawManager.line(pt1, pt1_2);
+            drawLine(drawManager, pt1, pt1_1);
+            drawLine(drawManager, pt1, pt1_2);
             drawManager.endDrawable();
         }
 
@@ -169,164 +202,149 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
             midPointX = yPos * (0.5f - endPointOffset) + yPos2 * (0.5f + endPointOffset);
             midPointY = yPos * (0.5f + endPointOffset) + yPos2 * (0.5f - endPointOffset);
 
-            frameContext.viewportToWorld(xPos, midPointX, pt4_1, tempPt);
-            pt4_1 = (pt4_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(xPos, midPointY, pt4_2, tempPt);
-            pt4_2 = (pt4_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, xPos, midPointX, pt4_1);
+            transformPoint(frameContext, xPos, midPointY, pt4_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fLeftName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fLeftName, defaultCol);
-            drawManager.line(pt4_1, pt4_2);
+            drawLine(drawManager, pt4_1, pt4_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt1_2, pt4_1);
+        drawLine(drawManager, pt1_2, pt4_2);
         drawManager.endDrawable();
 
         { // lower left corner
             midPointX = xPos * (1.0f - endPointOffset) + xPos2 * endPointOffset;
             midPointY = yPos2 * (1.0f - endPointOffset) + yPos * endPointOffset;
-            frameContext.viewportToWorld(midPointX, yPos2, pt3_1, tempPt);
-            pt3_1 = (pt3_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(xPos, midPointY, pt3_2, tempPt);
-            pt3_2 = (pt3_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, midPointX, yPos2, pt3_1);
+            transformPoint(frameContext, xPos, midPointY, pt3_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fBottomLeftName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fBottomLeftName, defaultCol);
-            drawManager.line(pt3, pt3_1);
-            drawManager.line(pt3, pt3_2);
+            drawLine(drawManager, pt3, pt3_1);
+            drawLine(drawManager, pt3, pt3_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt4_2, pt3_2);
+        drawLine(drawManager, pt4_1, pt3_2);
         drawManager.endDrawable();
 
         { // bottom
             midPointX = xPos * (0.5f - endPointOffset) + xPos2 * (0.5f + endPointOffset);
             midPointY = xPos * (0.5f + endPointOffset) + xPos2 * (0.5f - endPointOffset);
 
-            frameContext.viewportToWorld(midPointX, yPos2, pt4_1, tempPt);
-            pt4_1 = (pt4_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(midPointY, yPos2, pt4_2, tempPt);
-            pt4_2 = (pt4_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, midPointX, yPos2, pt4_1);
+            transformPoint(frameContext, midPointY, yPos2, pt4_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fBottomName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fBottomName, defaultCol);
-            drawManager.line(pt4_1, pt4_2);
+            drawLine(drawManager, pt4_1, pt4_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt4_2, pt3_1);
+        drawLine(drawManager, pt4_2, pt3_1);
         drawManager.endDrawable();
 
         { // lower right corner
             midPointX = xPos2 * (1.0f - endPointOffset) + xPos * endPointOffset;
             midPointY = yPos2 * (1.0f - endPointOffset) + yPos * endPointOffset;
-            frameContext.viewportToWorld(midPointX, yPos2, pt2_1, tempPt);
-            pt2_1 = (pt2_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(xPos2, midPointY, pt2_2, tempPt);
-            pt2_2 = (pt2_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, midPointX, yPos2, pt2_1);
+            transformPoint(frameContext, xPos2, midPointY, pt2_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fBottomRightName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fBottomRightName, defaultCol);
-            drawManager.line(pt2, pt2_1);
-            drawManager.line(pt2, pt2_2);
+            drawLine(drawManager, pt2, pt2_1);
+            drawLine(drawManager, pt2, pt2_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt4_1, pt2_1);
+        drawLine(drawManager, pt4_1, pt2_1);
         drawManager.endDrawable();
 
         { // right
             midPointX = yPos * (0.5f - endPointOffset) + yPos2 * (0.5f + endPointOffset);
             midPointY = yPos * (0.5f + endPointOffset) + yPos2 * (0.5f - endPointOffset);
 
-            frameContext.viewportToWorld(xPos2, midPointX, pt3_1, tempPt);
-            pt3_1 = (pt3_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(xPos2, midPointY, pt3_2, tempPt);
-            pt3_2 = (pt3_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, xPos2, midPointX, pt3_1);
+            transformPoint(frameContext, xPos2, midPointY, pt3_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fRightName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fRightName, defaultCol);
-            drawManager.line(pt3_1, pt3_2);
+            drawLine(drawManager, pt3_1, pt3_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt3_1, pt2_2);
+        drawLine(drawManager, pt3_1, pt2_2);
         drawManager.endDrawable();
 
         { // upper right corner
             midPointX = xPos2 * (1.0f - endPointOffset) + xPos * endPointOffset;
             midPointY = yPos * (1.0f - endPointOffset) + yPos2 * endPointOffset;
-            frameContext.viewportToWorld(midPointX, yPos, pt4_1, tempPt);
-            pt4_1 = (pt4_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(xPos2, midPointY, pt4_2, tempPt);
-            pt4_2 = (pt4_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, midPointX, yPos, pt4_1);
+            transformPoint(frameContext, xPos2, midPointY, pt4_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fTopRightName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fTopRightName, defaultCol);
-            drawManager.line(pt4, pt4_1);
-            drawManager.line(pt4, pt4_2);
+            drawLine(drawManager, pt4, pt4_1);
+            drawLine(drawManager, pt4, pt4_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt3_2, pt4_2);
+        drawLine(drawManager, pt3_2, pt4_2);
         drawManager.endDrawable();
 
         { // top
             midPointX = xPos * (0.5f - endPointOffset) + xPos2 * (0.5f + endPointOffset);
             midPointY = xPos * (0.5f + endPointOffset) + xPos2 * (0.5f - endPointOffset);
 
-            frameContext.viewportToWorld(midPointX, yPos, pt3_1, tempPt);
-            pt3_1 = (pt3_1 + tempPt) * 0.5f;
-            frameContext.viewportToWorld(midPointY, yPos, pt3_2, tempPt);
-            pt3_2 = (pt3_2 + tempPt) * 0.5f;
+            transformPoint(frameContext, midPointX, yPos, pt3_1);
+            transformPoint(frameContext, midPointY, yPos, pt3_2);
 
             drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fTopName);
-            drawManager.setLineWidth(3);
+            drawManager.setLineWidth(lineWidth);
             setHandleColor(drawManager, fTopName, defaultCol);
-            drawManager.line(pt3_1, pt3_2);
+            drawLine(drawManager, pt3_1, pt3_2);
             drawManager.endDrawable();
         }
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt4_1, pt3_1);
+        drawLine(drawManager, pt4_1, pt3_1);
         drawManager.endDrawable();
 
         drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
         setHandleColor(drawManager, fAllName, defaultCol);
-        drawManager.line(pt3_2, pt1_1);
+        drawLine(drawManager, pt3_2, pt1_1);
         drawManager.endDrawable();
     }
-
     else
     {
-        drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fAllName);
-        setHandleColor(drawManager, fAllName, defaultCol);
+        drawManager.beginDrawable(MHWRender::MUIDrawManager::kSelectable, fNoneName);
+        setHandleColor(drawManager, fNoneName, defaultCol);
         drawManager.setLineStyle(MHWRender::MUIDrawManager::kDashed);
-        drawManager.line(pt1, pt3);
-        drawManager.line(pt3, pt2);
-        drawManager.line(pt2, pt4);
-        drawManager.line(pt4, pt1);
+        drawLine(drawManager, pt1, pt3);
+        drawLine(drawManager, pt3, pt2);
+        drawLine(drawManager, pt2, pt4);
+        drawLine(drawManager, pt4, pt1);
         drawManager.endDrawable();
     }
 

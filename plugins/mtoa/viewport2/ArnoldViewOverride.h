@@ -14,6 +14,8 @@
 #include <maya/MUiMessage.h>
 #include <maya/MSelectionList.h>
 
+#include <map>
+
 #if MAYA_API_VERSION >= 201700
 //
 // Simple override class derived from MRenderOverride
@@ -38,6 +40,9 @@ public:
     void startRenderView(const MDagPath &camera, int width, int height);
 
 protected:
+
+    static void stopExistingOverrides(const MString & destination);
+
     // UI name 
     MString mUIName;
     MHWRender::MTexture *mTexture;
@@ -55,6 +60,15 @@ protected:
         const MString& oldRenderer,
         const MString& newRenderer,
         void* clientData);
+
+    std::map<std::string, MCallbackId> callbackIdMap;
+
+    struct RegionRenderState {
+        bool enabled;
+        bool useRegion;
+        MFloatPoint viewRectangle;
+    };
+    std::map<std::string, RegionRenderState> mRegionRenderStateMap;
 };
 
 //

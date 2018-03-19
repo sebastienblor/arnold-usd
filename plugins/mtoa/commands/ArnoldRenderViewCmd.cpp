@@ -120,7 +120,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    if (mode == "close")
    {  
       s_wasVisible = false;        
-      renderSession->CloseRenderView();
+      if (renderSession)
+          renderSession->CloseRenderView();
       return MS::kSuccess;
    }
    

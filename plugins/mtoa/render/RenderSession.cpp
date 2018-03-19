@@ -177,6 +177,37 @@ CRenderSession::RenderCallbackType CRenderSession::GetCallback()
    return m_renderCallback;
 }  
 
+void CRenderSession::CloseOtherViews(const MString& destination)
+{
+#ifndef MTOA_DISABLE_RV
+    bool viewFound = false;
+    M3dView thisView;
+
+    if (destination.length() > 0)
+    {
+        // we are opening a viewport render override
+        // close the ARV if it exists.
+        CloseRenderView();
+        //if (s_renderView)
+        //    s_renderView->DestroyRenderView();
+
+        viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+    }
+
+    // Close all but the destination render override if there is one
+    // If the destination is an empty string it is the ARV.
+    for (unsigned int i = 0, viewCount = M3dView::numberOf3dViews(); i < viewCount; ++i)
+    {
+        M3dView view;
+        M3dView::get3dView(i, view);
+        if (view.renderOverrideName() == "arnoldViewOverride" &&
+            (!viewFound || view.widget() != thisView.widget()))
+            view.setRenderOverrideName("");
+    }
+
+#endif
+}
+
 MStatus CRenderSession::End()
 {
    MStatus status = MStatus::kSuccess;
@@ -186,12 +217,12 @@ MStatus CRenderSession::End()
       // IsRendering check prevents thread lock when CMayaScene::End is called
       // from InteractiveRenderThread
       InterruptRender();
-#ifndef MTOA_DISABLE_RV
-      if (s_renderView && s_closeRenderViewWithSession)
+ #ifndef MTOA_DISABLE_RV
+      if (s_renderView) // && s_closeRenderViewWithSession
       {
-         s_renderView->CloseRenderView();
+         s_renderView->StopIPR();
       } 
-#endif
+ #endif
    }
    
    if (AiUniverseIsActive())
@@ -719,7 +750,7 @@ void CRenderSession::DoIPRRender()
 {
    assert(AiUniverseIsActive());
 
-   if (!m_paused_ipr)
+   if (!IsIPRPaused())
    {
       // Interrupt existing render if any
       InterruptRender();
@@ -799,6 +830,9 @@ void CRenderSession::RunRenderView()
 void CRenderSession::StartRenderView()
 {
 #ifndef MTOA_DISABLE_RV
+
+    CloseOtherViews("");
+
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
@@ -849,6 +883,10 @@ void CRenderSession::CloseRenderView()
 #ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
+       InterruptRender(true);
+       CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
+       CMayaScene::End();
+
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
@@ -947,14 +985,19 @@ void CRenderSession::PauseIPR()
    assert(AiUniverseIsActive());
 
    InterruptRender();
-   m_paused_ipr = true;
+}
+
+bool CRenderSession::IsIPRPaused()
+{
+    if (s_renderView)
+        return s_renderView->IsIPRStopped();
+    return true;
 }
 
 void CRenderSession::UnPauseIPR()
 {
    assert(AiUniverseIsActive());
 
-   m_paused_ipr = false;
    CMayaScene::UpdateIPR();
    DoIPRRender();
 }

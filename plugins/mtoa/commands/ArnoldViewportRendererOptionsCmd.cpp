@@ -10,11 +10,7 @@ void* CArnoldViewportRendererOptionsCmd::creator()
 
 MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& /*args*/)
 {
-    if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
-    {
-        CMayaScene::GetRenderSession()->OpenInteractiveRendererOptions();
-        return MS::kSuccess;
-    }
-   return MS::kSuccess;
+    CMayaScene::GetRenderSession()->OpenInteractiveRendererOptions();
+    return MS::kSuccess;
 }
 

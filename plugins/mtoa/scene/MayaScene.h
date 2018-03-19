@@ -56,6 +56,8 @@ public:
    /// Return the instance of the render session.
    static CRenderSession* GetRenderSession();
 
+   static CRenderSession* StartEmptyRenderSession();
+
    static bool IsActive(ArnoldSessionMode mode=MTOA_SESSION_ANY);
 
    static ArnoldSessionMode GetSessionMode();
