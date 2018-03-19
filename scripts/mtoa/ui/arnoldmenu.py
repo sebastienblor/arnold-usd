@@ -510,6 +510,9 @@ def createArnoldMenu():
 #        cmds.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
 #                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Video+Tutorials'))
 
+        cmds.menuItem('ArnoldAnswers', label='Arnold Answers', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://answers.arnoldrenderer.com/index.html'))
+
         cmds.menuItem('ArnoldLearningScenes', label='Learning Scenes', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/A5AFMUG/Learning+Scenes'))
 
