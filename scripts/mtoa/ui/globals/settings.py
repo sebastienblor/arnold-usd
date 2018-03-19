@@ -183,6 +183,15 @@ def changeOperator(node, field, select):
         cmds.symbolButton(select, edit=True, enable=True)
     selectOperator()
 
+def removeOperator(field, doDelete, select):
+    node = getOperator()
+    if node:
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.operator')
+        cmds.textField(field, edit=True, text="")
+        cmds.symbolButton(select, edit=True, enable=False)
+        if doDelete:
+            cmds.delete(node)
+
 def buildOperatorMenu(popup, field, select):
     cmds.popupMenu(popup, edit=True, deleteAllItems=True)
     operators = cmds.arnoldPlugins(listOperators=True) or []
@@ -196,6 +205,13 @@ def buildOperatorMenu(popup, field, select):
     for operator in operators:
         cmdsLbl = 'Create {}'.format(operator)
         cmds.menuItem(parent=popup, label=cmdsLbl, command=Callback(createOperator, operator, field, select))
+
+    currentOperator = getOperator()
+    if currentOperator:
+        cmds.menuItem(parent=popup, divider=True)
+        cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeOperator, field, False, select))
+        cmds.menuItem(parent=popup, label="Delete", command=Callback(removeOperator, field, True, select))
+
 
 def selectOperator(*args):
     node = getOperator()
@@ -274,10 +290,12 @@ def buildBackgroundMenu(popup, field, select):
     cmds.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field, select))
     cmds.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field, select))
 
-    cmds.menuItem(parent=popup, divider=True)
+    background = getBackgroundShader()
 
-    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
-    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
+    if background:
+        cmds.menuItem(parent=popup, divider=True)
+        cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
+        cmds.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
 
     
 def getAtmosphereShader(*args):
@@ -333,12 +351,14 @@ def buildAtmosphereMenu(popup, field, select):
     for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
         menuLabel = "Create "+typ
         cmds.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
-        
-    cmds.menuItem(parent=popup, divider=True)
 
-    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
-    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
-    
+    atmosphere = getAtmosphereShader()
+    if atmosphere:        
+        cmds.menuItem(parent=popup, divider=True)
+
+        cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
+        cmds.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
+        
 def getSubdivDicingCameraShader(*args):
     conns = cmds.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False, p=True)
     if conns:
