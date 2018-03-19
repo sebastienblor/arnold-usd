@@ -21,6 +21,9 @@ class AEaiAmbientOcclusionTemplate(ShaderAETemplate):
         self.beginNoOptimize()
         self.addControl('invertNormals', label='Invert Normals')
         self.addControl('selfOnly', label='Self Only')
+        self.addControl('traceSet', label='Trace Set')
+        self.addControl('inclusive', label='Inclusive')
+
         self.endNoOptimize()
         self.addControl('normalCamera', label='Normal')
         self.endLayout()

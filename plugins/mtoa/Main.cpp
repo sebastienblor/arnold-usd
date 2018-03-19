@@ -159,7 +159,8 @@ namespace // <anonymous>
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.
-   // This will allow it to be automatically filtered out by viewport display filters.
+   // This will allow it to be automatically filtered out by viewport display filters, and 
+   // allow it to not participate in shadow map bounding box computations.
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
    const MString AI_LIGHT_PORTAL_CLASSIFICATION = "drawdb/geometry/light/arnold/lightPortal";
 #if MAYA_API_VERSION >= 201700
@@ -173,7 +174,7 @@ namespace // <anonymous>
 #else
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
 #endif
-   const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/arnold/skynode";
+   const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/light/arnold/skynode";
 #if MAYA_API_VERSION >= 201700
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
 #else

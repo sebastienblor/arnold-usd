@@ -804,6 +804,8 @@ env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*"))
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 
+env.Install(TARGET_PROCEDURAL_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
+
 OCIO_DYLIBPATH =""
 
 if int(maya_version) < 201500:
@@ -1159,6 +1161,7 @@ PACKAGE_FILES = [
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
+[os.path.join(ARNOLD, 'plugins', '*'), os.path.join('procedurals')],
 ]
 
 for p in presetfiles:
