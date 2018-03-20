@@ -502,8 +502,8 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    }
    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
 
-   std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection;Run IPR";
-   menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR";
+   std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
+   menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR;Run IPR";
    CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
@@ -552,64 +552,60 @@ void CRenderViewMtoA::UpdateSceneChanges()
       return;
    }
 
-   if (!CMayaScene::GetRenderSession())
-   {
-       MCommonRenderSettingsData renderGlobals;
-       MRenderUtil::getCommonRenderSettings(renderGlobals);
+    MCommonRenderSettingsData renderGlobals;
+    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-       // Universe isn't active, oh my....
-       CRenderSession* renderSession = CMayaScene::GetRenderSession();
-       // the renderSession will be NULL if ARV was opened without rendering
-       if (renderSession)
-       {
-           renderSession->SetRendering(false);
-           CMayaScene::End();
-           CMayaScene::ExecuteScript(renderGlobals.postMel);
-           CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+    // Universe isn't active, oh my....
+    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+    // the renderSession will be NULL if ARV was opened without rendering
+    if (renderSession)
+    {
+        renderSession->SetRendering(false);
+        CMayaScene::End();
+        CMayaScene::ExecuteScript(renderGlobals.postMel);
+        CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
 
-       }
+    }
 
-       // Re-export everything !
-       MDagPathArray cameras;
-       GetRenderCamerasList(cameras);
-       CMayaScene::ExecuteScript(renderGlobals.preMel);
-       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
+    // Re-export everything !
+    MDagPathArray cameras;
+    GetRenderCamerasList(cameras);
+    CMayaScene::ExecuteScript(renderGlobals.preMel);
+    CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-       CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
+    CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
 
-       if (!renderGlobals.renderAll)
-       {
-           MSelectionList selected;
-           MGlobal::getActiveSelectionList(selected);
-           CMayaScene::Export(&selected);
-       }
-       else
-       {
-           CMayaScene::Export();
-       }
+    if (!renderGlobals.renderAll)
+    {
+        MSelectionList selected;
+        MGlobal::getActiveSelectionList(selected);
+        CMayaScene::Export(&selected);
+    }
+    else
+    {
+        CMayaScene::Export();
+    }
 
-       if (cameras.length() > 0)
-       {
-           if (cameras[0].isValid())
-           {
-               CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
-           }
-           // SetExportCamera mus be called AFTER CMayaScene::Export
-           CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+    if (cameras.length() > 0)
+    {
+        if (cameras[0].isValid())
+        {
+            CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
+        }
+        // SetExportCamera mus be called AFTER CMayaScene::Export
+        CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
 
-           // Set resolution and camera as passed in.
-           CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-           CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
-       }
+        // Set resolution and camera as passed in.
+        CMayaScene::GetRenderSession()->SetResolution(-1, -1);
+        CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+    }
 
-       UpdateRenderCallbacks();
+    UpdateRenderCallbacks();
 
-       // GetRenderSession() might have changed since we exported the scene
-       renderSession = CMayaScene::GetRenderSession();
-       if (renderSession)
-           renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
-   }
-   
+    // GetRenderSession() might have changed since we exported the scene
+    renderSession = CMayaScene::GetRenderSession();
+    if (renderSession)
+        renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on   
 }
 
 void CRenderViewMtoA::UpdateRenderCallbacks()

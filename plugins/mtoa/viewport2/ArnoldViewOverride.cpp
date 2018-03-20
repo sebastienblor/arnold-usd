@@ -76,17 +76,6 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 
     CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
 
-    if (!renderGlobals.renderAll)
-    {
-        MSelectionList selected;
-        MGlobal::getActiveSelectionList(selected);
-        CMayaScene::Export(&selected);
-    }
-    else
-    {
-        CMayaScene::Export();
-    }
-
     // SetExportCamera mus be called AFTER CMayaScene::Export
     CMayaScene::GetArnoldSession()->SetExportCamera(camera);
     CRenderSession *renderSession = CMayaScene::GetRenderSession();
@@ -96,30 +85,6 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
         renderSession->SetResolution(width, height);
         renderSession->RenderOptions()->UpdateImageDimensions();
         renderSession->SetCamera(camera);
-
-        CRenderOptions *renderOptions = renderSession->RenderOptions();
-
-		if (renderOptions->useRenderRegion())
-		{
-			// the crop region was already enabled (perhaps from the render settings)
-			// set viewRectangle as in the render options
-	        int width = renderOptions->width();
-			int height = renderOptions->height();
-			int minx = renderOptions->minX();
-			int miny = renderOptions->minY();
-			int maxx = renderOptions->maxX();
-			int maxy = renderOptions->maxY();
-
-			s_ViewRectangle.x = (float)minx / (float)width;
-			s_ViewRectangle.y = 1.f - ((float)maxy / (float)height);
-			s_ViewRectangle.z = (float)maxx / (float)width;
-			s_ViewRectangle.w = 1.f - ((float)miny / (float)height);
-		} else
-        {
-            renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width -1), AiClamp(int(s_ViewRectangle.z * width), 0, width -1),
-                        AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/     
-        }
-        renderSession->SetRenderViewOption(MString("Crop Region"), MString("0"));
     }
 }
 
@@ -146,27 +111,21 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         stopExistingOverrides(destination);
 
-        auto callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, NULL);
+        auto callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, this);
         callbackIdMap[destination.asChar()] = callbackID;
 
         state.enabled = false;
         state.useRegion = true;
+        state.initialized = false;
         state.viewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
         mRegionRenderStateMap[destination.asChar()] = state;
-
-        MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
-        MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox;");
     }
     else
     {
         state = mRegionRenderStateMap[destination.asChar()];
     }
 
-    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-    bool hasSession = renderSession != NULL;
-    if (!hasSession)
-        renderSession = CMayaScene::StartEmptyRenderSession();
-    bool firstRender = !renderSession->IsActive();
+    bool firstRender = !CMayaScene::IsActive();
 
     MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
 
@@ -190,21 +149,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         mOperations.append(uiOp);
         mOperations.append(new MHWRender::MHUDRender());
         mOperations.append(new MHWRender::MPresentTarget("viewOverrideArnold_Present"));
-    }
-    if (firstRender)
-    {
-        renderSession->SetRenderViewOption(MString("Run IPR"), MString(std::to_string(state.enabled)));
-        //renderSession->SetRenderViewOption(MString("Crop Region"), MString("0"));
-    }
-    // disable the arnold operation of paused
-    if (renderSession->IsIPRPaused())
-    {
-        mOperations[2]->setEnabled(false);
-        return MS::kSuccess;
-    }
-    else
-    {
-        mOperations[2]->setEnabled(true);
     }
 
     int width = 0, height = 0;
@@ -237,7 +181,28 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             textureManager->releaseTexture(mTexture);
             mTexture = NULL;
         }
-    } 
+    }
+
+    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+
+    if (!state.initialized)
+    {
+        CRenderOptions *renderOptions = renderSession->RenderOptions();
+        renderSession->SetRenderViewOption(MString("Run IPR"), MString(std::to_string(state.enabled).c_str()));
+        renderSession->SetRenderViewOption(MString("Crop Region"), MString(std::to_string(state.useRegion).c_str()));
+        renderSession->SetResolution(width, height);
+        renderOptions->UpdateImageDimensions();
+
+        if (state.useRegion)
+        {
+            renderOptions->SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
+                AiClamp(int((1.f - state.viewRectangle.w) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/     
+        }
+        else
+        {
+            renderOptions->ClearRegion();
+        }
+    }
 
     if (!firstRender)
 	{
@@ -258,13 +223,23 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 			if (renderOptions->useRenderRegion())
 			{
                 // eventually adapt the arnold crop region
-				renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width - 1), AiClamp(int(s_ViewRectangle.z * width), 0, width - 1),
-				    AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
+				renderOptions->SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
+				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
 
 			}
 
             // now restart the render and early out. We'll be called here again in the next refresh.
     		renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+
+            if (mTexture)
+            {
+                // clear the texture so that it's generated at next display
+                MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
+                MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
+                textureManager->releaseTexture(mTexture);
+                mTexture = NULL;
+            }
+
 			return MS::kSuccess;
 		}
         if (!(renderSession->GetCamera() == camera))
@@ -284,7 +259,16 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             return MS::kSuccess;
         }
 
-	} 
+	}
+
+    if (!state.initialized)
+    {
+        state.initialized = true;
+        mRegionRenderStateMap[destination.asChar()] = state;
+
+        MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
+        MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
+    }
 
     renderSession = CMayaScene::GetRenderSession();
     CRenderOptions *renderOptions = renderSession->RenderOptions();
@@ -293,8 +277,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 		// ARV settings are different from the ones in the render options. ARV wins !
 		if (renderSession->IsRegionCropped())
 		{
-	        renderOptions->SetRegion(AiClamp(int(s_ViewRectangle.x * width), 0, width - 1), AiClamp(int(s_ViewRectangle.z * width), 0, width - 1),
-				    AiClamp(int((1.f - s_ViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - s_ViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
+	        renderOptions->SetRegion(AiClamp(int(state.viewRectangle.x * width), 0, width - 1), AiClamp(int(state.viewRectangle.z * width), 0, width - 1),
+				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
 
 		} else
 		{
@@ -310,11 +294,16 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         int maxx = renderOptions->maxX();
         int maxy = renderOptions->maxY();
 
-        s_ViewRectangle.x = (float)minx / (float)width;
-        s_ViewRectangle.y = 1.f - ((float)maxy / (float)height);
-        s_ViewRectangle.z = (float)(maxx) / (float)width;
-        s_ViewRectangle.w = 1.f - ((float)miny / (float)height);
+        state.viewRectangle.x = (float)minx / (float)width;
+        state.viewRectangle.y = 1.f - ((float)maxy / (float)height);
+        state.viewRectangle.z = (float)(maxx) / (float)width;
+        state.viewRectangle.w = 1.f - ((float)miny / (float)height);
+
+        s_ViewRectangle = state.viewRectangle;
     }
+
+    state.enabled = !renderSession->IsIPRPaused();
+    mRegionRenderStateMap[destination.asChar()] = state;
 
     if (!CMayaScene::IsActive())
     {
@@ -322,10 +311,20 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         return MS::kFailure;
     }
 
-    if (firstRender)
+    if (firstRender && !state.enabled)
     {
-        renderSession->RunInteractiveRenderer();
+        if (renderSession)
+        {
+            renderSession->InterruptRender(true);
+            renderSession->CloseRenderViewWithSession(false);
+        }
+        CMayaScene::End();
     }
+
+    // disable the arnold operation of paused
+    mOperations[2]->setEnabled(state.enabled);
+    if (!state.enabled)
+        return MS::kSuccess;
 
     // now get the current bits
     // and create a texture from them.
@@ -334,13 +333,20 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // we need to proceed, otherwise we'll be painting black.
     // Note that we're not using the "bounds" region here, about which region
     // of the buffer needs to be updated
-    renderSession->HasRenderResults(bounds);
+    bool results = renderSession->HasRenderResults(bounds);
     
     const AtRGBA *buffer = renderSession->GetDisplayedBuffer();
     if (buffer)
     {
         if (mTexture == NULL)
         {
+            if (!results)
+            {
+                // if there are no results disable the operation
+                mOperations[2]->setEnabled(false);
+                return MS::kSuccess;
+            }
+
             MHWRender::MTextureDescription desc;
             desc.setToDefault2DTexture();
             desc.fWidth = width;
@@ -396,21 +402,21 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
     {
         // Kill everything !!
         MGlobal::executeCommand("aiViewRegionCmd -delete;");
-        MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox -close;");
+        
+        // Closing the options window through this will also properly interupt the renderer and end the scene.
         CRenderSession* renderSession = CMayaScene::GetRenderSession();
         if (renderSession)
-        {
-            renderSession->InterruptRender(true);
-            CMayaScene::End();
-        }
+            renderSession->CloseOptionsWindow();
+
+        auto state = static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()];
+        state.initialized = false;
+        static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()] = state;
     }
     if (newOverride == "arnoldViewOverride")
     {
         // If this panel is switched back to an arnold render override
         // then stop any existing render overrides.
         stopExistingOverrides(panelName);
-        MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
-        MGlobal::executeCommandOnIdle("arnoldViewOverrideOptionBox;");
     }
 }
 

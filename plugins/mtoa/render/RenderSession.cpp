@@ -218,9 +218,9 @@ MStatus CRenderSession::End()
       // from InteractiveRenderThread
       InterruptRender();
  #ifndef MTOA_DISABLE_RV
-      if (s_renderView) // && s_closeRenderViewWithSession
+      if (s_renderView && s_closeRenderViewWithSession)
       {
-         s_renderView->StopIPR();
+          s_renderView->StopIPR();
       } 
  #endif
    }
@@ -750,7 +750,7 @@ void CRenderSession::DoIPRRender()
 {
    assert(AiUniverseIsActive());
 
-   if (!IsIPRPaused())
+   if (!m_paused_ipr)
    {
       // Interrupt existing render if any
       InterruptRender();
@@ -894,6 +894,22 @@ void CRenderSession::CloseRenderView()
 #endif
 }
 
+void CRenderSession::CloseOptionsWindow()
+{
+#ifndef MTOA_DISABLE_RV
+    if (s_renderView != NULL) // for now always return true
+    {
+        InterruptRender(true);
+        CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
+        CMayaScene::End();
+
+        // This will tell the render View that the scene has changed
+        // it will decide whether to re-render or not
+        s_renderView->CloseOptionsWindow();
+    }
+#endif
+}
+
 void CRenderSession::FillRenderViewCameras()
 {
 
@@ -985,6 +1001,7 @@ void CRenderSession::PauseIPR()
    assert(AiUniverseIsActive());
 
    InterruptRender();
+   m_paused_ipr = true;
 }
 
 bool CRenderSession::IsIPRPaused()
@@ -998,6 +1015,7 @@ void CRenderSession::UnPauseIPR()
 {
    assert(AiUniverseIsActive());
 
+   m_paused_ipr = false;
    CMayaScene::UpdateIPR();
    DoIPRRender();
 }

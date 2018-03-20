@@ -29,6 +29,7 @@ public:
 	ArnoldViewRegionManipulator();
 	~ArnoldViewRegionManipulator() override;
 	void postConstructor() override;
+    void initializeInstance();
 
 	// The important virtuals to implement
 	void preDrawUI( const M3dView &view ) override;
@@ -58,6 +59,7 @@ private:
 	// Modified mouse position used for updating manipulator
 	MPoint fMousePoint;
 
+    bool fInitialized;
 	bool fDrawManip;
     bool fDrawAsMouseOver;
     MFloatPoint mViewRectangle;

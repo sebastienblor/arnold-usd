@@ -37,6 +37,7 @@ MString ArnoldViewRegionManipulator::registrantId("ArnoldViewRegionManipulatorPl
 //
 ArnoldViewRegionManipulator::ArnoldViewRegionManipulator()
 : MPxManipulatorNode()
+, fInitialized(false)
 , fActiveName(0)
 , fTopName(0)
 , fRightName(0)
@@ -51,32 +52,40 @@ ArnoldViewRegionManipulator::ArnoldViewRegionManipulator()
 , fMousePoint(MPoint())
 , fDrawAsMouseOver(false)
 {
-
     mViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
     // order here is left, top, right, bottom
 
-    // Eventually get the crop region value in the render session
-    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-    CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
-	
-    if (renderOptions && renderOptions->useRenderRegion() && renderSession->IsRegionCropped())
-    {
-        int width = renderOptions->width();
-        int height = renderOptions->height();
-        int minx = renderOptions->minX();
-        int miny = renderOptions->minY();
-        int maxx = renderOptions->maxX();
-        int maxy = renderOptions->maxY();
-
-        mViewRectangle.x = (float)minx / (float)width;
-        mViewRectangle.y = 1.f - ((float)maxy / (float)height);
-        mViewRectangle.z = (float)maxx / (float)width;
-        mViewRectangle.w = 1.f - ((float)miny / (float)height);
-    }
+    initializeInstance();
 }
 
 ArnoldViewRegionManipulator::~ArnoldViewRegionManipulator()
 {
+}
+
+void ArnoldViewRegionManipulator::initializeInstance()
+{
+    if (!fInitialized)
+    {
+
+        // Eventually get the crop region value in the render session
+        CRenderSession *renderSession = CMayaScene::GetRenderSession();
+        CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+        if (renderOptions && renderOptions->useRenderRegion())
+        {
+            int width = renderOptions->width();
+            int height = renderOptions->height();
+            int minx = renderOptions->minX();
+            int miny = renderOptions->minY();
+            int maxx = renderOptions->maxX();
+            int maxy = renderOptions->maxY();
+
+            mViewRectangle.x = (float)minx / (float)width;
+            mViewRectangle.y = 1.f - ((float)maxy / (float)height);
+            mViewRectangle.z = (float)maxx / (float)width;
+            mViewRectangle.w = 1.f - ((float)miny / (float)height);
+            fInitialized = true;
+        }
+    }
 }
 
 void ArnoldViewRegionManipulator::postConstructor()
@@ -103,6 +112,8 @@ void ArnoldViewRegionManipulator::postConstructor()
 //virtual 
 void ArnoldViewRegionManipulator::preDrawUI( const M3dView &view )
 {
+    initializeInstance();
+
 	M3dView *viewPtr = const_cast<M3dView*>( &view );
 	MDagPath dpath;
 	viewPtr->getCamera(dpath);

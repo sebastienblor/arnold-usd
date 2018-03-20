@@ -37,9 +37,9 @@ public:
         return mUIName;
     }
 
-    void startRenderView(const MDagPath &camera, int width, int height);
-
 protected:
+
+    void startRenderView(const MDagPath &camera, int width, int height);
 
     static void stopExistingOverrides(const MString & destination);
 
@@ -66,6 +66,7 @@ protected:
     struct RegionRenderState {
         bool enabled;
         bool useRegion;
+        bool initialized;
         MFloatPoint viewRectangle;
     };
     std::map<std::string, RegionRenderState> mRegionRenderStateMap;

@@ -127,7 +127,8 @@ public:
    void UpdateRenderView();
    void CloseRenderView();
    void OpenInteractiveRendererOptions();
-   
+   void CloseOptionsWindow();
+
    void ObjectNameChanged(MObject& node, const MString& str);
 
 
@@ -193,7 +194,8 @@ private:
 
    // interactive session is related to arnold's AiBegin(AI_SESSION_INTERACTIVE)
    CRenderSession(bool interactiveSession = true)
-      : m_is_active(false)
+      : m_paused_ipr(false)
+      , m_is_active(false)
       , m_interactiveSession(interactiveSession)
       , m_render_thread(NULL)
       , m_rendering(0)      
@@ -218,6 +220,7 @@ private:
 private:
 
    CRenderOptions m_renderOptions;
+   bool           m_paused_ipr;  ///< True when IPR is paused.
    bool           m_is_active;   ///< True when after a Init() and before a Finish().
    bool           m_interactiveSession;
 

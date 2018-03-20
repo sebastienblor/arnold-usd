@@ -62,13 +62,6 @@ CArnoldSession* CMayaScene::GetArnoldSession()
    return s_arnoldSession;
 }
 
-CRenderSession* CMayaScene::StartEmptyRenderSession()
-{
-    if (s_renderSession == NULL)
-        s_renderSession = new CRenderSession();
-    return s_renderSession;
-}
-
 bool CMayaScene::IsActive(ArnoldSessionMode mode)
 {
    if (mode != MTOA_SESSION_ANY && mode != GetSessionMode())
