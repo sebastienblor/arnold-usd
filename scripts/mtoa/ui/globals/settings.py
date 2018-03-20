@@ -480,10 +480,20 @@ def renderDevicesListEdit(*args):
 def createGpuSettings():
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
-    cmds.attrControlGrp('gpu', 
-                        label="GPU Rendering", 
-                        changeCommand=changeGpu,
-                        attribute='defaultArnoldRenderOptions.gpu')
+
+    universeCreated = False
+    if not ai.AiUniverseIsActive():
+        ai.AiBegin()
+        universeCreated = True
+
+    if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions()), "render_device"):
+        cmds.attrControlGrp('gpu', 
+                            label="GPU Rendering", 
+                            changeCommand=changeGpu,
+                            attribute='defaultArnoldRenderOptions.gpu')
+
+    if universeCreated:
+        ai.AiEnd()
 
     cmds.attrControlGrp('auto_select_devices', 
                         label="Use All Compatible GPUs", 
@@ -1575,7 +1585,7 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
-    cmds.frameLayout('arnoldGpuSettings', label="Hardware Settings", cll=True, cl=0)
+    cmds.frameLayout('arnoldGpuSettings', label="Denoiser Settings", cll=True, cl=0)
     createGpuSettings()
     cmds.setParent('..')
 

@@ -1266,46 +1266,45 @@ void COptionsTranslator::Export(AtNode *options)
    if (GetSessionOptions().IsInteractiveRender())
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
-   MPlug gpuPlug = FindMayaPlug("gpu");
-   if (!gpuPlug.isNull() && GetSessionMode() != MTOA_SESSION_SWATCH)
+   if (GetSessionMode() != MTOA_SESSION_SWATCH)
    {
-      bool gpu = gpuPlug.asBool();
-      if (gpu)
+      if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
-         AiNodeSetStr(options, "render_device", "GPU");
-         MPlug autoDevices = FindMayaPlug("auto_select_devices");
-         if (autoDevices.isNull() || !autoDevices.asBool())
+         MPlug gpuPlug = FindMayaPlug("gpu");
+         bool gpu = gpuPlug.asBool();
+         AiNodeSetStr(options, "render_device", (gpu) ? "GPU" : "CPU");
+      }
+      // Select the devices in case we have 
+
+      MPlug autoDevices = FindMayaPlug("auto_select_devices");
+      if (autoDevices.isNull() || !autoDevices.asBool())
+      {
+         std::vector<unsigned int> devices;
+         // Manual Device selection
+         MPlug gpuDevices = FindMayaPlug("render_devices");
+         if (!gpuDevices.isNull())
          {
-            std::vector<unsigned int> devices;
-            // Manual Device selection
-            MPlug gpuDevices = FindMayaPlug("render_devices");
-            if (!gpuDevices.isNull())
+            unsigned int numElements = gpuDevices.numElements();
+            for (unsigned int i = 0; i < numElements; ++i)
             {
-               unsigned int numElements = gpuDevices.numElements();
-               for (unsigned int i = 0; i < numElements; ++i)
+               MPlug elemPlug = gpuDevices[i];
+               if (!elemPlug.isNull())
                {
-                  MPlug elemPlug = gpuDevices[i];
-                  if (!elemPlug.isNull())
-                  {
-                     devices.push_back(elemPlug.asInt());
-                  }
+                  devices.push_back(elemPlug.asInt());
                }
             }
-            if (!devices.empty())
-            {
-               AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
-               AiDeviceSelect((gpu) ? AI_DEVICE_TYPE_GPU : AI_DEVICE_TYPE_CPU, selectDevices);
-               AiArrayDestroy(selectDevices);
-            }
-         } else
+         }
+         if (!devices.empty())
          {
-            // automatically select the GPU devices
-            AiDeviceAutoSelect();
+            AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+            AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+            AiArrayDestroy(selectDevices);
          }
       } else
       {
-         AiNodeSetStr(options, "render_device", "CPU");
-      }
+         // automatically select the GPU devices
+         AiDeviceAutoSelect();
+      }      
    }
 }
 
