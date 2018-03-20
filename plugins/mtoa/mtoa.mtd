@@ -15,6 +15,15 @@
         default             INT     3
         linkable            BOOL    false
         maya.orig_shortname STRING  "AAsmpls"
+    [attr AA_samples_max]
+        maya.keyable        BOOL    false
+        min                 INT     0
+        max                 INT     100
+        softmin             INT     1
+        softmax             INT     10
+        default             INT     8
+        linkable            BOOL    false
+        maya.orig_shortname STRING  "AAsmax"
     [attr bucket_size]
         maya.keyable        BOOL    false
         min                 INT     16
