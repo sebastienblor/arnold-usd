@@ -23,9 +23,9 @@
 #include <maya/MFnCamera.h>
 using namespace std;
 
-void CImagePlaneTranslator::Export(AtNode *imagePlane)
+void CImagePlaneTranslator::Export(AtNode *node)
 {
-   CNodeTranslator::Export(imagePlane);
+   //CNodeTranslator::Export(imagePlane);
    ExportImagePlane();
 }
 
