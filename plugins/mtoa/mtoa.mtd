@@ -2021,7 +2021,12 @@
     [attr width]
         default             FLOAT   2.0
 
-
+[node denoise_optix_filter]
+    maya.attr_prefix        STRING  ""
+    maya.translator         STRING  "optix_denoise"
+    [attr blend]
+        default             FLOAT   0.0
+        
 # COMMON SHADERS
 
 [node abs]
