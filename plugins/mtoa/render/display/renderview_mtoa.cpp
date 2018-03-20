@@ -96,6 +96,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
+static std::string s_lastCameraName = "";
 
 #ifdef MAYA_MAINLINE
 
@@ -592,16 +593,41 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    if (cameras.length() > 0)
    {
-      if (cameras[0].isValid())
+      MDagPath renderCamera = cameras[0];
+
+      // try to restore the last camera we had in ARV (#3372)
+      // FIXME replace this by a function GetOptionValue("Camera") that would return the 
+      // menu value
+      if (!s_lastCameraName.empty())
       {
-         CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
+        // Search for the MDagPath for this camera   
+         MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
+         itDag.reset();
+
+         while (!itDag.isDone())
+         {
+            MDagPath camPath;
+            itDag.getPath(camPath);
+            std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
+            if (camName == s_lastCameraName)
+            {
+               camPath.extendToShape();
+               renderCamera = camPath;
+               break;
+            }      
+            itDag.next();
+         }
+      }
+      if (renderCamera.isValid())
+      {
+         CMayaScene::GetArnoldSession()->ExportDagPath(renderCamera, true);
       }
       // SetExportCamera mus be called AFTER CMayaScene::Export
-      CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+      CMayaScene::GetArnoldSession()->SetExportCamera(renderCamera, false);
 
       // Set resolution and camera as passed in.
       CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-      CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+      CMayaScene::GetRenderSession()->SetCamera(renderCamera);
    }
 
    UpdateRenderCallbacks();
@@ -901,6 +927,9 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
       if (cam == NULL) return;
 
       std::string cameraName = AiNodeGetName(cam);
+      // store the camera name, we might need it for "Update Full Scene" (#3372)
+      s_lastCameraName = cameraName;
+
       // Search for the MDagPath for this camera   
       MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
       itDag.reset();
@@ -914,7 +943,8 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
          {
             // why do we need to have this information in 2 several places ??
             CMayaScene::GetRenderSession()->SetCamera(camPath);
-            CMayaScene::GetArnoldSession()->SetExportCamera(camPath); 
+            CMayaScene::GetArnoldSession()->SetExportCamera(camPath, false);  // false means we don't want MtoA to trigger a new render, this is already being done by ARV
+            CMayaScene::GetArnoldSession()->ExportImagePlane();
             break;
          }      
          itDag.next();

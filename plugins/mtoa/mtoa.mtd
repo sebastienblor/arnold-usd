@@ -15,6 +15,15 @@
         default             INT     3
         linkable            BOOL    false
         maya.orig_shortname STRING  "AAsmpls"
+    [attr AA_samples_max]
+        maya.keyable        BOOL    false
+        min                 INT     0
+        max                 INT     100
+        softmin             INT     1
+        softmax             INT     10
+        default             INT     8
+        linkable            BOOL    false
+        maya.orig_shortname STRING  "AAsmax"
     [attr bucket_size]
         maya.keyable        BOOL    false
         min                 INT     16
@@ -2012,7 +2021,12 @@
     [attr width]
         default             FLOAT   2.0
 
-
+[node denoise_optix_filter]
+    maya.attr_prefix        STRING  ""
+    maya.translator         STRING  "optix_denoise"
+    [attr blend]
+        default             FLOAT   0.0
+        
 # COMMON SHADERS
 
 [node abs]
@@ -2041,15 +2055,20 @@
     
 
 [node aov_write_int]
-    maya.hide               BOOL    true
+    maya.name               STRING  "aiWriteInt"
     maya.id                 INT     0x00115D87
+    maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
 
 [node aov_write_rgb]
     maya.name               STRING  "aiWriteColor"
     maya.id                 INT     0x00115D10
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
-
     [attr aov_input]
         maya.name           STRING  "input"
     [attr passthrough]
@@ -2330,7 +2349,22 @@ desc STRING "Multiplies the curvature by this factor."
 [node float_to_rgb]
     maya.hide               BOOL    true
 [node float_to_rgba]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D9E
+    maya.name               STRING  "aiFloatToRgba"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    true
+    [attr r]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr g]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr b]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr a]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0    
 
 [node fraction]
     maya.id                 INT     0x00115D68
@@ -2358,7 +2392,10 @@ desc STRING "Multiplies the curvature by this factor."
     maya.swatch             BOOL    true
 
 [node matte]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D9D
+    maya.name               STRING  "aiMatte"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true
 
 [node max]
     maya.id                 INT     0x00115D6C

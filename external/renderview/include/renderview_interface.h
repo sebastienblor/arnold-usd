@@ -63,6 +63,11 @@ public:
    void OpenOptionsWindow(int width, int height, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
    void CloseOptionsWindow();
    void DestroyOptionsWindow();
+
+   void StartIPR();
+   void StopIPR();
+   bool IsIPRStopped();
+
    // return the Qt Options Window
    QMainWindow *GetOptionsWindow();
 
@@ -150,7 +155,8 @@ public:
    virtual void ReceiveSelectionChanges(bool receive) = 0;
 
    // This Function is called when the Renderview window is closed
-   virtual void RenderViewClosed() = 0;
+   virtual void RenderViewClosed(){};
+   virtual void RenderOptionsClosed(){};
 
    // This function is invoked by the RenderView when it changes a parameter 
    // in the scene, so that we can advert the host
