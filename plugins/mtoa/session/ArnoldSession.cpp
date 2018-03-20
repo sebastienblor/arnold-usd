@@ -2004,7 +2004,7 @@ void CArnoldSession::ClearUpdateCallbacks()
 /// To address this potential issue, this method should be called after a multi-cam export, as it will cause
 /// the options translator to be updated
 ///
-void CArnoldSession::SetExportCamera(MDagPath camera)
+void CArnoldSession::SetExportCamera(MDagPath camera, bool updateRender)
 {
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.session] Setting export camera to \""+ camera.partialPathName() + "\"");
@@ -2018,7 +2018,7 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
    
    m_sessionOptions.SetExportCamera(camera);
 
-   if (m_optionsTranslator == NULL) return;
+   if (updateRender == false  && m_optionsTranslator == NULL) return;
    // just queue the options translator now 
    // instead of relying on the DependsOnExportCamera.
    // In the future we should have a generic way to make translators dependent from others,
@@ -2675,4 +2675,49 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
       path.pop(1);
    }
 
+}
+
+void CArnoldSession::ExportImagePlane()
+{
+   MDagPath camera = m_sessionOptions.GetExportCamera();
+
+   MFnDependencyNode fnNode (camera.node());
+   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
+
+   AtNode *options = AiUniverseGetOptions();
+
+   CNodeTranslator *imgTranslator = NULL;
+   MStatus status;
+
+   AiNodeSetPtr(options, "background", NULL);
+
+   if (imagePlanePlug.numConnectedElements() == 0)
+      return;
+
+   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+   {
+      MPlugArray connectedPlugs;
+      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+
+
+      if (status && (connectedPlugs.length() > 0))
+      {
+         imgTranslator = ExportNode(connectedPlugs[0], true);
+         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
+
+         if (imgPlaneTranslator)
+         {
+            imgPlaneTranslator->SetCamera(fnNode.name());
+
+            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
+            
+            if (imgPlaneShader)      
+            {
+               AiNodeSetPtr(options, "background", imgPlaneShader);
+               AiNodeSetByte(options, "background_visibility", 1);
+            }
+         }
+      }
+   }
 }
