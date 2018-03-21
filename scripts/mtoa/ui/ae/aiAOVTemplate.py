@@ -223,7 +223,10 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.addControl('name', changeCommand=self.updateLightGroupsVisibility)
         self.addControl('type', label='Data Type')
         self.addSeparator()
+        self.addControl('denoise', label='Denoise')
+        self.addSeparator()
         self.addControl('camera', label='Camera (Batch only)')
+
 
         self.beginLayout("Light Groups", collapse=False)
         self.beginNoOptimize()

@@ -73,6 +73,7 @@ public:
    inline const MPlug &GetShaderPlug() const {return m_shaderPlug;}
    inline const MString &GetCamera() const {return m_camera;}
 
+   bool GetDenoise() const {return m_denoise;}
 
 protected:
 
@@ -97,6 +98,7 @@ protected:
    MString m_lightGroupsList;
    bool m_lightGroups;
    bool m_globalAov;
+   bool m_denoise;
    MPlug m_shaderPlug;
    MString m_camera;
 };

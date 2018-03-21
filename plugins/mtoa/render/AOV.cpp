@@ -32,7 +32,8 @@ CAOV::CAOV()
      m_imageformat(""),
      m_object(MObject::kNullObj),
      m_lightGroups(false),
-     m_globalAov(true)
+     m_globalAov(true),
+     m_denoise(false)
 {
 }
 
@@ -51,7 +52,8 @@ CAOV::CAOV(const CAOV &rhs)
      m_lightGroups(rhs.m_lightGroups),
      m_globalAov(rhs.m_globalAov),
      m_shaderPlug(rhs.m_shaderPlug),
-     m_camera(rhs.m_camera)
+     m_camera(rhs.m_camera),
+     m_denoise(rhs.m_denoise)
 {
 }
 
@@ -77,6 +79,7 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_globalAov = rhs.m_globalAov;
       m_shaderPlug = rhs.m_shaderPlug;
       m_camera = rhs.m_camera;
+      m_denoise = rhs.m_denoise;
    }
    return *this;
 }
@@ -154,6 +157,7 @@ bool CAOV::FromMaya(MObject &AOVNode)
    NormalizePath(m_prefix);
 
    m_imageformat = fnNode.findPlug("imageFormat", true).asString();
+   m_denoise = fnNode.findPlug("denoise").asBool();
 
    m_lightGroups = fnNode.findPlug("lightGroups").asBool();
    m_lightPathExpression = fnNode.findPlug("lightPathExpression").asString();
