@@ -366,7 +366,7 @@ void COptionsTranslator::ExportAOVs()
             denoise_output.filter = GetArnoldNode(denoise_output_tag.asChar());
             if (denoise_output.filter == NULL)
                denoise_output.filter = AddArnoldNode("denoise_optix_filter", denoise_output_tag.asChar());
-            AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
+            //AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
          }
 
          m_aovData.push_back(aovData);
