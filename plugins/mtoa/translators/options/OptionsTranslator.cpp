@@ -356,12 +356,14 @@ void COptionsTranslator::ExportAOVs()
          // and append "_denoised" to the AOV name (thus image filename)
          aovData.name += "_denoised";
          aovData.tokens += "_denoised";
-            
+         aovData.denoised = true;
          for (size_t i = 0; i < aovData.outputs.size(); ++i)
          {
             CAOVOutput &denoise_output = aovData.outputs[i];
             MString denoise_output_tag = aovData.name;
-            denoise_output_tag += (int)i;
+            if (i > 0)
+               denoise_output_tag += (int)i;
+
             denoise_output.filter = GetArnoldNode(denoise_output_tag.asChar());
             if (denoise_output.filter == NULL)
                denoise_output.filter = AddArnoldNode("denoise_optix_filter", denoise_output_tag.asChar());
@@ -702,14 +704,19 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             }
             else
             {
+               MString aovName = aovData.name;
+               if (aovData.denoised && aovName.length() > 10)
+               {
+                  aovName = aovName.substringW(0, aovName.length() - 10);
+               }
                if (aovCamera != nameCamera)
                {
                   MString aovCameraArnoldName = CDagTranslator::GetArnoldNaming(aovCameraDag);
-                  sprintf(str, "%s %s %s %s %s", aovCameraArnoldName.asChar(),  aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s %s", aovCameraArnoldName.asChar(),  aovName.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));
                }
                else
-                  sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                  sprintf(str, "%s %s %s %s", aovName.asChar(), AiParamGetTypeName(aovData.type),
                           AiNodeGetName(output.filter), AiNodeGetName(output.driver));     
             }
 

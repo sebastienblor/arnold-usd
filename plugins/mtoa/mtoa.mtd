@@ -2021,12 +2021,9 @@
     [attr width]
         default             FLOAT   2.0
 
-# We don't want to expose the optix filter, as this is controlled by the AOV parameter "denoise"
-#[node denoise_optix_filter]
-#    maya.attr_prefix        STRING  ""
-#    maya.translator         STRING  "optix_denoise"
-#    [attr blend]
-#        default             FLOAT   0.0
+# We don't want to expose the optix filter, as this is controlled by the AOV parameter ""
+[node denoise_optix_filter]
+    maya.hide               BOOL    true
         
 # COMMON SHADERS
 

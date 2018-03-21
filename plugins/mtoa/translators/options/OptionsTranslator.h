@@ -21,7 +21,7 @@ struct CAOVOutput
 
 struct CAOVOutputArray
 {
-   CAOVOutputArray() : type(0), shaderTranslator(NULL), cameraTranslator(NULL) {}
+   CAOVOutputArray() : type(0), shaderTranslator(NULL), cameraTranslator(NULL), denoised(false) {}
    MString name;
    int type;
    MString tokens;
@@ -30,6 +30,7 @@ struct CAOVOutputArray
    CNodeTranslator *shaderTranslator;
    CNodeTranslator *cameraTranslator;
    std::vector<CAOVOutput> outputs;
+   bool denoised;
 
 };
 
