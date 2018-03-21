@@ -311,30 +311,35 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         return MS::kFailure;
     }
 
-    if (firstRender && !state.enabled)
+    // if the session is not rendering, but the state is enabled
+    // end the current empty scene and start a new rendering
+    if (!renderSession->IsRendering() && state.enabled)
     {
-        if (renderSession)
-        {
-            renderSession->InterruptRender(true);
-            renderSession->CloseRenderViewWithSession(false);
-        }
+        // end the existing (empty) scene
+        renderSession->CloseRenderViewWithSession(false);
         CMayaScene::End();
-    }
 
-    // disable the arnold operation of paused
-    mOperations[2]->setEnabled(state.enabled);
-    if (!state.enabled)
+        // now restart the render once it has been properly initialized
+        renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+
+        // disable the arnold operation until the next frame
+        mOperations[2]->setEnabled(false);
+        MGlobal::executeCommandOnIdle("refresh -f;");
         return MS::kSuccess;
+    }
 
     // now get the current bits
     // and create a texture from them.
     AtBBox2 bounds;
-    // even if there are no new results provided by the renderview, 
-    // we need to proceed, otherwise we'll be painting black.
     // Note that we're not using the "bounds" region here, about which region
     // of the buffer needs to be updated
     bool results = renderSession->HasRenderResults(bounds);
-    
+
+    // disable the arnold operation if paused
+    mOperations[2]->setEnabled(state.enabled);
+    if (!state.enabled)
+        return MS::kSuccess;
+
     const AtRGBA *buffer = renderSession->GetDisplayedBuffer();
     if (buffer)
     {
@@ -344,6 +349,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             {
                 // if there are no results disable the operation
                 mOperations[2]->setEnabled(false);
+                MGlobal::executeCommandOnIdle("refresh -f;");
                 return MS::kSuccess;
             }
 
