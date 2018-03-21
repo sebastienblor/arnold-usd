@@ -1115,6 +1115,23 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    return status;
 }
 
+// When a hidden node gets "unhidden", we need to go through an "idle" callback
+// so that Maya has time to process its visibility status properly
+static MCallbackId s_hiddeNodeCb = 0;
+static MDagPathArray s_hiddenNodesArray;
+void CArnoldSession::DoHiddenCallback(void* clientData)
+{
+   MMessage::removeCallback(s_hiddeNodeCb);
+   s_hiddeNodeCb = 0;
+   MStatus status;
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   if (session)
+   {
+      for (unsigned int i = 0; i< s_hiddenNodesArray.length(); i++)
+         session->SetDagVisible(s_hiddenNodesArray[i]);
+   }
+   s_hiddenNodesArray.clear();
+}
 // This callback is invoked when one of the skipped (hidden) objects is modified 
 // during an IPR session. We have to check if it became visible in order to export it
 void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
@@ -1126,11 +1143,23 @@ void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* client
 
    if(!path.isValid()) return;
 
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
    CArnoldSession *session = (CArnoldSession*)clientData;
    DagFiltered filtered = session->FilteredStatus(path);
-   if (filtered != MTOA_EXPORT_ACCEPTED) return; // this object is still hidden
+   if (filtered != MTOA_EXPORT_ACCEPTED && plugName != "visibility")
+    return; // this object is still hidden
 
-   session->SetDagVisible(path);
+   // We need to go through an "idle" callback, otherwise Maya won't have time to process the 
+   // visibility status of this node 
+   if(s_hiddeNodeCb == 0)
+   {
+      s_hiddeNodeCb = MEventMessage::addEventCallback("idle",
+                                                  CArnoldSession::DoHiddenCallback,
+                                                  clientData
+                                                  );
+   } 
+   s_hiddenNodesArray.append(path);
 }
 
 void CArnoldSession::SetDagVisible(MDagPath &path)
@@ -1199,21 +1228,25 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
             continue;
          }
          MStatus stat;
-         CDagTranslator *tr = ExportDagPath(path, true, &stat);
+
+         // We shouldn't call this function during a render !
+         // It's going to create new nodes (#3355)
+         //CDagTranslator *tr = ExportDagPath(path, true, &stat);
          QueueForUpdate(path);
          if (stat != MStatus::kSuccess)
             status = MStatus::kFailure;
 
+/*
+         // Since we're not calling ExportDagPath anymore, we don't have any translator and we don't know
          if (tr != NULL && !tr->ExportDagChildren())
          {
             pruneDag = true;
             parentPruneDag = path;
             parentPruneDag.pop();
             dagIterator.prune();
-         }
+         }*/
       }
    }
-
    RequestUpdate();
 }
 
@@ -1971,7 +2004,7 @@ void CArnoldSession::ClearUpdateCallbacks()
 /// To address this potential issue, this method should be called after a multi-cam export, as it will cause
 /// the options translator to be updated
 ///
-void CArnoldSession::SetExportCamera(MDagPath camera)
+void CArnoldSession::SetExportCamera(MDagPath camera, bool updateRender)
 {
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.session] Setting export camera to \""+ camera.partialPathName() + "\"");
@@ -1985,7 +2018,7 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
    
    m_sessionOptions.SetExportCamera(camera);
 
-   if (m_optionsTranslator == NULL) return;
+   if (updateRender == false  && m_optionsTranslator == NULL) return;
    // just queue the options translator now 
    // instead of relying on the DependsOnExportCamera.
    // In the future we should have a generic way to make translators dependent from others,
@@ -2642,4 +2675,49 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
       path.pop(1);
    }
 
+}
+
+void CArnoldSession::ExportImagePlane()
+{
+   MDagPath camera = m_sessionOptions.GetExportCamera();
+
+   MFnDependencyNode fnNode (camera.node());
+   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
+
+   AtNode *options = AiUniverseGetOptions();
+
+   CNodeTranslator *imgTranslator = NULL;
+   MStatus status;
+
+   AiNodeSetPtr(options, "background", NULL);
+
+   if (imagePlanePlug.numConnectedElements() == 0)
+      return;
+
+   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+   {
+      MPlugArray connectedPlugs;
+      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+
+
+      if (status && (connectedPlugs.length() > 0))
+      {
+         imgTranslator = ExportNode(connectedPlugs[0], true);
+         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
+
+         if (imgPlaneTranslator)
+         {
+            imgPlaneTranslator->SetCamera(fnNode.name());
+
+            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
+            
+            if (imgPlaneShader)      
+            {
+               AiNodeSetPtr(options, "background", imgPlaneShader);
+               AiNodeSetByte(options, "background_visibility", 1);
+            }
+         }
+      }
+   }
 }

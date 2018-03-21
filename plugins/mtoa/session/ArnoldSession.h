@@ -105,7 +105,7 @@ public:
    }
 
    inline const MDagPath& GetExportCamera() const         { return m_sessionOptions.GetExportCamera(); }
-   void SetExportCamera(MDagPath camera);
+   void SetExportCamera(MDagPath camera, bool updateRender = true);
    inline const CMayaExportFilter& GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
    inline unsigned int GetExportFilterMask() const { return m_sessionOptions.GetExportFilterMask(); }
    inline void SetExportFilterMask(unsigned int mask) { m_sessionOptions.SetExportFilterMask(mask); }
@@ -193,6 +193,7 @@ public:
    void RequestUpdateOptions();
 
    void ExportTxFiles();
+   void ExportImagePlane();
 
    const ObjectToTranslatorMap &GetProcessedTranslators() const {return m_processedTranslators;}
 
@@ -245,6 +246,7 @@ private:
    //void ProcessAOVs();
 
    static void HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData);
+   static void DoHiddenCallback(void* clientData);
    void SetDagVisible(MDagPath &path);
 
    static bool IsVisible(MFnDagNode &node);

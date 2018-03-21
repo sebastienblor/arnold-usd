@@ -18,13 +18,14 @@ public:
    virtual void ExportMotion(AtNode* curve);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
+   virtual void AddUpdateCallbacks();
+   static void timeChangedCallback(void* clientData);
    static void* creator()
    {
       return new CGpuCacheTranslator();
    }
    virtual void ExportShaders();
    virtual void NodeChanged(MObject& node, MPlug& plug);
-   
-private:                         
 
+private:
 };

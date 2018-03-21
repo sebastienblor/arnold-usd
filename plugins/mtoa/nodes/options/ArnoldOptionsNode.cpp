@@ -37,7 +37,7 @@ MObject CArnoldOptionsNode::s_driver;
 MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
-MObject CArnoldOptionsNode::s_progressive_rendering;
+MObject CArnoldOptionsNode::s_progressive_rendering; // Warning, this parameter in about maya render view. It's *not* options.progressive_render
 MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
 MObject CArnoldOptionsNode::s_force_texture_cache_flush_after_render;
@@ -113,7 +113,9 @@ MObject CArnoldOptionsNode::s_origin;
 MObject CArnoldOptionsNode::s_aov_shaders;
 MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
-
+MObject CArnoldOptionsNode::s_gpu;
+MObject CArnoldOptionsNode::s_render_devices;
+MObject CArnoldOptionsNode::s_auto_select_devices;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -282,7 +284,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("enable_adaptive_sampling");
    s_attributes.MakeInput("AA_samples_max");
    s_attributes.MakeInput("adaptive_threshold");
-
+   s_attributes.MakeInput("progressive_render");
+   
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
@@ -447,6 +450,19 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotx);
 
+   s_gpu = nAttr.create("gpu", "gpu", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_gpu);
+
+   s_auto_select_devices = nAttr.create("auto_select_devices", "autoseldev", MFnNumericData::kBoolean, true);
+   nAttr.setKeyable(false);
+   addAttribute(s_auto_select_devices);
+
+   s_render_devices = nAttr.create("render_devices", "rndev", MFnNumericData::kInt);
+   nAttr.setKeyable(false);
+   nAttr.setArray(true);
+   addAttribute(s_render_devices);   
+
    // feature overrides
    s_attributes.MakeInput("ignore_textures");
    s_attributes.MakeInput("ignore_shaders");
@@ -496,10 +512,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 1);
    nAttr.setKeyable(false);
    eAttr.addField("Errors", MTOA_LOG_ERRORS);
-   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Warnings", MTOA_LOG_WARNINGS);
+   eAttr.addField("Info", MTOA_LOG_INFO);
    eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
 

@@ -131,6 +131,7 @@ void COptionsTranslator::ExportAOVs()
       if (lightGroupsList.length() > 0)
          lightGroupsList.split(' ', lgList);
 
+      bool denoise = it->GetDenoise();
       aovData.lpe =  it->GetLightPathExpression();
       MPlug shaderPlug = it->GetShaderPlug();
       MString camera = it->GetCamera();
@@ -164,8 +165,6 @@ void COptionsTranslator::ExportAOVs()
          {
             AiMsgError("[mtoa.aov] Camera %s not found", camera.asChar());
          }
-         
-
          
       } else
          aovData.cameraTranslator = NULL;
@@ -350,6 +349,28 @@ void COptionsTranslator::ExportAOVs()
 
       }
       m_aovData.push_back(aovData);
+      if (denoise)
+      {
+         // If this AOV is denoised, we need to duplicate the output,
+         // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
+         // and append "_denoised" to the AOV name (thus image filename)
+         aovData.name += "_denoise";
+         aovData.tokens += "_denoise";
+         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+         {
+            CAOVOutput &denoise_output = aovData.outputs[i];
+            MString denoise_output_tag = aovData.name;
+            if (i > 0)
+               denoise_output_tag += (int)i;
+
+            denoise_output.filter = GetArnoldNode(denoise_output_tag.asChar());
+            if (denoise_output.filter == NULL)
+               denoise_output.filter = AddArnoldNode("denoise_optix_filter", denoise_output_tag.asChar());
+            //AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
+         }
+
+         m_aovData.push_back(aovData);
+      }
    }
 }
 
@@ -897,48 +918,6 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
       overscan = 0.0f;
 }
 
-static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
-{
-   MFnDependencyNode fnNode (camera.node());
-   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
-
-   AtNode *options = AiUniverseGetOptions();
-
-   CNodeTranslator *imgTranslator = NULL;
-   MStatus status;
-
-   AiNodeSetPtr(options, "background", NULL);
-
-   if (imagePlanePlug.numConnectedElements() == 0)
-      return;
-
-   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
-   {
-      MPlugArray connectedPlugs;
-      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-
-
-      if (status && (connectedPlugs.length() > 0))
-      {
-         imgTranslator = session->ExportNode(connectedPlugs[0], true);
-         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
-
-         if (imgPlaneTranslator)
-         {
-            imgPlaneTranslator->SetCamera(fnNode.name());
-
-            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
-            
-            if (imgPlaneShader)      
-            {
-               AiNodeSetPtr(options, "background", imgPlaneShader);
-               AiNodeSetByte(options, "background_visibility", 1);
-            }
-         }
-      }
-   }
-}
 
 void COptionsTranslator::Export(AtNode *options)
 {
@@ -1024,6 +1003,10 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "thread_priority") == 0)
          {
             //AiNodeSetInt(options, "thread_priority", 2 );
+         } else if (strcmp(paramName, "GI_glossy_samples") == 0 || strcmp(paramName, "GI_refraction_samples") == 0 ||
+            strcmp(paramName, "sss_bssrdf_samples") == 0 || strcmp(paramName, "volume_indirect_samples") == 0)
+         {
+            // deprecated parameters, don't do anything
          }
          else
          {
@@ -1097,7 +1080,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetPtr(options, "background", NULL);
       // first we get the image planes connected to this camera
       
-      ExportImagePlane(GetSessionOptions().GetExportCamera(), m_impl->m_session);
+      m_impl->m_session->ExportImagePlane();
 
    }
    if ((GetSessionMode() == MTOA_SESSION_BATCH) || (GetSessionMode() == MTOA_SESSION_ASS))
@@ -1300,9 +1283,50 @@ void COptionsTranslator::Export(AtNode *options)
       
       AiNodeSetArray(options, "aov_shaders", aovShadersArray);
    }
+
    if (GetSessionOptions().IsInteractiveRender())
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
+   if (GetSessionMode() != MTOA_SESSION_SWATCH)
+   {
+      if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
+      {
+         MPlug gpuPlug = FindMayaPlug("gpu");
+         bool gpu = gpuPlug.asBool();
+         AiNodeSetStr(options, "render_device", (gpu) ? "GPU" : "CPU");
+      }
+      // Select the devices in case we have 
+
+      MPlug autoDevices = FindMayaPlug("auto_select_devices");
+      if (autoDevices.isNull() || !autoDevices.asBool())
+      {
+         std::vector<unsigned int> devices;
+         // Manual Device selection
+         MPlug gpuDevices = FindMayaPlug("render_devices");
+         if (!gpuDevices.isNull())
+         {
+            unsigned int numElements = gpuDevices.numElements();
+            for (unsigned int i = 0; i < numElements; ++i)
+            {
+               MPlug elemPlug = gpuDevices[i];
+               if (!elemPlug.isNull())
+               {
+                  devices.push_back(elemPlug.asInt());
+               }
+            }
+         }
+         if (!devices.empty())
+         {
+            AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+            AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+            AiArrayDestroy(selectDevices);
+         }
+      } else
+      {
+         // automatically select the GPU devices
+         AiDeviceAutoSelect();
+      }      
+   }
 }
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)

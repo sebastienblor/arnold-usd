@@ -5,7 +5,7 @@ class AEaiWriteFloatTemplate(ShaderAETemplate):
 
     def setup(self):
         self.beginScrollLayout()
-        self.beginLayout("Write Color Attributes", collapse=False)
+        self.beginLayout("Write Float Attributes", collapse=False)
 
         self.addControl("beauty")
         self.addControl("input")

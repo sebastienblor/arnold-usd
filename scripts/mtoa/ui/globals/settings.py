@@ -41,6 +41,8 @@ def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
     return (computed, computedDepth)
 
 def updateComputeSamples(*args):
+    updateAdaptiveSettings()
+
     AASamples = cmds.getAttr('defaultArnoldRenderOptions.AASamples')
     GISamples = cmds.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
     specularSamples = cmds.getAttr('defaultArnoldRenderOptions.GISpecularSamples')
@@ -61,27 +63,65 @@ def updateComputeSamples(*args):
     totalSamples = AASamplesComputed + GISamplesComputed + specularSamplesComputed + transmissionSamplesComputed
     totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + specularSamplesComputedDepth + transmissionSamplesComputedDepth
 
-    cmds.text("textAASamples",
-            edit=True, 
-            label='Camera (AA) Samples : %i' % AASamplesComputed)
+    adaptive = cmds.getAttr('defaultArnoldRenderOptions.enable_adaptive_sampling') and (cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max') > cmds.getAttr('defaultArnoldRenderOptions.AASamples'))
 
-    cmds.text("textGISamples",
-            edit=True, 
-            label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
-    
-    cmds.text("textSpecularSamples",
-            edit=True, 
-            label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
-        
-    cmds.text("textTransmissionSamples",
-            edit=True, 
-            label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
-        
-    cmds.text("textTotalSamples",
-            edit=True, 
-            label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
+    if adaptive:
 
-    updateAdaptiveSettings()
+        AASamplesComputedMax = cmds.getAttr('defaultArnoldRenderOptions.AA_samples_max')
+        if AASamplesComputedMax <= 0:
+            AASamplesComputedMax = 1
+        AASamplesComputedMax = AASamplesComputedMax * AASamplesComputedMax
+
+        GISamplesComputedMax, GISamplesComputedDepthMax = calculateRayCounts(AASamplesComputedMax, GISamples, diffuseDepth)
+        specularSamplesComputedMax, specularSamplesComputedDepthMax = calculateRayCounts(AASamplesComputedMax, specularSamples, specularDepth)
+        transmissionSamplesComputedMax, transmissionSamplesComputedDepthMax = calculateRayCounts(AASamplesComputedMax, transmissionSamples, transmissionDepth)
+        
+        totalSamplesMax = AASamplesComputedMax + GISamplesComputedMax + specularSamplesComputedMax + transmissionSamplesComputedMax
+        totalSamplesDepthMax = AASamplesComputedMax + GISamplesComputedDepthMax + specularSamplesComputedDepthMax + transmissionSamplesComputedDepthMax
+
+        cmds.text("textAASamples",
+                edit=True, 
+                label='Camera (AA) Samples : %i to %i' % (AASamplesComputed, AASamplesComputedMax))
+
+        cmds.text("textGISamples",
+                edit=True, 
+                label='Diffuse Samples : %i to %i (max : %i to %i)' % (GISamplesComputed, GISamplesComputedMax, GISamplesComputedDepth, GISamplesComputedDepthMax))
+        
+        cmds.text("textSpecularSamples",
+                edit=True, 
+                label='Specular Samples : %i to %i (max : %i to %i)' % (specularSamplesComputed, specularSamplesComputedMax, specularSamplesComputedDepth, specularSamplesComputedDepthMax))
+            
+        cmds.text("textTransmissionSamples",
+                edit=True, 
+                label='Transmission Samples : %i to %i (max : %i to %i)' % (transmissionSamplesComputed, transmissionSamplesComputedMax, transmissionSamplesComputedDepth, transmissionSamplesComputedDepthMax))
+            
+        cmds.text("textTotalSamples",
+                edit=True, 
+                label='Total (no lights) : %i to %i (max : %i to %i)' % (totalSamples, totalSamplesMax, totalSamplesDepth, totalSamplesDepthMax))
+
+
+    else:
+        cmds.text("textAASamples",
+                edit=True, 
+                label='Camera (AA) Samples : %i' % AASamplesComputed)
+
+        cmds.text("textGISamples",
+                edit=True, 
+                label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
+        
+        cmds.text("textSpecularSamples",
+                edit=True, 
+                label='Specular Samples : %i (max : %i)' % (specularSamplesComputed, specularSamplesComputedDepth))
+            
+        cmds.text("textTransmissionSamples",
+                edit=True, 
+                label='Transmission Samples : %i (max : %i)' % (transmissionSamplesComputed, transmissionSamplesComputedDepth))
+            
+        cmds.text("textTotalSamples",
+                edit=True, 
+                label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
+
+
 
 def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
@@ -143,6 +183,15 @@ def changeOperator(node, field, select):
         cmds.symbolButton(select, edit=True, enable=True)
     selectOperator()
 
+def removeOperator(field, doDelete, select):
+    node = getOperator()
+    if node:
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.operator')
+        cmds.textField(field, edit=True, text="")
+        cmds.symbolButton(select, edit=True, enable=False)
+        if doDelete:
+            cmds.delete(node)
+
 def buildOperatorMenu(popup, field, select):
     cmds.popupMenu(popup, edit=True, deleteAllItems=True)
     operators = cmds.arnoldPlugins(listOperators=True) or []
@@ -156,6 +205,13 @@ def buildOperatorMenu(popup, field, select):
     for operator in operators:
         cmdsLbl = 'Create {}'.format(operator)
         cmds.menuItem(parent=popup, label=cmdsLbl, command=Callback(createOperator, operator, field, select))
+
+    currentOperator = getOperator()
+    if currentOperator:
+        cmds.menuItem(parent=popup, divider=True)
+        cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeOperator, field, False, select))
+        cmds.menuItem(parent=popup, label="Delete", command=Callback(removeOperator, field, True, select))
+
 
 def selectOperator(*args):
     node = getOperator()
@@ -234,10 +290,12 @@ def buildBackgroundMenu(popup, field, select):
     cmds.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field, select))
     cmds.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field, select))
 
-    cmds.menuItem(parent=popup, divider=True)
+    background = getBackgroundShader()
 
-    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
-    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
+    if background:
+        cmds.menuItem(parent=popup, divider=True)
+        cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
+        cmds.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
 
     
 def getAtmosphereShader(*args):
@@ -293,12 +351,14 @@ def buildAtmosphereMenu(popup, field, select):
     for typ in cmds.listNodeTypes(['rendernode/arnold/light/volume']) or []:
         menuLabel = "Create "+typ
         cmds.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
-        
-    cmds.menuItem(parent=popup, divider=True)
 
-    cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
-    cmds.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
-    
+    atmosphere = getAtmosphereShader()
+    if atmosphere:        
+        cmds.menuItem(parent=popup, divider=True)
+
+        cmds.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
+        cmds.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
+        
 def getSubdivDicingCameraShader(*args):
     conns = cmds.listConnections('defaultArnoldRenderOptions.subdivDicingCamera', s=True, d=False, p=True)
     if conns:
@@ -366,6 +426,13 @@ def changeRenderType():
                             enable=enabled)
     except:
         pass
+def changeGpu():
+    try:
+        devicesEnabled = not cmds.getAttr('defaultArnoldRenderOptions.auto_select_devices')
+        cmds.textScrollList('os_render_devices', edit=True, enable=devicesEnabled)
+    except:
+        pass
+
 
 def changeFrustumCulling(*args):
     frustumCulling = cmds.getAttr('defaultArnoldRenderOptions.subdiv_frustum_culling')
@@ -386,6 +453,85 @@ def selectOrigin(*args, **kwargs):
             cmds.connectAttr('%s.message' % tr, 'defaultArnoldRenderOptions.origin', force=1)
     setupOriginText()
 
+def renderDevicesListEdit(*args):
+    gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
+    gpuDeviceIds = []
+    gpuDeviceCount = ai.AiArrayGetNumElements(gpuDeviceIdsArray)
+    for i in range(gpuDeviceCount):
+        gpuDeviceIds.append(ai.AiArrayGetUInt(gpuDeviceIdsArray, i))
+
+    selList = cmds.textScrollList('os_render_devices', query=True, sii=True)
+    idsList = []
+
+    for i in selList:
+        if i <= len(gpuDeviceIds):
+            idsList.append(gpuDeviceIds[i-1])
+
+    prevSize = cmds.getAttr('defaultArnoldRenderOptions.render_devices', s=True)
+    selCount = len(idsList)
+    for i in range(selCount):
+        cmds.setAttr('defaultArnoldRenderOptions.render_devices[{}]'.format(i), idsList[i])
+
+    if selCount < prevSize:
+        for i in range(selCount, prevSize):
+            cmds.removeMultiInstance('defaultArnoldRenderOptions.render_devices[{}]'.format(i))
+
+
+def createGpuSettings():
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    universeCreated = False
+    if not ai.AiUniverseIsActive():
+        ai.AiBegin()
+        universeCreated = True
+
+    if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions()), "render_device"):
+        cmds.attrControlGrp('gpu', 
+                            label="GPU Rendering", 
+                            changeCommand=changeGpu,
+                            attribute='defaultArnoldRenderOptions.gpu')
+
+    if universeCreated:
+        ai.AiEnd()
+
+    cmds.attrControlGrp('auto_select_devices', 
+                        label="Use All Compatible GPUs", 
+                        changeCommand=changeGpu,
+                        attribute='defaultArnoldRenderOptions.auto_select_devices')
+
+    devicesEnabled = not cmds.getAttr('defaultArnoldRenderOptions.auto_select_devices')
+    cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=devicesEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
+    # fill attribute
+    
+    gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
+    gpuDeviceCount = ai.AiArrayGetNumElements(gpuDeviceIdsArray)
+    gpuDeviceIds = []
+
+    for i in range(gpuDeviceCount):
+        gpuDeviceIds.append(ai.AiArrayGetUInt(gpuDeviceIdsArray, i))
+        
+    cmds.textScrollList('os_render_devices', edit=True, removeAll=True)
+
+    for gpuDevice in gpuDeviceIds:
+        deviceName = ai.AiDeviceGetName(ai.AI_DEVICE_TYPE_GPU, gpuDevice)
+        cmds.textScrollList('os_render_devices', edit=True, append=str(deviceName))
+
+    attrIds = cmds.getAttr('defaultArnoldRenderOptions.render_devices', mi=True) or []
+
+    if len(attrIds) == 0:
+        attrIds.append(0)
+
+    for i in attrIds:
+        attrVal = cmds.getAttr('defaultArnoldRenderOptions.render_devices[{}]'.format(i))
+        if attrVal < 0:
+            continue
+
+        if attrVal in gpuDeviceIds:
+            cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=i+1)
+
+    cmds.setParent('..')
+        
 def createArnoldRenderSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -610,17 +756,22 @@ def createArnoldSamplingSettings():
                         label='Volume Indirect',
                         attribute='defaultArnoldRenderOptions.GI_volume_samples')
     
+    cmds.separator()
+    cmds.attrControlGrp('ss_progressive_render',
+                        label="Progressive Render",
+                        attribute='defaultArnoldRenderOptions.progressive_render')
+
     cmds.frameLayout(label='Adaptive Sampling', collapse=True)
     cmds.columnLayout(adjustableColumn=True)
     
     cmds.attrControlGrp('ss_enable_adaptive_sampling',
                         label="Enable",
-                        cc=updateAdaptiveSettings,
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples),
                         attribute='defaultArnoldRenderOptions.enable_adaptive_sampling')
 
     cmds.attrControlGrp('ss_aa_samples_max',
                         label="Max. Camera (AA)",
-                        cc=updateAdaptiveSettings,
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples),
                         attribute='defaultArnoldRenderOptions.AA_samples_max')
 
     cmds.attrControlGrp('ss_adaptive_threshold',
@@ -684,7 +835,6 @@ def createArnoldSamplingSettings():
     cmds.attrControlGrp('ss_indirect_specular_blur',
                         label="Indirect Specular Blur",
                         attribute='defaultArnoldRenderOptions.indirectSpecularBlur')
-
     cmds.setParent('..')
     
     cmds.setParent('..')
@@ -1196,7 +1346,17 @@ def createArnoldMayaintegrationSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
-    
+                  
+    cmds.attrControlGrp('os_enable_swatch_render',
+                        label="Enable Swatch Render",
+                        attribute='defaultArnoldRenderOptions.enable_swatch_render')
+
+    cmds.attrControlGrp('os_standin_draw_override',
+                        label="StandIn Viewport Display",
+                        attribute='defaultArnoldRenderOptions.standin_draw_override')
+
+    cmds.separator()
+    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Render View", cll=True, cl=1)
     cmds.attrControlGrp('os_progressive_rendering',
                         label='Progressive Refinement',
                         attribute='defaultArnoldRenderOptions.progressive_rendering')
@@ -1219,17 +1379,11 @@ def createArnoldMayaintegrationSettings():
                         label='Force Texture Cache Flush After Render',
                         attribute='defaultArnoldRenderOptions.force_texture_cache_flush_after_render')
                    
-    cmds.separator()
-                  
-    cmds.attrControlGrp('os_enable_swatch_render',
-                        label="Enable Swatch Render",
-                        attribute='defaultArnoldRenderOptions.enable_swatch_render')
-
-    cmds.attrControlGrp('os_standin_draw_override',
-                        label="StandIn Viewport Override",
-                        attribute='defaultArnoldRenderOptions.standin_draw_override')
+    
 
     cmds.setParent('..')
+    cmds.setParent('..')
+    
 
     cmds.setUITemplate(popTemplate=True)
     
@@ -1431,19 +1585,22 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
-    
-    # Maya Integration
-    #
-    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
-    createArnoldMayaintegrationSettings()
+    cmds.frameLayout('arnoldGpuSettings', label="Denoiser Settings", cll=True, cl=0)
+    createGpuSettings()
     cmds.setParent('..')
-    
+
     # Render
     #
     cmds.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=0)
     createArnoldRenderSettings()
     cmds.setParent('..')
     
+    # Maya Integration
+    #
+    cmds.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
+    createArnoldMayaintegrationSettings()
+    cmds.setParent('..')
+
     # Search paths
     #
     cmds.frameLayout('arnoldPathSettings', label="Search Paths", cll=True, cl=0)
@@ -1541,10 +1698,7 @@ def createArnoldRendererGlobalsTab():
     cmds.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
     createArnoldSubdivSettings()
     cmds.setParent('..')
-
-
-    cmds.setParent('..')
-
+    
     cmds.formLayout(parentForm,
                     edit=True,
                     af=[('arnoldGlobalsScrollLayout', "top", 0),

@@ -141,5 +141,8 @@ public:
    static MObject s_aov_shaders;
    static MObject s_legacy_gi_glossy_samples;
    static MObject s_legacy_gi_refraction_samples;
-   
+
+   static MObject s_gpu;   
+   static MObject s_render_devices;   
+   static MObject s_auto_select_devices;
 };  // class CArnoldOptionsNode

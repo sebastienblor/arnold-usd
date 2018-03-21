@@ -96,6 +96,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
+static std::string s_lastCameraName = "";
 
 #ifdef MAYA_MAINLINE
 
@@ -534,7 +535,8 @@ void CRenderViewMtoA::RenderChanged()
 {
    CRenderViewInterface::RenderChanged();
     
-   MGlobal::executeCommandOnIdle("refresh -f;");
+   if (m_viewportRendering)
+      MGlobal::executeCommandOnIdle("refresh -f;");
 }
 
 /**
@@ -552,60 +554,89 @@ void CRenderViewMtoA::UpdateSceneChanges()
       return;
    }
 
-    MCommonRenderSettingsData renderGlobals;
-    MRenderUtil::getCommonRenderSettings(renderGlobals);
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-    // Universe isn't active, oh my....
-    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-    // the renderSession will be NULL if ARV was opened without rendering
-    if (renderSession)
-    {
-        renderSession->SetRendering(false);
-        CMayaScene::End();
-        CMayaScene::ExecuteScript(renderGlobals.postMel);
-        CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+   // Universe isn't active, oh my....
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   // the renderSession will be NULL if ARV was opened without rendering
+   if (renderSession)
+   {   
+      renderSession->SetRendering(false);
+      CMayaScene::End();
+      CMayaScene::ExecuteScript(renderGlobals.postMel);
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
 
-    }
+   }
 
-    // Re-export everything !
-    MDagPathArray cameras;
-    GetRenderCamerasList(cameras);
-    CMayaScene::ExecuteScript(renderGlobals.preMel);
-    CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
+   // Make sure the caches are flushed (#3369)
+   AiUniverseCacheFlush(AI_CACHE_ALL);
 
-    CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
+   // Re-export everything !
+   MDagPathArray cameras;
+   GetRenderCamerasList(cameras);
+   CMayaScene::ExecuteScript(renderGlobals.preMel);
+   CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-    if (!renderGlobals.renderAll)
-    {
-        MSelectionList selected;
-        MGlobal::getActiveSelectionList(selected);
-        CMayaScene::Export(&selected);
-    }
-    else
-    {
-        CMayaScene::Export();
-    }
+   CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
 
-    if (cameras.length() > 0)
-    {
-        if (cameras[0].isValid())
-        {
-            CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
-        }
-        // SetExportCamera mus be called AFTER CMayaScene::Export
-        CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+   if (!renderGlobals.renderAll)
+   {
+      MSelectionList selected;
+      MGlobal::getActiveSelectionList(selected);
+      CMayaScene::Export(&selected);
+   }
+   else
+   {
+      CMayaScene::Export();
+   }
 
-        // Set resolution and camera as passed in.
-        CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-        CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
-    }
+   if (cameras.length() > 0)
+   {
+      MDagPath renderCamera = cameras[0];
 
-    UpdateRenderCallbacks();
+      // try to restore the last camera we had in ARV (#3372)
+      // FIXME replace this by a function GetOptionValue("Camera") that would return the 
+      // menu value
+      if (!s_lastCameraName.empty())
+      {
+        // Search for the MDagPath for this camera   
+         MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
+         itDag.reset();
 
-    // GetRenderSession() might have changed since we exported the scene
-    renderSession = CMayaScene::GetRenderSession();
-    if (renderSession)
-        renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on   
+         while (!itDag.isDone())
+         {
+            MDagPath camPath;
+            itDag.getPath(camPath);
+            std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
+            if (camName == s_lastCameraName)
+            {
+               camPath.extendToShape();
+               renderCamera = camPath;
+               break;
+            }      
+            itDag.next();
+         }
+      }
+      if (renderCamera.isValid())
+      {
+         CMayaScene::GetArnoldSession()->ExportDagPath(renderCamera, true);
+      }
+      // SetExportCamera mus be called AFTER CMayaScene::Export
+      CMayaScene::GetArnoldSession()->SetExportCamera(renderCamera, false);
+
+      // Set resolution and camera as passed in.
+      CMayaScene::GetRenderSession()->SetResolution(-1, -1);
+      CMayaScene::GetRenderSession()->SetCamera(renderCamera);
+   }
+
+   UpdateRenderCallbacks();
+
+   // GetRenderSession() might have changed since we exported the scene
+   renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
+   
 }
 
 void CRenderViewMtoA::UpdateRenderCallbacks()
@@ -896,6 +927,9 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
       if (cam == NULL) return;
 
       std::string cameraName = AiNodeGetName(cam);
+      // store the camera name, we might need it for "Update Full Scene" (#3372)
+      s_lastCameraName = cameraName;
+
       // Search for the MDagPath for this camera   
       MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
       itDag.reset();
@@ -909,7 +943,8 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
          {
             // why do we need to have this information in 2 several places ??
             CMayaScene::GetRenderSession()->SetCamera(camPath);
-            CMayaScene::GetArnoldSession()->SetExportCamera(camPath); 
+            CMayaScene::GetArnoldSession()->SetExportCamera(camPath, false);  // false means we don't want MtoA to trigger a new render, this is already being done by ARV
+            CMayaScene::GetArnoldSession()->ExportImagePlane();
             break;
          }      
          itDag.next();

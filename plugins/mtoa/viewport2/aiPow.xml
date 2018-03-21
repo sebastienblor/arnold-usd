@@ -1,0 +1,60 @@
+<!--
+===========================================================================
+Copyright 2018 Autodesk, Inc. All rights reserved.
+
+Use of this software is subject to the terms of the Autodesk license
+agreement provided at the time of installation or download, or which
+otherwise accompanies this software in either electronic or hard copy form.
+===========================================================================
+-->
+
+<fragment  uiName="aiPow" name="aiPow" type="plumbing" class="ShadeFragment" version="1.0" feature_level="20" >
+  <description>
+    <![CDATA[power function]]>
+  </description>
+  <keyword value="arnold" />
+  <properties>
+    <float3  name="base" />
+    <float3  name="exponent" />
+  </properties>
+  <values>
+  </values>
+  <outputs>
+    <float3  name="outColor" />
+  </outputs>
+  <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+      <function_name val="aiPow" />
+      <source>
+        <![CDATA[
+float3 aiPow(float3 val1, float3 val2)
+{
+    return pow(val1, val2);
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
+      <function_name val="aiPow" />
+      <source>
+        <![CDATA[
+float3 aiPow(float3 val1, float3 val2)
+{
+    return pow(val1, val2);
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+      <function_name val="aiPow" />
+      <source>
+        <![CDATA[
+vec3 aiPow(vec3 val1, vec3 val2)
+{
+    return pow(val1, val2);
+}
+            ]]>
+      </source>
+    </implementation>
+  </implementation>
+</fragment>

@@ -728,14 +728,30 @@ def updateArnoldColorSpace(*args):
 
 
 
-def updateArnoldImageFormatControl(*args):
+class UndoInfoStateWithoutFlushCtxMgr:
+    """ Restore the previous state to the flag stateWithoutFlush
+    of command undoInfo.
+    """
+    def __init__(self):
+        self.undoInfoSwfCache = cmds.undoInfo(q=True, swf=True)
+    def __enter__(self):
+        cmds.undoInfo(swf=False)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        cmds.undoInfo(swf=self.undoInfoSwfCache)
 
+def settingDecorator(f):
+    def decorator(*args, **kwargs):
+        with UndoInfoStateWithoutFlushCtxMgr():
+            return f(*args, **kwargs)
+    return decorator
+
+@settingDecorator
+def updateArnoldImageFormatControl(*args):
     core.createOptions()
     curr = cmds.getAttr('defaultArnoldDriver.aiTranslator')
     cmds.setAttr('defaultRenderGlobals.imageFormat', 51)
     cmds.setAttr('defaultRenderGlobals.imfkey', str(curr), type="string")
     
-
 def extendToShape(cam):
     if cam is None:
         return None
