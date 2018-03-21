@@ -131,6 +131,7 @@ void COptionsTranslator::ExportAOVs()
       if (lightGroupsList.length() > 0)
          lightGroupsList.split(' ', lgList);
 
+      bool denoise = it->GetDenoise();
       aovData.lpe =  it->GetLightPathExpression();
       MPlug shaderPlug = it->GetShaderPlug();
       MString camera = it->GetCamera();
@@ -164,8 +165,6 @@ void COptionsTranslator::ExportAOVs()
          {
             AiMsgError("[mtoa.aov] Camera %s not found", camera.asChar());
          }
-         
-
          
       } else
          aovData.cameraTranslator = NULL;
@@ -350,6 +349,27 @@ void COptionsTranslator::ExportAOVs()
 
       }
       m_aovData.push_back(aovData);
+      if (denoise)
+      {
+         // If this AOV is denoised, we need to duplicate the output,
+         // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
+         // and append "_denoised" to the AOV name (thus image filename)
+         aovData.name += "_denoised";
+         aovData.tokens += "_denoised";
+            
+         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+         {
+            CAOVOutput &denoise_output = aovData.outputs[i];
+            MString denoise_output_tag = aovData.name;
+            denoise_output_tag += (int)i;
+            denoise_output.filter = GetArnoldNode(denoise_output_tag.asChar());
+            if (denoise_output.filter == NULL)
+               denoise_output.filter = AddArnoldNode("denoise_optix_filter", denoise_output_tag.asChar());
+            AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
+         }
+
+         m_aovData.push_back(aovData);
+      }
    }
 }
 
