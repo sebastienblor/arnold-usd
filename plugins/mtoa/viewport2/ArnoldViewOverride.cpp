@@ -345,13 +345,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         if (mTexture == NULL)
         {
-            if (!results)
-            {
-                // if there are no results disable the operation
-                mOperations[2]->setEnabled(false);
-                MGlobal::executeCommandOnIdle("refresh -f;");
-                return MS::kSuccess;
-            }
+            // Sometimes this code fails.
+            // There are times when results never returns true.
+            // if (!results)
+            // {
+            //     // if there are no results disable the operation
+            //     mOperations[2]->setEnabled(false);
+            //     MGlobal::executeCommandOnIdle("refresh -f;");
+            //     return MS::kSuccess;
+            // }
 
             MHWRender::MTextureDescription desc;
             desc.setToDefault2DTexture();
