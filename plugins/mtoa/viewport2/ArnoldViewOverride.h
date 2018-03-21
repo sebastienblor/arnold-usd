@@ -84,6 +84,8 @@ public:
     const MHWRender::MShaderInstance * shader() override;
     MHWRender::MClearOperation & clearOperation() override;
 
+    const MHWRender::MBlendState* blendStateOverride() override;
+
     inline void setColorTexture(MHWRender::MTexture* texture)
     {
         mColorTexture.texture = texture;
@@ -95,6 +97,7 @@ public:
 protected:
     // Shader to use for the quad render
     MHWRender::MShaderInstance *mShaderInstance;
+    const MHWRender::MBlendState* mBlendState;
     // Texture used for the quad render. Not owned by operation.
     MHWRender::MTextureAssignment mColorTexture;
     bool mColorTextureChanged;

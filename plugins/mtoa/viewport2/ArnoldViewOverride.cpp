@@ -444,6 +444,7 @@ TextureBlit::TextureBlit(const MString &name)
     , mColorTextureChanged(false)
 {
     mColorTexture.texture = NULL;
+    mBlendState = NULL;
 }
 
 TextureBlit::~TextureBlit()
@@ -463,7 +464,28 @@ TextureBlit::~TextureBlit()
         mShaderInstance = NULL;
     }
 
+    if (mBlendState)
+        MHWRender::MStateManager::releaseBlendState(mBlendState);
+
     mColorTexture.texture = NULL;
+}
+
+const MBlendState* TextureBlit::blendStateOverride()
+{
+    if (!mBlendState) {
+        MBlendStateDesc desc;
+
+        desc.targetBlends[0].blendEnable = true;
+        desc.targetBlends[0].sourceBlend = MBlendState::kSourceAlpha;
+        desc.targetBlends[0].destinationBlend = MBlendState::kInvSourceAlpha;
+        desc.targetBlends[0].blendOperation = MHWRender::MBlendState::BlendOperation::kAdd;
+        desc.targetBlends[0].alphaSourceBlend = MHWRender::MBlendState::kOne;
+        desc.targetBlends[0].alphaDestinationBlend = MHWRender::MBlendState::kInvSourceAlpha;
+        desc.targetBlends[0].alphaBlendOperation = MHWRender::MBlendState::kAdd;
+
+        mBlendState = MHWRender::MStateManager::acquireBlendState(desc);
+    }
+    return mBlendState;
 }
 
 const MHWRender::MShaderInstance * TextureBlit::shader()
@@ -488,6 +510,7 @@ const MHWRender::MShaderInstance * TextureBlit::shader()
 		
         mShaderInstance->setParameter("gUseScissorRect", regionCropped);
         mShaderInstance->setParameter("gScissorRect", &ViewRectangle()[0]);
+        mShaderInstance->setParameter("gDisableAlpha", false);
 
         // If texture changed then bind new texture to the shader
         // 
