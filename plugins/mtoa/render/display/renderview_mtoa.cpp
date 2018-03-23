@@ -732,15 +732,21 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
 
    // Get Scene-dependent ARV data
    const char *sceneSerialized = renderViewMtoA->Serialize(false, true); // Scene settings
-   InitArvOptionsAttr();
-   MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
-   command += sceneSerialized;
-   command +="\"";
-   MGlobal::executeCommand(command);
+   if (sceneSerialized)
+   {
+      InitArvOptionsAttr();
+      MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
+      command += sceneSerialized;
+      command +="\"";
+      MGlobal::executeCommand(command);
+   }
 
    const char *userSerialized = renderViewMtoA->Serialize(true, false); // user settings
-   MString arvOptionName("arv_user_options");
-   MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   if (userSerialized)
+   {
+      MString arvOptionName("arv_user_options");
+      MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   }
 }
 void CRenderViewMtoA::ColorMgtRefreshed(void *data)
 {
@@ -1014,8 +1020,11 @@ void CRenderViewMtoA::RenderViewClosed()
 
    // Saving user prefs when the render view is closed
    const char *userSerialized = Serialize(true, false); // user settings
-   MString arvOptionName("arv_user_options");
-   MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   if (userSerialized)
+   {
+      MString arvOptionName("arv_user_options");
+      MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   }
 
    if (s_sequenceData != NULL)
    {
