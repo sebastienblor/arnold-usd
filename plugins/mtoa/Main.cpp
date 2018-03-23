@@ -1277,7 +1277,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       "arnoldProceduralNodeOverride",
       CArnoldProceduralGeometryOverride::Creator);
 
-#if MAYA_API_VERSION >= 201800
+#if MAYA_API_VERSION >= 201700
    MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
    if (renderer)
    {
