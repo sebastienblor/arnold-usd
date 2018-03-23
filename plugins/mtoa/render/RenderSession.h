@@ -106,7 +106,7 @@ public:
    // FIXME tmp function, to be replaced by a more generic GetOptionValue that returns the value of any ARV option
    bool IsRegionCropped();
 
-   void RunInteractiveRenderer();
+   //void RunInteractiveRenderer();
    bool HasRenderResults(AtBBox2 &box);
 
    void RunRenderView();

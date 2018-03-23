@@ -180,31 +180,34 @@ CRenderSession::RenderCallbackType CRenderSession::GetCallback()
 void CRenderSession::CloseOtherViews(const MString& destination)
 {
 #ifndef MTOA_DISABLE_RV
-    bool viewFound = false;
-    M3dView thisView;
 
-    if (destination.length() > 0)
-    {
-        // we are opening a viewport render override
-        // close the ARV if it exists.
-         if (s_renderView)
-            s_renderView->CloseRenderView();            
-         
+   bool viewFound = false;
+   M3dView thisView;
 
-        viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
-    }
+   if (destination.length() > 0)
+   {
+      // we are opening a viewport render override
+      // close the ARV if it exists.
+      if (s_renderView)
+      {
+         s_renderView->CloseRenderView();
+         // This is what tells RenderviewMtoA that we're doing viewport rendering
+         // and therefore that we should call "refresh -r" when render changes
+         s_renderView->SetViewportRendering(true);
+      }
+      viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   } 
 
-    // Close all but the destination render override if there is one
-    // If the destination is an empty string it is the ARV.
-    for (unsigned int i = 0, viewCount = M3dView::numberOf3dViews(); i < viewCount; ++i)
-    {
-        M3dView view;
-        M3dView::get3dView(i, view);
-        if (view.renderOverrideName() == "arnoldViewOverride" &&
-            (!viewFound || view.widget() != thisView.widget()))
-            view.setRenderOverrideName("");
-    }
-
+   // Close all but the destination render override if there is one
+   // If the destination is an empty string it is the ARV.
+   for (unsigned int i = 0, viewCount = M3dView::numberOf3dViews(); i < viewCount; ++i)
+   {
+      M3dView view;
+      M3dView::get3dView(i, view);
+      if (view.renderOverrideName() == "arnoldViewOverride" &&
+               (!viewFound || view.widget() != thisView.widget()))
+         view.setRenderOverrideName("");
+   }
 #endif
 }
 
@@ -789,6 +792,7 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+/*
 void CRenderSession::RunInteractiveRenderer()
 {
 #ifndef MTOA_DISABLE_RV
@@ -801,7 +805,7 @@ void CRenderSession::RunInteractiveRenderer()
 
    s_renderView->Render();
 #endif
-}
+}*/
 
 
 void CRenderSession::PostDisplay()
@@ -833,12 +837,16 @@ void CRenderSession::StartRenderView()
 {
 #ifndef MTOA_DISABLE_RV
 
-    CloseOtherViews("");
-
+   CloseOtherViews("");
+   
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
    }
+   // This is what tells RenderviewMtoA that we're doing viewport rendering
+   // and therefore that we should call "refresh -r" when render changes
+   s_renderView->SetViewportRendering(false);
+   
    s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
 
    CArnoldSession *session = CMayaScene::GetArnoldSession();
@@ -860,11 +868,12 @@ const AtRGBA *CRenderSession::GetDisplayedBuffer()
 void CRenderSession::OpenInteractiveRendererOptions()
 {
 #ifndef MTOA_DISABLE_RV
-    if (s_renderView == NULL)
-    {
-        s_renderView = new CRenderViewMtoA;
-    }
-    s_renderView->OpenMtoAViewportRendererOptions();
+   if (s_renderView == NULL)
+   {
+      s_renderView = new CRenderViewMtoA;
+   }
+   s_renderView->SetViewportRendering(true);
+   s_renderView->OpenMtoAViewportRendererOptions();
 #endif
 }
 
@@ -885,10 +894,12 @@ void CRenderSession::CloseRenderView()
 #ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
+       //---- this would have to go, shouldn't be happening here
        InterruptRender(true);
        CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
        CMayaScene::End();
-
+      //------
+       
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
@@ -901,9 +912,11 @@ void CRenderSession::CloseOptionsWindow()
 #ifndef MTOA_DISABLE_RV
     if (s_renderView != NULL) // for now always return true
     {
+      //---- this would have to go, shouldn't be happening here
         InterruptRender(true);
         CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
         CMayaScene::End();
+      //-----------
 
         // This will tell the render View that the scene has changed
         // it will decide whether to re-render or not
