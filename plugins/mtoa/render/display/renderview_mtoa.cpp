@@ -251,21 +251,29 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    static int s_arvHeight = -1;
 #endif
 
+static bool HasArvOptionsAttr()
+{
+   int exists = 0;
+   MGlobal::executeCommand("attributeExists \"ARV_options\" \"defaultArnoldRenderOptions\" ", exists);
+
+   return (exists != 0);
+}
+static void InitArvOptionsAttr()
+{
+   if (!HasArvOptionsAttr())
+   {
+      MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
+   } 
+}
+
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
    // need to add this margin for the status bar + toolbar height
    height += 70;
+
+   bool arvOptionsExisted = HasArvOptionsAttr();
+   InitArvOptionsAttr();   
    
-   // Check if attribute ARV_options exist
-   // if it doesn't create it
-   int exists = 0;
-   MGlobal::executeCommand("attributeExists \"ARV_options\" \"defaultArnoldRenderOptions\" ", exists);
-
-   if (!exists)
-   {
-      MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
-   } 
-
 #ifdef ARV_DOCKED
 
    // Docking in maya workspaces only supported from maya 2017.
@@ -391,12 +399,15 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    // Moving the ARV_options load *after* calling UpdateColorManagement because of #2719
    if (m_convertOptionsParam)
    {
-      if (exists)
+      if (arvOptionsExisted)
       {
          // assign the ARV_options parameter as it is the first time since I opened this scene
          MString optParam;
-         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-         SetFromSerialized(optParam.asChar());
+         if (HasArvOptionsAttr())
+         {
+            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+            SetFromSerialized(optParam.asChar());
+         }
       }
 
       bool varExists = false;
@@ -721,7 +732,7 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
 
    // Get Scene-dependent ARV data
    const char *sceneSerialized = renderViewMtoA->Serialize(false, true); // Scene settings
-   
+   InitArvOptionsAttr();
    MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
    command += sceneSerialized;
    command +="\"";
@@ -759,8 +770,11 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
       if (exists != 0)
       {
          MString optParam;
-         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-         renderViewMtoA->SetFromSerialized(optParam.asChar());
+         if (HasArvOptionsAttr())
+         {
+            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+            renderViewMtoA->SetFromSerialized(optParam.asChar());
+         }
       }
 
       // ARV is already visible -> set the options right away
