@@ -490,10 +490,8 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    else
    {
       workspaceCmd += " -li 1"; // load immediately
-//         workspaceCmd += " -iw "; // initial width
-//         workspaceCmd += width;
-//         workspaceCmd += " -ih "; // initiall height
-//         workspaceCmd += height;
+      workspaceCmd += " -iw 250 -ih 50"; // initial width
+      
 
       workspaceCmd += " -requiredPlugin \"mtoa\"";
 
@@ -505,7 +503,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
    std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR;Run IPR";
-   CRenderViewInterface::OpenOptionsWindow(200, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(250, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
    optWin->setWindowFlags(Qt::Widget);
 
