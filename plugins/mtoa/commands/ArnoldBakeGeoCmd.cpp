@@ -334,7 +334,5 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AiRenderAbort();
 
    CMayaScene::End();
-   AiEnd();
-
    return MS::kSuccess;
 }

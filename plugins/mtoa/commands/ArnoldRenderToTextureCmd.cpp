@@ -601,7 +601,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             AtNode *camera = AiNode("MtoaCameraUvMapper");
             if (camera == 0)
             {
-               AiEnd();
+               CMayaScene::End();
                MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
                return MS::kSuccess;
             }
@@ -644,7 +644,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AtNode *camera = AiNode("MtoaCameraUvMapper");
          if (camera == 0)
          {
-            AiEnd();
+            CMayaScene::End();
             MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
             return MS::kSuccess;
          }
@@ -685,7 +685,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    }
    MProgressWindow::endProgress();
 
-   AiEnd();
+   CMayaScene::End();
 
    return MS::kSuccess;
 }
