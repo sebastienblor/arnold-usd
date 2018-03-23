@@ -125,14 +125,8 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
    // FIXME: raise an error if Begin is called on active session
    // (forcing a CMayaScene::End() to be called before a CMayaScene::Begin() ?
-   if (s_renderSession != NULL && !s_renderSession->IsActive())
-   {
-       delete s_renderSession;
-       s_renderSession = NULL;
-   }
-
    if (s_renderSession == NULL)
-       s_renderSession = new CRenderSession(isInteractive);
+      s_renderSession = new CRenderSession(isInteractive);
    if (s_arnoldSession == NULL)
       s_arnoldSession = new CArnoldSession();
 

@@ -894,12 +894,6 @@ void CRenderSession::CloseRenderView()
 #ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
-       //---- this would have to go, shouldn't be happening here
-       InterruptRender(true);
-       CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
-       CMayaScene::End();
-      //------
-       
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
@@ -912,15 +906,9 @@ void CRenderSession::CloseOptionsWindow()
 #ifndef MTOA_DISABLE_RV
     if (s_renderView != NULL) // for now always return true
     {
-      //---- this would have to go, shouldn't be happening here
-        InterruptRender(true);
-        CloseRenderViewWithSession(false); // don't close ARV with CMayaScene::End()
-        CMayaScene::End();
-      //-----------
-
-        // This will tell the render View that the scene has changed
-        // it will decide whether to re-render or not
-        s_renderView->CloseOptionsWindow();
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->CloseOptionsWindow();
     }
 #endif
 }
