@@ -69,6 +69,7 @@ public:
    virtual void ReceiveSelectionChanges(bool receive);
    virtual void NodeParamChanged(AtNode *node, const char *paramName);
    virtual void RenderViewClosed();
+   virtual void RenderOptionsClosed();
    virtual void Resize(int width, int height);
 
 // In the Future these Manipulator classes should be removed and handled

@@ -68,7 +68,7 @@ public:
 
    static void DeleteRenderView();
 
-   void CloseOtherViews(const MString& destination);
+   static void CloseOtherViews(const MString& destination);
 
    // Render Methods.
    /// Render into the Render View, not IPR.

@@ -155,7 +155,7 @@ namespace // <anonymous>
       {"arnoldUpdateTx", CArnoldUpdateTxCmd::creator, CArnoldUpdateTxCmd::newSyntax},
       {"arnoldScene", CArnoldSceneCmd::creator, CArnoldSceneCmd::newSyntax},
       {"arnoldLicense", CArnoldLicenseCmd::creator, CArnoldLicenseCmd::newSyntax},
-      {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, 0}
+      {"arnoldViewOverrideOptionBox", CArnoldViewportRendererOptionsCmd::creator, CArnoldViewportRendererOptionsCmd::newSyntax}
    };
 
    // Note that we use drawdb/geometry/light to classify it as UI for light.

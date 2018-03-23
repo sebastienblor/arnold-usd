@@ -521,7 +521,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
       s_optWorkspaceControl->show();
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" \"ArnoldViewportRendererOptions\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged\" \"ArnoldViewportRendererOptions\"");
    MGlobal::executeCommand(uiScriptCommand);
 
     //s_creatingARV = false;
@@ -981,8 +981,9 @@ void CRenderViewMtoA::RenderViewClosed()
       return;
    
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
-   MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
-
+   if (s_arvWorkspaceControl)
+      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+ 
    
 #else
 
@@ -1039,6 +1040,15 @@ void CRenderViewMtoA::RenderViewClosed()
    
    MProgressWindow::endProgress();
 }
+
+void CRenderViewMtoA::RenderOptionsClosed()
+{
+   if (s_optWorkspaceControl)
+   {
+      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
+   }
+}
+
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
    return new CRenderViewMtoAPan();

@@ -64,6 +64,9 @@ public:
    void CloseOptionsWindow();
    void DestroyOptionsWindow();
 
+   // Stops the rendering and clears the Arnold scene, but leave window visible
+   void DisableRendering();
+
    void StartIPR();
    void StopIPR();
    bool IsIPRStopped();

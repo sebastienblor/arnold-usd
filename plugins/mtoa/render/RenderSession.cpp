@@ -187,9 +187,9 @@ void CRenderSession::CloseOtherViews(const MString& destination)
     {
         // we are opening a viewport render override
         // close the ARV if it exists.
-        CloseRenderView();
-        //if (s_renderView)
-        //    s_renderView->DestroyRenderView();
+         if (s_renderView)
+            s_renderView->CloseRenderView();            
+         
 
         viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
     }
@@ -218,9 +218,11 @@ MStatus CRenderSession::End()
       // from InteractiveRenderThread
       InterruptRender();
  #ifndef MTOA_DISABLE_RV
-      if (s_renderView && s_closeRenderViewWithSession)
+      if (s_renderView /*&& s_closeRenderViewWithSession*/)
       {
-          s_renderView->StopIPR();
+         s_renderView->DisableRendering();
+         //s_renderView->CloseRenderView();
+         
       } 
  #endif
    }

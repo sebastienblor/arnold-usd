@@ -4,6 +4,10 @@
 
 class CArnoldViewportRendererOptionsCmd : public MPxCommand{
 public:
-   static void* creator();
+   static void* creator()
+   {
+      return new CArnoldViewportRendererOptionsCmd();
+   }
    virtual MStatus doIt(const MArgList& args);
+   static MSyntax newSyntax();
 };
