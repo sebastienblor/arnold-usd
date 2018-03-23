@@ -60,6 +60,9 @@ protected:
         const MString& oldRenderer,
         const MString& newRenderer,
         void* clientData);
+    static void sPreFileOpen(
+        void* clientData);
+
 
     std::map<std::string, MCallbackId> callbackIdMap;
 
@@ -70,6 +73,8 @@ protected:
         MFloatPoint viewRectangle;
     };
     std::map<std::string, RegionRenderState> mRegionRenderStateMap;
+    MCallbackId mFileOpenCallbackID;
+    MCallbackId mFileNewCallbackID;
 };
 
 //

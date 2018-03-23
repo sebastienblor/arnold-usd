@@ -14,6 +14,7 @@
 #include <maya/MTextureManager.h>
 #include <maya/MRenderUtil.h>
 #include <maya/M3dView.h>
+#include <maya/MSceneMessage.h>
 
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
@@ -31,6 +32,9 @@ ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     , mRendererChangeCB(0)
     , mRenderOverrideChangeCB(0)
 {
+    // register a file open and file new callback
+    mFileNewCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeNew, sPreFileOpen, this);
+    mFileOpenCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, sPreFileOpen, this);
 }
 
 // On destruction all operations are deleted.
@@ -55,6 +59,9 @@ ArnoldViewOverride::~ArnoldViewOverride()
     {
         MMessage::removeCallback(it->second);
     }
+
+    MSceneMessage::removeCallback(mFileOpenCallbackID);
+    MSceneMessage::removeCallback(mFileNewCallbackID);
 }
 
 // Drawing uses all internal code so will support all draw APIs
@@ -415,6 +422,12 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         // then stop any existing render overrides.
         stopExistingOverrides(panelName);
     }
+}
+
+void ArnoldViewOverride::sPreFileOpen(void* clientData)
+{
+    static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
+    stopExistingOverrides("");
 }
 
 void ArnoldViewOverride::stopExistingOverrides(const MString & destination)
