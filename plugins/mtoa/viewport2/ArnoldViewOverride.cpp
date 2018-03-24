@@ -14,6 +14,7 @@
 #include <maya/MTextureManager.h>
 #include <maya/MRenderUtil.h>
 #include <maya/M3dView.h>
+#include <maya/MSceneMessage.h>
 
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
@@ -31,6 +32,9 @@ ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     , mRendererChangeCB(0)
     , mRenderOverrideChangeCB(0)
 {
+    // register a file open and file new callback
+    mFileNewCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeNew, sPreFileOpen, this);
+    mFileOpenCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, sPreFileOpen, this);
 }
 
 // On destruction all operations are deleted.
@@ -55,6 +59,9 @@ ArnoldViewOverride::~ArnoldViewOverride()
     {
         MMessage::removeCallback(it->second);
     }
+
+    MSceneMessage::removeCallback(mFileOpenCallbackID);
+    MSceneMessage::removeCallback(mFileNewCallbackID);
 }
 
 // Drawing uses all internal code so will support all draw APIs
@@ -204,6 +211,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         }
     }
 
+    bool needsRefresh = false;
+
     if (!firstRender)
 	{
         CRenderOptions *renderOptions = renderSession->RenderOptions();
@@ -228,9 +237,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
 			}
 
-            // now restart the render and early out. We'll be called here again in the next refresh.
-    		renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
-
             if (mTexture)
             {
                 // clear the texture so that it's generated at next display
@@ -239,8 +245,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
                 textureManager->releaseTexture(mTexture);
                 mTexture = NULL;
             }
-
-			return MS::kSuccess;
+            needsRefresh = true;
 		}
         if (!(renderSession->GetCamera() == camera))
         {
@@ -254,11 +259,8 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             if (camNode)
                 AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
 
-            // now restart the render and early out. We'll be called here again in the next refresh.
-            renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
-            return MS::kSuccess;
+            needsRefresh = true;
         }
-
 	}
 
     if (!state.initialized)
@@ -319,13 +321,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         renderSession->CloseRenderViewWithSession(false);
         CMayaScene::End();
 
-        // now restart the render once it has been properly initialized
-        renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
-
-        // disable the arnold operation until the next frame
-        mOperations[2]->setEnabled(false);
-        MGlobal::executeCommandOnIdle("refresh -f;");
-        return MS::kSuccess;
+        needsRefresh = true;
     }
 
     // now get the current bits
@@ -334,6 +330,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // Note that we're not using the "bounds" region here, about which region
     // of the buffer needs to be updated
     bool results = renderSession->HasRenderResults(bounds);
+
+    if (needsRefresh)
+    {
+        // now restart the render and early out. We'll be called here again in the next refresh.
+        renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+        // disable the arnold operation until the next frame
+        mOperations[2]->setEnabled(false);
+        return MS::kSuccess;
+    }
 
     // disable the arnold operation if paused
     mOperations[2]->setEnabled(state.enabled);
@@ -345,25 +350,16 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         if (mTexture == NULL)
         {
-            // Sometimes this code fails.
-            // There are times when results never returns true.
-            // if (!results)
-            // {
-            //     // if there are no results disable the operation
-            //     mOperations[2]->setEnabled(false);
-            //     MGlobal::executeCommandOnIdle("refresh -f;");
-            //     return MS::kSuccess;
-            // }
-
             MHWRender::MTextureDescription desc;
             desc.setToDefault2DTexture();
             desc.fWidth = width;
             desc.fHeight = height;
             desc.fFormat = MHWRender::kR32G32B32A32_FLOAT;
 
-            mTexture = textureManager->acquireTexture("arnoldResults", desc, buffer, false);
+            mTexture = textureManager->acquireTexture("arnoldResults", desc, nullptr, false);
         }
-        else
+        
+        if (results)
             mTexture->update(buffer, false);
 
         int blitIndex = mOperations.indexOf("viewOverrideArnold_Blit");
@@ -426,6 +422,12 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         // then stop any existing render overrides.
         stopExistingOverrides(panelName);
     }
+}
+
+void ArnoldViewOverride::sPreFileOpen(void* clientData)
+{
+    static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
+    stopExistingOverrides("");
 }
 
 void ArnoldViewOverride::stopExistingOverrides(const MString & destination)
