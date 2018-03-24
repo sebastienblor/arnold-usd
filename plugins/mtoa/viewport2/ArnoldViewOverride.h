@@ -24,15 +24,15 @@ class ArnoldViewOverride : public MHWRender::MRenderOverride
 {
 public:
     ArnoldViewOverride(const MString & name);
-    ~ArnoldViewOverride() override;
-    MHWRender::DrawAPI supportedDrawAPIs() const override;
+    virtual ~ArnoldViewOverride();
+    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
 
     // Basic setup and cleanup
-    MStatus setup(const MString & destination) override;
-    MStatus cleanup() override;
+    virtual MStatus setup(const MString & destination);
+    virtual MStatus cleanup();
 
     // UI name
-    MString uiName() const override
+    virtual MString uiName() const
     {
         return mUIName;
     }
@@ -84,12 +84,12 @@ class TextureBlit : public MHWRender::MQuadRender
 {
 public:
     TextureBlit(const MString &name);
-    ~TextureBlit() override;
+    virtual ~TextureBlit();
 
-    const MHWRender::MShaderInstance * shader() override;
-    MHWRender::MClearOperation & clearOperation() override;
+    virtual const MHWRender::MShaderInstance * shader();
+    virtual MHWRender::MClearOperation & clearOperation();
 
-    const MHWRender::MBlendState* blendStateOverride() override;
+    const virtual MHWRender::MBlendState* blendStateOverride();
 
     inline void setColorTexture(MHWRender::MTexture* texture)
     {
@@ -117,12 +117,12 @@ public:
     {
     }
 
-    MSceneFilterOption renderFilterOverride() override
+    virtual MSceneFilterOption renderFilterOverride()
     {
         return MHWRender::MSceneRender::kRenderNonShadedItems;
     }
 
-    const MSelectionList* objectSetOverride() override;
+    virtual const MSelectionList* objectSetOverride();
 
     MFloatPoint ViewRectangle() const;
 

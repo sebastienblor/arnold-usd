@@ -55,7 +55,7 @@ ArnoldViewOverride::~ArnoldViewOverride()
         MMessage::removeCallback(mRendererChangeCB);
     }
 
-    for (auto it = callbackIdMap.begin(); it != callbackIdMap.end(); ++it)
+    for (std::map<std::string, MCallbackId>::iterator it = callbackIdMap.begin(); it != callbackIdMap.end(); ++it)
     {
         MMessage::removeCallback(it->second);
     }
@@ -118,7 +118,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     {
         stopExistingOverrides(destination);
 
-        auto callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, this);
+        MCallbackId callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, this);
         callbackIdMap[destination.asChar()] = callbackID;
 
         state.enabled = false;
@@ -168,10 +168,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         MStatus status;
         width = mView.portWidth(&status);
         if (status != MS::kSuccess || (width < 2))
-            MS::kFailure;
+            return MS::kFailure;
         height = mView.portHeight(&status);
         if (status != MS::kSuccess || (height < 2))
-            MS::kFailure;
+            return MS::kFailure;
 
         mView.getCamera(camera);
     }
@@ -195,8 +195,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (!state.initialized)
     {
         CRenderOptions *renderOptions = renderSession->RenderOptions();
-        renderSession->SetRenderViewOption(MString("Run IPR"), MString(std::to_string(state.enabled).c_str()));
-        renderSession->SetRenderViewOption(MString("Crop Region"), MString(std::to_string(state.useRegion).c_str()));
+        MString enabledStr = (state.enabled) ? MString("1") : MString("0");
+        MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
+        renderSession->SetRenderViewOption(MString("Run IPR"), enabledStr);
+        renderSession->SetRenderViewOption(MString("Crop Region"),useRegionStr);
         renderSession->SetResolution(width, height);
         renderOptions->UpdateImageDimensions();
 
@@ -356,7 +358,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             desc.fHeight = height;
             desc.fFormat = MHWRender::kR32G32B32A32_FLOAT;
 
-            mTexture = textureManager->acquireTexture("arnoldResults", desc, nullptr, false);
+            mTexture = textureManager->acquireTexture("arnoldResults", desc, NULL, false);
         }
         
         if (results)
@@ -412,7 +414,7 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         if (renderSession)
             renderSession->CloseOptionsWindow();
 
-        auto state = static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()];
+        RegionRenderState state = static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()];
         state.initialized = false;
         static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()] = state;
     }
@@ -474,15 +476,15 @@ TextureBlit::~TextureBlit()
     mColorTexture.texture = NULL;
 }
 
-const MBlendState* TextureBlit::blendStateOverride()
+const MHWRender::MBlendState* TextureBlit::blendStateOverride()
 {
     if (!mBlendState) {
-        MBlendStateDesc desc;
+        MHWRender::MBlendStateDesc desc;
 
         desc.targetBlends[0].blendEnable = true;
-        desc.targetBlends[0].sourceBlend = MBlendState::kSourceAlpha;
-        desc.targetBlends[0].destinationBlend = MBlendState::kInvSourceAlpha;
-        desc.targetBlends[0].blendOperation = MHWRender::MBlendState::BlendOperation::kAdd;
+        desc.targetBlends[0].sourceBlend = MHWRender::MBlendState::kSourceAlpha;
+        desc.targetBlends[0].destinationBlend = MHWRender::MBlendState::kInvSourceAlpha;
+        desc.targetBlends[0].blendOperation = MHWRender::MBlendState::kAdd;
         desc.targetBlends[0].alphaSourceBlend = MHWRender::MBlendState::kOne;
         desc.targetBlends[0].alphaDestinationBlend = MHWRender::MBlendState::kInvSourceAlpha;
         desc.targetBlends[0].alphaBlendOperation = MHWRender::MBlendState::kAdd;
