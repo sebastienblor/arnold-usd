@@ -24,10 +24,6 @@
 #endif
 
 
-class CRenderViewWindow;
-class CRenderer;
-class CInteractiveRenderer;
-class CInteractiveRendererOptionsWindow;
 class CRenderViewPanManipulator;
 class CRenderViewZoomManipulator;
 class CRenderViewRotateManipulator;
@@ -168,11 +164,15 @@ public:
    // This function is invoked whenever the render buffer is resized by other than 
    // manual resizing. User can invoke it to resize the viewer. One can also override this function
    // in case the host application needs to be adverted
+   // == Note: virtual methods must be defined here to avoid linking errors on *nix.
+   // == We just do an inline call to ResizeMainWindow() which is doing the real job
    virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
 
 
    // Renderer telling us that something has changed in the render results
    // If you override it, you have to invoke this parent class so that the window can be refreshed
+   // == Note: virtual methods must be defined here to avoid linking errors on *nix.
+   // == We just do an inline call to UpdateGlWidget() which is doing the real job
    virtual void RenderChanged() {UpdateGlWidget();}
 
 // In the Future these Manipulator classes should be removed and handled
@@ -195,11 +195,10 @@ public:
    AtRGBA GetWidgetColorAtPosition(unsigned posX, unsigned posY, bool viewTransform, QWidget* pickedWidget = NULL);
 
 private:
-
-   // internal method, used to avoid linking issues with
-   void ResizeMainWindow(int w, int h);
-   void UpdateGlWidget();
    
+   // internal usage only, we need these functions to avoid linking issues on *nix
+   void UpdateGlWidget();
+   void ResizeMainWindow(int w, int h);
 };
 
 // In the Future these Manipulator classes should be removed and handled
