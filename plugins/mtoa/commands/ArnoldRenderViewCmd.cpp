@@ -163,7 +163,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          // let's pop-up the window, and eventually re-render
          CMayaScene::GetRenderSession()->StartRenderView();
          
-         CMayaScene::GetRenderSession()->SetRenderViewOption("Run IPR", (mode == "render") ? "1" : "0");
+         if (mode == "render")
+            CMayaScene::GetRenderSession()->SetRenderViewOption("Run IPR", "1");
          return MS::kSuccess;
       }
       if (mode == "open")
