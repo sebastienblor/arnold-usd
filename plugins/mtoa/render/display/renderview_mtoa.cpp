@@ -647,7 +647,10 @@ void CRenderViewMtoA::UpdateSceneChanges()
       renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
    
 }
-
+void CRenderViewMtoA::SetCameraName(const MString &name)
+{
+   s_lastCameraName=name.asChar();
+}
 void CRenderViewMtoA::UpdateRenderCallbacks()
 {
    MStatus status;

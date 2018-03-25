@@ -77,24 +77,23 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 {
     CMayaScene::End();
 
+/*
     MCommonRenderSettingsData renderGlobals;
     MRenderUtil::getCommonRenderSettings(renderGlobals);
 
     CMayaScene::ExecuteScript(renderGlobals.preMel);
     CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
-
+*/
     CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
 
     // SetExportCamera mus be called AFTER CMayaScene::Export
     CMayaScene::GetArnoldSession()->SetExportCamera(camera);
     CRenderSession *renderSession = CMayaScene::GetRenderSession();
     // Set resolution and camera as passed in.
-    if (renderSession)
-    {
-        renderSession->SetResolution(width, height);
-        renderSession->RenderOptions()->UpdateImageDimensions();
-        renderSession->SetCamera(camera);
-    }
+    renderSession->SetResolution(width, height);
+    renderSession->RenderOptions()->UpdateImageDimensions();
+    renderSession->SetCamera(camera);
+    
 }
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
@@ -178,6 +177,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
         mView.getCamera(camera);
     }
+    std::string newCamName;
 
     if (firstRender)
     {
@@ -190,6 +190,14 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
             textureManager->releaseTexture(mTexture);
             mTexture = NULL;
+        }
+
+        CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+        AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
+        if (camNode)
+        {
+            newCamName =  AiNodeGetName(camNode);
+            AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
         }
     }
     s_activeViewport = destination; // set this viewport as the "active" one
@@ -214,7 +222,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     }
 
     bool needsRefresh = false;
-
+    
     if (!firstRender)
 	{
         CRenderOptions *renderOptions = renderSession->RenderOptions();
@@ -259,12 +267,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             renderSession->SetCamera(camera);
             AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
             if (camNode)
+            {
+                newCamName =  AiNodeGetName(camNode);
                 AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
+            }
 
             needsRefresh = true;
         }
 	}
-
+    bool restoreIPR = false;
     if (!state.initialized)
     {
         state.initialized = true;
@@ -273,9 +284,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
         MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
 
-        MString enabledStr = (state.enabled) ? MString("1") : MString("0");
+        if (!state.enabled)
+            CRenderSession::SetRenderViewOption(MString("Run IPR"), "0");    
+        else if (CRenderSession::IsIPRPaused())
+            restoreIPR = true;
+
+        //MString enabledStr = (state.enabled) ? MString("1") : MString("0");
         MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
-        CRenderSession::SetRenderViewOption(MString("Run IPR"), enabledStr);
+        // FIXME this is causing a render restart and we don't want this now
+        
         CRenderSession::SetRenderViewOption(MString("Crop Region"),useRegionStr);
     }
 
@@ -311,7 +328,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         s_ViewRectangle = state.viewRectangle;
     }
 
-    state.enabled = !renderSession->IsIPRPaused();
+    state.enabled = (restoreIPR) ? true : !renderSession->IsIPRPaused();
     mRegionRenderStateMap[destination.asChar()] = state;
 
     if (!CMayaScene::IsActive())
@@ -325,9 +342,11 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (!renderSession->IsRendering() && state.enabled)
     {
         // end the existing (empty) scene
-        renderSession->CloseRenderViewWithSession(false);
-        CMayaScene::End();
-
+        //renderSession->CloseRenderViewWithSession(false);
+        //CMayaScene::End();
+        renderSession->InterruptRender(true); // we shouldn't need this based on the condition above
+        AiEnd();
+        //renderSession->CloseRenderViewWithSession(true);
         needsRefresh = true;
     }
 
@@ -338,15 +357,22 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     // of the buffer needs to be updated
     bool results = CRenderSession::HasRenderResults(bounds);
 
-    if (needsRefresh)
+    if (needsRefresh || restoreIPR)
     {
         // disable the arnold operation until the next frame
         mOperations[2]->setEnabled(false);
 
         // now restart the render and early out. We'll be called here again in the next refresh.
-        CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
+        if (!newCamName.empty())
+            CRenderSession::SetRenderViewOption(MString("Camera"), MString(newCamName.c_str()));
+        else
+            CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
+
+        if (restoreIPR)
+            CRenderSession::SetRenderViewOption(MString("Run IPR"), "1");
         return MS::kSuccess;
     }
+
 
     // disable the arnold operation if paused
     mOperations[2]->setEnabled(state.enabled);

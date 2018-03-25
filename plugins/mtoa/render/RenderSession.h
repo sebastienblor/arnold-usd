@@ -115,10 +115,9 @@ public:
 
    /// Start and IPR render.
    void DoIPRRender();
-   void StopIPR();
    /// Pause IPR, callbacks will still fire and Arnold will get the changes.
    void PauseIPR();
-   bool IsIPRPaused();
+   static bool IsIPRPaused();
 
    /// Start off rendering again.
    void UnPauseIPR();

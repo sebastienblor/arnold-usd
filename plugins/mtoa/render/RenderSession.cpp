@@ -221,12 +221,15 @@ MStatus CRenderSession::End()
       // from InteractiveRenderThread
       InterruptRender();
  #ifndef MTOA_DISABLE_RV
-      if (s_renderView /*&& s_closeRenderViewWithSession*/)
+      if (s_renderView)
       {
-         s_renderView->DisableRendering();
-         //s_renderView->CloseRenderView();
-         
-      } 
+         if (s_closeRenderViewWithSession)
+            s_renderView->CloseRenderView();
+         else
+            s_renderView->DisableRendering();
+      }
+
+
  #endif
    }
    
@@ -458,6 +461,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
 
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
+   CRenderViewMtoA::SetCameraName(cameraNode.partialPathName());
 }
 
 void CRenderSession::SetRenderViewPanelName(const MString &panel)
@@ -996,13 +1000,6 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 #endif
 }
 
-
-void CRenderSession::StopIPR()
-{
-   assert(AiUniverseIsActive());
-
-   InterruptRender();
-}
 
 void CRenderSession::PauseIPR()
 {
