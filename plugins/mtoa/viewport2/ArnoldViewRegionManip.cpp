@@ -180,7 +180,7 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
 
     float endPointOffset = 0.1f;
 
-    int lineWidth = 3;
+    float lineWidth = 3.f;
 
     float midPointX;
     float midPointY;
@@ -508,7 +508,10 @@ MStatus ArnoldViewRegionManipulator::doRelease(M3dView& view)
     renderOptions->SetRegion(AiClamp(int(mViewRectangle.x * width), 0, width -1), AiClamp(int(mViewRectangle.z * width), 0, width -1),
             AiClamp(int((1.f - mViewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - mViewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top
     
-	renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+    if (!renderSession->IsIPRPaused())
+        CMayaScene::GetArnoldSession()->RequestUpdate();
+	   //renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
+
 	return MS::kSuccess;
 }
 

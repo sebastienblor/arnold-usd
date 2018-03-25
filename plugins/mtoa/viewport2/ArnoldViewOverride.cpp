@@ -199,10 +199,6 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (!state.initialized)
     {
         CRenderOptions *renderOptions = renderSession->RenderOptions();
-        MString enabledStr = (state.enabled) ? MString("1") : MString("0");
-        MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
-        renderSession->SetRenderViewOption(MString("Run IPR"), enabledStr);
-        renderSession->SetRenderViewOption(MString("Crop Region"),useRegionStr);
         renderSession->SetResolution(width, height);
         renderOptions->UpdateImageDimensions();
 
@@ -276,6 +272,11 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
         MGlobal::executeCommandOnIdle("aiViewRegionCmd -create;");
         MGlobal::executeCommand("arnoldViewOverrideOptionBox;");
+
+        MString enabledStr = (state.enabled) ? MString("1") : MString("0");
+        MString useRegionStr = (state.useRegion) ? MString("1"): MString("0");
+        CRenderSession::SetRenderViewOption(MString("Run IPR"), enabledStr);
+        CRenderSession::SetRenderViewOption(MString("Crop Region"),useRegionStr);
     }
 
     renderSession = CMayaScene::GetRenderSession();
@@ -335,14 +336,15 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     AtBBox2 bounds;
     // Note that we're not using the "bounds" region here, about which region
     // of the buffer needs to be updated
-    bool results = renderSession->HasRenderResults(bounds);
+    bool results = CRenderSession::HasRenderResults(bounds);
 
     if (needsRefresh)
     {
-        // now restart the render and early out. We'll be called here again in the next refresh.
-        renderSession->SetRenderViewOption(MString("Refresh Render"), MString("1"));
         // disable the arnold operation until the next frame
         mOperations[2]->setEnabled(false);
+
+        // now restart the render and early out. We'll be called here again in the next refresh.
+        CRenderSession::SetRenderViewOption(MString("Refresh Render"), MString("1"));
         return MS::kSuccess;
     }
 
@@ -361,7 +363,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             desc.fWidth = width;
             desc.fHeight = height;
             desc.fFormat = MHWRender::kR32G32B32A32_FLOAT;
-
+            results = true;
             mTexture = textureManager->acquireTexture("arnoldResults", desc, NULL, false);
         }
         
@@ -379,7 +381,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 
     // FIXME temp. function that we need to call for now. We'll manage to remove it
     // after the renderview switches to the new Render Control API
-    renderSession->PostDisplay();
+    CRenderSession::PostDisplay();
 
     return MStatus::kSuccess;
 }
@@ -412,6 +414,7 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
     {
         // Kill everything !!
         MGlobal::executeCommand("aiViewRegionCmd -delete;");
+        s_activeViewport = MString("");
         
         // Closing the options window through this will also properly interupt the renderer and end the scene.
         CRenderSession* renderSession = CMayaScene::GetRenderSession();

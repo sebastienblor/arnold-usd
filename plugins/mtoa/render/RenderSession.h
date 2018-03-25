@@ -107,7 +107,7 @@ public:
    bool IsRegionCropped();
 
    //void RunInteractiveRenderer();
-   bool HasRenderResults(AtBBox2 &box);
+   static bool HasRenderResults(AtBBox2 &box);
 
    void RunRenderView();
    static void SetRenderViewOption(const MString &option, const MString &value);
@@ -189,7 +189,7 @@ public:
    static bool IsViewportRendering();
       
    const AtRGBA *GetDisplayedBuffer();
-   void PostDisplay();
+   static void PostDisplay();
 
 private:
 
