@@ -22,6 +22,8 @@
 #if MAYA_API_VERSION >= 201700
 
 static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
+static MString s_activeViewport(""); // store the name of the last active viewport
+
 // For override creation we return a UI name so that it shows up in as a
 // renderer in the 3d viewport menus.
 // 
@@ -132,8 +134,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         state = mRegionRenderStateMap[destination.asChar()];
     }
 
-    bool firstRender = !CMayaScene::IsActive();
-
+    // if there's no active scene, or if we switched to a new viewport, then this is considered as a first render
+    bool firstRender = (!CMayaScene::IsActive() || destination != s_activeViewport);
+    
     MHWRender::MTextureManager* textureManager = theRenderer->getTextureManager();
 
     // Create a new set of operations as required
@@ -189,6 +192,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
             mTexture = NULL;
         }
     }
+    s_activeViewport = destination; // set this viewport as the "active" one
 
     CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
