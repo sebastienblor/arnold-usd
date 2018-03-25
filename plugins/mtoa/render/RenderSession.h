@@ -186,6 +186,7 @@ public:
    void UpdateRenderOptions();
    
    static void CloseRenderViewWithSession(bool b);
+   static bool IsViewportRendering();
       
    const AtRGBA *GetDisplayedBuffer();
    void PostDisplay();

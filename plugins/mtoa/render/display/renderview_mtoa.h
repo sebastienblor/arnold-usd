@@ -102,6 +102,7 @@ public:
    MStatus RenderSequence(float first, float last, float step);
 
    void SetViewportRendering(bool b) {m_viewportRendering = b;}   
+   bool IsViewportRendering() const {return m_viewportRendering;}
 
 
 private:

@@ -157,11 +157,13 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    {
       s_wasVisible = true;
 
-      if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
+      if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW) && !CMayaScene::GetRenderSession()->IsViewportRendering())
       {
          // A render view session has already been started
          // let's pop-up the window, and eventually re-render
          CMayaScene::GetRenderSession()->StartRenderView();
+         
+         CMayaScene::GetRenderSession()->SetRenderViewOption("Run IPR", (mode == "render") ? "1" : "0");
          return MS::kSuccess;
       }
       if (mode == "open")
