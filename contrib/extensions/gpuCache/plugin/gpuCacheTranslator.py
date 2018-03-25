@@ -74,8 +74,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         path = iObj.getFullName()
         name = iObj.getName()
 
-        print visibility, VISIBILITY[1]
-
         if visibility != VISIBILITY[1]:
             visibility = VISIBILITY[ int(GetVisibility(iObj))+1 ]
 
