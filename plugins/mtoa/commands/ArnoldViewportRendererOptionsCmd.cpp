@@ -47,13 +47,14 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
    }
 
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
-   if (renderSession == NULL)
-      return MS::kFailure;
-
+   
    if (mode == "open")
    {
       s_wasVisible = true;
-      renderSession->OpenInteractiveRendererOptions();
+      CRenderSession::OpenInteractiveRendererOptions();
+      if (renderSession == NULL)
+         MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
+
    } else if (mode == "close")
    {  
       s_wasVisible = false;        

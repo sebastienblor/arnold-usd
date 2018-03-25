@@ -125,8 +125,8 @@ public:
    void StartRenderView();
    void UpdateRenderView();
    void CloseRenderView();
-   void OpenInteractiveRendererOptions();
-   void CloseOptionsWindow();
+   static void OpenInteractiveRendererOptions();
+   static void CloseOptionsWindow();
 
    void ObjectNameChanged(MObject& node, const MString& str);
 
