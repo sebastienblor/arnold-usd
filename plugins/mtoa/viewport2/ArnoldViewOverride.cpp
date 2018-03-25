@@ -463,15 +463,13 @@ void ArnoldViewOverride::sPreFileOpen(void* clientData)
 {
     static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
     stopExistingOverrides("");
+    CRenderSession::CloseOptionsWindow();
+    //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");  
 }
 
 void ArnoldViewOverride::stopExistingOverrides(const MString & destination)
 {
-    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-    if (renderSession)
-    {
-        renderSession->CloseOtherViews(destination);
-    }
+    CRenderSession::CloseOtherViews(destination);
 }
 
 //

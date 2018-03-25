@@ -53,12 +53,16 @@ MStatus CArnoldViewportRendererOptionsCmd::doIt(const MArgList& argList)
       s_wasVisible = true;
       CRenderSession::OpenInteractiveRendererOptions();
       if (renderSession == NULL)
-         MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
+      {
+         s_wasVisible = false;
+         CRenderSession::CloseOptionsWindow();
+         //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
+      }
 
    } else if (mode == "close")
    {  
       s_wasVisible = false;        
-      renderSession->CloseOptionsWindow();
+      CRenderSession::CloseOptionsWindow();
    }
    return MS::kSuccess;
 }
