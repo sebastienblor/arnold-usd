@@ -275,6 +275,12 @@ void CFileTranslator::Export(AtNode* shader)
             
 
             ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
+            if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
+            {
+               AtRGBA col = AiNodeGetRGBA(uvTransformNode, "wrap_frame_color");
+               AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+            }
+            // if not linked, set alpha to zero
             ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
             ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
 
@@ -472,6 +478,12 @@ void CFileTranslator::Export(AtNode* shader)
    // In Arnold image node, the only choice we have is "black"
    AiNodeSetBool(shader, "ignore_missing_textures", FindMayaPlug("aiUseDefaultColor").asBool());
    ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGBA, "defaultColor");
+   if (!AiNodeIsLinked(shader, "missing_texture_color")) // Force a transparent alpha on the defaultColor
+   {
+      AtRGBA col = AiNodeGetRGBA(shader, "missing_texture_color");
+      AiNodeSetRGBA(shader, "missing_texture_color", col.r, col.g, col.b, 0.f);
+   }
+   
    
    ProcessParameter(shader, "offset", AI_TYPE_RGB, "colorOffset");
 
