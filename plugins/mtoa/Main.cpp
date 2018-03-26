@@ -419,6 +419,11 @@ namespace // <anonymous>
          AI_PROCEDURAL_CLASSIFICATION,
          CArnoldProceduralDrawOverride::creator
       } ,
+      {
+          "arnoldLightBlockerNodeOverride",
+          AI_LIGHT_FILTER_CLASSIFICATION,
+          CArnoldLightBlockerDrawOverride::creator
+      } ,
 
 #endif
       {
