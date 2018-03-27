@@ -537,7 +537,7 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold_stats.json"));
    addAttribute(s_stats_file);
 
-   s_stats_mode = eAttr.create("stats_mode", "statsm", 0);
+   s_stats_mode = eAttr.create("stats_mode", "statsm", 1);
    nAttr.setKeyable(false);
    eAttr.addField("Overwrite", AI_STATS_MODE_OVERWRITE);
    eAttr.addField("Append", AI_STATS_MODE_APPEND);
