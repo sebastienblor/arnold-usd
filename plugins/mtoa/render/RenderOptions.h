@@ -269,6 +269,8 @@ private:
    MString m_imageFilename;
    MString m_panel;
    MString m_plugin_searchpath;
+   MString m_stats_file;
+   MString m_profile_file;
 
    float m_pixelAspectRatio;
    float m_startFrame;
@@ -289,6 +291,7 @@ private:
    unsigned int m_outputAssMask;
    unsigned int m_progressive_initial_level;
    unsigned int m_threads;
+   unsigned int m_stats_mode;
 
    bool m_useRenderRegion;
    bool m_clearBeforeRender; 
@@ -308,4 +311,6 @@ private:
    bool m_multiCameraRender;  
    bool m_mtoa_translation_info;
    bool m_exportShadingEngine;
+   bool m_stats_enable;
+   bool m_profile_enable;
 };

@@ -1377,7 +1377,8 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    // we don't want this to propagate any dirtiness signal.
    if (plugName == "ARV_options") return;
 
-   if (plugName.length() == 0) return;
+   int attrNameLength = plugName.length();
+   if (attrNameLength == 0) return;
 
    if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || 
          plugName == "motion_steps" || plugName == "range_type" || plugName == "motion_frames" ||
@@ -1385,7 +1386,9 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    {
       // Need to re-export all the nodes that Require Motion
       m_impl->m_session->RequestUpdateMotion();
-   } else if (plugName.length() > 4 && plugName.substringW(0, 3) == "log_")
+   } else if ((attrNameLength > 4 && plugName.substringW(0, 3) == "log_") || 
+      (attrNameLength > 6 && plugName.substringW(0, 5) == "stats_") || 
+      (attrNameLength > 8 && plugName.substringW(0, 7) == "profile_"))
    {
       m_impl->m_session->RequestUpdateOptions();
    } 

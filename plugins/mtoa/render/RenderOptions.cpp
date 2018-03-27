@@ -44,6 +44,7 @@ CRenderOptions::CRenderOptions()
   m_log_max_warnings(100),
   m_log_verbosity(DEFAULT_LOG_FLAGS),
   m_outputAssMask(AI_NODE_ALL),
+  m_stats_mode(AI_STATS_MODE_APPEND),
   m_useRenderRegion(false),
   m_clearBeforeRender(false),
   m_useBinaryEncoding(true),
@@ -55,7 +56,9 @@ CRenderOptions::CRenderOptions()
   m_autotx(true),
   m_multiCameraRender(false),
   m_mtoa_translation_info(false),
-  m_exportShadingEngine(false)
+  m_exportShadingEngine(false),
+  m_stats_enable(false),
+  m_profile_enable(false)
 {}
 
 MStatus CRenderOptions::GetFromMaya()
@@ -196,12 +199,17 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
       m_exportShadingEngine = fnArnoldRenderOptions.findPlug("exportShadingEngine").asBool();
 
-
       m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file").asBool();
       m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console").asBool();
       m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity").asInt());
+
+      m_stats_enable         =  fnArnoldRenderOptions.findPlug("stats_enable").asBool();
+      m_stats_mode           = fnArnoldRenderOptions.findPlug("stats_mode").asInt();
+      m_stats_file           = fnArnoldRenderOptions.findPlug("stats_file").asString();
+      m_profile_enable         =  fnArnoldRenderOptions.findPlug("profile_enable").asBool();
+      m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file").asString();
 
       m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath").asString();
 
@@ -216,36 +224,40 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
    return status;
 }
 
-
+static MString ExpandMtoaLogPath(const MString &file)
+{
+   MString res = file;
+   if (file.substringW(0, 14) == MString("$MTOA_LOG_PATH/"))
+   {
+      if (getenv("MTOA_LOG_PATH") == 0)
+      {
+         MString workspaceFolder;
+         MGlobal::executeCommand("workspace -q -directory", workspaceFolder);
+         res = workspaceFolder + file.substringW(15, file.length());
+      }
+   }
+   int extPos = res.rindexW('.');
+   int frame;
+   MGlobal::executeCommand("currentTime -q", frame);
+   if (extPos > 0) // The file name has extension
+      res = res.substringW(0, extPos) + frame + res.substringW(extPos, res.length());
+   else
+   {
+      unsigned int slashPos = res.rindexW('/');
+      if (slashPos+1 < res.length()) // File name without extension
+         res = res +"."+ frame + ".log";
+      else // No file name
+         res = res + frame + ".log";
+   }
+   return res;
+}
 void CRenderOptions::SetupLog() const
 {
    if ((m_log_filename != "") && (m_log_to_file))
    {
       // this replaces the MAYA_PROJECT_PATH with the actual project path
       // if there are no such environment variables are declared
-      MString logPath = m_log_filename;
-      if (m_log_filename.substringW(0, 14) == MString("$MTOA_LOG_PATH/"))
-      {
-         if (getenv("MTOA_LOG_PATH") == 0)
-         {
-            MString result;
-            MGlobal::executeCommand("workspace -q -directory", result);
-            logPath = result + m_log_filename.substringW(15, m_log_filename.length());
-         }
-      }
-      int extPos = logPath.rindexW('.');
-      int frame;
-      MGlobal::executeCommand("currentTime -q", frame);
-      if (extPos > 0) // The file name has extension
-         logPath = logPath.substringW(0, extPos) + frame + logPath.substringW(extPos, logPath.length());
-      else
-      {
-         unsigned int slashPos = logPath.rindexW('/');
-         if (slashPos+1 < logPath.length()) // File name without extension
-            logPath = logPath +"."+ frame + ".log";
-         else // No file name
-            logPath = logPath + frame + ".log";
-      }
+      MString logPath = ExpandMtoaLogPath(m_log_filename);
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
       AiMsgSetLogFileFlags(m_log_verbosity);
       AiMsgResetCallback();
@@ -265,6 +277,23 @@ void CRenderOptions::SetupLog() const
    if (m_log_to_console)
       AiMsgSetConsoleFlags(m_log_verbosity | AI_LOG_COLOR);   
    
+   // Stats
+   if (m_stats_enable)
+   {
+      MString statsPath = ExpandMtoaLogPath(m_stats_file);
+      AiStatsSetFileName(statsPath.asChar());
+      AiStatsSetMode((AtStatsMode)m_stats_mode);
+   } else
+      AiStatsSetFileName("");
+
+   // Profile
+   if (m_profile_enable)
+   {
+      MString profilePath = ExpandMtoaLogPath(m_profile_file);
+      AiProfileSetFileName(profilePath.asChar());
+   } else
+      AiProfileSetFileName("");
+
 }
 
 void CRenderOptions::SetCamera(MDagPath& camera)

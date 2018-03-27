@@ -1446,6 +1446,57 @@ def ChangeLogToFile(*args):
     cmds.symbolButton("ls_log_filename_button", edit=True, enable=logToFile)
     cmds.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
+def LoadStatsFileButtonPush(*args):
+    import os
+    basicFilter = 'JSON Files (*.json)'
+    initFolder = cmds.textFieldGrp("ls_stats_file", query=True, text=True)
+    if "$MTOA_LOG_PATH" in initFolder:
+        logPath = maya.mel.eval('getenv "MTOA_LOG_PATH"')
+        if not logPath:
+            logPath = cmds.workspace(query=True, rootDirectory=True)
+        resolvedFolder = initFolder.replace("$MTOA_LOG_PATH",logPath)
+    else:
+        resolvedFolder = initFolder
+    resolvedFolder = os.path.split(resolvedFolder)
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Select JSON File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
+    if ret is not None and len(ret):
+        cmds.textFieldGrp("ls_stats_file", edit=True, text=ret[0])
+        cmds.setAttr("defaultArnoldRenderOptions.stats_file", ret[0], type="string")
+
+def LoadProfileFileButtonPush(*args):
+    import os
+    basicFilter = 'JSON Files (*.json)'
+    initFolder = cmds.textFieldGrp("ls_profile_file", query=True, text=True)
+    if "$MTOA_LOG_PATH" in initFolder:
+        logPath = maya.mel.eval('getenv "MTOA_LOG_PATH"')
+        if not logPath:
+            logPath = cmds.workspace(query=True, rootDirectory=True)
+        resolvedFolder = initFolder.replace("$MTOA_LOG_PATH",logPath)
+    else:
+        resolvedFolder = initFolder
+    resolvedFolder = os.path.split(resolvedFolder)
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Select JSON File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
+    if ret is not None and len(ret):
+        cmds.textFieldGrp("ls_profile_file", edit=True, text=ret[0])
+        cmds.setAttr("defaultArnoldRenderOptions.profile_file", ret[0], type="string")
+
+def UpdateRenderStats(*args):
+    renderStats = cmds.getAttr('defaultArnoldRenderOptions.stats_enable')
+    print "UpdateRenderStats"
+    print renderStats
+    cmds.textFieldGrp('ls_stats_file', edit=True, enable=renderStats)
+    cmds.symbolButton("ls_stats_file_button", edit=True, enable=renderStats)
+    cmds.attrControlGrp("ls_stats_mode", edit=True, enable=renderStats)
+
+def UpdateProfile(*args):
+    print "UpdateProfile"
+
+    profile = cmds.getAttr('defaultArnoldRenderOptions.profile_enable')
+    print profile
+    cmds.textFieldGrp('ls_profile_file', edit=True, enable=profile)
+    cmds.symbolButton("ls_profile_file_button", edit=True, enable=profile)
+    
+
 def createArnoldLogSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -1498,12 +1549,56 @@ def createArnoldLogSettings():
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
+    
+    cmds.separator()
+    cmds.checkBoxGrp('ls_stats_enable',
+                    label='Render Statistics',
+                    changeCommand=UpdateRenderStats)
+    cmds.connectControl('ls_stats_enable', 'defaultArnoldRenderOptions.stats_enable', index=1)
+    cmds.connectControl('ls_stats_enable', 'defaultArnoldRenderOptions.stats_enable', index=2)
+    
+
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
+    path = cmds.textFieldGrp('ls_stats_file',
+                                label='Stats File Path',
+                                width=325)
+    cmds.symbolButton('ls_stats_file_button', image='navButtonBrowse.png', command=LoadStatsFileButtonPush)
+    cmds.connectControl('ls_stats_file', 'defaultArnoldRenderOptions.stats_file', index=1)
+    cmds.connectControl('ls_stats_file', 'defaultArnoldRenderOptions.stats_file', index=2)
     cmds.setParent('..')
+
+    cmds.attrControlGrp('ls_stats_mode',
+                        label="Stats Mode",
+                        attribute='defaultArnoldRenderOptions.stats_mode')
+    cmds.connectControl('ls_stats_mode', 'defaultArnoldRenderOptions.stats_mode', index=1)
+    cmds.connectControl('ls_stats_mode', 'defaultArnoldRenderOptions.stats_mode', index=2)
+
+    UpdateRenderStats()
+    cmds.separator()
+    cmds.checkBoxGrp('ls_profile_enable',
+        label='Profile',
+        changeCommand=UpdateProfile)
+    cmds.connectControl('ls_profile_enable', 'defaultArnoldRenderOptions.profile_enable', index=1)
+    cmds.connectControl('ls_profile_enable', 'defaultArnoldRenderOptions.profile_enable', index=2)
+
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
+    path = cmds.textFieldGrp('ls_profile_file',
+                                label='Profile File Path',
+                                width=325)
+    cmds.symbolButton('ls_profile_file_button', image='navButtonBrowse.png', command=LoadProfileFileButtonPush)
+    cmds.connectControl('ls_profile_file', 'defaultArnoldRenderOptions.profile_file', index=1)
+    cmds.connectControl('ls_profile_file', 'defaultArnoldRenderOptions.profile_file', index=2)
+    cmds.setParent('..')
+    UpdateProfile()
+
+    cmds.separator()
+
     cmds.checkBoxGrp('mtoa_translation_info',
                     label='MtoA Translation Info')
     cmds.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=1)
     cmds.connectControl('mtoa_translation_info', 'defaultArnoldRenderOptions.mtoa_translation_info', index=2)
-    
+
+    cmds.setParent('..')    
     cmds.setUITemplate(popTemplate=True)
     
 def createArnoldErrorHandlingSettings():

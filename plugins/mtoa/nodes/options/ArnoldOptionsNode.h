@@ -146,4 +146,10 @@ public:
    static MObject s_render_devices;   
    static MObject s_manual_devices;
    
+   static MObject s_stats_enable;
+   static MObject s_stats_file;
+   static MObject s_stats_mode;
+   static MObject s_profile_enable;
+   static MObject s_profile_file;
+
 };  // class CArnoldOptionsNode

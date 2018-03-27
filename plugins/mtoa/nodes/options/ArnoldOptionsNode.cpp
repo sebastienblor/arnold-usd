@@ -79,6 +79,11 @@ MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
 MObject CArnoldOptionsNode::s_log_verbosity;
+MObject CArnoldOptionsNode::s_stats_enable;
+MObject CArnoldOptionsNode::s_stats_file;
+MObject CArnoldOptionsNode::s_stats_mode;
+MObject CArnoldOptionsNode::s_profile_enable;
+MObject CArnoldOptionsNode::s_profile_file;
 MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
@@ -522,6 +527,30 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Info", MTOA_LOG_INFO);
    eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
+
+   s_stats_enable = nAttr.create("stats_enable", "statse", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_stats_enable);
+
+   s_stats_file = tAttr.create("stats_file", "statsf", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold_stats.json"));
+   addAttribute(s_stats_file);
+
+   s_stats_mode = eAttr.create("stats_mode", "statsm", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("Overwrite", AI_STATS_MODE_OVERWRITE);
+   eAttr.addField("Append", AI_STATS_MODE_APPEND);
+   addAttribute(s_stats_mode);
+
+   s_profile_enable = nAttr.create("profile_enable", "profe", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_profile_enable);
+
+   s_profile_file = tAttr.create("profile_file", "proff", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold_profile.json"));
+   addAttribute(s_profile_file);
 
    s_mtoa_translation_info = nAttr.create("mtoa_translation_info", "mtrinf", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
