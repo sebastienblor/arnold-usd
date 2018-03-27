@@ -389,7 +389,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    
    AtNode * const options = AiUniverseGetOptions();
    
-   AiNodeDeclare(options, "frame", "constant FLOAT");
    MTime ct = MAnimControl::currentTime();
    AiNodeSetFlt(options, "frame", (float)ct.value());
 

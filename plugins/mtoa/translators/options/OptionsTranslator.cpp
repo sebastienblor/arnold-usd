@@ -1175,9 +1175,6 @@ void COptionsTranslator::Export(AtNode *options)
    }
 
    // frame number. We're now updating it at every Update (#2319)
-   if (AiNodeLookUpUserParameter(options, "frame") == NULL)
-      AiNodeDeclare(options, "frame", "constant FLOAT");
-   
    AiNodeSetFlt(options, "frame", (float)GetExportFrame());
 
    if (!IsExported())
@@ -1200,8 +1197,6 @@ void COptionsTranslator::Export(AtNode *options)
             AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
          }
       }
-      if (AiNodeLookUpUserParameter(options, "fps") == NULL)
-         AiNodeDeclare(options, "fps", "constant FLOAT");
    }
 
    // now updating fps at every update, whoe knows
