@@ -428,7 +428,7 @@ def changeRenderType():
         pass
 def changeGpu():
     try:
-        devicesEnabled = not cmds.getAttr('defaultArnoldRenderOptions.auto_select_devices')
+        devicesEnabled = cmds.getAttr('defaultArnoldRenderOptions.manual_gpu_devices')
         cmds.textScrollList('os_render_devices', edit=True, enable=devicesEnabled)
     except:
         pass
@@ -489,19 +489,30 @@ def createGpuSettings():
     if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions()), "render_device"):
         cmds.attrControlGrp('gpu', 
                             label="GPU Rendering", 
-                            changeCommand=changeGpu,
                             attribute='defaultArnoldRenderOptions.gpu')
 
     if universeCreated:
         ai.AiEnd()
 
-    cmds.attrControlGrp('auto_select_devices', 
-                        label="Use All Compatible GPUs", 
-                        changeCommand=changeGpu,
-                        attribute='defaultArnoldRenderOptions.auto_select_devices')
+    cmds.frameLayout(label='Automatic GPU Selection', collapse=False)
+    cmds.attrControlGrp('default_gpu_names', 
+                        label="GPU Names", 
+                        attribute='defaultArnoldRenderOptions.default_gpu_names')
 
-    devicesEnabled = not cmds.getAttr('defaultArnoldRenderOptions.auto_select_devices')
-    cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=devicesEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
+    cmds.attrControlGrp('default_gpu_min_memory_MB', 
+                        label="Min. Memory (MB)", 
+                        attribute='defaultArnoldRenderOptions.default_gpu_min_memory_MB')
+
+    cmds.setParent('..')
+    cmds.frameLayout(label='Manual GPU Selection', collapse=False)
+    
+    cmds.attrControlGrp('manual_gpu_devices', 
+                        label="Enable Manual GPU Selection", 
+                        changeCommand=changeGpu,
+                        attribute='defaultArnoldRenderOptions.manual_gpu_devices')
+
+    deviceListEnabled = cmds.getAttr('defaultArnoldRenderOptions.manual_gpu_devices')
+    cmds.textScrollList('os_render_devices', height=50,allowMultiSelection=True, enable=deviceListEnabled, selectCommand=lambda *args: renderDevicesListEdit(*args))
     # fill attribute
     
     gpuDeviceIdsArray = ai.AiDeviceGetIds(ai.AI_DEVICE_TYPE_GPU)
@@ -529,6 +540,9 @@ def createGpuSettings():
 
         if attrVal in gpuDeviceIds:
             cmds.textScrollList('os_render_devices', edit=True, selectIndexedItem=i+1)
+
+    changeGpu()
+    cmds.setParent('..')
 
     cmds.setParent('..')
         
@@ -1585,7 +1599,7 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
-    cmds.frameLayout('arnoldGpuSettings', label="Denoiser Settings", cll=True, cl=0)
+    cmds.frameLayout('arnoldGpuSettings', label="Optix Denoiser", cll=True, cl=0)
     createGpuSettings()
     cmds.setParent('..')
 

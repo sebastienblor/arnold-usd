@@ -115,7 +115,7 @@ MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
 MObject CArnoldOptionsNode::s_gpu;
 MObject CArnoldOptionsNode::s_render_devices;
-MObject CArnoldOptionsNode::s_auto_select_devices;
+MObject CArnoldOptionsNode::s_manual_devices;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -454,14 +454,17 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_gpu);
 
-   s_auto_select_devices = nAttr.create("auto_select_devices", "autoseldev", MFnNumericData::kBoolean, true);
+   s_manual_devices = nAttr.create("manual_gpu_devices", "manualdevs", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
-   addAttribute(s_auto_select_devices);
+   addAttribute(s_manual_devices);
 
    s_render_devices = nAttr.create("render_devices", "rndev", MFnNumericData::kInt);
    nAttr.setKeyable(false);
    nAttr.setArray(true);
    addAttribute(s_render_devices);   
+
+   s_attributes.MakeInput("default_gpu_names");
+   s_attributes.MakeInput("default_gpu_min_memory_MB");
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");

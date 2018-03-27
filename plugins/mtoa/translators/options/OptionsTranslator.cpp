@@ -1295,13 +1295,16 @@ void COptionsTranslator::Export(AtNode *options)
          bool gpu = gpuPlug.asBool();
          AiNodeSetStr(options, "render_device", (gpu) ? "GPU" : "CPU");
       }
-      // Select the devices in case we have 
 
-      MPlug autoDevices = FindMayaPlug("auto_select_devices");
-      if (autoDevices.isNull() || !autoDevices.asBool())
-      {
+
+      CNodeTranslator::ProcessParameter(options, "default_gpu_names", AI_TYPE_STRING);
+      CNodeTranslator::ProcessParameter(options, "default_gpu_min_memory_MB", AI_TYPE_INT);
+      bool autoSelect = true;
+      MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
+      if (manualDevices.asBool())
+      {  // Manual Device selection
+
          std::vector<unsigned int> devices;
-         // Manual Device selection
          MPlug gpuDevices = FindMayaPlug("render_devices");
          if (!gpuDevices.isNull())
          {
@@ -1317,15 +1320,15 @@ void COptionsTranslator::Export(AtNode *options)
          }
          if (!devices.empty())
          {
+            autoSelect = false;
             AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
             AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
             AiArrayDestroy(selectDevices);
-         }
-      } else
-      {
-         // automatically select the GPU devices
+         } 
+      }
+
+      if (autoSelect) // automatically select the GPU devices
          AiDeviceAutoSelect();
-      }      
    }
 }
 
