@@ -1067,10 +1067,13 @@ void CRenderViewMtoA::RenderViewClosed()
 
 void CRenderViewMtoA::RenderOptionsClosed()
 {
+
+#ifdef ARV_DOCKED
    if (s_optWorkspaceControl)
    {
       MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
    }
+#endif
 }
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
