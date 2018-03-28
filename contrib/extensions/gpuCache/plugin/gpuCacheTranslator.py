@@ -351,14 +351,31 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.attr_ctrls = {}
 
         self.commonShapeAttributes()
+        self.beginLayout("Translator Options", collapse=False)
+        self.addControl("aiMakeInstance", label="Make Instance", annotation='Create instances where possible, to save geometry duplication')
+        self.addControl("aiExcludeXform", label="Exclude Xform", annotation='Exclude transform information from cache')
+        self.addControl("aiFlipV", label="Flip V", annotation='Flip UVs in V direction (when using caches with inverted UVs)')
+        self.addControl("aiVisibilityIgnore", label="Visibility Ignore", annotation='Ignore Visibility channels on geo in the archive')
+        self.addControl("aiExpandHidden", label="Expand Hidden", annotation='Force creation of hidden geometry')
+        self.addSeparator()
+
+        self.addControl("aiVelocityIgnore", label="Velocity Ignore", annotation='Ignore Velocity attributes on geometry')
+        self.addControl("aiVelocityScale", label="Velocity Scale", annotation='Scale the velocity')
+        self.addSeparator()
+
+        self.addControl("aiRadiusAttribute", label="Radius Attribute", annotation='Set the attribute to read for getting the width/radius of points/curves')
+        self.addControl("aiRadiusDefault", label="Radius Default",  annotation='Default radius if not set on geometry')
+        self.addControl("aiRadiusScale", label="Radius Scale", annotation='Scale the radius')
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
+        self.endLayout()
+
         self.beginLayout("Alembic Contents", collapse=False)
         self.addCustom('aiInfo', self.abcInfoNew, self.abcInfoReplace)
         self.endLayout()
         self.addSeparator()
         self.beginLayout("Alembic Overrides", collapse=False)
-        self.addControl("aiPullUserParams", label="Pull User Params")
+        self.addControl("aiPullUserParams", label="Enable Overrides", annotation='Enable to override the attributes found in the archive')
         self.addCustom('aiNodeAttrs', self.userAttrsNew, self.userAttrsReplace)
         self.endLayout()
 

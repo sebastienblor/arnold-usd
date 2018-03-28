@@ -36,6 +36,20 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "alembic");
    CShapeTranslator::MakeCommonAttributes(helper);
 
+   helper.MakeInput("make_instance");
+   helper.MakeInput("exclude_xform");
+   helper.MakeInput("flip_v");
+
+   helper.MakeInput("visibility_ignore");
+   helper.MakeInput("expand_hidden");
+
+   helper.MakeInput("velocity_ignore");
+   helper.MakeInput("velocity_scale");
+
+   helper.MakeInput("radius_attribute");
+   helper.MakeInput("radius_default");
+   helper.MakeInput("radius_scale");
+
    CAttrData data;
    data.defaultValue.BOOL() = false;
    data.name = "aiPullUserParams";
@@ -162,7 +176,22 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    AiNodeSetFlt(shape, "shutter_start", AiNodeGetFlt(shape, "motion_start"));
    AiNodeSetFlt(shape, "shutter_end", AiNodeGetFlt(shape, "motion_end"));
 
+   AiNodeSetBool(shape, "make_instance", FindMayaPlug( "aiMakeInstance" ).asBool());
+   AiNodeSetBool(shape, "exclude_xform", FindMayaPlug("aiExcludeXform").asBool());
+   AiNodeSetBool(shape, "flip_v", FindMayaPlug("aiFlipV").asBool());
+
+   AiNodeSetBool(shape, "visibility_ignore", FindMayaPlug("aiVisibilityIgnore").asBool());
+   AiNodeSetBool(shape, "expand_hidden", FindMayaPlug("aiExpandHidden").asBool());
+
+   AiNodeSetBool(shape, "velocity_ignore", FindMayaPlug("aiVelocityIgnore").asBool());
+   AiNodeSetFlt(shape, "velocity_scale", FindMayaPlug("aiVelocityScale").asFloat());
+
+   AiNodeSetStr(shape, "radius_attribute", FindMayaPlug("aiRadiusAttribute").asString().asChar());
+   AiNodeSetFlt(shape, "radius_default", FindMayaPlug("aiRadiusDefault").asFloat());
+   AiNodeSetFlt(shape, "radius_scale", FindMayaPlug("aiRadiusScale").asFloat());
+
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
+
    // now the user attributes
    MPlug arrayPlug = FindMayaPlug("aiNodeAttrs");
 
