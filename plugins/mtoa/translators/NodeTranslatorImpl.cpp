@@ -559,10 +559,10 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          unsigned int numChildren = plug.numChildren();
          if (numChildren== 3)
          {
-            AiNodeSetRGB(arnoldNode, arnoldParamName,
-                         plug.child(0).asFloat(),
-                         plug.child(1).asFloat(),
-                         plug.child(2).asFloat());
+            AtRGB col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            AtRGB prevCol = AiNodeGetRGB(arnoldNode, arnoldParamName);
+            if (col != prevCol)
+               AiNodeSetRGB(arnoldNode, arnoldParamName, col.r, col.g, col.b);
          }
          else
          {
@@ -600,12 +600,10 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
 
          if (numChildren== 4)
          {
-            // this type of plug is not created by MtoA, custom nodes may implement RGBA this way
-            AiNodeSetRGBA(arnoldNode, arnoldParamName,
-                          plug.child(0).asFloat(),
-                          plug.child(1).asFloat(),
-                          plug.child(2).asFloat(),
-                          plug.child(3).asFloat());
+            AtRGBA col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+            AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
+            if (col != prevCol)
+               AiNodeSetRGBA(arnoldNode, arnoldParamName, col.r, col.g, col.b, col.a);
          }
          else if (numChildren== 3)
          {
@@ -614,11 +612,11 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             MPlug alphaPlug = MFnDependencyNode(plug.node()).findPlug(alphaName, false, &stat);
             if (stat == MS::kSuccess)
             {
-               AiNodeSetRGBA(arnoldNode, arnoldParamName,
-                             plug.child(0).asFloat(),
-                             plug.child(1).asFloat(),
-                             plug.child(2).asFloat(),
-                             alphaPlug.asFloat());
+               AtRGBA col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), alphaPlug.asFloat());
+               AtRGBA prevCol = AiNodeGetRGBA(arnoldNode, arnoldParamName);
+               if (col != prevCol)
+                  AiNodeSetRGBA(arnoldNode, arnoldParamName,
+                             col.r, col.g, col.b, col.a);
             }
             else
             {
@@ -656,7 +654,9 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          }
          AiMetaDataIteratorDestroy(miter);
 
-         AiNodeSetFlt(arnoldNode, arnoldParamName, val);
+         float prevVal = AiNodeGetFlt(arnoldNode, arnoldParamName);
+         if (val != prevVal)
+            AiNodeSetFlt(arnoldNode, arnoldParamName, val);
       }
       break;
    case AI_TYPE_VECTOR2:
@@ -665,7 +665,10 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
          MObject numObj = plug.asMObject();
          MFnNumericData numData(numObj);
          numData.getData2Float(x, y);
-         AiNodeSetVec2(arnoldNode, arnoldParamName, x, y);
+
+         AtVector2 prevVal = AiNodeGetVec2(arnoldNode, arnoldParamName);
+         if (prevVal.x != x || prevVal.y != y)
+            AiNodeSetVec2(arnoldNode, arnoldParamName, x, y);
       }
       break;
    case AI_TYPE_MATRIX:
@@ -701,36 +704,46 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       break;
    case AI_TYPE_BOOLEAN:
       {
-         AiNodeSetBool(arnoldNode, arnoldParamName, plug.asBool());
-      }
-      break;
-   case AI_TYPE_ENUM:
-      {
-         AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
+         bool val = plug.asBool();
+         bool prevVal = AiNodeGetBool(arnoldNode, arnoldParamName);
+         if (val != prevVal)
+            AiNodeSetBool(arnoldNode, arnoldParamName, val);
       }
       break;
    case AI_TYPE_INT:
+   case AI_TYPE_ENUM:
       {
-         AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
+         int val = plug.asInt();
+         int prevVal = AiNodeGetInt(arnoldNode, arnoldParamName);
+         if (val != prevVal)
+            AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
       }
       break;
    case AI_TYPE_UINT:
       {
          // no uint in maya MPlug
-         AiNodeSetUInt(arnoldNode, arnoldParamName, plug.asInt());
+         unsigned int val = (unsigned int)plug.asInt();
+         unsigned int prevVal = AiNodeGetUInt(arnoldNode, arnoldParamName);
+         if (val != prevVal)
+            AiNodeSetUInt(arnoldNode, arnoldParamName, val);
       }
       break;
    case AI_TYPE_STRING:
       {
-         AiNodeSetStr(arnoldNode, arnoldParamName, plug.asString().asChar());
+         MString val = plug.asString();
+         MString prevVal = AiNodeGetStr(arnoldNode, arnoldParamName).c_str();
+         if (val != prevVal)
+            AiNodeSetStr(arnoldNode, arnoldParamName, plug.asString().asChar());
       }
       break;
    case AI_TYPE_VECTOR:
       {
-         AiNodeSetVec(arnoldNode, arnoldParamName,
-                      plug.child(0).asFloat(),
+         AtVector val (plug.child(0).asFloat(),
                       plug.child(1).asFloat(),
                       plug.child(2).asFloat());
+         AtVector prevVal = AiNodeGetVec(arnoldNode, arnoldParamName);
+         if (val != prevVal)
+            AiNodeSetVec(arnoldNode, arnoldParamName, val.x, val.y, val.z);
       }
       break;
    case AI_TYPE_NODE:
@@ -747,7 +760,10 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       }
       break;
    case AI_TYPE_BYTE:
-      AiNodeSetByte(arnoldNode, arnoldParamName, (unsigned char)plug.asChar());
+      unsigned char val = (unsigned char)plug.asChar();
+      unsigned char prevVal = AiNodeGetByte(arnoldNode, arnoldParamName);
+      if (val != prevVal)
+         AiNodeSetByte(arnoldNode, arnoldParamName, val);
       break;
    }
    return NULL;
