@@ -278,6 +278,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    // for the first time
    bool setDefaultCamera = !s_arvExists;
 
+   bool wasViewportRendering = CRenderSession::IsViewportRendering();
 
    s_arvExists = true;
    CMayaScene::End();
@@ -306,7 +307,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    renderSession->SetCamera(camera);
    MString renderCamera = CDagTranslator::GetArnoldNaming(camera);
    
-   if (setDefaultCamera)
+   if (setDefaultCamera && !wasViewportRendering)
    {
       // Note that we need to call this *before* CRenderSession::StartRenderView
       // because ARV_options parameter will be parsed then, and a camera will
@@ -321,6 +322,11 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    // Set resolution and camera as passed in.
    renderSession->SetResolution(width, height);
    CMayaScene::GetRenderSession()->StartRenderView();
+
+   // If we were viewport-rendering, previous calls to SetRenderViewOption will land in the viewport
+   // so we must set this now that we create ARV
+   if (wasViewportRendering)
+      renderSession->SetRenderViewOption("Camera", renderCamera);  
 
 
 }
