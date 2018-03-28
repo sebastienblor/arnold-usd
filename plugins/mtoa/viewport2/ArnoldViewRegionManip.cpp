@@ -184,7 +184,7 @@ void ArnoldViewRegionManipulator::drawUI(MHWRender::MUIDrawManager& drawManager,
 
     float midPointX;
     float midPointY;
-    float ptDepth = 0.5f;
+    //float ptDepth = 0.5f;
 
     transformPoint(frameContext, xPos, yPos, pt1);
     transformPoint(frameContext, xPos2, yPos2, pt2);

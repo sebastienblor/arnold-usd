@@ -27,18 +27,18 @@ class ArnoldViewRegionManipulator : public MPxManipulatorNode
 {
 public:
 	ArnoldViewRegionManipulator();
-	~ArnoldViewRegionManipulator() override;
-	void postConstructor() override;
+	virtual ~ArnoldViewRegionManipulator();
+	virtual void postConstructor();
     void initializeInstance();
 
 	// The important virtuals to implement
-	void preDrawUI( const M3dView &view ) override;
-	void drawUI(MHWRender::MUIDrawManager& drawManager, const MHWRender::MFrameContext& frameContext) const override;
+	virtual void preDrawUI( const M3dView &view );
+	virtual void drawUI(MHWRender::MUIDrawManager& drawManager, const MHWRender::MFrameContext& frameContext) const;
 
-	MStatus	doPress(M3dView& view) override;
-	MStatus	doDrag(M3dView& view) override;
-	MStatus	doRelease(M3dView& view) override;
-    MStatus doMove(M3dView& view, bool& refresh) override;
+	virtual MStatus	doPress(M3dView& view);
+	virtual MStatus	doDrag(M3dView& view);
+	virtual MStatus	doRelease(M3dView& view);
+    virtual MStatus doMove(M3dView& view, bool& refresh);
 
 	// Standard API required methods
 	static void* creator();
