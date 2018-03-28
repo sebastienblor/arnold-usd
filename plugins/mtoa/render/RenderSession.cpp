@@ -1011,8 +1011,11 @@ void CRenderSession::PauseIPR()
 
 bool CRenderSession::IsIPRPaused()
 {
+#ifndef MTOA_DISABLE_RV
+
     if (s_renderView)
         return s_renderView->IsIPRStopped();
+#endif
     return true;
 }
 
