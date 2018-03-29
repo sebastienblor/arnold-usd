@@ -803,9 +803,9 @@ def arnoldAOVEditor(*args):
     s = time.time()
     ed = ArnoldAOVEditor()
     print time.time() - s
-    win.show()
+    cmds.showWindow()
     cmds.evalDeferred(ed.fixOptionMenus)
-    return ed
+    return win
 
 def arnoldAOVBrowser(**kwargs):
     core.createOptions()
@@ -978,6 +978,9 @@ def createArnoldAOVTab():
     cmds.scriptJob(attributeChange = ('{}.aovMode'.format(aovNode.node), _tabEditor.setEnabledState), parent=_tabEditor.mainCol)
 
     #cmds.setUITemplate(popTemplate=True)
+    # FIXME: hack to force the buttons and menus to refresh
+    tmpWin = cmds.window("tmpwin")
+    cmds.deleteUI(tmpWin)
 
 def updateArnoldAOVTab():
     pass
