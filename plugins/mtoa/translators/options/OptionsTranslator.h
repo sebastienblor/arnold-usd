@@ -27,6 +27,7 @@ struct CAOVOutputArray
    MString tokens;
    MString aovSuffix;
    MString lpe;
+   MString layerName;
    CNodeTranslator *shaderTranslator;
    CNodeTranslator *cameraTranslator;
    std::vector<CAOVOutput> outputs;

@@ -114,6 +114,7 @@ void COptionsTranslator::ExportAOVs()
       displayAOV = "beauty";
 
 
+   AtNode *beautyFilter = NULL;
    // loop through AOVs
    m_aovData.clear();
 
@@ -208,7 +209,7 @@ void COptionsTranslator::ExportAOVs()
          // add default driver
          CAOVOutput output;
          ExportDriver(FindMayaPlug("driver"), output);
-         output.filter = ExportFilter(FindMayaPlug("filter"));
+         beautyFilter = output.filter = ExportFilter(FindMayaPlug("filter"));
 
          // search if I already have the same output driver + filter
          bool foundOutput = false;
@@ -370,6 +371,66 @@ void COptionsTranslator::ExportAOVs()
          }
 
          m_aovData.push_back(aovData);
+      }
+   }
+
+   if (FindMayaPlug("outputVarianceAOVs").asBool() && beautyFilter)
+   {
+      for (size_t j = 0, aovDataSize = m_aovData.size(); j < aovDataSize; ++j)
+      {
+         CAOVOutputArray &aovData = m_aovData[j];
+         
+         if (aovData.name == MString("RGBA") || aovData.name == MString("RGB"))
+         {
+            CAOVOutputArray varianceAOV = aovData;
+            
+            varianceAOV.name = MString("RGB");
+            varianceAOV.type = AI_TYPE_RGB;
+            
+            varianceAOV.layerName = MString("variance");
+            varianceAOV.tokens = MString("RenderPass=") + varianceAOV.layerName;
+
+            for (size_t i = 0, aovOutputsSize = varianceAOV.outputs.size(); i < aovOutputsSize; ++i)
+            {
+               CAOVOutput &output = varianceAOV.outputs[i];
+               
+               AtNode *variance_filter = GetArnoldNode("variance_filter");
+               if (variance_filter == NULL)
+                  variance_filter = AddArnoldNode("variance_filter", "variance_filter");
+
+               std::string filterType = AiNodeEntryGetName(AiNodeGetNodeEntry(output.filter));
+               size_t pos = filterType.find("_filter");
+               if (pos != std::string::npos)
+                  filterType = filterType.substr(0, pos );
+                 
+               AiNodeSetStr(variance_filter, "filter_weights",filterType.c_str());
+               AiNodeSetFlt(variance_filter, "width", AiNodeGetFlt(output.filter, "width"));
+               AiNodeSetBool(variance_filter, "scalar_mode", false);
+               
+               output.filter = variance_filter;
+               if(!output.mergeAOVs)
+               {
+                  MString varName = MString(AiNodeGetName(output.driver));
+                  varName += MString(".");
+                  varName += varianceAOV.layerName;
+                  if (output.driverTranslator)
+                     output.driver = output.driverTranslator->GetChildDriver(varianceAOV.layerName.asChar());
+                  else
+                     output.driver = AiNodeClone(output.driver);
+
+                  AiNodeSetStr(output.driver, "name", varName.asChar());
+               }
+            }
+            m_aovData.push_back(varianceAOV);
+
+         } else if (aovData.name == MString("Z") || aovData.name == MString("N") || aovData.name == MString("diffuse_albedo"))
+         {
+            for (size_t i = 0, aovOutputsSize = aovData.outputs.size(); i < aovOutputsSize; ++i)
+            {
+               aovData.outputs[i].filter = beautyFilter;
+            }
+            aovData.type = AI_TYPE_RGB;
+         }
       }
    }
 }
@@ -696,22 +757,29 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
             }
 
             // output statement
-            char str[1024];
+            MString str;
             if (output.raw)
             {
-               sprintf(str, "%s", AiNodeGetName(output.driver));
+               str = MString(AiNodeGetName(output.driver)); 
             }
             else
             {
                if (aovCamera != nameCamera)
                {
-                  MString aovCameraArnoldName = CDagTranslator::GetArnoldNaming(aovCameraDag);
-                  sprintf(str, "%s %s %s %s %s", aovCameraArnoldName.asChar(),  aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+                  str = CDagTranslator::GetArnoldNaming(aovCameraDag) + MString(" ");
                }
-               else
-                  sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));     
+               str += aovData.name + MString(" ");
+
+               str += MString(AiParamGetTypeName(aovData.type)) + MString(" ");
+               str += MString(AiNodeGetName(output.filter)) + MString(" ");
+               str += MString(AiNodeGetName(output.driver));
+
+               if (aovData.layerName.length() > 0)
+               {
+                  str += MString(" ");
+                  str += aovData.layerName;
+               }
+   
             }
 
             bool foundAOV = false;

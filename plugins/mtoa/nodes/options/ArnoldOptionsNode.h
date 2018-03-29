@@ -39,6 +39,7 @@ public:
    static MObject s_imageFormat;
    static MObject s_aovs;
    static MObject s_aovMode;
+   static MObject s_outputVarianceAOVs;
    static MObject s_driver;
    static MObject s_drivers;
 

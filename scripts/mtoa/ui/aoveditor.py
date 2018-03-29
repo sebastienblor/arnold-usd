@@ -947,7 +947,10 @@ def createArnoldAOVTab():
     updateAovShaders()
 
     cmds.setParent('..')
+    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.outputVarianceAOVs', label='Output Variance AOV')
+
     cmds.setParent(parentForm)
+
 
     cmds.scrollLayout('arnoldAOVsScrollLayout', horizontalScrollBarThickness=0)
 

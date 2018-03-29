@@ -593,7 +593,7 @@ def getActiveRenderLayerName():
     if not cmds.objExists('renderLayerManager.renderLayerId'):
         return ''
         
-    renderLayers = cmds.listConnections('renderLayerManager.renderLayerId')
+    renderLayers = cmds.listConnections('renderLayerManager.renderLayerId') or []
     if (len(renderLayers) > 1):
         layer = cmds.editRenderLayerGlobals(query=True, currentRenderLayer=True)
         if (cmds.getAttr(layer+'.identification') == 0):

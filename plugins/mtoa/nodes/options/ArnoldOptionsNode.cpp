@@ -33,6 +33,7 @@ MObject CArnoldOptionsNode::s_optionsNode = MObject();
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
+MObject CArnoldOptionsNode::s_outputVarianceAOVs;
 MObject CArnoldOptionsNode::s_driver;
 MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
@@ -200,6 +201,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("batch_only", 2);
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
+
+   s_outputVarianceAOVs = nAttr.create("outputVarianceAOVs", "varaovs", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_outputVarianceAOVs);
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
