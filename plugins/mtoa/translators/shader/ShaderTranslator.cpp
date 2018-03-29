@@ -35,11 +35,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    if (status != MS::kSuccess || (!mattePlug.asBool()))
       return shader; // matte is disabled (or parameter doesn't exist)
 
-
    MPlug matteColorPlug = FindMayaPlug("aiMatteColor", &status); 
-   if (status != MS::kSuccess ) return shader;
-
-   MPlug matteColorAPlug = FindMayaPlug("aiMatteColorA", &status); 
    if (status != MS::kSuccess ) return shader;
 
    // Matte is enabled, I need to insert a matte shader at the root of my shading tree
@@ -47,11 +43,8 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    if (matteShader == NULL)
       matteShader = AddArnoldNode("matte", "_matte");
 
-   AiNodeSetRGBA(matteShader, "color",
-                matteColorPlug.child(0).asFloat(),
-                matteColorPlug.child(1).asFloat(),
-                matteColorPlug.child(2).asFloat(),
-                matteColorAPlug.asFloat());
+   
+   ProcessParameter(matteShader, "color", AI_TYPE_RGBA, "aiMatteColor");
 
    AiNodeLink(shader, "passthrough", matteShader); 
 
