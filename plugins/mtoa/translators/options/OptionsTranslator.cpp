@@ -429,7 +429,7 @@ void COptionsTranslator::ExportAOVs()
             {
                aovData.outputs[i].filter = beautyFilter;
             }
-            aovData.type = AI_TYPE_RGB;
+            // aovData.type = AI_TYPE_RGB; that doesn't seem necessary anymore for noice
          }
       }
    }
