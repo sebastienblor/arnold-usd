@@ -1482,17 +1482,12 @@ def LoadProfileFileButtonPush(*args):
 
 def UpdateRenderStats(*args):
     renderStats = cmds.getAttr('defaultArnoldRenderOptions.stats_enable')
-    print "UpdateRenderStats"
-    print renderStats
     cmds.textFieldGrp('ls_stats_file', edit=True, enable=renderStats)
     cmds.symbolButton("ls_stats_file_button", edit=True, enable=renderStats)
     cmds.attrControlGrp("ls_stats_mode", edit=True, enable=renderStats)
 
 def UpdateProfile(*args):
-    print "UpdateProfile"
-
     profile = cmds.getAttr('defaultArnoldRenderOptions.profile_enable')
-    print profile
     cmds.textFieldGrp('ls_profile_file', edit=True, enable=profile)
     cmds.symbolButton("ls_profile_file_button", edit=True, enable=profile)
     
