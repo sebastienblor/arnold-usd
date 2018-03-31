@@ -1,19 +1,19 @@
 import maya.mel
-from mtoa.ui.ae.operatorTemplate import OperatorAETemplate
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-class AEaiSwitchOperatorTemplate(OperatorAETemplate):
+class AEaiCollectionTemplate(ShaderAETemplate):
 
     def setup(self):
     	self.beginScrollLayout()
         
         self.beginLayout('Operator', collapse=False)
         self.addControl("enable")
+        self.addControl("inputs")
+        self.addControl("selection")
         self.endLayout()
-        self.beginLayout('Switch', collapse=False)
-        self.addControl("index")
+        self.beginLayout('Collection', collapse=False)
+        self.addControl("collection")
         self.endLayout()
-        self.addOperatorInputs()
-
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()

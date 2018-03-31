@@ -1,15 +1,15 @@
 import maya.mel
-from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+from mtoa.ui.ae.operatorTemplate import OperatorAETemplate
 
-class AEaiMergeTemplate(ShaderAETemplate):
+class AEaiMergeTemplate(OperatorAETemplate):
 	
     def setup(self):
     	self.beginScrollLayout()
         
         self.beginLayout('Operator', collapse=False)
         self.addControl("enable")
-        self.addControl("inputs")
         self.endLayout()
+        self.addOperatorInputs()
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()

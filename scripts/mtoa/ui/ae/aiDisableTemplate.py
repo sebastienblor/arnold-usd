@@ -1,14 +1,15 @@
 import maya.mel
-from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+from mtoa.ui.ae.operatorTemplate import OperatorAETemplate
+import maya.cmds as cmds
+    
+class AEaiDisableTemplate(OperatorAETemplate):
 
-class AEaiDisableTemplate(ShaderAETemplate):
-
+    
     def setup(self):
     	self.beginScrollLayout()
         
         self.beginLayout('Operator', collapse=False)
         self.addControl("enable")
-        self.addControl("inputs")
         self.addControl("selection")
         self.endLayout()
 
@@ -19,6 +20,7 @@ class AEaiDisableTemplate(ShaderAETemplate):
         self.addControl("shaders")
         self.addControl("operators")
         self.endLayout()
+        self.addOperatorInputs()
                 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 

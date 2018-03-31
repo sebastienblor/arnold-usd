@@ -1,14 +1,13 @@
 import maya.mel
-from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+from mtoa.ui.ae.operatorTemplate import OperatorAETemplate
 
-class AEaiSetTransformTemplate(ShaderAETemplate):
+class AEaiSetTransformTemplate(OperatorAETemplate):
 
     def setup(self):
     	self.beginScrollLayout()
         
         self.beginLayout('Operator', collapse=False)
         self.addControl("enable")
-        self.addControl("inputs")
         self.addControl("selection")
         self.endLayout()
         self.beginLayout('Set Transfom', collapse=False)
@@ -19,6 +18,7 @@ class AEaiSetTransformTemplate(ShaderAETemplate):
         self.addControl("rotate_order")
         self.addControl("mode")
         self.endLayout()
+        self.addOperatorInputs()
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
