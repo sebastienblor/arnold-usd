@@ -149,15 +149,32 @@ class ConnectToLicenseServer(object):
             pass
 
     def doConnectRLM(self):        
-        rlmServer = cmds.textField(self.rlmServerEdit,  query=True, text=True)
-        cmds.arnoldLicense(setRlmServer=rlmServer)
 
+        ret = cmds.confirmDialog(title='Connect to License Server', message='This will set an environment variable in your system', button=['Ok', 'Cancel'], defaultButton='Ok', cancelButton='Cancel' )
+        if ret != 'Ok':
+            return
+
+        rlmServer = cmds.textField(self.rlmServerEdit,  query=True, text=True)
+        if rlmServer == "":
+            rlmServer = 'localhost'
+            cmds.textField(self.rlmServerEdit,  edit=True, text=rlmServer, editable=True)
+            
+        
+        cmds.arnoldLicense(setRlmServer=rlmServer)
         cmds.text(self.rlmStatus, edit=True, label="Checking Status...", backgroundColor=[1,1,0])
         cmds.text(self.nlmStatus, edit=True, label="", enableBackground=False)
         cmds.arnoldLicense(runServerStatus=True)
 
     def doConnectNLM(self):
+        ret = cmds.confirmDialog(title='Connect to License Server', message='This will set an environment variable in your system', button=['Ok', 'Cancel'], defaultButton='Ok', cancelButton='Cancel' )
+        if ret != 'Ok':
+            return
+        
         nlmServer = cmds.textField(self.nlmServerEdit,  query=True, text=True)
+        if nlmServer == "":
+            nlmServer = 'localhost'
+            cmds.textField(self.nlmServerEdit,  edit=True, text=nlmServer, editable=True)
+
         cmds.arnoldLicense(setNlmServer=nlmServer)
         cmds.text(self.rlmStatus, edit=True, label="Checking Status...", backgroundColor=[1,1,0])
         cmds.text(self.nlmStatus, edit=True, label="", enableBackground=False)
@@ -187,9 +204,12 @@ class ConnectToLicenseServer(object):
         if nlmServerLocalEnv != nlmServerEnv:
             cmds.warning("The NLM local and global environment does not match")
 
+        '''
+        we prefer not to set the env variables under the hood
         if rlmServerEnv == "" and nlmServerEnv == "":
             rlmServerEnv = 'localhost'
             cmds.arnoldLicense(setRlmServer=rlmServerEnv)
+        '''
 
         cmds.textField(self.rlmServerEdit,  edit=True, text=rlmServerEnv, editable=True)
 
