@@ -1019,6 +1019,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
    connectionCallback = 0;
 
+   bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
+
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    // Load metadata for builtin (mtoa.mtd)
@@ -1220,99 +1222,101 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
 
 #ifdef ENABLE_VP2
-   for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+   if (!isBatch)
    {
-      const shadingNodeOverride& override = shadingNodeOverrideList[i];
-      status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
-               override.classification,
-               override.registrant,
-               override.creator);
-      CHECK_MSTATUS(status);
-   }
 
-   for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
-   {
-      const drawOverride& override = drawOverrideList[i];
-      status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
-               override.classification,
-               override.registrant,
-               override.creator);
-      CHECK_MSTATUS(status);
-   }
- 
+      for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+      {
+         const shadingNodeOverride& override = shadingNodeOverrideList[i];
+         status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+                  override.classification,
+                  override.registrant,
+                  override.creator);
+         CHECK_MSTATUS(status);
+      }
+
+      for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
+      {
+         const drawOverride& override = drawOverrideList[i];
+         status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+                  override.classification,
+                  override.registrant,
+                  override.creator);
+         CHECK_MSTATUS(status);
+      }
+    
 #if MAYA_API_VERSION >= 201700
-   status = MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
-       AI_STANDIN_CLASSIFICATION,
-       "arnoldStandInNodeOverride",
-       CArnoldStandInSubSceneOverride::Creator);
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
+          AI_STANDIN_CLASSIFICATION,
+          "arnoldStandInNodeOverride",
+          CArnoldStandInSubSceneOverride::Creator);
+      CHECK_MSTATUS(status);
 
-   // Skydome light and sky shader share the same override as
-   // they are drawn the same way.
-   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-      AI_SKYDOME_LIGHT_CLASSIFICATION,
-      "arnoldSkyDomeLightNodeOverride",
-		CArnoldSkyDomeLightGeometryOverride::Creator);
-   CHECK_MSTATUS(status);
+      // Skydome light and sky shader share the same override as
+      // they are drawn the same way.
+      status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+         AI_SKYDOME_LIGHT_CLASSIFICATION,
+         "arnoldSkyDomeLightNodeOverride",
+   		CArnoldSkyDomeLightGeometryOverride::Creator);
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-      AI_SKYNODE_CLASSIFICATION,
-      "arnoldSkyNodeOverride",
-		CArnoldSkyDomeLightGeometryOverride::Creator);
-   CHECK_MSTATUS(status);
-   // Register a custom selection mask
-   MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
-   status = MGlobal::executeCommand("selectType -byName \"arnoldLightSelection\" 1");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+         AI_SKYNODE_CLASSIFICATION,
+         "arnoldSkyNodeOverride",
+   		CArnoldSkyDomeLightGeometryOverride::Creator);
+      CHECK_MSTATUS(status);
+      // Register a custom selection mask
+      MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
+      status = MGlobal::executeCommand("selectType -byName \"arnoldLightSelection\" 1");
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-      AI_LIGHT_FILTER_CLASSIFICATION,
-      "arnoldLightBlockerNodeOverride",
-		CArnoldLightBlockerGeometryOverride::Creator);
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+         AI_LIGHT_FILTER_CLASSIFICATION,
+         "arnoldLightBlockerNodeOverride",
+   		CArnoldLightBlockerGeometryOverride::Creator);
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-      AI_VOLUME_CLASSIFICATION,
-      "arnoldVolumeNodeOverride",
-	  CArnoldVolumeGeometryOverride::Creator);
-   CHECK_MSTATUS(status); 
+      status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+         AI_VOLUME_CLASSIFICATION,
+         "arnoldVolumeNodeOverride",
+   	  CArnoldVolumeGeometryOverride::Creator);
+      CHECK_MSTATUS(status); 
 
-   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-      AI_PROCEDURAL_CLASSIFICATION,
-      "arnoldProceduralNodeOverride",
-      CArnoldProceduralGeometryOverride::Creator);
+      status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+         AI_PROCEDURAL_CLASSIFICATION,
+         "arnoldProceduralNodeOverride",
+         CArnoldProceduralGeometryOverride::Creator);
 
-#if MAYA_API_VERSION >= 201700
-   MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-   if (renderer)
-   {
-       // We register with a given name
-       ArnoldViewOverride *overridePtr = new ArnoldViewOverride("arnoldViewOverride");
-       if (overridePtr)
-       {
-           renderer->registerOverride(overridePtr);
-       }
-   }
-#endif
-   char nodeName[] = "aiViewRegion";
-   status = plugin.registerNode(
-       nodeName,
-       ArnoldViewRegionManipulator::id,
-       ArnoldViewRegionManipulator::creator,
-       ArnoldViewRegionManipulator::initialize,
-       MPxNode::kManipulatorNode);
-   if (!status) {
-       status.perror("registerNode");
-   }
+#ifdef MTOA_ENABLE_AVP
+      MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+      if (renderer)
+      {
+          // We register with a given name
+          ArnoldViewOverride *overridePtr = new ArnoldViewOverride("arnoldViewOverride");
+          if (overridePtr)
+          {
+              renderer->registerOverride(overridePtr);
+          }
+      }
+      char nodeName[] = "aiViewRegion";
+      status = plugin.registerNode(
+          nodeName,
+          ArnoldViewRegionManipulator::id,
+          ArnoldViewRegionManipulator::creator,
+          ArnoldViewRegionManipulator::initialize,
+          MPxNode::kManipulatorNode);
+      if (!status) {
+          status.perror("registerNode");
+      }
 
-   status = _aiViewRegionCmd.registerCommand(object);
-   if (!status) {
-       status.perror("registerCommand");
-   }
-
+      status = _aiViewRegionCmd.registerCommand(object);
+      if (!status) {
+          status.perror("registerCommand");
+      }
 #endif
 #endif
-   
+   }
+#endif
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
    ArnoldUniverseEnd();
@@ -1327,7 +1331,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
 
    MFnPlugin plugin(object);
-
+   bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
    // Should be done when render finishes
    CMayaScene::End();
 
@@ -1396,93 +1400,98 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       }
    }
 #ifdef ENABLE_VP2
-   for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
-   {
-      const shadingNodeOverride& override = shadingNodeOverrideList[i];
-      status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-               override.classification,
-               override.registrant);
-      CHECK_MSTATUS(status);
-   }
-   
-   for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
-   {
-       const drawOverride& override = drawOverrideList[i];
-      status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
-               override.classification,
-               override.registrant);
-      CHECK_MSTATUS(status);
-   }
+   if (!isBatch)
+      {
+      for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+      {
+         const shadingNodeOverride& override = shadingNodeOverrideList[i];
+         status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+                  override.classification,
+                  override.registrant);
+         CHECK_MSTATUS(status);
+      }
+      
+      for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
+      {
+          const drawOverride& override = drawOverrideList[i];
+         status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+                  override.classification,
+                  override.registrant);
+         CHECK_MSTATUS(status);
+      }
 
-   if (MGlobal::mayaState() == MGlobal::kInteractive)
-   {
+      if (MGlobal::mayaState() == MGlobal::kInteractive)
+      {
 #if MAYA_API_VERSION < 201700
-      CArnoldPhotometricLightDrawOverride::clearGPUResources();
-      CArnoldAreaLightDrawOverride::clearGPUResources();
-      CArnoldLightPortalDrawOverride::clearGPUResources();
-      CArnoldStandInDrawOverride::clearGPUResources();
-      CArnoldProceduralDrawOverride::clearGPUResources();
+         CArnoldPhotometricLightDrawOverride::clearGPUResources();
+         CArnoldAreaLightDrawOverride::clearGPUResources();
+         CArnoldLightPortalDrawOverride::clearGPUResources();
+         CArnoldStandInDrawOverride::clearGPUResources();
+         CArnoldProceduralDrawOverride::clearGPUResources();
 
 #endif
-   }
+      }
 #if MAYA_API_VERSION >= 201700
-   status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
-       AI_STANDIN_CLASSIFICATION,
-       "arnoldStandInNodeOverride");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
+          AI_STANDIN_CLASSIFICATION,
+          "arnoldStandInNodeOverride");
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-      AI_SKYDOME_LIGHT_CLASSIFICATION,
-      "arnoldSkyDomeLightNodeOverride");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+         AI_SKYDOME_LIGHT_CLASSIFICATION,
+         "arnoldSkyDomeLightNodeOverride");
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-      AI_SKYNODE_CLASSIFICATION,
-      "arnoldSkyNodeOverride");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+         AI_SKYNODE_CLASSIFICATION,
+         "arnoldSkyNodeOverride");
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-      AI_LIGHT_FILTER_CLASSIFICATION,
-      "arnoldLightBlockerNodeOverride");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+         AI_LIGHT_FILTER_CLASSIFICATION,
+         "arnoldLightBlockerNodeOverride");
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-      AI_VOLUME_CLASSIFICATION,
-      "arnoldVolumeNodeOverride");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+         AI_VOLUME_CLASSIFICATION,
+         "arnoldVolumeNodeOverride");
+      CHECK_MSTATUS(status);
 
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-      AI_PROCEDURAL_CLASSIFICATION,
-      "arnoldProceduralNodeOverride");
-   CHECK_MSTATUS(status);
+      status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+         AI_PROCEDURAL_CLASSIFICATION,
+         "arnoldProceduralNodeOverride");
+      CHECK_MSTATUS(status);
 
-   // Register a custom selection mask
-   MSelectionMask::deregisterSelectionType("arnoldLightSelection");
+      // Register a custom selection mask
+      MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 
-   MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-   if (renderer)
-   {
-       // Find override with the given name and deregister
-       const MHWRender::MRenderOverride* overridePtr = renderer->findRenderOverride("arnoldViewOverride");
-       if (overridePtr)
-       {
-           renderer->deregisterOverride(overridePtr);
-           delete overridePtr;
-       }
-   }
+#ifdef MTOA_ENABLE_AVP
+      MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+      if (renderer)
+      {
+          // Find override with the given name and deregister
+          const MHWRender::MRenderOverride* overridePtr = renderer->findRenderOverride("arnoldViewOverride");
+          if (overridePtr)
+          {
+              renderer->deregisterOverride(overridePtr);
+              delete overridePtr;
+          }
+      }
 
-   status = plugin.deregisterNode(ArnoldViewRegionManipulator::id);
-   if (!status) {
-       status.perror("deregisterNode");
-       }
+      status = plugin.deregisterNode(ArnoldViewRegionManipulator::id);
+      if (!status) {
+          status.perror("deregisterNode");
+          }
 
-   status = _aiViewRegionCmd.deregisterCommand(object);
-   if (!status) {
-       status.perror("deregisterCommand");
-       return status;
-   }
+      status = _aiViewRegionCmd.deregisterCommand(object);
+      if (!status) {
+          status.perror("deregisterCommand");
+          return status;
+      }
 
 #endif
+#endif
+   }
 #endif
 
 #ifdef ENABLE_MATERIAL_VIEW
