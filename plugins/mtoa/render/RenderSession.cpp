@@ -1139,6 +1139,17 @@ void CRenderSession::SetRenderViewOption(const MString &option, const MString &v
    s_renderView->SetOption(option.asChar(), value.asChar());
 #endif
 }
+MString CRenderSession::GetRenderViewOption(const MString &option)
+{
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView)
+   {
+      std::string res(s_renderView->GetOption(option.asChar()));
+      return MString(res.c_str());
+   }
+#endif
+   return MString("");
+}
 
 bool CRenderSession::RenderSequence()
 {   

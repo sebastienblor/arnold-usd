@@ -111,6 +111,7 @@ public:
 
    void RunRenderView();
    static void SetRenderViewOption(const MString &option, const MString &value);
+   static MString GetRenderViewOption(const MString &option);
    static void FillRenderViewCameras();
 
    /// Start and IPR render.

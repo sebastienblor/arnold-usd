@@ -70,9 +70,11 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("r", "region", MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned);
    syntax.addFlag("opt", "option", MSyntax::kString, MSyntax::kString);
+   syntax.addFlag("get", "getoption", MSyntax::kString);
 
    return syntax;
 }
+
 
 MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 {
@@ -129,9 +131,13 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    {
       MString option = args.flagArgumentString("option", 0);
       MString value = args.flagArgumentString("option", 1);
-
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetRenderViewOption(option, value);
+      CRenderSession::SetRenderViewOption(option, value);
+      return MS::kSuccess;
+   }
+   if (args.isFlagSet("getoption"))
+   {
+      MString option = args.flagArgumentString("get", 0);
+      setResult(CRenderSession::GetRenderViewOption(option));
       return MS::kSuccess;
    }
 
