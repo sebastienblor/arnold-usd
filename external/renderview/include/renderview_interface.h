@@ -63,10 +63,6 @@ public:
    // Stops the rendering and clears the Arnold scene, but leave window visible
    void DisableRendering();
 
-   void StartIPR();
-   void StopIPR();
-   bool IsIPRStopped();
-
    // return the Qt Options Window
    QMainWindow *GetOptionsWindow();
 
@@ -82,8 +78,6 @@ public:
 
    // FIXME temp. function to be removed after we switch to new Render Control API
    void PostDisplay();
-   // FIXME temp. to be replaced by a more generic GetOptionValue that would return the value for any option in ARV
-   bool IsRegionCropped();
    
    // Get the buffer currently being displayed
    AtRGBA *GetDisplayedBuffer();
@@ -122,6 +116,11 @@ public:
 
    // set an option in the render view
    void SetOption(const char *option, const char *value);
+
+   // get the value of an option in the render view. The (const char *) result must immediately be
+   // copied to another container. Its life scope will end after any subsequent call to this same function.
+   const char *GetOption(const char *option);
+
 
    // Get a serialized definition of the RenderView options
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);

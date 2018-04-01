@@ -422,7 +422,10 @@ bool CRenderSession::IsRegionCropped()
 {
 #ifndef MTOA_DISABLE_RV
    if (s_renderView)
-      return s_renderView->IsRegionCropped();
+   {
+      std::string isCropped(s_renderView->GetOption("Crop Region"));
+      return (isCropped == "1");
+   }
 #endif   
    return false;
 
@@ -1010,8 +1013,11 @@ bool CRenderSession::IsIPRPaused()
 {
 #ifndef MTOA_DISABLE_RV
 
-    if (s_renderView)
-        return s_renderView->IsIPRStopped();
+   if (s_renderView)
+   {
+      std::string isIPRRunning(s_renderView->GetOption("Run IPR"));
+      return (isIPRRunning == "0");
+   }
 #endif
     return true;
 }
