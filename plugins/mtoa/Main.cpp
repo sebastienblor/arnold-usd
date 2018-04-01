@@ -462,6 +462,8 @@ namespace // <anonymous>
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
+      bool isBatch = (MGlobal::mayaState() == MGlobal::kBatch);
+
       MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
       // STANDINS
@@ -725,6 +727,7 @@ namespace // <anonymous>
                                     CToonTranslator::creator,
                                     CToonTranslator::NodeInitializer);
 
+
       // Load all plugins path or only shaders?
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
@@ -734,7 +737,8 @@ namespace // <anonymous>
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          SetEnv("MTOA_PATH", pluginPath);
 #ifdef ENABLE_VP2
-         SetFragmentSearchPath(pluginPath + MString("vp2"));
+         if (!isBatch)
+            SetFragmentSearchPath(pluginPath + MString("vp2"));
 #endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString proceduralsPath = pluginPath + MString("procedurals");
@@ -1098,36 +1102,42 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
 #ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
-   status = plugin.registerRenderer(CMaterialView::Name(), CMaterialView::Creator);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
+   if (!isBatch)
    {
-      AiMsgDebug("Successfully registered Arnold material view renderer");
-      initializedData[MTOA_INIT_MATERIAL_VIEW] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register Arnold material view renderer");
-      MGlobal::displayError("Failed to register Arnold material view renderer");
-      MtoAInitFailed(object, plugin, initializedData);
-      return MStatus::kFailure;
+      status = plugin.registerRenderer(CMaterialView::Name(), CMaterialView::Creator);
+      CHECK_MSTATUS(status);
+      if (MStatus::kSuccess == status)
+      {
+         AiMsgDebug("Successfully registered Arnold material view renderer");
+         initializedData[MTOA_INIT_MATERIAL_VIEW] = true;
+      }
+      else
+      {
+         AiMsgError("Failed to register Arnold material view renderer");
+         MGlobal::displayError("Failed to register Arnold material view renderer");
+         MtoAInitFailed(object, plugin, initializedData);
+         return MStatus::kFailure;
+      }
    }
 #endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
-   status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
+   if (!isBatch)
    {
-      AiMsgDebug("Successfully registered Arnold swatch renderer");
-      initializedData[MTOA_INIT_REGISTER_SWATCH] = true;
-   }
-   else
-   {
-      AiMsgError("Failed to register Arnold swatch renderer");
-      MGlobal::displayError("Failed to register Arnold swatch renderer");
-      MtoAInitFailed(object, plugin, initializedData);
-      return MStatus::kFailure;
+      status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
+      CHECK_MSTATUS(status);
+      if (MStatus::kSuccess == status)
+      {
+         AiMsgDebug("Successfully registered Arnold swatch renderer");
+         initializedData[MTOA_INIT_REGISTER_SWATCH] = true;
+      }
+      else
+      {
+         AiMsgError("Failed to register Arnold swatch renderer");
+         MGlobal::displayError("Failed to register Arnold swatch renderer");
+         MtoAInitFailed(object, plugin, initializedData);
+         return MStatus::kFailure;
+      }
    }
 
    // Commands
@@ -1401,7 +1411,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    }
 #ifdef ENABLE_VP2
    if (!isBatch)
-      {
+   {
       for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
       {
          const shadingNodeOverride& override = shadingNodeOverrideList[i];
@@ -1496,36 +1506,41 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
 #ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
-   status = plugin.deregisterRenderer(CMaterialView::Name());
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
+   if (!isBatch)
    {
-      AiMsgInfo("Successfully deregistered Arnold material view renderer");
-      MGlobal::displayInfo("Successfully deregistered Arnold material view renderer");
-   }
-   else
-   {
-      returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold material view renderer");
-      MGlobal::displayError("Failed to deregister Arnold material view renderer");
+      status = plugin.deregisterRenderer(CMaterialView::Name());
+      CHECK_MSTATUS(status);
+      if (MStatus::kSuccess == status)
+      {
+         AiMsgInfo("Successfully deregistered Arnold material view renderer");
+         MGlobal::displayInfo("Successfully deregistered Arnold material view renderer");
+      }
+      else
+      {
+         returnStatus = MStatus::kFailure;
+         AiMsgError("Failed to deregister Arnold material view renderer");
+         MGlobal::displayError("Failed to deregister Arnold material view renderer");
+      }
    }
 #endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
-   status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
+   if (!isBatch)
    {
-      AiMsgInfo("Successfully deregistered Arnold swatch renderer");
-      MGlobal::displayInfo("Successfully deregistered Arnold swatch renderer");
-   }
-   else
-   {
-      returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold swatch renderer");
-      MGlobal::displayError("Failed to deregister Arnold swatch renderer");
-   }
-   
+      status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
+      CHECK_MSTATUS(status);
+      if (MStatus::kSuccess == status)
+      {
+         AiMsgInfo("Successfully deregistered Arnold swatch renderer");
+         MGlobal::displayInfo("Successfully deregistered Arnold swatch renderer");
+      }
+      else
+      {
+         returnStatus = MStatus::kFailure;
+         AiMsgError("Failed to deregister Arnold swatch renderer");
+         MGlobal::displayError("Failed to deregister Arnold swatch renderer");
+      }
+   } 
    // Deregister image formats
    status = plugin.deregisterImageFile(CTxTextureFile::fileName);
    CHECK_MSTATUS(status);
