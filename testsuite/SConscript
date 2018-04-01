@@ -361,6 +361,8 @@ class MayaTestRunner(object):
         show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') \
             or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
+        # temporarily removing multi-threads testsuite
+        self.multiprocess = False 
         oiiotool_path = os.path.join(test_env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', os_name, 'oiiotool')
         self.tests.sort()
         if not self.multiprocess:
@@ -762,6 +764,9 @@ if __name__ == 'SCons.Script':
                 multiprocess = True
             except:
                 pass
+
+    # temporarily disabling multi-thread
+    multiprocess = False
     if multiprocess:
         from testsuite import do_run_test
         # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
