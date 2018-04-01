@@ -155,9 +155,13 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "render" || mode == "open")
    {
+       // Close any viewports renderers before opening the ARV.
+
+       CRenderSession::CloseOtherViews("");
+
       s_wasVisible = true;
 
-      if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW) && !CMayaScene::GetRenderSession()->IsViewportRendering())
+      if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
       {
          // A render view session has already been started
          // let's pop-up the window, and eventually re-render

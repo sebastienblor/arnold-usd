@@ -839,10 +839,7 @@ void CRenderSession::RunRenderView()
 
 void CRenderSession::StartRenderView()
 {
-#ifndef MTOA_DISABLE_RV
-
-   CloseOtherViews("");
-   
+#ifndef MTOA_DISABLE_RV 
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;

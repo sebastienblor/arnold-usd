@@ -113,15 +113,17 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     //    and a new render will be started below.
     // 2) Register an override changed callback to catch when the override for this panel is turned off.
     //    The callback is used to stop any active rendering when the override is turned off.
-    // 3) Initialize some default state for this panel
-    RegionRenderState state;
     if (callbackIdMap.find(destination.asChar()) == callbackIdMap.end())
     {
         stopExistingOverrides(destination);
 
         MCallbackId callbackID = MUiMessage::add3dViewRenderOverrideChangedCallback(destination, sRenderOverrideChangeFunc, this);
         callbackIdMap[destination.asChar()] = callbackID;
-
+    }
+    // 3) Initialize some default state for this panel
+    RegionRenderState state;
+    if (mRegionRenderStateMap.find(destination.asChar()) == mRegionRenderStateMap.end())
+    {
         state.enabled = false;
         state.useRegion = true;
         state.initialized = false;
@@ -442,10 +444,9 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
         MGlobal::executeCommand("aiViewRegionCmd -delete;");
         s_activeViewport = MString("");
         
-        // Closing the options window through this will also properly interupt the renderer and end the scene.
-        CRenderSession* renderSession = CMayaScene::GetRenderSession();
-        if (renderSession)
-            renderSession->CloseOptionsWindow();
+        // Close the options window and end the scene.
+        CRenderSession::CloseOptionsWindow();
+        CMayaScene::End();
 
         RegionRenderState state = static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap[panelName.asChar()];
         state.initialized = false;
@@ -461,9 +462,9 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
 
 void ArnoldViewOverride::sPreFileOpen(void* clientData)
 {
-    static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
     stopExistingOverrides("");
     CRenderSession::CloseOptionsWindow();
+    static_cast<ArnoldViewOverride*>(clientData)->mRegionRenderStateMap.clear();
     //MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");  
 }
 
