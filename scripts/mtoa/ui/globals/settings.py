@@ -494,9 +494,9 @@ def createGpuSettings():
     if universeCreated:
         ai.AiEnd()
 
-    cmds.frameLayout(label='Automatic GPU Selection', collapse=False)
+    cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('default_gpu_names', 
-                        label="GPU Names", 
+                        label="Device Names", 
                         attribute='defaultArnoldRenderOptions.default_gpu_names')
 
     cmds.attrControlGrp('default_gpu_min_memory_MB', 
@@ -504,10 +504,10 @@ def createGpuSettings():
                         attribute='defaultArnoldRenderOptions.default_gpu_min_memory_MB')
 
     cmds.setParent('..')
-    cmds.frameLayout(label='Manual GPU Selection', collapse=False)
+    cmds.frameLayout(label='Manual Device Selection (Local Render)', collapse=False)
     
     cmds.attrControlGrp('manual_gpu_devices', 
-                        label="Enable Manual GPU Selection", 
+                        label="Enable Manual Device Selection", 
                         changeCommand=changeGpu,
                         attribute='defaultArnoldRenderOptions.manual_gpu_devices')
 
