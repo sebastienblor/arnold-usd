@@ -234,7 +234,7 @@ def updateArnoldTargetFilePreview(*args):
     if not cmds.objExists('defaultArnoldRenderOptions'):
         return
 
-    aovsEnabled = cmds.getAttr('defaultArnoldRenderOptions.aovMode') and aovs.getAOVs(enabled=True, exclude=['beauty', 'RGBA', 'RGB'])
+    aovsEnabled = cmds.getAttr('defaultArnoldRenderOptions.aovMode') and (aovs.getAOVs(enabled=True, exclude=['beauty', 'RGBA', 'RGB']) or cmds.getAttr('defaultArnoldRenderOptions.outputVarianceAOVs'))
 
     if aovsEnabled:
         tokens['RenderPass'] = '<RenderPass>'

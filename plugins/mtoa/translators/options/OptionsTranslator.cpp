@@ -56,6 +56,8 @@ void COptionsTranslator::ProcessAOVs()
    bool foundBeauty = false;
    MPlugArray conns;
 
+   m_aovsInUse = FindMayaPlug("outputVarianceAOVs").asBool();
+   
    m_aovs.clear();
 
    ClearAovCallbacks();
