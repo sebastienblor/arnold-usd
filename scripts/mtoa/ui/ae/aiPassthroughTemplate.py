@@ -52,9 +52,9 @@ class AEaiPassthroughTemplate(ShaderAETemplate):
         self.addCustom("eval20", PassthroughAttrNew, PassthroughAttrReplace)        
         self.endLayout()
 
-        #self.beginLayout("Bump", collapse=False)
-        #self.addControl("normalCamera")
-        #self.endLayout()
+        self.beginLayout("Bump", collapse=False)
+        self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
+        self.endLayout()
         
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()

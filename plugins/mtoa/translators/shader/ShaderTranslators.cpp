@@ -2334,7 +2334,7 @@ void CAiPassthroughTranslator::Export(AtNode* shader)
       else
          AiNodeResetParameter(shader, AtString(attrName.asChar()));
    }
-   //ExportBump(shader);
+   ExportBump(shader);
 }
 
 void CAiPassthroughTranslator::NodeInitializer(CAbTranslator context)
