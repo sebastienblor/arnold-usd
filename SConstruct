@@ -131,6 +131,9 @@ vars.AddVariables(
     PathVariable('TARGET_PROCEDURAL_PATH', 
                  'Path used for installation of arnold procedurals', 
                  os.path.join('$TARGET_MODULE_PATH', 'procedurals'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_PLUGINS_PATH', 
+                 'Path used for installation of arnold/mtoa plugins', 
+                 os.path.join('$TARGET_MODULE_PATH', 'plugins'), PathVariable.PathIsDirCreate),    
     PathVariable('TARGET_EXTENSION_PATH', 
                  'Path used for installation of mtoa translator extensions', 
                  os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
@@ -251,6 +254,7 @@ TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
+TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
@@ -759,6 +763,7 @@ if system.os() == 'windows':
     env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
     
     libs = MTOA_API[1]
+    env.Install(env['TARGET_LIB_PATH'], libs)
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -767,8 +772,6 @@ else:
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.dylib'))
-
-env.Install(env['TARGET_LIB_PATH'], libs)
 
 dylibs = glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extension()))
@@ -804,7 +807,7 @@ env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*"))
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 
-env.Install(TARGET_PROCEDURAL_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
+env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 
 OCIO_DYLIBPATH =""
 
@@ -1162,7 +1165,7 @@ PACKAGE_FILES = [
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
-[os.path.join(ARNOLD, 'plugins', '*'), os.path.join('procedurals')],
+[os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
 
 for p in presetfiles:
@@ -1361,6 +1364,7 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'oslinfo')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'pit', 'pitreg')])
 

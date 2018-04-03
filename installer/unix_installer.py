@@ -164,6 +164,8 @@ def unzip(zipFilePath, destDir):
 previousFiles = [
 'docs',
 'extensions/bifrostTranslator.py',
+'extensions/gpuCacheTranslator.py',
+'extensions/gpuCacheTranslator.so',
 'extensions/xgenArnoldUI.py',
 'extensions/bifrostTranslator.so',
 'extensions/xgenArnoldUI_res.py',
@@ -179,6 +181,7 @@ previousFiles = [
 'icons',
 'include',
 'bin/kick',
+'bin/noice',
 'bin/libmtoa_api.so',
 'bin/libsynColor.so.2017.0.69',
 'bin/libsynColor.so.2017.0.68',
@@ -193,11 +196,19 @@ previousFiles = [
 'bin/oslinfo',
 'bin/libai.so',
 'bin/ProductInformation.pit',
-'lib/libAdClmHub.so',
-'lib/libadlmint.so',
-'lib/libai.so',
+'bin/lmutil',
+'bin/rlmutil',
+'bin/libAdClmHub.so',
+'bin/libadlmint.so',
+'bin/libai.so',
+'bin/libcudart.so.9.0',
+'bin/libcudnn.so.7',
+'bin/liboptix_denoiser.so',
+'bin/liboptix.so.1',
 'plug-ins/mtoa.mtd',
 'plug-ins/mtoa.so',
+'plugins/alembic_proc.so',
+'procedurals/alembic_proc.so',
 'procedurals/bifrost_procedural.so',
 'procedurals/volume_openvdb.so',
 'procedurals/bifrost_procedurals.so',
@@ -247,7 +258,9 @@ previousFiles = [
 'shaders/mtoa_shaders.mtd',
 'shaders/xgenSpline_shaders.so',
 'osl/oslutil.h',
-'osl/stdosl.h'
+'osl/stdosl.h',
+'osl/include/oslutil.h',
+'osl/include/stdosl.h'
 ]
 
 for previousFile in previousFiles:
@@ -280,7 +293,7 @@ mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
-exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx')]
+exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil')]
 for ex in exList:
     try:
         subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
