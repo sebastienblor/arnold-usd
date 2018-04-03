@@ -293,8 +293,8 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("enable_adaptive_sampling");
    s_attributes.MakeInput("AA_samples_max");
-   s_attributes.MakeInput("adaptive_threshold");
-   s_attributes.MakeInput("progressive_render");
+   s_attributes.MakeInput("AA_adaptive_threshold");
+   s_attributes.MakeInput("enable_progressive_render");
    
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");

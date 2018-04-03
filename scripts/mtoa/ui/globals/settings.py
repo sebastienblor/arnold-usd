@@ -773,7 +773,7 @@ def createArnoldSamplingSettings():
     cmds.separator()
     cmds.attrControlGrp('ss_progressive_render',
                         label="Progressive Render",
-                        attribute='defaultArnoldRenderOptions.progressive_render')
+                        attribute='defaultArnoldRenderOptions.enable_progressive_render')
 
     cmds.frameLayout(label='Adaptive Sampling', collapse=True)
     cmds.columnLayout(adjustableColumn=True)
@@ -790,7 +790,7 @@ def createArnoldSamplingSettings():
 
     cmds.attrControlGrp('ss_adaptive_threshold',
                         label="Adaptive Threshold",
-                        attribute='defaultArnoldRenderOptions.adaptive_threshold')
+                        attribute='defaultArnoldRenderOptions.AA_adaptive_threshold')
     cmds.setParent('..')
     cmds.setParent('..')
     
