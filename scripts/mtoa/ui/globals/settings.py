@@ -6,6 +6,7 @@ import arnold as ai
 import maya.cmds as cmds
 import maya.mel
 import mtoa.utils as utils
+import sys
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -1689,9 +1690,12 @@ def createArnoldRendererSystemTab():
     cmds.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
     cmds.columnLayout('arnoldSystemColumn', adjustableColumn=True)
 
-    cmds.frameLayout('arnoldGpuSettings', label="Optix Denoiser", cll=True, cl=0)
-    createGpuSettings()
-    cmds.setParent('..')
+    platformName = sys.platform
+
+    if not platformName.startswith('darwin'):
+        cmds.frameLayout('arnoldGpuSettings', label="Optix Denoiser", cll=True, cl=0)
+        createGpuSettings()
+        cmds.setParent('..')
 
     # Render
     #

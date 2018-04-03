@@ -3,6 +3,7 @@ import mtoa.aovs as aovs
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.utils as aeUtils
+import sys
 
 class AEaiAOVTemplate(ShaderAETemplate):
 
@@ -223,7 +224,11 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.addControl('name', changeCommand=self.updateLightGroupsVisibility)
         self.addControl('type', label='Data Type')
         self.addSeparator()
-        self.addControl('denoise', label='Denoise')
+        platformName = sys.platform
+
+        if not platformName.startswith('darwin'):
+            self.addControl('denoise', label='Denoise')
+
         self.addSeparator()
         self.addControl('camera', label='Camera (Batch only)')
 
