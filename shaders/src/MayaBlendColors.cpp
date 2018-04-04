@@ -20,8 +20,8 @@ node_parameters
    AiParameterRGB("color1", 1, 0, 0);
    AiParameterRGB("color2", 0, 0, 1);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "blendColors");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52424c32);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   
 }
 
 shader_evaluate

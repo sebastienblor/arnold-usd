@@ -131,9 +131,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    // or in batch it might fail
    bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
 
-
-   AiBegin();
-   CMayaScene::Begin(MTOA_SESSION_BATCH);
+   CMayaScene::Begin(MTOA_SESSION_RENDER);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);
@@ -211,7 +209,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       }
    }
    AtNode* options_node = AiUniverseGetOptions();
-   AiNodeSetBool(options_node, "preserve_scene_data", true);
    AiNodeSetPtr(options_node, "color_manager", NULL);
 
    int resolution = 512; // default value
@@ -422,11 +419,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          dagPath.extendToShape();
       }
       MFnDagNode dagNode(dagPath);
-      MString meshName = dagNode.partialPathName();
-
+      MString meshName = CDagTranslator::GetArnoldNaming(dagPath);
       AtNode* node = AiNodeLookUpByName(meshName.asChar());
+
       if (node == NULL)
       {
+         // Shouldn't have to do this ?
          const char *arnoldName = arnoldSession->GetArnoldObjectName(meshName.asChar());
          if ((arnoldName != NULL) && (arnoldName[0] != '\0'))
          {
@@ -549,9 +547,14 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             shader_name = AiNodeGetName(shader);
       }
 
-      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshName));
-
       std::string meshNameStr = meshName;
+      if (AiNodeLookUpUserParameter(mesh, "dcc_name"))
+      {
+         // if the user data "dcc_name" exists, I want to use it for the output image filename
+         meshNameStr = AiNodeGetStr(mesh, "dcc_name"); 
+      }
+      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshNameStr.c_str()));
+
       std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
       std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
 
@@ -598,7 +601,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             AtNode *camera = AiNode("MtoaCameraUvMapper");
             if (camera == 0)
             {
-               AiEnd();
+               CMayaScene::End();
                MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
                return MS::kSuccess;
             }
@@ -641,7 +644,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AtNode *camera = AiNode("MtoaCameraUvMapper");
          if (camera == 0)
          {
-            AiEnd();
+            CMayaScene::End();
             MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
             return MS::kSuccess;
          }
@@ -682,7 +685,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    }
    MProgressWindow::endProgress();
 
-   AiEnd();
+   CMayaScene::End();
 
    return MS::kSuccess;
 }

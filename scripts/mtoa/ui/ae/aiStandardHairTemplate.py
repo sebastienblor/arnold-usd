@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -54,15 +54,43 @@ class AEaiStandardHairTemplate(ShaderAETemplate):
         self.addControl("aiMatteColor", label="Matte Color")
         self.addControl("aiMatteColorA", label="Matte Opacity")
         self.endLayout()
+        
+        self.beginLayout("AOVs", collapse=True)
+        self.addControl("aov_id1", label="ID 1 AOV")
+        self.addControl("id1", label="ID 1")
+        self.addSeparator()
+        self.addControl("aov_id2", label="ID 2 AOV")
+        self.addControl("id2", label="ID 2")
+        self.addSeparator()
+        self.addControl("aov_id3", label="ID 3 AOV")
+        self.addControl("id3", label="ID 3")
+        self.addSeparator()
+        self.addControl("aov_id4", label="ID 4 AOV")
+        self.addControl("id4", label="ID 4")
+        self.addSeparator()
+        self.addControl("aov_id5", label="ID 5 AOV")
+        self.addControl("id5", label="ID 5")
+        self.addSeparator()
+        self.addControl("aov_id6", label="ID 6 AOV")
+        self.addControl("id6", label="ID 6")
+        self.addSeparator()
+        self.addControl("aov_id7", label="ID 7 AOV")
+        self.addControl("id7", label="ID 7")
+        self.addSeparator()
+        self.addControl("aov_id8", label="ID 8 AOV")
+        self.addControl("id8", label="ID 8")
+        self.endLayout()
 
         self.beginLayout("Advanced", collapse=True)
         self.addControl("indirectDiffuse",  label="Indirect Diffuse", annotation="Indirect Diffuse")
         self.addControl("indirectSpecular",  label="Indirect Specular", annotation="Indirect Specular")
+        self.addControl("extraDepth",  label="Extra Depth", annotation="Extra Depth")
+        self.addControl("extraSamples",  label="Extra Samples", annotation="Extra Samples")
         self.endLayout()
 
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.suppress('PhongExponent')
        

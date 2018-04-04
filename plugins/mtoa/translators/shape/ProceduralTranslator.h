@@ -31,9 +31,13 @@ protected:
    AtNode* ExportProcedural(AtNode* procedural);
    AtByte ComputeOverrideVisibility();
    virtual void RequestUpdate();
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
 
    MPlug FindProceduralPlug(const char *attrName);
 
 protected:
    MFnDagNode m_DagNode;
+   
+   bool m_attrChanged;
+
 };

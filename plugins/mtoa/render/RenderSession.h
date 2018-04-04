@@ -13,6 +13,7 @@
 #include <maya/MThreadAsync.h>
 #include <maya/MComputation.h>
 #include <maya/MImage.h>
+#include <maya/MFloatPoint.h>
 
 
 /** CRenderSession handles the management of Arnold and rendering.
@@ -67,7 +68,7 @@ public:
 
    static void DeleteRenderView();
 
-   
+   static void CloseOtherViews(const MString& destination);
 
    // Render Methods.
    /// Render into the Render View, not IPR.
@@ -102,20 +103,31 @@ public:
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender(bool waitFinished = true);
 
+   // FIXME tmp function, to be replaced by a more generic GetOptionValue that returns the value of any ARV option
+   bool IsRegionCropped();
+
+   //void RunInteractiveRenderer();
+   static bool HasRenderResults(AtBBox2 &box);
+
    void RunRenderView();
-   void SetRenderViewOption(const MString &option, const MString &value);
+   static void SetRenderViewOption(const MString &option, const MString &value);
+   static MString GetRenderViewOption(const MString &option);
+   static void FillRenderViewCameras();
 
    /// Start and IPR render.
    void DoIPRRender();
-   void StopIPR();
    /// Pause IPR, callbacks will still fire and Arnold will get the changes.
    void PauseIPR();
+   static bool IsIPRPaused();
+
    /// Start off rendering again.
    void UnPauseIPR();
 
    void StartRenderView();
    void UpdateRenderView();
    void CloseRenderView();
+   static void OpenInteractiveRendererOptions();
+   static void CloseOptionsWindow();
 
    void ObjectNameChanged(MObject& node, const MString& str);
 
@@ -166,6 +178,7 @@ public:
    /// though Arnold is not currently rendering.
    /// \return if we're active.
    inline bool IsActive() const { return m_is_active; }
+   inline bool IsInteractiveSession() const {return m_interactiveSession;}
 
    static void ClearIdleRenderViewCallback();
 
@@ -173,15 +186,20 @@ public:
    void UpdateRenderOptions();
    
    static void CloseRenderViewWithSession(bool b);
+   static bool IsViewportRendering();
       
+   const AtRGBA *GetDisplayedBuffer();
+   static void PostDisplay();
+
 private:
 
-   CRenderSession()
+   // interactive session is related to arnold's AiBegin(AI_SESSION_INTERACTIVE)
+   CRenderSession(bool interactiveSession = true)
       : m_paused_ipr(false)
       , m_is_active(false)
+      , m_interactiveSession(interactiveSession)
       , m_render_thread(NULL)
-      , m_rendering(0)
-      //, m_renderView(NULL)
+      , m_rendering(0)      
    {
    }
 
@@ -200,13 +218,12 @@ private:
    /// data should be a CRenderSession pointer.
    static unsigned int InteractiveRenderThread(void* data);
 
-
-
 private:
 
    CRenderOptions m_renderOptions;
    bool           m_paused_ipr;  ///< True when IPR is paused.
    bool           m_is_active;   ///< True when after a Init() and before a Finish().
+   bool           m_interactiveSession;
 
    /// This is a special callback installed to update the render view while Arnold is rendering in IPR.
    /// \see AddIdleRenderViewCallback

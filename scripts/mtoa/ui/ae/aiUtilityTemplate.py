@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import arnold as ai
@@ -21,17 +21,17 @@ def aiUtilitySetColorMode(attr):
 class AEaiUtilityTemplate(ShaderAETemplate):
     def checkShadeMode(self, nodeName):
         fullAttr = '%s.%s' % (nodeName, 'shade_mode')
-        shadeModeValue = pm.getAttr(fullAttr)
+        shadeModeValue = cmds.getAttr(fullAttr)
         if shadeModeValue == 3:
-            pm.editorTemplate(dimControl=(nodeName, 'aoDistance', False))
+            cmds.editorTemplate(dimControl=(nodeName, 'aoDistance', False))
         else:
-            pm.editorTemplate(dimControl=(nodeName, 'aoDistance', True))
+            cmds.editorTemplate(dimControl=(nodeName, 'aoDistance', True))
         
         #roughness for plastic and metal
         if shadeModeValue == 4 or shadeModeValue == 5:
-            pm.editorTemplate(dimControl=(nodeName, 'roughness', False))
+            cmds.editorTemplate(dimControl=(nodeName, 'roughness', False))
         else:
-            pm.editorTemplate(dimControl=(nodeName, 'roughness', True))
+            cmds.editorTemplate(dimControl=(nodeName, 'roughness', True))
 
     def setup(self):
         self.addSwatch()
@@ -42,8 +42,7 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.beginLayout('Utility Attributes', collapse=False)
         self.addControl('shadeMode', changeCommand=self.checkShadeMode, label='Shade Mode')
         self.addCustom('colorMode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
-        if int(ai.AiGetVersion()[2]) > 2:
-            self.addControl('overlay_mode', label='Overlay Mode')
+        self.addControl('overlayMode', label='Overlay Mode')
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
         self.addControl('aoDistance', label='AO Distance')
@@ -51,7 +50,7 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.endLayout()
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
         
         self.endScrollLayout()        

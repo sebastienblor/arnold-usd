@@ -14,6 +14,7 @@
 #include <maya/MDGMessage.h>
 #include <maya/MMessage.h>
 #include <maya/MStringArray.h>
+#include <maya/MNodeClass.h>
 
 
 //--------------- CExtensionsManager -----------------------------------
@@ -64,6 +65,7 @@ public:
    static void GetNodeTypesWithAOVs(MStringArray& result);
    static void GetAOVShaders(MStringArray& result);
    static void GetCustomShapes(MStringArray& result);
+   static void GetOperators(MStringArray& result);
 
 
    static CExtension* GetExtension(const MString &extensionFile);
@@ -78,8 +80,11 @@ public:
    static MString GetDefaultTranslator(const MString& nodeName);
    static MStringArray ListLoadedExtensions();
    static void AddCustomShape(const MString &shape);
+   static void AddOperator(const MString &op);
    
    static CExtension* NewExtension(const MString &extensionFile);
+   static MStatus RegisterExtensionAttribute(const MNodeClass &nodeClass, const MObject &attrib);
+   static MStatus UnregisterExtensionAttributes(const MObject &plugin);
 
 protected:
    static MStatus DoUnloadExtension(CExtension* extension);   
@@ -94,6 +99,7 @@ protected:
                                                         const CPxTranslator &translator=CPxTranslator());
    static TranslatorsSet* FindRegisteredTranslators(const CPxMayaNode &mayaNode);
 
+
 private:
    CExtensionsManager() {}
 
@@ -106,4 +112,5 @@ private:
 
    static MCallbackId s_pluginLoadedCallbackId;
    static CustomShapesMap s_customShapes;
+   static OperatorsMap s_operators;
 };

@@ -1,13 +1,14 @@
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiTriplanarTemplate(ShaderAETemplate):
     def updateCell(self, nodeName):
         cellAttr = '%s.%s' % (nodeName, 'cell')
-        cellValue = pm.getAttr(cellAttr)
+        cellValue = cmds.getAttr(cellAttr)
         
-        pm.editorTemplate(dimControl=(nodeName, 'cellRotate', not cellValue))
-        pm.editorTemplate(dimControl=(nodeName, 'cellBlend', not cellValue))
+        cmds.editorTemplate(dimControl=(nodeName, 'cellRotate', not cellValue))
+        cmds.editorTemplate(dimControl=(nodeName, 'cellBlend', not cellValue))
             
 
     def setup(self):
@@ -17,7 +18,7 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         self.addControl("input", label="Input")
         self.addSeparator()
         self.addControl("coordSpace")
-        self.addControl("P")
+        self.addControl("prefName")
         self.addControl("blend")
 
         self.beginLayout("Transform", collapse=False)
@@ -32,7 +33,7 @@ class AEaiTriplanarTemplate(ShaderAETemplate):
         self.addControl("cellBlend", label="Blend")
         self.endLayout()
                 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

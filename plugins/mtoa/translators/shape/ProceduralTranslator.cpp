@@ -31,6 +31,8 @@ void CProceduralTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CProceduralTranslator::CreateArnoldNodes()
 {
+   m_attrChanged = false;
+
    if (IsMasterInstance())
       return AddArnoldNode("procedural");
    else
@@ -167,10 +169,32 @@ void CProceduralTranslator::ProcessRenderFlags(AtNode* node)
       AiNodeSetFlt(node, "motion_start", (float)motionStart);
       AiNodeSetFlt(node, "motion_end", (float)motionEnd);
    }
+
+   // eventually export dcc_name user attribute
+   // FIXME this could be moved to a separate function but this might be temporary
+   if (GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(node, "dcc_name") == NULL)
+         AiNodeDeclare(node, "dcc_name", "constant STRING");
+   
+      MString partialName = m_dagPath.partialPathName();
+      AiNodeSetStr(node, "dcc_name", AtString(partialName.asChar()));
+   }
+
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(node, "maya_full_name") == NULL)
+         AiNodeDeclare(node, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(node, "maya_full_name", AtString(fullName.asChar()));
+   }
+
 }
 
 void CProceduralTranslator::Export(AtNode* anode)
 {
+   m_attrChanged = false;
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
@@ -276,10 +300,25 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
 }
 
 
+void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
+
+   if (!IsTransformPlug(plug))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShapeTranslator::NodeChanged(node, plug);
+}
+   
 void CProceduralTranslator::RequestUpdate()
 {  
-   SetUpdateMode(AI_RECREATE_NODE);
+   // if no attribute has changed, it means that RequestUpdate is invoked explicitely
+   // and in that case we want to fully regenerate the node (#3240)
+   if (!m_attrChanged)
+      SetUpdateMode(AI_RECREATE_NODE);
+
    CShapeTranslator::RequestUpdate();
+   m_attrChanged = false;
    // this should propagate a request update on all other procedurals, standins, referencing me
 }
 

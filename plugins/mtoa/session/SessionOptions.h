@@ -22,7 +22,7 @@ enum ArnoldSessionMode
    MTOA_SESSION_IPR,  ///< IPR Rendering in Maya Render View
    MTOA_SESSION_SWATCH, ///< Simple rendering performed for the swatches (e.g. Attribute Editor)
    MTOA_SESSION_ASS, ///< Exporting the scene to .ASS file
-   MTOA_SESSION_AIR,  
+   MTOA_SESSION_AIR,  ///< Deprecated : FIXME remove in next API breaking version
    MTOA_SESSION_RENDERVIEW, ///< Render with Arnold RenderView
    MTOA_SESSION_MATERIALVIEW, ///< Material Viewer rendering
    MTOA_SESSION_SEQUENCE,  ///< Render a Sequence from Maya interface
@@ -45,6 +45,7 @@ enum ArnoldShadowLinkMode
 };
 
 // Filters
+// FIXME we just use the layer filter, in case we're exporting a selection
 #define MTOA_FILTER_DISABLE   0x0000
 #define MTOA_FILTER_HIDDEN    0x0001
 #define MTOA_FILTER_TEMPLATED 0x0002
@@ -53,7 +54,8 @@ enum ArnoldShadowLinkMode
 
 typedef unordered_set<MFn::Type, hash<int> > MFnTypeSet;
 
-struct CMayaExportFilter
+// FIXME This should be removed as it's legacy
+struct CMayaExportFilter  
 {
    unsigned int state_mask;
    MFnTypeSet excluded;

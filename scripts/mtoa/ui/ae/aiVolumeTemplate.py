@@ -4,7 +4,6 @@ import arnold as ai
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
-import pymel.core as pm
 import os
 import os.path
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -14,8 +13,8 @@ def ArnoldVolumeAutoStepChange(nodeName):
     dimStepSize = autoStep
     dimStepScale = not autoStep
 
-    pm.editorTemplate(dimControl=(nodeName, "stepSize",  dimStepSize))
-    pm.editorTemplate(dimControl=(nodeName, "stepScale", dimStepScale))
+    cmds.editorTemplate(dimControl=(nodeName, "stepSize",  dimStepSize))
+    cmds.editorTemplate(dimControl=(nodeName, "stepScale", dimStepScale))
 
 def ArnoldVolumeTypeChange(nodeName):
     volumeType = cmds.getAttr(nodeName + '.type')
@@ -23,11 +22,11 @@ def ArnoldVolumeTypeChange(nodeName):
     if (volumeType == 1):
         dimImplicitAttrs = False
 
-    pm.editorTemplate(dimControl=(nodeName, "field",  dimImplicitAttrs))
-    pm.editorTemplate(dimControl=(nodeName, "solver",  dimImplicitAttrs))
-    pm.editorTemplate(dimControl=(nodeName, "fieldChannel",  dimImplicitAttrs))
-    pm.editorTemplate(dimControl=(nodeName, "samples",  dimImplicitAttrs))
-    pm.editorTemplate(dimControl=(nodeName, "threshold",  dimImplicitAttrs))
+    cmds.editorTemplate(dimControl=(nodeName, "field",  dimImplicitAttrs))
+    cmds.editorTemplate(dimControl=(nodeName, "solver",  dimImplicitAttrs))
+    cmds.editorTemplate(dimControl=(nodeName, "fieldChannel",  dimImplicitAttrs))
+    cmds.editorTemplate(dimControl=(nodeName, "samples",  dimImplicitAttrs))
+    cmds.editorTemplate(dimControl=(nodeName, "threshold",  dimImplicitAttrs))
 
 def aiVolumeFieldReplace(plugName):
     nodeAndAttrs = plugName.split(".")
@@ -37,14 +36,14 @@ def aiVolumeFieldReplace(plugName):
     cmds.attrNavigationControlGrp(ctrlName, edit=True, attribute=(plugName),  cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
 
 def aiVolumeFieldNew(plugName):
-    pm.setUITemplate('attributeEditorTemplate', pst=True)
+    cmds.setUITemplate('attributeEditorTemplate', pst=True)
 
     nodeAndAttrs = plugName.split(".")
     ctrlName = "aiVolumeImplicit"
     ctrlName += nodeAndAttrs[1]
 
     cmds.attrNavigationControlGrp(ctrlName, label=nodeAndAttrs[1], cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
-    pm.setUITemplate(ppt=True)
+    cmds.setUITemplate(ppt=True)
     aiVolumeFieldReplace(plugName)
 
 class AEaiVolumeTemplate(ShaderAETemplate):
@@ -304,7 +303,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.endLayout()
     
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.suppress('blackBox')
         self.suppress('containerType')

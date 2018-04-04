@@ -16,13 +16,17 @@ This makes it easy to extend the built-in functionality within your override.  F
     mtoa.hooks.getDefaultAOVs = getDefaultAOVs
 """
 import os
+import os.path
+import maya.cmds as cmds
+import maya.mel as mel
+import maya.OpenMaya as om
 from posixpath import join
 
 def setupFilter(filter, aovName=None):
     """
     Setup a filter that was created by mtoa.
     
-    filter : pymel.PyNode
+    filter : string
         the newly created filter node
     
     aovName : string or None
@@ -42,7 +46,7 @@ def setupDriver(driver, aovName=None):
     """
     Setup a driver that was created by mtoa.
     
-    filter : pymel.PyNode
+    filter : string
         the newly created driver node
     
     aovName : string or None
@@ -62,7 +66,7 @@ def setupOptions(options):
     """
     Setup the 'defaultArnoldRenderOptions' node.
     
-    options : pymel.PyNode
+    options : string
         the newly created options node
 
     Override this function to change defaults on the options node.
@@ -95,30 +99,33 @@ def getDefaultAOVs():
 _getDefaultAOVs = getDefaultAOVs
 
 def fileTokenScene(path, tokens, **kwargs):
-    import pymel.core as pm
+    
     if '<Scene>' in path and 'Scene' not in tokens:
-        sceneName = pm.sceneName().namebase
+        untitledFile = mel.eval('untitledFileName()')
+        sceneName = om.MFileIO.currentFile()    
+        if os.path.basename(sceneName).startswith(untitledFile) and cmds.file(q=1, sceneName=1) == '':
+            sceneName = ""
+        
+        sceneName, sceneExt = os.path.splitext(os.path.basename(sceneName))
         if sceneName == '':
             sceneName = 'untitled'
         tokens['Scene'] = sceneName
 _fileTokenScene = fileTokenScene
 
 def fileTokenRenderPass(path, tokens, **kwargs):
-    import pymel.core as pm
     if not kwargs.get('strictAOVs', False) and '<RenderPass>' not in path and 'RenderPass' in tokens:
         if not os.path.isabs(path):
             path = join('<RenderPass>', path)
         else:
-            pm.cmds.warning('[mtoa] Multiple render passes (AOVs) exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
+            cmds.warning('[mtoa] Multiple render passes (AOVs) exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
     return path
 _fileTokenRenderPass = fileTokenRenderPass
 
 def fileTokenCamera(path, tokens, **kwargs):
-    import pymel.core as pm
-    renderable = [c for c in pm.ls(type='camera') if c.renderable.get()]
+    renderable = [c for c in cmds.ls(type='camera') if cmds.getAttr('{}.renderable'.format(c))]
     if '<Camera>' not in path and len(renderable) > 1:
         if os.path.isabs(path):
-            pm.cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
+            cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
         else:
             path = join('<Camera>', path)
 
@@ -127,7 +134,9 @@ def fileTokenCamera(path, tokens, **kwargs):
             if not kwargs['leaveUnmatchedTokens']:
                 raise ValueError("[mtoa] Multiple renderable cameras: you must provide a value for <Camera> token")
         elif len(renderable) == 1:
-            tokens['Camera'] = renderable[0].getParent().name()
+            parents = cmds.listRelatives(renderable[0], parent=True)
+            if parents and len(parents):
+                tokens['Camera'] = parents[0]
         else:
             if not kwargs['leaveUnmatchedTokens']:
                 raise ValueError("[mtoa] No renderable cameras: you must provide a value for <Camera> token")
@@ -135,16 +144,15 @@ def fileTokenCamera(path, tokens, **kwargs):
 _fileTokenCamera = fileTokenCamera
 
 def fileTokenRenderLayer(path, tokens, **kwargs):
-    import pymel.core as pm
-    layers = pm.cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)
+    layers = cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)
     if '<RenderLayer>' not in path and len(layers) > 1:
         if os.path.isabs(path):
-            pm.cmds.warning('[mtoa] Multiple renderable render layers exist, but output path is absolute and without <RenderLayer> token: "%s"' % path)
+            cmds.warning('[mtoa] Multiple renderable render layers exist, but output path is absolute and without <RenderLayer> token: "%s"' % path)
         else:
             path = join('<RenderLayer>', path)
 
     if '<RenderLayer>' in path and 'RenderLayer' not in tokens:
-        tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+        tokens['RenderLayer'] = cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
     
     if tokens.get('RenderLayer', None) == 'defaultRenderLayer':
         tokens['RenderLayer'] = 'masterLayer'
@@ -152,6 +160,5 @@ def fileTokenRenderLayer(path, tokens, **kwargs):
 _fileTokenRenderLayer = fileTokenRenderLayer
 
 def fileTokenVersion(path, tokens, **kwargs):
-    import pymel.core as pm
     if '<Version>' in path and 'Version' not in tokens:
-        tokens['Version'] = pm.getAttr('defaultRenderGlobals.renderVersion')
+        tokens['Version'] = cmds.getAttr('defaultRenderGlobals.renderVersion')

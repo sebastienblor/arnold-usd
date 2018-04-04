@@ -1,4 +1,3 @@
-import pymel.core as pm
 import mtoa.ui.ae.templates as templates
 from mtoa.ui.ae.templates import ShapeTranslatorTemplate, registerTranslatorUI
 

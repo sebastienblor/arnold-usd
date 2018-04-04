@@ -31,7 +31,7 @@ MObject CArnoldAOVNode::s_lightPathExpression;
 MObject CArnoldAOVNode::s_lightGroups;
 MObject CArnoldAOVNode::s_globalAOV;
 MObject CArnoldAOVNode::s_lightGroupsList;
-
+MObject CArnoldAOVNode::s_denoise;
 
 
 void* CArnoldAOVNode::creator()
@@ -130,6 +130,10 @@ MStatus CArnoldAOVNode::initialize()
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_camera);
+
+   s_denoise = nAttr.create("denoise", "den", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_denoise);
   
    return MStatus::kSuccess;
 }

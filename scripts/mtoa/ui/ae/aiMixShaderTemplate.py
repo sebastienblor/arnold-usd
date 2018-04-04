@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import maya.cmds as cmds
 
@@ -11,14 +11,14 @@ def aiMixInputReplace(plugName):
     cmds.attrNavigationControlGrp(ctrlName, edit=True, attribute=(plugName),  cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
 
 def aiMixInputNew(plugName):
-    pm.setUITemplate('attributeEditorTemplate', pst=True)
+    cmds.setUITemplate('attributeEditorTemplate', pst=True)
 
     nodeAndAttrs = plugName.split(".")
     ctrlName = "aiMix"
     ctrlName += nodeAndAttrs[1]
 
     cmds.attrNavigationControlGrp(ctrlName, label=nodeAndAttrs[1], cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+plugName+"\" \"\"")
-    pm.setUITemplate(ppt=True)
+    cmds.setUITemplate(ppt=True)
     aiMixInputReplace(plugName)
 
 
@@ -37,7 +37,7 @@ class AEaiMixShaderTemplate(ShaderAETemplate):
         self.addCustom("shader2", aiMixInputNew, aiMixInputReplace)
         
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

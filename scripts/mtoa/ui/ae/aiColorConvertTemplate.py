@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiColorConvertTemplate(ShaderAETemplate):
@@ -10,7 +10,7 @@ class AEaiColorConvertTemplate(ShaderAETemplate):
         self.addControl('from', label='From')
         self.addControl('to', label='To')
 
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

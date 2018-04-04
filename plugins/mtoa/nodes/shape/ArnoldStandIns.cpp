@@ -281,6 +281,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    bool AiUniverseCreated = false;
    if (assfile != "")
    {  
+      // FIXME shouldn't we rather call ArnoldUniverseOnlyBegin ?
       AiUniverseCreated = ArnoldUniverseBegin();
 
       bool processRead = false;
@@ -310,7 +311,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isAss = true;
 
       AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
       AiNodeSetBool(options, "skip_license_check", true);
 
       // setup procedural search path
@@ -870,7 +870,10 @@ MStatus CArnoldStandInShape::initialize()
    addAttribute(s_dso);
 
    // Need to register this attribute to appear in the filepath editor
-   MGlobal::executeCommand("filePathEditor -registerType aiStandIn.dso -typeLabel \"Standin\"");
+   MString typeLabel;
+   MGlobal::executeCommand("filePathEditor -query -typeLabel aiStandIn.dso", typeLabel);
+   if (typeLabel != MString("Standin"))
+      MGlobal::executeCommand("filePathEditor -registerType aiStandIn.dso -typeLabel \"Standin\"");
 
    s_mode = eAttr.create("mode", "mode", 0);
    eAttr.addField("Bounding Box", DM_BOUNDING_BOX);

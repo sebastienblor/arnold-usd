@@ -165,6 +165,9 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
 
 bool ArnoldAiImageShaderOverride::valueChangeRequiresFragmentRebuild(const MPlug* plug) const
 {
+	if (plug == NULL)
+		return false;
+	
 	if (plug->partialName() == "swrap" || plug->partialName() == "twrap")
 	{
 		MHWRender::MStateManager::releaseSamplerState(m_samplerState);

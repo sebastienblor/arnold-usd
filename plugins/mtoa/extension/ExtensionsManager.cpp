@@ -20,6 +20,7 @@
 #include <maya/MFileObject.h>
 #include <maya/MPlugArray.h>
 #include <maya/MSceneMessage.h>
+#include <maya/MDGModifier.h>
 
 
 // CExtensionsManager
@@ -38,9 +39,13 @@ DefaultTranslatorMap CExtensionsManager::s_defaultTranslators;
 MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
+OperatorsMap CExtensionsManager::s_operators;
 CustomShapesMap CExtensionsManager::s_customShapes;
 
 static unordered_set<std::string>  s_deferredExtensions;
+
+static unordered_set<std::string>  s_mayaExtensionClasses;
+static unordered_set<std::string>  s_extensionAttributes;
 
 /// The Maya plugin it's used in (MtoA)
 void CExtensionsManager::SetMayaPlugin(const MObject& plugin)
@@ -189,8 +194,8 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          void *pluginLib = LibraryLoad(extension->GetExtensionFile().asChar());
          if (pluginLib == NULL)
          {
-            if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa] Error loading extension library: "+ MString(LibraryLastError()));
+            MString msg = MString("[mtoa] Error loading extension library: ")+ MString(LibraryLastError());
+            AiMsgWarning(msg.asChar());
 
             DeleteExtension(extension);
             status = MStatus::kFailure;
@@ -199,9 +204,9 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          extension->m_impl->m_library = pluginLib;
          void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
          if (initializer == NULL)
-         {
-            if (MtoaTranslationInfo())
-               MtoaDebugLog("[mtoa] Error initializing extension library: " + MString(LibraryLastError()));
+         {            
+            MString msg = MString("[mtoa] Error initializing extension library: ") + MString(LibraryLastError());
+            AiMsgWarning(msg.asChar());
 
             LibraryUnload(pluginLib);
             DeleteExtension(extension);
@@ -1014,6 +1019,19 @@ void CExtensionsManager::GetCustomShapes(MStringArray& result)
       result.append(shapeName);
    }
 }
+void CExtensionsManager::AddOperator(const MString &op)
+{
+   std::string opStr(op.asChar());
+   s_operators.insert(opStr);
+}
+void CExtensionsManager::GetOperators(MStringArray& result)
+{
+   for (OperatorsMap::const_iterator it = s_operators.begin(); it != s_operators.end(); ++it)
+   {
+      MString opName((*it).c_str());
+      result.append(opName);
+   }
+}
 
 void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& result)
 {
@@ -1377,4 +1395,87 @@ MStringArray CExtensionsManager::ListLoadedExtensions()
    for (std::list<CExtension>::iterator it = s_extensions.begin(); it != s_extensions.end(); ++it)
       ret.append((*it).GetExtensionName());
    return ret;
+}
+
+
+/** Register this attribute extension for a given maya class
+ if the extension attribute was properly registered we want to link it to the MtoA plugin.
+ However we must only do it for "parent" attributes as per maya guidelines, which is why we're testing parent().isNull().
+ Unfortunately, maya is returning success even if this attribute was already added to the MNodeClass, and 
+ linking the same attribute twice ends up crashing maya. So we're storing here a map of all class + attributes
+ previously stored, in order to avoid doing it twice.
+ Another situation we need to consider, is about classes inheriting from other class that already linked the same attribute.
+ The only case in MtoA where this happens is with the stereoRigCamera, where the parameters are already loaded for 
+ the base "camera" class. So we do an exception for that class
+ **/
+MStatus CExtensionsManager::RegisterExtensionAttribute(const MNodeClass &nodeClass, const MObject &attrib)
+{
+   MString nodeType = nodeClass.typeName();
+   std::string nodeTypeStr(nodeType.asChar());
+   // all parameters w're adding for "stereoRigCamera" have already been added for "camera"
+   if (nodeType == "stereoRigCamera")
+      return MS::kSuccess;
+   
+   s_mayaExtensionClasses.insert(nodeTypeStr); // make sure this class is listed
+
+   MFnAttribute fnAttr(attrib);
+   fnAttr.addToCategory("arnold");
+   MString attrName = fnAttr.name();
+
+   // key for class + attr
+   std::string registerAttr(nodeTypeStr);
+   registerAttr += ".";
+   registerAttr += attrName.asChar();
+
+   // This attribute was already added, we can leave
+   if (s_extensionAttributes.find(registerAttr) != s_extensionAttributes.end())
+      return MS::kSuccess;
+   
+   MDGModifier dgMod;
+   MStatus status = dgMod.addExtensionAttribute(nodeClass, attrib);
+   
+   if (status == MStatus::kSuccess && !s_plugin.isNull() && fnAttr.parent().isNull())
+      status = dgMod.linkExtensionAttributeToPlugin(s_plugin, attrib);   
+
+   if (status == MStatus::kSuccess)
+   {
+      if (MtoaTranslationInfo())
+         MtoaDebugLog("[mtoa.attr] Added extension attribute "+nodeType+"."+ attrName);
+
+      status = dgMod.doIt();
+      s_extensionAttributes.insert(registerAttr);
+
+   } else
+      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+   
+   return status;
+}
+
+MStatus CExtensionsManager::UnregisterExtensionAttributes(const MObject &plugin)
+{
+   unordered_set<std::string>::iterator classIt = s_mayaExtensionClasses.begin();
+   for (; classIt != s_mayaExtensionClasses.end(); ++classIt)
+   {
+      MString className = (*classIt).c_str();
+      MNodeClass nodeClass(className);
+      MObjectArray attributes;
+      nodeClass.getAttributes(attributes);
+      for (unsigned int i = 0; i < attributes.length(); ++i)
+      {
+         MFnAttribute fnAttr(attributes[i]);
+         std::string registerAttr(className.asChar());
+         registerAttr += ".";
+         registerAttr += fnAttr.name().asChar();
+         if (s_extensionAttributes.find(registerAttr) == s_extensionAttributes.end())
+            continue; // this attribute wasn't registered by MtoA, it's a maya native attribute
+
+         MDGModifier dgMod;
+         // First unlink the extension attribute
+         dgMod.unlinkExtensionAttributeFromPlugin(plugin, attributes[i]);
+         // Then remove the extension attribute from the nodeClass
+         dgMod.removeExtensionAttribute(nodeClass, attributes[i]);
+         dgMod.doIt();
+      }
+   }
+   return MS::kSuccess; // when should I return failure ?
 }

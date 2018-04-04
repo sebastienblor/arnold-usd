@@ -795,15 +795,15 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    std::vector<AtNode*> meshDisps;
 
    // First check if we need volume shading or not
-   bool isVolume = false;
+   // bool isVolume = false;
    // FIXME when compatibility can be broken, we should refactor this,
    // I shouldn't have to do guesses based on the attribute name.
    // What's even worse is that GetNodeShadingGroup is static so I can't get the AtNode
    // => verify if this works with fluids
    MFnDependencyNode fnDGNode(path.node());
    MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize");
-   if (!stepSizePlug.isNull())
-      isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
+//   if (!stepSizePlug.isNull())
+//      isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
 
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(path.node(), instanceNum);

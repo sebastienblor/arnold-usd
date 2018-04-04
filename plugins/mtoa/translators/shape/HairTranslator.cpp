@@ -376,6 +376,27 @@ void CHairTranslator::Export( AtNode *curve )
    }
    
    mainLines.deleteArray();
+
+   // eventually export dcc_name user attribute
+   // FIXME this could be moved to a separate function but this might be temporary
+   if (GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(curve, "dcc_name") == NULL)
+         AiNodeDeclare(curve, "dcc_name", "constant STRING");
+   
+      MString partialName = m_dagPath.partialPathName();
+      AiNodeSetStr(curve, "dcc_name", AtString(partialName.asChar()));
+   }
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(curve, "maya_full_name") == NULL)
+         AiNodeDeclare(curve, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(curve, "maya_full_name", AtString(fullName.asChar()));
+   }
+
+
 }
 
 void CHairTranslator::ExportMotion(AtNode *curve)

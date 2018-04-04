@@ -18,6 +18,7 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
 void CRenderViewMtoA::RenderViewClosed() {}
+void CRenderViewMtoA::RenderChanged(){}
 
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
 CRenderViewZoomManipulator *CRenderViewMtoA::GetZoomManipulator() {return NULL;}
@@ -46,7 +47,8 @@ void CRenderViewMtoA::Resize(int w, int h){}
 
 #if MAYA_API_VERSION >= 201700
 #include "QtWidgets/qmainwindow.h"
-static QWidget *s_workspaceControl = NULL;
+static QWidget *s_arvWorkspaceControl = NULL;
+static QWidget *s_optWorkspaceControl = NULL;
 #else
 #include "QtGui/qmainwindow.h"
 #endif
@@ -94,6 +96,7 @@ static CARVSequenceData *s_sequenceData = NULL;
 
 static bool s_creatingARV = false;
 static MString s_renderLayer = "";
+static std::string s_lastCameraName = "";
 
 #ifdef MAYA_MAINLINE
 
@@ -139,8 +142,8 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasPreProgressiveStep(false),
    m_hasPostProgressiveStep(false),
    m_hasProgressiveRenderStarted(false),
-   m_hasProgressiveRenderFinished(false)
-
+   m_hasProgressiveRenderFinished(false),
+   m_viewportRendering(false)
 {   
 #ifdef MAYA_MAINLINE
    m_colorPickingCallback = 0x0;
@@ -248,21 +251,29 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    static int s_arvHeight = -1;
 #endif
 
+static bool HasArvOptionsAttr()
+{
+   int exists = 0;
+   MGlobal::executeCommand("attributeExists \"ARV_options\" \"defaultArnoldRenderOptions\" ", exists);
+
+   return (exists != 0);
+}
+static void InitArvOptionsAttr()
+{
+   if (!HasArvOptionsAttr())
+   {
+      MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
+   } 
+}
+
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
    // need to add this margin for the status bar + toolbar height
    height += 70;
+
+   bool arvOptionsExisted = HasArvOptionsAttr();
+   InitArvOptionsAttr();   
    
-   // Check if attribute ARV_options exist
-   // if it doesn't create it
-   int exists = 0;
-   MGlobal::executeCommand("attributeExists \"ARV_options\" \"defaultArnoldRenderOptions\" ", exists);
-
-   if (!exists)
-   {
-      MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
-   } 
-
 #ifdef ARV_DOCKED
 
    // Docking in maya workspaces only supported from maya 2017.
@@ -273,7 +284,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    MString workspaceCmd = "workspaceControl ";
 
    bool firstCreation = true;
-   if (s_workspaceControl)
+   if (s_arvWorkspaceControl)
    {
       workspaceCmd += " -edit -visible true ";
       firstCreation = false;
@@ -308,10 +319,10 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    {
       // returns a pointer to th workspace called above, 
       // but only for the creation ! if I call it with "-edit visible true" it can return 0
-      s_workspaceControl = MQtUtil::getCurrentParent(); 
-      MQtUtil::addWidgetToMayaLayout(arv, s_workspaceControl);  // attaches ARV to the workspace
+      s_arvWorkspaceControl = MQtUtil::getCurrentParent(); 
+      MQtUtil::addWidgetToMayaLayout(arv, s_arvWorkspaceControl);  // attaches ARV to the workspace
       arv->show();
-      s_workspaceControl->show();
+      s_arvWorkspaceControl->show();
 
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
@@ -388,12 +399,15 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    // Moving the ARV_options load *after* calling UpdateColorManagement because of #2719
    if (m_convertOptionsParam)
    {
-      if (exists)
+      if (arvOptionsExisted)
       {
          // assign the ARV_options parameter as it is the first time since I opened this scene
          MString optParam;
-         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-         SetFromSerialized(optParam.asChar());
+         if (HasArvOptionsAttr())
+         {
+            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+            SetFromSerialized(optParam.asChar());
+         }
       }
 
       bool varExists = false;
@@ -467,6 +481,73 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 #endif
 }
 
+void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
+{ 
+#ifdef ARV_DOCKED
+
+   // Docking in maya workspaces only supported from maya 2017.
+   // For older versions, we tried using QDockWindows (see branch FB-2470)
+   // but the docking was way too sensitive, and not very usable in practice
+
+   //s_creatingARV = true;
+   MString workspaceCmd = "workspaceControl ";
+
+   bool firstCreation = true;
+   if (s_optWorkspaceControl)
+   {
+      workspaceCmd += " -edit -visible true ";
+      firstCreation = false;
+   }
+   else
+   {
+      workspaceCmd += " -li 1"; // load immediately
+      workspaceCmd += " -iw 250 -ih 50"; // initial width
+      
+
+      workspaceCmd += " -requiredPlugin \"mtoa\"";
+
+      // command called when closed. It's not ARV itself that is closed now, but the workspace !
+      // Now we need to rely on the visibilityChange callback
+      workspaceCmd += " -l \"Arnold ViewportRenderer Options\" "; // label
+   }
+   workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
+
+   std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
+   menusFilter += ";Show Render Tiles;Save Final Images;Save Multi-Layer EXR;Run IPR";
+   CRenderViewInterface::OpenOptionsWindow(250, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
+   QMainWindow *optWin = GetOptionsWindow();
+   optWin->setWindowFlags(Qt::Widget);
+
+   MGlobal::executeCommand(workspaceCmd); // create the workspace, or get it back
+
+   if (firstCreation)
+   {
+      // returns a pointer to th workspace called above, 
+      // but only for the creation ! if I call it with "-edit visible true" it can return 0
+      s_optWorkspaceControl = MQtUtil::getCurrentParent();
+      MQtUtil::addWidgetToMayaLayout(optWin, s_optWorkspaceControl);  // attaches ARV to the workspace
+      optWin->show();
+      s_optWorkspaceControl->show();
+   }
+   // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged\" \"ArnoldViewportRendererOptions\"");
+   MGlobal::executeCommand(uiScriptCommand);
+
+    //s_creatingARV = false;
+#else
+    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
+#endif
+
+}
+
+void CRenderViewMtoA::RenderChanged()
+{
+   CRenderViewInterface::RenderChanged();
+    
+   if (m_viewportRendering)
+      MGlobal::executeCommandOnIdle("refresh -f;");
+}
+
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
@@ -497,6 +578,8 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    }
 
+   // Make sure the caches are flushed (#3369)
+   AiUniverseCacheFlush(AI_CACHE_ALL);
 
    // Re-export everything !
    MDagPathArray cameras;
@@ -519,16 +602,41 @@ void CRenderViewMtoA::UpdateSceneChanges()
 
    if (cameras.length() > 0)
    {
-      if (cameras[0].isValid())
+      MDagPath renderCamera = cameras[0];
+
+      // try to restore the last camera we had in ARV (#3372)
+      // FIXME replace this by a function GetOptionValue("Camera") that would return the 
+      // menu value
+      if (!s_lastCameraName.empty())
       {
-         CMayaScene::GetArnoldSession()->ExportDagPath(cameras[0], true);
+        // Search for the MDagPath for this camera   
+         MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
+         itDag.reset();
+
+         while (!itDag.isDone())
+         {
+            MDagPath camPath;
+            itDag.getPath(camPath);
+            std::string camName = CDagTranslator::GetArnoldNaming(camPath).asChar();
+            if (camName == s_lastCameraName)
+            {
+               camPath.extendToShape();
+               renderCamera = camPath;
+               break;
+            }      
+            itDag.next();
+         }
+      }
+      if (renderCamera.isValid())
+      {
+         CMayaScene::GetArnoldSession()->ExportDagPath(renderCamera, true);
       }
       // SetExportCamera mus be called AFTER CMayaScene::Export
-      CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+      CMayaScene::GetArnoldSession()->SetExportCamera(renderCamera, false);
 
       // Set resolution and camera as passed in.
       CMayaScene::GetRenderSession()->SetResolution(-1, -1);
-      CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+      CMayaScene::GetRenderSession()->SetCamera(renderCamera);
    }
 
    UpdateRenderCallbacks();
@@ -539,7 +647,10 @@ void CRenderViewMtoA::UpdateSceneChanges()
       renderSession->SetRendering(true); // this allows MtoA to know that a render process is going on
    
 }
-
+void CRenderViewMtoA::SetCameraName(const MString &name)
+{
+   s_lastCameraName=name.asChar();
+}
 void CRenderViewMtoA::UpdateRenderCallbacks()
 {
    MStatus status;
@@ -624,15 +735,21 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
 
    // Get Scene-dependent ARV data
    const char *sceneSerialized = renderViewMtoA->Serialize(false, true); // Scene settings
-   
-   MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
-   command += sceneSerialized;
-   command +="\"";
-   MGlobal::executeCommand(command);
+   if (sceneSerialized)
+   {
+      InitArvOptionsAttr();
+      MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
+      command += sceneSerialized;
+      command +="\"";
+      MGlobal::executeCommand(command);
+   }
 
    const char *userSerialized = renderViewMtoA->Serialize(true, false); // user settings
-   MString arvOptionName("arv_user_options");
-   MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   if (userSerialized)
+   {
+      MString arvOptionName("arv_user_options");
+      MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   }
 }
 void CRenderViewMtoA::ColorMgtRefreshed(void *data)
 {
@@ -653,6 +770,8 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
 
    if (arv->isVisible())
    {
+      CMayaScene::GetRenderSession()->FillRenderViewCameras();
+
       // assign the ARV_options parameter as it is the first time since I opened this scene
       int exists = 0;
       MGlobal::executeCommand("objExists defaultArnoldRenderOptions", exists);
@@ -660,8 +779,11 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
       if (exists != 0)
       {
          MString optParam;
-         MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
-         renderViewMtoA->SetFromSerialized(optParam.asChar());
+         if (HasArvOptionsAttr())
+         {
+            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+            renderViewMtoA->SetFromSerialized(optParam.asChar());
+         }
       }
 
       // ARV is already visible -> set the options right away
@@ -717,12 +839,13 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
    for (unsigned int i = 0; i < count; ++i)
    {
       activeList.getDependNode(i, objNode);
+      MDagPath dagSel;
       if (objNode.hasFn(MFn::kTransform))
       {
          // from Transform to Shape
-         MDagPath dagPath;
-         activeList.getDagPath(i, dagPath);
-         objNode = dagPath.child(0);
+         activeList.getDagPath(i, dagSel);
+         objNode = dagSel.child(0);
+         dagSel.push(objNode);
       }
       if (objNode.hasFn(MFn::kDisplacementShader))
       {
@@ -739,7 +862,13 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
 
       MFnDependencyNode nodeFn( objNode );
 
-      AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
+      AtNode *selected_shader = AiNodeLookUpByName (nodeFn.name().asChar());
+      if (selected_shader == NULL && dagSel.isValid())
+      {
+         MString selName = CDagTranslator::GetArnoldNaming(dagSel);
+         selected_shader = AiNodeLookUpByName(selName.asChar());
+      }
+
       if(selected_shader) selection.push_back(selected_shader);
    }
 
@@ -819,6 +948,9 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
       if (cam == NULL) return;
 
       std::string cameraName = AiNodeGetName(cam);
+      // store the camera name, we might need it for "Update Full Scene" (#3372)
+      s_lastCameraName = cameraName;
+
       // Search for the MDagPath for this camera   
       MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
       itDag.reset();
@@ -832,7 +964,8 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
          {
             // why do we need to have this information in 2 several places ??
             CMayaScene::GetRenderSession()->SetCamera(camPath);
-            CMayaScene::GetArnoldSession()->SetExportCamera(camPath); 
+            CMayaScene::GetArnoldSession()->SetExportCamera(camPath, false);  // false means we don't want MtoA to trigger a new render, this is already being done by ARV
+            CMayaScene::GetArnoldSession()->ExportImagePlane();
             break;
          }      
          itDag.next();
@@ -863,9 +996,16 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
 
+
 #ifdef ARV_DOCKED
+   if (!s_arvWorkspaceControl)
+      return;
+   
    // ARV is docked into a workspace, we must close it too (based on its unique name in maya)
-   MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+   if (s_arvWorkspaceControl)
+      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldRenderView\"");
+ 
+   
 #else
 
    // closing ARV, we want to get the previous width / height
@@ -883,8 +1023,11 @@ void CRenderViewMtoA::RenderViewClosed()
 
    // Saving user prefs when the render view is closed
    const char *userSerialized = Serialize(true, false); // user settings
-   MString arvOptionName("arv_user_options");
-   MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   if (userSerialized)
+   {
+      MString arvOptionName("arv_user_options");
+      MGlobal::setOptionVarValue(arvOptionName, MString(userSerialized));
+   }
 
    if (s_sequenceData != NULL)
    {
@@ -921,6 +1064,18 @@ void CRenderViewMtoA::RenderViewClosed()
    
    MProgressWindow::endProgress();
 }
+
+void CRenderViewMtoA::RenderOptionsClosed()
+{
+
+#ifdef ARV_DOCKED
+   if (s_optWorkspaceControl)
+   {
+      MGlobal::executeCommand("workspaceControl -edit -cl \"ArnoldViewportRendererOptions\"");      
+   }
+#endif
+}
+
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
    return new CRenderViewMtoAPan();
@@ -1483,6 +1638,11 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
 
    if(updateRender)
    {
+      /* FIXME we could probably do a simple re-render
+      renderSession->InterruptRender(true);
+      renderSession->SetResolution(width, height);
+      renderViewMtoA->SetOption("Refresh Render", "1");
+      */
       renderViewMtoA->SetOption("Full IPR Update", "1");
 
       // want to resize the window
@@ -1677,6 +1837,11 @@ void CRenderViewMtoA::ProgressiveRenderFinished()
 
 void CRenderViewMtoA::Resize(int width, int height)
 {
+#ifdef ARV_DOCKED
+   if (s_arvWorkspaceControl == NULL)
+      return;
+#endif
+   
    CRenderViewInterface::Resize(width, height);
 
    if(MGlobal::apiVersion() < 201760) // this option was only implemented in Maya 2017 Update 4

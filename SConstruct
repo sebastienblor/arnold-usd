@@ -131,6 +131,9 @@ vars.AddVariables(
     PathVariable('TARGET_PROCEDURAL_PATH', 
                  'Path used for installation of arnold procedurals', 
                  os.path.join('$TARGET_MODULE_PATH', 'procedurals'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_PLUGINS_PATH', 
+                 'Path used for installation of arnold/mtoa plugins', 
+                 os.path.join('$TARGET_MODULE_PATH', 'plugins'), PathVariable.PathIsDirCreate),    
     PathVariable('TARGET_EXTENSION_PATH', 
                  'Path used for installation of mtoa translator extensions', 
                  os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
@@ -160,7 +163,7 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2018', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
@@ -251,6 +254,7 @@ TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
 TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
+TARGET_PLUGINS_PATH = env.subst(env['TARGET_PLUGINS_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
@@ -266,10 +270,11 @@ env['ENABLE_BIFROST'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
 env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
+env['ENABLE_GPU_CACHE'] = 1
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
-if not env['MAYA_MAINLINE_2018']:
+if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
     maya_version = '201900'
@@ -758,6 +763,7 @@ if system.os() == 'windows':
     env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
     
     libs = MTOA_API[1]
+    env.Install(env['TARGET_LIB_PATH'], libs)
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -766,8 +772,6 @@ else:
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.dylib'))
-
-env.Install(env['TARGET_LIB_PATH'], libs)
 
 dylibs = glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extension()))
@@ -794,8 +798,16 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
 
     env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
+# Install the licensing tools
+rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os())
+nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os())
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
+env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
+
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
+
+env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 
 OCIO_DYLIBPATH =""
 
@@ -806,8 +818,8 @@ if int(maya_version) < 201500:
 if not env['MTOA_DISABLE_RV']:
     RENDERVIEW_DYLIB = get_library_prefix() + 'ai_renderview'+ get_library_extension()
     arv_lib = maya_version_base
-    if int(arv_lib) > 2018:
-        arv_lib = "2018"
+    if int(arv_lib) > 2017:
+        arv_lib = "2017"
     RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', arv_lib, RENDERVIEW_DYLIB)
     
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
@@ -832,7 +844,7 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
 def GetViewportShaders(maya_version):
 
     vp2ShadersList = []
-    vp2ShaderExtensions = ['.xml']
+    vp2ShaderExtensions = ['.xml', '.cgfx', '.fx', '.ogsfx']
     
     if system.os() == 'windows':
         vp2ShaderExtensions.append('.hlsl')
@@ -1041,7 +1053,8 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_BIFROST'] == 1 and ext == bifrost_ext) or
             (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
             (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup') or 
-            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor')):
+            (env['ENABLE_COLOR_MANAGEMENT'] == 1 and ext == 'synColor') or
+            (env['ENABLE_GPU_CACHE'] == 1 and ext == 'gpuCache')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1145,12 +1158,14 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, '*.pit'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslinfo%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'noice%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 [os.path.join(ARNOLD, 'osl'), os.path.join('osl', 'include')],
+[os.path.join(ARNOLD, 'plugins', '*'), os.path.join('plugins')],
 ]
 
 for p in presetfiles:
@@ -1179,6 +1194,12 @@ else:
 
 if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
+
+# package the licensing tools
+rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os())
+nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os())
+PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
+PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'pit'])
 
@@ -1229,6 +1250,11 @@ if env['ENABLE_RENDERSETUP'] == 1:
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
+
+if env['ENABLE_GPU_CACHE'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'gpuCache', 'plugin', '*.py'), 'extensions'])
+
 
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
@@ -1338,6 +1364,7 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'oslinfo')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'pit', 'pitreg')])
 

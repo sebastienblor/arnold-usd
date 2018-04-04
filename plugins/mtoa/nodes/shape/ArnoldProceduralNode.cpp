@@ -20,6 +20,13 @@
 #include <maya/MFloatVector.h>
 #include <maya/MSelectionList.h>
 
+#include <maya/MDrawData.h>
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
+#include <maya/MViewport2Renderer.h>
+#endif
+#endif
+
 #include <ai_node_entry.h>
 #include <ai_params.h>
 #include <ai_metadata.h>
@@ -28,6 +35,13 @@ CAbMayaNode CArnoldProceduralNode::s_abstract;
 std::vector<CStaticAttrHelper> CArnoldProceduralNode::s_nodeHelpers;
 
 static unordered_map<std::string, std::vector<std::string> >  s_proceduralParameters;
+
+
+#define LEAD_COLOR            18 // green
+#define ACTIVE_COLOR       15 // white
+#define ACTIVE_AFFECTED_COLOR 8  // purple
+#define DORMANT_COLOR         4  // blue
+#define HILITE_COLOR       17 // pale blue
 
 // FIXME to be implemented properly
 void CArnoldProceduralNode::postConstructor()
@@ -205,6 +219,18 @@ MStatus CArnoldProceduralNode::initialize()
    helper.MakeInputBoolean(data);
    nodeParameters.push_back(data.name.asChar());
 
+   data.defaultValue.VEC() = AtVector(-1.f, -1.f, -1.f);
+   data.name = "minBoundingBox";
+   data.shortName = "min";
+   helper.MakeInputVector(data);
+   nodeParameters.push_back(data.name.asChar());
+
+   data.defaultValue.VEC() = AtVector(1.f, 1.f, 1.f);
+   data.name = "maxBoundingBox";
+   data.shortName = "max";
+   helper.MakeInputVector(data);
+   nodeParameters.push_back(data.name.asChar());
+
    s_nodeHelpers.push_back(helper);
 
    return MS::kSuccess;
@@ -213,10 +239,26 @@ MStatus CArnoldProceduralNode::initialize()
 MBoundingBox CArnoldProceduralNode::boundingBox() const
 {
    MBoundingBox box;
-   box.expand(MPoint(1.f, 1.f, 1.f));
-   box.expand(MPoint(-1.f, -1.f, -1.f));
+   MFnDependencyNode depNode(thisMObject());
+   MPlug minPlug = depNode.findPlug("minBoundingBox");
+   MPlug maxPlug = depNode.findPlug("maxBoundingBox");
+
+   if (minPlug.isNull() || maxPlug.isNull())
+   {
+      box.expand(MPoint(1.f, 1.f, 1.f));
+      box.expand(MPoint(-1.f, -1.f, -1.f));
+   } else
+   {
+      box.expand(MPoint(minPlug.child(0).asFloat(), minPlug.child(1).asFloat(), minPlug.child(2).asFloat()));
+      box.expand(MPoint(maxPlug.child(0).asFloat(), maxPlug.child(1).asFloat(), maxPlug.child(2).asFloat()));
+   }   
+
    return box;
 }
+
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
+/* override */
 MSelectionMask CArnoldProceduralNode::getShapeSelectionMask() const
 //
 // Description
@@ -227,10 +269,31 @@ MSelectionMask CArnoldProceduralNode::getShapeSelectionMask() const
 //    The selection mask of the shape
 //
 {
+   // Assume these are categorized as meshes for now
    MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
-    return MSelectionMask( selType );
+   return selType;
 }
 
+MStatus CArnoldProceduralNode::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
+{
+   MString plugName = plug.partialName();
+   if (plugName == "max" || plugName == "maxx" || plugName == "maxy" || plugName == "maxz" ||
+      plugName == "min" || plugName == "minx" || plugName == "miny" || plugName == "minz" )
+   {
+      // Signal to VP2 that we require an update
+      MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
+   }
+
+   return MS::kSuccess;
+}
+#endif
+#endif
+
+MBoundingBox* CArnoldProceduralNode::geometry()
+{
+   m_bbox = boundingBox();      
+   return &m_bbox;
+}
 
 // FIXME to be implemented properly
 CArnoldProceduralNodeUI::CArnoldProceduralNodeUI()
@@ -253,19 +316,112 @@ void CArnoldProceduralNodeUI::getDrawRequests(const MDrawInfo & info, bool /*obj
 
 void CArnoldProceduralNodeUI::draw(const MDrawRequest & request, M3dView & view) const
 {
-  
+   MDrawData data = request.drawData();
+   MBoundingBox * bbox = (MBoundingBox*) data.geometry();
+   view.beginGL();
+   glPushAttrib(GL_ALL_ATTRIB_BITS);
+   glEnable(GL_DEPTH_TEST);
+   glDepthFunc(GL_LEQUAL);
+
+   
+   {
+      MPoint bbMin = bbox->min();
+      MPoint bbMax = bbox->max();
+
+      float minCoords[4];
+      float maxCoords[4];
+
+      bbMin.get(minCoords);
+      bbMax.get(maxCoords);
+   
+      MBoundingBox m_bbox = MBoundingBox (minCoords, maxCoords);
+      float minPt[4];
+      float maxPt[4];
+      m_bbox.min().get(minPt);
+      m_bbox.max().get(maxPt);
+      const float bottomLeftFront[3] =
+      { minPt[0], minPt[1], minPt[2] };
+      const float topLeftFront[3] =
+      { minPt[0], maxPt[1], minPt[2] };
+      const float bottomRightFront[3] =
+      { maxPt[0], minPt[1], minPt[2] };
+      const float topRightFront[3] =
+      { maxPt[0], maxPt[1], minPt[2] };
+      const float bottomLeftBack[3] =
+      { minPt[0], minPt[1], maxPt[2] };
+      const float topLeftBack[3] =
+      { minPt[0], maxPt[1], maxPt[2] };
+      const float bottomRightBack[3] =
+      { maxPt[0], minPt[1], maxPt[2] };
+      const float topRightBack[3] =
+      { maxPt[0], maxPt[1], maxPt[2] };
+
+      glBegin(GL_LINE_STRIP);
+      glVertex3fv(bottomLeftFront);
+      glVertex3fv(bottomLeftBack);
+      glVertex3fv(topLeftBack);
+      glVertex3fv(topLeftFront);
+      glVertex3fv(bottomLeftFront);
+      glVertex3fv(bottomRightFront);
+      glVertex3fv(bottomRightBack);
+      glVertex3fv(topRightBack);
+      glVertex3fv(topRightFront);
+      glVertex3fv(bottomRightFront);
+      glEnd();
+
+      glBegin(GL_LINES);
+      glVertex3fv(bottomLeftBack);
+      glVertex3fv(bottomRightBack);
+
+      glVertex3fv(topLeftBack);
+      glVertex3fv(topRightBack);
+
+      glVertex3fv(topLeftFront);
+      glVertex3fv(topRightFront);
+      glEnd();
+   }
+   
+   glPopAttrib();
+   view.endGL();
 
 }
 
+void CArnoldProceduralNodeUI::getDrawRequestsWireFrame(MDrawRequest& request, const MDrawInfo& info)
+{
+   request.setToken(kDrawBoundingBox);
+   M3dView::DisplayStatus displayStatus = info.displayStatus();
+   M3dView::ColorTable activeColorTable = M3dView::kActiveColors;
+   M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
+   switch (displayStatus)
+   {
+   case M3dView::kLead:
+      request.setColor(LEAD_COLOR, activeColorTable);
+      break;
+   case M3dView::kActive:
+      request.setColor(ACTIVE_COLOR, activeColorTable);
+      break;
+   case M3dView::kActiveAffected:
+      request.setColor(ACTIVE_AFFECTED_COLOR, activeColorTable);
+      break;
+   case M3dView::kDormant:
+      request.setColor(DORMANT_COLOR, dormantColorTable);
+      break;
+   case M3dView::kHilite:
+      request.setColor(HILITE_COLOR, activeColorTable);
+      break;
+   default:
+      break;
+   }
+
+}
 bool CArnoldProceduralNodeUI::select(MSelectInfo &selectInfo, MSelectionList &selectionList,
       MPointArray &worldSpaceSelectPts) const
 {
 
-   MSelectionMask priorityMask(MSelectionMask::kSelectMeshes);
+   MSelectionMask priorityMask(MSelectionMask::kSelectObjectsMask);
    MSelectionList item;
    item.add(selectInfo.selectPath());
    MPoint xformedPt;
-
    selectInfo.addSelection(item, xformedPt, selectionList, worldSpaceSelectPts, priorityMask, false);
    return true;
 

@@ -1,14 +1,15 @@
-import pymel.core as pm
+import maya.mel
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiRandomTemplate(ShaderAETemplate):
     def inputTypeChanged(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "inputType")
-        inputTypeValue = pm.getAttr(fullAttr)
+        inputTypeValue = cmds.getAttr(fullAttr)
         
-        pm.editorTemplate(dimControl=(nodeName, "inputInt", (False if inputTypeValue == 0  else True)))
-        pm.editorTemplate(dimControl=(nodeName, "inputFloat", (False if inputTypeValue == 1  else True)))
-        pm.editorTemplate(dimControl=(nodeName, "inputColor", (False if inputTypeValue == 2  else True)))
+        cmds.editorTemplate(dimControl=(nodeName, "inputInt", (False if inputTypeValue == 0  else True)))
+        cmds.editorTemplate(dimControl=(nodeName, "inputFloat", (False if inputTypeValue == 1  else True)))
+        cmds.editorTemplate(dimControl=(nodeName, "inputColor", (False if inputTypeValue == 2  else True)))
     
     def setup(self):
     	self.addSwatch()
@@ -23,7 +24,7 @@ class AEaiRandomTemplate(ShaderAETemplate):
         self.addControl('seed')
         self.addControl('grayscale')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

@@ -146,6 +146,7 @@
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Feature Overrides"/>
+    <attr n="ai:foop" s="defaultArnoldRenderOptions.ignoreOperators" t="boolean" h="Ignore operators."/>
     <attr n="ai:fotx" s="defaultArnoldRenderOptions.ignoreTextures" t="boolean" h="Ignore textures."/>
     <attr n="ai:fosh" s="defaultArnoldRenderOptions.ignoreShaders" t="boolean" h="Ignore shaders."/>
     <attr n="ai:foat" s="defaultArnoldRenderOptions.ignoreAtmosphere" t="boolean" h="Ignore atmosphere."/>
@@ -171,7 +172,7 @@
     <attrString n="ai:lfn" s="defaultArnoldRenderOptions.log_filename" t="string" h="Log filename."/>
     <attr n="ai:ltc" s="defaultArnoldRenderOptions.log_to_console" t="boolean" h="Log to Console."/>    
     <attr n="ai:ltf" s="defaultArnoldRenderOptions.log_to_file" t="boolean" h="Log to File."/>       
-    <attr n="ai:lve" s="defaultArnoldRenderOptions.log_verbosity" t="int" h="Verbosity level. (0 - Errors, 1 - Warnings + Info, 2 - Debug)"/>       
+    <attr n="ai:lve" s="defaultArnoldRenderOptions.log_verbosity" t="int" h="Verbosity level. (0 - Errors, 1 - Warnings, 2 - Info, 3 - Debug)"/>       
     <attr n="ai:lmw" s="defaultArnoldRenderOptions.log_max_warnings" t="int" h="Maximum number of warnings."/>
     <attr n="ai:mti" s="defaultArnoldRenderOptions.mtoa_translation_info" t="boolean" h="MtoA Translation Info."/>
     <sep/>

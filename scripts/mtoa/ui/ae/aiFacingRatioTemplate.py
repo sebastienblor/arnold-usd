@@ -1,4 +1,4 @@
-import pymel.core as pm
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiFacingRatioTemplate(ShaderAETemplate):
@@ -11,7 +11,7 @@ class AEaiFacingRatioTemplate(ShaderAETemplate):
         self.addControl('linear')
         self.addControl('invert')
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()

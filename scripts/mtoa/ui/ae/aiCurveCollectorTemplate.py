@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import pymel.core as pm
+import maya.mel
 import mtoa.ui.ae.templates as templates
 import mtoa.utils as utils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
@@ -13,7 +13,7 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
         self.addControl('aiMode', label='Mode')
         
         self.addControl('aiCurveWidth', label='Width')
-        pm.mel.AEaddRampControl(self.nodeName + '.aiWidthProfile')
+        maya.mel.eval('AEaddRampControl '+self.nodeName + '.aiWidthProfile')
         self.addSeparator()
         self.addControl('aiSampleRate', label='Sample Rate')
 
@@ -64,7 +64,7 @@ class AEaiCurveCollectorTemplate(ShaderAETemplate):
     
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.suppress('blackBox')
         self.suppress('containerType')

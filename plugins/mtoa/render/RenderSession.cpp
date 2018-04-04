@@ -177,6 +177,40 @@ CRenderSession::RenderCallbackType CRenderSession::GetCallback()
    return m_renderCallback;
 }  
 
+void CRenderSession::CloseOtherViews(const MString& destination)
+{
+#ifndef MTOA_DISABLE_RV
+
+   bool viewFound = false;
+   M3dView thisView;
+
+   if (destination.length() > 0)
+   {
+      // we are opening a viewport render override
+      // close the ARV if it exists.
+      if (s_renderView)
+      {
+         s_renderView->CloseRenderView();
+         // This is what tells RenderviewMtoA that we're doing viewport rendering
+         // and therefore that we should call "refresh -r" when render changes
+         s_renderView->SetViewportRendering(true);
+      }
+      viewFound = (M3dView::getM3dViewFromModelPanel(destination, thisView) == MStatus::kSuccess);
+   } 
+
+   // Close all but the destination render override if there is one
+   // If the destination is an empty string it is the ARV.
+   for (unsigned int i = 0, viewCount = M3dView::numberOf3dViews(); i < viewCount; ++i)
+   {
+      M3dView view;
+      M3dView::get3dView(i, view);
+      if (view.renderOverrideName() == "arnoldViewOverride" &&
+               (!viewFound || view.widget() != thisView.widget()))
+         view.setRenderOverrideName("");
+   }
+#endif
+}
+
 MStatus CRenderSession::End()
 {
    MStatus status = MStatus::kSuccess;
@@ -186,12 +220,17 @@ MStatus CRenderSession::End()
       // IsRendering check prevents thread lock when CMayaScene::End is called
       // from InteractiveRenderThread
       InterruptRender();
-
-      if (s_renderView && s_closeRenderViewWithSession)
+ #ifndef MTOA_DISABLE_RV
+      if (s_renderView)
       {
-         s_renderView->CloseRenderView();
-      } 
+         if (s_closeRenderViewWithSession)
+            s_renderView->CloseRenderView();
+         else
+            s_renderView->DisableRendering();
+      }
 
+
+ #endif
    }
    
    if (AiUniverseIsActive())
@@ -214,13 +253,13 @@ MStatus CRenderSession::End()
 }
 void CRenderSession::DeleteRenderView()
 {
-
+#ifndef MTOA_DISABLE_RV
    if (s_renderView != NULL)
    {
       delete s_renderView;
       s_renderView = NULL;
    }
-
+#endif
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -352,10 +391,13 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
 
 void CRenderSession::InterruptRender(bool waitFinished)
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView != NULL) 
    {
       s_renderView->InterruptRender();
    }
+#endif
+
    if (IsRendering() && AiRendering()) AiRenderInterrupt();
       
    if (waitFinished)
@@ -376,6 +418,18 @@ void CRenderSession::InterruptRender(bool waitFinished)
    }
 }
 
+bool CRenderSession::IsRegionCropped()
+{
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView)
+   {
+      std::string isCropped(s_renderView->GetOption("Crop Region"));
+      return (isCropped == "1");
+   }
+#endif   
+   return false;
+
+}
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -410,6 +464,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
 
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
+   CRenderViewMtoA::SetCameraName(cameraNode.partialPathName());
 }
 
 void CRenderSession::SetRenderViewPanelName(const MString &panel)
@@ -744,56 +799,197 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+/*
+void CRenderSession::RunInteractiveRenderer()
+{
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView == NULL)
+      s_renderView = new CRenderViewMtoA;
+
+   s_renderView->SetViewportRendering(true);
+   InterruptRender(); // clear the previous thread  
+   SetRendering(true);
+
+   s_renderView->Render();
+#endif
+}*/
+
+
+void CRenderSession::PostDisplay()
+{
+#ifndef MTOA_DISABLE_RV
+   if(s_renderView)
+      s_renderView->PostDisplay();
+#endif
+}
+bool CRenderSession::HasRenderResults(AtBBox2 &box)
+{
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView)
+      return s_renderView->HasRenderResults(box);
+ #endif
+   return false;
+}
 
 void CRenderSession::RunRenderView()
 {
    InterruptRender(); // clear the previous thread  
    SetRendering(true);
+#ifndef MTOA_DISABLE_RV
    s_renderView->Render();
+#endif
 }
 
 void CRenderSession::StartRenderView()
 {
+#ifndef MTOA_DISABLE_RV 
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
    }
+   // This is what tells RenderviewMtoA that we're doing viewport rendering
+   // and therefore that we should call "refresh -r" when render changes
+   s_renderView->SetViewportRendering(false);
+   
    s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
 
    CArnoldSession *session = CMayaScene::GetArnoldSession();
    if (session)
       s_renderView->SetFrame((float)session->GetExportFrame());
-   
+#endif   
+}
+
+bool CRenderSession::IsViewportRendering()
+{
+   return s_renderView && s_renderView->IsViewportRendering();
+
+}
+const AtRGBA *CRenderSession::GetDisplayedBuffer()
+{
+#ifndef MTOA_DISABLE_RV
+   if(s_renderView)
+      return s_renderView->GetDisplayedBuffer();
+#endif
+   return NULL;
+
+
+}
+void CRenderSession::OpenInteractiveRendererOptions()
+{
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView == NULL)
+   {
+      s_renderView = new CRenderViewMtoA;
+   }
+   s_renderView->SetViewportRendering(true);
+   s_renderView->OpenMtoAViewportRendererOptions();
+#endif
 }
 
 void CRenderSession::UpdateRenderView()
 {  
+#ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->SceneChanged();
    }
-
+#endif
 }
 
 void CRenderSession::CloseRenderView()
 {  
+#ifndef MTOA_DISABLE_RV
    if(s_renderView != NULL) // for now always return true
    {
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->CloseRenderView();
    }
-
+#endif
 }
 
+void CRenderSession::CloseOptionsWindow()
+{
+#ifndef MTOA_DISABLE_RV
+    if (s_renderView != NULL) // for now always return true
+    {
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->CloseOptionsWindow();
+    }
+#endif
+}
+
+void CRenderSession::FillRenderViewCameras()
+{
+
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   MString camerasList;
+      
+   M3dView view;
+   MDagPath activeCameraPath;
+   MStatus viewStatus;
+   view = M3dView::active3dView(&viewStatus);
+   MString viewCam;
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+
+   if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+   {      
+ //     if (renderSession)
+ //        camerasList = viewCam = CDagTranslator::GetArnoldNaming(activeCameraPath);
+ //     else
+      // Now we always export the short name. We'll let ARV find the corresponding AtNode based on the user data dcc_name
+      camerasList = viewCam = activeCameraPath.partialPathName();
+      
+   }
+   
+   MDagPath path;
+   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+   
+   MFnDagNode cameraNode;
+
+   // FIXME dummy exportFilter that is needed in FilteredStatus
+   CMayaExportFilter exportFilter;
+
+   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
+   {
+      if (dagIterCameras.getPath(path))
+      {
+         // we're exporting the cameras if they're *either* accepted by the filter status
+         // *or* if they're set as renderable
+         // FIXME the filter status is useless here, it's always set to MTOA_FILTER_ALL
+         if(arnoldSession->FilteredStatus(path, &exportFilter) != MTOA_EXPORT_ACCEPTED)
+         {
+            // this camera is hidden, check if it's renderable
+            MStatus stat;
+            MFnDagNode cameraNode(path);
+            MPlug renderable = cameraNode.findPlug("renderable", false, &stat);
+
+            if (stat != MS::kSuccess || (!renderable.asBool()))
+               continue;
+         }
+         // we can't call GetArnoldNaming if there's no active session
+         MString camName = (renderSession) ? CDagTranslator::GetArnoldNaming(path) : path.partialPathName();
+         if (camName == viewCam) continue; // we've already set this camera in the list
+
+         if (camerasList.length() > 0)
+            camerasList += ";";
+
+         camerasList += camName;
+      }
+   }
+   // giving ARV the list of cameras
+   SetRenderViewOption("Cameras", camerasList);
+}
 
 void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
 {
    if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;
 
    // in renderView mode, we must advert the renderview that an object name has changed
+#ifndef MTOA_DISABLE_RV
    if (s_renderView != NULL)
    {
       MFnDependencyNode fnNode(node);
@@ -801,16 +997,9 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
       const char *oldName = str.asChar();
       s_renderView->ObjectNameChanged(newName, oldName);
    }
-
+#endif
 }
 
-
-void CRenderSession::StopIPR()
-{
-   assert(AiUniverseIsActive());
-
-   InterruptRender();
-}
 
 void CRenderSession::PauseIPR()
 {
@@ -818,6 +1007,19 @@ void CRenderSession::PauseIPR()
 
    InterruptRender();
    m_paused_ipr = true;
+}
+
+bool CRenderSession::IsIPRPaused()
+{
+#ifndef MTOA_DISABLE_RV
+
+   if (s_renderView)
+   {
+      std::string isIPRRunning(s_renderView->GetOption("Run IPR"));
+      return (isIPRRunning == "0");
+   }
+#endif
+    return true;
 }
 
 void CRenderSession::UnPauseIPR()
@@ -929,11 +1131,24 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
 }
 void CRenderSession::SetRenderViewOption(const MString &option, const MString &value)
 {
+#ifndef MTOA_DISABLE_RV
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
    }
    s_renderView->SetOption(option.asChar(), value.asChar());
+#endif
+}
+MString CRenderSession::GetRenderViewOption(const MString &option)
+{
+#ifndef MTOA_DISABLE_RV
+   if (s_renderView)
+   {
+      std::string res(s_renderView->GetOption(option.asChar()));
+      return MString(res.c_str());
+   }
+#endif
+   return MString("");
 }
 
 bool CRenderSession::RenderSequence()
@@ -962,7 +1177,9 @@ bool CRenderSession::RenderSequence()
    StartRenderView();
    SetRendering(true);
 
+#ifndef MTOA_DISABLE_RV
    s_renderView->RenderSequence(startFrame, endFrame, frameStep);
+#endif
    return true;
 }
 

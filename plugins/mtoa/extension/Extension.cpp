@@ -883,7 +883,9 @@ MStringArray CExtensionImpl::FindLibraries(const MString &path,
    MString resolvedPathList = path.expandEnvironmentVariablesAndTilde();
    MStringArray pluginPaths;
    resolvedPathList.split(PATHSEP, pluginPaths);
-   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+
+    // loop in reverse order so that the first one in the list "wins"  (#3088)
+   for (int i = (int)pluginPaths.length() - 1; i >= 0; i--)
    {
       MString dir = pluginPaths[i];
       DIR *dp;

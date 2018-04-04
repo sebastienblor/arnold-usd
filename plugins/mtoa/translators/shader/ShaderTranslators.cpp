@@ -18,16 +18,60 @@
 #include <maya/MFnAttribute.h>
 #include <maya/MMatrix.h>
 
-
 #include <maya/MColor.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MEulerRotation.h>
 #include <maya/MAngle.h>
-
+#include <maya/MSelectionList.h>
 #include <maya/MRenderUtil.h>
 
 #include <string>
 #include <fstream>
+
+bool IsFloatAttrDefault(MPlug plug, float value)
+{
+   if (plug.isNull())
+      return true;
+
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+      return false; 
+   float plugValue = plug.asFloat();
+   if (std::abs(plugValue - value) > AI_EPSILON)
+      return false; 
+
+   return true;
+}
+bool IsBoolAttrDefault(MPlug plug, bool value)
+{
+   if (plug.isNull())
+      return true;
+
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+      return false; 
+   bool plugValue = plug.asBool();
+   
+   return (plugValue == value);
+}
+
+bool IsVec2AttrDefault(MPlug plug, float valueX, float valueY)
+{
+   if (plug.isNull())
+      return true;
+
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+      return false; 
+
+   return (IsFloatAttrDefault(plug.child(0), valueX) &&
+           IsFloatAttrDefault(plug.child(1), valueY));
+
+}
+
 
 // Sky
 //
@@ -166,62 +210,129 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
 //
 AtNode*  CFileTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaFile");
-}
-
-bool StringHasOnlyNumbersAndMinus(const std::string& str)
-{
-   static const char validCharacters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}; // do we have to add - ?
-   for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+   m_hasColorCorrect = RequiresColorCorrect();
+   m_hasUvTransform = RequiresUvTransform();
+   
+   AtNode *imageNode = AddArnoldNode("image");
+   AtNode *colorCorrectNode = m_hasColorCorrect ? AddArnoldNode("color_correct", "cc") : NULL;
+   AtNode *uvTransformNode = m_hasUvTransform ? AddArnoldNode("uv_transform", "uv") : NULL;
+   
+   if (colorCorrectNode)
+      AiNodeLink(imageNode, "input", colorCorrectNode);
+   
+   if (uvTransformNode)
    {
-      for (int i = 0; i < 10; ++i)
-      {
-         if (*it == validCharacters[i])
-            return true;
-      }
+      AiNodeLink((colorCorrectNode) ? colorCorrectNode : imageNode, "passthrough", uvTransformNode);
+      return uvTransformNode;
    }
-   return false;
+
+   return (colorCorrectNode) ? colorCorrectNode : imageNode;
 }
 
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
-
-   MPlug plug = FindMayaPlug("uvCoord");
    const CSessionOptions &options = GetSessionOptions();
 
+   AtNode *colorCorrectNode = (m_hasColorCorrect) ? GetArnoldNode("cc") : NULL;
+   AtNode *uvTransformNode = (m_hasUvTransform) ? GetArnoldNode("uv") : NULL;
+   MPlug plug = FindMayaPlug("uvCoord");
    plug.connectedTo(connections, true, false);
 
    if (connections.length() != 0)
    {
       MObject srcObj = connections[0].node();
       MFnDependencyNode srcNodeFn(srcObj);
+
       if (srcNodeFn.typeName() == "place2dTexture")
       {
-         // until multiple outputs are supporte, place2d outputs are added to
-         // inputs on the file node itself
-         // FIXME do this with a translator
-         ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
-         ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
-         ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
-         ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
-         ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
-         ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapU"));
-         ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("wrapV"));
-         ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
-         ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
-         ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateUV"));
-         ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
-         ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
          srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
+         AiNodeSetStr(shader, "uvset", "");
          if (connections.length() > 0)
          {
             MFnDependencyNode uvcNodeFn(connections[0].node());
             if (uvcNodeFn.typeName() == "uvChooser")
-               AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
          }
+         if (uvTransformNode)
+         {
+            // we need to set the UV controls in the uv_transform node
+            AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
+            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
+            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
+
+            if (srcNodeFn.findPlug("wrapU").asBool())
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+            else
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
+               
+
+            if (srcNodeFn.findPlug("wrapV").asBool())
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+            else
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
+            
+
+            ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
+            if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
+            {
+               AtRGBA col = AiNodeGetRGBA(uvTransformNode, "wrap_frame_color");
+               AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+            }
+            // if not linked, set alpha to zero
+            ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
+            ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
+
+            float rotateFrame = srcNodeFn.findPlug("rotateFrame").asFloat();
+            AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
+            //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
+            ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
+            float rotateUV = srcNodeFn.findPlug("rotateUV").asFloat();
+            AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
+            ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
+            ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
+
+         } else
+         {
+            if (srcNodeFn.findPlug("wrapU").asBool())
+            {
+               if (srcNodeFn.findPlug("mirrorU").asBool())
+                  AiNodeSetStr(shader, "swrap", "mirror");
+               else
+                  AiNodeSetStr(shader, "swrap", "periodic");
+               
+            } else
+               AiNodeSetStr(shader, "swrap", "missing");
+
+            if (srcNodeFn.findPlug("wrapV").asBool())
+            {
+               if (srcNodeFn.findPlug("mirrorV").asBool())
+                  AiNodeSetStr(shader, "twrap", "mirror");
+               else
+                  AiNodeSetStr(shader, "twrap", "periodic");
+               
+            } else
+               AiNodeSetStr(shader, "twrap", "missing");
+            
+            MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV");
+            if (!repeatUVPlug.isNull())
+            {
+               AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
+               AiNodeSetFlt(shader, "sscale", repeatUV.x);
+               AiNodeSetFlt(shader, "tscale", repeatUV.y);
+            }
+            MPlug offsetUVPlug = srcNodeFn.findPlug("offset");
+            if (!offsetUVPlug.isNull())
+            {
+               AiNodeSetFlt(shader, "soffset", offsetUVPlug.child(0).asFloat());
+               AiNodeSetFlt(shader, "toffset", offsetUVPlug.child(1).asFloat());
+            }
+         }
+
       }
    }
+
    MString prevFilename = AiNodeGetStr(shader, "filename").c_str();
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
@@ -257,17 +368,44 @@ void CFileTranslator::Export(AtNode* shader)
 
       options.FormatTexturePath(resolvedFilename);
 
-      // need to handle <f> tokens, in case they are combined with other (eventually arnold) tokens
-      static const MString fTokenStr = "<f>";
-      int fTokenIndex = resolvedFilename.indexW(fTokenStr);
-      if (fTokenIndex > 0)
+      MString tokenStr = "<";
+      int tokenIndex = resolvedFilename.indexW(tokenStr);
+      if (tokenIndex >= 0)
       {
-         // the MString frameNumber adds a '0' before the frame value.
-         // Do we really want that ? doesn't make much sense....so well, removing it here
-         int fileFrame = FindMayaPlug("useFrameExtension").asBool() ? FindMayaPlug("frameExtension").asInt() + FindMayaPlug("frameOffset").asInt() : (int)GetExportFrame();
-         frameNumber = fileFrame;
-         MString filenameExt = resolvedFilename.substringW(fTokenIndex + 3, resolvedFilename.length() - 1);
-         resolvedFilename = resolvedFilename.substringW(0, fTokenIndex - 1) + frameNumber + filenameExt;
+         // need to handle <f> tokens, in case they are combined with other (eventually arnold) tokens
+         tokenStr = "<f>";
+         tokenIndex = resolvedFilename.indexW(tokenStr);
+         if (tokenIndex > 0)
+         {
+            // the MString frameNumber adds a '0' before the frame value.
+            // Do we really want that ? doesn't make much sense....so well, removing it here
+            int fileFrame = FindMayaPlug("useFrameExtension").asBool() ? FindMayaPlug("frameExtension").asInt() + FindMayaPlug("frameOffset").asInt() : (int)GetExportFrame();
+            frameNumber = fileFrame;
+            MString filenameExt = resolvedFilename.substringW(tokenIndex + 3, resolvedFilename.length() - 1);
+            resolvedFilename = resolvedFilename.substringW(0, tokenIndex - 1) + frameNumber + filenameExt;
+         }
+         tokenStr = "<shapeName>";
+         MString tokenOut = "<attr:name>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<shapePath>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<UDIM";
+         tokenOut = "<udim";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<utile>"; 
+         tokenOut = "<utile:1>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<u>";         
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<U>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<vtile>";
+         tokenOut = "<vtile:1>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<v>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         tokenStr = "<V>";
+         ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
       }
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
@@ -288,7 +426,6 @@ void CFileTranslator::Export(AtNode* shader)
             {
                // Previous Filename was .tx, either because of "use existing tx", 
                // or because it's explicitely targeting the .tx
-//seb
                MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
 
                int dotPos = resolvedFilename.rindexW(".");
@@ -334,39 +471,163 @@ void CFileTranslator::Export(AtNode* shader)
       if (requestUpdateTx) RequestTxUpdate();
    } 
 
-   ProcessParameter(shader, "mipBias", AI_TYPE_INT);
+   ProcessParameter(shader, "mipmap_bias", AI_TYPE_INT, "aiMipBias");
    AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
-   AiNodeSetBool(shader, "useDefaultColor", FindMayaPlug("aiUseDefaultColor").asBool());
+  
+   // FIXME : in Maya File, the default color is also seen out of the UV range, when UV wrapping is disabled
+   // In Arnold image node, the only choice we have is "black"
+   AiNodeSetBool(shader, "ignore_missing_textures", FindMayaPlug("aiUseDefaultColor").asBool());
+   ProcessParameter(shader, "missing_texture_color", AI_TYPE_RGBA, "defaultColor");
+   if (!AiNodeIsLinked(shader, "missing_texture_color")) // Force a transparent alpha on the defaultColor
+   {
+      AtRGBA col = AiNodeGetRGBA(shader, "missing_texture_color");
+      AiNodeSetRGBA(shader, "missing_texture_color", col.r, col.g, col.b, 0.f);
+   }
+   
+   
+   ProcessParameter(shader, "offset", AI_TYPE_RGB, "colorOffset");
 
-   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
-   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
-   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+   MPlug colorGainPlug = FindMayaPlug("colorGain");
+   MPlug exposurePlug = FindMayaPlug("exposure");
 
-   plug = FindMayaPlug("exposure");
-   if (plug.isNull())
-      AiNodeSetFlt(shader, "exposure", 0.0f);
-   else
-      ProcessParameter(shader, "exposure", AI_TYPE_FLOAT, plug);
+   MPlugArray colorGainConnections, exposureConnections;
+   if (!colorGainPlug.isNull())
+      colorGainPlug.connectedTo(colorGainConnections, true, false);
+   bool isColorGainConnected = (colorGainConnections.length() > 0);
+   float exposure = 0.f;
+   if(!exposurePlug.isNull())
+   {
+      exposurePlug.connectedTo(exposureConnections, true, false);
+      exposure = exposurePlug.asFloat();
+   }
+   bool isExposureConnected = (exposureConnections.length() > 0);
+
+   if (!isExposureConnected && (std::abs(exposure) < AI_EPSILON))
+   {
+      // exposure is left to zero. So we can just export colorGain
+      ProcessParameter(shader, "multiply", AI_TYPE_RGB, "colorGain");
+   } else if ((!isExposureConnected) && (!isColorGainConnected))
+   {
+      // no shading connections, just set the right value in multiply
+      AtRGB colorGain = AtRGB(colorGainPlug.child(0).asFloat(), 
+                              colorGainPlug.child(1).asFloat(), 
+                              colorGainPlug.child(2).asFloat());
+      colorGain *= powf(2.0f, exposurePlug.asFloat());
+      AiNodeSetRGB(shader, "multiply", colorGain.r, colorGain.g, colorGain.b);
+   } else
+   {
+      AtNode *compositeNode = GetArnoldNode("gain_exp");
+      if (compositeNode == NULL)
+         compositeNode = AddArnoldNode("color_correct", "gain_exp");
+
+      AiNodeLink(compositeNode, "multiply", shader);
+      AiNodeSetRGBA(compositeNode, "input", 1.f, 1.f, 1.f, 1.f);
+      ProcessParameter(compositeNode, "multiply", AI_TYPE_RGB, "colorGain");
+      ProcessParameter(compositeNode, "exposure", AI_TYPE_FLOAT, "exposure");
+   }
+   if (colorCorrectNode)
+   {
+      ProcessParameter(colorCorrectNode, "alpha_is_luminance", AI_TYPE_BOOLEAN, "alphaIsLuminance");
+      // when "invert" is enabled, we want it to invert both the RGB and the alpha
+      // this is done through 2 different attributes in color_correct
+      ProcessParameter(colorCorrectNode, "invert", AI_TYPE_BOOLEAN, "invert");
+      ProcessParameter(colorCorrectNode, "invert_alpha", AI_TYPE_BOOLEAN, "invert");
+      ProcessParameter(colorCorrectNode, "alpha_multiply", AI_TYPE_FLOAT, "alphaGain");
+      ProcessParameter(colorCorrectNode, "alpha_add", AI_TYPE_FLOAT, "alphaOffset");
+   }
+   
+
+   /* Note that the following native file attributes are ignored :
+      - filter type 
+      - pre-filter 
+      - effects filter
+      - effects filter offset
+      - effects invert
+      - effects color remap
+   */
+
 
 }
 
+void CFileTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "alphaGain" || plugName == "alphaOffset" || plugName == "alphaIsLuminance" || plugName == "invert") &&
+      !RequiresColorCorrect())
+      SetUpdateMode(AI_RECREATE_NODE);
+
+if ((plugName == "uvCoord") &&
+      !RequiresUvTransform())
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
+
+bool CFileTranslator::RequiresColorCorrect() const
+{
+   return ! (IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
+             IsFloatAttrDefault(FindMayaPlug("alphaOffset"), 0.f) &&
+             IsBoolAttrDefault(FindMayaPlug("alphaIsLuminance"), false) &&
+             IsBoolAttrDefault(FindMayaPlug("invert"), false));
+   
+}
+bool CFileTranslator::RequiresUvTransform() const
+{
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("uvCoord");
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() == 0)
+      return false;
+
+   MObject srcObj = connections[0].node();
+   MFnDependencyNode srcNodeFn(srcObj);
+
+   if (srcNodeFn.typeName() != "place2dTexture")
+      return false;
+
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger"), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU"), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV"), false) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame"), 0.f ) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV"), 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("coverage"), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame"), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV"), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV"), 0.f, 0.f ) );
+
+}
+void CFileTranslator::ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut)
+{   
+   int tokenIndex = filename.indexW(tokenIn);
+   if ((tokenIndex) < 0) return; // token not found
+
+   filename = filename.substringW(0, tokenIndex - 1) + 
+      tokenOut + filename.substringW(tokenIndex + tokenIn.length(), filename.length() - 1);
+}
 void CFileTranslator::NodeInitializer(CAbTranslator context)
 {
 
-   CExtensionAttrHelper helper(context.maya, "MayaFile");
-   helper.MakeInput("mipBias");
+   CExtensionAttrHelper helper(context.maya, "image");
+
    helper.MakeInput("filter");
-   helper.MakeInput("useDefaultColor");
 
    CAttrData data;
    data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
    helper.MakeInputBoolean(data);
+
+   data.defaultValue.INT() = 0;
+   data.name = "aiMipBias";
+   data.shortName = "ai_mipmap_bias";
+   helper.MakeInputInt(data);
+
+   data.defaultValue.BOOL() = true;
+   data.name = "aiUseDefaultColor";
+   data.shortName = "ai_ignore_missing_textures";
+   helper.MakeInputBoolean(data);
+
 }
 
 // Bump2d
@@ -399,37 +660,104 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("mayaBump2D");
+   MPlug plug = FindMayaPlug("bumpInterp");
+   if (!plug.isNull() && plug.asShort() > 0)
+      return AddArnoldNode("normal_map");
+
+   // check attribute useAs
+   return AddArnoldNode("bump2d");
 }
 
 void CBump2DTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
-   MStatus status;
-   MPlug plug = FindMayaPlug("bumpInterp", &status);
-   if (status && !plug.isNull())
+   static const AtString normalMapStr("normal_map");
+   if (AiNodeIs(shader, normalMapStr))
    {
-      int useAs = plug.asShort();
-      AiNodeSetInt(shader, "use_as", useAs);
-      if (useAs > 0)
-      {         
-         AtNode* n = AiNodeGetLink(shader, "bump_map");
-         if (n != 0)
-            AiNodeLink(n, "normal_map", shader);
+      // either Object-space or Tangent-space normal
+
+      MPlug plug = FindMayaPlug("bumpInterp");
+      if (!plug.isNull() && plug.asShort() == 1) 
+      {
+         // Tangent space normal
+         AiNodeSetBool(shader, "tangent_space", true);
+         AiNodeSetBool(shader, "color_to_signed", true); // remap normals from [0,1] to [-1,1]
+         ProcessParameter(shader, "invert_x", AI_TYPE_BOOLEAN, "aiFlipR");
+         ProcessParameter(shader, "invert_y", AI_TYPE_BOOLEAN, "aiFlipG");
+         AiNodeResetParameter(shader, "invert_z");
+
+         MPlug swapTangentPlug = FindMayaPlug("aiSwapTangents");
+         if (!swapTangentPlug.isNull() && swapTangentPlug.asBool())
+            AiNodeSetStr(shader, "order", "YXZ");
+         else
+            AiNodeResetParameter(shader, "order"); // XYZ
+
+         AiNodeResetParameter(shader, "tangent");
+         AiNodeResetParameter(shader, "normal");
+         AiNodeResetParameter(shader, "strength");
+
+         MPlug useDerivsPlug = FindMayaPlug("aiUseDerivatives");
+         if (!useDerivsPlug.isNull() && !useDerivsPlug.asBool())
+         {
+            // do we really want to keep supporting this ??
+            // Here the user decided to export derivatives but doesn't want to use them for this bump....
+            // We can plug a state_vector returning dPdu in parameter tangent as a workaround.
+            AtNode *tangentNode = GetArnoldNode("tangent");
+            if (tangentNode == NULL)
+               tangentNode = AddArnoldNode("state_vector", "tangent");
+
+            AiNodeSetStr(tangentNode, "variable", "dPdu");
+            AiNodeLink(tangentNode, "tangent", shader);
+         }        
+
+      } else
+      {
+         // Object space normal
+         AiNodeSetBool(shader, "tangent_space", false);
+         // note that normal isn't remapped in object space normal in maya
+         AiNodeSetBool(shader, "color_to_signed", false);
+
+         AiNodeResetParameter(shader, "tangent");
+         AiNodeResetParameter(shader, "normal");
+         AiNodeResetParameter(shader, "order");
+         AiNodeResetParameter(shader, "invert_x");
+         AiNodeResetParameter(shader, "invert_y");
+         AiNodeResetParameter(shader, "invert_z");
+         AiNodeResetParameter(shader, "strength");
       }
+
+      // Bump value is a float parameter in maya bump, but it can be 
+      // automagically interpreted as a vector for normal maps. 
+      MPlugArray connections;
+      plug = FindMayaPlug("bumpValue");
+      plug.connectedTo(connections, true, false);
+      AtNode *bumpMap = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+
+      if (bumpMap)
+         AiNodeLink(bumpMap, "input", shader);
+      else 
+         AiNodeResetParameter(shader, "input");
+
+   } else
+   {
+      // Bump mode
+      // just need to export bump_map & bump_height
+      ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
+      ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");      
    }
-   ProcessParameter(shader, "flip_r", AI_TYPE_BOOLEAN, "aiFlipR");
-   ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
-   ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
-   ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
-
-   MPlugArray connections;
-   plug = FindMayaPlug("normalCamera");
-
+   // in any case, export the bump for arnold parameter "normal"
    ExportBump(shader);
 }
 
+void CBump2DTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // make sure we recreate the node in case "bumpInterp" changes, 
+   // since it can change whether this node is exported as a bump2d or as a normal_map
+   MString plugName =  plug.partialName(false, false, false, false, false, true);
+   if (plugName == MString("bumpInterp"))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
 // Bump3d
 //
 AtNode*  CBump3DTranslator::CreateArnoldNodes()
@@ -1452,6 +1780,21 @@ AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
    return AddArnoldNode("standard_surface");
 }
 
+void CMayaBlendColorsTranslator::Export(AtNode* shader)
+{
+   // Note that inputs are inverted in Maya shader as compared to arnold
+   ProcessParameter(shader, "input2", AI_TYPE_RGBA, "color1");
+   ProcessParameter(shader, "input1", AI_TYPE_RGBA, "color2");
+   ProcessParameter(shader, "mix", AI_TYPE_FLOAT, "blender");
+   
+}
+
+AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("mix_rgba");
+}
+
+
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "base", AI_TYPE_FLOAT, "diffuse");
@@ -1704,7 +2047,10 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputBoolean(data);
 
    // This registers the flename attribute so that it appears in the filepath editor
-   MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
+   MString typeLabel;
+   MGlobal::executeCommand("filePathEditor -query -typeLabel aiImage.filename", typeLabel);
+   if (typeLabel != MString("Image"))
+      MGlobal::executeCommand("filePathEditor -registerType aiImage.filename -typeLabel \"Image\"");
 }
 
 
@@ -1959,6 +2305,44 @@ void CAiSwitchShaderTranslator::NodeInitializer(CAbTranslator context)
 }
 
 //////////////////////////////////////////////////////
+// PASSTHROUGH SHADER
+
+// MIX SHADER : presented as the "closure" version.
+// But if someone uses it in the middle of the shading tree to mix between different shaders, 
+// we switch to the "rgba" version
+AtNode* CAiPassthroughTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("passthrough");
+}
+
+void CAiPassthroughTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "passthrough", AI_TYPE_CLOSURE, "passthrough");
+   MFnDependencyNode dnode(GetMayaObject());
+   MPlugArray conns;
+
+
+   for (unsigned int i = 0; i < 20; ++i)
+   {
+      MString attrName = "eval";
+      attrName += (int)i;
+
+      MPlug inputPlug = dnode.findPlug(attrName);
+      inputPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+         ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
+      else
+         AiNodeResetParameter(shader, AtString(attrName.asChar()));
+   }
+   ExportBump(shader);
+}
+
+void CAiPassthroughTranslator::NodeInitializer(CAbTranslator context)
+{
+}
+
+
+//////////////////////////////////////////////////////
 AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
 {
    MFnDependencyNode dnode(GetMayaObject());
@@ -2125,3 +2509,52 @@ void* CreateQuadShadingSwitchTranslator()
    return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }
 
+
+
+
+// Toon
+//
+void CToonTranslator::NodeInitializer(CAbTranslator context)
+{
+   CNodeTranslator::NodeInitializer(context);
+}
+
+void CToonTranslator::Export(AtNode* shader)
+{
+   CShaderTranslator::Export(shader);
+
+   // Now we need to do something special for attribute "rim_light".
+   // It is a string in arnold, but it's actually an implicit connection to another node.
+   // We need to ensure this connection is created in the translator by calling ExportConnectedNode,
+   // and we need to use the real name of the light node, which might be different from the maya name.
+   MPlug lightPlug = FindMayaPlug("rimLight");
+   if (!lightPlug.isNull())
+   {
+      MString lightName = lightPlug.asString();
+      if (lightName.length() > 0)
+      {
+         MSelectionList activeList;
+         activeList.add(lightName);
+         if (activeList.length() > 0)
+         {
+            MObject lightObj;
+            activeList.getDependNode(0, lightObj);
+            if (!lightObj.isNull())
+            {
+               MPlug dummyPlug = MFnDependencyNode(lightObj).findPlug("message");
+               if (!dummyPlug.isNull())
+               {
+                  AtNode *lightArnoldNode = ExportConnectedNode(dummyPlug);
+                  AtString lightArnoldName = (lightArnoldNode) ? AtString(AiNodeGetName(lightArnoldNode)) : AtString("");
+                  AiNodeSetStr(shader, "rim_light", lightArnoldName); 
+               }               
+            }
+         }
+      }
+   }
+}
+
+AtNode* CToonTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("toon");
+}

@@ -1,7 +1,5 @@
-# NOTE: this module should not import PyMEL
 import maya.cmds as cmds
 import maya.mel as mel
-import pymel.core as pm
 import inspect
 import types
 import re
@@ -11,6 +9,8 @@ import sys
 import ctypes
 import string
 import locale
+import maya.OpenMayaRender
+
 from hooks import fileTokenScene, fileTokenRenderPass, fileTokenCamera, fileTokenRenderLayer, fileTokenVersion
 
 def even(num):
@@ -156,10 +156,17 @@ def findMelScript(name):
 
 def safeDelete(node):
     '''delete a node, or disconnect it, if it is read-only'''
-    if node.isReadOnly():
-        node.message.disconnect()
+    node_str = str(node)
+    if cmds.lockNode( node_str, q=True, lock=True )[0]:
+
+        node_connections = cmds.listConnections('{}.message'.format(node_str),
+                                                  source=False, destination=True,
+                                                  connections=True,
+                                                  plugs=True) or []
+        for src, dest in zip(node_connections[::2], node_connections[1::2]):
+            cmds.disconnectAttr(src, dest)
     else:
-        cmds.delete(str(node))
+        cmds.delete(node_str)
 
 def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
     result = []
@@ -264,6 +271,8 @@ def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
 def translatorToExtension(translatorName):
     if (translatorName == "deepexr") :
         return "exr"
+    elif (translatorName == "jpeg") :
+        return "jpg"
     else :
         return translatorName
     
@@ -344,8 +353,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     # get info from globals
     # NOTE: there is a bug in the wrapper of this class that prevents us from retrieving the
     # 'namePattern' property, so that must be properly passed in via the 'path' argument
-    settings = pm.api.MCommonRenderSettingsData()
-    pm.api.MRenderUtil.getCommonRenderSettings(settings)
+    settings = maya.OpenMayaRender.MCommonRenderSettingsData()
+    
+    maya.OpenMayaRender.MRenderUtil.getCommonRenderSettings(settings)
     if isSequence is None:
         isSequence = settings.isAnimated()
     if isSequence:
@@ -368,11 +378,11 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     path += schemes[settings.namingScheme]
 
     if '<Extension>' in path and 'Extension' not in tokens:
-        tokens['Extension'] = translatorToExtension(pm.getAttr('defaultArnoldDriver.aiTranslator'))
+        tokens['Extension'] = translatorToExtension(cmds.getAttr('defaultArnoldDriver.aiTranslator'))
     if '<Frame>' in path and 'Frame' not in tokens:
         # TODO: add handling of sub-frames
         if frame is None:
-            frame = pm.currentTime()
+            frame = cmds.currentTime()
         else:
             frame = float(frame)
         if settings.renumberFrames:
@@ -406,15 +416,15 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     #print path, tokens
     partialPath = expandFileTokens(path, tokens, leaveUnmatchedTokens=leaveUnmatchedTokens)
-    if pathType in [pm.api.MCommonRenderSettingsData.kRelativePath, 'relative']:
+    if pathType in [maya.OpenMayaRender.MCommonRenderSettingsData.kRelativePath, 'relative']:
         return partialPath
 
     if cmds.optionVar(exists="OverrideFileOutputDirectory"):
         imageDir = cmds.optionVar(query="OverrideFileOutputDirectory")
     else:
-        imageDir = pm.workspace(fileRuleEntry=fileType)
+        imageDir = cmds.workspace(fileRuleEntry=fileType)
         imageDir = imageDir if imageDir else 'data'
-        imageDir = pm.workspace(expandName=imageDir);
+        imageDir = cmds.workspace(expandName=imageDir);
 
     codecs = ['utf-8', 'latin-1']
     for i in codecs:
@@ -432,9 +442,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     if cmds.optionVar(exists="OverrideFileOutputDirectory"):
         result = os.path.join(imageDir, partialPath)
-    elif pathType in [pm.api.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
+    elif pathType in [maya.OpenMayaRender.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
         result = os.path.join(imageDir, 'tmp', partialPath)
-    elif pathType in [pm.api.MCommonRenderSettingsData.kFullPathImage, 'full']:
+    elif pathType in [maya.OpenMayaRender.MCommonRenderSettingsData.kFullPathImage, 'full']:
         result = os.path.join(imageDir, partialPath)
     else:
         raise TypeError("Invalid pathType")
@@ -498,12 +508,11 @@ def createLocator(locatorType, asLight=False):
         shapeNames = cmds.listRelatives(lName, shapes=True)
         return (shapeNames[0], lName)
 
-    lNode = pm.createNode('transform', name='%s1' % locatorType)
-    lName = lNode.name()
-    lId = lName[len(locatorType):]
+    lNode = cmds.createNode('transform', name='%s1' % locatorType)
+    lId = lNode[len(locatorType):]
     shapeName = '%sShape%s' % (locatorType, lId)
-    pm.createNode(locatorType, name=shapeName, parent=lNode)       
-    return (shapeName, lName)
+    cmds.createNode(locatorType, name=shapeName, parent=lNode)       
+    return (shapeName, lNode)
 
 # in theory we could merge this function with the one above easily,
 # but we need to make sure first it's not breaking other calls
@@ -513,12 +522,11 @@ def createLocatorWithName(locatorType, nodeName, asLight=False):
         shapeNames = cmds.listRelatives(lName, shapes=True)
         return (shapeNames[0], lName)
 
-    lNode = pm.createNode('transform', name='%s' % nodeName)
-    lName = lNode.name()
-    lId = lName[len(locatorType):]
+    lNode = cmds.createNode('transform', name='%s' % nodeName)
+    lId = lNode[len(locatorType):]
     shapeName = '%sShape' % nodeName
-    pm.createNode(locatorType, name=shapeName, parent=lNode)       
-    return (shapeName, lName)
+    cmds.createNode(locatorType, name=shapeName, parent=lNode)       
+    return (shapeName, lNode)
 
 
 def createMeshLight(legacy=False, centerPivot=True):
@@ -543,7 +551,7 @@ def createMeshLight(legacy=False, centerPivot=True):
 
         # Make sure the shape has only a single parent
         # Multiple light instances are not supported
-        allPaths = cmds.listRelatives(meshShape, allParents=True, fullPath=True)
+        allPaths = cmds.listRelatives(meshShape, allParents=True, fullPath=True) or []
         if len(allPaths) != 1:
             cmds.confirmDialog(title='Error', message='The mesh has multiple instances. Light instances are not supported!', button='Ok')
             return
@@ -585,10 +593,14 @@ def getActiveRenderLayerName():
     if not cmds.objExists('renderLayerManager.renderLayerId'):
         return ''
         
-    renderLayers = cmds.listConnections('renderLayerManager.renderLayerId')
+    renderLayers = cmds.listConnections('renderLayerManager.renderLayerId') or []
     if (len(renderLayers) > 1):
         layer = cmds.editRenderLayerGlobals(query=True, currentRenderLayer=True)
         if (cmds.getAttr(layer+'.identification') == 0):
             return 'masterLayer'
         return layer
     return ''
+
+def getMayaVersion():
+    version = cmds.about(f=True)
+    return int(float(version[:4]))

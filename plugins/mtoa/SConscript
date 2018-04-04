@@ -26,6 +26,7 @@ for subdir in subdirs:
 #Remove files to be exported by the API from 'nodes' and 'translators' folder
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('nodes', 'shape', 'ArnoldProceduralNode.cpp'),
+                    os.path.join('nodes', 'ArnoldOperatorNode.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),
@@ -36,6 +37,7 @@ source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
                     os.path.join('translators', 'shape', 'ProceduralTranslator.cpp'),
                     os.path.join('translators', 'shape', 'AutoProceduralTranslator.cpp'),
+                    os.path.join('translators', 'operator', 'OperatorTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslatorImpl.cpp'),                    
                     os.path.join('translators', 'DagTranslator.cpp'),
@@ -128,6 +130,7 @@ if system.os() == 'windows':
             local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
         else:
             local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
+    local_env.Append(LIBS = ['user32.lib', 'advapi32.lib']) # this is needed for the licensing tools, for system environment variables
 elif system.os() == 'linux':
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])

@@ -347,6 +347,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // Not filtering out of render layer
+      // FIXME this is the only piece of code that relies on the export filter.
+      // In a future ABI-breaking version, we should find another way to support this
       if (exportSelected)
       {
          arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
@@ -429,11 +431,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
          appendToResult(curfilename);
 
-         // TODO: package all of this in a method
-         // This is no longer necessary in arnold side, see #814
-//         if (cameras.length() > 1 || writeBox)
-            //AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
-         
          renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed, writeBox);
       }

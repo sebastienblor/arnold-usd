@@ -1,64 +1,57 @@
-﻿import pymel.core as pm
+﻿import maya.mel
 import mtoa.aovs as aovs
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.utils as aeUtils
+import sys
 
 class AEaiAOVTemplate(ShaderAETemplate):
 
     def defaultValueNew(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiAOVDefaultValue',
+        cmds.attrNavigationControlGrp('aiAOVDefaultValue',
                                     label='Shader',
-                                    at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+                                    at=str(nodeAttr), cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def defaultValueReplace(self, nodeAttr):
-        pm.attrNavigationControlGrp('aiAOVDefaultValue', edit=True, at=nodeAttr, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
+        cmds.attrNavigationControlGrp('aiAOVDefaultValue', edit=True, at=str(nodeAttr), cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+nodeAttr+"\" \"\"")
 
     def outputsNew(self, attr):
         node, plug = attr.split('.', 1)
-        attr = pm.Attribute(attr)
-        self.frame = pm.mel.AEnewNonNumericMulti(node,
-                                                 plug,
-                                                 "AOV Outputs",
-                                                 "", "AEnewCompound",
-                                                 attr.getArrayIndices())
+        idx_list = cmds.getAttr(attr, mi=True) or []
+        idx_listStr = str(idx_list).replace('[', '{').replace(']', '}').replace('L', '')
+        self.frame = maya.mel.eval('AEnewNonNumericMulti(\"{}\",\"{}\",\"AOV Outputs\",\"\", \"AEnewCompound\",{})'.format(node, plug, idx_listStr))
 
     def outputsReplace(self, attr):
         node, plug = attr.split('.', 1)
-        attr = pm.Attribute(attr)
-        #pm.setParent(self.frame)
-        pm.mel.AEreplaceNonNumericMulti(self.frame,
-                                        node,
-                                        plug,
-                                        "", "AEreplaceCompound",
-                                        attr.getArrayIndices())
-
+        idx_list = cmds.getAttr(attr, mi=True) or []
+        idx_listStr = str(idx_list).replace('[', '{').replace(']', '}').replace('L', '')
+        maya.mel.eval('AEreplaceNonNumericMulti(\"{}\", \"{}\", \"{}\",  \"\", \"AEreplaceCompound\", {})'.format(self.frame, node, plug, idx_listStr))
     
     def updateLightGroupsVisibility(self, nodeName):
         nameAttr = '%s.%s' % (nodeName, 'name')
-        nameValue = pm.getAttr(nameAttr)
+        nameValue = cmds.getAttr(nameAttr)
 
         lightGroupsAttr = '%s.%s' % (nodeName, 'lightGroups')
-        lightGroupsValue = pm.getAttr(lightGroupsAttr)
+        lightGroupsValue = cmds.getAttr(lightGroupsAttr)
         
         aovLightingList = aovs.getLightingAOVs()
         lightGroupsEnabled = (nameValue in aovLightingList)
 
-        pm.editorTemplate(dimControl=(nodeName, 'globalAov', not lightGroupsEnabled))
-        pm.editorTemplate(dimControl=(nodeName, 'lightGroups', not lightGroupsEnabled))
-        pm.editorTemplate(dimControl=(nodeName, 'lightGroupsList', (not lightGroupsEnabled) or lightGroupsValue))
+        cmds.editorTemplate(dimControl=(nodeName, 'globalAov', not lightGroupsEnabled))
+        cmds.editorTemplate(dimControl=(nodeName, 'lightGroups', not lightGroupsEnabled))
+        cmds.editorTemplate(dimControl=(nodeName, 'lightGroupsList', (not lightGroupsEnabled) or lightGroupsValue))
 
         builtinAOVs = aovs.getBuiltinAOVs()
         customAOV = not (nameValue in builtinAOVs)
 
-        pm.editorTemplate(dimControl=(nodeName, 'defaultValue', not customAOV))
-        pm.editorTemplate(dimControl=(nodeName, 'lightPathExpression', not customAOV))
+        cmds.editorTemplate(dimControl=(nodeName, 'defaultValue', not customAOV))
+        cmds.editorTemplate(dimControl=(nodeName, 'lightPathExpression', not customAOV))
 
     def addTokenLPE(self, value):
         attr = self.nodeName + '.lightPathExpression'
-        previousLPE = pm.getAttr(attr)
+        previousLPE = cmds.getAttr(attr)
         newLPE = previousLPE + value
-        pm.setAttr(attr, newLPE)
+        cmds.setAttr(attr, newLPE, type="string")
 
     def createLPE(self, attr):
         tokens = attr.split('.')
@@ -68,8 +61,8 @@ class AEaiAOVTemplate(ShaderAETemplate):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         aeUtils.attrTextFieldGrp(controlName, attribute=attr, label='Light Path Expression <span>&#8801;</span>')
         
-        attrChildren = pm.layout(controlName, query=True, childArray=True)
-        pm.popupMenu(button=1, parent=attrChildren[0])
+        attrChildren = cmds.layout(controlName, query=True, childArray=True)
+        cmds.popupMenu(button=1, parent=attrChildren[0])
 
         lpeTokens=[ 
             ["Camera                                                                        C" , "C"],
@@ -124,10 +117,10 @@ class AEaiAOVTemplate(ShaderAETemplate):
         ]
         
         for lpeToken in lpeTokens:
-            pm.menuItem(label=lpeToken[0], annotation=lpeToken[1], command=pm.Callback(self.addTokenLPE, lpeToken[1]))
+            cmds.menuItem(label=lpeToken[0], annotation=lpeToken[1], command= lambda arg=None, x=lpeToken[1]: self.addTokenLPE(x))
 
             if lpeTokens[1] == "V" or lpeTokens[1] == "A":
-                pm.menuItem(divider=True)
+                cmds.menuItem(divider=True)
         
         cmds.setUITemplate(popTemplate=True)        
 
@@ -231,7 +224,14 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.addControl('name', changeCommand=self.updateLightGroupsVisibility)
         self.addControl('type', label='Data Type')
         self.addSeparator()
+        platformName = sys.platform
+
+        if not platformName.startswith('darwin'):
+            self.addControl('denoise', label='Denoise')
+
+        self.addSeparator()
         self.addControl('camera', label='Camera (Batch only)')
+
 
         self.beginLayout("Light Groups", collapse=False)
         self.beginNoOptimize()
@@ -257,7 +257,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.addCustom('outputs', self.outputsNew, self.outputsReplace)
 
         # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         self.addExtraControls()
 
         self.endScrollLayout()

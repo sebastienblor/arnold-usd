@@ -72,6 +72,7 @@ namespace // <anonymous>
         return false;
 
       MPlug templatePlug = node.findPlug("template", &status);
+      MPlug overEnablePlug = node.findPlug("overrideEnabled", &status);
       MPlug overDispPlug = node.findPlug("overrideDisplayType", &status);
 
       if (status == MStatus::kFailure)
@@ -80,7 +81,7 @@ namespace // <anonymous>
       if (templatePlug.asBool())
         return true;
       else
-         if (overDispPlug.asInt()==1)
+         if (overEnablePlug.asBool() && overDispPlug.asInt()==1)
             return true;
          else
             return false;
@@ -712,11 +713,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          status = ExportCameras();
       }
-      // Then we filter them out to avoid double exporting cameras
-      // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
       // For render selected we need all the lights (including unselected ones)
       status = ExportLights();
-      // m_sessionOptions.m_filter.excluded.insert(MFn::kLight);
       status = ExportDag(selected);
    }
    else if (exportMode == MTOA_SESSION_ASS)
@@ -742,8 +740,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          {
             status = ExportCameras();
          }
-         // Then we filter them out to avoid double exporting cameras
-         // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
          // Update light linking info
          // FIXME: use a translator for light linker node(s)
          status = ExportLights();
@@ -771,7 +767,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          shgElem.add(shadingGroups[shg]);
          MPlug shgPlug;
          shgElem.getPlug(0, shgPlug);
-         // Since we no longer export MayaShadingEngine, we actually want to export the assigned shaders
+
+         ExportNode(shgPlug); // in case the shading group has custom AOVs (#3284)
+
+         // Since we no longer export MayaShadingEngine, we might need to export the assigned shaders
          MFnDependencyNode shEngineNode(shgPlug.node());
          MPlugArray connections;
          MStringArray shaderAttrs;
@@ -1042,9 +1041,11 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
             MString name = node.name();
             if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
                continue;
-            if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
+
+            // FIXME both filters below happen to always be enabled 
+            if (/*(mask & MTOA_FILTER_TEMPLATED) && */ IsTemplatedPath(path))
                continue;
-            if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
+            if (/*(mask & MTOA_FILTER_HIDDEN) &&*/ !IsVisiblePath(path))
                continue;
             
             MStatus stat;
@@ -1114,6 +1115,23 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    return status;
 }
 
+// When a hidden node gets "unhidden", we need to go through an "idle" callback
+// so that Maya has time to process its visibility status properly
+static MCallbackId s_hiddeNodeCb = 0;
+static MDagPathArray s_hiddenNodesArray;
+void CArnoldSession::DoHiddenCallback(void* clientData)
+{
+   MMessage::removeCallback(s_hiddeNodeCb);
+   s_hiddeNodeCb = 0;
+   MStatus status;
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   if (session)
+   {
+      for (unsigned int i = 0; i< s_hiddenNodesArray.length(); i++)
+         session->SetDagVisible(s_hiddenNodesArray[i]);
+   }
+   s_hiddenNodesArray.clear();
+}
 // This callback is invoked when one of the skipped (hidden) objects is modified 
 // during an IPR session. We have to check if it became visible in order to export it
 void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
@@ -1125,11 +1143,23 @@ void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* client
 
    if(!path.isValid()) return;
 
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+
    CArnoldSession *session = (CArnoldSession*)clientData;
    DagFiltered filtered = session->FilteredStatus(path);
-   if (filtered != MTOA_EXPORT_ACCEPTED) return; // this object is still hidden
+   if (filtered != MTOA_EXPORT_ACCEPTED && plugName != "visibility")
+    return; // this object is still hidden
 
-   session->SetDagVisible(path);
+   // We need to go through an "idle" callback, otherwise Maya won't have time to process the 
+   // visibility status of this node 
+   if(s_hiddeNodeCb == 0)
+   {
+      s_hiddeNodeCb = MEventMessage::addEventCallback("idle",
+                                                  CArnoldSession::DoHiddenCallback,
+                                                  clientData
+                                                  );
+   } 
+   s_hiddenNodesArray.append(path);
 }
 
 void CArnoldSession::SetDagVisible(MDagPath &path)
@@ -1198,21 +1228,25 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
             continue;
          }
          MStatus stat;
-         CDagTranslator *tr = ExportDagPath(path, true, &stat);
+
+         // We shouldn't call this function during a render !
+         // It's going to create new nodes (#3355)
+         //CDagTranslator *tr = ExportDagPath(path, true, &stat);
          QueueForUpdate(path);
          if (stat != MStatus::kSuccess)
             status = MStatus::kFailure;
 
+/*
+         // Since we're not calling ExportDagPath anymore, we don't have any translator and we don't know
          if (tr != NULL && !tr->ExportDagChildren())
          {
             pruneDag = true;
             parentPruneDag = path;
             parentPruneDag.pop();
             dagIterator.prune();
-         }
+         }*/
       }
    }
-
    RequestUpdate();
 }
 
@@ -1404,15 +1438,17 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExpo
    if (NULL == filter) filter = &GetExportFilter();
    // Tests that cause the whole branch to be pruned
    unsigned int mask = filter->state_mask;
-   if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
+   // FIXME both filters below appear to always be enabled
+   if (/*(mask & MTOA_FILTER_TEMPLATED) &&*/ IsTemplatedPath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
-   if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
+   if (/*(mask & MTOA_FILTER_HIDDEN) &&*/ !IsVisiblePath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
    // Tests that cause the node to be ignored
    if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
       return MTOA_EXPORT_REJECTED_NODE;
 
    // Then test against all types passed in the MFN::Types array
+   /* This is no longer used
    MObject obj = path.node();
    MFnDagNode node(obj);
    MString name = node.name();
@@ -1420,7 +1456,7 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExpo
    for(; sit!=send;++sit)
       if (obj.hasFn(*sit))
          return MTOA_EXPORT_REJECTED_NODE;
-
+   */
    return MTOA_EXPORT_ACCEPTED;
 }
 
@@ -1587,12 +1623,6 @@ void CArnoldSession::DoUpdate()
    m_isExportingMotion = false;
 
 UPDATE_BEGIN:
-
-   // hack to support deleting procedurals
-   // we need to force arnold to re-generate 
-   // eventual connections from one procedural to another
-   if (!m_proceduralsToUpdate.empty())
-      UpdateProceduralReferences();
 
    newDag = false;
    
@@ -1974,7 +2004,7 @@ void CArnoldSession::ClearUpdateCallbacks()
 /// To address this potential issue, this method should be called after a multi-cam export, as it will cause
 /// the options translator to be updated
 ///
-void CArnoldSession::SetExportCamera(MDagPath camera)
+void CArnoldSession::SetExportCamera(MDagPath camera, bool updateRender)
 {
    if (MtoaTranslationInfo())
       MtoaDebugLog("[mtoa.session] Setting export camera to \""+ camera.partialPathName() + "\"");
@@ -1988,7 +2018,7 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
    
    m_sessionOptions.SetExportCamera(camera);
 
-   if (m_optionsTranslator == NULL) return;
+   if (updateRender == false  && m_optionsTranslator == NULL) return;
    // just queue the options translator now 
    // instead of relying on the DependsOnExportCamera.
    // In the future we should have a generic way to make translators dependent from others,
@@ -2145,7 +2175,7 @@ const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
 }
 
 
-bool CArnoldSession::IsVisible(MFnDagNode &node) const
+bool CArnoldSession::IsVisible(MFnDagNode &node)
 {
    MStatus status;
 
@@ -2155,7 +2185,8 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    // The material view objects in Maya has always visibility disabled
    // to not show up by default in the scenes. So we need to override
    // that here and always return true for objects in material view session
-   if (GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+   if (session && session->GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
       return true;
 
    MPlug visPlug = node.findPlug("visibility", &status);
@@ -2184,7 +2215,7 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    return true;
 }
 
-bool CArnoldSession::IsVisiblePath(MDagPath dagPath) const
+bool CArnoldSession::IsVisiblePath(MDagPath dagPath)
 {
    MStatus stat = MStatus::kSuccess;
    while (stat == MStatus::kSuccess)
@@ -2334,8 +2365,11 @@ void CArnoldSession::ExportTxFiles()
 
       std::string filenameStr = filename.asChar();
 
-      const char *autoTxParam = AiNodeIs(node, image_str) ? "autoTx" : "aiAutoTx";
-      bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
+      MPlug autoTxPlug = translator->FindMayaPlug("autoTx");
+      if (autoTxPlug.isNull())
+         autoTxPlug = translator->FindMayaPlug("aiAutoTx");
+
+      bool fileAutoTx = autoTx && (!autoTxPlug.isNull()) && autoTxPlug.asBool();
 
       MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
       std::string colorSpaceStr = colorSpace.asChar();
@@ -2643,241 +2677,47 @@ void CArnoldSession::RecursiveUpdateDagChildren(MDagPath &parent)
 
 }
 
-
-//--------------------------
-// This is an unpleasant piece of code that is meant to allow for 
-// procedurals updates during IPR. It's there because arnold itself
-// can't support connections updates. If someday this is solved in the core,
-// we'll happily get rid of this code
-// I tried to centralize this as much as possible, so that it doesn't spread out in mtoa.
-// If you remove this code, don't forget to remove the member CNodeTranslatorImpl::m_isProcedural
-
-static inline AtNode *GetRootParentNode(AtNode *node)
+void CArnoldSession::ExportImagePlane()
 {
-   AtNode *currentNode = NULL;
-   AtNode *parentNode = AiNodeGetParent(node);
-   while(parentNode)
+   MDagPath camera = m_sessionOptions.GetExportCamera();
+
+   MFnDependencyNode fnNode (camera.node());
+   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
+
+   AtNode *options = AiUniverseGetOptions();
+
+   CNodeTranslator *imgTranslator = NULL;
+   MStatus status;
+
+   AiNodeSetPtr(options, "background", NULL);
+
+   if (imagePlanePlug.numConnectedElements() == 0)
+      return;
+
+   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
    {
-      currentNode = AiNodeGetParent(parentNode);
-      if (currentNode == NULL) return parentNode;
+      MPlugArray connectedPlugs;
+      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
 
-      parentNode = currentNode;
-   }
-   return NULL;
-}
 
-struct SessionProceduralData
-{
-   SessionProceduralData(CNodeTranslator *tr) : translator(tr), state(PROC_STATE_UNKNOWN){}
-
-   CNodeTranslator *translator;
-
-   enum TranslatorReferenceState
-   {
-      PROC_STATE_UNKNOWN = 0,
-      PROC_STATE_ISOLATED = 1,
-      PROC_STATE_EXTERNAL_REFS
-   };
-   TranslatorReferenceState state;
-};
-
-   
-static unordered_map<AtNode*, SessionProceduralData*> s_registeredProcedurals;
-
-// some procedurals are being deleted. 
-// Make sure there are no connections from one procedural to another.
-// Since Arnold doesn't support deleting nodes properly, we must also re-generate all the 
-// procedurals connected to one of these nodes about to be deleted
-void CArnoldSession::UpdateProceduralReferences()
-{   
-   if (m_proceduralsToUpdate.empty()) return;
-
-   if (MtoaTranslationInfo())
-   {
-      MString log = "[mtoa.session]    Need to updated references for ";
-      log += (int)m_proceduralsToUpdate.size();
-      log += "procedurals in the scene";
-      MtoaDebugLog(log);
-   }
-   // ok folks, some procedurals are being re-generated here.
-   // This means we have to deal with possible translators dangling references
-     
-   // Part 1 : Check all nodes in the arnold scene (doh)
-   // and see if they have connections on nodes belonging to another procedural
-   unordered_set<SessionProceduralData *> registeredProceduralData;
-   unordered_set<CNodeTranslator *> outsideConnectionsList;
-   std::vector<AtNode*> nodeConnections;
-
-   // optimization, to avoid calling the hash map too often
-   AtNode *lastParent = NULL;
-   SessionProceduralData *lastData = NULL;
-   AtNode *lastTargetParent = NULL;
-   SessionProceduralData *lastTargetData = NULL;
-
-   AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);         
-   while (!AiNodeIteratorFinished(nodeIter))
-   {
-      AtNode* node = AiNodeIteratorGetNext(nodeIter);
-
-      // get the root parent node
-      AtNode *parentNode = GetRootParentNode(node);
-
-      // we don't need to consider nodes that don't belong to a procedural
-      // because in practice (to my knowledge) there is no way to connect
-      // a "parentless" node in maya to a node living on a procedural
-      if (parentNode == NULL) continue;
-      
-      // parentNode is the proceduralNode that should have a corresponding translator in the scene
-      SessionProceduralData *procData = (parentNode == lastParent) ? lastData : s_registeredProcedurals[parentNode]; 
-
-      // just to optimize things and avoid calling the map too frequently
-      lastParent = parentNode;
-      lastData = procData;
-      if(procData == NULL || procData->translator == NULL) continue;
-
-      CNodeTranslator *rootTranslator = procData->translator;
-
-      // FIXME should we test m_inUpdateQueue ?
-      if (rootTranslator->m_impl->m_updateMode >= CNodeTranslator::AI_RECREATE_NODE) continue;
-
-      // this translator has already been treated previously. The references are correctly filled
-      // so he don't need to check the connections
-      if (procData->state != SessionProceduralData::PROC_STATE_UNKNOWN) continue;
-
-      registeredProceduralData.insert(procData);
-      // ok, heaviest part now....
-      // loop over all attributes and see if there is a connection to the outside world (another translator)
-      AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
-      AtNode *target = NULL;
-      while (!AiParamIteratorFinished(nodeParam))
+      if (status && (connectedPlugs.length() > 0))
       {
-         const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-         const char* paramName = AiParamGetName(paramEntry);
-         std::string paramStr = paramName;
-         
-         nodeConnections.clear();
-         int paramType = AiParamGetType(paramEntry);
-         
-         if(paramType == AI_TYPE_NODE)
+         imgTranslator = ExportNode(connectedPlugs[0], true);
+         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
+
+         if (imgPlaneTranslator)
          {
-            // it seems that AiNodeGetLink doesn't work for node references
-            // so we need a special case here
-            target = (AtNode*)AiNodeGetPtr(node, paramName);
-            if (target)
-               nodeConnections.push_back(target);
-         } else if (AiNodeIsLinked(node, paramName))
-         {
-            if(AiParamGetType(paramEntry) == AI_TYPE_ARRAY)
-            {
-               AtArray *arr = AiNodeGetArray(node, paramName);
-               if (arr == NULL) continue; // shouldn't happen since this is linked
-               int numElements = (int)AiArrayGetNumElements(arr);
-               for (int a = 0; a < numElements; ++a)
-               {
-                  target = AiNodeGetLink(node, paramName, &a);
-                  if (target) 
-                     nodeConnections.push_back(target);
-               }
-            } else
-            {
-               target = AiNodeGetLink(node, paramName);
-               if (target)
-                  nodeConnections.push_back(target);
-            }
-         } else if (paramType == AI_TYPE_ARRAY)
-         {
-            AtArray *arr = AiNodeGetArray(node, paramName);
-            if (arr && AiArrayGetType(arr) == AI_TYPE_NODE)
-            {
-               int numElements = AiArrayGetNumElements(arr);
-               for (int a = 0; a < numElements; ++a)
-               {
-                  target = (AtNode*)AiArrayGetPtr(arr, a);
-                  if (target) 
-                     nodeConnections.push_back(target);
-               }
-            }
-         }
+            imgPlaneTranslator->SetCamera(fnNode.name());
 
-         // no link
-         if (nodeConnections.empty()) 
-            continue;
-
-         for (size_t t = 0; t < nodeConnections.size(); ++t)
-         {
-            target = nodeConnections[t];
-            if (target == NULL) 
-               continue;
-
-            AtNode *targetParent = GetRootParentNode(target);
-
-            // self-contained connections
-            if (targetParent == NULL || targetParent == parentNode) 
-               continue;
-
-            // ok, so at this point, I have unfortunately a connection to another procedural, damn....
-            SessionProceduralData *targetData = (lastTargetParent == targetParent) ? lastTargetData : s_registeredProcedurals[targetParent]; 
+            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
             
-            // just to optimize things and avoid calling the map too frequently
-            lastTargetParent = targetParent;
-            lastTargetData = targetData;
-            if (targetData == NULL || targetData->translator == NULL) continue;
-            CNodeTranslator *targetTranslator = targetData->translator;
-
-            outsideConnectionsList.insert(rootTranslator);
-            rootTranslator->m_impl->AddReference(targetTranslator);
+            if (imgPlaneShader)      
+            {
+               AiNodeSetPtr(options, "background", imgPlaneShader);
+               AiNodeSetByte(options, "background_visibility", 1);
+            }
          }
       }
-      AiParamIteratorDestroy(nodeParam);
    }
-   AiNodeIteratorDestroy(nodeIter);
-
-
-   // Part 2 Set the procedural flags on the translators so that we don't have to do this mess at every IPR update
-   unordered_set<SessionProceduralData *>::iterator it = registeredProceduralData.begin();
-   unordered_set<SessionProceduralData *>::iterator itEnd = registeredProceduralData.end();
-
-   for ( ; it != itEnd; ++it)
-   {
-      SessionProceduralData *procData = *it;
-      
-      procData->state = (outsideConnectionsList.find(procData->translator) == outsideConnectionsList.end()) ? 
-         SessionProceduralData::PROC_STATE_ISOLATED : SessionProceduralData::PROC_STATE_EXTERNAL_REFS;
-
-   }
-
-   // Part 3: now that all references are connected, 
-   // RE-set the update mode so that all the propagations happens correctly
-   unordered_set<CNodeTranslator*>::iterator iter = m_proceduralsToUpdate.begin();
-   unordered_set<CNodeTranslator*>::iterator iterEnd = m_proceduralsToUpdate.end();
-   for ( ; iter != iterEnd; ++iter)
-   {      
-      // we temporarily reset the update mode to update_only
-      // so that SetUpdateMode does its job
-      CNodeTranslator::UpdateMode updateMode = (*iter)->m_impl->m_updateMode;
-      (*iter)->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY; 
-      (*iter)->SetUpdateMode(updateMode);
-   }
-
-   m_proceduralsToUpdate.clear();
-}
-
-// a procedural node is being created
-void CArnoldSession::RegisterProcedural(AtNode *node, CNodeTranslator *translator)
-{
-   s_registeredProcedurals[node] = new SessionProceduralData(translator);
-}
-// a procedural node is being deleted
-void CArnoldSession::UnRegisterProcedural(AtNode *node)
-{
-   unordered_map<AtNode*, SessionProceduralData*>::iterator iter = s_registeredProcedurals.find(node);
-   if (iter == s_registeredProcedurals.end()) return;
-
-   delete iter->second; // delete the SessionProceduralData
-   s_registeredProcedurals.erase(iter);
-}
-// a procedural is going to be deleted / regenerated
-void CArnoldSession::QueueProceduralUpdate(CNodeTranslator *translator)
-{
-   m_proceduralsToUpdate.insert(translator);
 }

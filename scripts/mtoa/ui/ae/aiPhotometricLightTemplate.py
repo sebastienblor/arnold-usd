@@ -1,5 +1,5 @@
-import pymel.core as pm
 import maya.cmds as cmds
+import maya.mel
 import mtoa.ui.ae.lightTemplate as lightTemplate
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
@@ -10,14 +10,14 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         
     def makeLightExclusive(self, attr):
         lightName = attr.split(".")[0]
-        pm.rowLayout(nc=2, cal=[2, 'left'])
-        pm.text(label="")
-        pm.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
-        pm.setParent('..')
+        cmds.rowLayout(nc=2, cal=[2, 'left'])
+        cmds.text(label="")
+        cmds.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
+        cmds.setParent('..')
         
     def replaceLightExclusive(self, attr):
         lightName = attr.split(".")[0]
-        pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
+        cmds.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
         
             
     def filenameEdit(self, mData) :
@@ -122,7 +122,7 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         for extra in extras:
             self.suppress(extra)
         
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

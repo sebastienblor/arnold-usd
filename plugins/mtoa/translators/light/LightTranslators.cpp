@@ -303,7 +303,10 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("filename");
 
    // Register this parameter so that it appears in file path editor
-   MGlobal::executeCommand("filePathEditor -registerType aiPhotometricLight.aiFilename -typeLabel \"IES\"");
+   MString typeLabel;
+   MGlobal::executeCommand("filePathEditor -query -typeLabel aiPhotometricLight.aiFilename", typeLabel);
+   if (typeLabel != MString("IES"))
+      MGlobal::executeCommand("filePathEditor -registerType aiPhotometricLight.aiFilename -typeLabel \"IES\"");
 }
 
 // Mesh AreaLight
@@ -450,6 +453,13 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       AiNodeSetInt(meshNode, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+   }
+   if (RequiresMotionData())
+   {
+      double motionStart, motionEnd;
+      GetSessionOptions().GetMotionRange(motionStart, motionEnd);
+      AiNodeSetFlt(meshNode, "motion_start", (float)motionStart);
+      AiNodeSetFlt(meshNode, "motion_end", (float)motionEnd);
    }
    return meshNode;
 }

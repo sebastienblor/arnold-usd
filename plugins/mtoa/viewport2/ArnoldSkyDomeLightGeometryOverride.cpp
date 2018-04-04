@@ -328,6 +328,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          MHWRender::MRenderItem::DecorationItem,
          MHWRender::MGeometry::kLines);
 
+      wireframeItem->castsShadows(false);
       wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
       wireframeItem->depthPriority(MHWRender::MRenderItem::sDormantWireDepthPriority);
       wireframeItem->enable(true);
@@ -389,6 +390,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          MHWRender::MRenderItem::DecorationItem,
          MHWRender::MGeometry::kLines);
 
+      activeWireframeItem->castsShadows(false);
       activeWireframeItem->setDrawMode(MHWRender::MGeometry::kAll);
       activeWireframeItem->depthPriority(MHWRender::MRenderItem::sActiveLineDepthPriority);
       list.append(activeWireframeItem);
@@ -447,6 +449,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
    {
       texturedItem->setDrawMode((MHWRender::MGeometry::DrawMode)
          (MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));	
+      texturedItem->castsShadows(false);
       texturedItem->depthPriority(MHWRender::MRenderItem::sDormantFilledDepthPriority);
       texturedItem->enable(true);
 

@@ -35,14 +35,9 @@ void CLightTranslator::Export(AtNode* light)
    MPlug plug;
    AtMatrix matrix;
 
-   // Early out, light isn't visible so no point exporting anything else.
-   if (!IsRenderable())
-   {
-      AiNodeSetDisabled(GetArnoldNode(), true);
-      //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);
-      return;
-   }
-   AiNodeSetDisabled(GetArnoldNode(), false);
+   // We used to do an early out when the light was disabled,
+   // but this was creating problems when the light was instanced (#2079)
+   AiNodeSetDisabled(GetArnoldNode(), (!IsRenderable()));
 
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.
@@ -107,6 +102,25 @@ void CLightTranslator::Export(AtNode* light)
       AiNodeSetFlt(light, "motion_end", (float)motionEnd);
    }
 
+   // eventually export dcc_name user attribute
+   // FIXME this could be moved to a separate function but this might be temporary
+   if (GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(light, "dcc_name") == NULL)
+         AiNodeDeclare(light, "dcc_name", "constant STRING");
+   
+      MString partialName = m_dagPath.partialPathName();
+      AiNodeSetStr(light, "dcc_name", AtString(partialName.asChar()));
+   }
+
+   if (!GetSessionOptions().GetExportFullPath() || GetSessionOptions().GetExportPrefix().length() > 0)
+   {
+      if (AiNodeLookUpUserParameter(light, "maya_full_name") == NULL)
+         AiNodeDeclare(light, "maya_full_name", "constant STRING");
+   
+      MString fullName = m_dagPath.fullPathName();
+      AiNodeSetStr(light, "maya_full_name", AtString(fullName.asChar()));
+   }
 }
 
 void CLightTranslator::ExportMotion(AtNode* light)

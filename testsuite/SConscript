@@ -31,6 +31,19 @@ if env['COLOR_CMDS']:
     color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
     color_cyan    = Fore.CYAN
 
+
+# Obtain information about the system only once, when loaded
+os_name = platform.system().lower()
+
+_linux   = 'linux'
+_darwin  = 'darwin'
+_windows = 'windows'
+
+# These data avoid writing error prone checks like "os.system.os == 'linux'"
+is_linux   = os_name == _linux
+is_darwin  = os_name == _darwin
+is_windows = os_name == _windows
+
 ## Finds a test group and returns a list of all tests included
 def find_test_group(group):
     def find_test_group_in_file(group, file):
@@ -144,7 +157,7 @@ class MayaTestRunner(object):
                 multiprocess        = True,
                 maya_version        = '2018'):
       ## save the params
-        if system.os() == 'windows':
+        if is_windows:
             self.script = os.path.normpath(script)
         else:
             self.script = script
@@ -174,10 +187,10 @@ class MayaTestRunner(object):
 
         # Add tests intended for other platforms to the black list
         for o in system.get_valid_oses():
-            if o != system.os():
+            if o != os_name:
                 self.black_list.extend(find_test_group(o))
 
-        ignore_os = 'ignore_' + system.os()
+        ignore_os = 'ignore_' + os_name
 
         self.black_list.extend(find_test_group(ignore_os))
 
@@ -310,13 +323,13 @@ class MayaTestRunner(object):
         test_env = env.Clone()
     
         # add libai to library search path, and Arnold bin dir to path
-        if system.os() == 'darwin':
+        if is_darwin:
             #test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
             test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
             test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
             previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
             os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
-        elif system.os() == 'linux':
+        elif is_linux:
             #test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
             test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
             test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
@@ -329,7 +342,7 @@ class MayaTestRunner(object):
         previous_path = os.environ.get('PATH')
 
         path_separator = ':'
-        if system.os() == 'windows':
+        if is_windows:
             path_separator = ';'
 
         #make sure mtoa's kick path is set *before* the arnold one
@@ -344,10 +357,12 @@ class MayaTestRunner(object):
         os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
         os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
     
+        os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
         show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') \
             or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
-        oiiotool_path = os.path.join(test_env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', system.os(), 'oiiotool')
+        # temporarily removing multi-threads testsuite
+        oiiotool_path = os.path.join(test_env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', os_name, 'oiiotool')
         self.tests.sort()
         if not self.multiprocess:
             # disable multi-threading for windows
@@ -365,7 +380,7 @@ class MayaTestRunner(object):
                 # Note that we won't be loading the scene because it seems that the script is called before scene load.
                 # So it's the script itself that loads whatever scene it wants
                 if os.path.exists(os.path.join(test_dir, 'test.mel')):
-                    if system.os() == 'windows':
+                    if is_windows:
                         mayabatch_cmd = 'mayabatch'
                     else:
                         mayabatch_cmd = 'maya -batch'
@@ -386,7 +401,7 @@ class MayaTestRunner(object):
 
                     maya_root = test_env['MAYA_ROOT']
                     test_script = ''
-                    if system.os() == 'darwin':   
+                    if is_darwin:   
                         test_script = 'python '
                         maya_root = maya_root.replace('/Maya.app/Contents', '')
 
@@ -396,7 +411,7 @@ class MayaTestRunner(object):
                 # If the test.py is found, we want to run mayapy with this script
                     maya_root = test_env['MAYA_ROOT']
                     mayapy_cmd = 'mayapy '
-                    if system.os() == 'darwin':   
+                    if is_darwin:   
                         maya_root = maya_root.replace('/Maya.app/Contents', '')
 
                     if not ' ' in test_env['MAYA_ROOT']:
@@ -497,9 +512,9 @@ class MayaTestRunner(object):
         if previous_path :
             os.environ['PATH'] = previous_path
         if previous_lib_path :
-            if system.os() == 'darwin':
+            if is_darwin:
                 os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
-            elif system.os() == 'linux':
+            elif is_linux:
                 os.environ['LD_LIBRARY_PATH'] = previous_lib_path
         if previous_render_desc :
             os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
@@ -544,7 +559,7 @@ class MayaTestRunner(object):
         </tr>
         </table>
         <br>
-        ''' % (MTOA_VERSION, system.os(), MAYA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
+        ''' % (MTOA_VERSION, os_name, MAYA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
                 len(self.tests),
                 passed,
                 (100.0 * passed) / (passed + failed),
@@ -734,7 +749,7 @@ if __name__ == 'SCons.Script':
     TAGS = []
     PATTERNS = []
     
-    if system.os() == 'windows':
+    if is_windows:
        test_env = env.Clone(SHLIBPREFIX = '', SHLIBSUFFIX='.dll')
     else:
        test_env = env.Clone(SHLIBPREFIX = '', SHLIBSUFFIX='.so')
@@ -742,13 +757,14 @@ if __name__ == 'SCons.Script':
     # Disable multiprocess if the operating system is Windows or a Linux without multiprocessing 
     multiprocess = False
     if test_env['MULTIPROCESS'] == True:
-        print system.os()
-        if system.os() == 'linux' and (int(test_env['TEST_THREADS']) > 1):
+        if is_linux and (int(test_env['TEST_THREADS']) > 1):
             try:
                 import multiprocessing
                 multiprocess = True
             except:
                 pass
+
+    # temporarily disabling multi-thread
     if multiprocess:
         from testsuite import do_run_test
         # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
@@ -810,7 +826,7 @@ if __name__ == 'SCons.Script':
 
                 for fullName in testlist:
                     name = os.path.basename(fullName)
-                    if name in GUI_LIST:
+                    if name in GUI_LIST and (not is_windows):
                         continue
                     SRC += [os.path.join(name, 'README')]
             else:
@@ -846,7 +862,7 @@ if __name__ == 'SCons.Script':
                 GUI_LIST = find_test_group('gui')
                 for fullName in testlist:
                     name = os.path.basename(fullName)
-                    if name in GUI_LIST:
+                    if name in GUI_LIST and (not is_windows):
                         print "Skipping GUI test \"%s\"" % name
                         continue
                     testRunner.add_test(name)

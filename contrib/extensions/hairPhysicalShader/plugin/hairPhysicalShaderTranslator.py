@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.cmds as cmds
 import mtoa.ui.ae.templates as templates
 import traceback
@@ -22,7 +21,7 @@ class hairPhysicalShaderTemplate(templates.AttributeTemplate):
 
     def buttonsReplace(self, nodeName):
         cmds.button("lockUnsupported", edit=True,
-            command=pm.Callback(self.lockUnsupportedAttributes, nodeName))
+            command=lambda arg=None, x=nodeName:self.lockUnsupportedAttributes(x))
 
     def lockUnsupportedAttributes(self, nodeName):
         nodeName = nodeName[:nodeName.index(".")]

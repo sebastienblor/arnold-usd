@@ -56,6 +56,8 @@ void COptionsTranslator::ProcessAOVs()
    bool foundBeauty = false;
    MPlugArray conns;
 
+   m_aovsInUse = FindMayaPlug("outputVarianceAOVs").asBool();
+   
    m_aovs.clear();
 
    ClearAovCallbacks();
@@ -114,6 +116,7 @@ void COptionsTranslator::ExportAOVs()
       displayAOV = "beauty";
 
 
+   AtNode *beautyFilter = NULL;
    // loop through AOVs
    m_aovData.clear();
 
@@ -131,6 +134,7 @@ void COptionsTranslator::ExportAOVs()
       if (lightGroupsList.length() > 0)
          lightGroupsList.split(' ', lgList);
 
+      bool denoise = it->GetDenoise();
       aovData.lpe =  it->GetLightPathExpression();
       MPlug shaderPlug = it->GetShaderPlug();
       MString camera = it->GetCamera();
@@ -164,8 +168,6 @@ void COptionsTranslator::ExportAOVs()
          {
             AiMsgError("[mtoa.aov] Camera %s not found", camera.asChar());
          }
-         
-
          
       } else
          aovData.cameraTranslator = NULL;
@@ -209,7 +211,7 @@ void COptionsTranslator::ExportAOVs()
          // add default driver
          CAOVOutput output;
          ExportDriver(FindMayaPlug("driver"), output);
-         output.filter = ExportFilter(FindMayaPlug("filter"));
+         beautyFilter = output.filter = ExportFilter(FindMayaPlug("filter"));
 
          // search if I already have the same output driver + filter
          bool foundOutput = false;
@@ -350,6 +352,88 @@ void COptionsTranslator::ExportAOVs()
 
       }
       m_aovData.push_back(aovData);
+      if (denoise)
+      {
+         // If this AOV is denoised, we need to duplicate the output,
+         // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
+         // and append "_denoised" to the AOV name (thus image filename)
+         aovData.name += "_denoise";
+         aovData.tokens += "_denoise";
+         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+         {
+            CAOVOutput &denoise_output = aovData.outputs[i];
+            MString denoise_output_tag = aovData.name;
+            if (i > 0)
+               denoise_output_tag += (int)i;
+
+            denoise_output.filter = GetArnoldNode(denoise_output_tag.asChar());
+            if (denoise_output.filter == NULL)
+               denoise_output.filter = AddArnoldNode("denoise_optix_filter", denoise_output_tag.asChar());
+            //AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
+         }
+
+         m_aovData.push_back(aovData);
+      }
+   }
+
+   if (FindMayaPlug("outputVarianceAOVs").asBool() && beautyFilter)
+   {
+      for (size_t j = 0, aovDataSize = m_aovData.size(); j < aovDataSize; ++j)
+      {
+         CAOVOutputArray &aovData = m_aovData[j];
+         
+         if (aovData.name == MString("RGBA") || aovData.name == MString("RGB"))
+         {
+            CAOVOutputArray varianceAOV = aovData;
+            
+            varianceAOV.name = MString("RGB");
+            varianceAOV.type = AI_TYPE_RGB;
+            
+            varianceAOV.layerName = MString("variance");
+            varianceAOV.tokens = MString("RenderPass=") + varianceAOV.layerName;
+
+            for (size_t i = 0, aovOutputsSize = varianceAOV.outputs.size(); i < aovOutputsSize; ++i)
+            {
+               CAOVOutput &output = varianceAOV.outputs[i];
+               
+               AtNode *variance_filter = GetArnoldNode("variance_filter");
+               if (variance_filter == NULL)
+                  variance_filter = AddArnoldNode("variance_filter", "variance_filter");
+
+               std::string filterType = AiNodeEntryGetName(AiNodeGetNodeEntry(output.filter));
+               size_t pos = filterType.find("_filter");
+               if (pos != std::string::npos)
+                  filterType = filterType.substr(0, pos );
+                 
+               AiNodeSetStr(variance_filter, "filter_weights",filterType.c_str());
+               AiNodeSetFlt(variance_filter, "width", AiNodeGetFlt(output.filter, "width"));
+               AiNodeSetBool(variance_filter, "scalar_mode", false);
+               
+               output.filter = variance_filter;
+               if(!output.mergeAOVs)
+               {
+                  MString varName = MString(AiNodeGetName(output.driver));
+                  varName += MString(".");
+                  varName += varianceAOV.layerName;
+                  if (output.driverTranslator)
+                     output.driver = output.driverTranslator->GetChildDriver(varianceAOV.layerName.asChar());
+                  else
+                     output.driver = AiNodeClone(output.driver);
+
+                  AiNodeSetStr(output.driver, "name", varName.asChar());
+               }
+            }
+            m_aovData.push_back(varianceAOV);
+
+         } else if (aovData.name == MString("Z") || aovData.name == MString("N") || aovData.name == MString("diffuse_albedo"))
+         {
+            for (size_t i = 0, aovOutputsSize = aovData.outputs.size(); i < aovOutputsSize; ++i)
+            {
+               aovData.outputs[i].filter = beautyFilter;
+            }
+            // aovData.type = AI_TYPE_RGB; that doesn't seem necessary anymore for noice
+         }
+      }
    }
 }
 
@@ -408,6 +492,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    std::vector<CAOVOutputArray> stereoAovData;
    MString rightCameraName = "";
    MString leftCameraName = "";
+   MDagPath rightCameraDag = camera;
+   MDagPath leftCameraDag = camera;
 
    if (stereo)
    {   
@@ -423,8 +509,16 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
          // if there's a way to get the Right-Left cameras through the Maya API it would be way better...
          // for now we're going through the cameras names, but this could fail if manually renamed.
-         if(rightCameraName.numChars() == 0 && childNameStr.find("Right") != std::string::npos) rightCameraName = childName;
-         else if (leftCameraName.numChars() == 0 && childNameStr.find("Left") != std::string::npos) leftCameraName = childName;
+         if(rightCameraName.numChars() == 0 && childNameStr.find("Right") != std::string::npos)
+         {
+            rightCameraName = childName;
+            rightCameraDag = camChildPath;
+         }
+         else if (leftCameraName.numChars() == 0 && childNameStr.find("Left") != std::string::npos)
+         {
+            leftCameraName = childName;
+            leftCameraDag = camChildPath;
+         }
       }
       if (rightCameraName.numChars() > 0 && leftCameraName.numChars() > 0) numEyes = 2;
       else  stereo = false;
@@ -444,13 +538,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          CAOVOutputArray& aovData = (eye > 0) ? stereoAovData[i] : m_aovData[i];
 
          MString aovCamera = nameCamera;
+         MDagPath aovCameraDag = camera;
 
          if (aovData.cameraTranslator)
          {
             // replace the camera name by the one specified in the AOV itself
-            MDagPath aovCameraPath = static_cast<CDagTranslator*>(aovData.cameraTranslator)->GetMayaDagPath();
+            aovCameraDag = static_cast<CDagTranslator*>(aovData.cameraTranslator)->GetMayaDagPath();
 
-            MFnDagNode aovCamDagTransform(aovCameraPath);
+            MFnDagNode aovCamDagTransform(aovCameraDag);
+
             aovCamera = aovCamDagTransform.name();
             if (GetSessionOptions().IsInteractiveRender() && (aovCamera != nameCamera))
             {
@@ -487,6 +583,9 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
                if (ext == AtString("deepexr"))
                   ext = AtString("exr");
+               else if (ext == AtString("jpeg"))
+                  ext = AtString("jpg");
+                              
                
                MString tokens = aovData.tokens;
                MString path = output.prefix;
@@ -506,10 +605,12 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   {
                      eyeToken = "Left";
                      aovCamera = leftCameraName;
+                     aovCameraDag = leftCameraDag;
                   } else
                   {
                      eyeToken = "Right";
                      aovCamera = rightCameraName;
+                     aovCameraDag = rightCameraDag;
                   }
                }
 
@@ -652,26 +753,35 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   if (eye != 0)
                      continue; // nothing to do here, we just want one eye for display
 
-                  aovCamera = leftCameraName; // the display camera will be the left one                  
+                  aovCamera = leftCameraName; // the display camera will be the left one       
+                  aovCameraDag = leftCameraDag;           
                }                   
             }
 
             // output statement
-            char str[1024];
+            MString str;
             if (output.raw)
             {
-               sprintf(str, "%s", AiNodeGetName(output.driver));
+               str = MString(AiNodeGetName(output.driver)); 
             }
             else
             {
                if (aovCamera != nameCamera)
                {
-                  sprintf(str, "%s %s %s %s %s", aovCamera.asChar(),  aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+                  str = CDagTranslator::GetArnoldNaming(aovCameraDag) + MString(" ");
                }
-               else
-                  sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                          AiNodeGetName(output.filter), AiNodeGetName(output.driver));     
+               str += aovData.name + MString(" ");
+
+               str += MString(AiParamGetTypeName(aovData.type)) + MString(" ");
+               str += MString(AiNodeGetName(output.filter)) + MString(" ");
+               str += MString(AiNodeGetName(output.driver));
+
+               if (aovData.layerName.length() > 0)
+               {
+                  str += MString(" ");
+                  str += aovData.layerName;
+               }
+   
             }
 
             bool foundAOV = false;
@@ -878,48 +988,6 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
       overscan = 0.0f;
 }
 
-static void ExportImagePlane(MDagPath camera, CArnoldSession *session)
-{
-   MFnDependencyNode fnNode (camera.node());
-   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
-
-   AtNode *options = AiUniverseGetOptions();
-
-   CNodeTranslator *imgTranslator = NULL;
-   MStatus status;
-
-   AiNodeSetPtr(options, "background", NULL);
-
-   if (imagePlanePlug.numConnectedElements() == 0)
-      return;
-
-   for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
-   {
-      MPlugArray connectedPlugs;
-      MPlug imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-      imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-
-
-      if (status && (connectedPlugs.length() > 0))
-      {
-         imgTranslator = session->ExportNode(connectedPlugs[0], true);
-         CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
-
-         if (imgPlaneTranslator)
-         {
-            imgPlaneTranslator->SetCamera(fnNode.name());
-
-            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
-            
-            if (imgPlaneShader)      
-            {
-               AiNodeSetPtr(options, "background", imgPlaneShader);
-               AiNodeSetByte(options, "background_visibility", 1);
-            }
-         }
-      }
-   }
-}
 
 void COptionsTranslator::Export(AtNode *options)
 {
@@ -1005,6 +1073,16 @@ void COptionsTranslator::Export(AtNode *options)
          } else if (strcmp(paramName, "thread_priority") == 0)
          {
             //AiNodeSetInt(options, "thread_priority", 2 );
+         } else if (strcmp(paramName, "GI_glossy_samples") == 0 || strcmp(paramName, "GI_refraction_samples") == 0 ||
+            strcmp(paramName, "sss_bssrdf_samples") == 0 || strcmp(paramName, "volume_indirect_samples") == 0)
+         {
+            // deprecated parameters, don't do anything
+         }
+         else if (strcmp(paramName, "enable_progressive_render") == 0)
+         {
+            // only expose progressive render for interactive sessions 
+            if (GetSessionOptions().IsInteractiveRender())
+               CNodeTranslator::ProcessParameter(options, "enable_progressive_render", AI_TYPE_BOOLEAN);
          }
          else
          {
@@ -1078,7 +1156,7 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetPtr(options, "background", NULL);
       // first we get the image planes connected to this camera
       
-      ExportImagePlane(GetSessionOptions().GetExportCamera(), m_impl->m_session);
+      m_impl->m_session->ExportImagePlane();
 
    }
    if ((GetSessionMode() == MTOA_SESSION_BATCH) || (GetSessionMode() == MTOA_SESSION_ASS))
@@ -1146,6 +1224,19 @@ void COptionsTranslator::Export(AtNode *options)
 
    ExportAtmosphere(options);   
 
+   conns.clear();
+   MPlug pOP = FindMayaPlug("operator");
+   pOP.connectedTo(conns, true, false);
+   if (conns.length() == 1)
+   {
+      AiNodeSetPtr(options, "operator", ExportConnectedNode(conns[0]));
+   }
+   else
+   {
+      AiNodeSetPtr(options, "operator", NULL);
+   }
+
+
    // subdivision dicing camera
    //
    pBG = FindMayaPlug("subdivDicingCamera");
@@ -1160,9 +1251,6 @@ void COptionsTranslator::Export(AtNode *options)
    }
 
    // frame number. We're now updating it at every Update (#2319)
-   if (AiNodeLookUpUserParameter(options, "frame") == NULL)
-      AiNodeDeclare(options, "frame", "constant FLOAT");
-   
    AiNodeSetFlt(options, "frame", (float)GetExportFrame());
 
    if (!IsExported())
@@ -1185,8 +1273,6 @@ void COptionsTranslator::Export(AtNode *options)
             AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
          }
       }
-      if (AiNodeLookUpUserParameter(options, "fps") == NULL)
-         AiNodeDeclare(options, "fps", "constant FLOAT");
    }
 
    // now updating fps at every update, whoe knows
@@ -1269,7 +1355,52 @@ void COptionsTranslator::Export(AtNode *options)
       AiNodeSetArray(options, "aov_shaders", aovShadersArray);
    }
 
+   if (GetSessionOptions().IsInteractiveRender())
+      AiNodeSetBool(options, "enable_dependency_graph", true);
 
+   if (GetSessionMode() != MTOA_SESSION_SWATCH)
+   {
+      if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
+      {
+         MPlug gpuPlug = FindMayaPlug("gpu");
+         bool gpu = gpuPlug.asBool();
+         AiNodeSetStr(options, "render_device", (gpu) ? "GPU" : "CPU");
+      }
+
+
+      CNodeTranslator::ProcessParameter(options, "default_gpu_names", AI_TYPE_STRING);
+      CNodeTranslator::ProcessParameter(options, "default_gpu_min_memory_MB", AI_TYPE_INT);
+      bool autoSelect = true;
+      MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
+      if (manualDevices.asBool())
+      {  // Manual Device selection
+
+         std::vector<unsigned int> devices;
+         MPlug gpuDevices = FindMayaPlug("render_devices");
+         if (!gpuDevices.isNull())
+         {
+            unsigned int numElements = gpuDevices.numElements();
+            for (unsigned int i = 0; i < numElements; ++i)
+            {
+               MPlug elemPlug = gpuDevices[i];
+               if (!elemPlug.isNull())
+               {
+                  devices.push_back(elemPlug.asInt());
+               }
+            }
+         }
+         if (!devices.empty())
+         {
+            autoSelect = false;
+            AtArray* selectDevices = AiArrayConvert(devices.size(), 1, AI_TYPE_UINT, &devices[0]);
+            AiDeviceSelect(AI_DEVICE_TYPE_GPU, selectDevices);
+            AiArrayDestroy(selectDevices);
+         } 
+      }
+
+      if (autoSelect) // automatically select the GPU devices
+         AiDeviceAutoSelect();
+   }
 }
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)
@@ -1322,7 +1453,8 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    // we don't want this to propagate any dirtiness signal.
    if (plugName == "ARV_options") return;
 
-   if (plugName.length() == 0) return;
+   int attrNameLength = plugName.length();
+   if (attrNameLength == 0) return;
 
    if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || 
          plugName == "motion_steps" || plugName == "range_type" || plugName == "motion_frames" ||
@@ -1330,7 +1462,9 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    {
       // Need to re-export all the nodes that Require Motion
       m_impl->m_session->RequestUpdateMotion();
-   } else if (plugName.length() > 4 && plugName.substringW(0, 3) == "log_")
+   } else if ((attrNameLength > 4 && plugName.substringW(0, 3) == "log_") || 
+      (attrNameLength > 6 && plugName.substringW(0, 5) == "stats_") || 
+      (attrNameLength > 8 && plugName.substringW(0, 7) == "profile_"))
    {
       m_impl->m_session->RequestUpdateOptions();
    } 

@@ -33,11 +33,12 @@ MObject CArnoldOptionsNode::s_optionsNode = MObject();
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
+MObject CArnoldOptionsNode::s_outputVarianceAOVs;
 MObject CArnoldOptionsNode::s_driver;
 MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
-MObject CArnoldOptionsNode::s_progressive_rendering;
+MObject CArnoldOptionsNode::s_progressive_rendering; // Warning, this parameter in about maya render view. It's *not* options.progressive_render
 MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
 MObject CArnoldOptionsNode::s_force_texture_cache_flush_after_render;
@@ -79,9 +80,15 @@ MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
 MObject CArnoldOptionsNode::s_log_verbosity;
+MObject CArnoldOptionsNode::s_stats_enable;
+MObject CArnoldOptionsNode::s_stats_file;
+MObject CArnoldOptionsNode::s_stats_mode;
+MObject CArnoldOptionsNode::s_profile_enable;
+MObject CArnoldOptionsNode::s_profile_file;
 MObject CArnoldOptionsNode::s_mtoa_translation_info;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_operator;
 MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
@@ -112,7 +119,9 @@ MObject CArnoldOptionsNode::s_origin;
 MObject CArnoldOptionsNode::s_aov_shaders;
 MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
-
+MObject CArnoldOptionsNode::s_gpu;
+MObject CArnoldOptionsNode::s_render_devices;
+MObject CArnoldOptionsNode::s_manual_devices;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -193,6 +202,10 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
 
+   s_outputVarianceAOVs = nAttr.create("outputVarianceAOVs", "varaovs", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_outputVarianceAOVs);
+
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
    eAttr.addField("Interactive", MTOA_RENDER_INTERACTIVE);
@@ -204,7 +217,10 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_outputAssBoundingBox);
 
-   s_attributes.MakeInput("preserve_scene_data");
+   MObject preserveSceneDataAttr = nAttr.create("preserve_scene_data", "preserveSceneData", MFnNumericData::kBoolean, true);
+   nAttr.setHidden(true);
+   nAttr.setStorable(false);
+   addAttribute(preserveSceneDataAttr);
 
    s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, true);
    nAttr.setKeyable(false);
@@ -275,6 +291,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_sss_samples");
    s_attributes.MakeInput("GI_volume_samples");
 
+   s_attributes.MakeInput("enable_adaptive_sampling");
+   s_attributes.MakeInput("AA_samples_max");
+   s_attributes.MakeInput("AA_adaptive_threshold");
+   s_attributes.MakeInput("enable_progressive_render");
+   
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
@@ -439,6 +460,22 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotx);
 
+   s_gpu = nAttr.create("gpu", "gpu", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_gpu);
+
+   s_manual_devices = nAttr.create("manual_gpu_devices", "manualdevs", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_manual_devices);
+
+   s_render_devices = nAttr.create("render_devices", "rndev", MFnNumericData::kInt);
+   nAttr.setKeyable(false);
+   nAttr.setArray(true);
+   addAttribute(s_render_devices);   
+
+   s_attributes.MakeInput("default_gpu_names");
+   s_attributes.MakeInput("default_gpu_min_memory_MB");
+
    // feature overrides
    s_attributes.MakeInput("ignore_textures");
    s_attributes.MakeInput("ignore_shaders");
@@ -452,6 +489,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
+   s_attributes.MakeInput("ignore_operators");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
@@ -487,12 +525,37 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 1);
    nAttr.setKeyable(false);
    eAttr.addField("Errors", MTOA_LOG_ERRORS);
-   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Warnings", MTOA_LOG_WARNINGS);
+   eAttr.addField("Info", MTOA_LOG_INFO);
    eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
+
+   s_stats_enable = nAttr.create("stats_enable", "statse", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_stats_enable);
+
+   s_stats_file = tAttr.create("stats_file", "statsf", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold_stats.json"));
+   addAttribute(s_stats_file);
+
+   s_stats_mode = eAttr.create("stats_mode", "statsm", 1);
+   nAttr.setKeyable(false);
+   eAttr.addField("Overwrite", AI_STATS_MODE_OVERWRITE);
+   eAttr.addField("Append", AI_STATS_MODE_APPEND);
+   addAttribute(s_stats_mode);
+
+   s_profile_enable = nAttr.create("profile_enable", "profe", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_profile_enable);
+
+   s_profile_file = tAttr.create("profile_file", "proff", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold_profile.json"));
+   addAttribute(s_profile_file);
 
    s_mtoa_translation_info = nAttr.create("mtoa_translation_info", "mtrinf", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -507,6 +570,11 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setKeyable(false);
    mAttr.setReadable(true);
    addAttribute(s_atmosphere);
+
+   s_operator = mAttr.create("operator", "operator");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(true);
+   addAttribute(s_operator);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

@@ -121,10 +121,12 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       CMaterialView::Suspend();
    }
 
+   bool isInteractive = (mode != MTOA_SESSION_BATCH && mode != MTOA_SESSION_ASS); 
+
    // FIXME: raise an error if Begin is called on active session
    // (forcing a CMayaScene::End() to be called before a CMayaScene::Begin() ?
    if (s_renderSession == NULL)
-      s_renderSession = new CRenderSession();
+      s_renderSession = new CRenderSession(isInteractive);
    if (s_arnoldSession == NULL)
       s_arnoldSession = new CArnoldSession();
 
@@ -222,6 +224,11 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
 MStatus CMayaScene::End()
 {
+   // The scene hasn't been properly initialized, we shouldn't do anything
+   // This was creating crashes when MtoA was unloaded (#3218)
+   if (s_lock == NULL)
+      return MStatus::kSuccess;
+
    MStatus status = MStatus::kSuccess;
 
    AiCritSecEnter(&s_lock);
@@ -436,7 +443,7 @@ MStatus CMayaScene::UpdateIPR()
    MCallbackId id;
 
    // Add the IPR update callback, this is called in Maya's idle time
-   if ( s_IPRIdleCallbackId == 0 && !s_renderSession->m_paused_ipr )
+   if ( s_IPRIdleCallbackId == 0)// && !s_renderSession->IsIPRPaused() )
    {
       id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
       if (status == MS::kSuccess) s_IPRIdleCallbackId = id;

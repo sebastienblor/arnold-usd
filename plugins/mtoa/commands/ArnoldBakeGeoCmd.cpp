@@ -117,8 +117,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::ostream os(&fb);
    os << "# Arnold Renderer - OBJ export\n";  // anything else we want to dump in the header ?
 
-   AiBegin();
-   CMayaScene::Begin(MTOA_SESSION_ASS);
+   CMayaScene::Begin(MTOA_SESSION_RENDER);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);   
@@ -137,35 +136,12 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)renderCam);
    }
 
-   //  First, iterate over the geometries to get the matrices
-   // Otherwise, as soon as AiRender is called, they are re-initialized
-   AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
-
-   unordered_map<std::string, matrixAsFloats>  mtxMap;
    static const AtString polymesh_str("polymesh");
+   static const AtString procedural_str("procedural");
 
-
-   while (!AiNodeIteratorFinished(nodeIter))
-   {
-      AtNode *node = AiNodeIteratorGetNext(nodeIter);
-      if (AiNodeIs(node, polymesh_str) )
-      {
-         AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
-         matrixAsFloats mtxFlt;
-         int ind = 0;
-         for (int j = 0; j < 4; j++)
-            for (int k = 0; k < 4; k++, ind++)
-               mtxFlt.elems[ind] = localToWorld[j][k];
-
-         std::string name(AiNodeGetName(node));
-         matrixAsFloats &objValue = mtxMap[name];
-         objValue = mtxFlt;
-      }
-   }
-   AiNodeIteratorDestroy(nodeIter);
 
    AiRender(AI_RENDER_MODE_FREE);
-   nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
+   AtNodeIterator *nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
    AtShaderGlobals* sg = AiShaderGlobals();
    
    std::vector<AtVector> vertices;
@@ -190,16 +166,17 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          AtVector localPos[3], worldPos[3];
          AtVector localNormal[3], worldNormal[3];
          AtVector2 uv[3];
-         AtMatrix localToWorld;
+
+         AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
          
-         matrixAsFloats& mtxFlt = mtxMap[AiNodeGetName(node)];
-
-         int mtxInd = 0;
-         for (int j = 0; j < 4; ++j)
-            for (int k = 0; k < 4; ++k, ++mtxInd)
-               localToWorld[j][k] = mtxFlt.elems[mtxInd];
-
-
+         AtNode *tmpNode = node;
+         AtNode *parentNode;
+         while (parentNode = AiNodeGetParent(tmpNode))
+         {
+            AtMatrix parentMtx = AiNodeGetMatrix(parentNode, "matrix");
+            localToWorld = AiM4Mult(localToWorld, parentMtx);
+            tmpNode = parentNode;
+         }         
          int triangleIndex = 0;
          bool validUvs = true;
          bool validNormals = true;
@@ -267,7 +244,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
             }
             sg->fi = ++triangleIndex;
          }
-
+         
          for (size_t i = 0; i < vertices.size(); ++i)
          {
             os<<"v "<<vertices[i].x<< " "<<vertices[i].y<<" "<<vertices[i].z<<"\n";
@@ -335,7 +312,5 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AiRenderAbort();
 
    CMayaScene::End();
-   AiEnd();
-
    return MS::kSuccess;
 }

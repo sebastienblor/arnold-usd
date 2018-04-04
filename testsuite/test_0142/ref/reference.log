@@ -21,14 +21,9 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts 
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
-00:00:00   492MB WARNING |  node "MayaMultiplyDivide" is already installed
-00:00:00   492MB WARNING |  node "MayaClamp" is already installed
-00:00:00   492MB WARNING |  node "MayaGammaCorrect" is already installed
-00:00:00   492MB WARNING |  node "MayaCondition" is already installed
-00:00:00   492MB WARNING |  node "MayaReverse" is already installed
-ai.dll loaded from non standard location D:\arnold\releases\Arnold-5.0.2.0.wip_latest-windows\bin
-
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, invertShape, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, renderSetup, fbxmaya
+00:00:00   495MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   495MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
 Maya 2017 importing module pymel 1.0.9 (C:\Program Files\Autodesk\Maya2017\Python\lib\site-packages\pymel\__init__.pyc)
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0142/test.ma line 557: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage1.colorManagementEnabled'.
 Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0142/test.ma line 558: 'defaultColorMgtGlobals.configFileEnabled' is already connected to 'aiImage1.colorManagementConfigFileEnabled'.

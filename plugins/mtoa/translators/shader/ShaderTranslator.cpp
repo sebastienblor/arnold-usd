@@ -9,30 +9,9 @@
 #include "common/UnorderedContainer.h"
 #include "utils/MtoaLog.h"
 
-static unordered_map<CShaderTranslator *, int> s_bump_instances;
-size_t s_bump_instance_count = 0;
-
 
 CShaderTranslator::~CShaderTranslator()
 {
-   if (s_bump_instances.empty())
-      return;
-
-   unordered_map<CShaderTranslator*, int>::iterator iter = s_bump_instances.find(this);
-   if (iter == s_bump_instances.end())
-      return;
-
-   // get rid of the iterator in the map,
-   // but keep the counter
-   s_bump_instances.erase(iter);
-
-   // when the whole scene has been deleted,
-   // set the counter to 0
-   if (s_bump_instances.empty())
-   {
-      s_bump_instance_count = 0;
-   }
-
 }
 
 void CShaderTranslator::CreateImplementation()
@@ -56,11 +35,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    if (status != MS::kSuccess || (!mattePlug.asBool()))
       return shader; // matte is disabled (or parameter doesn't exist)
 
-
    MPlug matteColorPlug = FindMayaPlug("aiMatteColor", &status); 
-   if (status != MS::kSuccess ) return shader;
-
-   MPlug matteColorAPlug = FindMayaPlug("aiMatteColorA", &status); 
    if (status != MS::kSuccess ) return shader;
 
    // Matte is enabled, I need to insert a matte shader at the root of my shading tree
@@ -68,11 +43,8 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    if (matteShader == NULL)
       matteShader = AddArnoldNode("matte", "_matte");
 
-   AiNodeSetRGBA(matteShader, "color",
-                matteColorPlug.child(0).asFloat(),
-                matteColorPlug.child(1).asFloat(),
-                matteColorPlug.child(2).asFloat(),
-                matteColorAPlug.asFloat());
+   
+   ProcessParameter(matteShader, "color", AI_TYPE_RGBA, "aiMatteColor");
 
    AiNodeLink(shader, "passthrough", matteShader); 
 

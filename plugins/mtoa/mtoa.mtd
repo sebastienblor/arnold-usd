@@ -1,41 +1,3 @@
-# options                     0x00115C00
-# barndoor                    0x00115C80
-# gobo                        0x00115C81
-# light_blocker               0x00115C82
-# light_decay                 0x00115C83
-# sky                         0x00115C84
-# skydome_light               0x00115C85
-# area_light                  0x00115C86
-# mesh_light                  0x00115C88
-
-# standard                    0x00115D01
-# utility                     0x00115D03
-# ray_switch_rgba             0x00115D04
-# ambient_occlusion           0x00115D07
-# wireframe                   0x00115D08
-# fog                         0x00115D0A
-# volume_scattering           0x00115D0B
-# bump2d                      0x00115D0C
-# noise                       0x00115D0D
-# bump3d                      0x00115D0E
-# motion_vector               0x00115D0F
-# image                       0x00115D17
-# physical_sky                0x00115D1E
-
-# Arnold 5 nodes
-# standard_surface            0x00115D51
-# standard_hair               0x00115D52
-# standard_volume             0x00115D53
-# shader_mix                  0x00115D54
-# ray_switch_shader           0x00115D55
-# osl_shader                  0x00115D56
-
-# Common Shaders
-# blackbody                   0x00115D57
-# flakes                      0x00115D58
-# two_sided                   0x00115D59
-
-
 # For the Maya IDs, please refer to nodes/ArnoldNodeIDs.h where each of them is listed
 
 
@@ -53,6 +15,15 @@
         default             INT     3
         linkable            BOOL    false
         maya.orig_shortname STRING  "AAsmpls"
+    [attr AA_samples_max]
+        maya.keyable        BOOL    false
+        min                 INT     0
+        max                 INT     100
+        softmin             INT     1
+        softmax             INT     10
+        default             INT     8
+        linkable            BOOL    false
+        maya.orig_shortname STRING  "AAsmax"
     [attr bucket_size]
         maya.keyable        BOOL    false
         min                 INT     16
@@ -81,12 +52,20 @@
         softmax             FLOAT   100.0
         linkable            BOOL    false
         maya.orig_shortname STRING  "indsmpclamp"
-
+    [attr AA_samples_max]
+        min                 INT     0
+        softmax              INT     10
+    [attr AA_adaptive_threshold]
+        min                 FLOAT     0
+        softmax             FLOAT     1
     [attr AA_sample_clamp_affects_aovs]
         maya.keyable        BOOL    false
         linkable            BOOL    false    
         maya.name           STRING  "use_sample_clamp_AOVs"
     [attr ignore_textures]
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
+    [attr ignore_operators]
         maya.keyable        BOOL    false
         linkable            BOOL    false
     [attr ignore_shaders]
@@ -1368,7 +1347,10 @@
     [attr ao_distance]
         min                 FLOAT 0.0
         softmax             FLOAT 200.0
-
+    [attr roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    
 [node ray_switch_rgba]
     maya.hide               BOOL    true
     maya.id                 INT     0x00115D84
@@ -1547,7 +1529,7 @@
     [attr offset]
         linkable            BOOL    true
         maya.channelbox     BOOL    true
-
+    
 [node motion_vector]
     desc                    STRING  "Motion vectors"
     maya.name               STRING  "aiMotionVector"
@@ -1905,6 +1887,9 @@
         maya.hide           BOOL    true
     [attr color_space]
         maya.hide           BOOL    true
+    [attr tiled]
+        maya.name           STRING  "deepexrTiled"
+        maya.shortname      STRING  "deepexr_tiled"
     
 [node driver_exr]
     maya.translator         STRING  "exr"
@@ -1915,7 +1900,10 @@
         maya.shortname      STRING  "exr_compression"
     [attr color_space]
         maya.hide           BOOL    true
-
+    [attr tiled]
+        maya.name           STRING  "exrTiled"
+        maya.shortname      STRING  "tiled"
+    
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
     [attr filename]
@@ -1958,17 +1946,23 @@
     [attr format]
         maya.name           STRING  "tiffFormat"
         maya.shortname      STRING  "tiff_format"
+    [attr tiled]
+        maya.name           STRING  "tiffTiled"
+        maya.shortname      STRING  "tiff_tiled"
+    
     [attr color_space]
         maya.hide           BOOL    true
 
 # filters
 
+# we set the default width to 2 for all filters because they'll end up being a single node attribute in Maya. 
+# If each filter has a different value, only the first one to be initialized will be taken into account, and this 
+# can vary depending on the OS / maya version. Ideally we'd want this value to be different for each filter, 
+# but changing this would break existing scenes
+
 [node blackman_harris_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "blackman_harris"
-    # we put 2 as default here to have 2 for gaussian as default. Kinda ugly but since
-    # blackman harris filter is the first to create the filter width attribute on defaultArnoldGlobal
-    # it's the only way we got for the moment.
     [attr width]
         default             FLOAT   2.0
 
@@ -1995,6 +1989,7 @@
 [node mitnet_filter]
     maya.attr_prefix        STRING  ""
     maya.translator         STRING  "mitnet"
+    
 
 [node sinc_filter]
     maya.attr_prefix        STRING  ""
@@ -2020,7 +2015,16 @@
     [attr width]
         default             FLOAT   2.0
 
+[node contour_filter]
+    maya.attr_prefix        STRING  ""
+    maya.translator         STRING  "contour"
+    [attr width]
+        default             FLOAT   2.0
 
+# We don't want to expose the optix filter, as this is controlled by the AOV parameter ""
+[node denoise_optix_filter]
+    maya.hide               BOOL    true
+        
 # COMMON SHADERS
 
 [node abs]
@@ -2049,12 +2053,30 @@
     
 
 [node aov_write_int]
-    maya.hide               BOOL    true
+    maya.name               STRING  "aiWriteInt"
     maya.id                 INT     0x00115D87
+    maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
 
 [node aov_write_rgb]
     maya.name               STRING  "aiWriteColor"
     maya.id                 INT     0x00115D10
+    maya.classification     STRING  "utility/aov"
+    aov_shader              BOOL    true
+    [attr aov_input]
+        maya.name           STRING  "input"
+    [attr passthrough]
+        maya.name           STRING  "beauty"
+    [attr blend_opacity]
+        maya.name           STRING  "blend"
+
+[node aov_write_rgba]
+    maya.name               STRING  "aiWriteRgba"
+    maya.id                 INT     0x00115D98
     maya.classification     STRING  "utility/aov"
     aov_shader              BOOL    true
 
@@ -2325,7 +2347,22 @@ desc STRING "Multiplies the curvature by this factor."
 [node float_to_rgb]
     maya.hide               BOOL    true
 [node float_to_rgba]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D9E
+    maya.name               STRING  "aiFloatToRgba"
+    maya.classification     STRING  "utility/conversion"
+    maya.swatch             BOOL    true
+    [attr r]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr g]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr b]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr a]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0    
 
 [node fraction]
     maya.id                 INT     0x00115D68
@@ -2353,7 +2390,10 @@ desc STRING "Multiplies the curvature by this factor."
     maya.swatch             BOOL    true
 
 [node matte]
-    maya.hide               BOOL    true
+    maya.id                 INT     0x00115D9D
+    maya.name               STRING  "aiMatte"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true
 
 [node max]
     maya.id                 INT     0x00115D6C
@@ -2400,9 +2440,6 @@ desc STRING "Multiplies the curvature by this factor."
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    true
 
-[node passthrough]
-    maya.hide               BOOL    true
-
 [node pow]
     maya.id                 INT     0x00115D73
     maya.name               STRING  "aiPow"
@@ -2441,7 +2478,12 @@ desc STRING "Multiplies the curvature by this factor."
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
         
-
+[node passthrough]
+    maya.id                 INT     0x00115D8D
+    maya.name               STRING  "aiPassthrough"
+    maya.classification     STRING  "shader/surface"
+    maya.swatch             BOOL    true    
+    
 
 [node reciprocal]
     maya.id                 INT     0x00115D82
@@ -2960,6 +3002,338 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
 
+[node layer_shader]
+    desc                    STRING  "Layer shader"
+    maya.name               STRING  "aiLayerShader"
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D9B
+    [attr mix1]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix2]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix3]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix5]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix6]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix7]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix8]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr enable2]
+        default         BOOL    false
+    [attr enable3]
+        default         BOOL    false
+    [attr enable4]
+        default         BOOL    false
+    [attr enable5]
+        default         BOOL    false
+    [attr enable6]
+        default         BOOL    false
+    [attr enable7]
+        default         BOOL    false
+    [attr enable8]
+        default         BOOL    false
+
+    
+    
+[node layer_rgba]
+    desc                    STRING  "Layer RGBA"
+    maya.name               STRING  "aiLayerRgba"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115D9A
+    [attr mix1]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix2]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix3]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix5]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix6]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix7]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix8]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr enable2]
+        default         BOOL    false
+    [attr enable3]
+        default         BOOL    false
+    [attr enable4]
+        default         BOOL    false
+    [attr enable5]
+        default         BOOL    false
+    [attr enable6]
+        default         BOOL    false
+    [attr enable7]
+        default         BOOL    false
+    [attr enable8]
+        default         BOOL    false
+
+
+[node layer_float]
+    desc                    STRING  "Layer Float"
+    maya.name               STRING  "aiLayerFloat"
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115D99
+    [attr input1]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input2]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input3]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input4]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input4]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input5]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input6]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input7]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr input8]
+        min             FLOAT   0
+        softmax         FLOAT   10
+    [attr mix1]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix2]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix3]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix4]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix5]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix6]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix7]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr mix8]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr enable2]
+        default         BOOL    false
+    [attr enable3]
+        default         BOOL    false
+    [attr enable4]
+        default         BOOL    false
+    [attr enable5]
+        default         BOOL    false
+    [attr enable6]
+        default         BOOL    false
+    [attr enable7]
+        default         BOOL    false
+    [attr enable8]
+        default         BOOL    false
+
+[node toon]
+    desc                    STRING  "Toon shader"
+    maya.name               STRING  "aiToon"
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8C
+    [attr mask_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_tonemap]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_opacity]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr edge_width_scale]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr uv_threshold]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr angle_threshold]
+        min             FLOAT   0
+        max             FLOAT   180
+    [attr base]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr base_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr base_tonemap]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_anisotropy]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr specular_rotation]
+        softmin         FLOAT   0
+        softmax         FLOAT   1
+    [attr specular_tonemap]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr highlight_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr rim_light_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr highlight_size]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_color]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_anisotropy]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr transmission_rotation]
+        softmin         FLOAT   0
+        softmax         FLOAT   1
+    [attr emission]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr emission_color]
+        min             FLOAT   0
+        softmax         FLOAT   1
+    [attr IOR]
+        min             FLOAT   0
+        softmax         FLOAT   3
+    [attr silhouette_opacity]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr silhouette_width_scale]
+        min             FLOAT   0
+        softmax         FLOAT   1
+
+    [attr indirect_diffuse]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr indirect_specular]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr aov_highlight]
+        aov.type        INT     0x05
+    [attr aov_rim_light]
+        aov.type        INT     0x05
+
+# Operators
+[node merge]
+    desc                    STRING  "Merge operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8E
+
+[node disable]
+    desc                    STRING  "Node Disable operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D8F
+
+[node set_parameter]
+    desc                    STRING  "Parameter Set operator"
+    maya.classification     STRING  "operator"
+    maya.swatch             BOOL    false
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D90
+
+[node set_transform]
+    desc                    STRING  "Transform operator"
+    maya.classification     STRING  "operator"
+    maya.swatch             BOOL    false
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D95
+
+[node switch_operator]
+    desc                    STRING  "Switch operator"
+    maya.classification     STRING  "operator"
+    maya.swatch             BOOL    false
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D96
+
+[node collection]
+    desc                    STRING  "Collection operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D97
+
+
+[node materialx]
+    desc                    STRING  "MaterialX operator"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115D9C
 
 
 

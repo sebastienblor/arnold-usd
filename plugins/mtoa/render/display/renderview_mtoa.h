@@ -19,6 +19,7 @@ public:
 
    void CloseRenderView(){}
    void Render(){}
+   void RenderInteractive() {}
    void SceneChanged(){}
    void HostSelectionChanged(const AtNode **selection, unsigned int size){}
    void InterruptRender(){}
@@ -58,7 +59,9 @@ public:
 	CRenderViewMtoA();
 	virtual ~CRenderViewMtoA();
 
+    
    virtual void UpdateSceneChanges();
+   virtual void RenderChanged();
 
    virtual unsigned int GetSelectionCount();
    virtual void GetSelection(AtNode **selectedNodes);
@@ -66,6 +69,7 @@ public:
    virtual void ReceiveSelectionChanges(bool receive);
    virtual void NodeParamChanged(AtNode *node, const char *paramName);
    virtual void RenderViewClosed();
+   virtual void RenderOptionsClosed();
    virtual void Resize(int width, int height);
 
 // In the Future these Manipulator classes should be removed and handled
@@ -93,8 +97,13 @@ public:
    static void SequenceRenderCallback(float, float, void *);
    
    void OpenMtoARenderView(int width, int height);
+   void OpenMtoAViewportRendererOptions();
 
    MStatus RenderSequence(float first, float last, float step);
+
+   void SetViewportRendering(bool b) {m_viewportRendering = b;}   
+   bool IsViewportRendering() const {return m_viewportRendering;}
+   static void SetCameraName(const MString &name);
 
 
 private:
@@ -124,6 +133,8 @@ private:
    bool m_hasProgressiveRenderStarted;
    bool m_hasProgressiveRenderFinished;
    
+   bool m_viewportRendering;
+
    MString m_preProgressiveStep;
    MString m_postProgressiveStep;
    MString m_progressiveRenderStarted;

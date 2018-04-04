@@ -26,6 +26,6 @@ typedef unordered_map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
 // Storing the default translator value
 typedef unordered_map<std::string, MString> DefaultTranslatorMap;
 
-// Storing the default translator value
 typedef unordered_set<std::string> CustomShapesMap;
+typedef unordered_set<std::string> OperatorsMap;
 

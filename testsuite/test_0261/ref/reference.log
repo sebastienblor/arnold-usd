@@ -1,0 +1,61 @@
+Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
+Warning: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
+File read in  0.055 seconds.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'MASH_Audio.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 8: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\blaines\Documents\maya\2017\prefs\filePathEditorRegistryPrefs.mel line 13: filePathEditor: Attribute 'svgToPoly.svgFilepath' is invalid or is not designated 'usedAsFilename'.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been registered already.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+00:00:00   227MB ERROR   | [mtoa.attr] Arnold parameter "options.preserve_scene_data" does not exist.
+00:00:00   235MB WARNING | [mtoa] [mtoaTest_shaders] [node mtoa_test_shader] Assigning temporary node id 1138176 to associated Maya type name aiMtoaTestShader.
+00:00:00   235MB WARNING | [mtoa] [v5proc_procedural] [node v5proc_procedural] Assigning temporary node id 1138177 to associated Maya type name myProc.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+Warning: Plugin "mtoa" has been forced to unload even though it still has services in use. This could cause Maya to become unstable and even crash. You are advised to save your data in MayaAscii format and restart Maya as soon as possible.
+Successfully deregistered renderer 'arnold'
+Successfully deregistered Arnold nodes
+Successfully deregistered Arnold attribute extensions
+[mtoa] Successfully deregistered 'arnoldRender' command.
+[mtoa] Successfully deregistered 'arnoldIpr' command.
+[mtoa] Successfully deregistered 'arnoldBakeGeo' command.
+[mtoa] Successfully deregistered 'arnoldRenderToTexture' command.
+[mtoa] Successfully deregistered 'arnoldExportAss' command.
+[mtoa] Successfully deregistered 'arnoldPlugins' command.
+[mtoa] Successfully deregistered 'arnoldListAttributes' command.
+[mtoa] Successfully deregistered 'arnoldTemperatureToColor' command.
+[mtoa] Successfully deregistered 'arnoldFlushCache' command.
+[mtoa] Successfully deregistered 'arnoldCopyAsAdmin' command.
+[mtoa] Successfully deregistered 'arnoldRenderView' command.
+[mtoa] Successfully deregistered 'arnoldUpdateTx' command.
+[mtoa] Successfully deregistered 'arnoldScene' command.
+[mtoa] Successfully deregistered 'arnoldLicense' command.
+Successfully deregistered Arnold material view renderer
+Successfully deregistered Arnold swatch renderer
+Successfully deregistered tx texture file
+Successfully deregistered Arnold ass file exporter
+Successfully deregistered Arnold ass file importer
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 466: Unrecognized node type 'aiStandIn'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 470: Unrecognized node type 'aiAreaLight'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 476: Unrecognized node type 'aiCurveCollector'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 480: Unrecognized node type 'aiPhotometricLight'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 486: Unrecognized node type 'aiLightPortal'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 543: Unrecognized node type 'aiStandardSurface'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 545: Unrecognized node type 'aiImage'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 547: Unrecognized node type 'aiPhysicalSky'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 549: Unrecognized node type 'aiAOV'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 551: Unrecognized node type 'aiAOVFilter'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 553: Unrecognized node type 'aiAOVDriver'; preserving node information during this session.
+Warning: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 596: Selected nodes were ignored since the 'scene' flag was used.
+Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
+Warning: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
+Warning: Errors have occurred while reading this scene that may result in data loss.
+File read in  0.032 seconds.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 493: UUID already in use.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0261/test2.ma line 495: UUID already in use.
+post_script

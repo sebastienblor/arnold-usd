@@ -43,7 +43,6 @@ public :
       m_atNode(NULL),
       m_additionalAtNodes(NULL),
       m_atRoot(NULL),
-      m_isProcedural(false),
       m_overrideSets(),
       m_inUpdateQueue(false),
       m_animArrays(false),
@@ -57,8 +56,7 @@ public :
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    
-   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
-
+   virtual MString MakeArnoldName(const char *nodeType, const char* tag = NULL);
    
 
    AtNode* DoExport();
@@ -102,6 +100,7 @@ public :
    bool HasAnimatedArrays() const;
 
    inline bool DependsOnOutputPlug() {return m_tr.DependsOnOutputPlug();}
+
    /// Get the name of the Arnold node
    const char* GetArnoldNodeName();
    /// Get the type of the Arnold node
@@ -121,10 +120,6 @@ public :
    AtNode *m_atRoot; // shortcut to the node which is at the root of this translator
    // do not delete, it is supposed to be one of the translators nodes
 
-   // FIXME : make sure we get rid of this isProcedural stuff 
-   // once dependency graph is properly implemented in arnold....
-   bool m_isProcedural;
-   
    std::vector<CNodeTranslator*> m_overrideSets;
 
    // This stores callback IDs for the callbacks this

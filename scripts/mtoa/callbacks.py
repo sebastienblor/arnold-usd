@@ -3,7 +3,6 @@ a module for managing mtoa's callbacks
 """
  
 import maya.cmds as cmds
-import pymel.core as pm
 import maya.OpenMaya as om
 from collections import defaultdict
 import types
@@ -58,7 +57,7 @@ def manageCallback(callbackId):
 def _makeNodeAddedCB(nodeType):
     def nodeAddedCB(obj, *args):
         # nodeAdded callback includes sub-types, but we want exact type only
-        mfn = pm.api.MFnDependencyNode(obj)
+        mfn = om.MFnDependencyNode(obj)
         if mfn.typeName() != nodeType:
             return
         global _nodeAddedCallbacks
@@ -66,8 +65,7 @@ def _makeNodeAddedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.PyNode(obj)
-                func(node)
+                func(mfn.name())
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
@@ -75,7 +73,7 @@ def _makeNodeAddedCB(nodeType):
 def _makeNodeRemovedCB(nodeType):
     def nodeRemovedCB(obj, *args):
         # nodeAdded callback includes sub-types, but we want exact type only
-        mfn = pm.api.MFnDependencyNode(obj)
+        mfn = om.MFnDependencyNode(obj)
         if mfn.typeName() != nodeType:
             return
         global _nodeRemovedCallbacks
@@ -83,8 +81,7 @@ def _makeNodeRemovedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.PyNode(obj)
-                func(node)
+                func(mfn.name())
     # no unicode allowed
     nodeRemovedCB.__name__ = "nodeRemovedCB_" + str(nodeType) 
     return nodeRemovedCB
@@ -321,13 +318,12 @@ class Callback(object):
     Example:
 
     .. python::
-
-        import pymel as pm
+        
         def addRigger(rigger, **kwargs):
             print "adding rigger", rigger
 
         for rigger in riggers:
-            pm.menuItem(
+            cmds.menuItem(
                 label = "Add " + str(rigger),
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
@@ -454,11 +450,9 @@ class DeferredCallbackQueue(CallbackQueue):
         the public callback function
         '''
         if not self._updating:
-            #print pm.api.MFileIO.isOpeningFile(), pm.api.MFileIO.isReadingFile()
-            if not pm.api.MFileIO.isOpeningFile():
+            if not om.MFileIO.isOpeningFile():
                 self._updating = True
-                #print self, "evalDeferred"
-                pm.evalDeferred(self.deferredCallback)
+                cmds.evalDeferred(self.deferredCallback)
         #else:print self, "skipping"
 
 class SceneLoadCallbackQueue(CallbackQueue):
@@ -475,12 +469,11 @@ class SceneLoadCallbackQueue(CallbackQueue):
 
     def __del__(self):
         if self._id:
-            pm.api.MMessage.removeCallback(self._id)
+            om.MMessage.removeCallback(self._id)
 
     def deferredCallback(self, *trash):
         # arguments are intentionally unexpanded (i.e. they don't have * and **)
         # trash is an argument pass by MSceneMessage that we don't want to keep
-        # print "SceneLoadCallbackQueue.deferredCallback", args
         cb = super(SceneLoadCallbackQueue, self).deferredCallback
         try:
             for args, kwargs in self._args:
@@ -488,7 +481,7 @@ class SceneLoadCallbackQueue(CallbackQueue):
         finally:
             self._args = []
             if self._id:
-                pm.api.MMessage.removeCallback(self._id)
+                om.MMessage.removeCallback(self._id)
                 self._id = None
 
     def entryCallback(self, *args, **kwargs):
@@ -497,15 +490,14 @@ class SceneLoadCallbackQueue(CallbackQueue):
         '''
         
         if not self._id:
-            #print self, "evalDeferred"
-            if pm.api.MFileIO.isOpeningFile():
+            if om.MFileIO.isOpeningFile():
                 self._args.append((args, kwargs))
                 #print "setting up scene open callback", args, kwargs
-                self._id = pm.api.MSceneMessage.addCallback(pm.api.MSceneMessage.kAfterOpen, self.deferredCallback)
-            elif pm.api.MFileIO.isReadingFile():
+                self._id = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterOpen, self.deferredCallback)
+            elif om.MFileIO.isReadingFile():
                 self._args.append((args, kwargs))
                 #print "setting up reference load callback", args, kwargs
-                self._id = pm.api.MSceneMessage.addCallback(pm.api.MSceneMessage.kAfterCreateReference, self.deferredCallback)
+                self._id = om.MSceneMessage.addCallback(om.MSceneMessage.kAfterCreateReference, self.deferredCallback)
             else:
                 #print "eval"
                 # execute immediately
@@ -529,16 +521,17 @@ class DelayedIdleCallbackQueue(DeferredCallbackQueue):
         self._id = None
         self._ticker = 0
         self._delay = idleDelay
-        self._id = pm.api.MEventMessage.addEventCallback("idle", self.entryCallback)
+        self._id = om.MEventMessage.addEventCallback("idle", self.entryCallback)
 
     def __del__(self):
         if self._id:
-            pm.api.MMessage.removeCallback(self._id)
+            om.MMessage.removeCallback(self._id)
 
     def entryCallback(self, *args):
+
         if self._ticker == self._delay:
             self._ticker = 0
-            pm.api.MMessage.removeCallback(self._id)
+            om.MMessage.removeCallback(self._id)
             self._id = None
             self.deferredCallback()
         else:

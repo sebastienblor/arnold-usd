@@ -24,7 +24,6 @@
 #endif
 
 
-class CRenderViewMainWindow;
 class CRenderViewPanManipulator;
 class CRenderViewZoomManipulator;
 class CRenderViewRotateManipulator;
@@ -41,26 +40,49 @@ class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
-   CRenderViewInterface() : m_mainWindow(NULL) {}
+   CRenderViewInterface() {};
    virtual ~CRenderViewInterface() {DestroyRenderView();}
-
-   void OpenRenderView(int width, int height, QWidget *parent = 0, bool showWin = true);
-   void CloseRenderView();
-
-   void DestroyRenderView();
-
 
 /**
  *   Functions to be invoked by the Host
  *   interrogating the RenderView
  **/
 
+   // RenderView functions
+   void OpenRenderView(int width, int height, QWidget *parent = NULL, bool showWin = true);
+   void CloseRenderView();
+   void DestroyRenderView();
    // return the renderView Qt Window
-   QMainWindow *GetRenderView() {return (QMainWindow *)m_mainWindow;}
+   QMainWindow *GetRenderView();
+
+   // Options Window doesn't show the render itself, only the menus
+   void OpenOptionsWindow(int width, int height, const char  *menusFilter = NULL, QWidget *parent = NULL, bool showWin = true);
+   void CloseOptionsWindow();
+   void DestroyOptionsWindow();
+
+   // Stops the rendering and clears the Arnold scene, but leave window visible
+   void DisableRendering();
+
+   // return the Qt Options Window
+   QMainWindow *GetOptionsWindow();
+
 
    // Render the scene.
    // This function assumes that the Arnold scene already exists
    void Render();
+
+   // function needed to get the buffer region that needs to be updated.
+   // Note that it's necessary to invoke this function when a paint is done, so that 
+   // the renderer can reset its data and advert us again next time new buckets are computed
+   bool HasRenderResults(AtBBox2 &region);
+
+   // FIXME temp. function to be removed after we switch to new Render Control API
+   void PostDisplay();
+   
+   // Get the buffer currently being displayed
+   AtRGBA *GetDisplayedBuffer();
+   // Return the renderer's buffer, eventually for a specific AOV
+   AtRGBA *GetBuffer(int aovIndex = -1);
 
    // The plugin adverts the RenderView that something has changed
    // The RenderView will decide whether to re-render or not
@@ -95,10 +117,14 @@ public:
    // set an option in the render view
    void SetOption(const char *option, const char *value);
 
+   // get the value of an option in the render view. The (const char *) result must immediately be
+   // copied to another container. Its life scope will end after any subsequent call to this same function.
+   const char *GetOption(const char *option);
+
+
    // Get a serialized definition of the RenderView options
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);
    void SetFromSerialized(const char *);
-   
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
@@ -127,7 +153,8 @@ public:
    virtual void ReceiveSelectionChanges(bool receive) = 0;
 
    // This Function is called when the Renderview window is closed
-   virtual void RenderViewClosed() = 0;
+   virtual void RenderViewClosed(){};
+   virtual void RenderOptionsClosed(){};
 
    // This function is invoked by the RenderView when it changes a parameter 
    // in the scene, so that we can advert the host
@@ -136,7 +163,16 @@ public:
    // This function is invoked whenever the render buffer is resized by other than 
    // manual resizing. User can invoke it to resize the viewer. One can also override this function
    // in case the host application needs to be adverted
+   // == Note: virtual methods must be defined here to avoid linking errors on *nix.
+   // == We just do an inline call to ResizeMainWindow() which is doing the real job
    virtual void Resize(int width, int height) {ResizeMainWindow(width, height);}
+
+
+   // Renderer telling us that something has changed in the render results
+   // If you override it, you have to invoke this parent class so that the window can be refreshed
+   // == Note: virtual methods must be defined here to avoid linking errors on *nix.
+   // == We just do an inline call to UpdateGlWidget() which is doing the real job
+   virtual void RenderChanged() {UpdateGlWidget();}
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
@@ -158,11 +194,10 @@ public:
    AtRGBA GetWidgetColorAtPosition(unsigned posX, unsigned posY, bool viewTransform, QWidget* pickedWidget = NULL);
 
 private:
-
-   // internal method, used to avoid linking issues with
+   
+   // internal usage only, we need these functions to avoid linking issues on *nix
+   void UpdateGlWidget();
    void ResizeMainWindow(int w, int h);
-   CRenderViewMainWindow *m_mainWindow;
-
 };
 
 // In the Future these Manipulator classes should be removed and handled

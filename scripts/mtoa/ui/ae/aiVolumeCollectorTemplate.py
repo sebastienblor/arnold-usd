@@ -1,42 +1,43 @@
-import pymel.core as pm
+import maya.cmds as cmds
+import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiVolumeCollectorTemplate(ShaderAETemplate):
     def scatteringSource(self, nodeName):
         source = self.nodeAttr('scattering_source')
-        sourceVal = pm.getAttr(source)
+        sourceVal = cmds.getAttr(source)
         print sourceVal
         if(sourceVal == 0):
-            pm.editorTemplate(dimControl=(nodeName, "scattering", False))
-            pm.editorTemplate(dimControl=(nodeName, "scatteringChannel", True))
+            cmds.editorTemplate(dimControl=(nodeName, "scattering", False))
+            cmds.editorTemplate(dimControl=(nodeName, "scatteringChannel", True))
         else:
-            pm.editorTemplate(dimControl=(nodeName, "scattering", True))
-            pm.editorTemplate(dimControl=(nodeName, "scatteringChannel", False))
+            cmds.editorTemplate(dimControl=(nodeName, "scattering", True))
+            cmds.editorTemplate(dimControl=(nodeName, "scatteringChannel", False))
             
     def attenuationSource(self, nodeName):
         source = self.nodeAttr('attenuation_source')
-        sourceVal = pm.getAttr(source)
+        sourceVal = cmds.getAttr(source)
         print sourceVal
         if(sourceVal == 0):
-            pm.editorTemplate(dimControl=(nodeName, "attenuation", False))
-            pm.editorTemplate(dimControl=(nodeName, "attenuationChannel", True))
+            cmds.editorTemplate(dimControl=(nodeName, "attenuation", False))
+            cmds.editorTemplate(dimControl=(nodeName, "attenuationChannel", True))
         elif(sourceVal == 1):
-            pm.editorTemplate(dimControl=(nodeName, "attenuation", True))
-            pm.editorTemplate(dimControl=(nodeName, "attenuationChannel", False))
+            cmds.editorTemplate(dimControl=(nodeName, "attenuation", True))
+            cmds.editorTemplate(dimControl=(nodeName, "attenuationChannel", False))
         else:
-            pm.editorTemplate(dimControl=(nodeName, "attenuation", True))
-            pm.editorTemplate(dimControl=(nodeName, "attenuationChannel", True))
+            cmds.editorTemplate(dimControl=(nodeName, "attenuation", True))
+            cmds.editorTemplate(dimControl=(nodeName, "attenuationChannel", True))
             
     def emissionSource(self, nodeName):
         source = self.nodeAttr('emission_source')
-        sourceVal = pm.getAttr(source)
+        sourceVal = cmds.getAttr(source)
         print sourceVal
         if(sourceVal == 0):
-            pm.editorTemplate(dimControl=(nodeName, "emission", False))
-            pm.editorTemplate(dimControl=(nodeName, "emissionChannel", True))
+            cmds.editorTemplate(dimControl=(nodeName, "emission", False))
+            cmds.editorTemplate(dimControl=(nodeName, "emissionChannel", True))
         else:
-            pm.editorTemplate(dimControl=(nodeName, "emission", True))
-            pm.editorTemplate(dimControl=(nodeName, "emissionChannel", False))
+            cmds.editorTemplate(dimControl=(nodeName, "emission", True))
+            cmds.editorTemplate(dimControl=(nodeName, "emissionChannel", False))
             
     def setup(self):
         self.beginScrollLayout()
@@ -72,7 +73,7 @@ class AEaiVolumeCollectorTemplate(ShaderAETemplate):
         self.addControl('interpolation')
         self.endLayout()
                
-        pm.mel.AEdependNodeTemplate(self.nodeName)
+        maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()
         self.endScrollLayout()

@@ -105,7 +105,7 @@ public:
    }
 
    inline const MDagPath& GetExportCamera() const         { return m_sessionOptions.GetExportCamera(); }
-   void SetExportCamera(MDagPath camera);
+   void SetExportCamera(MDagPath camera, bool updateRender = true);
    inline const CMayaExportFilter& GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
    inline unsigned int GetExportFilterMask() const { return m_sessionOptions.GetExportFilterMask(); }
    inline void SetExportFilterMask(unsigned int mask) { m_sessionOptions.SetExportFilterMask(mask); }
@@ -192,10 +192,8 @@ public:
 
    void RequestUpdateOptions();
 
-   void QueueProceduralUpdate(CNodeTranslator *tr);
-   void RegisterProcedural(AtNode *node, CNodeTranslator *translator);
-   void UnRegisterProcedural(AtNode *node);
    void ExportTxFiles();
+   void ExportImagePlane();
 
    const ObjectToTranslatorMap &GetProcessedTranslators() const {return m_processedTranslators;}
 
@@ -248,16 +246,14 @@ private:
    //void ProcessAOVs();
 
    static void HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData);
+   static void DoHiddenCallback(void* clientData);
    void SetDagVisible(MDagPath &path);
 
-   bool IsVisible(MFnDagNode &node) const;
-   bool IsVisiblePath(MDagPath dagPath) const;
+   static bool IsVisible(MFnDagNode &node);
+   static bool IsVisiblePath(MDagPath dagPath);
 
    
    void RecursiveUpdateDagChildren(MDagPath &parent);
-
-   void UpdateProceduralReferences();
-
 private:
 
    CSessionOptions m_sessionOptions;
@@ -281,7 +277,6 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-   unordered_set<CNodeTranslator *> m_proceduralsToUpdate;
    
 protected:
    ObjectHandleToDagMap m_masterInstances;

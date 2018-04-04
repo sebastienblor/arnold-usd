@@ -39,6 +39,7 @@ public:
    static MObject s_imageFormat;
    static MObject s_aovs;
    static MObject s_aovMode;
+   static MObject s_outputVarianceAOVs;
    static MObject s_driver;
    static MObject s_drivers;
 
@@ -98,6 +99,7 @@ public:
 
    static MObject s_background;
    static MObject s_atmosphere;
+   static MObject s_operator;
    static MObject s_atmosphereShader;
 
    static MObject s_displayAOV;
@@ -140,5 +142,15 @@ public:
    static MObject s_aov_shaders;
    static MObject s_legacy_gi_glossy_samples;
    static MObject s_legacy_gi_refraction_samples;
+
+   static MObject s_gpu;   
+   static MObject s_render_devices;   
+   static MObject s_manual_devices;
    
+   static MObject s_stats_enable;
+   static MObject s_stats_file;
+   static MObject s_stats_mode;
+   static MObject s_profile_enable;
+   static MObject s_profile_file;
+
 };  // class CArnoldOptionsNode
