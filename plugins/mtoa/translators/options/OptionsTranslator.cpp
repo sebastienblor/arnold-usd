@@ -1078,6 +1078,12 @@ void COptionsTranslator::Export(AtNode *options)
          {
             // deprecated parameters, don't do anything
          }
+         else if (strcmp(paramName, "enable_progressive_render") == 0)
+         {
+            // only expose progressive render for interactive sessions 
+            if (GetSessionOptions().IsInteractiveRender())
+               CNodeTranslator::ProcessParameter(options, "enable_progressive_render", AI_TYPE_BOOLEAN);
+         }
          else
          {
             // Process parameter automatically
