@@ -178,8 +178,10 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def _getDefaultValue(self, param, param_type):
         value = None
         param_default = AiParamGetDefault(param)
-        if param_type in [AI_TYPE_INT, AI_TYPE_UINT]:
+        if param_type is AI_TYPE_INT:
             value = param_default.contents.INT
+        elif param_type is AI_TYPE_UINT:
+            value = param_default.contents.UINT
         elif param_type is AI_TYPE_BYTE:
             value = param_default.contents.BYTE
         elif param_type is AI_TYPE_FLOAT:
