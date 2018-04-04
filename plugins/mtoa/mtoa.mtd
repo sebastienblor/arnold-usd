@@ -3276,9 +3276,9 @@ desc STRING "Apply a gamma correction to the color."
     [attr indirect_specular]
         min             FLOAT   0
         max             FLOAT   1
-    [attr highlight_aov]
+    [attr aov_highlight]
         aov.type        INT     0x05
-    [attr rim_light_aov]
+    [attr aov_rim_light]
         aov.type        INT     0x05
 
 # Operators
