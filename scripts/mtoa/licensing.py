@@ -64,7 +64,7 @@ def getDiagnosticsResult():
 
         cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', diagnosticCmd)
         timerStart = time.clock()
-        cmdRes = subprocess.Popen(cmdBinary, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
+        cmdRes = subprocess.Popen(cmdBinary.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
         
         timerLength = time.clock() - timerStart
 
@@ -249,7 +249,7 @@ def nlmStatus():
 
     lmutil_binary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'lmutil')
     cmd = lmutil_binary + ' lmstat -S adskflex -a'
-    res = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
+    res = subprocess.Popen(cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
     return res
 
 
