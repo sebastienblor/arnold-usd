@@ -497,7 +497,7 @@ def createGpuSettings():
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('default_gpu_names', 
-                        label="Device Names", 
+                        label="GPU Names", 
                         attribute='defaultArnoldRenderOptions.default_gpu_names')
 
     cmds.attrControlGrp('default_gpu_min_memory_MB', 
