@@ -32,7 +32,7 @@ def getDiagnosticsResult():
         _no_window = None
 
     if arnold.AiUniverseIsActive() or cmds.arnoldScene(query=True):
-        diagnosticsResult += "COULDN'T START A TEST RENDER AS ANOTHER ARNOLD SESSION IS IN PROGRESS.\n "
+        diagnosticResults += "COULDN'T START A TEST RENDER AS ANOTHER ARNOLD SESSION IS IN PROGRESS.\n "
     else:
         logPath = cmds.workspace(directory=True, query=True)
         logPath = os.path.join(logPath, "arnoldDiagnostics.log")
