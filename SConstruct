@@ -310,6 +310,7 @@ if int(maya_version) >= 201700:
     bifrost_ext = 'bifrost_2017'
 if int(maya_version) >= 201800:
     bifrost_ext = 'bifrost'
+    env.Append(CPPDEFINES = Split('MTOA_ENABLE_AVP'))
 
 
 
