@@ -94,7 +94,7 @@ private:
    TranslatorLookup m_translatorLookup;
    AtNode*          m_activeShader;
    AtNode*          m_dummyShader;
-   AtNode*          m_environmentShader;
+   AtNode*          m_environmentLight;
    AtNode*          m_environmentImage;
 
    CCritSec      m_sceneLock;
