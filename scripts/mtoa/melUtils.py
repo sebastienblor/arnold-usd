@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import maya.mel as mel
+import maya.api.OpenMaya as om
 
 
 def getAttr(objName, attrName, asString=False, mi=False):
@@ -29,8 +30,19 @@ def hasAttrOutputs(objName, attrName):
     return cmds.listConnections('{}.{}'.format(objName, attrName),
                                 source=False, destination=True)
 
+def getAttrNumElements(objName, attrName):
+    sel = om.MSelectionList()
+    sel.add(objName)
+    obj = sel.getDependNode(0)
+    plug = None
+    ret = None
+    if obj:
+        depNodeFn = om.MFnDependencyNode(obj)
+        attr = depNodeFn.attribute(attrName)
+        plug = om.MPlug(obj, attr)
 
-
+        ret = plug.evaluateNumElements()
+    return ret
 
 def initVar(varName, type='string'):
     if varName.startswith('$'):

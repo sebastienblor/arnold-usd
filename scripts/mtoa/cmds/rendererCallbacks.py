@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.utils as utils
+import mtoa.melUtils as melUtils
 from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnoldNodesTreeLister_Content
 import mtoa.ui.ae.templates as templates
 import ctypes
@@ -163,7 +164,7 @@ try:
             if(cmds.objExists(aovNodeName)):
                 self._cache.add(aovNodeName)
                 outputsAttr = aovNodeName + ".outputs"
-                numOutputs = cmds.getAttr(outputsAttr, size=True)
+                numOutputs = melUtils.getAttrNumElements(*outputsAttr.split('.', 1))
                 for i in range(numOutputs):
                     outputIndex = outputsAttr + "[" + str(i) + "]"
                     for outputType in [".filter", ".driver"]:
@@ -253,7 +254,7 @@ try:
                 # Iterate over our aovNodes (aiAOV nodes)
                 for aovNode in aovNodes:
                     aovNodeName = aovNode
-                    numOutputs = cmds.getAttr(aovNodeName + ".outputs", size=True)
+                    numOutputs = melUtils.getAttrNumElements(aovNodeName, "outputs")
                     currentOutputs = []
                     
                     # Iterate over our output connections which have driver and filter connections

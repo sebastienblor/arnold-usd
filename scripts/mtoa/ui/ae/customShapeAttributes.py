@@ -4,6 +4,7 @@ import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.ui.ae.templates as templates
 import mtoa.callbacks as callbacks
+import mtoa.melUtils as melUtils
 import mtoa.core as core
 import re
 import mtoa.aovs as aovs
@@ -550,7 +551,7 @@ class CameraTemplate(templates.AttributeTemplate):
         points[current][2] = 1
         points.sort()
         
-        size = cmds.getAttr(attr, size=True)
+        size = melUtils.getAttrNumElements(*attr.split('.', 1))
         for i in range(0,size):
             cmds.removeMultiInstance(attr+'['+str(i)+']')
         
@@ -626,7 +627,7 @@ class CameraTemplate(templates.AttributeTemplate):
         #Initialize the curve with the values in the attribute
         curveString = ""
         attr = self.nodeAttr('aiShutterCurve')
-        size = cmds.getAttr(attr, size=True)
+        size = melUtils.getAttrNumElements(*attr.split('.', 1))
         startX = 0
         startY = 1
         if size > 0:
@@ -656,7 +657,7 @@ class CameraTemplate(templates.AttributeTemplate):
         
         curveString = ""
         attr = self.nodeAttr('aiShutterCurve')
-        size = cmds.getAttr(attr, size=True)
+        size = melUtils.getAttrNumElements(*attr.split('.', 1))
         if size > 0:
             x = cmds.getAttr(attr+'[0].aiShutterCurveX')
             y = cmds.getAttr(attr+'[0].aiShutterCurveY')

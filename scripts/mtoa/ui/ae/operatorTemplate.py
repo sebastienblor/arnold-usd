@@ -1,10 +1,11 @@
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import mtoa.melUtils as melUtils
 import maya.cmds as cmds
 from mtoa.callbacks import *
 
 
 def changeOperator(node, nodeAttr):
-    attrSize = cmds.getAttr(nodeAttr, size=True)
+    attrSize = melUtils.getAttrNumElements(*nodeAttr.split('.', 1))
     newItem = '{}[{}]'.format(nodeAttr, attrSize)
     cmds.connectAttr("%s.message"%node, newItem, force=True)
         
@@ -34,7 +35,7 @@ class OperatorMixin(object):
 
     def addInputOperator(self):
         attrName = '{}.inputs'.format(self.nodeName)
-        attrSize = cmds.getAttr(attrName, size=True)
+        attrSize = melUtils.getAttrNumElements(*attrName.split('.', 1))
         lastAttrName = '{}[{}]'.format(attrName, attrSize)
         cmds.setAttr(lastAttrName, "")
 
@@ -47,7 +48,7 @@ class OperatorMixin(object):
 
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         cmds.setParent(self.otherCol)
-        attrSize = cmds.getAttr(nodeAttr, size=True)
+        attrSize = melUtils.getAttrNumElements(*nodeAttr.split('.', 1))
 
         for i in range(attrSize):
             attrName = '{}[{}]'.format(nodeAttr, i)
@@ -83,7 +84,7 @@ class OperatorMixin(object):
         cmds.frameLayout(labelVisible=False, collapsable=False)
         self.otherCol = cmds.columnLayout(adjustableColumn=True)
         
-        attrSize = cmds.getAttr(nodeAttr, size=True)
+        attrSize = melUtils.getAttrNumElements(*nodeAttr.split('.', 1))
 
         for i in range(attrSize):
             attrName = '{}[{}]'.format(nodeAttr, i)
