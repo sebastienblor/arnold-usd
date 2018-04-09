@@ -120,6 +120,23 @@ void COptionsTranslator::ExportAOVs()
    // loop through AOVs
    m_aovData.clear();
 
+   bool denoiseBeauty = false;
+
+   // On interactive renders, let's loop over the AOVs first to see if *any*
+   // of them is denoised. If so, we force the beauty to be denoised as well
+   // in order to prevent crashes and invalid buffers (#3401)
+   if (GetSessionOptions().IsInteractiveRender())
+   {
+      for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
+      {
+         if (it->GetDenoise())
+         {
+            denoiseBeauty = true;
+            break;
+         }
+      }
+   }
+
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       MString name = it->GetName();
@@ -208,6 +225,9 @@ void COptionsTranslator::ExportAOVs()
 
       if (name == "beauty")
       {
+         if (denoiseBeauty)
+            denoise = true; // forcing the beauty to be denoised (#3401)
+
          // add default driver
          CAOVOutput output;
          ExportDriver(FindMayaPlug("driver"), output);
