@@ -603,6 +603,7 @@ class AOVOutputItem(object):
         
         outputType: either 'aiAOVDriver' or 'aiAOVFilter'
         """
+        outputNode = defaultNode
         conn = cmds.listConnections(aovOutputAttr, source=True, destination=False) or []
         if newValue.startswith('<'):
             isDefault=True
