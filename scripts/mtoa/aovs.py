@@ -585,7 +585,7 @@ def createAliases(sg):
         alias_list = '{}.attributeAliasList'.format(sg)
         if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :
             print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg
-            alias_list.delete()
+            cmds.deleteAttr(alias_list)
 
     aovList = getAOVNodes(True)
     sgPlug = "{}.aiCustomAOVs".format(sg)
