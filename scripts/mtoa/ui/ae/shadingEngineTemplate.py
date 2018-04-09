@@ -90,12 +90,14 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         try:
             return self.nameToAttr[aovName]
         except KeyError:
+
             values = cmds.getAttr(nodeAttr, mi=True) or []
-            values.append(aovName)
-            cmds.setAttr(nodeAttr, values, type=stringArray)
-            aovList = aovs.getAOVs()
-            self.updateCustomArrayData(nodeAttr, aovList)
-            return at
+            valIndex = len(values)
+            indexedAttr = '{}[{}]'.format(nodeAttr, valIndex)
+
+            cmds.setAttr('{}.aovName'.format(indexedAttr), aovName, type='string')
+            self.nameToAttr[aovName] = indexedAttr
+            return indexedAttr
 
     def updateCustomArrayData(self, nodeAttr, aovList):
         '''
