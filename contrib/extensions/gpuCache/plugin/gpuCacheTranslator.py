@@ -371,6 +371,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiRadiusDefault", label="Radius Default",  annotation='Default radius if not set on geometry')
         self.addControl("aiRadiusScale", label="Radius Scale", annotation='Scale the radius')
         self.addSeparator()
+        self.addControl("aiNamespace", label="Namespace", annotation='Create nodes in this namespace if present.')
+        self.addControl("aiNameprefix", label="Name Prefix", annotation='Optional prefix to add to all nodes created by the procedural.')
+        self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
         self.endLayout()
 

@@ -120,6 +120,23 @@ void COptionsTranslator::ExportAOVs()
    // loop through AOVs
    m_aovData.clear();
 
+   bool denoiseBeauty = false;
+
+   // On interactive renders, let's loop over the AOVs first to see if *any*
+   // of them is denoised. If so, we force the beauty to be denoised as well
+   // in order to prevent crashes and invalid buffers (#3401)
+   if (GetSessionOptions().IsInteractiveRender())
+   {
+      for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
+      {
+         if (it->GetDenoise())
+         {
+            denoiseBeauty = true;
+            break;
+         }
+      }
+   }
+
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       MString name = it->GetName();
@@ -208,6 +225,9 @@ void COptionsTranslator::ExportAOVs()
 
       if (name == "beauty")
       {
+         if (denoiseBeauty)
+            denoise = true; // forcing the beauty to be denoised (#3401)
+
          // add default driver
          CAOVOutput output;
          ExportDriver(FindMayaPlug("driver"), output);
@@ -358,10 +378,22 @@ void COptionsTranslator::ExportAOVs()
          // replace the  filter by a fresh new one (it must be unique for each AOV and not shared),
          // and append "_denoised" to the AOV name (thus image filename)
          aovData.name += "_denoise";
-         aovData.tokens += "_denoise";
-         for (size_t i = 0; i < aovData.outputs.size(); ++i)
+
+         //-- we don't add this because we want the denoised output to be in the same folder as the original one
+         //aovData.tokens += "_denoise";  
+         //-- instead we want a suffix
+         aovData.aovSuffix = "_denoise";
+         static AtString renderview_display_str("renderview_display");
+         for (int i = 0; i < (int)aovData.outputs.size(); ++i)
          {
             CAOVOutput &denoise_output = aovData.outputs[i];
+            if (denoise_output.driver && AiNodeIs(denoise_output.driver, renderview_display_str))
+            {
+               // we don't want to duplicate the renderview driver (this happens with RGBA AOV)
+               aovData.outputs.erase(aovData.outputs.begin() + i);
+               i--;
+               continue;
+            }
             MString denoise_output_tag = aovData.name;
             if (i > 0)
                denoise_output_tag += (int)i;
@@ -369,9 +401,21 @@ void COptionsTranslator::ExportAOVs()
             denoise_output.filter = GetArnoldNode(denoise_output_tag.asChar());
             if (denoise_output.filter == NULL)
                denoise_output.filter = AddArnoldNode("denoise_optix_filter", denoise_output_tag.asChar());
+
+            // drivers can't be merged with denoise outputs
+            if(denoise_output.driver)
+            {
+               MString varName = MString(AiNodeGetName(denoise_output.driver));
+               varName += MString("_denoise");
+               if (denoise_output.driverTranslator)
+                  denoise_output.driver = denoise_output.driverTranslator->GetChildDriver("_denoise");
+               else
+                  denoise_output.driver = AiNodeClone(denoise_output.driver);
+               AiNodeSetStr(denoise_output.driver, "name", varName.asChar());
+            }
             //AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
          }
-
+         
          m_aovData.push_back(aovData);
       }
    }

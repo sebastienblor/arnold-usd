@@ -156,6 +156,11 @@ def addAliases(aovs):
             except KeyError:
                 plug = '{}[{}].aovName'.format(sgAttr, nextIndex)
                 cmds.setAttr(plug, aov.name, type="string")
+
+            # skip aliases on referenced nodes
+            if cmds.referenceQuery(sg, isNodeReferenced=True):
+                continue
+
             try:
                 cmds.aliasAttr('ai_aov_' + aov.name, plug)
             except RuntimeError as err:
@@ -582,7 +587,7 @@ def createAliases(sg):
         alias_list = '{}.attributeAliasList'.format(sg)
         if cmds.objExists(alias_list) and not cmds.aliasAttr(sg, q=True) :
             print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg
-            alias_list.delete()
+            cmds.deleteAttr(alias_list)
 
     aovList = getAOVNodes(True)
     sgPlug = "{}.aiCustomAOVs".format(sg)

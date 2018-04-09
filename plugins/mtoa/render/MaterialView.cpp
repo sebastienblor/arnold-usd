@@ -44,7 +44,7 @@ CMaterialView* CMaterialView::s_instance = NULL;
 CMaterialView::CMaterialView()
 : m_activeShader(NULL)
 , m_dummyShader(NULL)
-, m_environmentShader(NULL)
+, m_environmentLight(NULL)
 , m_environmentImage(NULL)
 , m_renderThread(NULL)
 , m_active(false)
@@ -200,30 +200,21 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
    // Make sure the renderer is stopped
    InterruptRender(true);
 
-   if (!m_environmentShader)
+   if (!m_environmentLight)
    {
-      // TODO: Use skydome light for more efficient sampling, and combine
-      //       with sky shader for reflections and background.
-
-      m_environmentShader = AiNode("sky");
-      AiNodeSetStr(m_environmentShader, "name", "mtrlViewSky");
-      AiNodeSetInt(m_environmentShader, "format", 2);
-      AiNodeSetRGB(m_environmentShader, "color", 0.1f, 0.1f, 0.1f);
-
-      // Invert in Z to account for the env sphere being viewed from inside
-      AiNodeSetVec(m_environmentShader, "X", 1.0f, 0.0f, 0.0f);
-      AiNodeSetVec(m_environmentShader, "Y", 0.0f, 1.0f, 0.0f);
-      AiNodeSetVec(m_environmentShader, "Z", 0.0f, 0.0f, -1.0f);
-
-      if (!m_environmentImage)
-      {
-         m_environmentImage = AiNode("image");
-         AiNodeSetStr(m_environmentImage, "name", "mtrlViewSkyImage");
-      }
+       m_environmentLight = AiNode("skydome_light");
+       AiNodeSetStr(m_environmentLight, "name", "mtrlViewSkyDome");
+       AiNodeSetInt(m_environmentLight, "format", 2);
+       AiNodeSetRGB(m_environmentLight, "color", 0.1f, 0.1f, 0.1f);
+ 
+       AtMatrix rotation = AiM4RotationY(180.0f);
+       AiNodeSetMatrix(m_environmentLight, "matrix", rotation);
    }
-
-   AtNode* options = AiUniverseGetOptions();
-   AiNodeSetPtr(options, "background", m_environmentShader);
+   if (!m_environmentImage)
+   {
+       m_environmentImage = AiNode("image");
+       AiNodeSetStr(m_environmentImage, "name", "mtrlViewSkyDomeImage");
+   }
 
    return MStatus::kSuccess;
 }
@@ -310,7 +301,7 @@ MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, const M
    if (!IsActive())
       return MStatus::kFailure;
 
-   if (m_environmentShader && m_environmentImage)
+   if (m_environmentLight && m_environmentImage)
    {
       static const MString s_imageFileStr("imageFile");
       if (name == s_imageFileStr)
@@ -321,11 +312,11 @@ MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, const M
          AiNodeSetStr(m_environmentImage, "filename", value.asChar());
          if (value.length())
          {
-            AiNodeLink(m_environmentImage, "color", m_environmentShader);
+            AiNodeLink(m_environmentImage, "color", m_environmentLight);
          }
          else
          {
-            AiNodeUnlink(m_environmentShader, "color");
+            AiNodeUnlink(m_environmentLight, "color");
          }
       }
    }
@@ -470,7 +461,7 @@ void CMaterialView::EndSession()
    m_translatorLookup.clear();
    m_activeShader      = NULL;
    m_dummyShader       = NULL;
-   m_environmentShader = NULL;
+   m_environmentLight  = NULL;
    m_environmentImage  = NULL;
 
    // Note: We must set the active flag before calling CMayaScene::End() below
@@ -724,8 +715,10 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
 
    if (arnoldNode)
    {
-      AtByte visibility = AI_RAY_ALL;
-      AiNodeSetByte(arnoldNode, "visibility", visibility);
+      if (node.hasFn(MFn::kMesh))
+      {
+          AiNodeSetByte(arnoldNode, "visibility", AI_RAY_ALL);
+      }
 
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
       if (MtoaTranslationInfo())

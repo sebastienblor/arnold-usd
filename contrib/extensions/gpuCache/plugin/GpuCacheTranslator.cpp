@@ -50,6 +50,9 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("radius_default");
    helper.MakeInput("radius_scale");
 
+   helper.MakeInput("namespace");
+   helper.MakeInput("nameprefix");
+
    CAttrData data;
    data.defaultValue.BOOL() = false;
    data.name = "aiPullUserParams";
@@ -111,6 +114,11 @@ void CGpuCacheTranslator::timeChangedCallback(void* clientData)
       translator->SetUpdateMode(AI_RECREATE_NODE);
       translator->RequestUpdate();
    }
+
+   // AtNode *node =  translator->GetArnoldNode();
+
+   // MTime curTime = MAnimControl::currentTime();
+   // AiNodeSetFlt(node, "frame", float(curTime.value()));
 }
 
 void CGpuCacheTranslator::AddUpdateCallbacks()
@@ -191,6 +199,9 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    AiNodeSetFlt(shape, "radius_scale", FindMayaPlug("aiRadiusScale").asFloat());
 
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
+
+   AiNodeSetStr(shape, "namespace", FindMayaPlug("aiNamespace").asString().asChar());
+   AiNodeSetStr(shape, "nameprefix", FindMayaPlug("aiNameprefix").asString().asChar());
 
    // now the user attributes
    MPlug arrayPlug = FindMayaPlug("aiNodeAttrs");
