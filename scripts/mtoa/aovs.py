@@ -156,6 +156,11 @@ def addAliases(aovs):
             except KeyError:
                 plug = '{}[{}].aovName'.format(sgAttr, nextIndex)
                 cmds.setAttr(plug, aov.name, type="string")
+
+            # skip aliases on referenced nodes
+            if cmds.referenceQuery(sg, isNodeReferenced=True):
+                continue
+
             try:
                 cmds.aliasAttr('ai_aov_' + aov.name, plug)
             except RuntimeError as err:
