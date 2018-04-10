@@ -147,7 +147,7 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
                     MRenderUtil::exactFileTextureName(name, false, "", filename);
 
                     MHWRender::MTexture* texture =
-                        textureManager->acquireTexture(filename);
+                        textureManager->acquireTexture(filename, 0, false);
                     if (texture)
                     {
                         MHWRender::MTextureAssignment textureAssignment;

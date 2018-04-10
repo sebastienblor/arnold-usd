@@ -533,7 +533,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      MRenderUtil::exactFileTextureName(connectedObject, fileTextureName);
                      if (fileTextureName.length())
                      {
-                        texture = textureManager->acquireTexture(fileTextureName);
+                        texture = textureManager->acquireTexture(fileTextureName, 0, false);
                      }
                      // Need v-flip for file textures 
                      m_flipVData = true;
