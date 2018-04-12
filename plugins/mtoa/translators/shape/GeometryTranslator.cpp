@@ -555,7 +555,7 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
 
          if (faceIndex < (int)polygonHoleVertices.size())
          {
-            // substracting the amount of hole-vertices in this face
+            // subtracting the amount of hole-vertices in this face
             numPolygonVertexCount -= polygonHoleVertices[faceIndex];
          }
       }
