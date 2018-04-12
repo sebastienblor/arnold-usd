@@ -294,7 +294,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
              if (drawdbClassification.numChars() == 0)
                  drawdbClassification = ":drawdb/shader/utility/math/arnold/divide";
          }
-         else if (id == ARNOLD_NODEID_SHADER_SUBSTRACT)
+         else if (id == ARNOLD_NODEID_SHADER_SUBTRACT)
          {
              creator = CArnoldShaderNode::creator;
              initialize = CArnoldShaderNode::initialize;
