@@ -2599,7 +2599,7 @@ maya.swatch             BOOL    false
 
 [node subtract]
     maya.id                 INT     0x00115D7A
-    maya.name               STRING  "aiSubstract"
+    maya.name               STRING  "aiSubtract"
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    true
 
