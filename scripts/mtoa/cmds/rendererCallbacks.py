@@ -131,6 +131,9 @@ try:
             cls.addAttribute(cls.aAOVNodeName)
             cls.affectsOutput(cls.aAOVNodeName)
 
+        def isEmpty(self):
+            return False
+
         def contentType(self):
             return selector.Selector.kNonDagOnly
 
