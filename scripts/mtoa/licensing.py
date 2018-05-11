@@ -31,24 +31,25 @@ def getDiagnosticsResult():
     else:
         _no_window = None
 
-    if arnold.AiUniverseIsActive() or cmds.arnoldScene(query=True):
-        diagnosticResults += "COULDN'T START A TEST RENDER AS ANOTHER ARNOLD SESSION IS IN PROGRESS.\n "
-    else:
-        logPath = cmds.workspace(directory=True, query=True)
-        logPath = os.path.join(logPath, "arnoldDiagnostics.log")
+    ps_env = os.environ.copy()
+    ps_env['FLEXLM_BATCH'] = '1'
+    ps_env['FLEXLM_DIAGNOSTICS'] = '3'
+    ps_env['ADCLMHUB_LOG_LEVEL'] = 'T'
+    ps_env['RLM_DEBUG'] = 'arnold'
 
-        cmds.arnoldScene(mode="create")
-        arnold.AiMsgSetLogFileName(logPath)
-        arnold.AiMsgSetLogFileFlags(arnold.AI_LOG_ERRORS | arnold.AI_LOG_WARNINGS | arnold.AI_LOG_INFO)
-        arnold.AiMsgResetCallback()
-        arnold.AiRender(arnold.AI_RENDER_MODE_FREE)
-        cmds.arnoldScene(mode="destroy")
+    logPath = cmds.workspace(directory=True, query=True)
+    logPath = os.path.join(logPath, "arnoldDiagnostics.log")
 
-        if os.path.exists(logPath):
-            with open(logPath, 'r') as content_file:
-                diagnosticResults += content_file.read()
-        else:
-            diagnosticResults += "RENDER LOG FILE NOT FOUND\n"
+    null_path = 'NUL' if sys.platform == 'win32' else '/dev/null'
+    cmd = "kick -nostdin -i {}".format(null_path)
+    cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', cmd)
+    timerStart = time.clock()
+    cmdRes = subprocess.Popen(cmdBinary.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window, env=ps_env).communicate()[0]
+    timerLength = time.clock() - timerStart
+
+    diagnosticResults += "%s (%d sec) \n" % (cmd, timerLength)
+    diagnosticResults += "==============================\n"
+    diagnosticResults += cmdRes
 
     global _waitingForDiagnosticsStatus
     _waitingForDiagnosticsStatus = True
