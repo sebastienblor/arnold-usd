@@ -1800,7 +1800,7 @@ def updateArnoldResolution(*args):
     if sizeUnits != 0:
         # Convert from pixels to the correct measurement units
         inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
-        inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(heght, dpi))
+        inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(height, dpi))
         docWidth = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
         docHeight = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
         precision = 3
