@@ -390,7 +390,7 @@ class NodeLocked(object):
 
     def __init__(self):
         if self.window is None:
-            self.window = 'MtoANodeLocked'
+            self.window = 'MtoATrialLicense'
 
 
     def doCancel(self):
@@ -401,9 +401,9 @@ class NodeLocked(object):
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
 
-        winTitle = "Arnold Node-locked License"
+        winTitle = "Arnold Trial License"
 
-        self.window = cmds.window(self.window, sizeable=False, widthHeight=(630, 280), title=winTitle)
+        self.window = cmds.window(self.window, sizeable=False, widthHeight=(630, 120), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)
@@ -424,7 +424,7 @@ class NodeLocked(object):
         destination = os.path.join(mPath,'bin')
         try:
             shutil.copy(licenseFile,destination)
-            cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
+            cmds.confirmDialog(title='Success', message='Trial License Successfully Installed', button=['Ok'], defaultButton='Ok' )
         except:
             cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
 
@@ -437,57 +437,15 @@ class NodeLocked(object):
 
         #cmds.text(label="");cmds.text(label="");
 
-        arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
-
-        cmds.text(label="")
-        cmds.text(align="center",label=arnoldAboutText)
-        arnoldAboutText =  u"Note that monthly and annual subscription licenses are floating licenses, not node-locked. They require a license server\n"
-        cmds.text(align="left",label=arnoldAboutText)
-        cmds.text(label="")
-        cmds.separator()
-
-        cmds.setParent( '..' )
-        cmds.separator()
-
-        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
-        macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
-        cmds.text(label="")
-        cmds.text(align="left",label=macText)
-        cmds.setParent( '..' )
-        cmds.separator()
-
-        cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
-        cmds.text(label="")
-        cmds.text(align="left",label="MAC Address")
-        name = cmds.textField()
-        mac = get_mac()
-        mactext = ("%012X" % mac)
-        cmds.textField(name,  edit=True, text=mactext, editable=False )
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-
-
-        cmds.setParent( '..' )
-
-        cmds.separator()
-        
         cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
         macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
         cmds.text(label="")
         cmds.text(align="left",label=macText)
         cmds.setParent( '..' )
 
-        cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,390),(4,7),(5,26),(6,7),(7,80),(8,12)] )
+        cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,110),(3,370),(4,7),(5,26),(6,7),(7,80),(8,12)] )
         cmds.text(label="")
-        cmds.text(align="left",label="License file (.lic)")
+        cmds.text(align="left",label="Trial License file (.lic)")
         file = cmds.textField()
         cmds.text(label="")
         cmds.button( label='...', command=lambda arg=None,x=file: self.dotDotDotButtonPush(x) )
@@ -520,7 +478,7 @@ class NodeLocked(object):
         cmds.text(label="")
         cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + self.window + '\", window=True)'))
         cmds.text(label="")
-        cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+        cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/try'))
 
         cmds.setParent( '..' )
 

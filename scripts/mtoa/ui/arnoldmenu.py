@@ -553,8 +553,8 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldSetupLicenseServer', label='Setup License Server', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage=setupServerLink))
 
-        #cmds.menuItem('ArnoldInstallNodeLocked', label='Install Node-locked license (Legacy)', parent='ArnoldLicensingMenu',
-        #            c=lambda *args: arnoldLicensingNodeLocked())
+        cmds.menuItem('ArnoldInstallTrialLicense', label='Install Trial License', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingNodeLocked())
 
         cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)
