@@ -219,10 +219,10 @@ def registerFileToken(func, newTokens=None):
     _tokenCallbacks.append(func)
     if newTokens:
         if isinstance(newTokens, str):
-            _tokenNames.append(str)
+            _tokenNames.append(newTokens)
         else:
             try:
-                _tokenNames.extend(str)
+                _tokenNames.extend(newTokens)
             except:
                 print "second argument to registerFileToken expects a string or a list of strings"
 
