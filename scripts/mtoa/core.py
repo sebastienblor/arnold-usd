@@ -133,7 +133,8 @@ def createStandIn(path=None):
 #    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
     cmds.sets(standIn, add='ArnoldStandInDefaultLightSet')
     if path:
-        standIn.dso.set(path)
+        cmds.setAttr('{}.dso'.format(standIn), path, type="string")
+
     return standIn
     
 def createVolume():
