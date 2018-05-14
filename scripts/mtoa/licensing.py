@@ -411,9 +411,9 @@ class NodeLocked(object):
 
 
     def dotDotDotButtonPush(self, file):
-        licenseFilter = 'License Files (*.lic)'
+        licenseFilter = 'Trial License Files (*.lic)'
         ret = cmds.fileDialog2(fileFilter=licenseFilter, 
-                                cap='Load License File',okc='Load',fm=1)
+                                cap=licenseFilter,okc='Load',fm=1)
         if ret is not None and len(ret):
             cmds.textField(file, edit=True, text=ret[0])
 
