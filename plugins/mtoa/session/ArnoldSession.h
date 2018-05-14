@@ -151,6 +151,8 @@ public:
    void RequestUpdate();
    void EraseActiveTranslator(CNodeTranslator *translator);
 
+   void ChangeCurrentFrame(const MTime &time);
+
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};

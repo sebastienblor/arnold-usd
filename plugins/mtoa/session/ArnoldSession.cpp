@@ -103,6 +103,14 @@ namespace // <anonymous>
    }
 }
 
+void CArnoldSession::ChangeCurrentFrame(const MTime &time)
+{   
+   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
+      return;
+
+   MGlobal::viewFrame(time);
+}
+
 
 // Public Methods
 
@@ -437,7 +445,7 @@ MStatus CArnoldSession::End()
    else if (GetSessionMode() == MTOA_SESSION_ASS && MGlobal::mayaState() == MGlobal::kInteractive && IsMotionBlurEnabled())
    {
       // reset to export frame
-      MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      ChangeCurrentFrame(MTime(GetExportFrame(), MTime::uiUnit()));
    }
 
    // Delete stored translators
@@ -698,7 +706,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ExportOptions();  // inside loop so that we're on the proper frame
 
    // First "real" export
-   MGlobal::viewFrame(m_sessionOptions.m_frame);
+   ChangeCurrentFrame(m_sessionOptions.m_frame);
    if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || 
       exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW || exportMode == MTOA_SESSION_SEQUENCE)
    {
@@ -856,7 +864,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          if (step == (unsigned int)currentFrameIndex)
             continue; // current frame, has already been exported above
-         MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+         ChangeCurrentFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
 
          if (MtoaTranslationInfo())
          {
@@ -896,7 +904,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // FIXME: however we have a ticket "2044 about frame not being correct during post-export scripts
       if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
-         MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+         ChangeCurrentFrame(MTime(GetExportFrame(), MTime::uiUnit()));
       }
       m_isExportingMotion = false;
    }
@@ -1912,7 +1920,7 @@ UPDATE_BEGIN:
          // we don't need to change the current frame. However we still need to process
          // the export for every step. Otherwise some AtArray keys could be missing
          if (mbRequiresFrameChange)
-            MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+            ChangeCurrentFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
 
          // set the motion step as it will be used by translators to fill the arrays
          // at the right index
@@ -1947,7 +1955,7 @@ UPDATE_BEGIN:
 
       // we've done enough harm, let's restore the current frame...
       if (mbRequiresFrameChange)
-         MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+         ChangeCurrentFrame(MTime(GetExportFrame(), MTime::uiUnit()));
 
       // we're done exporting motion now
       m_isExportingMotion = false;
