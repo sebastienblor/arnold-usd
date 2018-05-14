@@ -98,6 +98,9 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
+	if (CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsExportingMotion())
+		return MStatus::kFailure;
+
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
         return MStatus::kFailure;
