@@ -2141,8 +2141,7 @@ def updateArnoldPixelAspectRatio(*args):
 
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
-    resNode = 'defaultResolution'
-    resNode.pixelAspect.set(cmds.floatFieldGrp('pixRatio', q=True, v1=True))
+    cmds.setAttr('defaultResolution.pixelAspect', cmds.floatFieldGrp('pixRatio', q=True, v1=True))
     adjustArnoldDeviceAspect(resNode)
     updateArnoldResolution()
 
