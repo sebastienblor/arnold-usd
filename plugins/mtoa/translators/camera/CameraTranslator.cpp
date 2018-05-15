@@ -3,6 +3,7 @@
 #include "../NodeTranslatorImpl.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
+#include "render/RenderSession.h"
 
 #include <ai_cameras.h>
 #include <ai_constants.h>
@@ -167,33 +168,46 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 
 double CCameraTranslator::GetDeviceAspect()
 {
-   MStatus        status;
-   MSelectionList list;
-   MObject        node;
    double deviceAspect = 0;
-
-   // TODO: replace with a function on CNodeTranslator to get globals node
-   list.add("defaultRenderGlobals");
-   list.getDependNode(0, node);
-   MFnDependencyNode fnRenderGlobals(node);
-
-   MPlugArray connectedPlugs;
-   MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
-
-   resPlug.connectedTo(connectedPlugs,
-                       true,  // asDestination
-                       false, // asSource
-                       &status);
-
-   // Must be length 1 or we would have fan-in
-   if (status && (connectedPlugs.length() == 1))
+   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
    {
-      MObject resNode = connectedPlugs[0].node(&status);
+      // We do an exception for AVP, since the resolution isn't taken from defaultRenderGlobals.resolution.
+      // It depends on the viewport resolution. We assume that ArnoldViewOverride has set the option's xres/yres at this point
+      AtNode *options = AiUniverseGetOptions();
+      int width = AiNodeGetInt(options, "xres");
+      int height = AiNodeGetInt(options, "yres");
 
-      if (status)
+      deviceAspect = double(width) / double(height);
+   } else
+   {
+      MStatus        status;
+      MSelectionList list;
+      MObject        node;
+      
+
+      // TODO: replace with a function on CNodeTranslator to get globals node
+      list.add("defaultRenderGlobals");
+      list.getDependNode(0, node);
+      MFnDependencyNode fnRenderGlobals(node);
+
+      MPlugArray connectedPlugs;
+      MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
+
+      resPlug.connectedTo(connectedPlugs,
+                          true,  // asDestination
+                          false, // asSource
+                          &status);
+
+      // Must be length 1 or we would have fan-in
+      if (status && (connectedPlugs.length() == 1))
       {
-         MFnDependencyNode fnRes(resNode);
-         deviceAspect = fnRes.findPlug("deviceAspectRatio").asFloat();
+         MObject resNode = connectedPlugs[0].node(&status);
+
+         if (status)
+         {
+            MFnDependencyNode fnRes(resNode);
+            deviceAspect = fnRes.findPlug("deviceAspectRatio").asFloat();
+         }
       }
    }
 

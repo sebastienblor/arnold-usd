@@ -201,6 +201,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
         if (camNode)
         {
+            camTranslator->RequestUpdate(); // ensure the camera is re-exported so that it considers the viewport resolution for FOV
             newCamName =  AiNodeGetName(camNode);
             AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
         }
@@ -251,6 +252,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
 
 			}
+            CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+            if (camTranslator)
+                camTranslator->RequestUpdate(); // camera needs to re-export to take into account resolution50
+            
 
             if (mTexture)
             {
