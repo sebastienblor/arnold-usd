@@ -128,7 +128,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (mRegionRenderStateMap.find(destination.asChar()) == mRegionRenderStateMap.end())
     {
         state.enabled = false;
-        state.useRegion = true;
+        state.useRegion = false;
         state.initialized = false;
         state.viewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
         mRegionRenderStateMap[destination.asChar()] = state;
