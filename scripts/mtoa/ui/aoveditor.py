@@ -949,10 +949,11 @@ def createArnoldAOVTab():
     updateAovShaders()
 
     cmds.setParent('..')
-    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.outputVarianceAOVs', label='Output Variance AOV')
+    noiceFrame = cmds.frameLayout('noiceFrame', label='Arnold Denoiser', width=WIDTH,
+                            collapsable=True, collapse=False)
+    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.outputVarianceAOVs', label='Output Denoising AOVs')
 
     cmds.setParent(parentForm)
-
 
     cmds.scrollLayout('arnoldAOVsScrollLayout', horizontalScrollBarThickness=0)
 
