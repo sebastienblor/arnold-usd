@@ -292,8 +292,8 @@ void COptionsTranslator::ExportAOVs()
             CAOVOutputArray aovDataLg = aovData;
 
             aovDataLg.name += "_*";
-            aovDataLg.aovSuffix = "_lgroups";
-            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.aovSuffix;
+            aovDataLg.lightGroup = "_lgroups";
+            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.lightGroup;
 
             aovDataList.push_back(aovDataLg);
          } else
@@ -353,8 +353,8 @@ void COptionsTranslator::ExportAOVs()
                std::string lgName(*it);
                CAOVOutputArray aovDataLg = aovData;
                aovDataLg.name = aovData.name + MString("_") + MString(lgName.c_str());
-               aovDataLg.aovSuffix = MString("_") + MString(lgName.c_str());
-               aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.aovSuffix;
+               aovDataLg.lightGroup = MString("_") + MString(lgName.c_str());
+               aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.lightGroup;
                aovDataList.push_back(aovDataLg);
             }
 
@@ -366,8 +366,8 @@ void COptionsTranslator::ExportAOVs()
          {
             CAOVOutputArray aovDataLg = aovData;
             aovDataLg.name = aovData.name + MString("_") + lgList[i];
-            aovDataLg.aovSuffix = MString("_") + lgList[i];
-            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.aovSuffix;
+            aovDataLg.lightGroup = MString("_") + lgList[i];
+            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.lightGroup;
             aovDataList.push_back(aovDataLg);
          }
       }
@@ -672,8 +672,18 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   // No override provided, use globals default
                   path = defaultRenderGlobalsData.name;
 
-               bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
+               // Eventually add a suffix to the filename. We don't add it if the corresponding token is 
+               // already present in the filename. We don't do it if the AOVs are merged
+               if (!output.mergeAOVs)
+               {
+                  if (aovData.lightGroup.length() > 0 && path.rindexW("<LightGroup>") < 0)
+                     path += aovData.lightGroup;
 
+                  if (aovData.aovSuffix.length() > 0 && path.rindexW("<AovSuffix>") < 0)
+                     path += aovData.aovSuffix;
+               }
+
+               bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
             
                MString eyeToken = "";
                if (stereo)
@@ -705,14 +715,6 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                NULL,
                                                &strictAOVs,
                                                eyeToken);
-
-               // Eventually add a suffix to the filename (for light groups)
-               if ((!output.mergeAOVs) && aovData.aovSuffix.length() > 0 && path.rindexW("<LightGroup>") < 0)
-               {
-                  int dotPos = filename.rindexW('.');
-                  if (dotPos > 0)
-                     filename = filename.substringW(0, dotPos - 1) + aovData.aovSuffix + filename.substringW(dotPos, filename.length() -1);
-               }
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
                unordered_map<std::string, AtNode*>::iterator it;

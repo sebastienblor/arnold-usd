@@ -26,6 +26,7 @@ struct CAOVOutputArray
    int type;
    MString tokens;
    MString aovSuffix;
+   MString lightGroup;
    MString lpe;
    MString layerName;
    CNodeTranslator *shaderTranslator;
