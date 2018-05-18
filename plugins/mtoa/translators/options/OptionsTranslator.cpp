@@ -293,6 +293,7 @@ void COptionsTranslator::ExportAOVs()
 
             aovDataLg.name += "_*";
             aovDataLg.aovSuffix = "_lgroups";
+            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.aovSuffix;
 
             aovDataList.push_back(aovDataLg);
          } else
@@ -353,6 +354,7 @@ void COptionsTranslator::ExportAOVs()
                CAOVOutputArray aovDataLg = aovData;
                aovDataLg.name = aovData.name + MString("_") + MString(lgName.c_str());
                aovDataLg.aovSuffix = MString("_") + MString(lgName.c_str());
+               aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.aovSuffix;
                aovDataList.push_back(aovDataLg);
             }
 
@@ -365,6 +367,7 @@ void COptionsTranslator::ExportAOVs()
             CAOVOutputArray aovDataLg = aovData;
             aovDataLg.name = aovData.name + MString("_") + lgList[i];
             aovDataLg.aovSuffix = MString("_") + lgList[i];
+            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.aovSuffix;
             aovDataList.push_back(aovDataLg);
          }
       }
@@ -388,7 +391,8 @@ void COptionsTranslator::ExportAOVs()
          //-- we don't add this because we want the denoised output to be in the same folder as the original one
          //aovData.tokens += "_denoise";  
          //-- instead we want a suffix
-         aovData.aovSuffix = "_denoise";
+         aovData.aovSuffix += "_denoise";
+         aovData.tokens += MString(" AovSuffix=_denoise");
          static AtString renderview_display_str("renderview_display");
          for (int i = 0; i < (int)aovData.outputs.size(); ++i)
          {
@@ -703,7 +707,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                eyeToken);
 
                // Eventually add a suffix to the filename (for light groups)
-               if ((!output.mergeAOVs) && aovData.aovSuffix.length() > 0)
+               if ((!output.mergeAOVs) && aovData.aovSuffix.length() > 0 && path.rindexW("<LightGroup>") < 0)
                {
                   int dotPos = filename.rindexW('.');
                   if (dotPos > 0)
@@ -803,7 +807,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   }
                }
 
-               if (strictAOVs && (path.indexW("<RenderPass>") > -1))
+               if (output.mergeAOVs && (path.indexW("<RenderPass>") > -1))
                {
                   AiMsgWarning("[mtoa] Driver \"%s\" set to merge AOVs, but path prefix includes <RenderPass> token. Resulting outputs will not be merged",
                                AiNodeGetName(output.driver));
