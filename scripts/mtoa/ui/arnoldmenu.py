@@ -7,6 +7,7 @@ import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
@@ -405,7 +406,10 @@ def arnoldBakeGeo():
     if ret is not None and len(ret):
         defaultFolder = ret[0]
         cmds.arnoldBakeGeo(f=defaultFolder)
-        
+
+def arnoldDenoise():
+    win = mtoa.denoise.MtoANoice()
+    win.create()    
 
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
@@ -513,6 +517,8 @@ def createArnoldMenu():
                     command='import maya.cmds; maya.cmds.arnoldFlushCache(flushall=True)', category="Flush Caches")
                     
         cmds.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        addRuntimeMenuItem('ArnoldDenoise', label='Arnold Denoiser (noice)', parent='ArnoldUtilities', 
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldDenoise()', category="Utilities", keywords='noice;denoising', annotation="Denoise an image or a sequence using the Arnold denoise \"noice\"")
         addRuntimeMenuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities', image='BakeGeometryShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldBakeGeo()', category="Utilities", keywords='baking', annotation='Bake the selected geometry to OBJ (w/ subdivision and displacement)')
         addRuntimeMenuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities', image='RenderToTextureShelf.png', 
