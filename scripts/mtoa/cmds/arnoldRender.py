@@ -2,6 +2,8 @@ import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.core as core
 import platform, os
+import mtoa.utils as mutils
+_maya_version = mutils.getMayaVersion()
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
@@ -58,6 +60,10 @@ def arnoldBatchRender(option):
         cmds.arnoldRender(batch=True, **kwargs)
     except RuntimeError, err:
         print err
+
+        # need to raise the error otherwise it's not caught by maya (#3405)
+        if _maya_version >= 2019: # doing it only on mainline for testing
+            raise
         
 def arnoldBatchStop():
     mel.eval('batchRender')
