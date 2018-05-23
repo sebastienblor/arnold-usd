@@ -81,7 +81,7 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         if not os.path.isfile(mPath):
             return
         
-        lookAttrName = attrName.replace('.mtlx', '.look')
+        lookAttrName = attrName.replace('.filename', '.look')
         self.lookParamReplace(lookAttrName)
         
 
@@ -130,7 +130,7 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         
         
     def lookParamReplace(self, attrName) :
-        mtlxAttrName = attrName.replace('.look', '.mtlx')        
+        mtlxAttrName = attrName.replace('.look', '.filename')        
         cmds.textField(self.lookTextField, edit=True, changeCommand=lambda *args: self.lookEdit(attrName, *args))
         cmds.textScrollList(self.looksListField, edit=True, removeAll=True,selectCommand=lambda *args: self.looksListEdit(attrName, *args))
         lookParam = cmds.getAttr(attrName)
@@ -157,7 +157,7 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
 
         self.endLayout()
         self.beginLayout('MaterialX', collapse=False)
-        self.addCustom('mtlx', self.filenameNew, self.filenameReplace)
+        self.addCustom('filename', self.filenameNew, self.filenameReplace)
         
         self.looksListPath = ''
         self.lookPath = ''
