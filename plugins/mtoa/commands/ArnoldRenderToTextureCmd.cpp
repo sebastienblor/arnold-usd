@@ -585,10 +585,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          {
             for (size_t j = 0; j < AiArrayGetNumElements(uv_list); ++j)
             {
+               // U coords can't be higher than 9, V coords can be up to 99 (#3453)
                AtVector2 uv = AiArrayGetVec2(uv_list, j);
                if (uv.x>AI_EPSILON && uv.y > AI_EPSILON&&
-                  uv.x < 10 - AI_EPSILON && uv.y < 10 - AI_EPSILON)
-                  udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON)));
+                  uv.x < 10 - AI_EPSILON && uv.y < 100 - AI_EPSILON)
+                  udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON))); 
             }
          }
          for (std::set<std::pair<int, int> >::iterator it = udimsSet.begin(); it != udimsSet.end(); it++)
