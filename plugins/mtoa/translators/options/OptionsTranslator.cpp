@@ -260,7 +260,10 @@ void COptionsTranslator::ExportAOVs()
          // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
          // pass determines whether we use the name "RGBA" or "RGB".
          aovData.name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
-      } //else
+
+         if (FindMayaPlug("denoiseBeauty").asBool())
+            denoise = true;
+      }
 
       std::vector<CAOVOutputArray> aovDataList;
       

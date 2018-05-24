@@ -949,6 +949,16 @@ def createArnoldAOVTab():
     updateAovShaders()
 
     cmds.setParent('..')
+    
+    denoiserFrame = cmds.frameLayout('denoiserFrame', label='Denoiser', width=WIDTH,
+                            collapsable=True, collapse=True)
+
+    optixDenoiserFrame = cmds.frameLayout('optixDenoiserFrame', label='Optix Denoiser', width=WIDTH,
+                            collapsable=True, collapse=False)
+    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.denoiseBeauty', label='Apply on Beauty')
+
+    cmds.setParent('..')
+    
     noiceFrame = cmds.frameLayout('noiceFrame', label='Arnold Denoiser', width=WIDTH,
                             collapsable=True, collapse=False)
     cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.outputVarianceAOVs', label='Output Denoising AOVs')
