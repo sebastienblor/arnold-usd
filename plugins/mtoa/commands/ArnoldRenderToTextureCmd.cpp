@@ -557,6 +557,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
       std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
+      std::replace( meshNameStr.begin(), meshNameStr.end(), '|', '_'); // replace all '|' to '_'
+      
 
       std::string shaderNameStr;
       if (shader_name)
@@ -564,6 +566,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          shaderNameStr = shader_name;
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), ':', '_'); // replace all ':' to '_'
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), '/', '_'); // replace all '/' to '_'
+         std::replace( shaderNameStr.begin(), shaderNameStr.end(), '|', '_'); // replace all '|'to '_'
       }
       AtByte sidedness = AiNodeGetByte(mesh, "sidedness");
       // remove camera sidedness since we're offsetting towards the normal's direction
