@@ -621,7 +621,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             AiNodeSetFlt(camera, "offset", (float)normalOffset);
             // need to adjust the near plane to make sure it's not bigger than the offset
-            AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
+            AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
             AiNodeSetPtr(options_node, "camera", camera);
             std::string filename = ss_filename.str();
             AiNodeSetStr(driver, "filename", filename.c_str());
@@ -659,7 +659,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
-         AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
+         AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
 
          AiNodeSetFlt(camera, "u_offset", (float)(-uStart));
          AiNodeSetFlt(camera, "v_offset", (float)(-vStart));
