@@ -111,7 +111,8 @@ class NoiceThread (threading.Thread):
         utils.executeDeferred(noiceExecuteMel,progress_cmd)
 
         if self.win.window:        
-            cmds.deleteUI(self.win.window)
+            progress_cmd = 'deleteUI {}'.format(self.win.window)
+            utils.executeDeferred(noiceExecuteMel,progress_cmd)
             self.win.window = None
 
         self.win.running = False
