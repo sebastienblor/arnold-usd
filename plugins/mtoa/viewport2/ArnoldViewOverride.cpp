@@ -518,6 +518,9 @@ TextureBlit::~TextureBlit()
 
 const MHWRender::MBlendState* TextureBlit::blendStateOverride()
 {
+    // for now we disable the blending as it's not a good default. We should have an options somewhere for that
+    return NULL;
+
     if (!mBlendState) {
         MHWRender::MBlendStateDesc desc;
 
