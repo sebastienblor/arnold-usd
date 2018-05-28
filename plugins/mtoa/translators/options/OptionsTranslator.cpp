@@ -425,6 +425,7 @@ void COptionsTranslator::ExportAOVs()
             }
             //AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
          }
+         aovData.denoised = true;
          
          m_aovData.push_back(aovData);
       }
@@ -1383,10 +1384,16 @@ void COptionsTranslator::Export(AtNode *options)
       }
    }
 
+   bool optixDenoiser = false;
+
    // I also need to add the shaders the are assigned to specific AOVs 
    for (size_t i = 0; i < m_aovData.size(); ++i)
    {
       CAOVOutputArray &aovData = m_aovData[i];
+      
+      if (aovData.denoised)
+         optixDenoiser = true;
+
       if (aovData.shaderTranslator == NULL)
          continue;
    
@@ -1438,13 +1445,20 @@ void COptionsTranslator::Export(AtNode *options)
    if (GetSessionOptions().IsInteractiveRender())
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
-   if (GetSessionMode() != MTOA_SESSION_SWATCH)
+   bool gpuRender = false;
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
+   {
+      MPlug gpuPlug = FindMayaPlug("gpu");
+      if (!gpuPlug.isNull())
+         gpuRender = gpuPlug.asBool();
+   }
+
+
+   if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
       if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
-         MPlug gpuPlug = FindMayaPlug("gpu");
-         bool gpu = gpuPlug.asBool();
-         AiNodeSetStr(options, "render_device", (gpu) ? "GPU" : "CPU");
+         AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
       }
 
 
@@ -1469,6 +1483,8 @@ void COptionsTranslator::Export(AtNode *options)
                }
             }
          }
+
+         //
          if (!devices.empty())
          {
             autoSelect = false;
