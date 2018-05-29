@@ -44,3 +44,8 @@ os.system(cmd)
 
 cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "_obj_geo1_polygons.exr"), os.path.join(test_root_path, "testrender14.tif"))
 os.system(cmd)
+
+cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "testrenderSphere5_testrenderSphere4Shape.exr"), os.path.join(test_root_path, "testrender15.tif"))
+os.system(cmd)
+
+
