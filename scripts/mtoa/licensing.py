@@ -31,24 +31,25 @@ def getDiagnosticsResult():
     else:
         _no_window = None
 
-    if arnold.AiUniverseIsActive() or cmds.arnoldScene(query=True):
-        diagnosticResults += "COULDN'T START A TEST RENDER AS ANOTHER ARNOLD SESSION IS IN PROGRESS.\n "
-    else:
-        logPath = cmds.workspace(directory=True, query=True)
-        logPath = os.path.join(logPath, "arnoldDiagnostics.log")
+    ps_env = os.environ.copy()
+    ps_env['FLEXLM_BATCH'] = '1'
+    ps_env['FLEXLM_DIAGNOSTICS'] = '3'
+    ps_env['ADCLMHUB_LOG_LEVEL'] = 'T'
+    ps_env['RLM_DEBUG'] = 'arnold'
 
-        cmds.arnoldScene(mode="create")
-        arnold.AiMsgSetLogFileName(logPath)
-        arnold.AiMsgSetLogFileFlags(arnold.AI_LOG_ERRORS | arnold.AI_LOG_WARNINGS | arnold.AI_LOG_INFO)
-        arnold.AiMsgResetCallback()
-        arnold.AiRender(arnold.AI_RENDER_MODE_FREE)
-        cmds.arnoldScene(mode="destroy")
+    logPath = cmds.workspace(directory=True, query=True)
+    logPath = os.path.join(logPath, "arnoldDiagnostics.log")
 
-        if os.path.exists(logPath):
-            with open(logPath, 'r') as content_file:
-                diagnosticResults += content_file.read()
-        else:
-            diagnosticResults += "RENDER LOG FILE NOT FOUND\n"
+    null_path = 'NUL' if sys.platform == 'win32' else '/dev/null'
+    cmd = "kick -nostdin -i {}".format(null_path)
+    cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', cmd)
+    timerStart = time.clock()
+    cmdRes = subprocess.Popen(cmdBinary.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window, env=ps_env).communicate()[0]
+    timerLength = time.clock() - timerStart
+
+    diagnosticResults += "%s (%d sec) \n" % (cmd, timerLength)
+    diagnosticResults += "==============================\n"
+    diagnosticResults += cmdRes
 
     global _waitingForDiagnosticsStatus
     _waitingForDiagnosticsStatus = True
@@ -389,7 +390,7 @@ class NodeLocked(object):
 
     def __init__(self):
         if self.window is None:
-            self.window = 'MtoANodeLocked'
+            self.window = 'MtoATrialLicense'
 
 
     def doCancel(self):
@@ -400,9 +401,9 @@ class NodeLocked(object):
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
 
-        winTitle = "Arnold Node-locked License"
+        winTitle = "Arnold Trial License"
 
-        self.window = cmds.window(self.window, sizeable=False, widthHeight=(630, 280), title=winTitle)
+        self.window = cmds.window(self.window, sizeable=False, widthHeight=(630, 120), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)
@@ -410,9 +411,9 @@ class NodeLocked(object):
 
 
     def dotDotDotButtonPush(self, file):
-        licenseFilter = 'License Files (*.lic)'
+        licenseFilter = 'Trial License Files (*.lic)'
         ret = cmds.fileDialog2(fileFilter=licenseFilter, 
-                                cap='Load License File',okc='Load',fm=1)
+                                cap=licenseFilter,okc='Load',fm=1)
         if ret is not None and len(ret):
             cmds.textField(file, edit=True, text=ret[0])
 
@@ -423,7 +424,7 @@ class NodeLocked(object):
         destination = os.path.join(mPath,'bin')
         try:
             shutil.copy(licenseFile,destination)
-            cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
+            cmds.confirmDialog(title='Success', message='Trial License Successfully Installed', button=['Ok'], defaultButton='Ok' )
         except:
             cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
 
@@ -436,57 +437,15 @@ class NodeLocked(object):
 
         #cmds.text(label="");cmds.text(label="");
 
-        arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
-
-        cmds.text(label="")
-        cmds.text(align="center",label=arnoldAboutText)
-        arnoldAboutText =  u"Note that monthly and annual subscription licenses are floating licenses, not node-locked. They require a license server\n"
-        cmds.text(align="left",label=arnoldAboutText)
-        cmds.text(label="")
-        cmds.separator()
-
-        cmds.setParent( '..' )
-        cmds.separator()
-
-        cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
-        macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
-        cmds.text(label="")
-        cmds.text(align="left",label=macText)
-        cmds.setParent( '..' )
-        cmds.separator()
-
-        cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
-        cmds.text(label="")
-        cmds.text(align="left",label="MAC Address")
-        name = cmds.textField()
-        mac = get_mac()
-        mactext = ("%012X" % mac)
-        cmds.textField(name,  edit=True, text=mactext, editable=False )
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-        cmds.text(label="")
-
-
-        cmds.setParent( '..' )
-
-        cmds.separator()
-        
         cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
         macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
         cmds.text(label="")
         cmds.text(align="left",label=macText)
         cmds.setParent( '..' )
 
-        cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,390),(4,7),(5,26),(6,7),(7,80),(8,12)] )
+        cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,110),(3,370),(4,7),(5,26),(6,7),(7,80),(8,12)] )
         cmds.text(label="")
-        cmds.text(align="left",label="License file (.lic)")
+        cmds.text(align="left",label="Trial License file (.lic)")
         file = cmds.textField()
         cmds.text(label="")
         cmds.button( label='...', command=lambda arg=None,x=file: self.dotDotDotButtonPush(x) )
@@ -519,7 +478,7 @@ class NodeLocked(object):
         cmds.text(label="")
         cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + self.window + '\", window=True)'))
         cmds.text(label="")
-        cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+        cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/arnold/try'))
 
         cmds.setParent( '..' )
 

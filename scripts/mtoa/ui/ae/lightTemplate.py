@@ -1,5 +1,6 @@
 ﻿import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
+import mtoa.melUtils as melUtils
 from mtoa.callbacks import *
 from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
@@ -31,7 +32,7 @@ def getNodeName(plugname):
 
 def getConnectedCount(plugname):
     srcplug = ''
-    n= cmds.getAttr(plugname, size=True)
+    n = melUtils.getAttrNumElements(*plugname.split('.', 1))
     c = 0
 
     for i in range(0, n):

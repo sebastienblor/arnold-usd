@@ -1800,7 +1800,7 @@ def updateArnoldResolution(*args):
     if sizeUnits != 0:
         # Convert from pixels to the correct measurement units
         inchWidth = mel.eval('convertPixelsToInches({}, {})'.format(width, dpi))
-        inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(heght, dpi))
+        inchHeight = mel.eval('convertPixelsToInches({}, {})'.format(height, dpi))
         docWidth = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchWidth, gMeasurementUnitsNames[sizeUnits]))
         docHeight = mel.eval('convertMeasurement({}, "inches", "{}")'.format(inchHeight, gMeasurementUnitsNames[sizeUnits]))
         precision = 3
@@ -2141,8 +2141,7 @@ def updateArnoldPixelAspectRatio(*args):
 
     oldParent = cmds.setParent(query=True)
     setParentToArnoldCommonTab()
-    resNode = 'defaultResolution'
-    resNode.pixelAspect.set(cmds.floatFieldGrp('pixRatio', q=True, v1=True))
+    cmds.setAttr('defaultResolution.pixelAspect', cmds.floatFieldGrp('pixRatio', q=True, v1=True))
     adjustArnoldDeviceAspect(resNode)
     updateArnoldResolution()
 

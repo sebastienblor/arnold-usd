@@ -7,6 +7,7 @@ import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
@@ -405,7 +406,10 @@ def arnoldBakeGeo():
     if ret is not None and len(ret):
         defaultFolder = ret[0]
         cmds.arnoldBakeGeo(f=defaultFolder)
-        
+
+def arnoldDenoise():
+    win = mtoa.denoise.MtoANoice()
+    win.create()    
 
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
@@ -448,37 +452,37 @@ def createArnoldMenu():
         else:
             cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )
 
-        addRuntimeMenuItem('ArnoldRender', label='Render', parent='ArnoldMenu', image='RenderShelf.png', 
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldMtoARenderView()', keywords='arv', annotation ='Render with the Arnold RenderView')
+        addRuntimeMenuItem('ArnoldRender', label='Render', parent='ArnoldMenu', rtcLabel = 'Arnold: Render', image='RenderShelf.png', 
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldMtoARenderView()', keywords='arv;ipr', annotation ='Render with the Arnold RenderView')
         
         addRuntimeMenuItem('ArnoldMtoARenderView', label='Open Arnold RenderView', rtcLabel = 'Arnold: Open RenderView', parent='ArnoldMenu',  image='RenderViewShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldOpenMtoARenderView()', keywords='arv', annotation='Open the Arnold RenderView window')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldOpenMtoARenderView()', keywords='arv;ipr', annotation='Open the Arnold RenderView window')
         cmds.menuItem(parent='ArnoldMenu', divider=True)
 
         cmds.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
 
         addRuntimeMenuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create StandIn", image='StandinShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.createStandIn()', category='StandIn', keywords='standin', annotation='Create a StandIn to load a .ass file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.createStandIn()', category='StandIn', keywords='procedural;proxy;archive;import', annotation='Create a StandIn to load a .ass file')
         addRuntimeMenuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,  
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateStandInFile()', rtcLabel='Arnold: Create StandIn from File', category='StandIn', keywords='standin', annotation='Create a StandIn to load a .ass file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateStandInFile()', rtcLabel='Arnold: Create StandIn from File', category='StandIn', keywords='procedural;proxy;archive;import', annotation='Create a StandIn to load a .ass file')
         addRuntimeMenuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export StandIn', image='ExportStandinShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn()', category='StandIn', keywords='standin', annotation='Export the selection as a Standin .ass file')
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportStandIn()', category='StandIn', keywords='procedural;proxy;archive', annotation='Export the selection as a Standin .ass file')
         cmds.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doExportOptionsStandIn()')
 
         cmds.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
         addRuntimeMenuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",rtcLabel = 'Arnold: Create Area Light', image='AreaLightShelf.png',
-                    command='import mtoa.utils;mtoa.utils.createLocator("aiAreaLight", asLight=True)', category='Lights', annotation='Create an Arnold Area Light (Quad/Cylinder/Disk)')
+                    command='import mtoa.utils;mtoa.utils.createLocator("aiAreaLight", asLight=True)', category='Lights', keywords='quad;softbox', annotation='Create an Arnold Area Light (Quad/Cylinder/Disk)')
         addRuntimeMenuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light", rtcLabel='Arnold: Create Skydome Light', image='SkydomeLightShelf.png',
-                    command='import mtoa.utils;mtoa.utils.createLocator("aiSkyDomeLight", asLight=True)', category='Lights', keywords='ibl', annotation='Create an Arnold Skydome Light for Environment/IBL lighting')
+                    command='import mtoa.utils;mtoa.utils.createLocator("aiSkyDomeLight", asLight=True)', category='Lights', keywords='ibl;hdr;dome;env', annotation='Create an Arnold Skydome Light for Environment/IBL lighting')
         addRuntimeMenuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light', rtcLabel='Arnold: Create Mesh Light', image='MeshLightShelf.png',
-                    command='import mtoa.utils;mtoa.utils.createMeshLight()', category='Lights', annotation='Convert the selected Mesh to an Arnold Mesh Light')
-        addRuntimeMenuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", rtcLabel="Arnold: Create Photometric Light", image='PhotometricLightShelf.png',
+                    command='import mtoa.utils;mtoa.utils.createMeshLight()', category='Lights', keywords='geo light;object light', annotation='Convert the selected Mesh to an Arnold Mesh Light')
+        addRuntimeMenuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light", rtcLabel="Arnold: Create Photometric Light", image='PhotometricLightShelf.png', keywords='ies;physical light;light map;practical light',
                     command='import mtoa.utils;mtoa.utils.createLocator("aiPhotometricLight", asLight=True)', category='Lights', annotation='Create an Arnold Photometric Light to load IES files')
         addRuntimeMenuItem('LightPortal', parent='ArnoldLights', label="Light Portal", rtcLabel="Arnold: Create Light Portal", image='LightPortalShelf.png',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateLightPortal()', annotation='Portals can optimize Skydomes interior lighting', category='Lights')
-        addRuntimeMenuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", rtcLabel="Arnold: Create Physical Sky", image='PhysicalSkyShelf.png',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreateLightPortal()', keywords='hdr;ibl;env;dome', annotation='Portals can optimize Skydomes interior lighting', category='Lights')
+        addRuntimeMenuItem('PhysicalSky', parent='ArnoldLights', label="Physical Sky", rtcLabel="Arnold: Create Physical Sky", image='PhysicalSkyShelf.png', keywords='sun;sky;env;dome;ibl',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.doCreatePhysicalSky()', category='Lights', annotation='Create an Arnold Skydome w/ Physical Sky illumination')
         
         customShapes = cmds.arnoldPlugins(listCustomShapes=True)
@@ -513,13 +517,15 @@ def createArnoldMenu():
                     command='import maya.cmds; maya.cmds.arnoldFlushCache(flushall=True)', category="Flush Caches")
                     
         cmds.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        addRuntimeMenuItem('ArnoldDenoise', label='Arnold Denoiser (noice)', parent='ArnoldUtilities', 
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldDenoise()', category="Utilities", keywords='noice;denoising', annotation="Denoise an image or a sequence using the Arnold denoise \"noice\"")
         addRuntimeMenuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities', image='BakeGeometryShelf.png', 
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldBakeGeo()', category="Utilities", annotation='Bake the selected geometry to OBJ (w/ subdivision and displacement)')
-        addRuntimeMenuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',  image='RenderToTextureShelf.png', 
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldBakeGeo()', category="Utilities", keywords='baking', annotation='Bake the selected geometry to OBJ (w/ subdivision and displacement)')
+        addRuntimeMenuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities', image='RenderToTextureShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldRenderToTexture()', category="Utilities", keywords='bake;baking', annotation="Shade the selected shape and bake it on a UV texture")
-        addRuntimeMenuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', 
+        addRuntimeMenuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', keywords='textures;convert;optimize',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldTxManager()', category="Utilities", annotation='Open the Arnold TX Manager')
-        addRuntimeMenuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',  image='UpdateTxShelf.png', 
+        addRuntimeMenuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',  image='UpdateTxShelf.png', keywords='textures',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldUpdateTx()', category="Utilities", annotation="Convert / Updates all textures to TX for Arnold rendering")
         cmds.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldLightManager()')
@@ -553,8 +559,8 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldSetupLicenseServer', label='Setup License Server', parent='ArnoldLicensingMenu', 
                     c=lambda *args: cmds.launch(webPage=setupServerLink))
 
-        #cmds.menuItem('ArnoldInstallNodeLocked', label='Install Node-locked license (Legacy)', parent='ArnoldLicensingMenu',
-        #            c=lambda *args: arnoldLicensingNodeLocked())
+        cmds.menuItem('ArnoldInstallTrialLicense', label='Install Trial License', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingNodeLocked())
 
         cmds.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu', 
                     subMenu=True, tearOff=True)

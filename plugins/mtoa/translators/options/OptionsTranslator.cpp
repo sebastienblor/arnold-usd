@@ -105,6 +105,32 @@ void COptionsTranslator::ProcessAOVs()
 
 }
 
+static CAOVOutputArray ComputeNoiceAov(MString aovName, int aovType, const CAOVOutputArray &beautyOutput)
+{
+   CAOVOutputArray aov = beautyOutput;
+   aov.name = aovName;
+   aov.type = aovType;
+   aov.layerName = aovName + MString("_noice");
+   aov.tokens =  MString("RenderPass=") + aov.layerName;
+   for (size_t i = 0; i < aov.outputs.size(); ++i)
+   {
+      CAOVOutput &output = aov.outputs[i];
+      if (!output.mergeAOVs)
+      {
+         // aovs aren't merged, so we must duplicate the driver
+         MString varName = MString(AiNodeGetName(output.driver));
+         varName += MString(".");
+         varName += aov.layerName;
+         if (output.driverTranslator)
+            output.driver = output.driverTranslator->GetChildDriver(aov.layerName.asChar());
+         else
+            output.driver = AiNodeClone(output.driver);
+
+         AiNodeSetStr(output.driver, "name", varName.asChar());
+      }
+   }
+   return aov;
+}
 /// Set the filenames for all output drivers
 void COptionsTranslator::ExportAOVs()
 {
@@ -266,7 +292,8 @@ void COptionsTranslator::ExportAOVs()
             CAOVOutputArray aovDataLg = aovData;
 
             aovDataLg.name += "_*";
-            aovDataLg.aovSuffix = "_lgroups";
+            aovDataLg.lightGroup = "_lgroups";
+            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.lightGroup;
 
             aovDataList.push_back(aovDataLg);
          } else
@@ -326,7 +353,8 @@ void COptionsTranslator::ExportAOVs()
                std::string lgName(*it);
                CAOVOutputArray aovDataLg = aovData;
                aovDataLg.name = aovData.name + MString("_") + MString(lgName.c_str());
-               aovDataLg.aovSuffix = MString("_") + MString(lgName.c_str());
+               aovDataLg.lightGroup = MString("_") + MString(lgName.c_str());
+               aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.lightGroup;
                aovDataList.push_back(aovDataLg);
             }
 
@@ -338,7 +366,8 @@ void COptionsTranslator::ExportAOVs()
          {
             CAOVOutputArray aovDataLg = aovData;
             aovDataLg.name = aovData.name + MString("_") + lgList[i];
-            aovDataLg.aovSuffix = MString("_") + lgList[i];
+            aovDataLg.lightGroup = MString("_") + lgList[i];
+            aovDataLg.tokens += MString(" LightGroup=") + aovDataLg.lightGroup;
             aovDataList.push_back(aovDataLg);
          }
       }
@@ -362,7 +391,8 @@ void COptionsTranslator::ExportAOVs()
          //-- we don't add this because we want the denoised output to be in the same folder as the original one
          //aovData.tokens += "_denoise";  
          //-- instead we want a suffix
-         aovData.aovSuffix = "_denoise";
+         aovData.aovSuffix += "_denoise";
+         aovData.tokens += MString(" AovSuffix=_denoise");
          static AtString renderview_display_str("renderview_display");
          for (int i = 0; i < (int)aovData.outputs.size(); ++i)
          {
@@ -395,68 +425,93 @@ void COptionsTranslator::ExportAOVs()
             }
             //AiNodeSetFlt(denoise_output.filter, "blend", 1.f);
          }
+         aovData.denoised = true;
          
          m_aovData.push_back(aovData);
       }
    }
-
+   
    if (FindMayaPlug("outputVarianceAOVs").asBool() && beautyFilter)
    {
+      //== We need to dump the necessary outputs for noice.
+      //== First, let's find the "beauty" AOV. Let's also check if the N, Z, diffuse_albedo are already present in the list of AOVs.
+      //== If they are, we need to verify that they have the same filter as the beauty. Otherwise we'll need to duplicate those AOVs for noice.
+      bool create_Z = true, create_N = true, create_diffuse_albedo = true;
+      int beauty_index = -1;
       for (size_t j = 0, aovDataSize = m_aovData.size(); j < aovDataSize; ++j)
-      {
-         CAOVOutputArray &aovData = m_aovData[j];
-         
+      {         
+         const CAOVOutputArray &aovData = m_aovData[j];
          if (aovData.name == MString("RGBA") || aovData.name == MString("RGB"))
          {
-            CAOVOutputArray varianceAOV = aovData;
-            
-            varianceAOV.name = MString("RGB");
-            varianceAOV.type = AI_TYPE_RGB;
-            
-            varianceAOV.layerName = MString("variance");
-            varianceAOV.tokens = MString("RenderPass=") + varianceAOV.layerName;
-
-            for (size_t i = 0, aovOutputsSize = varianceAOV.outputs.size(); i < aovOutputsSize; ++i)
-            {
-               CAOVOutput &output = varianceAOV.outputs[i];
-               
-               AtNode *variance_filter = GetArnoldNode("variance_filter");
-               if (variance_filter == NULL)
-                  variance_filter = AddArnoldNode("variance_filter", "variance_filter");
-
-               std::string filterType = AiNodeEntryGetName(AiNodeGetNodeEntry(output.filter));
-               size_t pos = filterType.find("_filter");
-               if (pos != std::string::npos)
-                  filterType = filterType.substr(0, pos );
-                 
-               AiNodeSetStr(variance_filter, "filter_weights",filterType.c_str());
-               AiNodeSetFlt(variance_filter, "width", AiNodeGetFlt(output.filter, "width"));
-               AiNodeSetBool(variance_filter, "scalar_mode", false);
-               
-               output.filter = variance_filter;
-               if(!output.mergeAOVs)
-               {
-                  MString varName = MString(AiNodeGetName(output.driver));
-                  varName += MString(".");
-                  varName += varianceAOV.layerName;
-                  if (output.driverTranslator)
-                     output.driver = output.driverTranslator->GetChildDriver(varianceAOV.layerName.asChar());
-                  else
-                     output.driver = AiNodeClone(output.driver);
-
-                  AiNodeSetStr(output.driver, "name", varName.asChar());
-               }
-            }
-            m_aovData.push_back(varianceAOV);
-
+            beauty_index = (int)j;
          } else if (aovData.name == MString("Z") || aovData.name == MString("N") || aovData.name == MString("diffuse_albedo"))
          {
+            bool &create_noice_aov = ((aovData.name == MString("Z")) ? create_Z : ((aovData.name == MString("N")) ? create_N : create_diffuse_albedo));
+            // now check if the outputs have the good filter
             for (size_t i = 0, aovOutputsSize = aovData.outputs.size(); i < aovOutputsSize; ++i)
             {
-               aovData.outputs[i].filter = beautyFilter;
+               if (aovData.outputs[i].filter == beautyFilter)
+               {
+                  create_noice_aov = false; // I already found this AOV with the proper filter, no need to duplicated it
+                  break;
+               }
+            } 
+         }           
+      }
+      if (beauty_index >= 0)
+      {
+         //==== First create the Variance AOV
+         CAOVOutputArray varianceAOV = m_aovData[beauty_index];
+         
+         varianceAOV.name = MString("RGB");
+         varianceAOV.type = AI_TYPE_RGB;
+         
+         varianceAOV.layerName = MString("variance");
+         varianceAOV.tokens = MString("RenderPass=") + varianceAOV.layerName;
+
+         for (size_t i = 0, aovOutputsSize = varianceAOV.outputs.size(); i < aovOutputsSize; ++i)
+         {
+            CAOVOutput &output = varianceAOV.outputs[i];
+            
+            // The variance filter must know the settings of the beauty filter
+            AtNode *variance_filter = GetArnoldNode("variance_filter");
+            if (variance_filter == NULL)
+               variance_filter = AddArnoldNode("variance_filter", "variance_filter");
+
+            std::string filterType = AiNodeEntryGetName(AiNodeGetNodeEntry(output.filter));
+            size_t pos = filterType.find("_filter");
+            if (pos != std::string::npos)
+               filterType = filterType.substr(0, pos );
+              
+            AiNodeSetStr(variance_filter, "filter_weights",filterType.c_str());
+            AiNodeSetFlt(variance_filter, "width", AiNodeGetFlt(output.filter, "width"));
+            AiNodeSetBool(variance_filter, "scalar_mode", false);
+            
+            output.filter = variance_filter;
+            if(!output.mergeAOVs)
+            {
+               MString varName = MString(AiNodeGetName(output.driver));
+               varName += MString(".");
+               varName += varianceAOV.layerName;
+               if (output.driverTranslator)
+                  output.driver = output.driverTranslator->GetChildDriver(varianceAOV.layerName.asChar());
+               else
+                  output.driver = AiNodeClone(output.driver);
+
+               AiNodeSetStr(output.driver, "name", varName.asChar());
             }
-            // aovData.type = AI_TYPE_RGB; that doesn't seem necessary anymore for noice
          }
+         m_aovData.push_back(varianceAOV);
+
+         if (create_Z)
+            m_aovData.push_back(ComputeNoiceAov(MString("Z"), AI_TYPE_FLOAT, m_aovData[beauty_index]));
+         
+         if (create_N)
+            m_aovData.push_back(ComputeNoiceAov(MString("N"), AI_TYPE_VECTOR, m_aovData[beauty_index]));
+
+         if (create_diffuse_albedo)
+            m_aovData.push_back(ComputeNoiceAov(MString("diffuse_albedo"), AI_TYPE_RGB, m_aovData[beauty_index]));
+         
       }
    }
 }
@@ -618,8 +673,18 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   // No override provided, use globals default
                   path = defaultRenderGlobalsData.name;
 
-               bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
+               // Eventually add a suffix to the filename. We don't add it if the corresponding token is 
+               // already present in the filename. We don't do it if the AOVs are merged
+               if (!output.mergeAOVs)
+               {
+                  if (aovData.lightGroup.length() > 0 && path.rindexW("<LightGroup>") < 0)
+                     path += aovData.lightGroup;
 
+                  if (aovData.aovSuffix.length() > 0 && path.rindexW("<AovSuffix>") < 0)
+                     path += aovData.aovSuffix;
+               }
+
+               bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
             
                MString eyeToken = "";
                if (stereo)
@@ -651,14 +716,6 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                                                NULL,
                                                &strictAOVs,
                                                eyeToken);
-
-               // Eventually add a suffix to the filename (for light groups)
-               if ((!output.mergeAOVs) && aovData.aovSuffix.length() > 0)
-               {
-                  int dotPos = filename.rindexW('.');
-                  if (dotPos > 0)
-                     filename = filename.substringW(0, dotPos - 1) + aovData.aovSuffix + filename.substringW(dotPos, filename.length() -1);
-               }
 
                MString nodeTypeName = AiNodeEntryGetName(driverEntry);
                unordered_map<std::string, AtNode*>::iterator it;
@@ -753,7 +810,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                   }
                }
 
-               if (strictAOVs && (path.indexW("<RenderPass>") > -1))
+               if (output.mergeAOVs && (path.indexW("<RenderPass>") > -1))
                {
                   AiMsgWarning("[mtoa] Driver \"%s\" set to merge AOVs, but path prefix includes <RenderPass> token. Resulting outputs will not be merged",
                                AiNodeGetName(output.driver));
@@ -1327,10 +1384,16 @@ void COptionsTranslator::Export(AtNode *options)
       }
    }
 
+   bool optixDenoiser = false;
+
    // I also need to add the shaders the are assigned to specific AOVs 
    for (size_t i = 0; i < m_aovData.size(); ++i)
    {
       CAOVOutputArray &aovData = m_aovData[i];
+      
+      if (aovData.denoised)
+         optixDenoiser = true;
+
       if (aovData.shaderTranslator == NULL)
          continue;
    
@@ -1382,13 +1445,20 @@ void COptionsTranslator::Export(AtNode *options)
    if (GetSessionOptions().IsInteractiveRender())
       AiNodeSetBool(options, "enable_dependency_graph", true);
 
-   if (GetSessionMode() != MTOA_SESSION_SWATCH)
+   bool gpuRender = false;
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
+   {
+      MPlug gpuPlug = FindMayaPlug("gpu");
+      if (!gpuPlug.isNull())
+         gpuRender = gpuPlug.asBool();
+   }
+
+
+   if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
       if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
-         MPlug gpuPlug = FindMayaPlug("gpu");
-         bool gpu = gpuPlug.asBool();
-         AiNodeSetStr(options, "render_device", (gpu) ? "GPU" : "CPU");
+         AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
       }
 
 
@@ -1413,6 +1483,8 @@ void COptionsTranslator::Export(AtNode *options)
                }
             }
          }
+
+         //
          if (!devices.empty())
          {
             autoSelect = false;

@@ -1,6 +1,7 @@
 from mtoa.callbacks import *
 import mtoa.aovs as aovs
 import mtoa.utils as utils
+import mtoa.melUtils as melUtils
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.ae.templates as templates
 import mtoa.core as core
@@ -390,7 +391,7 @@ class AOVItem(object):
         driverNode = 'defaultArnoldDriver'
         filterNode = 'defaultArnoldFilter'
         outputAttr = '{}.outputs'.format(self.aov)
-        outputAttr = '{}[{}]'.format(outputAttr, cmds.getAttr(outputAttr, size=True))
+        outputAttr = '{}[{}]'.format(outputAttr, melUtils.getAttrNumElements(*outputAttr.split('.', 1)))
 
         cmds.connectAttr('{}.message'.format(driverNode), '{}.driver'.fornat(outputAttr))
         cmds.connectAttr('{}.message'.format(filterNode), '{}.filter'.fornat(outputAttr))
@@ -948,10 +949,11 @@ def createArnoldAOVTab():
     updateAovShaders()
 
     cmds.setParent('..')
-    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.outputVarianceAOVs', label='Output Variance AOV')
+    noiceFrame = cmds.frameLayout('noiceFrame', label='Arnold Denoiser', width=WIDTH,
+                            collapsable=True, collapse=False)
+    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.outputVarianceAOVs', label='Output Denoising AOVs')
 
     cmds.setParent(parentForm)
-
 
     cmds.scrollLayout('arnoldAOVsScrollLayout', horizontalScrollBarThickness=0)
 

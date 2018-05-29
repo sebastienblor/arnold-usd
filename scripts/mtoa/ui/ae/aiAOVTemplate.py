@@ -227,7 +227,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
         platformName = sys.platform
 
         if not platformName.startswith('darwin'):
-            self.addControl('denoise', label='Denoise')
+            self.addControl('denoise', label='Denoise with Optix')
 
         self.addSeparator()
         self.addControl('camera', label='Camera (Batch only)')

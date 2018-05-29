@@ -23,7 +23,8 @@ public:
    {
       return new CHairTranslator();
    }
-   
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
 private:                         
    AtVector2 GetHairRootUVs(const MVector& lineStart, MFnMesh& mesh, MMatrix shapeTransform);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);

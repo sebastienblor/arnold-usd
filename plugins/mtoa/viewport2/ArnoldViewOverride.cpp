@@ -98,6 +98,9 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
+	if (CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsExportingMotion())
+		return MStatus::kFailure;
+
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
         return MStatus::kFailure;
@@ -125,7 +128,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (mRegionRenderStateMap.find(destination.asChar()) == mRegionRenderStateMap.end())
     {
         state.enabled = false;
-        state.useRegion = true;
+        state.useRegion = false;
         state.initialized = false;
         state.viewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
         mRegionRenderStateMap[destination.asChar()] = state;
@@ -198,6 +201,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         AtNode *camNode = (camTranslator) ? camTranslator->GetArnoldNode() : NULL;
         if (camNode)
         {
+            camTranslator->RequestUpdate(); // ensure the camera is re-exported so that it considers the viewport resolution for FOV
             newCamName =  AiNodeGetName(camNode);
             AiNodeSetPtr(AiUniverseGetOptions(), "camera", camNode);
         }
@@ -248,6 +252,10 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
 				    AiClamp(int((1.f - state.viewRectangle.w ) * height), 0, height - 1), AiClamp(int((1.f - state.viewRectangle.y) * height), 0, height - 1)); // expected order is left, right, bottom, top*/
 
 			}
+            CDagTranslator *camTranslator = CMayaScene::GetArnoldSession()->ExportDagPath(camera, true);
+            if (camTranslator)
+                camTranslator->RequestUpdate(); // camera needs to re-export to take into account resolution50
+            
 
             if (mTexture)
             {
@@ -510,6 +518,9 @@ TextureBlit::~TextureBlit()
 
 const MHWRender::MBlendState* TextureBlit::blendStateOverride()
 {
+    // for now we disable the blending as it's not a good default. We should have an options somewhere for that
+    return NULL;
+
     if (!mBlendState) {
         MHWRender::MBlendStateDesc desc;
 

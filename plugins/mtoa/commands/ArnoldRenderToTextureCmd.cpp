@@ -557,6 +557,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       std::replace( meshNameStr.begin(), meshNameStr.end(), ':', '_'); // replace all ':' to '_'
       std::replace( meshNameStr.begin(), meshNameStr.end(), '/', '_'); // replace all '/' to '_'
+      std::replace( meshNameStr.begin(), meshNameStr.end(), '|', '_'); // replace all '|' to '_'
+      
 
       std::string shaderNameStr;
       if (shader_name)
@@ -564,6 +566,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          shaderNameStr = shader_name;
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), ':', '_'); // replace all ':' to '_'
          std::replace( shaderNameStr.begin(), shaderNameStr.end(), '/', '_'); // replace all '/' to '_'
+         std::replace( shaderNameStr.begin(), shaderNameStr.end(), '|', '_'); // replace all '|'to '_'
       }
       AtByte sidedness = AiNodeGetByte(mesh, "sidedness");
       // remove camera sidedness since we're offsetting towards the normal's direction
@@ -582,10 +585,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          {
             for (size_t j = 0; j < AiArrayGetNumElements(uv_list); ++j)
             {
+               // U coords can't be higher than 9, V coords can be up to 99 (#3453)
                AtVector2 uv = AiArrayGetVec2(uv_list, j);
                if (uv.x>AI_EPSILON && uv.y > AI_EPSILON&&
-                  uv.x < 10 - AI_EPSILON && uv.y < 10 - AI_EPSILON)
-                  udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON)));
+                  uv.x < 10 - AI_EPSILON && uv.y < 100 - AI_EPSILON)
+                  udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON))); 
             }
          }
          for (std::set<std::pair<int, int> >::iterator it = udimsSet.begin(); it != udimsSet.end(); it++)
@@ -617,7 +621,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             AiNodeSetFlt(camera, "offset", (float)normalOffset);
             // need to adjust the near plane to make sure it's not bigger than the offset
-            AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
+            AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
             AiNodeSetPtr(options_node, "camera", camera);
             std::string filename = ss_filename.str();
             AiNodeSetStr(driver, "filename", filename.c_str());
@@ -655,7 +659,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
-         AiNodeSetFlt(camera, "near_plane", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_plane")));
+         AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
 
          AiNodeSetFlt(camera, "u_offset", (float)(-uStart));
          AiNodeSetFlt(camera, "v_offset", (float)(-vStart));

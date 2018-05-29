@@ -88,7 +88,7 @@ class MtoARenderToTexture(object):
 
         winTitle = "Render To Texture"
 
-        self.window = cmds.window(self.window, widthHeight=(460, 170), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 270), title=winTitle)
         self.createUI()
 
 

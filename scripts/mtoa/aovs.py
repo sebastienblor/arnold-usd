@@ -1,4 +1,5 @@
 import mtoa.utils as utils
+import mtoa.melUtils as melUtils
 import mtoa.callbacks as callbacks
 from collections import namedtuple
 from itertools import groupby
@@ -317,7 +318,9 @@ class AOVInterface(object):
         return self._node
 
     def nextAvailableAttr(self):
-        return '{}[{}]'.format(self._aovAttr, cmds.getAttr(self._aovAttr, size=True))
+        nodeAndAttr = self._aovAttr.split('.', 1)
+        numElements = melUtils.getAttrNumElements(*nodeAndAttr)
+        return '{}[{}]'.format(self._aovAttr, numElements)
 
     def getAOVs(self, group=False, sort=True, enabled=None, include=None, exclude=None):
         '''
