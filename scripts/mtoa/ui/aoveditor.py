@@ -955,7 +955,7 @@ def createArnoldAOVTab():
 
     optixDenoiserFrame = cmds.frameLayout('optixDenoiserFrame', label='Optix Denoiser', width=WIDTH,
                             collapsable=True, collapse=False)
-    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.denoiseBeauty', label='Apply on Beauty')
+    cmds.attrControlGrp(attribute='defaultArnoldRenderOptions.denoiseBeauty', label='Denoise Beauty AOV')
 
     cmds.setParent('..')
     
