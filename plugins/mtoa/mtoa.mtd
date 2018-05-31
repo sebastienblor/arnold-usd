@@ -3233,7 +3233,7 @@ desc STRING "Apply a gamma correction to the color."
     [attr highlight_color]
         min             FLOAT   0
         softmax         FLOAT   1
-    [attr rim_light_color]
+    [attr rim_light_width]
         min             FLOAT   0
         softmax         FLOAT   1
     [attr highlight_size]
