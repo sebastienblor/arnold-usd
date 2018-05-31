@@ -5,6 +5,7 @@ import glob
 import re
 import sys, os
 import platform
+import time
 import subprocess
 import threading
 import mtoa.callbacks as callbacks
@@ -53,19 +54,22 @@ def getDiagnosticsResult():
 
     global _waitingForDiagnosticsStatus
     _waitingForDiagnosticsStatus = True
+    nlmserver = os.environ.get("ADSKFLEX_LICENSE_FILE", "")
+    if nlmserver:
+        nlmserver = "-c {}".format(nlmserver)
     cmds.arnoldLicense(runServerStatus=True)
-    diagnosticsCmds = ["kick -licensecheck", "lmutil lmstat -S adskflex -i", "rlmutil rlmhostid -q ether"]
+    diagnosticsCmds = ["kick -licensecheck",
+                       "lmutil lmstat -S adskflex -a {}".format(nlmserver),
+                       "rlmutil rlmhostid -q ether"]
     i = 0
     for diagnosticCmd in diagnosticsCmds:
 
         diagnosticResults += "-------------------------------------------------\n"
 
-        if i == 0:
-            mtoa.utils.setEnvironmentVariable(u'RLM_DEBUG', u'arnold')
 
         cmdBinary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', diagnosticCmd)
         timerStart = time.clock()
-        cmdRes = subprocess.Popen(cmdBinary.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
+        cmdRes = subprocess.Popen(cmdBinary.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window, env=ps_env).communicate()[0]
         
         timerLength = time.clock() - timerStart
 
@@ -73,13 +77,6 @@ def getDiagnosticsResult():
         diagnosticResults += "%s (%d sec) \n" % (diagnosticCmd, timerLength)
         diagnosticResults += "==============================\n"
         diagnosticResults += cmdRes
-
-
-        if i == 0:
-            if sys.platform == 'win32':    
-                mtoa.utils.setEnvironmentVariable(u'RLM_DEBUG', u'')
-            else:
-                del os.environ['RLM_DEBUG']
 
         i = i +1
 
@@ -249,7 +246,11 @@ def nlmStatus():
         _no_window = None
 
     lmutil_binary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'lmutil')
-    cmd = lmutil_binary + ' lmstat -S adskflex -a'
+
+    nlmserver = os.environ.get("ADSKFLEX_LICENSE_FILE", "")
+    if nlmserver:
+        nlmserver = "-c {}".format(nlmserver)
+    cmd = lmutil_binary + ' lmstat -S adskflex -a {}'.format(nlmserver)
     res = subprocess.Popen(cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
     return res
 
@@ -260,7 +261,6 @@ def getStatusMessage(licenseType, status, licenseCount, licenseInUse):
 
     if status == arnold.AI_LIC_SUCCESS or status == arnold.AI_LIC_ERROR_NOTAVAILABLE:
         statusMsg = "Found %d %s license%s (%d in use)" % (licenseCount, licenseType, "s" if licenseCount > 1 else "", licenseInUse)
-        
     elif status == arnold.AI_LIC_ERROR_CANTCONNECT:
         statusMsg = "Cannot connect to the %s license server" % licenseType
     elif status == arnold.AI_LIC_ERROR_INIT:
@@ -300,7 +300,7 @@ class GetDiagnostics(object):
 
         winTitle = "Get Diagnostics"
 
-        self.window = cmds.window(self.window, sizeable=False, widthHeight=(540, 600), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(540, 600), title=winTitle)
         self.createUI()
 
         cmds.setParent(menu=True)
@@ -315,6 +315,8 @@ class GetDiagnostics(object):
             cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
         except :
             pass
+
+        self.updateUI()
 
     global _defaultDiagnosticsFolder
     _defaultDiagnosticsFolder = ''
@@ -338,27 +340,54 @@ class GetDiagnostics(object):
 
 
     def createUI(self):
-        cmds.scrollLayout(childResizable=True)
-        cmds.columnLayout()
+        self.mainLayout = cmds.formLayout()
 
+        # cmds.columnLayout(adj=True)
+
+        self.statusLayout = cmds.columnLayout()
         self.rlmStatus = cmds.text(align="left", label="RLM Status")
-        self.nlmStatus = cmds.text(align="left", label="RLM Status")
-
-        self.diagnosticsEdit = cmds.scrollField(width=520, height=500)
-        
-        cmds.separator()
-        cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,80),(2,10),(3,80),(4,260),(5,80)] )
-        cmds.button( align="left", label='Copy', command=lambda *args: self.copyDiagnosticsToClipboard())
-        cmds.text(label="")
-        cmds.button( align="left", label='Save to File', command=lambda *args: self.saveDiagnosticsToFile())
-        cmds.text(label="")
-        cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + self.window + '\", window=True)'))
+        self.nlmStatus = cmds.text(align="left", label="NLM Status")
         cmds.setParent( '..' )
-    
+
+        self.diagnosticsEdit = cmds.scrollField(text="Please wait ..")
+
+        cpyBtn = cmds.button( align="left", label='Copy', command=lambda *args: self.copyDiagnosticsToClipboard())
+        savBtn = cmds.button( align="left", label='Save to File', command=lambda *args: self.saveDiagnosticsToFile())
+        clsBtn = cmds.button(align="right", label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + self.window + '\", window=True)'))
+
+        # attach form elements
+
+        cmds.formLayout(self.mainLayout, edit=True,
+            attachForm=[
+                (self.statusLayout, 'top', 5),
+                (self.statusLayout, 'left', 5),
+                (self.statusLayout, 'right', 5),
+                (self.diagnosticsEdit, 'left', 5),
+                (self.diagnosticsEdit, 'right', 5),
+                (cpyBtn, 'left', 5),
+                (clsBtn, 'right', 5),
+                (cpyBtn, 'bottom', 5),
+                (savBtn, 'bottom', 5),
+                (clsBtn, 'bottom', 5),],
+            attachControl=[
+                (savBtn, 'left', 5, cpyBtn),
+                (savBtn, 'right', 5, clsBtn),
+                (self.diagnosticsEdit, 'top', 5, self.statusLayout),
+                (self.diagnosticsEdit, 'bottom', 5, cpyBtn)],
+            attachPosition=[
+                (cpyBtn, 'right', 5, 33),
+                (clsBtn, 'left', 5, 66)],
+            attachNone=[
+                (cpyBtn, 'top'),
+                (savBtn, 'top'),
+                (clsBtn, 'top')]
+            )
+
+    def updateUI(self):
         cmds.waitCursor(state=True)
-        
-        cmds.scrollField(self.diagnosticsEdit, edit=True, text=getDiagnosticsResult())
+        diagnostics = getDiagnosticsResult()
         cmds.waitCursor(state=False)
+        cmds.scrollField(self.diagnosticsEdit, edit=True, text=diagnostics)
 
 
 def returnServerStatus(rlmStatus, rlmLicensesCount, rlmLicensesInUse, nlmStatus, nlmLicensesCount, nlmLicensesInUse):
