@@ -185,7 +185,7 @@ float CStandardCameraTranslator::ExportFilmbackPersp(AtNode* camera)
    float fov = 1.0f;
    double cameraAspect = m_fnCamera.aspectRatio();
    double lensSqueeze = m_fnCamera.lensSqueezeRatio();
-   double focalLength = m_fnCamera.focalLength();
+   double focalLength = m_fnCamera.focalLength() * GetFocalFactor();
    double cameraScale = m_fnCamera.cameraScale();
    
    double apertureX = m_fnCamera.horizontalFilmAperture();

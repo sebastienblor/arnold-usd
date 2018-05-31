@@ -443,7 +443,8 @@ void CCameraTranslator::RequestUpdate()
 void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    MString plugName = plug.partialName(false, false, false, false, false, true);
-   if (plugName == "overscan") return;
+   if (plugName == "overscan" && !((GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering()))) return; // don't skip this in viewport rendering
+
    if (plugName.length() >= 7 && plugName.substringW(0, 6) == "display") return;
 
    if (plugName == "panZoomEnabled" || plugName == "horizontalPan" || plugName == "verticalPan" || plugName == "zoom")
@@ -453,4 +454,16 @@ void CCameraTranslator::NodeChanged(MObject& node, MPlug& plug)
    }
 
    CDagTranslator::NodeChanged(node, plug);
+}
+
+float CCameraTranslator::GetFocalFactor() const
+{
+   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW && CRenderSession::IsViewportRendering())
+   {
+      MPlug overscanPlug = FindMayaPlug("overscan");
+      if (!overscanPlug.isNull())
+         return 1.f / AiMax(overscanPlug.asFloat(), AI_EPSILON);
+
+   }
+   return 1.f;
 }

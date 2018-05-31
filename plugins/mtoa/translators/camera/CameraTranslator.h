@@ -46,5 +46,6 @@ protected:
    static void MakeDOFAttributes(CExtensionAttrHelper &helper);
 
 protected:
+   float GetFocalFactor() const;
    MFnCamera m_fnCamera;
 };
