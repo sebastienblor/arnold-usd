@@ -9,3 +9,4 @@ arnoldRenderToTexture -f "." -r 160 -aud 1  testrenderTorus2;
 arnoldRenderToTexture -f "." -r 160 -ud "0:0,1:1"  testrenderTorus3;
 arnoldRenderToTexture -f "." -r 160 -uvs "toto"  testrenderSphere3; // test uv set
 arnoldRenderToTexture -f "." -r 160 aiStandIn; // test standins
+arnoldRenderToTexture -f "." -r 160 testrenderSphere5; // test '|' character in maya instances
