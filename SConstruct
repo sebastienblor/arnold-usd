@@ -1416,6 +1416,9 @@ def create_installer(target, source, env):
                          'MtoA for Linux Installer', './unix_installer.sh'])
         subprocess.call(['chmod', '+x', installerPath])
 
+    print "Clearing temporary folder %s" % tempdir
+    shutil.rmtree(tempdir)
+
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 
 if system.os() == 'linux':
