@@ -436,10 +436,11 @@ void COptionsTranslator::ExportAOVs()
       }
    }
    static AtString driver_exr_str("driver_exr");
-   if (beautyDriver && !AiNodeIs(beautyDriver, driver_exr_str))
+   bool outputVariance = FindMayaPlug("outputVarianceAOVs").asBool();
+   if (outputVariance && beautyDriver && !AiNodeIs(beautyDriver, driver_exr_str))
    {
       AiMsgError("[mtoa] Denoising AOVs can only be rendered in EXR");
-   } else if (FindMayaPlug("outputVarianceAOVs").asBool() && beautyFilter && !GetSessionOptions().IsInteractiveRender()) // don't dump the denoising AOVs in interactive renders
+   } else if (outputVariance && beautyFilter && !GetSessionOptions().IsInteractiveRender()) // don't dump the denoising AOVs in interactive renders
    {
       //== We need to dump the necessary outputs for noice.
       //== First, let's find the "beauty" AOV. Let's also check if the N, Z, diffuse_albedo are already present in the list of AOVs.
