@@ -265,7 +265,7 @@ class MtoANoice(object):
         global inputFile
         if inputFile == "":
             inputFile = cmds.workspace(q=True,rd=True, fn=True) # FIXME : get render image
-        ret = cmds.fileDialog2(cap='Select Input File',okc='Select',fm=1,dir=inputFile)
+        ret = cmds.fileDialog2(cap='Select Input File',okc='Select',ff="*.exr",fm=1,dir=inputFile)
         if ret is not None and len(ret):
             inputFile = ret[0]
             if len(inputFile) == 0:
@@ -299,7 +299,7 @@ class MtoANoice(object):
             cmds.textFieldButtonGrp('noice_output', e=True, text=outputFile)
             
     def browseOutputFilename(self):
-        ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=1)
+        ret = cmds.fileDialog2(cap='Select Folder',okc='Select',ff="*.exr",fm=1)
         if ret is not None and len(ret):
             cmds.textFieldButtonGrp('noice_output', e=True, text=ret[0])
         return True
