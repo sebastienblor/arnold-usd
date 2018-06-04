@@ -210,7 +210,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
 
     if os.path.exists(post_script):
         print 'Executing post-script'
-        import sys; sys.argv = ['post_script.py', test_dir, oiiotool_path]
+        import sys; sys.argv = ['post_script.py', test_dir, oiiotool_path, os.environ.get('MAYA_MODULE_PATH')]
         execfile(post_script)
 
 
