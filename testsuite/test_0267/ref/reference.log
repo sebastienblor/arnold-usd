@@ -23,11 +23,11 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-File read in  0.066 seconds.
-File read in  0.066 seconds.
+File read in  0.065 seconds.
+File read in  0.065 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0267/test.ma
 00:00:00   521MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 00:00:00   521MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   523MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   524MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
 00:00:00   526MB WARNING | rendering with watermarks because of failed authorization:
 Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0267\test.ma completed.
