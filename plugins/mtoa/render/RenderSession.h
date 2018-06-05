@@ -188,7 +188,7 @@ public:
    static void CloseRenderViewWithSession(bool b);
    static bool IsViewportRendering();
       
-   const AtRGBA *GetDisplayedBuffer();
+   const AtRGBA *GetDisplayedBuffer(unsigned int *w = NULL, unsigned int *h = NULL);
    static void PostDisplay();
 
 private:

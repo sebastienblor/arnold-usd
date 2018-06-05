@@ -864,11 +864,11 @@ bool CRenderSession::IsViewportRendering()
    return s_renderView && s_renderView->IsViewportRendering();
 
 }
-const AtRGBA *CRenderSession::GetDisplayedBuffer()
+const AtRGBA *CRenderSession::GetDisplayedBuffer(unsigned int *w, unsigned int *h)
 {
 #ifndef MTOA_DISABLE_RV
    if(s_renderView)
-      return s_renderView->GetDisplayedBuffer();
+      return s_renderView->GetDisplayedBuffer(w, h);
 #endif
    return NULL;
 
