@@ -1136,7 +1136,11 @@ void CArnoldSession::DoHiddenCallback(void* clientData)
    if (session)
    {
       for (unsigned int i = 0; i< s_hiddenNodesArray.length(); i++)
-         session->SetDagVisible(s_hiddenNodesArray[i]);
+      {
+         DagFiltered filtered = session->FilteredStatus(s_hiddenNodesArray[i]);
+         if (filtered == MTOA_EXPORT_ACCEPTED)
+            session->SetDagVisible(s_hiddenNodesArray[i]);
+      }
    }
    s_hiddenNodesArray.clear();
 }
@@ -1154,9 +1158,9 @@ void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* client
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
    CArnoldSession *session = (CArnoldSession*)clientData;
-   DagFiltered filtered = session->FilteredStatus(path);
-   if (filtered != MTOA_EXPORT_ACCEPTED && plugName != "visibility")
-    return; // this object is still hidden
+   //DagFiltered filtered = session->FilteredStatus(path); // We shouldn't invoke this here otherwise we're messing with Maya's DAG 
+   if (/*filtered != MTOA_EXPORT_ACCEPTED && */ plugName != "visibility")
+    return; 
 
    // We need to go through an "idle" callback, otherwise Maya won't have time to process the 
    // visibility status of this node 
