@@ -1,0 +1,198 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0269\test_0269.log', using stdout instead
+
+Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+Initialized VP2.0 renderer {
+  Version : 2016.11.40.12. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:23.21.13.9103.
+  API : OpenGL V.4.6.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+  MultiDraw consolidation: enabled
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+00:00:00   457MB         | log started Tue Jun  5 09:41:13 2018
+00:00:00   457MB         | Arnold 5.1.1.0 [e338d869] windows icc-17.0.2 oiio-1.7.17 osl-1.9.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.2.2 2018/05/23 00:19:24
+00:00:00   457MB         | running on REM8WCK8D2, pid=11868
+00:00:00   457MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   457MB         |  Nvidia driver version 391.03
+00:00:00   457MB         |  GPU 0: Quadro K620 @ 1124MHz (compute 5.0) with 2048MB (1692MB available)
+00:00:00   457MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   457MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   457MB         |  
+00:00:00   457MB         | loading plugins from C:/solidangle/mtoadeploy/2018/shaders ...
+00:00:00   457MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.1.1.0
+00:00:00   457MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.1.1.0
+00:00:00   457MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.1.1.0
+00:00:00   457MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.1.1.0
+00:00:00   457MB         |  hairPhysicalShader_shaders.dll: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatConstant uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatComposite uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatCondition uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatCorrect uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatLogic uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatMask uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkFloatMath uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorComposite uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorCondition uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorConstant uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorCorrect uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorLogic uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorMask uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkColorMath uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkChannels uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkPremultiply uses Arnold 5.1.1.0
+00:00:00   457MB         |  lookdevkit_shaders.dll: ldkSimplexNoise uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaClamp uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaCondition uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaReverse uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSamplerInfo1D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSamplerInfo2D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaFile uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRamp uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaProjection uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaChecker uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaBulge uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaCloth uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaGrid uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaFractal uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaNoise uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaLuminance uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaCloud uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSnow uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaContrast uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaBrownian uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaStucco uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSetRange uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaColorToFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaVectorToFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaPointToFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaPoint2ToFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaWriteColor uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAovWriteColor uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaWriteFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAovWriteFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAnimFloat uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAnimPoint uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAnimVector uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAnimColor uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAnimMatrix uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaUserDataVector uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaUserDataColor uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaShadingEngine uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSamplerInfo3D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAovWriteVector uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaAovWriteVector2 uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaNormalDisplacement uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaVectorDisplacement uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaUserDataBool uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaHair uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaMeshLightMaterial uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaUserDataVec2 uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaBump2D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaFluid uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaMarble uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaMountain uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaWater uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaCrater uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaLeather uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaGranite uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaRock uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSingleShadingSwitch uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaDoubleShadingSwitch uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaTripleShadingSwitch uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaQuadShadingSwitch uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaFluidData uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaFluidTexture2D uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaSurfaceLuminance uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MtoaCameraUvMapper uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_shaders.dll: MayaFlatClosure uses Arnold 5.1.1.0
+00:00:00   457MB         |  [metadata] loading metadata file: C:/solidangle/mtoadeploy/2018/shaders\mtoa_shaders.mtd
+00:00:00   457MB         |  renderSetup_shaders.dll: applyAbsFloatOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyAbs2FloatsOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyAbs3FloatsOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyAbsIntOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyRelFloatOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyRel2FloatsOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyRel3FloatsOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  renderSetup_shaders.dll: applyRelIntOverride uses Arnold 5.1.1.0
+00:00:00   457MB         |  synColor_shaders.dll: color_manager_syncolor uses Arnold 5.1.1.0
+00:00:00   457MB         |  xgenSpline_shaders.dll: XGenHairMapping uses Arnold 5.1.1.0
+00:00:00   457MB         | loading plugins from C:/solidangle/mtoadeploy/2018/procedurals ...
+00:00:00   457MB         |  mtoa_ParticleInstancer_proc.dll: particleInstancer uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_ParticleVolume_proc.dll: volume_particle uses Arnold 5.1.1.0
+00:00:00   457MB         |  mtoa_ParticleVolume_proc.dll: implicit_particle uses Arnold 5.1.1.0
+00:00:00   457MB         |  xgenSpline_procedural.dll: xgenProcedural uses Arnold 5.1.1.0
+00:00:00   457MB         |  xgen_procedural.dll: xgen_procedural uses Arnold 5.1.1.0
+00:00:00   457MB         | loaded 123 plugins from 10 lib(s) in 0:00.01
+00:00:00   457MB         | loading plugins from C:\solidangle\mtoadeploy\2018\bin\..\plugins ...
+00:00:00   457MB         |  alembic_proc.dll: alembic uses Arnold 5.1.1.0
+00:00:00   457MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   457MB         | loading plugin: C:/Program Files/Autodesk/bifrost/1.5.0/Arnold-5.0.0.0/bin/bifrost_procedural_0_1.dll ...
+00:00:00   457MB         |  bifrost_procedural_0_1.dll: bifrost_polymesh uses Arnold 5.0.0.0
+00:00:00   457MB         |  bifrost_procedural_0_1.dll: bifrost_points uses Arnold 5.0.0.0
+00:00:00   457MB         |  bifrost_procedural_0_1.dll: bifrost_volume uses Arnold 5.0.0.0
+00:00:00   457MB         |  bifrost_procedural_0_1.dll: bifrost_implicit uses Arnold 5.0.0.0
+00:00:00   457MB         |  bifrost_procedural_0_1.dll: bifrost_blocks uses Arnold 5.0.0.0
+00:00:00   457MB         | loaded 5 plugins from 1 lib(s) in 0:00.02
+00:00:00   457MB         | [metadata] loading metadata file: C:/solidangle/mtoadeploy/2018/plug-ins/mtoa.mtd
+00:00:00   475MB         |  
+00:00:00   475MB         | releasing resources
+00:00:00   474MB         |  unloading 12 plugins
+00:00:00   474MB         |   closing hairPhysicalShader_shaders.dll ...
+00:00:00   474MB         |   closing lookdevkit_shaders.dll ...
+00:00:00   474MB         |   closing mtoa_shaders.dll ...
+00:00:00   474MB         |   closing renderSetup_shaders.dll ...
+00:00:00   474MB         |   closing synColor_shaders.dll ...
+00:00:00   473MB         |   closing xgenSpline_shaders.dll ...
+00:00:00   473MB         |   closing mtoa_ParticleInstancer_proc.dll ...
+00:00:00   473MB         |   closing mtoa_ParticleVolume_proc.dll ...
+00:00:00   473MB         |   closing xgenSpline_procedural.dll ...
+00:00:00   473MB         |   closing xgen_procedural.dll ...
+00:00:00   473MB         |   closing alembic_proc.dll ...
+00:00:00   473MB         |   closing bifrost_procedural_0_1.dll ...
+00:00:00   473MB         |  unloading plugins done
+00:00:00   473MB         | Arnold shutdown
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.35 seconds.
+File read in  0.35 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0269/test.ma
+00:00:00   527MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   527MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   528MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   531MB WARNING | rendering with watermarks because of failed authorization:
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0269\test.ma completed.
