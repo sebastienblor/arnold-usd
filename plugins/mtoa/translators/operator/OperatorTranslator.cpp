@@ -68,8 +68,58 @@ void COperatorTranslator::Export(AtNode *shader)
 
    if (needUpdate) // only set the parameter if inputs have actually changed
       AiNodeSetArray(shader, "inputs", array);
-}
 
+   static AtString set_parameter_str("set_parameter");
+   if (AiNodeIs(shader, set_parameter_str ))
+      ExportAssignedShaders(shader);      
+   
+}
 void COperatorTranslator::NodeInitializer(CAbTranslator context)
 {   
+}
+
+
+// special case for set_parameter operators, we want to export the nodes which are eventually referenced.
+// We could derive operator translator classes to handle this, but for now it's still quite simple
+void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
+{
+   AtArray *assignments = AiNodeGetArray(shader, "assignment");
+   if (assignments == NULL)
+      return;
+   unsigned int numAssignments = AiArrayGetNumElements(assignments);
+   for (unsigned int i = 0; i < numAssignments; ++i)
+   {
+      
+      MString assignment = AiArrayGetStr(assignments, i);
+      MStringArray assignmentSplit;
+      assignment.split('=', assignmentSplit);
+      if (assignmentSplit.length() <= 1)
+         return;
+
+      MString attrName = assignmentSplit[0].substringW(0, 5);
+      if (attrName != MString("shader"))
+         return; // here we only care about shader assignments
+
+      std::string attrValue = assignmentSplit[1].asChar(); // this is meant to be the name of the arnold shader
+      while (attrValue.length() > 0 && (attrValue[0] == ' ' || attrValue[0] == '\'' || attrValue[0] == '"'))
+         attrValue.erase(attrValue.begin());
+
+      while (attrValue.length() > 0 && (attrValue.back() == ' ' || attrValue.back() == '\'' || attrValue.back() == '"'))
+         attrValue.pop_back();
+
+      MSelectionList sel;
+      sel.add(MString(attrValue.c_str()));
+      if (sel.length() == 0)
+         return; // the referenced shader wasn't found in the maya scene
+      
+      MObject shaderNode;
+      sel.getDependNode(0,shaderNode);
+      if (shaderNode.isNull())
+         return;
+      MPlug dummyPlug = MFnDependencyNode(shaderNode).findPlug("message");
+      if (dummyPlug.isNull())
+         return;
+      
+      ExportConnectedNode(dummyPlug); // do export the shader
+   }
 }
