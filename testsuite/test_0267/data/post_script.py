@@ -9,7 +9,7 @@ print cmd
 try:
 	os.system(cmd)
 except RuntimeError, err:
-    print err
+	print err
 
 cmd = ('%s %s -ch "R,G,B,A" -o %s') % (oiiotool_path, os.path.join(test_root_path, "denoised.exr"), os.path.join(test_root_path, "testrender.tif"))
 os.system(cmd)
