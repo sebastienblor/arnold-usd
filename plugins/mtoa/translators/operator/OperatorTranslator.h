@@ -12,8 +12,12 @@ public:
    {
       return new COperatorTranslator();
    }
+
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    void Export(AtNode* atNode);
 
+  protected:
+  	void ExportAssignedShaders(AtNode *shader);
+   
 };
