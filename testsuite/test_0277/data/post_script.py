@@ -9,7 +9,6 @@ import shutil
 os.environ['PATH']= '{}:{}'.format(os.environ['PATH'], os.path.join(mtoa_path, 'bin'))
 sys.path.append(os.path.join(mtoa_path, 'scripts'))
 
-print sys.path
 from arnold import *
 
 AiBegin(AI_SESSION_INTERACTIVE)
@@ -28,6 +27,7 @@ if success:
 else:
 	shutil.copy('fail.tif', 'testrender.tif')
 
+AiEnd()
 
 
 
