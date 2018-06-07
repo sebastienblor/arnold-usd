@@ -89,8 +89,8 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
    unsigned int numAssignments = AiArrayGetNumElements(assignments);
    for (unsigned int i = 0; i < numAssignments; ++i)
    {
-      
-      MString assignment = AiArrayGetStr(assignments, i);
+      AtString assignmentStr = AiArrayGetStr(assignments, i);
+      MString assignment(assignmentStr.c_str());
       MStringArray assignmentSplit;
       assignment.split('=', assignmentSplit);
       if (assignmentSplit.length() <= 1)
