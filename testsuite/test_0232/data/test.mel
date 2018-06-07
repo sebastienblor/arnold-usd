@@ -1,6 +1,6 @@
 print "Running Render to Texture";
 arnoldRenderToTexture -f "." -r 160 -as 5 -af "box" -afw 1 -nof 0.01 testrenderSphere; // test different filters
-arnoldRenderToTexture -f "." -r 160 -as 1 -af "gaussian" -afw 10  testrenderSphere1; // test different filters
+arnoldRenderToTexture -f "." -r 160 -as 1 -af "gaussian" -afw 3  testrenderSphere1; // test different filters
 arnoldRenderToTexture -f "." -r 160 -nof 10 testrenderTorus; // test high normal offset to get artifacts
 arnoldRenderToTexture -f "." -r 160 -s "aiUtility3"  testrenderSphere2; // test shader override
 arnoldRenderToTexture -f "." -r 160 -aov 1  testrenderAov; // test AOVs

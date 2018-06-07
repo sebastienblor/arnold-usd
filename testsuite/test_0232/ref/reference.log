@@ -1,163 +1,173 @@
-sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
-Initialized VP2.0 renderer {
-  Version : 2016.3.78.11. Feature Level 5.
-  Adapter : Quadro K620/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 5051
-  Driver : nvoglv64.dll:23.21.13.9103.
-  API : OpenGL V.4.6.
-  Max texture size : 16384 * 16384.
-  Max tex coords : 32
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-  Shader compiler profile : (Best card profile)
-  Active stereo support available : 0
-  GPU Memory Limit : 2048 MB.
-  CPU Memory Limit: 62185.1 MB.
-}
-OpenCL evaluator is attempting to initialize OpenCL.
-Detected 1 OpenCL Platforms: 
- 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+Initialized VP2.0 renderer {
+  Version : 2016.11.40.12. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:23.21.13.9103.
+  API : OpenGL V.4.6.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+  MultiDraw consolidation: enabled
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
  Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
-OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
-OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
-Error: file: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0232/test.ma line 5: Unknown Maya file version: 2018ff08.
-Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  0.25 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/201760/msvc_opt/testsuite/test_0232/test.ma
-Running Render to Texture00:00:00   629MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   629MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   629MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   629MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   629MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   630MB WARNING | defaultArnoldFilter@cameraMapperFilter: could not set FLOAT parameter "width"
-00:00:01   645MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   645MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   645MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   645MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderSphereShape
-00:00:01   654MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendered to ./testrenderSphereShape.exr
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   659MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   659MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   660MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   660MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderSphere1Shape
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+File read in  0.078 seconds.
+File read in  0.078 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0232/test.ma
+Running Render to Texture00:00:00   520MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   520MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   520MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   520MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   520MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   521MB WARNING | defaultArnoldFilter@cameraMapperFilter: could not set FLOAT parameter "width"
+00:00:00   522MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   534MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   534MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   534MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   534MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderSphereShape
+00:00:00   535MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendered to ./testrenderSphereShape.exr
+00:00:00   535MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   535MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   535MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   535MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   535MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   535MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderSphere1Shape
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./testrenderSphere1Shape.exr
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   653MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   659MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   659MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   659MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   660MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderTorusShape
-00:00:01   662MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   537MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   537MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   537MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   537MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   537MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   538MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   540MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   540MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   540MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   540MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderTorusShape
+00:00:00   540MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./testrenderTorusShape.exr
-00:00:00   656MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   656MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   656MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   656MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   656MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderSphere2Shape
-00:00:01   664MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendered to ./testrenderSphere2Shape.exr
-00:00:00   657MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   657MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   657MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   657MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   657MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   662MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   662MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   662MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   662MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderAovShape
-00:00:01   665MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderSphere2Shape
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendered to ./testrenderSphere2Shape.exr
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   541MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   541MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   541MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   541MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderAovShape
+00:00:00   541MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./testrenderAovShape.exr
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderTorus1Shape
-00:00:01   665MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendered to ./testrenderTorus1Shape.exr
-00:00:00   658MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   658MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   658MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   658MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   658MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   661MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderTorus2Shape
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   539MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderTorus1Shape
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendered to ./testrenderTorus1Shape.exr
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderTorus2Shape
 [mtoa] Render to Texture : UDIM 0:0 Rendered to ./aiStandardSurface1_testrenderTorus2Shape_1001.exr
-00:00:01   665MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendered to ./aiStandardSurface1_testrenderTorus2Shape_1001.exr
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderTorus3Shape
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendered to ./aiStandardSurface1_testrenderTorus2Shape_1001.exr
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderTorus3Shape
 [mtoa] Render to Texture : UDIM 0:0 Rendered to ./aiStandardSurface1_testrenderTorus3Shape_1001.exr
-00:00:01   666MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./aiStandardSurface1_testrenderTorus3Shape_1001.exr
 [mtoa] Render to Texture : UDIM 1:1 Rendered to ./aiStandardSurface1_testrenderTorus3Shape_1012.exr
 [mtoa] Render to Texture : Rendered to ./aiStandardSurface1_testrenderTorus3Shape_1012.exr
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   661MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderSphere3Shape
-00:00:01   666MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderSphere3Shape
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./testrenderSphere3Shape.exr
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   660MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh /obj/geo1:polygons
-00:00:01   666MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   540MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh /obj/geo1:polygons
+00:00:00   542MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./_obj_geo1_polygons.exr
-00:00:00   659MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   659MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   659MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   659MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   659MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-00:00:01   663MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
-[mtoa] Render to Texture : Rendering polymesh testrenderSphere5|testrenderSphere4Shape
-00:00:01   666MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   541MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
+[mtoa] Render to Texture : Rendering polymesh testrenderSphere5|testrenderSphere4Shape
+00:00:00   543MB WARNING |   [aov] AOV motionvector was already registered with a different type (VECTOR2 instead of RGB)
 [mtoa] Render to Texture : Rendered to ./testrenderSphere5_testrenderSphere4Shape.exr
