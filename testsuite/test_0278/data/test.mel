@@ -1,0 +1,4 @@
+loadPlugin("mtoa");
+file -f -options "v=0;"  -ignoreVersion  -typ "mayaAscii" -o "scene.ma";
+arnoldExportAss -f "../test.ass" -mask 4351;
+
