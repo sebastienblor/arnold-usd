@@ -104,8 +104,8 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
       while (attrValue.length() > 0 && (attrValue[0] == ' ' || attrValue[0] == '\'' || attrValue[0] == '"'))
          attrValue.erase(attrValue.begin());
 
-      while (attrValue.length() > 0 && (attrValue.back() == ' ' || attrValue.back() == '\'' || attrValue.back() == '"'))
-         attrValue.pop_back();
+      while (attrValue.length() > 0 && (attrValue[attrValue.length() - 1] == ' ' || attrValue[attrValue.length() - 1] == '\'' || attrValue[attrValue.length() - 1] == '"'))
+         attrValue.erase(attrValue.end() -1);
 
       MSelectionList sel;
       sel.add(MString(attrValue.c_str()));
