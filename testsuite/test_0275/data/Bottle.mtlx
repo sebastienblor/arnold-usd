@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<materialx version="1.35">
+  <nodedef name="standard_surface" type="standard_surface" node="standard_surface">
+    <input name="base" type="float" />
+    <input name="base_color" type="color3" />
+    <input name="specular" type="float" />
+    <input name="specular_color" type="color3" />
+    <input name="diffuse_roughness" type="float" />
+    <input name="specular_roughness" type="float" />
+    <input name="transmission" type="float" />
+    <input name="opacity" type="color3" />
+  </nodedef>
+  <material name="bottle_material">
+    <shaderref name="srf_shader_bottle" node="standard_surface">
+      <bindinput name="base" type="float" value="0.0" />
+      <bindinput name="specular" type="float" value="1.0" />
+      <bindinput name="transmission" type="float" value="1.0" />
+      <bindinput name="opacity" type="color3" value="0.0 0.0 0.0" />
+    </shaderref>
+  </material>
+  <material name="cap1_material">
+    <shaderref name="srf_shader_cap1" node="standard_surface">
+      <bindinput name="base" type="float" value="0.7" />
+      <bindinput name="specular" type="float" value="0.5" />
+      <bindinput name="base_color" type="color3" value="0.3, 0.5, 1.0" />
+      <bindinput name="specular_color" type="color3" value="0.6, 0.0, 0.9" />
+      <bindinput name="diffuse_roughness" type="float" value="0.0" />
+      <bindinput name="specular_roughness" type="float" value="0.5" />
+    </shaderref>
+  </material>
+  <material name="cap2_material">
+    <shaderref name="srf_shader_cap2" node="standard_surface">
+      <bindinput name="base" type="float" value="0.7" />
+      <bindinput name="specular" type="float" value="0.5" />
+      <bindinput name="base_color" type="color3" value="0.5, 0.1, 0.9" />
+      <bindinput name="specular_color" type="color3" value="0.6, 0.0, 0.9" />
+      <bindinput name="diffuse_roughness" type="float" value="0.0" />
+      <bindinput name="specular_roughness" type="float" value="0.1" />
+    </shaderref>
+  </material>
+  <material name="red_material">
+    <shaderref name="srf_shader_red" node="standard_surface">
+      <bindinput name="base_color" type="color3" value="1.0, 0.0, 0.0" />
+    </shaderref>
+  </material>
+  <material name="green_material">
+    <shaderref name="srf_shader_green" node="standard_surface">
+      <bindinput name="base_color" type="color3" value="0.0, 1.0, 0.0" />
+    </shaderref>
+  </material>
+  <material name="blue_material">
+    <shaderref name="srf_shader_blue" node="standard_surface">
+      <bindinput name="base_color" type="color3" value="0.0, 0.0, 1.0" />
+    </shaderref>
+  </material>
+  <look name="look1">
+    <materialassign name="assign_bottle" material="bottle_material" geom="/Bottle/Bottle_Shape" />
+    <materialassign name="assign_cap1" material="cap1_material" geom="/Cap/Cap_Shape_Face" />
+    <materialassign name="assign_cap2" material="cap2_material" geom="/Cap/Cap_Shape_SubD" />
+  </look>
+  <look name="look2">
+    <materialassign name="assign_bottle" material="red_material" geom="/Bottle/Bottle_Shape" />
+    <materialassign name="assign_cap1" material="blue_material" geom="/Cap/Cap_Shape_Face" />
+    <materialassign name="assign_cap2" material="green_material" geom="/Cap/Cap_Shape_SubD" />
+  </look>
+</materialx>

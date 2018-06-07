@@ -80,7 +80,8 @@ public:
    void PostDisplay();
    
    // Get the buffer currently being displayed
-   AtRGBA *GetDisplayedBuffer();
+   AtRGBA *GetDisplayedBuffer(unsigned int *w = NULL, unsigned int *h = NULL);
+
    // Return the renderer's buffer, eventually for a specific AOV
    AtRGBA *GetBuffer(int aovIndex = -1);
 

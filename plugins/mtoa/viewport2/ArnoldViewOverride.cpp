@@ -24,6 +24,9 @@
 static MFloatPoint s_ViewRectangle = MFloatPoint(0.33f, 0.33f, 0.66f, 0.66f);
 static MString s_activeViewport(""); // store the name of the last active viewport
 
+static unsigned int s_width = 0;
+static unsigned int s_height = 0;
+
 // For override creation we return a UI name so that it shows up in as a
 // renderer in the 3d viewport menus.
 // 
@@ -355,7 +358,9 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
         //renderSession->CloseRenderViewWithSession(false);
         //CMayaScene::End();
         renderSession->InterruptRender(true); // we shouldn't need this based on the condition above
-        AiEnd();
+        if (AiUniverseIsActive())
+            AiEnd();
+
         //renderSession->CloseRenderViewWithSession(true);
         needsRefresh = true;
     }
@@ -389,22 +394,30 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     if (!state.enabled)
         return MS::kSuccess;
 
-    const AtRGBA *buffer = renderSession->GetDisplayedBuffer();
+    unsigned int buffer_width = 0, buffer_height = 0;
+    const AtRGBA *buffer = renderSession->GetDisplayedBuffer(&buffer_width, &buffer_height);
     if (buffer)
     {
+        if (mTexture != NULL && (buffer_width != s_width || buffer_height != s_height))
+        {
+            textureManager->releaseTexture(mTexture);
+            mTexture = NULL;
+        }
         if (mTexture == NULL)
         {
             MHWRender::MTextureDescription desc;
             desc.setToDefault2DTexture();
-            desc.fWidth = width;
-            desc.fHeight = height;
+            desc.fWidth = buffer_width;
+            desc.fHeight = buffer_height;
+            s_width = buffer_width;
+            s_height = buffer_height;
             desc.fFormat = MHWRender::kR32G32B32A32_FLOAT;
             results = true;
             mTexture = textureManager->acquireTexture("arnoldResults", desc, NULL, false);
-        }
-        
+        }         
         if (results)
             mTexture->update(buffer, false);
+        
 
         int blitIndex = mOperations.indexOf("viewOverrideArnold_Blit");
         if (blitIndex >= 0)
