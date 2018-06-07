@@ -1,0 +1,4 @@
+loadPlugin("mtoa");
+file -f -options "v=0;"  -ignoreVersion  -typ "mayaAscii" -o "scene.ma";
+arnoldExportAss -f "../scene.ass" -mask 4351 -shg -cam "perspShape";
+
