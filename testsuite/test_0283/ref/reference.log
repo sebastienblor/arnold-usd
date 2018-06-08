@@ -1,4 +1,4 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0275\test_0275.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0283\test_0283.log', using stdout instead
 
 Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
 sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
@@ -30,14 +30,14 @@ Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and l
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
 Successfully registered renderer 'arnold'
-File read in  0.9 seconds.
-File read in  0.9 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0275/test.ma
-00:00:00   529MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   529MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   529MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   530MB WARNING | rendering with watermarks because of failed authorization:
-00:00:00   538MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node 
-00:00:00   538MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Bottle/Bottle_Shape
-00:00:00   539MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Cap/Cap_Shape_SubD
-Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0275\test.ma completed.
+File read in  0.91 seconds.
+File read in  0.91 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0283/test.ma
+00:00:00   533MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   533MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   533MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   535MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   543MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node 
+00:00:00   543MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Bottle/Bottle_Shape
+00:00:00   544MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Cap/Cap_Shape_SubD
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0283\test.ma completed.
