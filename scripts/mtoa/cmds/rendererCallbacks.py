@@ -19,6 +19,10 @@ except:
     raise
 
 global arnoldAOVCallbacks
+try:
+    cmds.loadPlugin("renderSetup", qt=True)
+except RuntimeError:
+    pass
 
 try:
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
