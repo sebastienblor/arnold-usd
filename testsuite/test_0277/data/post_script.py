@@ -20,6 +20,11 @@ for i in range(1,10):
 	shaderName = 'aiShader{}'.format(i)
 	success = success and AiNodeLookUpByName(shaderName)
 
+success = success and AiNodeLookUpByName('aiStandardSurface1SG')
+success = success and AiNodeLookUpByName('aiStandardSurface1SG@aov1')
+success = success and AiNodeLookUpByName('aiImage1')
+success = success and AiNodeLookUpByName('aiNoise1')
+
 print 'Success is %s' % success
 
 if success:
