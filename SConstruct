@@ -779,15 +779,8 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extensi
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
-COLOR_MANAGEMENT_FILES = ""
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
-    COLOR_MANAGEMENT_FILES = os.path.join(EXTERNAL_PATH, 'maketx', system.os(), '*')
-
-    for dylibElem in reversed(dylibs):
-        
-        if 'maketx' in dylibElem:
-            dylibs.remove(dylibElem)
-       
+    
     # install syncolor packages 
     syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os())
     if (system.os() == 'linux'):
@@ -797,7 +790,6 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
 
 
-    env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
 # Install the licensing tools
 rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os())
@@ -1180,11 +1172,10 @@ for p in presetfiles:
         [os.path.join('presets', p), os.path.join('presets', d)]
     ]
 
-if env['ENABLE_COLOR_MANAGEMENT'] == 0:
-    PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
-else:
-    PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
+PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
 
+if env['ENABLE_COLOR_MANAGEMENT'] > 0:
+    
     # we also need to copy the syncolor dylib, for syncolor extension
     # FIXME couldn't this be done in the extension script ?
     syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os())

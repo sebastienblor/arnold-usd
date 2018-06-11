@@ -185,6 +185,7 @@ previousFiles = [
 'bin/libmtoa_api.so',
 'bin/libsynColor.so.2017.0.69',
 'bin/libsynColor.so.2017.0.68',
+'bin/libsynColor.so.2018.0.80',
 'bin/libOpenColorIO.so',
 'bin/libOpenColorIO.so.1',
 'bin/libOpenColorIO.so.1.0.9',
