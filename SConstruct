@@ -1115,6 +1115,9 @@ for ext in os.listdir(ext_base_dir):
             if target_type == 'procedural':
                 env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
                 target_path = "shaders"
+            elif ext == 'synColor':
+                # Syncolor is an exception and should be installed in plugins/
+                env.Install(os.path.join(TARGET_MODULE_PATH, 'plugins'), ext_arnold)
             else:
                 env.Install(TARGET_SHADER_PATH, ext_arnold)
             package_files += [[ext_arnold, target_path]]
@@ -1252,7 +1255,7 @@ if env['ENABLE_RENDERSETUP'] == 1:
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'plugins'])
 
 if env['ENABLE_GPU_CACHE'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])

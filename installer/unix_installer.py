@@ -208,6 +208,7 @@ previousFiles = [
 'plug-ins/mtoa.mtd',
 'plug-ins/mtoa.so',
 'plugins/alembic_proc.so',
+'plugins/synColor_shaders.so',
 'procedurals/alembic_proc.so',
 'procedurals/bifrost_procedural.so',
 'procedurals/volume_openvdb.so',
