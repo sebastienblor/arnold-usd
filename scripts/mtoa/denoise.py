@@ -26,30 +26,28 @@ else:
     _no_window = None
 
 def expandFilename(input_file, start_frame):
-        inFile = input_file
-        if not '#' in inFile:
-            return inFile
-
-        extension_len = 0
-        padding = 0
-        for c in reversed(inFile):
-            if c == '#':
-                padding += 1
-            elif padding > 0:
-                break # I already found numerical characters and they're finished now
-            else:
-                # still haven't found a numerical parameter
-                extension_len += 1
-        
-        start_frame_str = str(start_frame)
-        for i in range(1, padding):
-            if start_frame < pow(10, i):
-                start_frame_str = '0' + start_frame_str
-            else:
-                break
-
-        inFile = inFile[:-extension_len - padding] + start_frame_str + inFile[-extension_len:]
+    inFile = input_file
+    if not '#' in inFile:
         return inFile
+
+    extension_len = 0
+    padding = 0
+    for c in reversed(inFile):
+        if c == '#':
+            padding += 1
+        elif padding > 0:
+            break # I already found numerical characters and they're finished now
+        else:
+            # still haven't found a numerical parameter
+            extension_len += 1
+    
+    start_frame_str = str(start_frame)
+    for i in range(1, padding):
+        if start_frame < pow(10, i):
+            start_frame_str = '0' + start_frame_str
+    
+    inFile = inFile[:-extension_len - padding] + start_frame_str + inFile[-extension_len:]
+    return inFile
 
 def denoiseImage(inFile, outFile, f, temporal_frames, pixel_search_radius, pixel_patch_radius, variance, light_group_aovs):
     inFile = expandFilename(inFile, f)
