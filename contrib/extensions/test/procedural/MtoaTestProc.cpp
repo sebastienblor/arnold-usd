@@ -38,8 +38,7 @@ procedural_num_nodes
 
 procedural_get_node
 {
-    AtNode *child = (AiNodeGetBool(node, "renderCone")) ? AiNode("cone") : AiNode("sphere");
-    AiNodeSetStr(child, "name", "yepeeTest" );
+    AtNode *child = (AiNodeGetBool(node, "renderCone")) ? AiNode("cone", "yepeeTest", node) : AiNode("sphere", "yepeeTest", node);
     return child;  
 }
 
