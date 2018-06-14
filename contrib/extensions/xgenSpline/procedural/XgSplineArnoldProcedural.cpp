@@ -142,12 +142,11 @@ private:
     void createCurves(AtNode* procedural)
     {
         // Create the Arnold "curves" node for all the splines
-        _curves = AiNode("curves");
 
         // Inherit the name from the procedural
         const std::string proceduralName = AiNodeGetName(procedural);
         const std::string curvesName     = proceduralName + "_curves";
-        AiNodeSetStr(_curves, "name", curvesName.c_str());
+        _curves = AiNode("curves", curvesName.c_str(), procedural);
         
         // XGen is using uniform bsplines
         AiNodeSetStr(_curves, "basis", "b-spline");

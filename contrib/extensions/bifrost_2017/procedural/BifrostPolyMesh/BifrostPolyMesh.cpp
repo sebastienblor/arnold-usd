@@ -27,7 +27,7 @@ AI_PROCEDURAL_NODE_EXPORT_METHODS(BifrostPolymeshMtd)
 
 namespace {
 
-AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
+AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData, AtNode *proc)
 {
     printf("\nCreating the mesh...\n");
     Bifrost::API::StateServer SS = frameData->inSS;
@@ -84,11 +84,10 @@ AtNode* ProcSubdivide(ImplicitsInputData *inData, FrameData *frameData)
 
     // export polygons
     printf("\tExporting Polygons...\n");
-
-    AtNode *polymesh = AiNode( "polymesh" );
-
     std::string nodeName ( "BifrostPolyMeshExport1" );
-    AiNodeSetStr( polymesh, "name", nodeName.c_str() );
+
+    AtNode *polymesh = AiNode( "polymesh", nodeName.c_str(), proc);
+
     AiNodeSetBool( polymesh, "opaque", false );
     AiNodeSetBool( polymesh, "smoothing", true );
 
@@ -256,7 +255,7 @@ procedural_init
        AiMsgError("Invalid input data on node '%s'", AiNodeGetName(node));
        return false;
     }
-    AtNode* polymesh = inData.error? NULL : ProcSubdivide(&inData, &frameData);
+    AtNode* polymesh = inData.error? NULL : ProcSubdivide(&inData, &frameData, node);
     if(polymesh){ // transfer diplacement attributes
         AiNodeSetArray(polymesh, "disp_map", AiArrayCopy(displacements));
         AiNodeSetFlt(polymesh, "disp_padding", AiNodeGetFlt(node, "disp_padding"));

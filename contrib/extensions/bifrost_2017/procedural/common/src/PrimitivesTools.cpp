@@ -28,19 +28,20 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 	AIProcNodeData *nodeData = (AIProcNodeData *) usrData;
 
 	// export primitives according to type
-	if ( inData->renderType == PRIM_POINT  || inData->renderType == PRIM_SPHERE ) {
-
-		AtNode *newNode = AiNode( "points" );
-		nodeData->createdNodes.push_back( newNode );
+	if ( inData->renderType == PRIM_POINT  || inData->renderType == PRIM_SPHERE ) 
+	{
 		nodeData->nofNodesCreated++;
+		std::string nodeName ( "BifrostExport" );
+		nodeName += toString( (unsigned long) nodeData->nofNodesCreated ); 
+		
+		AtNode *newNode = AiNode( "points", nodeName.c_str(), nodeData->procedural_node );
+		nodeData->createdNodes.push_back( newNode );
+	
 		if ( inData->renderType == PRIM_POINT ) {
 			AiNodeSetStr( newNode, "mode", "disk");
 		} else {
 			AiNodeSetStr( newNode, "mode", "sphere");
 		}
-		std::string nodeName ( "BifrostExport" );
-		nodeName += toString( (unsigned long) nodeData->nofNodesCreated ); 
-		AiNodeSetStr( newNode, "name", nodeName.c_str() );
 		AiNodeSetFlt( newNode, "min_pixel_width", 0.0f );
 		AiNodeSetBool( newNode, "opaque", false );
 		AiNodeSetFlt(newNode, "motion_start", inData->shutterStart);
