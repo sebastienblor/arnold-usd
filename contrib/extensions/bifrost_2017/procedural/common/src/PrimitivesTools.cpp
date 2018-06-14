@@ -34,7 +34,7 @@ void exportPrimitivesAI	(	PrimitivesInputData *inData,
 		std::string nodeName ( "BifrostExport" );
 		nodeName += toString( (unsigned long) nodeData->nofNodesCreated ); 
 		
-		AtNode *newNode = AiNode( "points", nodeName.c_str(), nodeData->procedural_node );
+		AtNode *newNode = AiNode( "points", nodeName.c_str(), nodeData->proceduralNode );
 		nodeData->createdNodes.push_back( newNode );
 	
 		if ( inData->renderType == PRIM_POINT ) {
