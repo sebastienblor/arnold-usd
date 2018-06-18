@@ -37,7 +37,7 @@ procedural_init
 
    *user_ptr = (void*)ud;
 
-   return ud->Init( node );
+   return ud->Init( node, true ); // "true" means that the procedural parent must be set
 }
 
 // Cleanup

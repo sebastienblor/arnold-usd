@@ -45,7 +45,7 @@ namespace XGenArnold
       virtual ~Procedural();
 
       // Arnold Entry points.
-      int Init(AtNode* node);
+      int Init(AtNode* node, bool procParent);
       int Cleanup();
       int NumNodes();
       AtNode* GetNode(int i);
@@ -98,6 +98,7 @@ namespace XGenArnold
       AtNode* m_options;
       AtNode* m_camera;
       AtNode* m_sphere;
+      AtNode* m_parent;
       AtArray* m_shaders;
 
       PatchRenderer* m_patch;
@@ -135,7 +136,7 @@ namespace XGenArnold
          m_proc = NULL;
       }
 
-      int Init(AtNode* node) { return m_proc->Init(node); }
+      int Init(AtNode* node, bool procParent) { return m_proc->Init(node, procParent); }
       int Cleanup() { return m_proc->Cleanup(); }
       int NumNodes() { return m_cleanup ? 0 : m_proc->NumNodes(); }
       AtNode* GetNode(int i) { return m_cleanup ? NULL : m_proc->GetNode(i); }
