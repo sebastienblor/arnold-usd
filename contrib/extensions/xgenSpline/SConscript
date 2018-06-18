@@ -3,6 +3,66 @@
 import system, os
 from build_tools import find_files_recursive
 
+
+##############################################################3
+####  XGEN COMMON
+Import('ext_env')
+common_env = ext_env.Clone()
+
+src_common_dir  = os.path.join(common_env['ROOT_DIR'], 'contrib', 'extensions', 'xgenSpline', 'common')
+
+BUILD_BASE_DIR = common_env['BUILD_BASE_DIR']
+
+mayaRoot = common_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src', 'sggeom')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src', 'xgsculptcore', 'api')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'sggeom')])
+common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'xgsculptcore', 'api')])
+common_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
+
+
+common_env.Append(CPPDEFINES = Split('_BOOL'))
+maya_version_base = common_env['MAYA_VERSION_BASE']
+
+
+if int(maya_version_base) >= 2018:
+    common_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
+
+if system.os() =='windows':
+    common_env.Append(CPPPATH = ['.'])   
+    common_env.Append(LIBS=Split('ai.lib'))
+    if int(maya_version_base) < 2019:
+        common_env.Append(LIBS=Split('libAdskSeExpr.lib'))
+        common_env.Append(LIBS=Split('libAdskXGen.lib'))
+    else:
+        common_env.Append(LIBS=Split('AdskSeExpr.lib'))
+        common_env.Append(LIBS=Split('AdskXGen.lib'))
+
+else:
+    common_env.Append(CPPPATH = ['.'])
+    common_env.Append(LIBS=Split('ai'))
+    common_env.Append(LIBS=Split('AdskSeExpr'))
+    common_env.Append(LIBS=Split('AdskXGen'))
+    common_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+    if system.os() == 'darwin':
+        common_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        common_env.Append(LINKFLAGS = Split('-lc++'))
+
+
+common_xgen_expand = common_env.SharedObject(target = os.path.join(BUILD_BASE_DIR, 'xgen', 'XgSplineArnoldExpand.o'), source = os.path.join(src_common_dir, 'XgSplineArnoldExpand.cpp'))
+
+
 ##############################################################3
 ####  XGEN TRANSLATOR
 # import build env
@@ -13,30 +73,61 @@ local_env = ext_env.Clone()
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'xgenSpline', 'plugin')
 
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+source_files.append(common_xgen_expand)
+
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
 
 mayaRoot = local_env['MAYA_ROOT']
 if system.os() == 'darwin':
     mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
     mayaRoot = mayaRoot.replace('//', '/')
 
-local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src', 'sggeom')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen', 'src', 'xgsculptcore', 'api')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'sggeom')])
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen', 'src', 'xgsculptcore', 'api')])
+local_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
+
+
+local_env.Append(CPPDEFINES = Split('_BOOL'))
 maya_version_base = ext_env['MAYA_VERSION_BASE']
+
 if int(maya_version_base) >= 2018:
-   local_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
+    local_env.Append(CPPDEFINES = Split('XGEN_ARNOLD_ORIENTATIONS'))
 
 if system.os() =='windows':
-   local_env.Append(CPPPATH = ['.'])   
-   local_env.Append(LIBS=Split('ai.lib'))
+    local_env.Append(CPPPATH = ['.'])   
+    local_env.Append(LIBS=Split('ai.lib'))
+    if int(maya_version_base) < 2019:
+        local_env.Append(LIBS=Split('libAdskSeExpr.lib'))
+        local_env.Append(LIBS=Split('libAdskXGen.lib'))
+    else:
+        local_env.Append(LIBS=Split('AdskSeExpr.lib'))
+        local_env.Append(LIBS=Split('AdskXGen.lib'))
+
 else:
-   local_env.Append(CPPPATH = ['.'])
-   local_env.Append(LIBS=Split('ai'))
-   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
-   if system.os() == 'darwin':
-       source_files.remove('plugin/XGenSplineTranslator_Export.cpp')
-       source_files.append(local_env.SharedObject('plugin/XGenSplineTranslator_Export.cpp', CCFLAGS = Split('-std=c++0x -stdlib=libc++')))
-       local_env.Append(LINKFLAGS = Split('-lc++'))
+    local_env.Append(CPPPATH = ['.'])
+    local_env.Append(LIBS=Split('ai'))
+    local_env.Append(LIBS=Split('AdskSeExpr'))
+    local_env.Append(LIBS=Split('AdskXGen'))
+    local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+    if system.os() == 'darwin':
+        local_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        local_env.Append(LINKFLAGS = Split('-lc++'))
+    '''
+    if system.os() == 'darwin':
+        source_files.remove('plugin/XGenSplineTranslator_Export.cpp')
+        source_files.append(local_env.SharedObject('plugin/XGenSplineTranslator_Export.cpp', CCFLAGS = Split('-std=c++0x -stdlib=libc++')))
+        local_env.Append(LINKFLAGS = Split('-lc++'))
+    '''
 
 EXT = local_env.SharedLibrary('xgenSplineTranslator', source_files, LIBPREFIX='')
 
@@ -69,6 +160,7 @@ proc_env = env.Clone()
 
 src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'contrib', 'extensions', 'xgenSpline','procedural')
 source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+source_files.append(common_xgen_expand)
 include_files = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
 mayaRoot = proc_env['MAYA_ROOT']
