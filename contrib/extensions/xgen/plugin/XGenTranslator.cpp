@@ -953,7 +953,7 @@ void CXgDescriptionTranslator::ExpandProcedural()
        new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ ));
 
    m_expandedProcedurals.back()->SetInitCallback(&ExportMissingNode);
-   m_expandedProcedurals.back()->Init( node );
+   m_expandedProcedurals.back()->Init( node, false ); // "false" means that we don't want the created nodes to set the procedural parent
 
 #if MAYA_API_VERSION >= 201600
    MGlobal::executeCommand("xgmCache -clearPtexCache;");
@@ -977,7 +977,7 @@ void CXgDescriptionTranslator::ExpandProcedural()
       m_expandedProcedurals.push_back(
           new XGenArnold::ProceduralWrapper( new XGenArnold::Procedural(), false /* Won't do cleanup */ ));
       m_expandedProcedurals.back()->SetInitCallback(&ExportMissingNode);
-      m_expandedProcedurals.back()->Init( procNode );
+      m_expandedProcedurals.back()->Init( procNode, false );
 
       AiNodeSetDisabled(procNode, true);
       i++;
