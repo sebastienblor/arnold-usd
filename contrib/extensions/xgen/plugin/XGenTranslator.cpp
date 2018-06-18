@@ -88,7 +88,6 @@ void CXgDescriptionTranslator::Delete()
           delete expandedProcedural;
        }
    }
-   m_exportedSteps.clear();
    m_expandedProcedurals.clear();
    CShapeTranslator::Delete();
 }
@@ -780,27 +779,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       ExportLightLinking(shape);
    }
 
-   m_exportedSteps.clear();
-
-
-   // For now we're only expanding the procedurals during export if we are on an interactive render
-   // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
-   // can be updated while tweaking the XGen attributes
-   if (GetSessionOptions().GetSessionMode() != MTOA_SESSION_ASS)
-   {
-      // if there is no motion blur for this node, then we're good to expand the geometries
-      bool hasMotion = IsMotionBlurEnabled() && RequiresMotionData();
-
-      // If there is motion blur, we'll want to expand the procedural only
-      // at the final motion step
-      if (hasMotion)
-      {
-         m_exportedSteps.assign(GetNumMotionSteps(), false);
-         m_exportedSteps[GetMotionStep()] = true;
-      } else
-         ExpandProcedural();
-      
-   }
+   
 }
 void CXgDescriptionTranslator::ExportShaders()
 {
@@ -816,24 +795,6 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 #if MAYA_API_VERSION < 201700
    ExportMatrix(shape);
 #endif
-   if (m_exportedSteps.empty())
-      return;
-
-   // If we're here, it means that we're on an interactive render
-   // where the procedural has to be expanded during export
-
-   m_exportedSteps[GetMotionStep()] = true; // motion step done
-
-   // check if all motion steps have been exported
-   for (size_t i = 0; i < m_exportedSteps.size(); ++i)
-   {
-      // a motion step is still missing. We'll expand later
-      if (!m_exportedSteps[i])
-         return;
-   }
-
-   // All motion steps have been exported, it's time to expand the procedural
-   ExpandProcedural();
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -986,3 +947,16 @@ void CXgDescriptionTranslator::ExpandProcedural()
    // reset the global translator pointer
    s_exportTranslator = NULL;
 }
+
+
+void CXgDescriptionTranslator::PostExport(AtNode *node)
+{
+   // For now we're only expanding the procedurals during export if we are on an interactive render
+   // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+   // can be updated while tweaking the XGen attributes
+   if (GetSessionOptions().GetSessionMode() == MTOA_SESSION_ASS)
+      return;
+
+   ExpandProcedural();
+}
+
