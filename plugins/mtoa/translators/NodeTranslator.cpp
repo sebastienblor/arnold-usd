@@ -779,8 +779,6 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
          attributeDeclaration = DECLARATION_VARYING;
          aname += 8;
       }
-      else
-         AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_ for attribute: %s!", name.asChar());
       
       /*
       This line was preventing IPR updates of user attributes
