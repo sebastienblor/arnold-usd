@@ -129,12 +129,15 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          }
          break;
       }
+      case AI_TYPE_CLOSURE:
+         value.RGB() = AI_RGB_BLACK;
+         break;
+      
       case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       case AI_TYPE_ARRAY:
       case AI_TYPE_NODE:
       case AI_TYPE_MATRIX:
-      case AI_TYPE_CLOSURE:
          break;
       default:
       {
