@@ -1,0 +1,3 @@
+Closure parameters are initialized to black in Maya shaders (#3471)
+
+author: sebastien.ortega 
