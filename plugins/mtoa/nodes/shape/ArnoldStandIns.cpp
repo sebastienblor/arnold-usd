@@ -270,19 +270,14 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       return MS::kSuccess;
    }
 
-   if (AiUniverseIsActive())
-   {
-      m_refreshAvoided = true;
-      return MS::kSuccess;
-   } else m_refreshAvoided = false;   
+   m_refreshAvoided = false;   
 
    MString assfile = geom->filename;
    MString dsoData = geom->data;
    bool AiUniverseCreated = false;
+   AtUniverse *universe = NULL;
    if (assfile != "")
    {  
-      // FIXME shouldn't we rather call ArnoldUniverseOnlyBegin ?
-      AiUniverseCreated = ArnoldUniverseBegin();
 
       bool processRead = false;
       bool isSo = false;
@@ -310,8 +305,25 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars-1).toLowerCase() == ".ass.gz"))
          isAss = true;
 
-      AtNode* options = AiUniverseGetOptions();
+      if (isAss)
+         universe = AiUniverse();
+      else
+      {
+         if (AiUniverseIsActive())
+         {
+            m_refreshAvoided = true;
+            return MS::kSuccess;
+         }         
+      }
+	  if (!AiUniverseIsActive())
+	  {
+          AiUniverseCreated = true;
+		  AiBegin();
+	  }
+      
+      AtNode* options = AiUniverseGetOptions(universe);
       AiNodeSetBool(options, "skip_license_check", true);
+      AiNodeSetBool(options, "enable_dependency_graph", false);
 
       // setup procedural search path
       MString proceduralPath = "";
@@ -347,19 +359,21 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          if (fGeometry.drawOverride != 3)
          {
-            AiASSLoad(assfile.asChar());
+            AiASSLoad(assfile.asChar(), AI_NODE_ALL, universe);
             processRead = true;
          }
          else
          {
             geom->IsGeomLoaded = false;
-            if (AiUniverseCreated) ArnoldUniverseEnd();
+            
+            if (universe) AiUniverseDestroy(universe);
+            if (AiUniverseCreated) AiEnd();
             return MS::kSuccess;
          }
       }
       else
       {         
-         procedural = AiNode("procedural");
+         procedural = AiNode("procedural", AtString(), NULL, universe);
          AiNodeSetStr(procedural, "filename", assfile.asChar());
 //         AiNodeSetBool(procedural, "load_at_init", true);
 //         if (fGeometry.drawOverride == 3) 
@@ -384,7 +398,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          else
          {
             geom->IsGeomLoaded = false;
-            if (AiUniverseCreated) ArnoldUniverseEnd();
+            if (universe) AiUniverseDestroy(universe);
+            if (AiUniverseCreated) AiEnd();            
+
             return MS::kSuccess;
          }
       }
@@ -407,7 +423,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
-         AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
+         AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE, universe);         
 
          while (!AiNodeIteratorFinished(iter))
          {
@@ -440,7 +456,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
          AiNodeIteratorDestroy(iter);
 
-         iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+         iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE, universe);
 
          while (!AiNodeIteratorFinished(iter))
          {
@@ -491,7 +507,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          status = MS::kFailure;
       }
 
-      if (AiUniverseCreated) ArnoldUniverseEnd();
+      if (universe) AiUniverseDestroy(universe);
+      if (AiUniverseCreated) AiEnd();
+      
+
 
    }
    else
