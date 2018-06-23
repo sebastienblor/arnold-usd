@@ -56,7 +56,9 @@ def denoiseImage(inFile, outFile, f, temporal_frames, pixel_search_radius, pixel
     cmd += ['-ef', str(temporal_frames), '-sr', str(pixel_search_radius), '-pr', str(pixel_patch_radius), '-v', str(variance)]
 
     if len(light_group_aovs) > 0:
-        cmd += ['-l', light_group_aovs]
+        light_group_split = light_group_aovs.split(' ')
+        for light_group in light_group_split:
+            cmd += ['-l', light_group]
     
     print 'Denoising image {} '.format(inFile)
     cmd_str = ''
