@@ -2514,10 +2514,6 @@ void* CreateQuadShadingSwitchTranslator()
 
 // Toon
 //
-void CToonTranslator::NodeInitializer(CAbTranslator context)
-{
-   CNodeTranslator::NodeInitializer(context);
-}
 
 void CToonTranslator::Export(AtNode* shader)
 {
@@ -2558,3 +2554,53 @@ AtNode* CToonTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("toon");
 }
+
+// MultiplyDivide shader
+AtNode* CMultiplyDivideTranslator::CreateArnoldNodes()
+{
+   MPlug operationPlug = FindMayaPlug("operation");
+   int op = 0;
+   if (!operationPlug.isNull())
+      op = operationPlug.asInt();
+
+   switch(op)
+   {
+      default:
+      case 0: // no op
+      case 1:
+         return AddArnoldNode("multiply");
+      case 2:
+         return AddArnoldNode("divide");
+      case 3:
+         return AddArnoldNode("pow");
+   }
+}
+
+void CMultiplyDivideTranslator::Export(AtNode* shader)
+{
+   MPlug operationPlug = FindMayaPlug("operation");
+   int op = 0;
+   if (!operationPlug.isNull())
+      op = operationPlug.asInt();
+
+   switch(op)
+   {
+      default:
+      case 0: // no op
+         ProcessParameter(shader, "input1", AI_TYPE_RGB);
+         break;
+      case 1:
+         ProcessParameter(shader, "input1", AI_TYPE_RGB);
+         ProcessParameter(shader, "input2", AI_TYPE_RGB);
+         break;
+      case 2:
+         ProcessParameter(shader, "input1", AI_TYPE_RGB);
+         ProcessParameter(shader, "input2", AI_TYPE_RGB);
+         break;         
+      case 3:
+         ProcessParameter(shader, "base", AI_TYPE_RGB, "input1");
+         ProcessParameter(shader, "exponent", AI_TYPE_RGB, "input2");
+         break;
+   }   
+}
+

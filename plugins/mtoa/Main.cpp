@@ -722,12 +722,7 @@ namespace // <anonymous>
                                     CObjectSetTranslator::creator,
                                     CObjectSetTranslator::NodeInitializer);
 
-      builtin->RegisterTranslator("aiToon",
-                                    "",
-                                    CToonTranslator::creator,
-                                    CToonTranslator::NodeInitializer);
-
-
+      
       // Load all plugins path or only shaders?
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
@@ -879,6 +874,12 @@ namespace // <anonymous>
          shaders->RegisterTranslator("blendColors",
                                        "",
                                        CMayaBlendColorsTranslator::creator);
+         shaders->RegisterTranslator("multiplyDivide",
+                                       "",
+                                       CMultiplyDivideTranslator::creator);
+         shaders->RegisterTranslator("aiToon",
+                                       "",
+                                       CToonTranslator::creator);
 
       }
 

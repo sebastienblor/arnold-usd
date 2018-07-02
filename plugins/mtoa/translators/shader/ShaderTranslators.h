@@ -50,6 +50,9 @@ SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
 SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
 SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
+SHADER_TRANSLATOR(CMultiplyDivideTranslator);
+SHADER_TRANSLATOR(CToonTranslator);
+
 
 class CDisplacementTranslator : public CShaderTranslator
 {
@@ -226,12 +229,4 @@ public:
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
 
-};
-class CToonTranslator : public CShaderTranslator{
-public:
-   static void* creator(){return new CToonTranslator();}
-
-   virtual void Export(AtNode* shader);
-   static void NodeInitializer(CAbTranslator context);
-   AtNode* CreateArnoldNodes(); 
 };
