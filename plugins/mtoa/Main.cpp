@@ -41,6 +41,7 @@
 
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
+#include "commands/ArnoldImportAssCmd.h"
 #include "commands/ArnoldUpdateTxCmd.h"
 #include "commands/ArnoldSceneCmd.h"
 #include "commands/ArnoldLicenseCmd.h"
@@ -146,6 +147,7 @@ namespace // <anonymous>
       {"arnoldBakeGeo", CArnoldBakeGeoCmd::creator, CArnoldBakeGeoCmd::newSyntax},
       {"arnoldRenderToTexture", CArnoldRenderToTextureCmd::creator, CArnoldRenderToTextureCmd::newSyntax},
       {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
+      {"arnoldImportAss", CArnoldImportAssCmd::creator, CArnoldImportAssCmd::newSyntax},
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
