@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -33,18 +33,19 @@ def convertAllShaders():
     # ls -type targetShader
     # if a shader in the list is not registered (i.e. VrayMtl)
     # everything would fail
+    loadedNodeTypes = cmds.ls(nodeTypes=True)
 
     for shdType in targetShaders:
-        shaderColl = cmds.ls(exactType=shdType)
-        if shaderColl:
-            for x in shaderColl:
-                # query the objects assigned to the shader
-                # only convert things with members
-                #shdGroup = cmds.listConnections(x, type="shadingEngine")
-                #setMem = cmds.sets( shdGroup, query=True )
-                #if setMem:
-                doMapping(x)
-        
+        if shdType in loadedNodeTypes:
+            shaderColl = cmds.ls(exactType=shdType)
+            if shaderColl:
+                for x in shaderColl:
+                    # query the objects assigned to the shader
+                    # only convert things with members
+                    #shdGroup = cmds.listConnections(x, type="shadingEngine")
+                    #setMem = cmds.sets( shdGroup, query=True )
+                    #if setMem:
+                    doMapping(x)
 
 
 def doMapping(inShd):
@@ -65,7 +66,9 @@ def doMapping(inShd):
         ret = convertAlHair(inShd)
     elif 'alSurface' in shaderType:
         ret = convertAlSurface(inShd)
-        
+    elif 'alLayerColor' in shaderType:
+        ret = convertAlLayerColor(inShd)
+    
     if ret:
         # assign objects to the new shader
         assignToNewShader(inShd, ret)
@@ -288,7 +291,72 @@ def convertAlHair(inShd):
     print "Converted %s to aiStandardHair" % inShd
     return outNode
 
-        
+def convertAlLayerColor(inShd):
+    mappingBlendMode = {
+            'Normal': 'overwrite',
+            'Ligthen': 'max',  #or diffuseColor ?
+            'Darken': 'min',            
+            'Multiply': 'multiply',
+            'Average': 'average',                   
+            'Add': 'plus',
+            'Subtract': 'subtract',
+            'Difference': 'difference',
+            'Negation': 'negation',
+            'Exclusion': 'exclusion',
+            'Screen': 'screen',
+            'Overlay': 'overlay',
+            'Soft Light': 'soft_light',
+            'Hard Light': 'hard_light',
+            'Color Dodge': 'color_dodge',
+            'Color Burn': 'color_burn',
+            'Linear Dodge': 'plus',
+            'Linear Burn': 'subtract',
+            'Linear Light': 'linear_light',
+            'Vivid Light': 'vivid_light',
+            'Pin Light': 'pin_light',
+            'Hard Mix': 'hard_mix',
+            'Reflect': 'reflect',
+            'Glow': 'glow',
+            'Phoenix': 'phoenix'
+        }
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiLayerRgba', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'layer1', outNode, 'input1')
+    convertAttr(inShd, 'layer2', outNode, 'input2')
+    convertAttr(inShd, 'layer3', outNode, 'input3')
+    convertAttr(inShd, 'layer4', outNode, 'input4')
+    convertAttr(inShd, 'layer5', outNode, 'input5')
+    convertAttr(inShd, 'layer6', outNode, 'input6')
+    convertAttr(inShd, 'layer7', outNode, 'input7')
+    convertAttr(inShd, 'layer8', outNode, 'input8')
+    
+    convertAttr(inShd, 'layer1a', outNode, 'mix1')
+    convertAttr(inShd, 'layer2a', outNode, 'mix2')
+    convertAttr(inShd, 'layer3a', outNode, 'mix3')
+    convertAttr(inShd, 'layer4a', outNode, 'mix4')
+    convertAttr(inShd, 'layer5a', outNode, 'mix5')
+    convertAttr(inShd, 'layer6a', outNode, 'mix6')
+    convertAttr(inShd, 'layer7a', outNode, 'mix7')
+    convertAttr(inShd, 'layer8a', outNode, 'mix8')
+
+    for ind in range(1, 9):
+        inBlendAttrName = '{}.layer{}blend'.format(inShd, ind)
+        inBlendMode = cmds.getAttr(inBlendAttrName, asString=True)
+        outOperation = mappingBlendMode[inBlendMode]
+        if outOperation and len(outOperation) > 0:
+            outOperationAttrName = '{}.operation{}'.format(outNode, ind)
+            cmds.setAttr(outOperationAttrNAme, outOperation, type="string")    
+        enableAttrName = '{}.enable{}'.format(outNode, ind)
+        cmds.setAttr(enableAttrName, 1)
+    
+    print "Converted %s to aiLayerRgba" % inShd
+    return outNode
+
 def anisotropyRemap(val):
     return 2 * abs(val -0.5)
 
