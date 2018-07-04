@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -68,6 +68,9 @@ def doMapping(inShd):
         ret = convertAlSurface(inShd)
     elif 'alLayerColor' in shaderType:
         ret = convertAlLayerColor(inShd)
+    elif 'alRemapColor' in shaderType:
+        ret = convertAlRemapColor(inShd)
+        
     
     if ret:
         # assign objects to the new shader
@@ -289,6 +292,31 @@ def convertAlHair(inShd):
     convertAttr(inShd, 'diffuseColor', outNode, 'diffuseColor')
     
     print "Converted %s to aiStandardHair" % inShd
+    return outNode
+
+def convertAlRemapColor(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiColorCorrect', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'input', outNode, 'input')
+    convertAttr(inShd, 'gamma', outNode, 'gamma')
+    convertAttr(inShd, 'saturation', outNode, 'saturation')
+    convertAttr(inShd, 'hueShift', outNode, 'hueOffset')
+    convertAttr(inShd, 'contrast', outNode, 'contrast')
+    convertAttr(inShd, 'contrastPivot', outNode, 'contrastPivot')
+    convertAttr(inShd, 'gain', outNode, 'multiplyR')
+    #connect multiplyG and multiplyB to multiplyR since the input parameter is float but output is RGB
+    cmds.connectAttr('{}.multiplyR {}.multiplyG'.format(outNode, outNode), force=True)
+    cmds.connectAttr('{}.multiplyR {}.multiplyB'.format(outNode, outNode), force=True)
+
+    convertAttr(inShd, 'exposure', outNode, 'exposure')
+    convertAttr(inShd, 'mask', outNode, 'mask')    
+    
+    print "Converted %s to aiColorCorrect" % inShd
     return outNode
 
 def convertAlLayerColor(inShd):
