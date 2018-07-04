@@ -181,7 +181,7 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         attributeType = cmds.getAttr("%s.%s" % (srcNode, attrName), type=True)
         # silly 2012 bug, returns float3 as type on surfaceShader attribute
         if attributeType == 'string' or attributeType == 'float2':
-            args['attributeType'] = None
+            #args['attributeType'] = None  #shouldn't set this (#3511)
             args['dataType'] = attributeType            
         else:
             args['attributeType'] = attributeType
