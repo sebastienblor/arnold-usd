@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -70,6 +70,11 @@ def doMapping(inShd):
         ret = convertAlLayerColor(inShd)
     elif 'alRemapColor' in shaderType:
         ret = convertAlRemapColor(inShd)
+    elif 'alRemapFloat' in shaderType:
+        ret = convertAlRemapFloat(inShd)
+    elif 'alFractal' in shaderType:
+        ret = convertAlFractal(inShd)
+        
         
     
     if ret:
@@ -318,6 +323,56 @@ def convertAlRemapColor(inShd):
     
     print "Converted %s to aiColorCorrect" % inShd
     return outNode
+
+def convertAlRemapFloat(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiRange', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'input', outNode, 'inputR') 
+    #connect inputG and inputB to inputR since the input parameter is float but output is RGB
+    cmds.connectAttr('{}.inputR {}.inputG'.format(outNode, outNode), force=True)
+    cmds.connectAttr('{}.inputR {}.inputB'.format(outNode, outNode), force=True)
+
+    convertAttr(inShd, 'RMPinputMin', outNode, 'inputMin')
+    convertAttr(inShd, 'RMPinputMax', outNode, 'inputMax')
+    convertAttr(inShd, 'RMPoutputMin', outNode, 'outputMin')
+    convertAttr(inShd, 'RMPoutputMax', outNode, 'outputMax')
+    
+    print "Converted %s to aiRange" % inShd
+    return outNode
+
+def convertAlFractal(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiNoise', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'mode', outNode, 'mode') 
+    convertAttr(inShd, 'space', outNode, 'space') 
+    freq = cmds.getAttr('{}.frequency'.format(inShd))
+    cmds.setAttr('{}.scaleX'.format(outNode), cmds.getAttr('{}.scaleX'.format(outNode)) * freq)
+    cmds.setAttr('{}.scaleY'.format(outNode), cmds.getAttr('{}.scaleY'.format(outNode)) * freq)
+    cmds.setAttr('{}.scaleZ'.format(outNode), cmds.getAttr('{}.scaleZ'.format(outNode)) * freq)
+    convertAttr(inShd, 'time', outNode, 'time') 
+    convertAttr(inShd, 'octaves', outNode, 'octaves') 
+    convertAttr(inShd, 'distortion', outNode, 'distortion')
+    convertAttr(inShd, 'lacunarity', outNode, 'lacunarity')
+    convertAttr(inShd, 'gain', outNode, 'amplitude')
+    # need to divide amplitude by 2
+    cmds.setAttr('{}.amplitude'.format(outNode), cmds.getAttr('{}.amplitude'.format(outNode)) * 0.5)
+    convertAttr(inShd, 'color1', outNode, 'color1')
+    convertAttr(inShd, 'color2', outNode, 'color2')
+    convertAttr(inShd, 'P', outNode, 'P')
+
+    print "Converted %s to aiNoise" % inShd
+    return outNode
+
 
 def convertAlLayerColor(inShd):
     mappingBlendMode = {
