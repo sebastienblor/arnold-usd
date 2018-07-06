@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -11,8 +11,7 @@ def convertUi():
         convertAllShaders()
     elif ret == 'Selected':
         convertSelection()
-       
-        
+               
 def convertSelection():
     """
     Loops through the selection and attempts to create arnold shaders on whatever it finds
@@ -22,8 +21,6 @@ def convertSelection():
     if sel:
         for s in sel:
             ret = doMapping(s)
-
-
 
 def convertAllShaders():
     """
@@ -74,6 +71,8 @@ def doMapping(inShd):
         ret = convertAlRemapFloat(inShd)
     elif 'alFractal' in shaderType:
         ret = convertAlFractal(inShd)
+    elif 'alFlakes' in shaderType:
+        ret = convertAlFlakes(inShd)
         
         
     
@@ -372,6 +371,26 @@ def convertAlFractal(inShd):
 
     print "Converted %s to aiNoise" % inShd
     return outNode
+
+def convertAlFlakes(inShd):
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+    
+    outNode = cmds.shadingNode('aiFlakes', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'space', outNode, 'outputSpace') 
+    convertAttr(inShd, 'size', outNode, 'scale') 
+    scale = cmds.getAttr('{}.scale'.format(outNode))
+    if scale > 0:
+        cmds.setAttr('{}.scale'.format(outNode), 1.0 / scale)
+
+    convertAttr(inShd, 'amount', outNode, 'density') 
+
+    print "Converted %s to aiFlakes" % inShd
+    return outNode
+
 
 
 def convertAlLayerColor(inShd):
