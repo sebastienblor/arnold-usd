@@ -602,16 +602,16 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             // comment for mayabatch
             std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
-            AtNode *camera = AiNode("MtoaCameraUvMapper");
+            AtNode *camera = AiNode("uv_camera");
             if (camera == 0)
             {
                CMayaScene::End();
-               MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
+               MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a uv_camera node");
                return MS::kSuccess;
             }
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
-            AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
+            AiNodeSetPtr(camera, "polymesh", (void*) mesh);
             AiNodeSetStr(camera, "uv_set", uvSet.asChar());
             AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
             AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
@@ -645,18 +645,18 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       // render without udims
       else
       {
-         AtNode *camera = AiNode("MtoaCameraUvMapper");
+         AtNode *camera = AiNode("uv_camera");
          if (camera == 0)
          {
             CMayaScene::End();
-            MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
+            MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a uv_camera node");
             return MS::kSuccess;
          }
          
          MString filename = folderName + "/" + meshNameStr.c_str() + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
-         AiNodeSetStr(camera, "polymesh", fullMeshName.c_str());
+         AiNodeSetPtr(camera, "polymesh", (void*)mesh);
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
          AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));

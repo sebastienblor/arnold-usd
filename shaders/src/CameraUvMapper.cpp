@@ -288,6 +288,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "_synonym", "cameraUvMapper");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiCameraUvMapper");
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 struct CameraUvMapperData{
