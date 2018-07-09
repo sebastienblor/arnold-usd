@@ -949,7 +949,6 @@ bool CCheckerTranslator::RequiresUvTransform() const
             IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV"), 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("coverage"), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV"), 1.f, 1.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV"), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("wrapU"), 0.f, 0.f ) &&
             IsVec2AttrDefault(srcNodeFn.findPlug("wrapV"), 0.f, 0.f ) &&
