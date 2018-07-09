@@ -877,6 +877,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("multiplyDivide",
                                        "",
                                        CMultiplyDivideTranslator::creator);
+         shaders->RegisterTranslator("checker",
+                                       "",
+                                       CCheckerTranslator::creator);
          shaders->RegisterTranslator("aiToon",
                                        "",
                                        CToonTranslator::creator);

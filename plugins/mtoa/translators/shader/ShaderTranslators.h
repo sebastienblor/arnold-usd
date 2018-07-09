@@ -135,6 +135,25 @@ private:
    bool m_hasUvTransform;
 };
 
+class CCheckerTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CCheckerTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   static void NodeInitializer(CAbTranslator context);
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
+private:
+
+   bool RequiresColorCorrect() const;
+   bool RequiresUvTransform() const;
+   
+   bool m_hasColorCorrect;
+   bool m_hasUvTransform;
+};
+
 class CAiHairTranslator : public CShaderTranslator{
 public:
    static void* creator(){return new CAiHairTranslator();}
