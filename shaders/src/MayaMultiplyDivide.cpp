@@ -38,6 +38,7 @@ node_parameters
    AiParameterEnum("operation", 0, MathOperationNames);
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "multiplyDivide");
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x524d4449);
 }
 

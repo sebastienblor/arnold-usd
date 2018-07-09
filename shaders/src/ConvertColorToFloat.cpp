@@ -41,6 +41,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "_synonym", "colorToFloat");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiColorToFloat_rgba");
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 

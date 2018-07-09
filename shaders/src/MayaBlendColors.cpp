@@ -21,7 +21,7 @@ node_parameters
    AiParameterRGB("color2", 0, 0, 1);
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
-   
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);   
 }
 
 shader_evaluate

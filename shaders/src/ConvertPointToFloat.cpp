@@ -38,6 +38,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "_synonym", "pointToFloat");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiPointToFloat");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize

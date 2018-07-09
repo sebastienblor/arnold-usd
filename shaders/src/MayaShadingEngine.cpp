@@ -31,6 +31,7 @@ node_parameters
    AiParameterArray("aov_names", AiArray(0, 0, AI_TYPE_STRING));
    AiParameterBool("enable_matte", false);
    AiParameterRGBA("matte_color", 0.f, 0.f, 0.f, 0.f);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 shader_evaluate
