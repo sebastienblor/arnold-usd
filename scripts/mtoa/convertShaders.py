@@ -314,8 +314,8 @@ def convertAlRemapColor(inShd):
     convertAttr(inShd, 'contrastPivot', outNode, 'contrastPivot')
     convertAttr(inShd, 'gain', outNode, 'multiplyR')
     #connect multiplyG and multiplyB to multiplyR since the input parameter is float but output is RGB
-    cmds.connectAttr('{}.multiplyR {}.multiplyG'.format(outNode, outNode), force=True)
-    cmds.connectAttr('{}.multiplyR {}.multiplyB'.format(outNode, outNode), force=True)
+    cmds.connectAttr('{}.multiplyR'.format(outNode), '{}.multiplyG'.format(outNode), force=True)
+    cmds.connectAttr('{}.multiplyR'.format(outNode), '{}.multiplyB'.format(outNode), force=True)
 
     convertAttr(inShd, 'exposure', outNode, 'exposure')
     convertAttr(inShd, 'mask', outNode, 'mask')    
@@ -333,8 +333,8 @@ def convertAlRemapFloat(inShd):
 
     convertAttr(inShd, 'input', outNode, 'inputR') 
     #connect inputG and inputB to inputR since the input parameter is float but output is RGB
-    cmds.connectAttr('{}.inputR {}.inputG'.format(outNode, outNode), force=True)
-    cmds.connectAttr('{}.inputR {}.inputB'.format(outNode, outNode), force=True)
+    cmds.connectAttr('{}.inputR'.format(outNode), '{}.inputG'.format(outNode), force=True)
+    cmds.connectAttr('{}.inputR'.format(outNode), '{}.inputB'.format(outNode), force=True)
 
     convertAttr(inShd, 'RMPinputMin', outNode, 'inputMin')
     convertAttr(inShd, 'RMPinputMax', outNode, 'inputMax')
@@ -446,13 +446,15 @@ def convertAlLayerColor(inShd):
     convertAttr(inShd, 'layer7a', outNode, 'mix7')
     convertAttr(inShd, 'layer8a', outNode, 'mix8')
 
+    enum_list = cmds.attributeQuery('operation1', node=outNode,
+                                    listEnum=True)[0].split(':')
+
     for ind in range(1, 9):
         inBlendAttrName = '{}.layer{}blend'.format(inShd, ind)
         inBlendMode = cmds.getAttr(inBlendAttrName, asString=True)
         outOperation = mappingBlendMode[inBlendMode]
         if outOperation and len(outOperation) > 0:
-            outOperationAttrName = '{}.operation{}'.format(outNode, ind)
-            cmds.setAttr(outOperationAttrNAme, outOperation, type="string")    
+            cmds.setAttr('{}.operation{}'.format(outNode, ind), enum_list.index(outOperation))    
         enableAttrName = '{}.enable{}'.format(outNode, ind)
         cmds.setAttr(enableAttrName, 1)
     
