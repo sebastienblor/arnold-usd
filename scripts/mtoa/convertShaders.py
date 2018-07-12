@@ -37,6 +37,7 @@ def convertAllShaders():
             shaderColl = cmds.ls(exactType=shdType)
             if shaderColl:
                 for x in shaderColl:
+
                     # query the objects assigned to the shader
                     # only convert things with members
                     #shdGroup = cmds.listConnections(x, type="shadingEngine")
@@ -52,6 +53,9 @@ def doMapping(inShd):
     @param inShd: Shader name
     @type inShd: String
     """
+    if inShd == 'lambert1':
+        return None
+
     ret = None
     
     shaderType = cmds.objectType(inShd)
@@ -124,15 +128,33 @@ def assignToNewShader(oldShd, newShd):
     @type newShd: String
     """
     
-    retVal = False
+    shdGroups = None
     
-    shdGroups = cmds.listConnections(oldShd + '.outColor', plugs=True)
+    if cmds.attributeQuery('outColor', node=oldShd, exists=True):
+        shdGroups = cmds.listConnections(oldShd + '.outColor', plugs=True)
+
+    if shdGroups is None and cmds.attributeQuery('outValue', node=oldShd, exists=True):
+        shdGroups = cmds.listConnections(oldShd + '.outValue', plugs=True)
+
+    if shdGroups is None and cmds.attributeQuery('outTransparency', node=oldShd, exists=True):
+        shdGroups = cmds.listConnections(oldShd + '.outTransparency', plugs=True)
+
+    if shdGroups is None and cmds.attributeQuery('out', node=oldShd, exists=True):
+        shdGroups = cmds.listConnections(oldShd + '.out', plugs=True)
+    
+    retVal = False
     
     #print 'shdGroup:', shdGroup
     if shdGroups != None:    
         for shdGroup in  shdGroups:
-            cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
+
+            try:
+                cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
+            except RuntimeError, err:
+                cmds.connectAttr(newShd + '.outColorR', shdGroup, force=True)
+            
             retVal =True
+
 
     if replaceCurrentShader:
         cmds.delete(oldShd)        
