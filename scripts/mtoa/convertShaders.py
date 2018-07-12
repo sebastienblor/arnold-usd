@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -73,8 +73,20 @@ def doMapping(inShd):
         ret = convertAlFractal(inShd)
     elif 'alFlakes' in shaderType:
         ret = convertAlFlakes(inShd)
-        
-        
+    elif 'lambert' in shaderType:
+        ret = convertLambert(inShd)
+    elif 'blinn' in shaderType:
+        ret = convertBlinn(inShd)
+    elif 'phong' in shaderType:
+        ret = convertPhong(inShd)
+    elif 'VRayMtl' in shaderType:
+        ret = convertVRayMtl(inShd)        
+    elif 'mia_material_x_passes' in shaderType:
+        ret = convertMiaMaterialX(inShd)
+    elif 'mia_material_x' in shaderType:
+        ret = convertMiaMaterialX(inShd)
+    elif 'dielectric_material' in shaderType:
+        ret = convertDielectricMaterial(inShd)
     
     if ret:
         # assign objects to the new shader
@@ -82,17 +94,26 @@ def doMapping(inShd):
 
 def assignToNewShader(oldShd, newShd):
 
-
     if ':' in oldShd:
         aiName = oldShd.rsplit(':')[-1] + '_old'
     else:
         aiName = oldShd + '_old'
     
-    cmds.rename(oldShd, aiName)
-    cmds.rename(newShd, oldShd)
+    replaceCurrentShader = replaceShaders
 
-    newShd = oldShd
-    oldShd = aiName
+    try:
+        cmds.rename(oldShd, aiName)
+        cmds.rename(newShd, oldShd)
+
+        newShd = oldShd
+        oldShd = aiName
+    except RuntimeError, err:
+        replaceCurrentShader = False
+        # couldn't rename the existing shader (might be read-only),
+        # let's keep the current names : _new for the new one, and leave the existing name for the old
+        pass
+        
+
 
     """
     Creates a shading group for the new shader, and assigns members of the old shader to it
@@ -113,7 +134,7 @@ def assignToNewShader(oldShd, newShd):
             cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
             retVal =True
 
-    if replaceShaders:
+    if replaceCurrentShader:
         cmds.delete(oldShd)        
     return retVal
 
@@ -125,19 +146,21 @@ def setupConnections(inShd, fromAttr, outShd, toAttr):
         return True
 
     return False
-                
-            
 
-def convertAiStandard(inShd):
+def createArnoldShader(inShd, nodeType):     
     if ':' in inShd:
         aiName = inShd.rsplit(':')[-1] + '_new'
     else:
-        aiName = inShd + '_new'
+        aiName = inShd + '_new'    
     
-    
-    #print 'creating '+ aiName
-    outNode = cmds.shadingNode('aiStandardSurface', name=aiName, asShader=True)
-    
+    outNode = cmds.shadingNode(nodeType, name=aiName, asShader=True)
+    return outNode
+
+            
+
+def convertAiStandard(inShd):
+
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
 
     convertAttr(inShd, 'Kd', outNode, 'base')
     convertAttr(inShd, 'color', outNode, 'baseColor')
@@ -216,12 +239,8 @@ def convertAiStandard(inShd):
 
 
 def convertAiHair(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
-    else:
-        aiName = inShd + '_new'    
-    
-    outNode = cmds.shadingNode('aiStandardHair', name=aiName, asShader=True)
+    outNode = createArnoldShader(inShd, 'aiStandardHair')
+
     convertAttr(inShd, 'tipcolor', outNode, 'base_color') #not converting root_color here
     convertAttr(inShd, 'KdInd', outNode, 'indirect_diffuse')
     #convertAttr(inShd, 'spec', outNode, 'specular')
@@ -238,15 +257,103 @@ def convertAiHair(inShd):
     print "Converted %s to aiStandardHair" % inShd
     return outNode
 
-def convertAlSurface(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
+
+def transparencyToOpacity(inShd, outShd):
+    transpMap = cmds.listConnections( inShd + '.transparency', d=False, s=True, plugs=True )
+    if transpMap:
+        # map is connected, argh...
+        # need to add a reverse node in the shading tree
+
+        # create reverse
+        invertNode = cmds.shadingNode('reverse', name=outShd + '_rev', asUtility=True)
+
+        #connect transparency Map to reverse 'input'
+        cmds.connectAttr(transpMap[0], invertNode + '.input', force=True)
+
+        #connect reverse to opacity
+        cmds.connectAttr(invertNode + '.output', outShd + '.opacity', force=True)
     else:
-        aiName = inShd + '_new'
+        #print inShd
+
+        transparency = cmds.getAttr(inShd + '.transparency')
+        opacity = [(1.0 - transparency[0][0], 1.0 - transparency[0][1], 1.0 - transparency[0][2])]
+
+        #print opacity
+        setValue(outShd + '.opacity', opacity)
+
+
+
+def convertLambert(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
+    convertAttr(inShd, 'diffuse', outNode, 'base')
+    convertAttr(inShd, 'color', outNode, 'baseColor')
+    setValue(outNode + '.emission', 1)
+    setValue(outNode + '.specular', 0)
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+    convertAttr(inShd, 'incandescence', outNode, 'emissionColor')
+    transparencyToOpacity(inShd, outNode)
     
+    # not converting translucence since we don't have a direct equivalent
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode
+
+def convertBlinn(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
+    convertAttr(inShd, 'diffuse', outNode, 'base')
+    convertAttr(inShd, 'color', outNode, 'baseColor')
+    convertAttr(inShd, 'specularRollOff', outNode, 'specular')
+    convertAttr(inShd, 'specularColor', outNode, 'specularColor')
+    # not converting translucence as there no equivalent
+
+    convertAttr(inShd, 'reflectivity', outNode, 'coat')
+    convertAttr(inShd, 'reflectedColor', outNode, 'coatColor')
+    cmds.setAttr(outNode + '.coat_roughness', 0)
+
+    convertAttr(inShd, 'eccentricity', outNode, 'specularRoughness')
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+    setValue(outNode + '.emission', 1)
     
-    #print 'creating '+ aiName
-    outNode = cmds.shadingNode('aiStandardSurface', name=aiName, asShader=True)
+    convertAttr(inShd, 'incandescence', outNode, 'emissionColor')
+    
+    transparencyToOpacity(inShd, outNode)
+    
+    # not converting translucence since we don't have a direct equivalent
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode
+
+def convertPhong(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
+    convertAttr(inShd, 'diffuse', outNode, 'base')
+    convertAttr(inShd, 'color', outNode, 'baseColor')
+    cosinePower = cmds.getAttr(inShd + '.cosinePower')
+    roughness = math.sqrt(1.0 / (0.454 * cosinePower + 3.357))
+    setValue(outNode + '.specularRoughness', roughness)
+    setValue(outNode + '.specular', 1.0)
+
+    convertAttr(inShd, 'specularColor', outNode, 'specularColor')
+    # not converting translucence as there no equivalent
+
+    convertAttr(inShd, 'reflectivity', outNode, 'coat')
+    convertAttr(inShd, 'reflectedColor', outNode, 'coatColor')
+    cmds.setAttr(outNode + '.coat_roughness', 0)
+
+    convertAttr(inShd, 'eccentricity', outNode, 'specularRoughness')
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+    setValue(outNode + '.emission', 1)
+    convertAttr(inShd, 'incandescence', outNode, 'emissionColor')
+    
+    transparencyToOpacity(inShd, outNode)
+    
+    # not converting translucence since we don't have a direct equivalent
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode
+
+def convertAlSurface(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
     convertAttr(inShd, 'diffuseStrength', outNode, 'base')
     convertAttr(inShd, 'diffuseColor', outNode, 'baseColor')
 
@@ -281,12 +388,7 @@ def convertAlSurface(inShd):
 
 
 def convertAlHair(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
-    else:
-        aiName = inShd + '_new'    
-    
-    outNode = cmds.shadingNode('aiStandardHair', name=aiName, asShader=True)
+    outNode = createArnoldShader(inShd, 'aiStandardHair')
 
     convertAttr(inShd, 'dyeColor', outNode, 'baseColor')
     convertAttr(inShd, 'melanin', outNode, 'melanin')
@@ -299,12 +401,7 @@ def convertAlHair(inShd):
     return outNode
 
 def convertAlRemapColor(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
-    else:
-        aiName = inShd + '_new'    
-    
-    outNode = cmds.shadingNode('aiColorCorrect', name=aiName, asShader=True)
+    outNode = createArnoldShader(inShd, 'aiColorCorrect')
 
     convertAttr(inShd, 'input', outNode, 'input')
     convertAttr(inShd, 'gamma', outNode, 'gamma')
@@ -324,12 +421,7 @@ def convertAlRemapColor(inShd):
     return outNode
 
 def convertAlRemapFloat(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
-    else:
-        aiName = inShd + '_new'    
-    
-    outNode = cmds.shadingNode('aiRange', name=aiName, asShader=True)
+    outNode = createArnoldShader(inShd, 'aiRange')
 
     convertAttr(inShd, 'input', outNode, 'inputR') 
     #connect inputG and inputB to inputR since the input parameter is float but output is RGB
@@ -345,12 +437,7 @@ def convertAlRemapFloat(inShd):
     return outNode
 
 def convertAlFractal(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
-    else:
-        aiName = inShd + '_new'    
-    
-    outNode = cmds.shadingNode('aiNoise', name=aiName, asShader=True)
+    outNode = createArnoldShader(inShd, 'aiNoise')
 
     convertAttr(inShd, 'mode', outNode, 'mode') 
     convertAttr(inShd, 'space', outNode, 'space') 
@@ -373,12 +460,7 @@ def convertAlFractal(inShd):
     return outNode
 
 def convertAlFlakes(inShd):
-    if ':' in inShd:
-        aiName = inShd.rsplit(':')[-1] + '_new'
-    else:
-        aiName = inShd + '_new'    
-    
-    outNode = cmds.shadingNode('aiFlakes', name=aiName, asShader=True)
+    outNode = createArnoldShader(inShd, 'aiFlakes')
 
     convertAttr(inShd, 'space', outNode, 'outputSpace') 
     convertAttr(inShd, 'size', outNode, 'scale') 
@@ -458,6 +540,145 @@ def convertAlLayerColor(inShd):
     
     print "Converted %s to aiLayerRgba" % inShd
     return outNode
+
+def convertVRayMtl(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
+    convertAttr(inShd, 'diffuseColorAmount', outNode, 'base')
+    convertAttr(inShd, 'color', outNode, 'baseColor')
+    convertAttr(inShd, 'roughnessAmount', outNode, 'diffuseRoughness')
+    convertAttr(inShd, 'reflectionColorAmount', outNode, 'specular')
+    convertAttr(inShd, 'reflectionColor', outNode, 'specularColor')
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+
+    convertAttr(inShd, 'Kt', outNode, 'transmission')
+    convertAttr(inShd, 'KtColor', outNode, 'transmissionColor') # not multiplying by transmittance
+    convertAttr(inShd, 'normalCamera', outNode, 'normalCamera')
+    convertAttr(inShd, 'opacityMap', outNode, 'opacity')
+    convertAttr(inShd, 'refractionIOR', outNode, 'specular_IOR')
+    
+    convertAttr(inShd, 'refractionColorAmount', outNode, 'transmission')
+    convertAttr(inShd, 'refractionColor', outNode, 'transmissionColor')
+    
+    # not converting translucence since we don't have a direct equivalent
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode
+
+def convertMiaMaterialX(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+    convertAttr(inShd, 'diffuse_weight', outNode, 'base')
+    convertAttr(inShd, 'diffuse', outNode, 'baseColor')
+    convertAttr(inShd, 'diffuse_roughness', outNode, 'diffuseRoughness')
+
+    convertAttr(inShd, 'reflectivity', outNode, 'specular')
+    convertAttr(inShd, 'refl_color', outNode, 'specularColor')
+    
+    convertAttr(inShd, 'refr_ior', outNode, 'specular_IOR')
+    convertAttr(inShd, 'refr_color', outNode, 'transmissionColor')
+    convertAttr(inShd, 'transparency', outNode, 'transmission')
+    convertAttr(inShd, 'cutout_opacity', outNode, 'transmission')
+    convertAttr(inShd, 'anisotropy_rotation', outNode, 'specularRotation')
+###########
+
+    val1 = cmds.getAttr(inShd + '.refl_gloss')
+    setValue(outNode + '.specularRoughness', 1.0 - val1)
+    if cmds.getAttr(inShd + '.refl_hl_only'):
+        setValue(outNode + '.indirectSpecular', 0)
+
+    if cmds.getAttr(inShd + '.refl_is_metal'):
+        # need to multiply reflection color by diffuse Color
+        if not cmds.listConnections( inShd + '.refl_is_metal', d=False, s=True, plugs=True ):
+            #in case reflection Color has been used to attenuate reflections 
+            # multiply reflectivity by one of its channels
+            reflColor = cmds.getAttr(inShd + '.refl_color')
+            reflIntensity = cmds.getAttr(inShd + '.reflectivity')
+            reflIntensity *= reflColor[0]
+            cmds.setAttr(outNode+'.specular', reflIntensity)
+
+        # assign specularColor to diffuse value
+        if not setupConnections(inShd, 'diffuse', outNode, 'specularColor'):
+            val = cmds.getAttr(inShd + '.diffuse')
+            setValue(outNode + '.specularColor', val)
+            
+        
+    val2 = cmds.getAttr(inShd + '.refr_gloss')
+
+    setValue(outNode + '.transmissionExtraRoughness',val1 - val2)
+
+    connOverallBump = cmds.listConnections( inShd + '.overall_bump', d=False, s=True, plugs=True )
+    if connOverallBump:
+        cmds.connectAttr(connOverallBump[0], outNode + '.normalCamera', force=True)
+    else:
+        connStandardBump = cmds.listConnections( inShd + '.standard_bump', d=False, s=True, plugs=True )
+        if connStandardBump:
+            cmds.connectAttr(connStandardBump[0], outNode + '.normalCamera', force=True)
+
+    anisotropy = cmds.getAttr(inShd + '.anisotropy')
+    if anisotropy > 1:
+        #lerp from 1:10 to 0.5:1
+        anisotropy = ((anisotropy - 1.0) * 0.5 / 9.0) + 0.5
+        if anisotropy > 1:
+            anisotropy = 1
+    elif anisotropy < 1:
+        #lerp from 0:1 to 0:0.5
+        anisotropy = anisotropy * 0.5
+
+    setValue(outNode+'.specularAnisotropy', anisotropy)
+
+    '''    
+    ior_fresnel =  cmds.getAttr(inShd + '.brdf_fresnel')
+
+    reflectivity = 1.0
+    connReflectivity = cmds.listConnections( outNode + '.Ks', d=False, s=True, plugs=True )
+    if not connReflectivity:
+        reflectivity = cmds.getAttr(outNode+'.Ks')
+
+    if ior_fresnel:
+        # compute from IOR
+        # using Schlick's approximation
+        ior = cmds.getAttr(inShd + '.refr_ior')
+        frontRefl = (ior - 1.0) / (ior + 1.0)
+        frontRefl *= frontRefl
+        setValue(outNode +'.Ksn', frontRefl * reflectivity)
+    else:
+        # ignoring brdf_90_degree_refl as it's usually left to 1
+        setValue(outNode +'.Ksn', cmds.getAttr(inShd + '.brdf_0_degree_refl') * reflectivity)
+
+    # copy translucency value only if refr_translucency is enabled
+    if cmds.getAttr(inShd + '.refr_translucency'):
+        setValue(outShd +'.Kb', cmds.getAttr(inShd + '.refr_trans_weight'))     
+
+    '''
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode
+
+def convertDielectricMaterial(inShd):
+    outNode = createArnoldShader(inShd, 'aiStandardSurface')
+
+    convertAttr(inShd, 'ior', outNode, 'specular_IOR')
+    convertAttr(inShd, 'ior', outNode, 'coat_IOR')
+
+    cosinePower = cmds.getAttr(inShd + '.phong_coef')
+    
+    if cosinePower > 0.0:
+        roughness = math.sqrt(1.0 / (0.454 * cosinePower + 3.357))
+        setValue(outNode + '.specularRoughness', roughness)
+        setValue(outNode + '.specular', 1.0)
+        #this "fake spec"  is only for direct illum
+        setValue(outNode + '.indirectSpecular', 0)
+    else:
+        setValue(outNode + '.specular', 0.0)
+
+    setValue(outNode + '.base', 0.0)
+    setValue(outNode + '.coat', 1.0)
+
+    setValue(outNode + '.coatRoughness', 0.0)
+    setValue(outNode + '.transmission', 1.0)
+
+    print "Converted %s to aiStandardSurface" % inShd
+    return outNode    
+    
+
 
 def anisotropyRemap(val):
     return 2 * abs(val -0.5)
