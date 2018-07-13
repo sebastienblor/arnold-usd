@@ -98,6 +98,8 @@ def doMapping(inShd):
 
 def assignToNewShader(oldShd, newShd):
 
+    output_conns = cmds.listConnections( oldShd, d=True, s=False, c=True, plugs=True )
+
     if ':' in oldShd:
         aiName = oldShd.rsplit(':')[-1] + '_old'
     else:
@@ -112,54 +114,23 @@ def assignToNewShader(oldShd, newShd):
         newShd = oldShd
         oldShd = aiName
     except RuntimeError, err:
-        replaceCurrentShader = False
-        # couldn't rename the existing shader (might be read-only),
-        # let's keep the current names : _new for the new one, and leave the existing name for the old
-        pass
-        
+        return
 
+    if output_conns:
+        lenConn = len(output_conns)
+        for i in range(0, lenConn, 2):
 
-    """
-    Creates a shading group for the new shader, and assigns members of the old shader to it
-    
-    @param oldShd: Old shader to upgrade
-    @type oldShd: String
-    @param newShd: New shader
-    @type newShd: String
-    """
-    
-    shdGroups = None
-    
-    if cmds.attributeQuery('outColor', node=oldShd, exists=True):
-        shdGroups = cmds.listConnections(oldShd + '.outColor', plugs=True)
+            connSplit = output_conns[i].split('.')
+            if len(connSplit) > 1:
+                if not cmds.attributeQuery(connSplit[1], node=connSplit[0], exists=True):
+                    if connSplit[1] == 'outValue':
+                        output_conns[i] = connSplit[0] + '.outColorR' 
 
-    if shdGroups is None and cmds.attributeQuery('outValue', node=oldShd, exists=True):
-        shdGroups = cmds.listConnections(oldShd + '.outValue', plugs=True)
-
-    if shdGroups is None and cmds.attributeQuery('outTransparency', node=oldShd, exists=True):
-        shdGroups = cmds.listConnections(oldShd + '.outTransparency', plugs=True)
-
-    if shdGroups is None and cmds.attributeQuery('out', node=oldShd, exists=True):
-        shdGroups = cmds.listConnections(oldShd + '.out', plugs=True)
-    
-    retVal = False
-    
-    #print 'shdGroup:', shdGroup
-    if shdGroups != None:    
-        for shdGroup in  shdGroups:
-
-            try:
-                cmds.connectAttr(newShd + '.outColor', shdGroup, force=True)
-            except RuntimeError, err:
-                cmds.connectAttr(newShd + '.outColorR', shdGroup, force=True)
-            
-            retVal =True
-
+            cmds.connectAttr(output_conns[i], output_conns[i+1], force=True)
 
     if replaceCurrentShader:
         cmds.delete(oldShd)        
-    return retVal
-
+    
 
 def setupConnections(inShd, fromAttr, outShd, toAttr):
     conns = cmds.listConnections( inShd + '.' + fromAttr, d=False, s=True, plugs=True )
@@ -701,8 +672,6 @@ def convertDielectricMaterial(inShd):
 
     print "Converted %s to aiStandardSurface" % inShd
     return outNode    
-    
-
 
 def anisotropyRemap(val):
     return 2 * abs(val -0.5)
