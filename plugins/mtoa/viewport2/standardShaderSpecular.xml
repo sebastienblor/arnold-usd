@@ -99,13 +99,6 @@ float3 standardShaderSpecular(
     float rx2 = SQR(rx);
     
     float3 SL = normalize(lightingData.SL);
-    
-    
-    float lval = roughness/lerp(2.0, 0.5, sqrt(roughness));
-    SL.x = lerp(SL.x, lightingData.L.x, lval);
-    SL.y = lerp(SL.y, lightingData.L.y, lval);
-    SL.z = lerp(SL.z, lightingData.L.z, lval);
-    SL = normalize(SL);
         
     float NL = saturate(dot(lightingData.N, lightingData.L)); 
     if (NL == 0.0f)
