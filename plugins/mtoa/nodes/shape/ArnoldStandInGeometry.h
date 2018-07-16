@@ -28,6 +28,7 @@ protected:
    AtArray* p_matrices;
    bool m_visible;
    bool m_invalid;
+   bool m_selected;
 
    // simple polygons, without normals
    virtual void DrawPolygons() const = 0;
@@ -53,6 +54,9 @@ public:
    bool Visible() const;
    bool Invalid() const;
 
+   void SetSelected(bool b) {m_selected = b;}
+   bool IsSelected() const {return m_selected;}
+   
    // get the raw points
    virtual size_t PointCount() const { return 0; }
    virtual void GetPoints(float* points, const AtMatrix* matrix = NULL) const {}

@@ -6,6 +6,10 @@ import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import arnold as ai
+
+CACHE_ATTR = 'ai_asscache'
+
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
@@ -60,6 +64,141 @@ def ArnoldStandInUpdateUI(attrName) :
     
         
 class AEaiStandInTemplate(ShaderAETemplate):
+
+    def updateAssFile(self):
+        # clear the cache
+        self.assItems = []
+        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
+
+        cmds.treeView(self.assInfoPath, edit=True, visible=False)
+        cmds.button(self.inspectAssPath, edit=True, visible=True)
+        cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
+
+    def selectElement(self, itemName, itemValue):
+        if itemValue == 0:
+            if itemName in self.selectedItems:
+                self.selectedItems.remove(itemName)
+        else:
+            self.selectedItems.append(itemName)
+
+        attrVal = ''
+        for sel in self.selectedItems:
+            if len(attrVal) > 0:
+                attrVal = ',' + attrVal
+            attrVal = attrVal + sel
+
+        selAttr = self.nodeName + ".selectedItems"
+        cmds.setAttr(selAttr, attrVal, type='string')
+
+        return True
+
+    def fileInfoNew(self, nodeAttr) :
+        cmds.rowLayout(nc=2)
+        cmds.text(label='')
+        self.inspectAssPath = cmds.button(align="center", label='Inspect Arnold File', command=lambda *args: self.inspectFile())
+        cmds.setParent('..') # rowLayout
+        self.assInfoPath = cmds.treeView(height=300, numberOfButtons=0, allowReparenting=False, selectCommand=self.selectElement)
+        self.fileInfoReplace(nodeAttr)
+
+        fileAttr = self.nodeName + ".dso"
+        cmds.scriptJob(attributeChange=[fileAttr,self.updateAssFile],
+                     replacePrevious=True, parent=self.inspectAssPath)
+
+    def fileInfoReplace(self, nodeAttr) :
+        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
+            # make the attr
+            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
+        self.populateItems()
+        if len(self.assItems):
+            self.displayTree()
+        else:
+            cmds.treeView(self.assInfoPath, edit=True, visible=False)
+            cmds.button(self.inspectAssPath, edit=True, visible=True)
+            cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
+
+    def fileInfoReplace(self, nodeAttr) :
+        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
+            # make the attr
+            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
+        self.populateItems()
+        if len(self.assItems):
+            self.displayTree()
+        else:
+            cmds.treeView(self.assInfoPath, edit=True, visible=False)
+            cmds.button(self.inspectAssPath, edit=True, visible=True)
+            cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
+
+    def displayTree(self):
+        cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
+        cmds.treeView(self.assInfoPath, edit=True, visible=True)
+        cmds.button(self.inspectAssPath, edit=True, visible=False)
+        
+        # First the Entry type names
+        for i in self.assItems:
+            nodeType = i[1]
+            entryType = i[2]
+            if not cmds.treeView(self.assInfoPath, query=True, itemExists=entryType):
+                cmds.treeView(self.assInfoPath, edit=True, addItem=(entryType, ''))
+            if not cmds.treeView(self.assInfoPath, query=True, itemExists=nodeType):
+                cmds.treeView(self.assInfoPath, edit=True, addItem=(nodeType, entryType))
+
+            cmds.treeView(self.assInfoPath, edit=True, addItem=(i[0],nodeType))
+        
+    def inspectFile(self):
+        filenameAttr = self.nodeName + '.dso'
+        filename = cmds.getAttr(filenameAttr)
+
+
+        if not os.path.exists(filename):
+            return
+
+        '''
+        iArchive = IArchive(str(filename))
+        self.visitObject( iArchive.getTop() )
+
+        self.assItems.append([path, name, parent, visibility])
+        '''
+        self.assItems = []
+
+        universeCreated = False
+        if not ai.AiUniverseIsActive():
+            universeCreated = True
+            ai.AiBegin()
+
+        universe = ai.AiUniverse()
+        ai.AiASSLoad(filename, ai.AI_NODE_ALL, universe)
+
+        iter = ai.AiUniverseGetNodeIterator(ai.AI_NODE_ALL, universe);         
+        
+        while not ai.AiNodeIteratorFinished(iter):
+            node = ai.AiNodeIteratorGetNext(iter)
+            nodeName = ai.AiNodeGetName(node)
+            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options':
+                continue
+            
+            nodeEntry = ai.AiNodeGetNodeEntry(node)
+            entryName = ai.AiNodeEntryGetName(nodeEntry)
+            entryType = ai.AiNodeEntryGetTypeName(nodeEntry)
+            entryType = entryType.upper() + 'S'
+
+            self.assItems.append([nodeName, entryName, entryType])
+
+        ai.AiNodeIteratorDestroy(iter)
+        ai.AiUniverseDestroy(universe)
+
+        if universeCreated:
+            ai.AiEnd()
+
+        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), len(self.assItems), *[','.join(a) for a in self.assItems], type="stringArray")
+        self.displayTree()
+
+    def populateItems(self):
+        self.assItems = []
+        self.selectedItems = []
+        # get the items in the cache
+        cache_str_list = cmds.getAttr('{}.{}'.format(self.nodeName, CACHE_ATTR)) or []
+        for s in cache_str_list:
+            self.assItems.append(s.split(','))
 
     # when "Use File Sequence" is toggled we need to change the Filename
     # -> enabling it should replace the numeric part by ###
@@ -124,6 +263,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.textField('standInDsoPath', edit=True, text=mPath)
 
     def setup(self):
+        self.assInfoPath = ''
+        self.inspectAssPath = ''
+        self.assItems = {}
+
         self.beginScrollLayout()
         
         self.beginLayout('File/Frame', collapse=False)        
@@ -139,6 +282,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('aiNamespace', label='Namespace')
         self.endLayout()
         self.beginNoOptimize();
+
+        self.beginLayout("File Contents", collapse=False)
+        self.addCustom('aiInfo', self.fileInfoNew, self.fileInfoReplace)
+        self.endLayout()
 
         self.beginLayout('Render Stats', collapse=True)
 
