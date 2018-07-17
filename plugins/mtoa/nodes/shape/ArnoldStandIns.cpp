@@ -57,7 +57,6 @@ MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
 MObject CArnoldStandInShape::s_overrideNodes;
-MObject CArnoldStandInShape::s_selectedItems;
 //MObject CArnoldStandInShape::s_deferStandinLoad;
 //MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
@@ -282,14 +281,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    bool AiUniverseCreated = false;
    if (assfile != "")
    {  
-      MPlug selPlug(thisMObject(), s_selectedItems);
-      MString selectedItems;
-      selPlug.getValue(selectedItems);
-      MStringArray selectedItemsList;
-      
-      if (selectedItems.length() > 0)
-         selectedItems.split(',', selectedItemsList);
-      
       // FIXME shouldn't we rather call ArnoldUniverseOnlyBegin ?
       AiUniverseCreated = ArnoldUniverseBegin();
 
@@ -425,7 +416,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                continue;
             if (node)
             {  
-               MString nodeName = MString(AiNodeGetName(node));
                CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, polymesh_str))
                   g = new CArnoldPolymeshGeometry(node);
@@ -444,17 +434,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
                if (g->Visible())
                   geom->bbox.expand(g->GetBBox());  
-
-               for (unsigned int s = 0; s < selectedItemsList.length(); ++s)
-               {
-                  if (selectedItemsList[s] == nodeName)
-                  {
-                     g->SetSelected(true);
-                  }
-
-
-               }
-               geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+               geom->m_geometryList.insert(std::make_pair(node, g));
             }
          }
 
@@ -489,8 +469,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   continue;
                if (AiNodeIs(node, polymesh_str) || AiNodeIs(node, points_str) || AiNodeIs(node, procedural_str))
                {
-                  std::string nodeName(AiNodeGetName(node));
-                  CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(nodeName);
+                  CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
                   if (iter != geom->m_geometryList.end())
                   {
                      CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(iter->second, total_matrix, inherit_xform);
@@ -968,10 +947,6 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_namespaceName);
 
-   s_selectedItems = tAttr.create("selectedItems", "selected_items", MFnData::kString);
-   nAttr.setHidden(true);
-   nAttr.setStorable(false);
-   addAttribute(s_selectedItems);
 
    // atributes that are used only by translation
    CAttrData data;
@@ -1376,40 +1351,6 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    return &fGeometry;
 }
 
-void CArnoldStandInShape::UpdateSelectedItems()
-{
-   MPlug selPlug(thisMObject(), s_selectedItems);
-   MString selectedItems;
-   selPlug.getValue(selectedItems);
-   MStringArray selectedItemsList;
-   
-   if (selectedItems.length() > 0)
-      selectedItems.split(',', selectedItemsList);
-   
-   CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
-   CArnoldStandInGeom* geom = nonConstThis->geometry();
-   for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin(); it != geom->m_geometryList.end(); ++it)
-   {
-      CArnoldStandInGeometry* g = it->second;
-      MString nodeName(it->first.c_str());
-
-      bool selected = false;
-
-      if (g)
-      {
-         for (unsigned int i = 0; i < selectedItemsList.length(); ++i)
-         {
-            if (selectedItemsList[i] == nodeName)
-            {
-               selected = true;
-               break;
-            }
-         }
-         g->SetSelected(selected);
-      }
-      
-   }
-}
 // FIXME : please remove all these hacks regarding the "override" attributes 
 // once we no longer case about pre-2.0.2 compatibility
 void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
@@ -1421,13 +1362,6 @@ void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg
 
    MFnAttribute fnAttr(plug.attribute());
    MString attrName = fnAttr.name();
-
-   if (plug == s_selectedItems)
-   {
-      node->UpdateSelectedItems();
-   }
-
-
    static MString overridePrefix("override");
    if (overridePrefix != attrName.substringW(0, 7))
       return;
