@@ -204,6 +204,12 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addControl("coatNormal", label="Normal", annotation="Coat Normal")
         self.endLayout()
 
+        self.beginLayout("Sheen", collapse=True)
+        self.addControl("sheen",  label="Weight", annotation="Sheen Weight")
+        self.addControl("sheen_color",  label="Color", annotation="Sheen Color")
+        self.addControl("sheen_roughness",  label="Roughness", annotation="Sheen Roughness")
+        self.endLayout()
+
         self.beginLayout("Emission", collapse=True)
         self.addControl("emission",  label="Weight", annotation="Emission Weight")
         self.addControl("emissionColor", label="Color", annotation="Emission Color")

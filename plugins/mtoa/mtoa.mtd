@@ -1314,6 +1314,12 @@
         maya.hide       BOOL    true
         min             FLOAT   0.0
         max             FLOAT   1.0
+    [attr sheen]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr sheen_roughness]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
     [attr emission]
         min             FLOAT   0.0
         softmax         FLOAT   1.0
