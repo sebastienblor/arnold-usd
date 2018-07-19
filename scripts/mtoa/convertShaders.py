@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes', 'alLayer', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlake', 'alLayer', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -75,8 +75,8 @@ def doMapping(inShd):
         ret = convertAlRemapFloat(inShd)
     elif 'alFractal' in shaderType:
         ret = convertAlFractal(inShd)
-    elif 'alFlakes' in shaderType:
-        ret = convertAlFlakes(inShd)
+    elif 'alFlake' in shaderType:
+        ret = convertAlFlake(inShd)
     elif 'alLayer' in shaderType:
         ret = convertAlLayer(inShd)
     elif 'lambert' in shaderType:
@@ -127,6 +127,12 @@ def assignToNewShader(oldShd, newShd):
                 if not cmds.attributeQuery(connSplit[1], node=connSplit[0], exists=True):
                     if connSplit[1] == 'outValue':
                         output_conns[i] = connSplit[0] + '.outColorR' 
+                    elif connSplit[1] == 'outValueX':
+                        output_conns[i] = connSplit[0] + '.outColorR'
+                    elif connSplit[1] == 'outValueY':
+                        output_conns[i] = connSplit[0] + '.outColorG'
+                    elif connSplit[1] == 'outValueZ':
+                        output_conns[i] = connSplit[0] + '.outColorB'
 
             cmds.connectAttr(output_conns[i], output_conns[i+1], force=True)
 
@@ -454,15 +460,11 @@ def convertAlFractal(inShd):
     print "Converted %s to aiNoise" % inShd
     return outNode
 
-def convertAlFlakes(inShd):
+def convertAlFlake(inShd):
     outNode = createArnoldShader(inShd, 'aiFlakes')
 
     convertAttr(inShd, 'space', outNode, 'outputSpace') 
     convertAttr(inShd, 'size', outNode, 'scale') 
-    scale = cmds.getAttr('{}.scale'.format(outNode))
-    if scale > 0:
-        cmds.setAttr('{}.scale'.format(outNode), 1.0 / scale)
-
     convertAttr(inShd, 'amount', outNode, 'density') 
 
     print "Converted %s to aiFlakes" % inShd
