@@ -545,6 +545,8 @@ def convertAlLayerColor(inShd):
     if closureInputs:
         print "Converted %s to aiLayerShader" % inShd
         return outNode
+
+    convertAttr(inShd, 'clampResult', outNode, 'clamp')
     
     enum_list = cmds.attributeQuery('operation1', node=outNode,
                                     listEnum=True)[0].split(':')
