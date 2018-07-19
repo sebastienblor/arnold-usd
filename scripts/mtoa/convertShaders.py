@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes', 'alLayer', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -77,6 +77,8 @@ def doMapping(inShd):
         ret = convertAlFractal(inShd)
     elif 'alFlakes' in shaderType:
         ret = convertAlFlakes(inShd)
+    elif 'alLayer' in shaderType:
+        ret = convertAlLayer(inShd)
     elif 'lambert' in shaderType:
         ret = convertLambert(inShd)
     elif 'blinn' in shaderType:
@@ -399,7 +401,7 @@ def convertAlRemapColor(inShd):
     convertAttr(inShd, 'input', outNode, 'input')
     convertAttr(inShd, 'gamma', outNode, 'gamma')
     convertAttr(inShd, 'saturation', outNode, 'saturation')
-    convertAttr(inShd, 'hueShift', outNode, 'hueOffset')
+    convertAttr(inShd, 'hueOffset', outNode, 'hueShift')
     convertAttr(inShd, 'contrast', outNode, 'contrast')
     convertAttr(inShd, 'contrastPivot', outNode, 'contrastPivot')
     convertAttr(inShd, 'gain', outNode, 'multiplyR')
@@ -500,8 +502,27 @@ def convertAlLayerColor(inShd):
         aiName = inShd.rsplit(':')[-1] + '_new'
     else:
         aiName = inShd + '_new'    
+
+    closureInputs = False
     
-    outNode = cmds.shadingNode('aiLayerRgba', name=aiName, asShader=True)
+    # check if one of the inputs is a closure
+    for ind in range(1, 9):
+        if closureInputs:
+            break            
+        conns = cmds.listConnections('{}.layer{}'.format(inShd, ind), d=False, s=True, plugs=False ) or []
+        
+        closureMaterials = ['aiStandard', 'aiHair', 'aiStandardSurface', 'aiStandardHair', 'aiLayerShader', 'alSurface', 'alHair', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material' ]
+        for conn in conns:
+            # get type of this node
+            shaderType = cmds.objectType(conn)
+            if shaderType in closureMaterials:
+                closureInputs = True
+                break
+
+    if closureInputs:
+        outNode = cmds.shadingNode('aiLayerShader', name=aiName, asShader=True)
+    else:
+        outNode = cmds.shadingNode('aiLayerRgba', name=aiName, asShader=True)
 
     convertAttr(inShd, 'layer1', outNode, 'input1')
     convertAttr(inShd, 'layer2', outNode, 'input2')
@@ -521,6 +542,10 @@ def convertAlLayerColor(inShd):
     convertAttr(inShd, 'layer7a', outNode, 'mix7')
     convertAttr(inShd, 'layer8a', outNode, 'mix8')
 
+    if closureInputs:
+        print "Converted %s to aiLayerShader" % inShd
+        return outNode
+    
     enum_list = cmds.attributeQuery('operation1', node=outNode,
                                     listEnum=True)[0].split(':')
 
@@ -534,6 +559,22 @@ def convertAlLayerColor(inShd):
         cmds.setAttr(enableAttrName, 1)
     
     print "Converted %s to aiLayerRgba" % inShd
+    return outNode
+
+def convertAlLayer(inShd):
+    
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+
+    outNode = cmds.shadingNode('aiMixShader', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'layer1', outNode, 'shader1')
+    convertAttr(inShd, 'layer2', outNode, 'shader2')
+    convertAttr(inShd, 'mix', outNode, 'mix')
+
+    print "Converted %s to aiMixShader" % inShd
     return outNode
 
 def convertVRayMtl(inShd):
