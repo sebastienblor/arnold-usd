@@ -883,8 +883,8 @@ void CCheckerTranslator::Export(AtNode* shader)
       }
    }
   
-   ProcessParameter(shader, "color1", AI_TYPE_RGB);
-   ProcessParameter(shader, "color2", AI_TYPE_RGB);
+   ProcessParameter(shader, "color1", AI_TYPE_RGB, "color2");
+   ProcessParameter(shader, "color2", AI_TYPE_RGB, "color1");
    ProcessParameter(shader, "contrast", AI_TYPE_FLOAT);
    ProcessParameter(shader, "filter_strength", AI_TYPE_FLOAT, "filter");
    ProcessParameter(shader, "filter_offset", AI_TYPE_FLOAT, "filterOffset");
