@@ -101,6 +101,9 @@ def doMapping(inShd):
 def assignToNewShader(oldShd, newShd):
 
     output_conns = cmds.listConnections( oldShd, d=True, s=False, c=True, plugs=True )
+    output_types = []
+    for output_conn in output_conns:
+        output_types.append(cmds.getAttr(output_conn, type=True))
 
     if ':' in oldShd:
         aiName = oldShd.rsplit(':')[-1] + '_old'
@@ -121,12 +124,16 @@ def assignToNewShader(oldShd, newShd):
     if output_conns:
         lenConn = len(output_conns)
         for i in range(0, lenConn, 2):
-
             connSplit = output_conns[i].split('.')
             if len(connSplit) > 1:
+
                 if not cmds.attributeQuery(connSplit[1], node=connSplit[0], exists=True):
+                    
                     if connSplit[1] == 'outValue':
-                        output_conns[i] = connSplit[0] + '.outColorR' 
+                        if output_types[i] == 'float':
+                            output_conns[i] = connSplit[0] + '.outColorR' 
+                        else:
+                            output_conns[i] = connSplit[0] + '.outColor' 
                     elif connSplit[1] == 'outValueX':
                         output_conns[i] = connSplit[0] + '.outColorR'
                     elif connSplit[1] == 'outValueY':
