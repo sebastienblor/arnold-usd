@@ -880,6 +880,10 @@ namespace // <anonymous>
          shaders->RegisterTranslator("checker",
                                        "",
                                        CCheckerTranslator::creator);
+         shaders->RegisterTranslator("clamp",
+                                       "",
+                                       CMayaClampTranslator::creator);
+
          shaders->RegisterTranslator("aiToon",
                                        "",
                                        CToonTranslator::creator);

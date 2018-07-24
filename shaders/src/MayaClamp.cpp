@@ -20,11 +20,10 @@ node_parameters
    AiParameterRGB("max", 1, 1, 1);
    AiParameterRGB("input", 0, 0, 0);
 
-   AiMetaDataSetBool(nentry, "min", "always_linear", true);
-   AiMetaDataSetBool(nentry, "max", "always_linear", true);
-
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "clamp");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434c33);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "clamp");
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434c33);
 }
 
 node_initialize

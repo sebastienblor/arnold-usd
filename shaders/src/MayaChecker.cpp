@@ -35,9 +35,10 @@ node_parameters
    AiParameterFlt("filter", 1.0f);
    AiParameterFlt("filterOffset", 0.0f);
    
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "checker");
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "checker");
    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544348);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544348);
 }
 
 node_initialize
