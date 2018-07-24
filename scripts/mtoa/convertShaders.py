@@ -446,6 +446,19 @@ def convertAlRemapFloat(inShd):
     convertAttr(inShd, 'RMPbias', outNode, 'bias')
     convertAttr(inShd, 'RMPgain', outNode, 'gain')
 
+    if cmds.getAttr('{}.RMPclampEnable'.format(inShd)):
+        outClamp = cmds.shadingNode('aiClamp', name='{}_clamp'.format(inShd), asShader=True)
+        convertAttr(inShd, 'RMPclampMin', outClamp, 'min')
+        convertAttr(inShd, 'RMPclampMax', outClamp, 'max')
+        cmds.connectAttr('{}.outColor'.format(outNode), '{}.input'.format(outClamp), force=True)
+        outNode = outClamp
+        if cmds.getAttr('{}.RMPthreshold'.format(inShd)):
+            outThreshold = cmds.shadingNode('aiRange', name='{}_threshold'.format(inShd), asShader=True)
+            convertAttr(inShd, 'RMPclampMin', outThreshold, 'inputMin')
+            convertAttr(inShd, 'RMPclampMax', outThreshold, 'inputMax')
+            cmds.connectAttr('{}.outColor'.format(outNode), '{}.input'.format(outThreshold), force=True)
+            outNode = outThreshold
+
     print "Converted %s to aiRange" % inShd
     return outNode
 
@@ -825,11 +838,17 @@ def setValue(attr, value):
             
             if attrType in ['string']:
                 aType = 'string'
-                cmds.setAttr(attr, value, type=aType)
-                
+                try:
+                    cmds.setAttr(attr, value, type=aType)
+                except RuntimeError, err:
+                    pass
+                    
             elif attrType in ['long', 'short', 'float', 'byte', 'double', 'doubleAngle', 'doubleLinear', 'bool']:
                 aType = None
-                cmds.setAttr(attr, value)
+                try:
+                    cmds.setAttr(attr, value)
+                except RuntimeError, err:
+                    pass    
                 
             elif attrType in ['long2', 'short2', 'float2',  'double2', 'long3', 'short3', 'float3',  'double3']:
                 if isinstance(value, float):
@@ -837,8 +856,10 @@ def setValue(attr, value):
                         value = [(value,value)]
                     elif attrType in ['long3', 'short3', 'float3',  'double3']:
                         value = [(value, value, value)]
-                        
-                cmds.setAttr(attr, *value[0], type=attrType)
+                try:
+                    cmds.setAttr(attr, *value[0], type=attrType)
+                except RuntimeError, err:
+                    pass    
 
         if isLocked:
             # restore the lock on the attr
