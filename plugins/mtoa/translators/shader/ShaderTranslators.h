@@ -50,6 +50,7 @@ SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
 SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
 SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
+SHADER_TRANSLATOR(CMayaClampTranslator);
 SHADER_TRANSLATOR(CMultiplyDivideTranslator);
 SHADER_TRANSLATOR(CToonTranslator);
 

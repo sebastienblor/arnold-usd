@@ -1998,6 +1998,18 @@ AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
    return AddArnoldNode("mix_rgba");
 }
 
+void CMayaClampTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB);
+   AiNodeSetStr(shader, AtString("mode"), AtString("color"));
+   ProcessParameter(shader, "min_color", AI_TYPE_RGB, "min");
+   ProcessParameter(shader, "max_color", AI_TYPE_RGB, "max");
+}
+
+AtNode* CMayaClampTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("clamp");
+}
 
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {
