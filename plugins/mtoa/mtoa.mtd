@@ -2465,7 +2465,6 @@ desc STRING "Multiplies the curvature by this factor."
     maya.classification     STRING  "utility/math"
     maya.swatch             BOOL    true
 
-
 [node range]
     maya.id                 INT     0x00115D75
     maya.name               STRING  "aiRange"
@@ -2483,6 +2482,19 @@ desc STRING "Multiplies the curvature by this factor."
     [attr output_max]
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
+    [attr contrast]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr contrast_pivot]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr bias]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr gain]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+   
         
 [node passthrough]
     maya.id                 INT     0x00115D8D

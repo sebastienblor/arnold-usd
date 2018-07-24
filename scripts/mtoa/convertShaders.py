@@ -440,7 +440,12 @@ def convertAlRemapFloat(inShd):
     convertAttr(inShd, 'RMPinputMax', outNode, 'inputMax')
     convertAttr(inShd, 'RMPoutputMin', outNode, 'outputMin')
     convertAttr(inShd, 'RMPoutputMax', outNode, 'outputMax')
-    
+
+    convertAttr(inShd, 'RMPcontrast', outNode, 'contrast')
+    convertAttr(inShd, 'RMPcontrastPivot', outNode, 'contrastPivot')
+    convertAttr(inShd, 'RMPbias', outNode, 'bias')
+    convertAttr(inShd, 'RMPgain', outNode, 'gain')
+
     print "Converted %s to aiRange" % inShd
     return outNode
 

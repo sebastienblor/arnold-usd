@@ -11,9 +11,16 @@ class AEaiRangeTemplate(ShaderAETemplate):
         self.addControl('inputMax', label='Input Max')
         self.addControl('outputMin', label='Output Min')
         self.addControl('outputMax', label='Output Max')
-        self.addControl('smoothstep')        
+        self.addControl('smoothstep')
+        self.addSeparator()
+        self.addControl('contrast')
+        self.addControl('contrastPivot')
+        self.addSeparator()
+        self.addControl('bias')
+        self.addControl('gain')
         
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         
         self.addExtraControls()
         self.endScrollLayout()
+
