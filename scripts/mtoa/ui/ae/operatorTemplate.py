@@ -7,7 +7,7 @@ from mtoa.callbacks import *
 def changeOperator(node, nodeAttr):
     attrSize = melUtils.getAttrNumElements(*nodeAttr.split('.', 1))
     newItem = '{}[{}]'.format(nodeAttr, attrSize)
-    cmds.connectAttr("%s.message"%node, newItem, force=True)
+    cmds.connectAttr("%s.out"%node, newItem, force=True)
         
 def createOperator(opType, nodeAttr):
     opNode = cmds.createNode(opType)

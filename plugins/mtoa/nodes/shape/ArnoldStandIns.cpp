@@ -1021,6 +1021,12 @@ MStatus CArnoldStandInShape::initialize()
    data.shortName = "overrideMatte";
    s_attributes.MakeInputBoolean(data);
 
+   data.name = "operators";
+   data.shortName = "operators";
+   data.type = AI_TYPE_NODE;   
+   data.isArray = true;
+   s_attributes.MakeInput(data);
+
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    return MStatus::kSuccess;

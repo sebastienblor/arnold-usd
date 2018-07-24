@@ -1,5 +1,6 @@
 #include "ProceduralTranslator.h"
 #include "attributes/AttrHelper.h"
+#include "../NodeTranslatorImpl.h"
 #include "utils/time.h"
 
 #include <ai_msg.h>
@@ -295,7 +296,24 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
       AiNodeSetStr(procedural, "namespace", nsName.asChar());
    else
       AiNodeResetParameter(procedural, "namespace");
-   
+
+   MPlug ops = FindMayaPlug("operators");
+   unsigned nelems = ops.numElements();
+   MPlug elemPlug;
+   bool hasOperators = false;
+   for (unsigned int i = 0; i < nelems; ++i)
+   {
+      elemPlug = ops[i];       
+      
+      MPlugArray connections;
+      elemPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         if (ExportConnectedNode(connections[0]))
+            hasOperators = true;
+   }
+   if (hasOperators)
+      m_impl->m_session->AddProceduralOperators(m_impl->m_handle);
+
    return procedural;
 }
 
