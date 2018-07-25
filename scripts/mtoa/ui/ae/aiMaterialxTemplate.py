@@ -168,6 +168,8 @@ class AEaiMaterialxTemplate(OperatorAETemplate):
         self.addControl("assign_materials")
         self.addControl("assign_properties")
         self.addControl("assign_visibilities")
+        self.addSeparator()
+        self.addControl("search_path")
         self.endLayout()
         self.addOperatorInputs()
 
