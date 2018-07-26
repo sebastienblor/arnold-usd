@@ -359,7 +359,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          if (fGeometry.drawOverride != 3)
          {
-            AiASSLoad(assfile.asChar(), AI_NODE_ALL, universe);
+            AiASSLoad(universe, assfile.asChar(), AI_NODE_ALL);
             processRead = true;
          }
          else
@@ -373,7 +373,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       }
       else
       {         
-         procedural = AiNode("procedural", AtString(), NULL, universe);
+         procedural = AiNode(universe, "procedural", AtString(), NULL);
          AiNodeSetStr(procedural, "filename", assfile.asChar());
 //         AiNodeSetBool(procedural, "load_at_init", true);
 //         if (fGeometry.drawOverride == 3) 
@@ -423,7 +423,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          static const AtString box_str("box");
          static const AtString ginstance_str("ginstance");
 
-         AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE, universe);         
+         AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
          {
@@ -456,7 +456,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
          AiNodeIteratorDestroy(iter);
 
-         iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE, universe);
+         iter = AiUniverseGetNodeIterator(universe, AI_NODE_SHAPE);
 
          while (!AiNodeIteratorFinished(iter))
          {
