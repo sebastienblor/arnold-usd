@@ -95,14 +95,14 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       AiBegin();
    }  
    AtUniverse *universe = AiUniverse();
-   AiASSLoad(filename.asChar(), AI_NODE_ALL, universe);
+   AiASSLoad(universe, filename.asChar(), AI_NODE_ALL);
 
    int foundUnsupported = 0;
 
    MStringArray connectCmds;
 
    // First Loop to create the imported nodes
-   AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_ALL, universe);         
+   AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_ALL);
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode* node = AiNodeIteratorGetNext(iter);
