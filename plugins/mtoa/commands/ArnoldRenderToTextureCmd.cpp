@@ -611,7 +611,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
-            AiNodeSetPtr(camera, "polymesh", (void*) mesh);
+            AiNodeSetPtr(camera, "mesh", (void*) mesh);
             AiNodeSetStr(camera, "uv_set", uvSet.asChar());
             AiNodeSetFlt(camera, "u_offset", (float)(-u_offset -uStart));
             AiNodeSetFlt(camera, "v_offset", (float)(-v_offset -vStart));
@@ -656,7 +656,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MString filename = folderName + "/" + meshNameStr.c_str() + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
-         AiNodeSetPtr(camera, "polymesh", (void*)mesh);
+         AiNodeSetPtr(camera, "mesh", (void*)mesh);
          AiNodeSetFlt(camera, "offset", (float)normalOffset);
          // need to adjust the near plane to make sure it's not bigger than the offset
          AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
