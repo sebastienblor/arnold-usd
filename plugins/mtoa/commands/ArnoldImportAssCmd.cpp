@@ -1,5 +1,6 @@
 #include "utils/Version.h"
 #include "ArnoldImportAssCmd.h"
+#include "../common/UnorderedContainer.h"
 #include "scene/MayaScene.h"
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -74,6 +75,38 @@ MSyntax CArnoldImportAssCmd::newSyntax()
    return syntax;
 }
 
+static const char* s_outAttrs[] = {"outColor", "outValue", "out", "message", NULL};
+
+static bool ConnectMayaFromArnold(const MString &mayaFullAttr, AtNode *target, const unordered_map<std::string, std::string> &arnoldToMayaNames)
+{
+   if (target == NULL)
+      return false; // shit happens...
+   
+   std::string targetArnoldNode = AiNodeGetName(target);
+   unordered_map<std::string, std::string>::const_iterator it = arnoldToMayaNames.find(targetArnoldNode);
+   if (it == arnoldToMayaNames.end())
+      return false; // didn't find the connected node in my maya scene
+   
+   std::string targetMayaNode = it->second;
+
+   int ind = 0;
+   while(s_outAttrs[ind])
+   {
+      int exists = 0;
+      MString fullTargetAttr = MString(targetMayaNode.c_str()) + MString(".") + MString(s_outAttrs[ind]);
+      MString cmd = MString("objExists ") + fullTargetAttr;
+      MGlobal::executeCommand(cmd, exists);  
+      if (exists)
+      {
+         MString connectCmd = MString("connectAttr -f ") + fullTargetAttr + MString(" ") + mayaFullAttr;                     
+         MGlobal::executeCommand(connectCmd);
+         return true;
+      }
+      ind++;
+   }
+   return false;
+}
+
 MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -100,8 +133,10 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
    int foundUnsupported = 0;
 
    MStringArray connectCmds;
+   unordered_map<std::string, std::string>  arnoldToMayaNames;
+   std::vector<AtNode *> nodesToConvert;
 
-   // First Loop to create the imported nodes
+   // First Loop to create the imported nodes, and fill the map from arnold to maya nodes
    AtNodeIterator* iter = AiUniverseGetNodeIterator(universe, AI_NODE_ALL);
    while (!AiNodeIteratorFinished(iter))
    {
@@ -130,6 +165,24 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
       MString mayaName;
       MString createCmd = MString("createNode \"") + mayaTypeName + MString("\" -name \"") + MString(nodeName.c_str()) + MString("\";");
       MGlobal::executeCommand(createCmd, mayaName);
+      arnoldToMayaNames[nodeName] = std::string(mayaName.asChar());
+      nodesToConvert.push_back(node);
+   }
+   AiNodeIteratorDestroy(iter);
+
+   if (foundUnsupported > 0)
+   {
+      AiMsgError("[mtoa.import] Only operators are currently supported for import");
+   }
+   
+   // Now loop over the created nodes to set all attributes
+   for (size_t i = 0; i < nodesToConvert.size(); ++i)
+   {
+      const AtNode *node = nodesToConvert[i];
+      const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(node);
+
+      std::string nodeName = AiNodeGetName(node);
+      std::string mayaName = arnoldToMayaNames[nodeName];
 
       // loop over this arnold node parameters
       AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
@@ -138,239 +191,223 @@ MStatus CArnoldImportAssCmd::doIt(const MArgList& argList)
          const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
          const char* paramName = AiParamGetName(paramEntry);
          std::string paramNameStr(paramName);
-         if (paramNameStr == "name" /* || paramNameStr == "inputs"*/)
+         if (paramNameStr == "name")
             continue;
          
          MString mayaAttrName = ArnoldToMayaAttrName(nodeEntry, paramName);
-
-         MString mayaFullAttr = mayaName + MString(".") + mayaAttrName;
-
+         MString mayaFullAttr = MString(mayaName.c_str()) + MString(".") + mayaAttrName;
          MString attrValue(" ");
          
-         switch(AiParamGetType(paramEntry))
+         // First check if the attribute is linked
+         if (AiNodeIsLinked(node, paramName))
          {
-            case AI_TYPE_BYTE:
-               attrValue += (int)AiNodeGetByte(node, paramName);
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            case AI_TYPE_ENUM:
-            case AI_TYPE_INT:
-               attrValue += (int)AiNodeGetInt(node, paramName);
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            case AI_TYPE_UINT:
-               attrValue += (int)AiNodeGetUInt(node, paramName);
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
+            // FIXME: we should be checking for component links as well
+            ConnectMayaFromArnold(mayaFullAttr, (AtNode*)AiNodeGetLink(node, paramName), arnoldToMayaNames);
+         } else
+         {
+            bool setAttrValue = true;
+            // Set the plain attribute value
+            switch(AiParamGetType(paramEntry))
             {
-            case AI_TYPE_BOOLEAN:
-               attrValue += (AiNodeGetBool(node, paramName)) ? MString("1") : MString("0");
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            }
-            case AI_TYPE_FLOAT:
-               attrValue += (float)AiNodeGetFlt(node, paramName);
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            {
-            case AI_TYPE_RGB:
-               AtRGB col = AiNodeGetRGB(node, paramName);
-               attrValue += "-type float3 ";
-               attrValue += (float) col.r;
-               attrValue += MString(" ");
-               attrValue += (float) col.g;
-               attrValue += MString(" ");
-               attrValue += (float) col.b;
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            }
-            {
-            case AI_TYPE_RGBA:
-               AtRGBA col = AiNodeGetRGBA(node, paramName);
-               attrValue += "-type float3 ";
-               attrValue += (float) col.r;
-               attrValue += MString(" ");
-               attrValue += (float) col.g;
-               attrValue += MString(" ");
-               attrValue += (float) col.b;
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            }
-            {
-            case AI_TYPE_VECTOR:
-               AtVector col = AiNodeGetVec(node, paramName);
-               attrValue += "-type float3 ";
-               attrValue += (float) col.x;
-               attrValue += MString(" ");
-               attrValue += (float) col.y;
-               attrValue += MString(" ");
-               attrValue += (float) col.z;
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            }
-            {
-            case AI_TYPE_VECTOR2:
-               AtVector2 col = AiNodeGetVec2(node, paramName);
-               attrValue += "-type float2 ";
-               attrValue += (float) col.x;
-               attrValue += MString(" ");
-               attrValue += (float) col.y;
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            }
-            {
-            case AI_TYPE_STRING:
-               AtString str = AiNodeGetStr(node, paramName);
-               attrValue += "-type \"string\" \"";
-               attrValue += str.c_str();
-               attrValue += "\"";
-               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-            break;
-            }
-            {
-            case AI_TYPE_NODE:
-            case AI_TYPE_POINTER:
-            // FIXME we're assuming that the created maya node has the same name than the arnold one.
-            // But if a node already exists in the scene with this name, it will fail. We need to do this 
-            // in 2 steps, and store a map for Maya-to-Arnold names.
-               AtNode *ptr = (AtNode*)AiNodeGetPtr(node, paramName);
-               if (ptr)
+               case AI_TYPE_BYTE:
+                  attrValue += (int)AiNodeGetByte(node, paramName);
+               break;
+               case AI_TYPE_ENUM:
+               case AI_TYPE_INT:
+                  attrValue += (int)AiNodeGetInt(node, paramName);
+               break;
+               case AI_TYPE_UINT:
+                  attrValue += (int)AiNodeGetUInt(node, paramName);
+               break;
                {
-                  MString connectCmd("connectAttr -f ");
-                  connectCmd += MString(AiNodeGetName(ptr)) + MString(".out ");
-                  connectCmd += mayaFullAttr + attrValue;
-                  connectCmds.append(connectCmd);
+               case AI_TYPE_BOOLEAN:
+                  attrValue += (AiNodeGetBool(node, paramName)) ? MString("1") : MString("0");
+               break;
                }
-            break;
-            }
-            {
-            case AI_TYPE_ARRAY:
-               AtArray *arr = AiNodeGetArray(node, paramName);
-               if (arr)
+               case AI_TYPE_FLOAT:
+                  attrValue += (float)AiNodeGetFlt(node, paramName);
+               break;
                {
-                  unsigned int arrElems = AiArrayGetNumElements(arr);
-                  for (unsigned int i = 0; i < arrElems; ++i)
+               case AI_TYPE_RGB:
+                  AtRGB col = AiNodeGetRGB(node, paramName);
+                  attrValue += "-type float3 ";
+                  attrValue += (float) col.r;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.g;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.b;
+               break;
+               }
+               {
+               case AI_TYPE_RGBA:
+                  AtRGBA col = AiNodeGetRGBA(node, paramName);
+                  attrValue += "-type float3 ";
+                  attrValue += (float) col.r;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.g;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.b;
+               break;
+               }
+               {
+               case AI_TYPE_VECTOR:
+                  AtVector col = AiNodeGetVec(node, paramName);
+                  attrValue += "-type float3 ";
+                  attrValue += (float) col.x;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.y;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.z;
+               break;
+               }
+               {
+               case AI_TYPE_VECTOR2:
+                  AtVector2 col = AiNodeGetVec2(node, paramName);
+                  attrValue += "-type float2 ";
+                  attrValue += (float) col.x;
+                  attrValue += MString(" ");
+                  attrValue += (float) col.y;
+               break;
+               }
+               {
+               case AI_TYPE_STRING:
+                  AtString str = AiNodeGetStr(node, paramName);
+                  attrValue += "-type \"string\" \"";
+                  attrValue += str.c_str();
+                  attrValue += "\"";
+               break;
+               }
+               {
+               case AI_TYPE_NODE:
+               case AI_TYPE_POINTER:
+                  setAttrValue = false; // we won't need to set the attribute value since we're connecting it
+                  ConnectMayaFromArnold(mayaFullAttr, (AtNode*)AiNodeGetPtr(node, paramName), arnoldToMayaNames);
+                  
+               break;
+               }
+               {
+               case AI_TYPE_ARRAY:
+                  setAttrValue = false; // value will be set for each array index here below
+                  AtArray *arr = AiNodeGetArray(node, paramName);
+                  if (arr)
                   {
-                     attrValue = MString("[");
-                     attrValue += int(i);
-                     attrValue += MString("] ");
-                     switch(AiArrayGetType(arr))
+                     unsigned int arrElems = AiArrayGetNumElements(arr);
+                     for (unsigned int i = 0; i < arrElems; ++i)
                      {
-                        case AI_TYPE_BYTE:
-                           attrValue += (int)AiArrayGetByte(arr, i);
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        case AI_TYPE_ENUM:
-                        case AI_TYPE_INT:
-                           attrValue += (int)AiArrayGetInt(arr, i);
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        case AI_TYPE_UINT:
-                           attrValue += (int)AiArrayGetUInt(arr, i);
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        case AI_TYPE_BOOLEAN:
-                           attrValue += (AiArrayGetBool(arr, i)) ? MString("1") : MString("0");
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        case AI_TYPE_FLOAT:
-                           attrValue += (float)AiArrayGetFlt(arr, i);
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
+                        attrValue = MString("[");
+                        attrValue += int(i);
+                        attrValue += MString("] ");
+                        switch(AiArrayGetType(arr))
                         {
-                        case AI_TYPE_RGB:
-                           AtRGB col = AiArrayGetRGB(arr, i);
-                           attrValue += "-type float3 ";
-                           attrValue += (float) col.r;
-                           attrValue += MString(" ");
-                           attrValue += (float) col.g;
-                           attrValue += MString(" ");
-                           attrValue += (float) col.b;
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        }
-                        {
-                        case AI_TYPE_RGBA:
-                           AtRGBA col = AiArrayGetRGBA(arr, i);
-                           attrValue += "-type float3 ";
-                           attrValue += (float) col.r;
-                           attrValue += MString(" ");
-                           attrValue += (float) col.g;
-                           attrValue += MString(" ");
-                           attrValue += (float) col.b;
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        }
-                        {
-                        case AI_TYPE_VECTOR:
-                           AtVector vec = AiArrayGetVec(arr, i);
-                           attrValue += "-type float3 ";
-                           attrValue += (float) vec.x;
-                           attrValue += MString(" ");
-                           attrValue += (float) vec.y;
-                           attrValue += MString(" ");
-                           attrValue += (float) vec.z;
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        }
-                        {
-                        case AI_TYPE_VECTOR2:
-                           AtVector2 vec = AiArrayGetVec2(arr, i);
-                           attrValue += "-type float2 ";
-                           attrValue += (float) vec.x;
-                           attrValue += MString(" ");
-                           attrValue += (float) vec.y;
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        }
-                        {
-                        case AI_TYPE_STRING:
-                           AtString str = AiArrayGetStr(arr, i);
-                           attrValue += "-type \"string\" \"";
-                           attrValue += str.c_str();
-                           attrValue += "\"";
-                           MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
-                        break;
-                        }
-                        {
-                        case AI_TYPE_NODE:
-                        case AI_TYPE_POINTER:  
-                           AtNode *ptr = (AtNode*)AiArrayGetPtr(arr, i);
-                           MString connectCmd("connectAttr -f ");
-                           connectCmd += MString(AiNodeGetName(ptr)) + MString(".out ");
-                           connectCmd += mayaFullAttr + attrValue;
-                           connectCmds.append(connectCmd);
-                        break;
-                        }
-                        case AI_TYPE_MATRIX:
-                        case AI_TYPE_CLOSURE:
-                        case AI_TYPE_USHORT:
-                        case AI_TYPE_HALF:
-                        default:
-                        break;
+                           case AI_TYPE_BYTE:
+                              attrValue += (int)AiArrayGetByte(arr, i);
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           case AI_TYPE_ENUM:
+                           case AI_TYPE_INT:
+                              attrValue += (int)AiArrayGetInt(arr, i);
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           case AI_TYPE_UINT:
+                              attrValue += (int)AiArrayGetUInt(arr, i);
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           case AI_TYPE_BOOLEAN:
+                              attrValue += (AiArrayGetBool(arr, i)) ? MString("1") : MString("0");
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           case AI_TYPE_FLOAT:
+                              attrValue += (float)AiArrayGetFlt(arr, i);
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           {
+                           case AI_TYPE_RGB:
+                              AtRGB col = AiArrayGetRGB(arr, i);
+                              attrValue += "-type float3 ";
+                              attrValue += (float) col.r;
+                              attrValue += MString(" ");
+                              attrValue += (float) col.g;
+                              attrValue += MString(" ");
+                              attrValue += (float) col.b;
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           }
+                           {
+                           case AI_TYPE_RGBA:
+                              AtRGBA col = AiArrayGetRGBA(arr, i);
+                              attrValue += "-type float3 ";
+                              attrValue += (float) col.r;
+                              attrValue += MString(" ");
+                              attrValue += (float) col.g;
+                              attrValue += MString(" ");
+                              attrValue += (float) col.b;
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           }
+                           {
+                           case AI_TYPE_VECTOR:
+                              AtVector vec = AiArrayGetVec(arr, i);
+                              attrValue += "-type float3 ";
+                              attrValue += (float) vec.x;
+                              attrValue += MString(" ");
+                              attrValue += (float) vec.y;
+                              attrValue += MString(" ");
+                              attrValue += (float) vec.z;
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           }
+                           {
+                           case AI_TYPE_VECTOR2:
+                              AtVector2 vec = AiArrayGetVec2(arr, i);
+                              attrValue += "-type float2 ";
+                              attrValue += (float) vec.x;
+                              attrValue += MString(" ");
+                              attrValue += (float) vec.y;
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           }
+                           {
+                           case AI_TYPE_STRING:
+                              AtString str = AiArrayGetStr(arr, i);
+                              attrValue += "-type \"string\" \"";
+                              attrValue += str.c_str();
+                              attrValue += "\"";
+                              MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
+                           break;
+                           }
+                           {
+                           case AI_TYPE_NODE:
+                           case AI_TYPE_POINTER:  
+                              MString mayaArrayAttr = mayaFullAttr + attrValue;
+                              ConnectMayaFromArnold(mayaArrayAttr, (AtNode*)AiArrayGetPtr(arr, i), arnoldToMayaNames);
+                           break;
+                           }
+                           case AI_TYPE_MATRIX:
+                           case AI_TYPE_CLOSURE:
+                           case AI_TYPE_USHORT:
+                           case AI_TYPE_HALF:
+                           default:
+                           break;
 
+                        }
                      }
                   }
+               break;
                }
-            break;
+               case AI_TYPE_MATRIX:
+               case AI_TYPE_CLOSURE:
+               case AI_TYPE_USHORT:
+               case AI_TYPE_HALF:
+               default:
+               break;
             }
-            case AI_TYPE_MATRIX:
-            case AI_TYPE_CLOSURE:
-            case AI_TYPE_USHORT:
-            case AI_TYPE_HALF:
-            default:
-            break;
+
+            if (setAttrValue)
+               MGlobal::executeCommand(MString("setAttr ") + mayaFullAttr + attrValue);
          }
       }
       AiParamIteratorDestroy(nodeParam);
    }
-   AiNodeIteratorDestroy(iter);
-
-   for (unsigned int i = 0; i < connectCmds.length(); ++i)
-      MGlobal::executeCommand(connectCmds[i]);
-
-   if (foundUnsupported > 0)
-      AiMsgError("[mtoa.import] Only operators are currently supported for import");
 
    AiUniverseDestroy(universe);
 
