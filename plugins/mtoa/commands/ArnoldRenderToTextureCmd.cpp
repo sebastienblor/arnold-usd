@@ -45,6 +45,7 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
    syntax.addFlag("ud", "udims", MSyntax::kString);
    syntax.addFlag("uvs", "uv_set", MSyntax::kString);
+   syntax.addFlag("ee", "extend_edges", MSyntax::kBoolean);
    syntax.addFlag("aov", "enable_aovs", MSyntax::kBoolean);
    syntax.addFlag("ust", "u_start", MSyntax::kDouble);
    syntax.addFlag("usc", "u_scale", MSyntax::kDouble);
@@ -264,6 +265,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    if (argDB.isFlagSet("v_start")) argDB.getFlagArgument("v_start", 0, vStart);
    double vScale = 1.0;
    if (argDB.isFlagSet("v_scale")) argDB.getFlagArgument("v_scale", 0, vScale);
+   bool extendEdges = false;
+   if (argDB.isFlagSet("extend_edges")) argDB.getFlagArgument("extend_edges", 0, extendEdges);
 
    // handle udims
    bool allUdims = false;
@@ -310,6 +313,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    static std::string uvMapperDriverName ("defaultArnoldDriver@cameraMapperOutput");
 
    AiNodeSetStr(driver, "name", uvMapperDriverName.c_str());
+
+   if (extendEdges)
+      AiNodeSetBool(driver, "tiled", false);
 
    AtArray *prevOutputs = AiNodeGetArray(options_node, "outputs");
    if (enableAovs && prevOutputs && AiArrayGetNumElements(prevOutputs) > 1)
@@ -483,7 +489,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MGlobal::displayError(errLog);
       }
    }
-
    for (size_t i = 0; i < nodes.size(); ++i)
    {
       AtNode *mesh = nodes[i];
@@ -618,7 +623,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
             AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
             AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
-
+            AiNodeSetBool(camera, "extend_edges", extendEdges);
             AiNodeSetFlt(camera, "offset", (float)normalOffset);
             // need to adjust the near plane to make sure it's not bigger than the offset
             AiNodeSetFlt(camera, "near_clip", (float)AiMin(0.5*normalOffset, (double)AiNodeGetFlt(camera, "near_clip")));
@@ -663,6 +668,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          AiNodeSetFlt(camera, "u_offset", (float)(-uStart));
          AiNodeSetFlt(camera, "v_offset", (float)(-vStart));
+         AiNodeSetBool(camera, "extend_edges", extendEdges);
 
          AiNodeSetFlt(camera, "u_scale", (float)(1. / AiMax((float)uScale, AI_EPSILON)));
          AiNodeSetFlt(camera, "v_scale", (float)(1. / AiMax((float)vScale, AI_EPSILON)));
