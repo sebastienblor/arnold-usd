@@ -446,8 +446,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_untiled");
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
-   s_attributes.MakeInput("texture_diffuse_blur");
-   s_attributes.MakeInput("texture_specular_blur");   
    
    s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -763,6 +761,20 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setStorable(false);
    nAttr.setWritable(false);
    addAttribute(s_legacy_gi_refraction_samples);
+
+   MObject legacyTextureDiffuseBlur = nAttr.create("textureDiffuseBlur", "texture_diffuse_blur", MFnNumericData::kFloat, 0.f);
+   nAttr.setStorable(false);
+   nAttr.setKeyable(false);
+   nAttr.setHidden(true);   
+   nAttr.setWritable(false);
+   addAttribute(legacyTextureDiffuseBlur);   
+
+   MObject legacyTextureSpecularBlur = nAttr.create("textureSpecularBlur", "texture_specular_blur", MFnNumericData::kFloat, 0.f);
+   nAttr.setStorable(false);
+   nAttr.setKeyable(false);
+   nAttr.setHidden(true);   
+   nAttr.setWritable(false);
+   addAttribute(legacyTextureSpecularBlur);
 
 //   MString compatCmd = "attrCompatibility -pluginNode aiOptions;";
 //   compatCmd += "attrCompatibility -removeAttr aiOptions \"GI_glossy_samples\" ;";
