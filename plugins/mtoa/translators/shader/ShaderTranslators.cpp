@@ -802,8 +802,7 @@ AtNode*  CCheckerTranslator::CreateArnoldNodes()
 void CCheckerTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
-   const CSessionOptions &options = GetSessionOptions();
-
+   
    AtNode *colorCorrectNode = (m_hasColorCorrect) ? GetArnoldNode("cc") : NULL;
    AtNode *uvTransformNode = (m_hasUvTransform) ? GetArnoldNode("uv") : NULL;
    MPlug plug = FindMayaPlug("uvCoord");
@@ -883,8 +882,8 @@ void CCheckerTranslator::Export(AtNode* shader)
       }
    }
   
-   ProcessParameter(shader, "color1", AI_TYPE_RGB);
-   ProcessParameter(shader, "color2", AI_TYPE_RGB);
+   ProcessParameter(shader, "color1", AI_TYPE_RGB, "color2");
+   ProcessParameter(shader, "color2", AI_TYPE_RGB, "color1");
    ProcessParameter(shader, "contrast", AI_TYPE_FLOAT);
    ProcessParameter(shader, "filter_strength", AI_TYPE_FLOAT, "filter");
    ProcessParameter(shader, "filter_offset", AI_TYPE_FLOAT, "filterOffset");
@@ -1998,6 +1997,18 @@ AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
    return AddArnoldNode("mix_rgba");
 }
 
+void CMayaClampTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB);
+   AiNodeSetStr(shader, AtString("mode"), AtString("color"));
+   ProcessParameter(shader, "min_color", AI_TYPE_RGB, "min");
+   ProcessParameter(shader, "max_color", AI_TYPE_RGB, "max");
+}
+
+AtNode* CMayaClampTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("clamp");
+}
 
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {

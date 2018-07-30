@@ -10,6 +10,7 @@ import arnold as ai
 
 CACHE_ATTR = 'ai_asscache'
 
+from mtoa.callbacks import *
 
 def LoadStandInButtonPush(attrName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
@@ -63,6 +64,33 @@ def ArnoldStandInUpdateUI(attrName) :
                 cmds.setAttr(attrName + visAttrs[i], 1)
     
         
+def changeOperator(node, nodeAttr):
+    attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
+    newItem = '{}[{}]'.format(nodeAttr, attrSize)
+    cmds.connectAttr("%s.message"%node, newItem, force=True)
+        
+def createOperator(opType, nodeAttr):
+    opNode = cmds.createNode(opType)
+    changeOperator(opNode, nodeAttr)
+
+def buildOperatorMenu(popup, attrName):
+    nodeName = attrName.split('.')[0]
+    cmds.popupMenu(popup, edit=True, deleteAllItems=True)
+    operators = cmds.arnoldPlugins(listOperators=True) or []
+    print operators
+    for operator in operators:
+        opNodes = cmds.ls(type=operator) or []
+        for opNode in opNodes:
+            if opNode == nodeName:
+                continue
+            cmds.menuItem(parent=popup, label=opNode, command=Callback(changeOperator, opNode, attrName))
+
+    cmds.menuItem(parent=popup, divider=True)
+    for operator in operators:
+        cmdsLbl = 'Create {}'.format(operator)
+        cmds.menuItem(parent=popup, label=cmdsLbl, command=Callback(createOperator, operator, attrName))
+
+
 class AEaiStandInTemplate(ShaderAETemplate):
 
     def updateAssFile(self):
@@ -166,9 +194,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
             ai.AiBegin()
 
         universe = ai.AiUniverse()
-        ai.AiASSLoad(filename, ai.AI_NODE_ALL, universe)
+        ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
 
-        iter = ai.AiUniverseGetNodeIterator(ai.AI_NODE_ALL, universe);         
+        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
         
         while not ai.AiNodeIteratorFinished(iter):
             node = ai.AiNodeIteratorGetNext(iter)
@@ -261,6 +289,73 @@ class AEaiStandInTemplate(ShaderAETemplate):
         if mPath != mOrigPath:
             cmds.setAttr(nodeName+'.dso', mPath, type='string')
         cmds.textField('standInDsoPath', edit=True, text=mPath)
+    
+    def operatorsReplace(self, nodeAttr):
+        self._setActiveNodeAttr(nodeAttr)
+
+        for ctrl in self._msgCtrls:
+            cmds.deleteUI(ctrl)
+        self._msgCtrls = []
+
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        cmds.setParent(self.otherCol)
+        attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
+
+        for i in range(attrSize):
+            attrName = '{}[{}]'.format(nodeAttr, i)
+            attrLabel = 'Operators[{}]'.format(i)
+            ctrl = cmds.attrNavigationControlGrp(at=attrName,
+                                                    label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
+   
+            self._msgCtrls.append(ctrl) 
+
+        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
+
+
+    def operatorsNew(self, nodeAttr):
+        
+        # TODO: move this into AttributeEditorTemplate
+        self._setActiveNodeAttr(nodeAttr)
+
+        self._msgCtrls = []
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+
+        cmds.frameLayout(label='Operators', collapse=True)
+        cmds.columnLayout(adjustableColumn=True)
+
+        cmds.rowLayout(nc=2)
+        cmds.text(label='')
+        #cmds.text(label='')
+        addInputButton = cmds.button(label='Add Operator')
+
+        self.oppopup = cmds.popupMenu(parent=addInputButton, button=1) 
+        cmds.popupMenu(self.oppopup, edit=True, postMenuCommand=Callback(buildOperatorMenu, self.oppopup, nodeAttr))
+        cmds.setParent('..') # rowLayout
+
+        cmds.frameLayout(labelVisible=False, collapsable=False)
+        self.otherCol = cmds.columnLayout(adjustableColumn=True)
+        
+        attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
+
+        for i in range(attrSize):
+            attrName = '{}[{}]'.format(nodeAttr, i)
+            attrLabel = 'Inputs[{}]'.format(i)
+            ctrl = cmds.attrNavigationControlGrp(at=attrName,
+                                                    label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
+   
+            self._msgCtrls.append(ctrl) 
+
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+        
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
+
+    
 
     def setup(self):
         self.assInfoPath = ''
@@ -280,7 +375,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('overrideNodes')
         self.addControl('aiNamespace', label='Namespace')
+
         self.endLayout()
+        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
+
+        self.addSeparator()
+        
         self.beginNoOptimize();
 
         self.beginLayout("File Contents", collapse=False)

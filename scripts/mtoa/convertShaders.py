@@ -3,7 +3,7 @@ import math
 
 
 replaceShaders = True
-targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlakes', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
+targetShaders = ['aiStandard', 'aiHair', 'alSurface', 'alHair', 'alLayerColor', 'alRemapColor', 'alRemapFloat', 'alFractal', 'alFlake', 'alLayer', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material']
     
 def convertUi():
     ret = cmds.confirmDialog( title='Convert shaders', message='Convert all shaders in scene, or selected shaders?', button=['All', 'Selected', 'Cancel'], defaultButton='All', cancelButton='Cancel' )
@@ -75,8 +75,10 @@ def doMapping(inShd):
         ret = convertAlRemapFloat(inShd)
     elif 'alFractal' in shaderType:
         ret = convertAlFractal(inShd)
-    elif 'alFlakes' in shaderType:
-        ret = convertAlFlakes(inShd)
+    elif 'alFlake' in shaderType:
+        ret = convertAlFlake(inShd)
+    elif 'alLayer' in shaderType:
+        ret = convertAlLayer(inShd)
     elif 'lambert' in shaderType:
         ret = convertLambert(inShd)
     elif 'blinn' in shaderType:
@@ -99,6 +101,9 @@ def doMapping(inShd):
 def assignToNewShader(oldShd, newShd):
 
     output_conns = cmds.listConnections( oldShd, d=True, s=False, c=True, plugs=True )
+    output_types = []
+    for output_conn in output_conns:
+        output_types.append(cmds.getAttr(output_conn, type=True))
 
     if ':' in oldShd:
         aiName = oldShd.rsplit(':')[-1] + '_old'
@@ -119,12 +124,22 @@ def assignToNewShader(oldShd, newShd):
     if output_conns:
         lenConn = len(output_conns)
         for i in range(0, lenConn, 2):
-
             connSplit = output_conns[i].split('.')
             if len(connSplit) > 1:
+
                 if not cmds.attributeQuery(connSplit[1], node=connSplit[0], exists=True):
+                    
                     if connSplit[1] == 'outValue':
-                        output_conns[i] = connSplit[0] + '.outColorR' 
+                        if output_types[i] == 'float':
+                            output_conns[i] = connSplit[0] + '.outColorR' 
+                        else:
+                            output_conns[i] = connSplit[0] + '.outColor' 
+                    elif connSplit[1] == 'outValueX':
+                        output_conns[i] = connSplit[0] + '.outColorR'
+                    elif connSplit[1] == 'outValueY':
+                        output_conns[i] = connSplit[0] + '.outColorG'
+                    elif connSplit[1] == 'outValueZ':
+                        output_conns[i] = connSplit[0] + '.outColorB'
 
             cmds.connectAttr(output_conns[i], output_conns[i+1], force=True)
 
@@ -399,7 +414,7 @@ def convertAlRemapColor(inShd):
     convertAttr(inShd, 'input', outNode, 'input')
     convertAttr(inShd, 'gamma', outNode, 'gamma')
     convertAttr(inShd, 'saturation', outNode, 'saturation')
-    convertAttr(inShd, 'hueShift', outNode, 'hueOffset')
+    convertAttr(inShd, 'hueOffset', outNode, 'hueShift')
     convertAttr(inShd, 'contrast', outNode, 'contrast')
     convertAttr(inShd, 'contrastPivot', outNode, 'contrastPivot')
     convertAttr(inShd, 'gain', outNode, 'multiplyR')
@@ -425,7 +440,25 @@ def convertAlRemapFloat(inShd):
     convertAttr(inShd, 'RMPinputMax', outNode, 'inputMax')
     convertAttr(inShd, 'RMPoutputMin', outNode, 'outputMin')
     convertAttr(inShd, 'RMPoutputMax', outNode, 'outputMax')
-    
+
+    convertAttr(inShd, 'RMPcontrast', outNode, 'contrast')
+    convertAttr(inShd, 'RMPcontrastPivot', outNode, 'contrastPivot')
+    convertAttr(inShd, 'RMPbias', outNode, 'bias')
+    convertAttr(inShd, 'RMPgain', outNode, 'gain')
+
+    if cmds.getAttr('{}.RMPclampEnable'.format(inShd)):
+        outClamp = cmds.shadingNode('aiClamp', name='{}_clamp'.format(inShd), asShader=True)
+        convertAttr(inShd, 'RMPclampMin', outClamp, 'min')
+        convertAttr(inShd, 'RMPclampMax', outClamp, 'max')
+        cmds.connectAttr('{}.outColor'.format(outNode), '{}.input'.format(outClamp), force=True)
+        outNode = outClamp
+        if cmds.getAttr('{}.RMPthreshold'.format(inShd)):
+            outThreshold = cmds.shadingNode('aiRange', name='{}_threshold'.format(inShd), asShader=True)
+            convertAttr(inShd, 'RMPclampMin', outThreshold, 'inputMin')
+            convertAttr(inShd, 'RMPclampMax', outThreshold, 'inputMax')
+            cmds.connectAttr('{}.outColor'.format(outNode), '{}.input'.format(outThreshold), force=True)
+            outNode = outThreshold
+
     print "Converted %s to aiRange" % inShd
     return outNode
 
@@ -452,15 +485,11 @@ def convertAlFractal(inShd):
     print "Converted %s to aiNoise" % inShd
     return outNode
 
-def convertAlFlakes(inShd):
+def convertAlFlake(inShd):
     outNode = createArnoldShader(inShd, 'aiFlakes')
 
     convertAttr(inShd, 'space', outNode, 'outputSpace') 
     convertAttr(inShd, 'size', outNode, 'scale') 
-    scale = cmds.getAttr('{}.scale'.format(outNode))
-    if scale > 0:
-        cmds.setAttr('{}.scale'.format(outNode), 1.0 / scale)
-
     convertAttr(inShd, 'amount', outNode, 'density') 
 
     print "Converted %s to aiFlakes" % inShd
@@ -481,9 +510,9 @@ def convertAlLayerColor(inShd):
             'Negation': 'negation',
             'Exclusion': 'exclusion',
             'Screen': 'screen',
-            'Overlay': 'overlay',
+            'Overlay': 'hard_light',
             'Soft Light': 'soft_light',
-            'Hard Light': 'hard_light',
+            'Hard Light': 'overlay',
             'Color Dodge': 'color_dodge',
             'Color Burn': 'color_burn',
             'Linear Dodge': 'plus',
@@ -500,8 +529,27 @@ def convertAlLayerColor(inShd):
         aiName = inShd.rsplit(':')[-1] + '_new'
     else:
         aiName = inShd + '_new'    
+
+    closureInputs = False
     
-    outNode = cmds.shadingNode('aiLayerRgba', name=aiName, asShader=True)
+    # check if one of the inputs is a closure
+    for ind in range(1, 9):
+        if closureInputs:
+            break            
+        conns = cmds.listConnections('{}.layer{}'.format(inShd, ind), d=False, s=True, plugs=False ) or []
+        
+        closureMaterials = ['aiStandard', 'aiHair', 'aiStandardSurface', 'aiStandardHair', 'aiLayerShader', 'alSurface', 'alHair', 'lambert', 'blinn', 'phong', 'VRayMtl', 'mia_material_x_passes', 'mia_material_x', 'dielectric_material' ]
+        for conn in conns:
+            # get type of this node
+            shaderType = cmds.objectType(conn)
+            if shaderType in closureMaterials:
+                closureInputs = True
+                break
+
+    if closureInputs:
+        outNode = cmds.shadingNode('aiLayerShader', name=aiName, asShader=True)
+    else:
+        outNode = cmds.shadingNode('aiLayerRgba', name=aiName, asShader=True)
 
     convertAttr(inShd, 'layer1', outNode, 'input1')
     convertAttr(inShd, 'layer2', outNode, 'input2')
@@ -521,6 +569,12 @@ def convertAlLayerColor(inShd):
     convertAttr(inShd, 'layer7a', outNode, 'mix7')
     convertAttr(inShd, 'layer8a', outNode, 'mix8')
 
+    if closureInputs:
+        print "Converted %s to aiLayerShader" % inShd
+        return outNode
+
+    convertAttr(inShd, 'clampResult', outNode, 'clamp')
+    
     enum_list = cmds.attributeQuery('operation1', node=outNode,
                                     listEnum=True)[0].split(':')
 
@@ -534,6 +588,22 @@ def convertAlLayerColor(inShd):
         cmds.setAttr(enableAttrName, 1)
     
     print "Converted %s to aiLayerRgba" % inShd
+    return outNode
+
+def convertAlLayer(inShd):
+    
+    if ':' in inShd:
+        aiName = inShd.rsplit(':')[-1] + '_new'
+    else:
+        aiName = inShd + '_new'    
+
+    outNode = cmds.shadingNode('aiMixShader', name=aiName, asShader=True)
+
+    convertAttr(inShd, 'layer1', outNode, 'shader1')
+    convertAttr(inShd, 'layer2', outNode, 'shader2')
+    convertAttr(inShd, 'mix', outNode, 'mix')
+
+    print "Converted %s to aiMixShader" % inShd
     return outNode
 
 def convertVRayMtl(inShd):
@@ -768,11 +838,17 @@ def setValue(attr, value):
             
             if attrType in ['string']:
                 aType = 'string'
-                cmds.setAttr(attr, value, type=aType)
-                
+                try:
+                    cmds.setAttr(attr, value, type=aType)
+                except RuntimeError, err:
+                    pass
+                    
             elif attrType in ['long', 'short', 'float', 'byte', 'double', 'doubleAngle', 'doubleLinear', 'bool']:
                 aType = None
-                cmds.setAttr(attr, value)
+                try:
+                    cmds.setAttr(attr, value)
+                except RuntimeError, err:
+                    pass    
                 
             elif attrType in ['long2', 'short2', 'float2',  'double2', 'long3', 'short3', 'float3',  'double3']:
                 if isinstance(value, float):
@@ -780,8 +856,10 @@ def setValue(attr, value):
                         value = [(value,value)]
                     elif attrType in ['long3', 'short3', 'float3',  'double3']:
                         value = [(value, value, value)]
-                        
-                cmds.setAttr(attr, *value[0], type=attrType)
+                try:
+                    cmds.setAttr(attr, *value[0], type=attrType)
+                except RuntimeError, err:
+                    pass    
 
         if isLocked:
             # restore the lock on the attr
