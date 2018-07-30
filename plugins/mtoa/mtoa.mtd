@@ -1510,6 +1510,29 @@
         softmax             FLOAT   1.0
     
 
+[node cell_noise]
+    desc                    STRING  "2D procedural Cell Noise"
+    maya.name               STRING  "aiCellNoise"
+    maya.id                 INT     0x00115D9F
+    maya.classification     STRING  "texture"
+    [attr octaves]
+        softmin             INT   1
+        softmax             INT   8
+    [attr randomness]
+        min                 FLOAT 0
+        softmax             FLOAT 1
+    [attr lacunarity]
+        min                 FLOAT   0.0001
+        softmin             FLOAT   1.0
+        softmax             FLOAT   5.0
+    [attr amplitude]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr density]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+
+
 [node bump2d]
     desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump2d"
