@@ -1159,7 +1159,7 @@ void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* client
 
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   CArnoldSession *session = (CArnoldSession*)clientData;
+   //CArnoldSession *session = (CArnoldSession*)clientData;
    //DagFiltered filtered = session->FilteredStatus(path); // We shouldn't invoke this here otherwise we're messing with Maya's DAG 
    if (/*filtered != MTOA_EXPORT_ACCEPTED && */ plugName != "visibility")
     return; 

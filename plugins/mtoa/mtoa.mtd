@@ -1510,6 +1510,29 @@
         softmax             FLOAT   1.0
     
 
+[node cell_noise]
+    desc                    STRING  "2D procedural Cell Noise"
+    maya.name               STRING  "aiCellNoise"
+    maya.id                 INT     0x00115D9F
+    maya.classification     STRING  "texture"
+    [attr octaves]
+        softmin             INT   1
+        softmax             INT   8
+    [attr randomness]
+        min                 FLOAT 0
+        softmax             FLOAT 1
+    [attr lacunarity]
+        min                 FLOAT   0.0001
+        softmin             FLOAT   1.0
+        softmax             FLOAT   5.0
+    [attr amplitude]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr density]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+
+
 [node bump2d]
     desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
     maya.name               STRING  "aiBump2d"
@@ -3353,6 +3376,69 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D9C
 
+
+# Cryptomatte
+[node cryptomatte]
+    desc STRING "Cryptomatte AOV Shader"
+    aov_shader  BOOL TRUE
+    maya.name STRING "cryptomatte"
+    maya.classification STRING "utility/aov"
+    maya.id INT 0x00116422
+    
+    [attr sidecar_manifests]
+        desc STRING "Sets whether Cryptomatte should write the manifest to a sidecar .json file instead of the EXR header."
+        linkable BOOL FALSE
+    [attr cryptomatte_depth]
+        desc STRING "Set the cryptomatte depth (number of cryptomatte AOVs)"
+        linkable BOOL FALSE
+    [attr strip_obj_namespaces]
+        desc STRING "Strip namespaces from object names"
+        linkable BOOL FALSE
+    [attr strip_mat_namespaces]
+        desc STRING "Strip namespaces from material names"
+        linkable BOOL FALSE
+    [attr user_crypto_aov_0]
+        desc STRING "AOV name for user Cryptomatte 0"
+        linkable BOOL FALSE
+    [attr user_crypto_src_0]
+        desc STRING "Source user data name for user Cryptomatte 0"
+        linkable BOOL FALSE
+    [attr user_crypto_aov_1]
+        desc STRING "AOV name for user Cryptomatte 1"
+        linkable BOOL FALSE
+    [attr user_crypto_src_1]
+        desc STRING "Source user data name for user Cryptomatte 1"
+        linkable BOOL FALSE
+    [attr user_crypto_aov_2]
+        desc STRING "AOV name for user Cryptomatte 2"
+        linkable BOOL FALSE
+    [attr user_crypto_src_2]
+        desc STRING "Source user data name for user Cryptomatte 2"
+        linkable BOOL FALSE
+    [attr user_crypto_aov_3]
+        desc STRING "AOV name for user Cryptomatte 3"
+        linkable BOOL FALSE
+    [attr user_crypto_src_3]
+        desc STRING "Source user data name for user Cryptomatte 3"
+        linkable BOOL FALSE
+    [attr aov_crypto_asset]
+        aov.type INT 0x05
+        aov.enable_composition BOOL TRUE
+        default STRING "crypto_asset"
+    [attr aov_crypto_object]
+        aov.type INT 0x05
+        aov.enable_composition BOOL TRUE
+        default STRING "crypto_object"
+    [attr aov_crypto_material]
+        aov.type INT 0x05
+        aov.enable_composition BOOL TRUE
+        default STRING "crypto_material"
+
+[node cryptomatte_filter]
+    maya.hide BOOL  TRUE 
+
+[node cryptomatte_manifest_driver]
+    maya.hide BOOL  TRUE        
 
 
 

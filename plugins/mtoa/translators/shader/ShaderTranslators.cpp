@@ -802,8 +802,7 @@ AtNode*  CCheckerTranslator::CreateArnoldNodes()
 void CCheckerTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
-   const CSessionOptions &options = GetSessionOptions();
-
+   
    AtNode *colorCorrectNode = (m_hasColorCorrect) ? GetArnoldNode("cc") : NULL;
    AtNode *uvTransformNode = (m_hasUvTransform) ? GetArnoldNode("uv") : NULL;
    MPlug plug = FindMayaPlug("uvCoord");
