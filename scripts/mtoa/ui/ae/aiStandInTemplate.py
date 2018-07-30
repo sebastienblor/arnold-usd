@@ -34,7 +34,11 @@ class MtoAProceduralOperator(object):
         opType = cmds.optionMenuGrp(self.operatorType, q=True, v=True)
         opNode = cmds.createNode(opType, name = self.standinName + '_op')
         if opNode and len(opNode) > 0:
-            cmds.setAttr('{}.selection'.format(opNode), cmds.textFieldGrp(self.selection, q=True, tx=True), type='string')
+            selString = cmds.textFieldGrp(self.selection, q=True, tx=True)
+            if selString[:1] == ' ':
+                selString  = selString[1:]
+                selString = '*.(@node=={})'.format(selString)
+            cmds.setAttr('{}.selection'.format(opNode), selString, type='string')
             if opType == 'aiSetParameter':
                 paramName = cmds.optionMenuGrp(self.paramBox, q=True, v=True)
                 paramVal = cmds.textFieldGrp(self.paramValue, q=True, tx=True)
