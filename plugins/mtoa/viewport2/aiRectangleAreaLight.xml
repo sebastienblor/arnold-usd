@@ -88,40 +88,40 @@ float3 aiGetTubeReflection(float3 L0, float3 L1, float3 R, float halfHeight)
 
 // find the closest point to a rectangular light source along the reflection ray
 // **************************************************************
-float3 aiGetStreakedReflection(float3 dL, float3 origin, float3 firstAxis, float3 secondAxis, float lenFirst, float lenSecond)
+float3 aiGetStreakedReflection(float3 dL, float3 origin, float3 U, float3 V, float lenU, float lenV)
 {   
     float3 vnRayAtoB = normalize(dL - origin); 
 
     // compute the closest point to the axis 
-    float LV = dot(dL, secondAxis); 
-    float vError = abs(LV) - lenSecond; 
-    LV = clamp(LV, -lenSecond, lenSecond); 
-    float3 VOff = secondAxis * LV; 
+    float LV = dot(dL, V); 
+    float vError = abs(LV) - lenV; 
+    LV = clamp(LV, -lenV, lenV); 
+    float3 VOff = V * LV; 
     if (vError > 0) 
     { 
-        dL = aiPlaneIntersection(vnRayAtoB, secondAxis, VOff, origin); 
+        dL = aiPlaneIntersection(vnRayAtoB, V, VOff, origin); 
     } 
     
     // compute the closest point to the second axis 
-    float LU = dot(dL, firstAxis); 
-    float uError = abs(LU) - lenFirst; 
-    LU = clamp(LU, -lenFirst, lenFirst); 
-    float3 UOff = firstAxis * LU; 
+    float LU = dot(dL, U); 
+    float uError = abs(LU) - lenU; 
+    LU = clamp(LU, -lenU, lenU); 
+    float3 UOff = U * LU; 
     if (uError > 0) 
     { 
-        dL = aiPlaneIntersection(vnRayAtoB, firstAxis, UOff, origin); 
+        dL = aiPlaneIntersection(vnRayAtoB, U, UOff, origin); 
     } 
-    LV = dot(dL, secondAxis); 
-    LV = clamp(LV, -lenSecond, lenSecond); 
+    LV = dot(dL, V); 
+    LV = clamp(LV, -lenV, lenV); 
     
-    VOff = secondAxis * LV; 
+    VOff = V * LV; 
     return VOff + UOff; 
 }
 
 float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, float3 Nw, float3 Vw, float area)
-{ 
-    float3 V = ( ltPts[1]-ltPts[0] ); 
-    float3 U = ( ltPts[3]-ltPts[0] ); 
+{    
+    float3 U = ( ltPts[1]-ltPts[0] ); 
+    float3 V = ( ltPts[3]-ltPts[0] ); 
     float3 R = reflect( -Vw, Nw ); 
     
     float lenU = length(U); 
@@ -129,20 +129,11 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     
     float uDiff = abs(dot(-Vw, normalize(cross(R, U)))); 
     float vDiff = abs(dot(-Vw, normalize(cross(R, V)))); 
-    
-    bool vAxisFirst = uDiff < vDiff; 
-    float3 firstAxis = vAxisFirst ? V : U; 
-    float3 secondAxis = !vAxisFirst ? V : U; 
-    
-    float lenFirst = length(firstAxis); 
-    float lenSecond = length(secondAxis); 
-    firstAxis /= lenFirst;  lenFirst *= 0.5; 
-    secondAxis /= lenSecond;  lenSecond *= 0.5f; 
-       
+  
     U /= lenU;  lenU *= 0.5; 
     V /= lenV;  lenV *= 0.5; 
-
-    float3 ltN = normalize( cross( V,U )); 
+ 
+    float3 ltN = normalize( cross( V, U )); 
     float LtPlaneD = dot(ltN, ltPts[0] ); 
     float ptPlaneDist = LtPlaneD - dot(ltN, Pw);     
     float LN = dot(ltN, -Nw);
@@ -154,31 +145,31 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     float LR = dot( ltN, R ); 
     if (LR <= 0.0) 
         return -R; 
-    float t = max(ptPlaneDist / LR, 0.0f); 
+    float t = ptPlaneDist / LR; 
     if (t <= 0.0) 
         return -R; 
-    float3 Rint = Pw + t * R; 
+        
+    float3 Rint = Pw + R * t; 
     float3 dL = Rint - ltCenter; 
 
     // We compute the plane ray intersection in light plane space.
     // So compute the ray start on the light plane by projecting the surface point along the 
     // light normal until it hits the light plane.
     // ************************************************************************************
-    float3 origin = Pw + (-Nw * max(ptPlaneDist / LN, 0.0f)) - ltCenter; 
-    float3 reflectIntersect = aiGetStreakedReflection(dL, origin, firstAxis, secondAxis, lenFirst, lenSecond);      
+    float3 origin = Pw + (Nw * (-ptPlaneDist / LN)) - ltCenter; 
+    float3 reflectIntersect = aiGetStreakedReflection(dL, origin, U, V, lenU, lenV);      
 
     // Next, find the intersection point of the reflection ray with a tube around the light
     // ************************************************************************************
-    float3 endPoint1 = (ltCenter + V * -lenV) - Pw;
-    float3 endPoint2 = (ltCenter + V *  lenV) - Pw;
-    float3 radialIntersect = aiGetTubeReflection(endPoint1, endPoint2, R, lenU) + Pw - ltCenter;
+    float3 endPoint1 = (ltCenter + U * -lenU) - Pw;
+    float3 endPoint2 = (ltCenter + U *  lenU) - Pw;
+    float3 radialIntersect = aiGetTubeReflection(endPoint1, endPoint2, R, lenV);
 
     // Project the new intersection point with the tube onto the light plane
     // ************************************************************************************
-    float3 R2 = (radialIntersect + ltCenter - Pw);    
-    LR = dot( ltN, R2 ); 
+    LR = dot( ltN, radialIntersect ); 
     t = max(ptPlaneDist / LR, 0.0f); 
-    Rint = Pw + t * R2; 
+    Rint = Pw + radialIntersect * t; 
     dL = Rint - ltCenter; 
     
     // and clamp the intersections to the edges of the light
@@ -187,17 +178,17 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     float LU = clamp(dot(dL, U), -lenU, lenU); 
     radialIntersect = (LV * V) + (LU * U);
  
-    // Neither the clamped tube or the steaked solutions are idea in all cases
-    // So we use the view angle to thwe light and the view angle to the surface point
+    // Neither the clamped tube or the streaked solutions are idea in all cases
+    // So we use the view angle to the light and the view angle to the surface normal
     // to blend between the two solutions.
     // ************************************************************************************
-    float angle = pow(2.0 * min(.5, min(uDiff, vDiff)), 2);
-    float glancingAngle = 1.0 - (2.0 * min(.5, max(.1, NV)));    
-    float3 closestW = lerp(radialIntersect, reflectIntersect, min(1.0, glancingAngle+angle));
+    float lightAngle = 2.0 * min(.5, min(uDiff, vDiff));
+    float surfaceAngle = 1.0 - (2.0 * min(.5, abs(NV)));    
+    float3 closestW = lerp(radialIntersect, reflectIntersect, min(1.0, lightAngle+surfaceAngle));
     
     // convert the closest intersection with the light back to a ray originating from the surface point.
     // ************************************************************************************
-    return closestW + ltCenter - Pw;
+    return closestW - Pw + ltCenter;
 } 
 
 irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensity, float3 color, float emitDiff, float emitSpec, 
@@ -273,7 +264,7 @@ float3 aiPlaneIntersection(float3 ray, float3 planeNormal, float3 ptOnPlane, flo
     float deltaD = dot(ptOnPlane, planeNormal) - dot(rayOrigin, planeNormal);
     float cosA = dot(ray, planeNormal);
     float lenToEdge = abs(cosA) < 0.00000001 ? 9999999.9 : deltaD / cosA;
-    return ray * lenToEdge + rayOrigin;
+    return ray * float3(lenToEdge, lenToEdge, lenToEdge) + rayOrigin;
 }
 
 // Find the closest point to tube shaped light source along the reflection ray
@@ -288,39 +279,38 @@ float3 aiGetTubeReflection(float3 L0, float3 L1, float3 R, float halfHeight)
     float t = (RdotL0 * RdotLd - L0dotLd) / (distLd * distLd - RdotLd * RdotLd);
 
     float3 closestPoint = L0 + Ld * clamp(t, 0.0f, 1.0f);
-    float3 centerToRay = dot(closestPoint, R) * R - closestPoint;
+    float3 centerToRay = R * dot(closestPoint, R) - closestPoint;
     return closestPoint + centerToRay * clamp(halfHeight / length(centerToRay), 0.0f, 1.0f);
 }
 
 // find the closest point to a rectangular light source along the reflection ray
 // **************************************************************
-float3 aiGetStreakedReflection(float3 dL, float3 origin, float3 firstAxis, float3 secondAxis, float lenFirst, float lenSecond)
+float3 aiGetStreakedReflection(in float3 dLIn, in float3 origin, in float3 U, in float3 V, in float lenU, in float lenV)
 {   
+    float3 dL = dLIn;
+    
     float3 vnRayAtoB = normalize(dL - origin); 
 
     // compute the closest point to the axis 
-    float LV = dot(dL, secondAxis); 
-    float vError = abs(LV) - lenSecond; 
-    LV = clamp(LV, -lenSecond, lenSecond); 
-    float3 VOff = secondAxis * LV; 
-    if (vError > 0) 
-    { 
-        dL = aiPlaneIntersection(vnRayAtoB, secondAxis, VOff, origin); 
-    } 
+    float LV = dot(dL, V); 
+    float vError = abs(LV) - lenV; 
+    LV = clamp(LV, -lenV, lenV); 
+    float3 VOff = V * float3(LV, LV, LV);
+    
+    dL = (vError > 0.0) ? aiPlaneIntersection(vnRayAtoB, V, VOff, origin) : dL; 
     
     // compute the closest point to the second axis 
-    float LU = dot(dL, firstAxis); 
-    float uError = abs(LU) - lenFirst; 
-    LU = clamp(LU, -lenFirst, lenFirst); 
-    float3 UOff = firstAxis * LU; 
-    if (uError > 0) 
-    { 
-        dL = aiPlaneIntersection(vnRayAtoB, firstAxis, UOff, origin); 
-    } 
-    LV = dot(dL, secondAxis); 
-    LV = clamp(LV, -lenSecond, lenSecond); 
+    float LU = dot(dL, U); 
+    float uError = abs(LU) - lenU; 
+    LU = clamp(LU, -lenU, lenU); 
+    float3 UOff = U * float3(LU, LU, LU); 
     
-    VOff = secondAxis * LV; 
+    dL = (uError > 0.0) ? aiPlaneIntersection(vnRayAtoB, U, UOff, origin) : dL; 
+    
+    LV = dot(dL, V); 
+    LV = clamp(LV, -lenV, lenV); 
+    
+    VOff = V * float3(LV, LV, LV); 
     return VOff + UOff; 
 }
 
@@ -335,16 +325,7 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     
     float uDiff = abs(dot(-Vw, normalize(cross(R, U)))); 
     float vDiff = abs(dot(-Vw, normalize(cross(R, V)))); 
-    
-    bool vAxisFirst = uDiff < vDiff; 
-    float3 firstAxis = vAxisFirst ? V : U; 
-    float3 secondAxis = !vAxisFirst ? V : U; 
-    
-    float lenFirst = length(firstAxis); 
-    float lenSecond = length(secondAxis); 
-    firstAxis /= lenFirst;  lenFirst *= 0.5; 
-    secondAxis /= lenSecond;  lenSecond *= 0.5f; 
-       
+           
     U /= lenU;  lenU *= 0.5; 
     V /= lenV;  lenV *= 0.5; 
 
@@ -371,20 +352,19 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     // light normal until it hits the light plane.
     // ************************************************************************************
     float3 origin = Pw + (-Nw * max(ptPlaneDist / LN, 0.0f)) - ltCenter; 
-    float3 reflectIntersect = aiGetStreakedReflection(dL, origin, firstAxis, secondAxis, lenFirst, lenSecond);      
+    float3 reflectIntersect = aiGetStreakedReflection(dL, origin, U, V, lenU, lenV);      
 
     // Next, find the intersection point of the reflection ray with a tube around the light
     // ************************************************************************************
     float3 endPoint1 = (ltCenter + V * -lenV) - Pw;
     float3 endPoint2 = (ltCenter + V *  lenV) - Pw;
-    float3 radialIntersect = aiGetTubeReflection(endPoint1, endPoint2, R, lenU) + Pw - ltCenter;
+    float3 radialIntersect = aiGetTubeReflection(endPoint1, endPoint2, R, lenU);
 
     // Project the new intersection point with the tube onto the light plane
-    // ************************************************************************************
-    float3 R2 = (radialIntersect + ltCenter - Pw);    
-    LR = dot( ltN, R2 ); 
+    // ************************************************************************************  
+    LR = dot( ltN, radialIntersect ); 
     t = max(ptPlaneDist / LR, 0.0f); 
-    Rint = Pw + t * R2; 
+    Rint = Pw + t * radialIntersect; 
     dL = Rint - ltCenter; 
     
     // and clamp the intersections to the edges of the light
@@ -393,13 +373,13 @@ float3 aiGetRectangleReflection( float3 ltPts[4], float3 ltCenter, float3 Pw, fl
     float LU = clamp(dot(dL, U), -lenU, lenU); 
     radialIntersect = (LV * V) + (LU * U);
  
-    // Neither the clamped tube or the steaked solutions are idea in all cases
+    // Neither the clamped tube or the streaked solutions are idea in all cases
     // So we use the view angle to the light and the view angle to the surface normal
     // to blend between the two solutions.
     // ************************************************************************************
-    float angle = pow(2.0 * min(.5, min(uDiff, vDiff)), 2);
-    float glancingAngle = 1.0 - (2.0 * min(.5, max(.1, NV)));    
-    float3 closestW = lerp(radialIntersect, reflectIntersect, min(1.0, glancingAngle+angle));
+    float lightAngle = pow(2.0 * min(.5, min(uDiff, vDiff)), 2);
+    float surfaceAngle = 1.0 - (2.0 * min(.5, NV));    
+    float3 closestW = lerp(radialIntersect, reflectIntersect, min(1.0, lightAngle+surfaceAngle));
     
     // convert the closest intersection with the light back to a ray originating from the surface point.
     // ************************************************************************************
@@ -479,7 +459,7 @@ vec3 aiPlaneIntersection(vec3 ray, vec3 planeNormal, vec3 ptOnPlane, vec3 rayOri
     float deltaD = dot(ptOnPlane, planeNormal) - dot(rayOrigin, planeNormal);
     float cosA = dot(ray, planeNormal);
     float lenToEdge = abs(cosA) < 0.00000001 ? 9999999.9 : deltaD / cosA;
-    return ray * lenToEdge + rayOrigin;
+    return ray * vec3(lenToEdge, lenToEdge, lenToEdge) + rayOrigin;
 }
 
 // Find the closest point to tube shaped light source along the reflection ray
@@ -494,46 +474,45 @@ vec3 aiGetTubeReflection(vec3 L0, vec3 L1, vec3 R, float halfHeight)
     float t = (RdotL0 * RdotLd - L0dotLd) / (distLd * distLd - RdotLd * RdotLd);
 
     vec3 closestPoint = L0 + Ld * clamp(t, 0.0f, 1.0f);
-    vec3 centerToRay = dot(closestPoint, R) * R - closestPoint;
+    vec3 centerToRay = R * dot(closestPoint, R) - closestPoint;
     return closestPoint + centerToRay * clamp(halfHeight / length(centerToRay), 0.0f, 1.0f);
 }
 
 // find the closest point to a rectangular light source along the reflection ray
 // **************************************************************
-vec3 aiGetStreakedReflection(vec3 dL, vec3 origin, vec3 firstAxis, vec3 secondAxis, float lenFirst, float lenSecond)
+vec3 aiGetStreakedReflection(vec3 dLIn, vec3 origin, vec3 U, vec3 V, float lenU, float lenV)
 {   
+    vec3 dL = dLIn;
+    
     vec3 vnRayAtoB = normalize(dL - origin); 
 
     // compute the closest point to the axis 
-    float LV = dot(dL, secondAxis); 
-    float vError = abs(LV) - lenSecond; 
-    LV = clamp(LV, -lenSecond, lenSecond); 
-    vec3 VOff = secondAxis * LV; 
-    if (vError > 0) 
-    { 
-        dL = aiPlaneIntersection(vnRayAtoB, secondAxis, VOff, origin); 
-    } 
+    float LV = dot(dL, V); 
+    float vError = abs(LV) - lenV; 
+    LV = clamp(LV, -lenV, lenV); 
+    vec3 VOff = V * vec3(LV, LV, LV);
+    
+    dL = (vError > 0.0) ? aiPlaneIntersection(vnRayAtoB, V, VOff, origin) : dL; 
     
     // compute the closest point to the second axis 
-    float LU = dot(dL, firstAxis); 
-    float uError = abs(LU) - lenFirst; 
-    LU = clamp(LU, -lenFirst, lenFirst); 
-    vec3 UOff = firstAxis * LU; 
-    if (uError > 0) 
-    { 
-        dL = aiPlaneIntersection(vnRayAtoB, firstAxis, UOff, origin); 
-    } 
-    LV = dot(dL, secondAxis); 
-    LV = clamp(LV, -lenSecond, lenSecond); 
+    float LU = dot(dL, U); 
+    float uError = abs(LU) - lenU; 
+    LU = clamp(LU, -lenU, lenU); 
+    vec3 UOff = U * vec3(LU, LU, LU); 
     
-    VOff = secondAxis * LV; 
+    dL = (uError > 0.0) ? aiPlaneIntersection(vnRayAtoB, U, UOff, origin) : dL; 
+    
+    LV = dot(dL, V); 
+    LV = clamp(LV, -lenV, lenV); 
+    
+    VOff = V * vec3(LV, LV, LV); 
     return VOff + UOff; 
 }
 
 vec3 aiGetRectangleReflection( vec3 ltPts[4], vec3 ltCenter, vec3 Pw, vec3 Nw, vec3 Vw, float area)
 {    
-    vec3 V = ( ltPts[1]-ltPts[0] ); 
-    vec3 U = ( ltPts[3]-ltPts[0] ); 
+    vec3 U = ( ltPts[1]-ltPts[0] ); 
+    vec3 V = ( ltPts[3]-ltPts[0] ); 
     vec3 R = reflect( -Vw, Nw ); 
     
     float lenU = length(U); 
@@ -541,19 +520,10 @@ vec3 aiGetRectangleReflection( vec3 ltPts[4], vec3 ltCenter, vec3 Pw, vec3 Nw, v
     
     float uDiff = abs(dot(-Vw, normalize(cross(R, U)))); 
     float vDiff = abs(dot(-Vw, normalize(cross(R, V)))); 
-    
-    bool vAxisFirst = uDiff < vDiff; 
-    vec3 firstAxis = vAxisFirst ? V : U; 
-    vec3 secondAxis = !vAxisFirst ? V : U; 
-    
-    float lenFirst = length(firstAxis); 
-    float lenSecond = length(secondAxis); 
-    firstAxis /= lenFirst;  lenFirst *= 0.5; 
-    secondAxis /= lenSecond;  lenSecond *= 0.5f; 
-       
+  
     U /= lenU;  lenU *= 0.5; 
     V /= lenV;  lenV *= 0.5; 
-
+ 
     vec3 ltN = normalize( cross( V, U )); 
     float LtPlaneD = dot(ltN, ltPts[0] ); 
     float ptPlaneDist = LtPlaneD - dot(ltN, Pw);     
@@ -566,31 +536,31 @@ vec3 aiGetRectangleReflection( vec3 ltPts[4], vec3 ltCenter, vec3 Pw, vec3 Nw, v
     float LR = dot( ltN, R ); 
     if (LR <= 0.0) 
         return -R; 
-    float t = max(ptPlaneDist / LR, 0.0f); 
+    float t = ptPlaneDist / LR; 
     if (t <= 0.0) 
         return -R; 
-    vec3 Rint = Pw + t * R; 
+        
+    vec3 Rint = Pw + R * t; 
     vec3 dL = Rint - ltCenter; 
 
     // We compute the plane ray intersection in light plane space.
     // So compute the ray start on the light plane by projecting the surface point along the 
     // light normal until it hits the light plane.
     // ************************************************************************************
-    vec3 origin = Pw + (-Nw * max(ptPlaneDist / LN, 0.0f)) - ltCenter; 
-    vec3 reflectIntersect = aiGetStreakedReflection(dL, origin, firstAxis, secondAxis, lenFirst, lenSecond);      
+    vec3 origin = Pw + (Nw * (-ptPlaneDist / LN)) - ltCenter; 
+    vec3 reflectIntersect = aiGetStreakedReflection(dL, origin, U, V, lenU, lenV);      
 
     // Next, find the intersection point of the reflection ray with a tube around the light
     // ************************************************************************************
-    vec3 endPoint1 = (ltCenter + V * -lenV) - Pw;
-    vec3 endPoint2 = (ltCenter + V *  lenV) - Pw;
-    vec3 radialIntersect = aiGetTubeReflection(endPoint1, endPoint2, R, lenU) + Pw - ltCenter;
+    vec3 endPoint1 = (ltCenter + U * -lenU) - Pw;
+    vec3 endPoint2 = (ltCenter + U *  lenU) - Pw;
+    vec3 radialIntersect = aiGetTubeReflection(endPoint1, endPoint2, R, lenV);
 
     // Project the new intersection point with the tube onto the light plane
     // ************************************************************************************
-    vec3 R2 = (radialIntersect + ltCenter - Pw);    
-    LR = dot( ltN, R2 ); 
+    LR = dot( ltN, radialIntersect ); 
     t = max(ptPlaneDist / LR, 0.0f); 
-    Rint = Pw + t * R2; 
+    Rint = Pw + radialIntersect * t; 
     dL = Rint - ltCenter; 
     
     // and clamp the intersections to the edges of the light
@@ -603,13 +573,13 @@ vec3 aiGetRectangleReflection( vec3 ltPts[4], vec3 ltCenter, vec3 Pw, vec3 Nw, v
     // So we use the view angle to the light and the view angle to the surface normal
     // to blend between the two solutions.
     // ************************************************************************************
-    float angle = pow(2.0 * min(.5, min(uDiff, vDiff)), 2);
-    float glancingAngle = 1.0 - (2.0 * min(.5, max(.1, NV)));    
-    vec3 closestW = reflectIntersect; //lerp(radialIntersect, reflectIntersect, min(1.0, glancingAngle+angle));
+    float lightAngle = 2.0 * min(.5, min(uDiff, vDiff));
+    float surfaceAngle = 1.0 - (2.0 * min(.5, abs(NV)));    
+    vec3 closestW = lerp(radialIntersect, reflectIntersect, min(1.0, lightAngle+surfaceAngle));
     
     // convert the closest intersection with the light back to a ray originating from the surface point.
     // ************************************************************************************
-    return closestW + ltCenter - Pw;
+    return closestW - Pw + ltCenter;
 } 
 
 irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensity, vec3 color, float emitDiff, float emitSpec, 
@@ -633,7 +603,7 @@ irradiance aiRectangleAreaLight( float lightOn, bool lightActive, float intensit
     const float M_2PI = 3.14159265358 * 2.0; 
     float ff = sumNG / M_2PI; 
     float sf = 1.0;   
-    vec3 ltCenter = (ltPts[0]+ltPts[1]+ltPts[2]+ltPts[3])/4.0f; 
+    vec3 ltCenter = (ltPts[0]+ltPts[1]+ltPts[2]+ltPts[3])/vec3(4.0f, 4.0f, 4.0f); 
     float area = length(ltPts[1]-ltPts[0]) * length(ltPts[3]-ltPts[0]); 
     
     vec3 Ls = aiGetRectangleReflection( ltPts, ltCenter, Pw, Nw, Vw, area); 
