@@ -190,12 +190,10 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          s_arvExists = true;
          renderSession->SetRenderViewOption("Run IPR", "0");
 // (why were we calling this function ?) renderSession->SetRenderViewOption("Full IPR Update", "1");
-
-
-
-		 renderSession->CloseRenderViewWithSession(false); // but DON't close ARV with CMayaScene::End()
+         renderSession->CloseRenderViewWithSession(false); // but DON't close ARV with CMayaScene::End()
+         renderSession->SetRenderViewStatusInfo(MString(""));
          CMayaScene::End();
-		 return MS::kSuccess;
+         return MS::kSuccess;
       }
       MDagPath defaultCamera;
 
