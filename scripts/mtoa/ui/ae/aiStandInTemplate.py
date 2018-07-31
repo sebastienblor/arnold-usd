@@ -42,6 +42,8 @@ class MtoAProceduralOperator(object):
             if opType == 'aiSetParameter':
                 paramName = cmds.optionMenuGrp(self.paramBox, q=True, v=True)
                 paramVal = cmds.textFieldGrp(self.paramValue, q=True, tx=True)
+                if paramName == 'shader':
+                    paramVal = '"{}"'.format(paramVal)
                 cmds.setAttr('{}.assignment[0]'.format(opNode), '{}={}'.format(paramName, paramVal), type='string')
 
             attrSize = mu.getAttrNumElements(self.standinName, 'operators')
@@ -115,6 +117,7 @@ class MtoAProceduralOperator(object):
         self.paramBox = cmds.optionMenuGrp('param', label='Parameter')        
         
         paramList = []
+        universeCreated = False
 
         if not ai.AiUniverseIsActive():
             universeCreated = True
