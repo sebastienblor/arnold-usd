@@ -1150,7 +1150,11 @@ MString CRenderSession::GetRenderViewOption(const MString &option)
 #endif
    return MString("");
 }
-
+void CRenderSession::SetRenderViewStatusInfo(const MString &info)
+{
+   if (s_renderView)
+      s_renderView->SetStatusInfo(info.asChar());
+}
 bool CRenderSession::RenderSequence()
 {   
    if (s_renderView == NULL || !CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return false;

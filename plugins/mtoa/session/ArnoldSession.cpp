@@ -693,6 +693,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
    m_motionStep = 0;
 
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRenderViewStatusInfo(MString("Exporting Arnold Scene..."));
+
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
 
@@ -859,7 +863,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // now loop through motion steps
       unsigned int numSteps = GetNumMotionSteps();
       m_isExportingMotion = true;
-       
+      
+      if (renderSession)
+         renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
+
       for (unsigned int step = 0; step < numSteps; ++step)
       {
          if (step == (unsigned int)currentFrameIndex)
@@ -1545,6 +1552,10 @@ void CArnoldSession::DoUpdate()
    if (mtoa_translation_info)
       MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
 
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRenderViewStatusInfo(MString("Updating Arnold Scene..."));
+
    MStatus status;
    assert(AiUniverseIsActive());
 
@@ -1630,7 +1641,6 @@ void CArnoldSession::DoUpdate()
       if (mtoa_translation_info)
          MtoaDebugLog("[mtoa.session]     Updating Scene Options");
 
-      CRenderSession *renderSession = CMayaScene::GetRenderSession();
       renderSession->UpdateRenderOptions();
       m_updateOptions = false;
    }
@@ -1902,6 +1912,9 @@ UPDATE_BEGIN:
    //--------- Now handling motion blur export
    if (exportMotion)
    {      
+      if (renderSession)
+         renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
+
       // Scene is motion blured, get the data for the steps.
       unsigned int numSteps = GetNumMotionSteps();
 
@@ -2496,6 +2509,12 @@ void CArnoldSession::ExportTxFiles()
 
 //================= Part 2 : run MakeTX on the necessary textures   
 
+   MString arv_msg("Converting ");
+   arv_msg += (int) listTextures.size();
+   arv_msg += " textures to .TX....";
+   CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
+
+      
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
