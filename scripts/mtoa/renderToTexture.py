@@ -145,7 +145,7 @@ class MtoARenderToTexture(object):
         cmds.setParent("..")
         cmds.textFieldGrp('uv_set', label='UV Set', ct2=('left', 'left'), cw2=(90,110), text="", w=280)
         cmds.setParent("..")
-        cmds.checkBox( 'extendEdges',label='Extend Edges', value=False )
+        cmds.checkBox( 'extendEdges',label='Extend Edges', value=True )
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
