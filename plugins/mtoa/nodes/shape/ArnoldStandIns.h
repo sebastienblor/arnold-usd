@@ -35,7 +35,7 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   typedef unordered_map<AtNode*, CArnoldStandInGeometry*> geometryListType;
+   typedef unordered_map<std::string, CArnoldStandInGeometry*> geometryListType;
    typedef geometryListType::const_iterator geometryListIterType;
    geometryListType m_geometryList;
    typedef std::vector<CArnoldStandInGInstance*> instanceListType;
@@ -81,6 +81,8 @@ public:
    bool LoadBoundingBox();
    MStatus GetPointsFromAss();
 
+   void UpdateSelectedItems();
+
    static void* creator();
    static MStatus initialize();
    CArnoldStandInGeom* geometry();
@@ -108,6 +110,7 @@ private:
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
    static MObject s_drawOverride;
+   static MObject s_selectedItems;
 
    MCallbackId m_attrChangeId;
    bool m_refreshAvoided;
