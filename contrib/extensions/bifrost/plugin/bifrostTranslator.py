@@ -54,6 +54,8 @@ if maya_api_version > 20180100 or maya_api_version >= 20180000 and "Preview Rele
             self.addControl("pointsType", label="Type")
             self.addControl("pointsStepSize", label="Point Step Size")
             self.addControl("chunkSize", label="Chunk Size");
+            # TODO(mike): determine why this isn't included, as it affects appearance
+            #self.addControl("radius", label="Radius")
             self.endLayout()
 
             self.beginLayout("Volume Controls", collapse=False)
