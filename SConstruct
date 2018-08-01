@@ -803,8 +803,8 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(A
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 
-if int(maya_version) >= 201800:
-    env.Install(TARGET_EXTENSION_PATH, os.path.join(env['ROOT_DIR'], 'external', 'bifrost'))
+if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
+    env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os(), '*')))
 
 OCIO_DYLIBPATH =""
 
@@ -1233,7 +1233,7 @@ if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
 
     if bifrost_ext == 'bifrost':
-        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost'), os.path.join('extensions', 'bifrost', '1.5.0')])
+        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', '1.5.0', system.os()), os.path.join('extensions', 'bifrost', '1.5.0')])
     else:
          #PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_procedural_0_1%s' % get_library_extension()), 'procedurals'])
     #else:
