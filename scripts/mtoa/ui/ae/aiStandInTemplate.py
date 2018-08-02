@@ -37,7 +37,7 @@ class MtoAProceduralOperator(object):
             selString = cmds.textFieldGrp(self.selection, q=True, tx=True)
             if selString[:1] == ' ':
                 selString  = selString[1:]
-                selString = '*.(@node=={})'.format(selString)
+                selString = '*.(@node==\'{}\')'.format(selString)
             cmds.setAttr('{}.selection'.format(opNode), selString, type='string')
             if opType == 'aiSetParameter':
                 paramName = cmds.optionMenuGrp(self.paramBox, q=True, v=True)
