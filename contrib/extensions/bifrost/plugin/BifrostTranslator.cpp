@@ -368,6 +368,7 @@ AtNode *BifrostTranslator::GetConnectedShader(MPlug plug)
       shaderPlug = connections[0];
       return ExportConnectedNode(shaderPlug);
    }
+   return NULL;
 }
 
 void BifrostTranslator::ExportBifrostShader(MFnDagNode& dagNode){
