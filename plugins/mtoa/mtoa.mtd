@@ -3440,7 +3440,13 @@ desc STRING "Apply a gamma correction to the color."
 [node cryptomatte_manifest_driver]
     maya.hide BOOL  TRUE        
 
+[node matrix_multiply_vector]
+    maya.classification STRING "utility/math"
+    maya.id INT 0x00115DA0
 
+[node matrix_transform]
+    maya.classification STRING "utility/math"
+    maya.id INT 0x00115DA1
 
 
 
