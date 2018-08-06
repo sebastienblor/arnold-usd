@@ -23,6 +23,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("uv_threshold", label="UV Threshold")
         self.addControl("angle_threshold", label="Angle Threshold")
         self.addControl("normal_type", label="Normal Type")
+        self.addControl("user_id", label="User ID")
         self.endNoOptimize();
         self.endLayout()
 
@@ -99,7 +100,6 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("indirect_diffuse", label="Indirect Diffuse")
         self.addControl("indirect_specular", label="Indirect Specular")
         self.addControl("energy_conserving", label="Energy Conserving")
-        self.addControl("user_id", label="User ID")
         self.endLayout()
 
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
