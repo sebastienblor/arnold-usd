@@ -492,8 +492,7 @@ void CNodeTranslator::RequestUpdate()
    if (m_impl->m_session->IsInteractiveRender() && m_impl->m_session->IsExportingMotion()) return;
 
    m_impl->m_session->QueueForUpdate(this);   
-   static AtString namespaceStr("namespace");
-
+   
    // Pass the update request to the export session
    m_impl->m_session->RequestUpdate();
 }
