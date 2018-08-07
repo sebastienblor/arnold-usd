@@ -84,7 +84,7 @@ void COperatorTranslator::Export(AtNode *shader)
    for (unsigned int i = 0; i < messageConn.length(); ++i)
       outConn.append(messageConn[i]);
 
-   bool globalOp = false;
+   //bool globalOp = false;
    MStringArray procList;
 
    for (unsigned int i = 0; i < outConn.length(); ++i)

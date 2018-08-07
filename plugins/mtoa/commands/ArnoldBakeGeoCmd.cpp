@@ -170,12 +170,13 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
          
          AtNode *tmpNode = node;
-         AtNode *parentNode;
-         while (parentNode = AiNodeGetParent(tmpNode))
+         AtNode *parentNode = AiNodeGetParent(tmpNode);
+         while (parentNode)
          {
             AtMatrix parentMtx = AiNodeGetMatrix(parentNode, "matrix");
             localToWorld = AiM4Mult(localToWorld, parentMtx);
             tmpNode = parentNode;
+            parentNode = AiNodeGetParent(tmpNode);
          }         
          int triangleIndex = 0;
          bool validUvs = true;
