@@ -97,7 +97,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     float coatFresnel = 1.0;
     float transFresnel = 1.0;
     float coatFresnelWeight = 0.0;
-    float clampedIOR = IOR; //max(1.0, IOR);
     
     float3 specularAmount = (specularInput + SpecularEnv);
     float NV = dot(lightingData.N, lightingData.V);
@@ -119,7 +118,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
         coatFresnelWeight = (coatIOR - 1) / (coatIOR + 1);
         coatFresnelWeight *= coatFresnelWeight;
         
-        float fresnelWeight = (clampedIOR - 1) / (clampedIOR + 1);
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
         fresnelWeight *= fresnelWeight;
         
         float temp = 1.0f - NV;
@@ -170,11 +169,10 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the transmission  
     transmissionRoughness = max(transmissionRoughness, specularRoughness);
     float transp = pow(1.0 - transFresnel, 3.0 + 7.0*(1.0-transmissionRoughness));      
-    //float3 transAmount = (transmissionColor * transp) * (1.0 - 0.85*transmissionRoughness);
     
     // fake some translucency   
     if (!thinWalled)
-        transp = lerp(transp, 1.0 - abs(transp - 0.5)*2.0, max(clampedIOR, 1.4)-1.0);
+        transp = lerp(transp, 1.0 - abs(transp - 0.5)*2.0, max(IOR, 1.4)-1.0);
     
     // Compute the transparency amount.  Roughness makes things less transparent.
     float3 transAmount = (transmissionColor * transp) * (1.0 - 0.85*transmissionRoughness);
@@ -184,7 +182,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     transAmount = lerp(transAmount, transmissionColor, shortestAxis);
         
     float3 tt = transmissionColor * transp; 
-    tt *= (1.0 - transAmount) * clampedIOR;   
+    tt *= (1.0 - transAmount) * IOR;   
    
     // apply the affects of transmission
     diffuse = lerp(diffuse, tt, transmission);      
@@ -260,7 +258,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     float coatFresnel = 1.0;
     float transFresnel = 1.0;
     float coatFresnelWeight = 0.0;
-    float clampedIOR = IOR; //max(1.0, IOR);
     
     float3 specularAmount = (specularInput + SpecularEnv);
     float NV = dot(lightingData.N, lightingData.V);
@@ -277,12 +274,11 @@ mayaSurfaceShaderOutput standardShaderCombiner(
         
         float roughnessOffset = 1.0f; //0.25*specularRoughness;
         fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5)*roughnessOffset;
-        //fresnel *= 1.0f - roughnessOffset;
     
         coatFresnelWeight = (coatIOR - 1) / (coatIOR + 1);
         coatFresnelWeight *= coatFresnelWeight;
         
-        float fresnelWeight = (clampedIOR - 1) / (clampedIOR + 1);
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
         fresnelWeight *= fresnelWeight;
         
         float temp = 1.0f - NV;
@@ -333,11 +329,10 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the transmission  
     transmissionRoughness = max(transmissionRoughness, specularRoughness);
     float transp = pow(1.0 - transFresnel, 3.0 + 7.0*(1.0-transmissionRoughness));      
-    //float3 transAmount = (transmissionColor * transp) * (1.0 - 0.85*transmissionRoughness);
     
     // fake some translucency   
     if (!thinWalled)
-        transp = lerp(transp, 1.0 - abs(transp - 0.5)*2.0, max(clampedIOR, 1.4)-1.0);
+        transp = lerp(transp, 1.0 - abs(transp - 0.5)*2.0, max(IOR, 1.4)-1.0);
     
     // Compute the transparency amount.  Roughness makes things less transparent.
     float3 transAmount = (transmissionColor * transp) * (1.0 - 0.85*transmissionRoughness);
@@ -347,7 +342,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     transAmount = lerp(transAmount, transmissionColor, shortestAxis);
         
     float3 tt = transmissionColor * transp; 
-    tt *= (1.0 - transAmount) * clampedIOR;   
+    tt *= (1.0 - transAmount) * IOR;   
    
     // apply the affects of transmission
     diffuse = lerp(diffuse, tt, transmission);      
@@ -415,32 +410,46 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 standardShaderLightingData lightingData)
 {
     mayaSurfaceShaderOutput result;
-    
+  
+    float envFresnel = 1.0;
     float fresnel = 1.0;
     float coatFresnel = 1.0;
     float transFresnel = 1.0;
     float coatFresnelWeight = 0.0;
-    float clampedIOR = max(1.0, IOR);
     
     vec3 specularAmount = (specularInput + SpecularEnv);
-    float NV = dot(lightingData.N, -lightingData.V);
+    float NV = dot(lightingData.N, lightingData.V);
     
     // compute the fresnel factors for the specular, coat, and transmission layers
-    if (NV < 0.0f)
+    if (NV >= 0.0f)
     {
+        vec3 SL = normalize(lightingData.SL);
+        vec3 H = normalize(SL + lightingData.V);
+        float HV = dot(H, lightingData.V);
+
+        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
+        R0 = R0 * R0;      
+        
+        float roughnessOffset = 1.0f; //0.25*specularRoughness;
+        fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5)*roughnessOffset;
+    
         coatFresnelWeight = (coatIOR - 1) / (coatIOR + 1);
         coatFresnelWeight *= coatFresnelWeight;
-        float fresnelWeight = (clampedIOR - 1) / (clampedIOR + 1);
+        
+        float fresnelWeight = (IOR - 1) / (IOR + 1);
         fresnelWeight *= fresnelWeight;
         
-        float temp = 1.0f + NV;
+        float temp = 1.0f - NV;
         transFresnel = fresnelWeight + temp * (1.0f - fresnelWeight);
                 
         float fweight = temp * temp;
         fweight *= fweight;
         fweight *= temp;
 
-        fresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
+        envFresnel = fresnelWeight + (1.0f - fresnelWeight) * fweight * roughnessOffset;
+        roughnessOffset = 0.3*specularRoughness;
+        envFresnel *= 1.0f - sqrt(roughnessOffset);
+                
         coatFresnel = coatFresnelWeight + fweight * (1.0f - coatFresnelWeight);
         coatFresnelWeight = fweight;
     } 
@@ -450,7 +459,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     
     // Compute the coat specular color.
     // In Arnold the secondary coat adds white specular highlights.
-    vec3 coatSpecular = specularAmount * coatFresnel * coat;    
+    vec3 coatSpecular = specularAmount * coatFresnel * coat;     
     
     // compute the diffuse
     vec3 diffuse = color * Kd;    
@@ -464,7 +473,8 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     
     // compute the specular.  Specular goes to black as the metalness increases.
     // metalness has its own specularity
-    vec3 specular = specularColor * specularAmount * Ks;   
+    //adjust the specular Env using the fresnel factor.
+    vec3 specular = specularColor * (specularInput * fresnel + SpecularEnv * envFresnel) * Ks;   
     specular *= 1.0 - metalness;
     
     // compute the metal color
@@ -473,9 +483,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     
     // energy conservation for the metal color
     metalColor *= 1.0 - (coatFresnel*coat);
-      
-    //adjust the specular using the fresnel factor.
-    specular *= fresnel;
     
     // compute the transmission  
     transmissionRoughness = max(transmissionRoughness, specularRoughness);
@@ -483,7 +490,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     
     // fake some translucency   
     if (!thinWalled)
-        transp = lerp(transp, 1.0 - abs(transp - 0.5)*2.0, max(clampedIOR, 1.4)-1.0);
+        transp = lerp(transp, 1.0 - abs(transp - 0.5)*2.0, max(IOR, 1.4)-1.0);
     
     // Compute the transparency amount.  Roughness makes things less transparent.
     vec3 transAmount = (transmissionColor * transp) * (1.0 - 0.85*transmissionRoughness);
@@ -493,7 +500,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     transAmount = lerp(transAmount, transmissionColor, shortestAxis);
         
     vec3 tt = transmissionColor * transp; 
-    tt *= (1.0 - transAmount) * clampedIOR;   
+    tt *= (1.0 - transAmount) * IOR;   
    
     // apply the affects of transmission
     diffuse = lerp(diffuse, tt, transmission);      
@@ -504,24 +511,19 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // add the diffuse lighting
     diffuse *= (diffuseInput + IrradianceEnv);
     
-    // account for opacity (remove color where transparent)
+    // account for opacity (remove color where opaque)
     diffuse *= opacity;
     
     // energy conservation for metalness and coat contributions
     diffuse *= 1.0 - min(1.0, max(coatFresnel * coat, metalness));
     
-    // lower the specular in the straight-on angles when the roughness is low.   
-    specular *= lerp(1.0 - transp, 1.0, transmissionRoughness * (1.0 - transmission));
- 
     result.outColor = (ambientColor+ambientIn)*color + diffuse + specular + metalColor + metalSpecular + coatSpecular + emissionInput;      
-
     result.outTransparency = max((1.0 - metalness) * transmission * transAmount, (1.0 - opacity));
     
     result.outGlowColor = vec3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = vec3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
     result.outSurfaceFinal = vec4(result.outColor, 1.0f);
-    return result;
-}
+    return result;}
                 ]]>
             </source>
         </implementation>
