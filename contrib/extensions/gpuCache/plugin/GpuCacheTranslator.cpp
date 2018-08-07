@@ -64,6 +64,14 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "aiin";
    helper.MakeInputBoolean(data);
 
+   //// operators
+
+   data.name = "operators";
+   data.shortName = "operators";
+   data.type = AI_TYPE_NODE;
+   data.isArray = true;
+   helper.MakeInput(data);
+
    //// userattrs
 
    std::vector<CAttrData> children(3);
@@ -94,6 +102,33 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    data.isArray = true;
 
    helper.MakeInputCompound(data, children);
+
+   //// aiOverrides
+
+   std::vector<CAttrData> ovrchildren(4);
+
+   ovrchildren[0].name = "abcPath";
+   ovrchildren[0].shortName = "abc_path";
+   ovrchildren[0].type = AI_TYPE_STRING;
+
+   ovrchildren[1].name = "abcShader";
+   ovrchildren[1].shortName = "abc_shader";
+   ovrchildren[1].type = AI_TYPE_NODE;
+
+   ovrchildren[2].name = "abcDisplacement";
+   ovrchildren[2].shortName = "abc_displacement";
+   ovrchildren[2].type = AI_TYPE_NODE;
+
+   ovrchildren[3].name = "abcOverrides";
+   ovrchildren[3].shortName = "abc_overrides";
+   ovrchildren[3].isArray = true;
+   ovrchildren[3].type = AI_TYPE_STRING;
+
+   data.name = "aiOverrides";
+   data.shortName = "aiovr";
+   data.isArray = true;
+
+   helper.MakeInputCompound(data, ovrchildren);
 
 }
 
@@ -200,13 +235,25 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
 
+<<<<<<< Updated upstream
    MString nsName = FindMayaPlug("aiNamespace").asString();
+=======
+   MString nsName = FindMayaPlug("namespace").asString();
+>>>>>>> Stashed changes
    if (nsName.length() > 0)
       AiNodeSetStr(shape, "namespace", nsName.asChar());
    else
       AiNodeResetParameter(shape, "namespace");
 
+<<<<<<< Updated upstream
    AiNodeSetStr(shape, "nameprefix", FindMayaPlug("aiNameprefix").asString().asChar());
+=======
+   MString namePrefix = FindMayaPlug("nameprefix").asString();
+   if (nsName.length() > 0)
+      AiNodeSetStr(shape, "nameprefix", namePrefix.asChar());
+   else
+      AiNodeResetParameter(shape, "nameprefix");
+>>>>>>> Stashed changes
 
    // now the user attributes
    MPlug arrayPlug = FindMayaPlug("aiNodeAttrs");

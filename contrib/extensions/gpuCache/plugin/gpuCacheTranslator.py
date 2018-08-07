@@ -1,5 +1,8 @@
 import mtoa.ui.ae.templates as templates
 from mtoa.ui.ae.templates import AttributeTemplate, registerTranslatorUI
+from mtoa.ui.ae import aiStandInTemplate
+import mtoa.melUtils as mu
+from mtoa.callbacks import *
 import maya.cmds as cmds
 import os
 import os.path
@@ -21,11 +24,13 @@ CACHE_ATTR = 'ai_abccache'
 
 VISIBILITY = ['differed', 'hidden', 'visible']
 
+
 def ArnoldUniverseOnlyBegin():
    if not AiUniverseIsActive():
       AiBegin()
       return True
    return False
+
 
 def ArnoldUniverseEnd():
    if AiUniverseIsActive():
@@ -35,12 +40,48 @@ def ArnoldUniverseEnd():
          AiRenderAbort()
       AiEnd()
 
+
+def abcToArnType(iObj):
+    if not iObj:
+        return
+
+    md = iObj.getMetaData()
+    if IPolyMesh.matches(md) or ISubD.matches(md):
+        return 'polymesh'
+    elif IPoints.matches(md):
+        return 'points'
+    elif ICurves.matches(md):
+        return 'curves'
+    else:
+        return None
+
+
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def createCacheAttr(self, node):
         if not cmds.attributeQuery(CACHE_ATTR, node=node, exists=True):
             # make the attr
-            cmds.addAttr(node, longName=CACHE_ATTR, dt="stringArray" )
+            # cmds.addAttr(node, longName=CACHE_ATTR, dt="stringArray" )
+            cmds.addAttr(node, longName=CACHE_ATTR, numberOfChildren=6, multi=True, at="compound", hidden=True )
+            cmds.addAttr(node, longName="ai_abcPath", dt="string", parent=CACHE_ATTR)
+            cmds.addAttr(node, longName="ai_abcLabel", dt="string", parent=CACHE_ATTR)
+            cmds.addAttr(node, longName="ai_abcParent", dt="string", parent=CACHE_ATTR)
+            cmds.addAttr(node, longName="ai_abcVisibility", dt="string", parent=CACHE_ATTR)
+            cmds.addAttr(node, longName="ai_abcInstancePath", dt="string", parent=CACHE_ATTR)
+            cmds.addAttr(node, longName="ai_entity_type", dt="string", parent=CACHE_ATTR)
+
+    def getPathProperties(self, path):
+
+        num_overrides = cmds.getAttr('{}.aiOverrides'.format(self.nodeName), size=True)
+        path_props = {'shader': None, 'overrides': [], 'index': num_overrides}
+        for i in range(num_overrides):
+            _path = cmds.getAttr('{}.aiOverrides[{}].abcPath'.format(self.nodeName, i))
+            if _path == path:
+                path_props['shaders'] = cmds.listConnections('{}.aiOverrides[{}].abcShader'.format(self.nodeName, i)) or None
+                path_props['overrides'] = cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i)) or []
+                path_props['index'] = i
+                break
+        return path_props
 
     def selectGeomPath(self, itemName, itemLabel):
         # if itemName in self.abcItems:
@@ -48,23 +89,113 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if itemName == item[0] and item[3] != VISIBILITY[1]:
                 cmds.setAttr('{}.cacheGeomPath'.format(self.nodeName), itemName.replace('/', '|'), type='string')
 
-    def abcInfoNew(self, nodeAttr) :
+    def showPropertyEditor(self, item, state):
+
+        print "showPropertyEditor", item, state
+        # get item type
+
+    def showShaderAssigner(self, item, state):
+
+        print "showShaderAssigner", item, state
+
+    def showAbcItemProperties(self):
+
+
+        item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True)
+        print "showAbcItemProperties", item[0]
+        if len(item):
+            item = item[0]
+        # remove if deselected
+        if item is not self.currentItem:
+
+            childUIs = cmds.layout(self.overridesLayout, q=True, childArray=True) or []
+            for cu in childUIs:
+                cmds.deleteUI(cu)
+
+            path_props = self.getPathProperties(item)
+            # cmds.setParent(self.abcInfoEditorPanel)
+            # shader_editor = cmds.rowLayout(p=self.abcInfoEditorPanel)
+            cmds.text(self.overrideEditorLabel, e=True, label=item)
+            shaderConnection = cmds.listConnections("{}.aiOverrides[{}].abcShader".format(self.nodeName, path_props['index']), s=True, d=False) or []
+            if len(shaderConnection):
+                cmds.textFieldGrp(self.shaderAssignerTextField, e=True, text=shaderConnection[0])
+                cmds.iconTextButton(self.shaderAssignerButton, e=True, image='navButtonConencted.png')
+            else:
+                cmds.textFieldGrp(self.shaderAssignerTextField, e=True, text="")
+                cmds.iconTextButton(self.shaderAssignerButton, e=True, image='navButtonUnconnected.png')
+
+            displacementConnection = cmds.listConnections("{}.aiOverrides[{}].abcDisplacement".format(self.nodeName, path_props['index']), s=True, d=False) or []
+            if len(displacementConnection):
+                cmds.textFieldGrp(self.displacmentShaderAssignerTextField, e=True, text=displacementConnection[0])
+                cmds.iconTextButton(self.displacementShaderAssignerButton, e=True, image='navButtonConencted.png')
+            else:
+                cmds.textFieldGrp(self.displacementShaderAssignerTextField, e=True, text="")
+                cmds.iconTextButton(self.displacementShaderAssignerButton, e=True, image='navButtonUnconnected.png')
+
+            if len(path_props['overrides']):
+                for override in path_props['overrides']:
+                    attr, value = override.split('=')
+                    _layout = cmds.rowLayout(p=self.overridesLayout)
+                    _ctrl = cmds.textFieldButtonGrp()
+                    cmds.setParent('..')
+
+            _layout = cmds.rowLayout(nc=3, p=self.overridesLayout)
+            cmds.iconTextButton(label='Add Override', image="gear.png", style="iconAndTextHorizontal")
+            cmds.setParent('..')
+
+            self.currentItem = item
+
+        return True
+
+    def createItemPopupMenu(self, ctrl):
+
+        popup = cmds.popupMenu(parent=ctrl)
+        cmds.menuItem(label="Set Shader on selected", )
+        cmds.menuItem(label="Set Properties on selected")
+        cmds.menuItem(divider=True)
+        cmds.menuItem(label="Remove Properties on selected")
+        cmds.menuItem(label="Remove Shader on selected")
+
+        return popup
+
+    def abcInfoNew(self, nodeAttr):
         cmds.rowLayout(nc=2)
         cmds.text(label='')
         self.inspectAlembicPath = cmds.button(align="center", label='Inspect Alembic File', command=lambda *args: self.inspectAlembic())
-        cmds.setParent('..') # rowLayout
-        self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=0, allowReparenting=False, itemDblClickCommand2=self.selectGeomPath)
+        cmds.setParent('..')  # rowLayout
+        self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=2,
+                                         allowReparenting=False,
+                                         selectionChangedCommand=self.showAbcItemProperties,
+                                         itemDblClickCommand2=self.selectGeomPath,
+                                         pressCommand=[(1, self.showPropertyEditor),
+                                                       (2, self.showShaderAssigner)]
+                                         )
+        self.createItemPopupMenu(self.abcInfoPath)
+
+        # editor panel
+        self.overrideEditorLabel = cmds.text(label="")
+        self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1)
+        self.shaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Surface Shader', adjustableColumn=1)
+        self.shaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='shader')
+        cmds.setParent('..')  # rowLayout
+        self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1)
+        self.displacementShaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Displacement Shader', adjustableColumn=1)
+        self.displacementShaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='displacementShader')
+        cmds.setParent('..')  # rowLayout
+        self.overridesLayout = cmds.columnLayout()
+
+        cmds.setParent('..')  # rowLayout
+
         self.abcInfoReplace(nodeAttr)
 
         fileAttr = self.nodeName + ".cacheFileName"
-        cmds.scriptJob(attributeChange=[fileAttr,self.updateAlembicFile],
-                     replacePrevious=True, parent=self.inspectAlembicPath)
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile],
+                       replacePrevious=True, parent=self.inspectAlembicPath)
 
     def updateAlembicFile(self):
         # clear the cache
         self.abcItems = []
-        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
-
+        self.abcPath = cmds.getattr(self.nodeName + ".cacheFileName", type="string")
         cmds.treeView(self.abcInfoPath, edit=True, visible=False)
         cmds.button(self.inspectAlembicPath, edit=True, visible=True)
         cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
@@ -73,12 +204,15 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         path = iObj.getFullName()
         name = iObj.getName()
+        instancedPath = iObj.instanceSourcePath()
+
+        entity_type = abcToArnType(iObj)
 
         if visibility != VISIBILITY[1]:
             visibility = VISIBILITY[ int(GetVisibility(iObj))+1 ]
 
         geomPath = path.replace('/', '|')
-        self.abcItems.append([path, name, parent, visibility])
+        self.abcItems.append([path, name, parent, visibility, instancedPath, entity_type])
 
         for child in iObj.children:
             self.visitObject( child, path, visibility)
@@ -88,12 +222,20 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.treeView(self.abcInfoPath, edit=True, visible=True)
         cmds.button(self.inspectAlembicPath, edit=True, visible=False)
 
-        for i in self.abcItems:
-            label = i[1]
-            if i[3] == VISIBILITY[1]:
-                label += " (hidden)"
-            cmds.treeView(self.abcInfoPath, edit=True, addItem=(i[0], i[2]))
-            cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(i[0], label))
+        for _path, _label, _parent, _visibility, _instancedPath, _entity_type in self.abcItems:
+
+            cmds.treeView(self.abcInfoPath, edit=True, addItem=(_path, _parent))
+
+            if _visibility == VISIBILITY[1]:
+                _label += " (hidden)"
+                cmds.treeView(self.abcInfoPath, edit=True, textColor=(_path, 0.5, 0.5, 0.9))
+            if _instancedPath != '':
+                _label += " (instanced)"
+                cmds.treeView(self.abcInfoPath, edit=True, textColor=(_path, 0.5, 0.9, 0.5))
+
+            cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(_path, _label))
+            cmds.treeView(self.abcInfoPath, e=True, image=[(_path, 1, "gear.png")])
+            cmds.treeView(self.abcInfoPath, e=True, image=[(_path, 2, "sphere.png")])
 
         geomPathAttr = self.nodeName + '.cacheGeomPath'
         geomPath = cmds.getAttr(geomPathAttr).replace('|', '/')
@@ -101,7 +243,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         # if geomPath in self.abcItems:
         for item in self.abcItems:
             if geomPath == item[0]:
-                cmds.treeView(self.abcInfoPath, edit=True, selectItem=[geomPath, True])
+                cmds.treeView(self.abcInfoPath, edit=True,
+                              selectItem=[geomPath, True])
 
     def inspectAlembic(self):
         filenameAttr = self.nodeName + '.cacheFileName'
@@ -113,28 +256,42 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         iArchive = IArchive(str(filename))
         self.visitObject( iArchive.getTop() )
 
-        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), len(self.abcItems), *[','.join(a) for a in self.abcItems], type="stringArray")
+        for i, v in enumerate(self.abcItems):
+            cmds.setAttr('{}.{}[{}].ai_abcPath'.format(self.nodeName, CACHE_ATTR, i), v[0], type="string")
+            cmds.setAttr('{}.{}[{}].ai_abcLabel'.format(self.nodeName, CACHE_ATTR, i), v[1], type="string")
+            cmds.setAttr('{}.{}[{}].ai_abcParent'.format(self.nodeName, CACHE_ATTR, i), v[2], type="string")
+            cmds.setAttr('{}.{}[{}].ai_abcVisibility'.format(self.nodeName, CACHE_ATTR, i), v[3], type="string")
+            cmds.setAttr('{}.{}[{}].ai_abcInstancePath'.format(self.nodeName, CACHE_ATTR, i), v[4], type="string")
+            cmds.setAttr('{}.{}[{}].ai_entity_type'.format(self.nodeName, CACHE_ATTR, i), v[5], type="string")
 
         self.displayTree()
 
     def populateItems(self):
-        self.abcItems = []
         # get the items in the cache
-        cache_str_list = cmds.getAttr('{}.{}'.format(self.nodeName, CACHE_ATTR)) or []
-        for s in cache_str_list:
-            self.abcItems.append(s.split(','))
+        for i in range(mu.getAttrNumElements(self.nodeName, CACHE_ATTR)):
+            _path = cmds.getAttr('{}.{}[{}].ai_abcPath'.format(self.nodeName, CACHE_ATTR, i))
+            _label = cmds.getAttr('{}.{}[{}].ai_abcLabel'.format(self.nodeName, CACHE_ATTR, i))
+            _parent = cmds.getAttr('{}.{}[{}].ai_abcParent'.format(self.nodeName, CACHE_ATTR, i))
+            _visibility = cmds.getAttr('{}.{}[{}].ai_abcVisibility'.format(self.nodeName, CACHE_ATTR, i))
+            _instanced = cmds.getAttr('{}.{}[{}].ai_abcInstancePath'.format(self.nodeName, CACHE_ATTR, i))
+            _entity_type= cmds.getAttr('{}.{}[{}].ai_entity_type'.format(self.nodeName, CACHE_ATTR, i))
 
-    def abcInfoReplace(self, nodeAttr) :
-        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
-            # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
-        self.populateItems()
-        if len(self.abcItems):
-            self.displayTree()
+            self.abcItems.append((_path, _label, _parent, _visibility, _instanced, _entity_type))
+
+    def abcInfoReplace(self, nodeAttr):
+        self.abcItems = []
+        cache_attr_exists = cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True)
+        print "cache_attr_exists", cache_attr_exists
+        if not cache_attr_exists:
+            self.createCacheAttr(self.nodeName)
         else:
-            cmds.treeView(self.abcInfoPath, edit=True, visible=False)
-            cmds.button(self.inspectAlembicPath, edit=True, visible=True)
-            cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
+            self.populateItems()
+            if len(self.abcItems):
+                self.displayTree()
+            else:
+                cmds.treeView(self.abcInfoPath, edit=True, visible=False)
+                cmds.button(self.inspectAlembicPath, edit=True, visible=True)
+                cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
 
     def populateParams(self, node_type):
         # iterate over params
@@ -294,6 +451,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def setUserAttrCtrl(self, nodeAttrName, node_type, param_name):
         # check if attribute allready has been set in the current node
         value = None
+        ctrl = None
         nodeParamName = ':'.join([node_type, param_name])
         details = self.attr_ctrls[node_type][param_name]
         if nodeParamName in self.user_attrs:
@@ -316,6 +474,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 ctrl = cmds.optionMenuGrp(details['control'], edit=True, value=str(value), changeCommand=lambda *args:self.setUserAttr(nodeAttrName, nodeParamName, *args))
             else:
                 cmds.warning('[gpuCache][mtoa] Could not make control for param {}.{}'.format(node_type, param_name))
+        return ctrl
 
     def setUserAttr(self, nodeAttrName, nodeParamName, value=None):
         node_type, param_name = nodeParamName.split(':')[:2]
@@ -347,12 +506,78 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         else:
             self.user_attrs[nodeParamName]['value'] = value
 
+    def operatorsReplace(self, nodeAttr):
+        self._setActiveNodeAttr(nodeAttr)
+
+        for ctrl in self._msgCtrls:
+            cmds.deleteUI(ctrl)
+        self._msgCtrls = []
+
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        cmds.setParent(self.otherCol)
+        attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
+
+        for i in range(attrSize):
+            attrName = '{}[{}]'.format(nodeAttr, i)
+            attrLabel = 'Operators[{}]'.format(i)
+            ctrl = cmds.attrNavigationControlGrp(at=attrName,
+                                                    label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
+   
+            self._msgCtrls.append(ctrl) 
+
+        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
+
+
+    def operatorsNew(self, nodeAttr):
+        
+        # TODO: move this into AttributeEditorTemplate
+        self._setActiveNodeAttr(nodeAttr)
+
+        self._msgCtrls = []
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+
+        cmds.frameLayout(label='Operators', collapse=True)
+        cmds.columnLayout(adjustableColumn=True)
+
+        cmds.rowLayout(nc=2)
+        cmds.text(label='')
+        #cmds.text(label='')
+        addInputButton = cmds.button(label='Add Operator')
+
+        self.oppopup = cmds.popupMenu(parent=addInputButton, button=1) 
+        cmds.popupMenu(self.oppopup, edit=True, postMenuCommand=Callback(aiStandInTemplate.buildOperatorMenu, self.oppopup, nodeAttr))
+        cmds.setParent('..') # rowLayout
+
+        cmds.frameLayout(labelVisible=False, collapsable=False)
+        self.otherCol = cmds.columnLayout(adjustableColumn=True)
+        
+        attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
+
+        for i in range(attrSize):
+            attrName = '{}[{}]'.format(nodeAttr, i)
+            attrLabel = 'Inputs[{}]'.format(i)
+            ctrl = cmds.attrNavigationControlGrp(at=attrName,
+                                                    label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
+   
+            self._msgCtrls.append(ctrl) 
+
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+        
+        cmds.setParent('..') # columnLayout
+        cmds.setParent('..') # frameLayout
+        cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
+
     def setup(self):
         self.abcInfoPath = ''
         self.inspectAlembicPath = ''
-        self.abcItems = {}
+        self.abcItems = []
         self.user_attrs = {}
         self.attr_ctrls = {}
+        self.currentItem = None
 
         self.commonShapeAttributes()
         self.beginLayout("Translator Options", collapse=False)
@@ -380,6 +605,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.beginLayout("Alembic Contents", collapse=False)
         self.addCustom('aiInfo', self.abcInfoNew, self.abcInfoReplace)
         self.endLayout()
+        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
         self.addSeparator()
         self.beginLayout("Alembic Overrides", collapse=False)
         self.addControl("aiPullUserParams", label="Enable Overrides", annotation='Enable to override the attributes found in the archive')
