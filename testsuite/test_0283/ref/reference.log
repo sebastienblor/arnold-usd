@@ -1,7 +1,6 @@
 Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0283\test_0283.log', using stdout instead
 
 Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
-sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 Initialized VP2.0 renderer {
   Version : 2016.11.40.12. Feature Level 5.
   Adapter : Quadro K620/PCIe/SSE2
@@ -20,24 +19,44 @@ Initialized VP2.0 renderer {
 OpenCL evaluator is attempting to initialize OpenCL.
 Detected 1 OpenCL Platforms: 
  0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
- Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
-Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-Successfully registered renderer 'arnold'
-File read in  0.91 seconds.
-File read in  0.91 seconds.
+00:00:00   424MB WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   426MB WARNING |  hairPhysicalShader_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   426MB WARNING |  lookdevkit_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   427MB WARNING |  renderSetup_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   427MB WARNING |  xgenSpline_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+###############################################################################
+Begin attempted read of a shade fragment XML file.
+Attempting to read fragment XML code from: aiRectangleAreaLight.xml
+Errors loading XML:
+-------------------------------------------------------------------------------
+Could not find file: aiRectangleAreaLight.xml
+-------------------------------------------------------------------------------
+End attempted read of fragment XML.
+###############################################################################
+pymel.core : INFO : Updating pymel with pre-loaded plugins: svgFileTranslator, mayaHIK, invertShape, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, mtoa, renderSetup, fbxmaya
+00:00:00 WARNING |  hairPhysicalShader_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00 WARNING |  lookdevkit_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00 WARNING |  renderSetup_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00 WARNING |  xgenSpline_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00 WARNING |  xgenSpline_procedural.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+File read in  0.18 seconds.
+File read in  0.18 seconds.
 Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0283/test.ma
-00:00:00   533MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   533MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   533MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   535MB WARNING | rendering with watermarks because of failed authorization:
-00:00:00   543MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node 
-00:00:00   543MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Bottle/Bottle_Shape
-00:00:00   544MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Cap/Cap_Shape_SubD
+00:00:00   627MB WARNING |  hairPhysicalShader_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   627MB WARNING |  lookdevkit_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   627MB WARNING |  renderSetup_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   627MB WARNING |  xgenSpline_shaders.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   627MB WARNING |  xgenSpline_procedural.dll was compiled against non-compatible Arnold 5.2.1.0.wip
+00:00:00   628MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   628MB ERROR   |  [mtoa.translator]   synColorTranslator: Arnold node type color_manager_syncolor does not exist.
+00:00:00   628MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   628MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   629MB WARNING | rendering with watermarks because of failed authorization:
+00:00:00   640MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Bottle/Bottle_Shape
+00:00:00   640MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Bottle/Bottle_Shape
+00:00:00   641MB WARNING |   [alembic] Failed to generate user data type for parameter SubDivisionMesh on node /Cap/Cap_Shape_SubD
+00:00:00   641MB WARNING |  [driver_tiff] defaultArnoldDriver@driver_tiff.RGBA: unable to convert to color space "sRGB gamma", ignoring color transform
 Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0283\test.ma completed.

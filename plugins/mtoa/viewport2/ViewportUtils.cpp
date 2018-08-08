@@ -72,7 +72,7 @@ bool LoadFragmentGraph(const MString& fragmentGraph, const MStringArray& require
 
 bool LoadShadeFragment(const MString& shadeFragment)
 {
-    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer(false);
     if (theRenderer)
     {
         MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager();

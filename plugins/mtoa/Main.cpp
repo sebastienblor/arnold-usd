@@ -890,7 +890,8 @@ namespace // <anonymous>
                                        "",
                                        CToonTranslator::creator);
 
-         LoadShadeFragment("aiRectangleAreaLight");
+         if(MGlobal::apiVersion() >= 20180400)
+            LoadShadeFragment("aiRectangleAreaLight");
 
       }
 

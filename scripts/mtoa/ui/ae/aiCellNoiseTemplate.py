@@ -20,6 +20,7 @@ class AEaiCellNoiseTemplate(ShaderAETemplate):
         self.addControl('color')
         self.addControl('palette')
         self.addControl('density')
+        self.addControl('randomness')
         
         self.beginLayout('User AOVs', collapse=True)
         self.endLayout()

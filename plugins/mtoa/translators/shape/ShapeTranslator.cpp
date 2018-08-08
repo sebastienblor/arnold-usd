@@ -68,10 +68,23 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
       MString setname = plug.asString();
       if (setname != "")
       {
-         AiNodeDeclareConstant(node, "sss_setname", AI_TYPE_STRING);
+         if (AiNodeLookUpUserParameter(node, "sss_setname") == NULL)
+            AiNodeDeclareConstant(node, "sss_setname", AI_TYPE_STRING);
          AiNodeSetStr(node, "sss_setname", setname.asChar());
       }
    }   
+   plug = FindMayaPlug("aiToonId", &status);
+   if (status && !plug.isNull())
+   {
+      MString toonId = plug.asString();
+      if (toonId != "")
+      {
+         if (AiNodeLookUpUserParameter(node, "toon_id") == NULL)
+            AiNodeDeclareConstant(node, "toon_id", AI_TYPE_STRING);
+         AiNodeSetStr(node, "toon_id", toonId.asChar());
+      }
+   }   
+   
    
    ExportTraceSets(node, FindMayaPlug("aiTraceSets"));
 
@@ -136,6 +149,12 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.stringDefault = "";
    data.name = "aiSssSetname";
    data.shortName = "ai_sss_setname";
+   data.type = AI_TYPE_STRING;
+   helper.MakeInput(data);
+
+   data.stringDefault = "";
+   data.name = "aiToonId";
+   data.shortName = "ai_toon_id";
    data.type = AI_TYPE_STRING;
    helper.MakeInput(data);
 
