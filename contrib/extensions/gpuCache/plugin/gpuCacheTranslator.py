@@ -11,7 +11,7 @@ from ast import literal_eval
 from alembic.AbcCoreAbstract import *
 from alembic.Abc import *
 from alembic.Util import *
-from alembic.AbcGeom import GetVisibility, ObjectVisibility
+from alembic.AbcGeom import *
 
 from arnold import *
 
@@ -26,19 +26,19 @@ VISIBILITY = ['differed', 'hidden', 'visible']
 
 
 def ArnoldUniverseOnlyBegin():
-   if not AiUniverseIsActive():
-      AiBegin()
-      return True
-   return False
+    if not AiUniverseIsActive():
+        AiBegin()
+        return True
+    return False
 
 
 def ArnoldUniverseEnd():
-   if AiUniverseIsActive():
-      if AiRendering():
-         AiRenderInterrupt()
-      if AiRendering():
-         AiRenderAbort()
-      AiEnd()
+    if AiUniverseIsActive():
+        if AiRendering():
+            AiRenderInterrupt()
+        if AiRendering():
+            AiRenderAbort()
+        AiEnd()
 
 
 def abcToArnType(iObj):
@@ -52,6 +52,8 @@ def abcToArnType(iObj):
         return 'points'
     elif ICurves.matches(md):
         return 'curves'
+    elif IXform.matches(md):
+        return 'xform'
     else:
         return None
 
@@ -72,13 +74,15 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def getPathProperties(self, path):
 
-        num_overrides = cmds.getAttr('{}.aiOverrides'.format(self.nodeName), size=True)
-        path_props = {'shader': None, 'overrides': [], 'index': num_overrides}
+        num_overrides = mu.getAttrNumElements(self.nodeName, "aiOverrides")
+        path_props = {'shader': None, 'disp': None, 'overrides': [], 'index': num_overrides}
         for i in range(num_overrides):
             _path = cmds.getAttr('{}.aiOverrides[{}].abcPath'.format(self.nodeName, i))
             if _path == path:
-                path_props['shaders'] = cmds.listConnections('{}.aiOverrides[{}].abcShader'.format(self.nodeName, i)) or None
-                path_props['overrides'] = cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i)) or []
+                path_props['shader'] = cmds.listConnections('{}.aiOverrides[{}].abcShader'.format(self.nodeName, i)) or None
+                path_props['disp'] = cmds.listConnections('{}.aiOverrides[{}].abcDisplacement'.format(self.nodeName, i)) or None
+                for o in range(cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i), size=True)):
+                    path_props['overrides'][o] = cmds.getAttr('{}.aiOverrides[{}].abcOverrides[{}]'.format(self.nodeName, i, o))
                 path_props['index'] = i
                 break
         return path_props
@@ -89,48 +93,68 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if itemName == item[0] and item[3] != VISIBILITY[1]:
                 cmds.setAttr('{}.cacheGeomPath'.format(self.nodeName), itemName.replace('/', '|'), type='string')
 
+    def getOpertator(self, item):
+
+        return None
+
     def showPropertyEditor(self, item, state):
 
         print "showPropertyEditor", item, state
         # get item type
 
-    def showShaderAssigner(self, item, state):
+    def selectShader(self, item, state):
 
-        print "showShaderAssigner", item, state
+        print "selectShader", item, state
+
+    def createNewShader(self, attrName, asShader=True):
+
+        mel = "createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\""
+        cmds.exec(mel)
+
+        # make the operator if it doesn't allready exist for this sub-node
+        op = self.getOperator()
+
+    def connectExistingShader(self, node, attr):
+
+        print "connectExistingShader", node, attr
 
     def showAbcItemProperties(self):
-
+        '''Display the shaders and overrides for the selected Item'''
 
         item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True)
-        print "showAbcItemProperties", item[0]
         if len(item):
             item = item[0]
         # remove if deselected
+        childUIs = cmds.layout(self.overridesLayout, q=True, childArray=True) or []
+        for cu in childUIs:
+            cmds.deleteUI(cu)
+
         if item is not self.currentItem:
 
-            childUIs = cmds.layout(self.overridesLayout, q=True, childArray=True) or []
-            for cu in childUIs:
-                cmds.deleteUI(cu)
-
             path_props = self.getPathProperties(item)
-            # cmds.setParent(self.abcInfoEditorPanel)
-            # shader_editor = cmds.rowLayout(p=self.abcInfoEditorPanel)
+            path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+            cmds.layout(self.shaderAssignerLayout, e=True, visible=True)
             cmds.text(self.overrideEditorLabel, e=True, label=item)
-            shaderConnection = cmds.listConnections("{}.aiOverrides[{}].abcShader".format(self.nodeName, path_props['index']), s=True, d=False) or []
-            if len(shaderConnection):
-                cmds.textFieldGrp(self.shaderAssignerTextField, e=True, text=shaderConnection[0])
-                cmds.iconTextButton(self.shaderAssignerButton, e=True, image='navButtonConencted.png')
-            else:
-                cmds.textFieldGrp(self.shaderAssignerTextField, e=True, text="")
-                cmds.iconTextButton(self.shaderAssignerButton, e=True, image='navButtonUnconnected.png')
+            cmds.setAttr("{}.abcPath".format(path_attr), item, type="string")
+            shaderAttrName = "{}.abcShader".format(path_attr)
+            shaderConnection = cmds.listConnections("{}.abcShader".format(path_attr), s=True, d=False) or []
 
-            displacementConnection = cmds.listConnections("{}.aiOverrides[{}].abcDisplacement".format(self.nodeName, path_props['index']), s=True, d=False) or []
-            if len(displacementConnection):
-                cmds.textFieldGrp(self.displacmentShaderAssignerTextField, e=True, text=displacementConnection[0])
-                cmds.iconTextButton(self.displacementShaderAssignerButton, e=True, image='navButtonConencted.png')
-            else:
-                cmds.textFieldGrp(self.displacementShaderAssignerTextField, e=True, text="")
-                cmds.iconTextButton(self.displacementShaderAssignerButton, e=True, image='navButtonUnconnected.png')
+            cmds.attrNavigationControlGrp(self.shaderAssignerField,
+                                          edit=True, at=shaderAttrName,
+                                          label="Surface Shader",
+                                          # cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\"",
+                                          cn=lambda *args:self.createNewShader(shaderAttrName, True),
+                                          cad=self.connectExistingShader
+                                          )
+
+            cmds.layout(self.displacementShaderAssignerLayout, e=True, visible=True)
+            dispAttrName = "{}.abcDisplacement".format(path_attr)
+            displacementConnection = cmds.listConnections("{}.abcDisplacement".format(path_attr), s=True, d=False) or []
+            cmds.attrNavigationControlGrp(self.displacementShaderAssignerField,
+                                          edit=True,
+                                          at=dispAttrName,
+                                          label="Displacement Shader",
+                                          cn="createRenderNode -allWithTexturesUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+dispAttrName+"\" \"\"")
 
             if len(path_props['overrides']):
                 for override in path_props['overrides']:
@@ -140,48 +164,63 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     cmds.setParent('..')
 
             _layout = cmds.rowLayout(nc=3, p=self.overridesLayout)
-            cmds.iconTextButton(label='Add Override', image="gear.png", style="iconAndTextHorizontal")
+            self.addOverride = cmds.iconTextButton(label='Add Override', image="gear.png", style="iconAndTextHorizontal", command=lambda *args: self.addOverride(_layout, item))
             cmds.setParent('..')
 
             self.currentItem = item
+
+        else:
+            cmds.layout(self.shaderAssignerLayout, e=True, visible=False)
+            cmds.layout(self.displacementShaderAssignerLayout, e=True, visible=False)
 
         return True
 
     def createItemPopupMenu(self, ctrl):
 
         popup = cmds.popupMenu(parent=ctrl)
-        cmds.menuItem(label="Set Shader on selected", )
-        cmds.menuItem(label="Set Properties on selected")
+        cmds.menuItem(label="Select Shader on selected")
+        cmds.menuItem(label="Select Displacment on selected")
         cmds.menuItem(divider=True)
         cmds.menuItem(label="Remove Properties on selected")
         cmds.menuItem(label="Remove Shader on selected")
+        cmds.menuItem(label="Remove Displacment on selected")
 
         return popup
 
     def abcInfoNew(self, nodeAttr):
+        self.currentItem = None
         cmds.rowLayout(nc=2)
         cmds.text(label='')
         self.inspectAlembicPath = cmds.button(align="center", label='Inspect Alembic File', command=lambda *args: self.inspectAlembic())
         cmds.setParent('..')  # rowLayout
-        self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=2,
+        self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=3,
                                          allowReparenting=False,
+                                         attachButtonRight=True,
                                          selectionChangedCommand=self.showAbcItemProperties,
                                          itemDblClickCommand2=self.selectGeomPath,
-                                         pressCommand=[(1, self.showPropertyEditor),
-                                                       (2, self.showShaderAssigner)]
+                                         pressCommand=[(2, self.selectShader)]
                                          )
         self.createItemPopupMenu(self.abcInfoPath)
 
         # editor panel
         self.overrideEditorLabel = cmds.text(label="")
         self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1)
-        self.shaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Surface Shader', adjustableColumn=1)
-        self.shaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='shader')
+        # self.shaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Surface Shader', adjustableColumn=1)
+        # self.shaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='shader')
+        self.shaderAssignerField = cmds.attrNavigationControlGrp(
+                                          label="Surface Shader",
+                                          parent=self.shaderAssignerLayout)
+
+
         cmds.setParent('..')  # rowLayout
         self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1)
-        self.displacementShaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Displacement Shader', adjustableColumn=1)
-        self.displacementShaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='displacementShader')
+        # self.displacementShaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Displacement Shader', adjustableColumn=1)
+        # self.displacementShaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='displacementShader')
+        self.displacementShaderAssignerField = cmds.attrNavigationControlGrp(
+                                                label="Displacement Shader",
+                                                parent=self.displacementShaderAssignerLayout)
         cmds.setParent('..')  # rowLayout
+        cmds.separator()
         self.overridesLayout = cmds.columnLayout()
 
         cmds.setParent('..')  # rowLayout
@@ -222,9 +261,19 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.treeView(self.abcInfoPath, edit=True, visible=True)
         cmds.button(self.inspectAlembicPath, edit=True, visible=False)
 
+        assigned_color = [0.2, 0.2, 0.9]
+
         for _path, _label, _parent, _visibility, _instancedPath, _entity_type in self.abcItems:
 
             cmds.treeView(self.abcInfoPath, edit=True, addItem=(_path, _parent))
+            _path_props = self.getPathProperties(_path)
+            cmds.treeView(self.abcInfoPath, e=True,
+                          image=[(_path, 1, "gear.png"),
+                                 (_path, 2, "shaderGlow.svg"),
+                                 (_path, 3, "displacementShader.svg")],
+                          enableButton=[(_path, 1, 0),
+                                        (_path, 2, 0),
+                                        (_path, 3, 0)])
 
             if _visibility == VISIBILITY[1]:
                 _label += " (hidden)"
@@ -232,19 +281,37 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if _instancedPath != '':
                 _label += " (instanced)"
                 cmds.treeView(self.abcInfoPath, edit=True, textColor=(_path, 0.5, 0.9, 0.5))
+            if len(_path_props['overrides']):
+                _label += " overrides:{}".format(len(_path_props['overrides']))
+                cmds.treeView(self.abcInfoPath, e=True,
+                              enableButton=[(_path, 1, 1)],
+                              textColor=(_path, *assigned_color))
+            if _path_props['shader']:
+                _label += " surf: {}".format(','.join(_path_props['shader']))
+                cmds.treeView(self.abcInfoPath, e=True,
+                              enableButton=[(_path, 2, 1)],
+                              textColor=(_path, *assigned_color))
+            if _path_props['disp']:
+                _label += " disp: {}".format(','.join(_path_props['disp']))
+                cmds.treeView(self.abcInfoPath, e=True,
+                              enableButton=[(_path, 3, 1)],
+                              textColor=(_path, *assigned_color))
 
             cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(_path, _label))
-            cmds.treeView(self.abcInfoPath, e=True, image=[(_path, 1, "gear.png")])
-            cmds.treeView(self.abcInfoPath, e=True, image=[(_path, 2, "sphere.png")])
 
         geomPathAttr = self.nodeName + '.cacheGeomPath'
         geomPath = cmds.getAttr(geomPathAttr).replace('|', '/')
 
-        # if geomPath in self.abcItems:
-        for item in self.abcItems:
-            if geomPath == item[0]:
-                cmds.treeView(self.abcInfoPath, edit=True,
-                              selectItem=[geomPath, True])
+        if self.currentItem and cmds.treeView(self.abcInfoPath, q=True,
+                                              itemExists=self.currentItem):
+            cmds.treeView(self.abcInfoPath, edit=True,
+                              selectItem=[self.currentItem , True])
+        else:
+            # if geomPath in self.abcItems:
+            for item in self.abcItems:
+                if geomPath == item[0]:
+                    cmds.treeView(self.abcInfoPath, edit=True,
+                                  selectItem=[geomPath, True])
 
     def inspectAlembic(self):
         filenameAttr = self.nodeName + '.cacheFileName'
@@ -257,12 +324,14 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.visitObject( iArchive.getTop() )
 
         for i, v in enumerate(self.abcItems):
+            print i, v
+            print '{}.{}[{}]'.format(self.nodeName, CACHE_ATTR, i)
             cmds.setAttr('{}.{}[{}].ai_abcPath'.format(self.nodeName, CACHE_ATTR, i), v[0], type="string")
             cmds.setAttr('{}.{}[{}].ai_abcLabel'.format(self.nodeName, CACHE_ATTR, i), v[1], type="string")
             cmds.setAttr('{}.{}[{}].ai_abcParent'.format(self.nodeName, CACHE_ATTR, i), v[2], type="string")
             cmds.setAttr('{}.{}[{}].ai_abcVisibility'.format(self.nodeName, CACHE_ATTR, i), v[3], type="string")
             cmds.setAttr('{}.{}[{}].ai_abcInstancePath'.format(self.nodeName, CACHE_ATTR, i), v[4], type="string")
-            cmds.setAttr('{}.{}[{}].ai_entity_type'.format(self.nodeName, CACHE_ATTR, i), v[5], type="string")
+            cmds.setAttr('{}.{}[{}].ai_entity_type'.format(self.nodeName, CACHE_ATTR, i), str(v[5]), type="string")
 
         self.displayTree()
 
@@ -279,9 +348,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             self.abcItems.append((_path, _label, _parent, _visibility, _instanced, _entity_type))
 
     def abcInfoReplace(self, nodeAttr):
+        print "REFRESH Attribute Editor"
         self.abcItems = []
         cache_attr_exists = cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True)
-        print "cache_attr_exists", cache_attr_exists
         if not cache_attr_exists:
             self.createCacheAttr(self.nodeName)
         else:
@@ -526,7 +595,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             self._msgCtrls.append(ctrl) 
 
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
-
 
     def operatorsNew(self, nodeAttr):
         
