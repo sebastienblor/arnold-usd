@@ -188,8 +188,8 @@ void CGpuCacheTranslator::Export( AtNode *shape )
    if (s_alembicSupported == false || shape == NULL)
       return;
 
-   ExportMatrix(shape);
-   ProcessRenderFlags(shape);
+   // ExportMatrix(shape);
+   // ProcessRenderFlags(shape);
 
    // export gpuCache parameters   
    MPlug filenamePlug = FindMayaPlug("cacheFileName");
@@ -249,12 +249,6 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
 
-   MString nsName = FindMayaPlug("aiNamespace").asString();
-   if (nsName.length() > 0)
-      AiNodeSetStr(shape, "namespace", nsName.asChar());
-   else
-      AiNodeResetParameter(shape, "namespace");
-
    AiNodeSetStr(shape, "nameprefix", FindMayaPlug("aiNameprefix").asString().asChar());
 
    // now the user attributes
@@ -297,6 +291,8 @@ void CGpuCacheTranslator::Export( AtNode *shape )
          AiNodeSetAttributes(shape, attribute_set.c_str());
       }
    }
+
+   ExportProcedural(shape);
 }
 
 
