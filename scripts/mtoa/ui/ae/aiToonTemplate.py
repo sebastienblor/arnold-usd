@@ -23,7 +23,6 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("uv_threshold", label="UV Threshold")
         self.addControl("angle_threshold", label="Angle Threshold")
         self.addControl("normal_type", label="Normal Type")
-        self.addControl("user_id", label="User ID")
         self.endNoOptimize();
         self.endLayout()
 
@@ -31,6 +30,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginNoOptimize();
         self.addControl("priority", label="Priority")
         self.addControl("ignore_throughput", label="Ignore Throughput")
+        self.addControl("user_id", label="Use Toon ID")
         self.endNoOptimize();
         self.endLayout()
         self.endLayout()
