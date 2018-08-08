@@ -140,13 +140,17 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     # if a plugin folder is found, it's because it contains custom shaders/procedurals
     plugin_dir = os.path.join(test_dir, 'plugin')
     if os.path.exists(plugin_dir):
+        print '---- Plugin folder exists %s' % plugin_dir
         os.environ['ARNOLD_PLUGIN_PATH'] = plugin_dir
+        os.putenv('ARNOLD_PLUGIN_PATH', plugin_dir)
     else:
         os.unsetenv('ARNOLD_PLUGIN_PATH')
 
     extension_dir = os.path.join(test_dir, 'extension')
     if os.path.exists(extension_dir):
+        print '----Extension folder exists %s' % extension_dir
         os.environ['MTOA_EXTENSIONS_PATH'] = extension_dir
+        os.putenv('MTOA_EXTENSIONS_PATH', extension_dir)
     else:
         os.unsetenv('MTOA_EXTENSIONS_PATH')
 
