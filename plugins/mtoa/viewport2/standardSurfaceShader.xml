@@ -9,6 +9,8 @@
         <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
       
         <fragment_ref name="roughnessPassThrough" ref="standardfloatPassThrough" />
+        <fragment_ref name="iorPassThrough" ref="standardfloatPassThrough" />
+        <fragment_ref name="specularWeightPassThrough" ref="standardfloatPassThrough" />
         <fragment_ref name="standardShaderCombiner" ref="standardSurfaceShaderCombiner" />
         <fragment_ref name="standardShaderDiffuse" ref="standardShaderDiffuse" />
         <fragment_ref name="standardShaderSpecular" ref="standardShaderSpecular" />
@@ -22,6 +24,12 @@
 
       <connect from="roughnessPassThrough.output" to="standardShaderCombiner.specularRoughness" />
       <connect from="roughnessPassThrough.output" to="standardShaderSpecular.roughness" />
+
+      <connect from="iorPassThrough.output" to="standardShaderCombiner.IOR" />
+      <connect from="iorPassThrough.output" to="standardShaderSpecular.IOR" />
+
+      <connect from="specularWeightPassThrough.output" to="standardShaderCombiner.Ks" />
+      <connect from="specularWeightPassThrough.output" to="standardShaderSpecular.Ks" />
       
       <connect from="maya16LightAccum.scaledDiffuse" to="standardShaderCombiner.diffuseInput" />
       <connect from="maya16LightAccum.scaledSpecular" to="standardShaderCombiner.specularInput" />
@@ -43,7 +51,7 @@
         <float name="diffuse_roughness" ref="standardShaderCombiner.diffuseRoughness" />
         <float3 name="specular_color" ref="standardShaderCombiner.specularColor" />
         <float name="base" ref="standardShaderCombiner.Kd" />
-        <float name="specular" ref="standardShaderCombiner.Ks" />
+        <float name="specular" ref="specularWeightPassThrough.inValue" />
         <float name="metalness" ref="standardShaderCombiner.metalness" />
         <float name="transmission" ref="standardShaderCombiner.transmission" />
         <float3 name="transmission_color" ref="standardShaderCombiner.transmissionColor" />
@@ -58,7 +66,7 @@
         <float name="coatIOR" ref="standardShaderCombiner.coatIOR" />
         <float name="directDiffuse" ref="standardShaderCombiner.directDiffuse" />
         <float name="directSpecular" ref="standardShaderCombiner.directSpecular" />
-        <float name="specular_IOR" ref="standardShaderCombiner.IOR" />
+        <float name="specular_IOR" ref="iorPassThrough.inValue" />
         <float name="specularRoughness" ref="roughnessPassThrough.inValue" />  
         <float3 name="emission_color" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />

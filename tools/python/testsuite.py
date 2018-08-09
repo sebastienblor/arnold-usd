@@ -140,13 +140,17 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     # if a plugin folder is found, it's because it contains custom shaders/procedurals
     plugin_dir = os.path.join(test_dir, 'plugin')
     if os.path.exists(plugin_dir):
+        print '---- Plugin folder exists %s' % plugin_dir
         os.environ['ARNOLD_PLUGIN_PATH'] = plugin_dir
+        os.putenv('ARNOLD_PLUGIN_PATH', plugin_dir)
     else:
         os.unsetenv('ARNOLD_PLUGIN_PATH')
 
     extension_dir = os.path.join(test_dir, 'extension')
     if os.path.exists(extension_dir):
+        print '----Extension folder exists %s' % extension_dir
         os.environ['MTOA_EXTENSIONS_PATH'] = extension_dir
+        os.putenv('MTOA_EXTENSIONS_PATH', extension_dir)
     else:
         os.unsetenv('MTOA_EXTENSIONS_PATH')
 
@@ -254,7 +258,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     if test_name == 'test_0232' and is_darwin:
         diff_fail = 0.02
     elif test_name == 'test_0087':
-        diff_fail = 0.02
+        diff_fail = 0.04
     elif maya_version > 2017:
         # Maya 2018 and above
         if test_name == 'test_0123':
@@ -267,6 +271,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
             diff_fail = 0.08
         elif test_name == 'test_0223':
             diff_fail = 0.04
+        elif test_name == 'test_0237':
+            diff_fail = 0.1
 
     use_shell = (not is_windows)
     has_diff = False
