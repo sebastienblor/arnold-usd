@@ -73,6 +73,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         
         self.addSeparator()
         self.addControl("aiSssSetname", label="SSS Set Name")
+        self.addControl("aiToonId", label="Toon ID")
+
         self.addSeparator()
         self.addControl("aiMotionVectorSource", label="Motion Vector Source")
         self.addControl("aiMotionVectorUnit", label="Motion Vector Unit")

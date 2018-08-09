@@ -27,10 +27,10 @@ RequestExecutionLevel admin
 !define MUI_UNICON "SA.ico"
 
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP "top.bmp"
-!define MUI_HEADERIMAGE_UNBITMAP "top.bmp"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "left.bmp"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "left.bmp"
+!define MUI_HEADERIMAGE_BITMAP "installer\top.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "installer\top.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "installer\left.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "installer\left.bmp"
 !define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
@@ -126,21 +126,21 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   WriteRegStr HKCU "Software\MtoA$%MAYA_VERSION%" "" $INSTDIR
   
   ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  WriteUninstaller "$INSTDIR\installer\Uninstall.exe"
   
   ;Create shortcuts
   CreateDirectory "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%"
-  CreateShortCut "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+  CreateShortCut "$SMPROGRAMS\Arnold for Maya $%MAYA_VERSION%\Uninstall.lnk" "$INSTDIR\installer\Uninstall.exe"
   
   SetRegView 64
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
                  "DisplayName" "MtoA for Maya $%MAYA_VERSION%"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
-                 "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+                 "UninstallString" "$\"$INSTDIR\installer\uninstall.exe$\""
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
                  "DisplayVersion" "$%MTOA_VERSION_NAME%"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
-                 "DisplayIcon" "$INSTDIR\uninstall.exe"
+                 "DisplayIcon" "$INSTDIR\installer\uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
                  "Publisher" "Solid Angle"
 
@@ -225,7 +225,9 @@ Section "Uninstall"
 
   ;add your own files here...
   
-  RMDir /r /REBOOTOK $INSTDIR
+  strcpy $INSTDIR "$INSTDIR\.."
+
+  RMDir /r $INSTDIR
   
   SetRegView 32
   DeleteRegKey /ifempty HKCU "Software\MtoA$%MAYA_VERSION%"

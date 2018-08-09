@@ -1,4 +1,5 @@
 #include "XGenSplineTranslator.h"
+#include "../common/XgSplineArnoldExpand.h"
 #include "extension/Extension.h"
 #include "utils/time.h"
 
@@ -10,7 +11,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
 
 void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -36,7 +36,34 @@ void CXgSplineDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CXgSplineDescriptionTranslator::CreateArnoldNodes()
 {
+   m_expandedProcedurals.clear();
    return AddArnoldNode("xgenProcedural");
+}
+
+
+void CXgSplineDescriptionTranslator::Delete()
+{
+   // If the procedural has been expanded at export,
+   // we need to delete all the created nodes here 
+   for (size_t i = 0; i < m_expandedProcedurals.size(); i++)
+   {
+      XgArnoldInternal::XgSplineProcedural* expandedProcedural = m_expandedProcedurals[i];
+      if (expandedProcedural)
+      {
+         int numNodes = expandedProcedural->NumNodes();
+         for (int i = 0; i < numNodes; ++i)
+         {
+            AtNode *node = expandedProcedural->GetNode(i);
+            if (node == NULL) continue; 
+            AiNodeDestroy(node);
+         }
+         //expandedProcedural->Cleanup();
+
+         delete expandedProcedural;
+      }
+   }
+   m_expandedProcedurals.clear();
+   CShapeTranslator::Delete();
 }
 
 void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
@@ -146,4 +173,42 @@ void CXgSplineDescriptionTranslator::ExportSplineData(AtNode* procedural, unsign
    CXgSplineDescriptionTranslator_ExportSplineData(m_dagPath, procedural, step);
 }
 
+void CXgSplineDescriptionTranslator::PostExport(AtNode *node)
+{
+   // For now we're only expanding the procedurals during export if we are on an interactive render
+   // (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+   // can be updated while tweaking the XGen attributes
+   if (GetSessionOptions().GetSessionMode() == MTOA_SESSION_ASS)
+      return;
 
+   ExpandProcedural();
+}
+
+
+// For now we're only expanding the procedurals during export if we are on an interactive render
+// (see ticket #2599). This way the arnold render doesn't have to gather XGen data, and IPR
+// can be updated while tweaking the XGen attributes
+void CXgSplineDescriptionTranslator::ExpandProcedural()
+{
+   if (!m_expandedProcedurals.empty())
+      return;
+
+   // setting this global variable to the current translator so that it is known by the callback.
+   AtNode *node = GetArnoldNode();
+   m_expandedProcedurals.push_back(new XgArnoldInternal::XgSplineProcedural());
+   m_expandedProcedurals.back()->Init( node, false ); // "false" means that we don't want the created nodes to set the procedural parent
+
+   // FIXME verify if we need to do something about the procedural matrix ?
+
+   // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
+   // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now
+   AiNodeSetDisabled(node, true);
+   
+}
+// this forces the refresh during IPR. All nodes have to be deleted
+// which will happen in the Delete() function
+void CXgSplineDescriptionTranslator::RequestUpdate()
+{
+   SetUpdateMode(AI_RECREATE_NODE);
+   CShapeTranslator::RequestUpdate();
+}

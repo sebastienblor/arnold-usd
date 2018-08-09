@@ -1260,16 +1260,6 @@ def createArnoldTextureSettings():
                         label="Max Open Files",
                         attribute='defaultArnoldRenderOptions.textureMaxOpenFiles')
 
-    cmds.separator() 
-
-    cmds.attrControlGrp('texture_diffuse_blur', 
-                        label="Diffuse Blur", 
-                        attribute='defaultArnoldRenderOptions.textureDiffuseBlur') 
-
-    cmds.attrControlGrp('texture_specular_blur', 
-                        label="Specular Blur", 
-                        attribute='defaultArnoldRenderOptions.textureSpecularBlur') 
-
     cmds.setParent('..')
 
     cmds.setUITemplate(popTemplate=True)

@@ -141,8 +141,8 @@
     <attr n="ai:txmm" s="defaultArnoldRenderOptions.textureMaxMemoryMB" t="float" h="Maximum texture cache memory. (MB)"/>
     <attr n="ai:txmof" s="defaultArnoldRenderOptions.textureMaxOpenFiles" t="int" h="Maximum number of opened textures."/>
     <attr n="ai:txpfs" s="defaultArnoldRenderOptions.texturePerFileStats" t="boolean" h="Per file texture stats."/>
-    <attr n="ai:txdb" s="defaultArnoldRenderOptions.textureDiffuseBlur" t="float" h="Texture blur in diffuse rays."/>
-    <attr n="ai:txgb" s="defaultArnoldRenderOptions.textureSpecularBlur" t="float" h="Texture blur in specular rays."/>
+    <attr n="ai:txdb" s="defaultArnoldRenderOptions.textureDiffuseBlur" t="float" h="Deprecated parameter."/>
+    <attr n="ai:txgb" s="defaultArnoldRenderOptions.textureSpecularBlur" t="float" h="Deprecated parameter."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Feature Overrides"/>

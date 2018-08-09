@@ -35,6 +35,7 @@ private:
 
     MMatrix getRelativeMatrix(const MPlug& src);
 
-    void ExportBifrostShader();
+    void ExportBifrostShader(MFnDagNode& dagNode);
     void ExportDisplacement();
+    AtNode *GetConnectedShader(MPlug plug);
 };

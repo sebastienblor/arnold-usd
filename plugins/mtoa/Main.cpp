@@ -41,6 +41,7 @@
 
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
+#include "commands/ArnoldImportAssCmd.h"
 #include "commands/ArnoldUpdateTxCmd.h"
 #include "commands/ArnoldSceneCmd.h"
 #include "commands/ArnoldLicenseCmd.h"
@@ -146,6 +147,7 @@ namespace // <anonymous>
       {"arnoldBakeGeo", CArnoldBakeGeoCmd::creator, CArnoldBakeGeoCmd::newSyntax},
       {"arnoldRenderToTexture", CArnoldRenderToTextureCmd::creator, CArnoldRenderToTextureCmd::newSyntax},
       {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
+      {"arnoldImportAss", CArnoldImportAssCmd::creator, CArnoldImportAssCmd::newSyntax},
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
@@ -164,7 +166,7 @@ namespace // <anonymous>
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
    const MString AI_LIGHT_PORTAL_CLASSIFICATION = "drawdb/geometry/light/arnold/lightPortal";
 #if MAYA_API_VERSION >= 201700
-   const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight";
+   const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight:lightShader/aiRectangleAreaLight";
 #else
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
 #endif
@@ -722,12 +724,7 @@ namespace // <anonymous>
                                     CObjectSetTranslator::creator,
                                     CObjectSetTranslator::NodeInitializer);
 
-      builtin->RegisterTranslator("aiToon",
-                                    "",
-                                    CToonTranslator::creator,
-                                    CToonTranslator::NodeInitializer);
-
-
+      
       // Load all plugins path or only shaders?
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
@@ -879,11 +876,28 @@ namespace // <anonymous>
          shaders->RegisterTranslator("blendColors",
                                        "",
                                        CMayaBlendColorsTranslator::creator);
+         shaders->RegisterTranslator("multiplyDivide",
+                                       "",
+                                       CMultiplyDivideTranslator::creator);
+         shaders->RegisterTranslator("checker",
+                                       "",
+                                       CCheckerTranslator::creator);
+         shaders->RegisterTranslator("clamp",
+                                       "",
+                                       CMayaClampTranslator::creator);
+
+         shaders->RegisterTranslator("aiToon",
+                                       "",
+                                       CToonTranslator::creator);
+
+         if(MGlobal::apiVersion() >= 20180400)
+            LoadShadeFragment("aiRectangleAreaLight");
 
       }
 
       // Finally register all nodes from the loaded extensions with Maya in load order
       status = CExtensionsManager::RegisterExtensions();
+
 
       // CExtension::CreateCallbacks();
 

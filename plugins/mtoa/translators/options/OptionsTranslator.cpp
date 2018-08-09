@@ -1458,19 +1458,14 @@ void COptionsTranslator::Export(AtNode *options)
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
    {
       MPlug gpuPlug = FindMayaPlug("gpu");
-      if (!gpuPlug.isNull())
+      if (GetSessionMode() != MTOA_SESSION_SWATCH && (!gpuPlug.isNull()))
          gpuRender = gpuPlug.asBool();
-   }
 
+      AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
+   }
 
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
-      if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
-      {
-         AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
-      }
-
-
       CNodeTranslator::ProcessParameter(options, "default_gpu_names", AI_TYPE_STRING);
       CNodeTranslator::ProcessParameter(options, "default_gpu_min_memory_MB", AI_TYPE_INT);
       bool autoSelect = true;

@@ -25,11 +25,13 @@ public:
 
    virtual void RequestUpdate();
    virtual void Delete();
+
+protected:
+   virtual void PostExport(AtNode *node);
 private:
 
    AtNode* ExportRootShader(AtNode *);
    void ExpandProcedural();
 
-   std::vector<bool> m_exportedSteps;
    std::vector<XGenArnold::ProceduralWrapper*> m_expandedProcedurals;
 };

@@ -779,15 +779,8 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extensi
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
-COLOR_MANAGEMENT_FILES = ""
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
-    COLOR_MANAGEMENT_FILES = os.path.join(EXTERNAL_PATH, 'maketx', system.os(), '*')
-
-    for dylibElem in reversed(dylibs):
-        
-        if 'maketx' in dylibElem:
-            dylibs.remove(dylibElem)
-       
+    
     # install syncolor packages 
     syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os())
     if (system.os() == 'linux'):
@@ -797,7 +790,6 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
         env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor*"+get_library_extension()))
 
 
-    env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
 
 # Install the licensing tools
 rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os())
@@ -810,6 +802,9 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
 env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(ARNOLD, 'materialx', 'arnold'))
 
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
+
+if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
+    env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os(), '*')))
 
 OCIO_DYLIBPATH =""
 
@@ -1115,6 +1110,9 @@ for ext in os.listdir(ext_base_dir):
             if target_type == 'procedural':
                 env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
                 target_path = "shaders"
+            elif ext == 'synColor':
+                # Syncolor is an exception and should be installed in plugins/
+                env.Install(os.path.join(TARGET_MODULE_PATH, 'plugins'), ext_arnold)
             else:
                 env.Install(TARGET_SHADER_PATH, ext_arnold)
             package_files += [[ext_arnold, target_path]]
@@ -1177,11 +1175,10 @@ for p in presetfiles:
         [os.path.join('presets', p), os.path.join('presets', d)]
     ]
 
-if env['ENABLE_COLOR_MANAGEMENT'] == 0:
-    PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
-else:
-    PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
+PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
 
+if env['ENABLE_COLOR_MANAGEMENT'] > 0:
+    
     # we also need to copy the syncolor dylib, for syncolor extension
     # FIXME couldn't this be done in the extension script ?
     syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os())
@@ -1235,11 +1232,14 @@ if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
 
-    if bifrost_ext != 'bifrost':
+    if bifrost_ext == 'bifrost':
+        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', '1.5.0', system.os()), os.path.join('extensions', 'bifrost', '1.5.0')])
+    else:
          #PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_procedural_0_1%s' % get_library_extension()), 'procedurals'])
     #else:
         PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, bifrost_ext, 'bifrost_procedurals%s' % get_library_extension()), 'procedurals'])
         PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR,  bifrost_ext, 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+
 
 
 if env['ENABLE_LOOKDEVKIT'] == 1:
@@ -1252,7 +1252,7 @@ if env['ENABLE_RENDERSETUP'] == 1:
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColorTranslator%s' % get_library_extension()), 'extensions'])
-    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'synColor', 'synColor_shaders%s' % get_library_extension()), 'plugins'])
 
 if env['ENABLE_GPU_CACHE'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'gpuCache', 'gpuCacheTranslator%s' % get_library_extension()), 'extensions'])
@@ -1318,6 +1318,19 @@ elif system.os() == "darwin":
 else:
     installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
+import errno    
+import os
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
 def create_installer(target, source, env):
 
     import tempfile
@@ -1328,8 +1341,9 @@ def create_installer(target, source, env):
     if system.os() == "windows":
         import zipfile
         shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
-        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
-        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
+        mkdir_p(os.path.join(tempdir, 'installer'))
+        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'installer/left.bmp'))
+        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'installer/top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
         zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)

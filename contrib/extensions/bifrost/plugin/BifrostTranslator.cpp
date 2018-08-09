@@ -40,19 +40,19 @@ namespace {
         return out;
     }
 #ifdef _WIN32
-   static MString s_bifrostProceduralPath = "C:/Program Files/Autodesk/bifrost/1.5.0/Arnold-5.0.0.0/bin";
-   static MString s_bifrostProceduralPathUpper = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/bin";
-   static MString s_bifrostProcedural = "bifrost_procedural_0_1";
+   static MString s_bifrostProceduralPath = "C:/Program Files/Autodesk/bifrost/1.5.0/Arnold-5.2.0.0/bin";
+   static MString s_bifrostProceduralPathUpper = "C:/Program Files/Autodesk/Bifrost/1.5.0/Arnold-5.2.0.0/bin";
+   static MString s_bifrostProcedural = "bifrost_procedural_0_2";
 #endif
 #ifdef _LINUX
-   static MString s_bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.0.0.0/lib";
-   static MString s_bifrostProceduralPathUpper = "/usr/autodesk/Bifrost/1.5.0/Arnold-5.0.0.0/lib";
-   static MString s_bifrostProcedural = "libbifrost_procedural_0_1";
+   static MString s_bifrostProceduralPath = "/usr/autodesk/bifrost/1.5.0/Arnold-5.2.0.0/lib";
+   static MString s_bifrostProceduralPathUpper = "/usr/autodesk/Bifrost/1.5.0/Arnold-5.2.0.0/lib";
+   static MString s_bifrostProcedural = "libbifrost_procedural_0_2";
 #endif
 #ifdef _DARWIN
-   static MString s_bifrostProceduralPath = "/Applications/Autodesk/bifrost/1.5.0/arnold-5.0.0.0/lib";
-   static MString s_bifrostProceduralPathUpper = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.0.0.0/lib";
-   static MString s_bifrostProcedural = "libbifrost_procedural_0_1";  
+   static MString s_bifrostProceduralPath = "/Applications/Autodesk/bifrost/1.5.0/arnold-5.2.0.0/lib";
+   static MString s_bifrostProceduralPathUpper = "/Applications/Autodesk/Bifrost/1.5.0/arnold-5.2.0.0/lib";
+   static MString s_bifrostProcedural = "libbifrost_procedural_0_2";
 #endif
    static bool s_loadedProcedural = false;
 
@@ -93,11 +93,23 @@ namespace {
                s_loadedProcedural = true;
                return true;
             } 
-
-
          }
-      }
-      
+
+         // We haven't been able to load bifrost, let's try with the one shipped with MtoA
+         MString mtoaExtPath;
+         MGlobal::executeCommand("getenv MTOA_EXTENSIONS_PATH", mtoaExtPath);
+         if (mtoaExtPath.length() > 0)
+         {
+            mtoaExtPath += MString("/bifrost/1.5.0"); // in the future we will have to get the current version of bifrost, for now we hardcode it to 1.5.0
+            fo.setRawFullName(mtoaExtPath);
+            if (fo.exists())
+            {
+               extension->LoadArnoldPlugin(s_bifrostProcedural, mtoaExtPath);
+               s_loadedProcedural = true;
+               return true;
+            } 
+         }
+      }      
       return false;
    }
 } // namespace
@@ -165,8 +177,8 @@ void BifrostTranslator::ExportShape(MFnDagNode& dagNode, AtNode *shape)
    AiNodeSetArray(shape, "channels", Convert(array));
 
    if(RequiresShaderExport())
-      ExportBifrostShader();
-   
+      ExportBifrostShader(dagNode);
+
    ExportLightLinking( shape );
 
    MPlug objectPlug = dagNode.findPlug("object");
@@ -256,7 +268,7 @@ void BifrostTranslator::ExportPoints(MFnDagNode &dagNode, AtNode *shape)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
    if(!shadingGroupPlug.isNull()){
        MFnDependencyNode engine(shadingGroupPlug.node());
-       if(!engine.findPlug("aiSurfaceShader").isDestination() && !engine.findPlug("surfaceShader").isDestination()){
+       if(engine.findPlug("aiVolumeShader").isDestination() || engine.findPlug("volumeShader").isDestination()){
             hasVolume = true;
        }
    }
@@ -343,13 +355,49 @@ void BifrostTranslator::ExportMotion( AtNode* shape ){
    }
 }
 
-void BifrostTranslator::ExportBifrostShader(){
+AtNode *BifrostTranslator::GetConnectedShader(MPlug plug)
+{
+   if (plug.isNull())
+      return NULL;
+
+   MPlugArray connections;
+   MPlug shaderPlug;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      shaderPlug = connections[0];
+      return ExportConnectedNode(shaderPlug);
+   }
+   return NULL;
+}
+
+void BifrostTranslator::ExportBifrostShader(MFnDagNode& dagNode){
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), m_dagPath.instanceNumber());
-   if ( !shadingGroupPlug.isNull() ) {
-      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
-      if (rootShader != NULL) {
-         // Push the shader in the vector to be assigned later to mtoa_shading_groups
-         AiNodeSetPtr(GetArnoldNode(), "shader", rootShader);
+   if (!shadingGroupPlug.isNull())
+   {
+      int render_as = dagNode.findPlug("render_as").asInt();
+      if (render_as == 1)
+      {
+         // Foam may have both a surface and a volume, so export them both directly
+         MFnDependencyNode sgNode(shadingGroupPlug.node());
+         AtNode *rootSurfaceShader = GetConnectedShader(sgNode.findPlug("aiSurfaceShader"));
+         if (rootSurfaceShader == NULL)
+            rootSurfaceShader = GetConnectedShader(sgNode.findPlug("surfaceShader"));
+
+         AiNodeSetPtr(GetArnoldNode(), "surfaceShader", rootSurfaceShader);
+
+         AtNode *rootVolumeShader = GetConnectedShader(sgNode.findPlug("aiVolumeShader"));
+         if (rootVolumeShader == NULL)
+            rootVolumeShader = GetConnectedShader(sgNode.findPlug("volumeShader"));
+
+         AiNodeSetPtr(GetArnoldNode(), "volumeShader", rootVolumeShader);
+      }
+      else
+      {
+         // Export normally
+         AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
+         if (rootShader != NULL)
+            AiNodeSetPtr(GetArnoldNode(), "shader", rootShader);
       }
    }
 }

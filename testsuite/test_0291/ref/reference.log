@@ -1,0 +1,56 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291\test_0291.log', using stdout instead
+
+Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.11.40.12. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:23.21.13.9103.
+  API : OpenGL V.4.6.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+  MultiDraw consolidation: enabled
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: svgFileTranslator, mayaHIK, invertShape, GamePipeline, curveWarp, CloudImportExport, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, hairPhysicalShader, ATFPlugin, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, gameFbxExporter, VectorRender, OpenEXRLoader, lookdevKit, Unfold3D, mayaCharacterization, Type, mtoa, renderSetup, fbxmaya
+File read in  0.082 seconds.
+File read in  0.082 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0291/test.ma
+Export operator graph=================================00:00:00   620MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   620MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+Import operator graph00:00:00   620MB         | log started Tue Aug  7 17:09:27 2018
+00:00:00   620MB         | Arnold 5.2.0.0 [09db38ac] windows icc-17.0.2 oiio-1.7.17 osl-1.9.9 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 2018/08/06 13:52:03
+00:00:00   620MB         | host application: MtoA 3.1.0.wip 1ffe7057 (develop) Maya 2018
+00:00:00   620MB         | running on REM8WCK8D2, pid=6412
+00:00:00   620MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20 cores, 40 logical) with 65458MB
+00:00:00   620MB         |  Nvidia driver version 391.03
+00:00:00   620MB         |  GPU 0: Quadro K620 @ 1124MHz (compute 5.0) with 2048MB (1539MB available)
+00:00:00   620MB         |  Windows 7 Enterprise Edition Service Pack 1 (version 6.1, build 7601)
+00:00:00   620MB         |  soft limit for open files raised from 2048 to 2048
+00:00:00   620MB         |  
+00:00:00   620MB         | loading plugins from D:/arnold/alShaders/bin ...
+00:00:00   620MB         | loading plugins from C:/solidangle/mtoadeploy/2018/shaders ...
+00:00:00   620MB         | loading plugins from C:/solidangle/mtoadeploy/2018/procedurals ...
+00:00:00   620MB         | loaded 147 plugins from 34 lib(s) in 0:00.02
+00:00:00   620MB         | loading plugins from C:\solidangle\mtoadeploy\2018\bin\..\plugins ...
+00:00:00   620MB         | loaded 5 plugins from 3 lib(s) in 0:00.00
+00:00:00   621MB         | [ass] loading data/op.ass ...
+00:00:00   621MB         | [ass] read 1440 bytes, 7 nodes in 0:00.00
+00:00:00   621MB         |  
+00:00:00   621MB         | releasing resources
+00:00:00   616MB         | Arnold shutdown
+00:00:00   621MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   621MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   622MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   624MB WARNING | rendering with watermarks because of failed authorization:
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0291\test.ma completed.

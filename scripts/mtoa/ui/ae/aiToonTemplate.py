@@ -30,6 +30,7 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.beginNoOptimize();
         self.addControl("priority", label="Priority")
         self.addControl("ignore_throughput", label="Ignore Throughput")
+        self.addControl("user_id", label="Use Toon ID")
         self.endNoOptimize();
         self.endLayout()
         self.endLayout()

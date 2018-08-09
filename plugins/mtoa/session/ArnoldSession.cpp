@@ -693,6 +693,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
    m_motionStep = 0;
 
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRenderViewStatusInfo(MString("Exporting Arnold Scene..."));
+
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
 
@@ -859,7 +863,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // now loop through motion steps
       unsigned int numSteps = GetNumMotionSteps();
       m_isExportingMotion = true;
-       
+      
+      if (renderSession)
+         renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
+
       for (unsigned int step = 0; step < numSteps; ++step)
       {
          if (step == (unsigned int)currentFrameIndex)
@@ -934,9 +941,11 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    }
 
    // it would seem correct to only call ExportTxFiles if m_updateTx = true
-   // but it's not a good moment to take that risk...
    ExportTxFiles();
 
+   if (m_rebuildProceduralOperators && m_optionsTranslator)
+      ExportProceduralOperators();
+   
    return status;
 }
 
@@ -1157,7 +1166,7 @@ void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* client
 
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   CArnoldSession *session = (CArnoldSession*)clientData;
+   //CArnoldSession *session = (CArnoldSession*)clientData;
    //DagFiltered filtered = session->FilteredStatus(path); // We shouldn't invoke this here otherwise we're messing with Maya's DAG 
    if (/*filtered != MTOA_EXPORT_ACCEPTED && */ plugName != "visibility")
     return; 
@@ -1521,9 +1530,13 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
       }
       MtoaDebugLog(log);
    }
-
    // add this translator to the list of objects to be updated in next DoUpdate()
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
+
+   // if this was the options translator and that we have procedural operators, we'll also need to rebuild them
+   if (translator == m_optionsTranslator && !m_proceduralOperators.empty())
+	   m_rebuildProceduralOperators = true;
+   
 }
 
 void CArnoldSession::RequestUpdate()
@@ -1538,6 +1551,10 @@ void CArnoldSession::DoUpdate()
 
    if (mtoa_translation_info)
       MtoaDebugLog("[mtoa.session]    Updating Arnold Scene....");
+
+   CRenderSession *renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+      renderSession->SetRenderViewStatusInfo(MString("Updating Arnold Scene..."));
 
    MStatus status;
    assert(AiUniverseIsActive());
@@ -1624,7 +1641,6 @@ void CArnoldSession::DoUpdate()
       if (mtoa_translation_info)
          MtoaDebugLog("[mtoa.session]     Updating Scene Options");
 
-      CRenderSession *renderSession = CMayaScene::GetRenderSession();
       renderSession->UpdateRenderOptions();
       m_updateOptions = false;
    }
@@ -1896,6 +1912,9 @@ UPDATE_BEGIN:
    //--------- Now handling motion blur export
    if (exportMotion)
    {      
+      if (renderSession)
+         renderSession->SetRenderViewStatusInfo(MString("Exporting Motion Data..."));
+
       // Scene is motion blured, get the data for the steps.
       unsigned int numSteps = GetNumMotionSteps();
 
@@ -1971,6 +1990,11 @@ UPDATE_BEGIN:
    {
       m_updateTx = false;
       ExportTxFiles();
+   }
+
+   if (m_rebuildProceduralOperators && m_optionsTranslator)
+   {
+      ExportProceduralOperators();
    }
  
    // Reset IPR status and eventuall add the IPR callbacks now that export is finished
@@ -2485,6 +2509,12 @@ void CArnoldSession::ExportTxFiles()
 
 //================= Part 2 : run MakeTX on the necessary textures   
 
+   MString arv_msg("Converting ");
+   arv_msg += (int) listTextures.size();
+   arv_msg += " textures to .TX....";
+   CMayaScene::GetRenderSession()->SetRenderViewStatusInfo(arv_msg);
+
+      
 
    // We now have the full list of textures, let's loop over them
    for (unsigned int i = 0; i < listTextures.size(); ++i)
@@ -2732,4 +2762,119 @@ void CArnoldSession::ExportImagePlane()
          }
       }
    }
+}
+
+
+void CArnoldSession::AddProceduralOperators(const CNodeAttrHandle &handle)
+{
+   m_rebuildProceduralOperators = true;
+   MString hashCode;
+
+   handle.GetHashString(hashCode);
+   std::string hashStr(hashCode.asChar());
+
+   m_proceduralOperators.insert(hashStr); // insert this procedural node to our set 
+}
+void CArnoldSession::ExportProceduralOperators()
+{
+   // stores requiresMotionData from all translators
+   unordered_set<std::string>::iterator it = m_proceduralOperators.begin();
+   unordered_set<std::string>::iterator itEnd = m_proceduralOperators.end();
+
+   AtNodeSet proceduralOperators;
+   for ( ; it != itEnd; ++it)
+   {
+      ObjectToTranslatorMap::iterator opIt = m_processedTranslators.find((*it));
+      if (opIt == m_processedTranslators.end())
+         continue;
+
+      CNodeTranslator *tr = opIt->second;
+
+      if (tr == NULL)
+         continue;
+
+      MObject procObj(tr->GetMayaObject());
+      if (procObj.isNull())
+         continue;
+
+      MFnDependencyNode procNode(procObj);
+      MPlug ops = procNode.findPlug("operators");
+      if (ops.isNull())
+         continue;
+
+      unsigned nelems = ops.numElements();
+      MPlug elemPlug;
+      for (unsigned int i = 0; i < nelems; ++i)
+      {
+         elemPlug = ops[i];
+         MPlugArray connections;
+         elemPlug.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            MObject opObj(connections[0].node());
+            if (opObj.isNull())
+               continue;
+
+            CNodeAttrHandle handle(opObj);
+            CNodeTranslator *opTr = GetActiveTranslator(handle);
+            if (opTr == NULL)
+               continue;
+            AtNode *node = opTr->GetArnoldNode();
+            if (node == NULL)
+               continue;
+
+            proceduralOperators.insert(node);
+         }
+      }
+   }
+
+   if (m_optionsTranslator == NULL)
+      return;
+
+   AtNode *options = AiUniverseGetOptions();
+
+   MPlugArray conns;
+   MPlug pOP = m_optionsTranslator->FindMayaPlug("operator");
+   pOP.connectedTo(conns, true, false);
+   AtNode *targetOp = NULL;
+
+   if (conns.length() == 1)
+   {
+      MObject targetObj(conns[0].node());
+      if (!targetObj.isNull())
+      {
+         CNodeAttrHandle handle(targetObj);
+         CNodeTranslator *opTr = GetActiveTranslator(handle);
+         if (opTr)
+            targetOp = opTr->GetArnoldNode();
+      }      
+   }
+   AtNode *rootOp = AiNodeLookUpByName(AtString("__mtoa_root_op"));
+   if (rootOp)
+      AiNodeResetParameter(rootOp, AtString("inputs"));
+
+   if (proceduralOperators.empty())
+   {
+      AiNodeSetPtr(options, AtString("operator"), (void*)targetOp); // set directly the target operator in the options
+      m_rebuildProceduralOperators = false;
+      return;
+   }
+
+   // At this point we know that we have per-procedural operators
+   if (rootOp == NULL)
+      rootOp = AiNode(AtString("merge"), AtString("__mtoa_root_op"));
+
+   std::vector<AtNode *> rootOpInputs;
+   rootOpInputs.reserve(proceduralOperators.size() + 1);
+   rootOpInputs.push_back(targetOp);
+   AtNodeSet::iterator nodeIt = proceduralOperators.begin();
+   AtNodeSet::iterator nodeItEnd = proceduralOperators.end();
+   for ( ; nodeIt != nodeItEnd; ++nodeIt)
+      rootOpInputs.push_back(*nodeIt);
+
+   AtArray* opInputs = AiArrayConvert(rootOpInputs.size(), 1, AI_TYPE_NODE, &(rootOpInputs[0]));
+   AiNodeSetArray(rootOp, AtString("inputs"), opInputs);
+   AiNodeSetPtr(options, AtString("operator"), (void*)rootOp);
+   
+   m_rebuildProceduralOperators = false;
 }

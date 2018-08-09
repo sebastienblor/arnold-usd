@@ -17,6 +17,7 @@ import os
 import sys
 
 defaultFolder = ""
+defaultOperatorsFolder = ""
 
 _maya_version = mutils.getMayaVersion()
 
@@ -411,6 +412,31 @@ def arnoldDenoise():
     win = mtoa.denoise.MtoANoice()
     win.create()    
 
+
+def arnoldExportOperators():
+    global defaultOperatorsFolder
+    if defaultOperatorsFolder == "":
+        defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
+    
+    objFilter = "ASS File (*.ass)"        
+    ret = cmds.fileDialog2(cap='Export Operator Graph',okc='Select',ff=objFilter,fm=0,dir=defaultOperatorsFolder) or []
+    if len(ret):
+        defaultOperatorsFolder = ret[0]
+        cmds.arnoldExportAss('defaultArnoldRenderOptions', f=ret[0],s=True,mask=4097)
+
+def arnoldImportOperators():
+    global defaultOperatorsFolder
+    if defaultOperatorsFolder == "":
+        defaultOperatorsFolder = cmds.workspace(q=True,rd=True, fn=True)
+
+    objFilter = "ASS File (*.ass)"
+    ret = cmds.fileDialog2(cap='Import Operator Graph',okc='Select',fm=1,ff=objFilter,dir=defaultOperatorsFolder) or []
+    if len(ret):
+        defaultOperatorsFolder = ret[0]
+        cmds.arnoldImportAss(f=ret[0])
+
+
+
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
     if (len(selList) == 0):
@@ -523,13 +549,17 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldBakeGeo()', category="Utilities", keywords='baking', annotation='Bake the selected geometry to OBJ (w/ subdivision and displacement)')
         addRuntimeMenuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities', image='RenderToTextureShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldRenderToTexture()', category="Utilities", keywords='bake;baking', annotation="Shade the selected shape and bake it on a UV texture")
+        addRuntimeMenuItem('ArnoldExportOperators', label='Export Operator Graph', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators()', category="Utilities", annotation='Export the current operator graph to .ass')
+        addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
         addRuntimeMenuItem('ArnoldTxManager', label='TX Manager', parent='ArnoldUtilities', image='TXManagerShelf.png', keywords='textures;convert;optimize',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldTxManager()', category="Utilities", annotation='Open the Arnold TX Manager')
         addRuntimeMenuItem('ArnoldUpdateTx', label='Update TX Files', parent='ArnoldUtilities',  image='UpdateTxShelf.png', keywords='textures',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldUpdateTx()', category="Utilities", annotation="Convert / Updates all textures to TX for Arnold rendering")
         cmds.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities', image='LightManagerShelf.png', 
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldLightManager()')
-        cmds.menuItem('ArnoldConvertShaders', label='Convert Deprecated Shaders', parent='ArnoldUtilities',
+        cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
 
         cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',

@@ -50,6 +50,10 @@ SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
 SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
 SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
+SHADER_TRANSLATOR(CMayaClampTranslator);
+SHADER_TRANSLATOR(CMultiplyDivideTranslator);
+SHADER_TRANSLATOR(CToonTranslator);
+
 
 class CDisplacementTranslator : public CShaderTranslator
 {
@@ -124,6 +128,25 @@ protected:
 private:
    void ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut);
    MString m_colorSpace;
+
+   bool RequiresColorCorrect() const;
+   bool RequiresUvTransform() const;
+   
+   bool m_hasColorCorrect;
+   bool m_hasUvTransform;
+};
+
+class CCheckerTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CCheckerTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   static void NodeInitializer(CAbTranslator context);
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
+private:
 
    bool RequiresColorCorrect() const;
    bool RequiresUvTransform() const;
@@ -226,12 +249,4 @@ public:
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
 
-};
-class CToonTranslator : public CShaderTranslator{
-public:
-   static void* creator(){return new CToonTranslator();}
-
-   virtual void Export(AtNode* shader);
-   static void NodeInitializer(CAbTranslator context);
-   AtNode* CreateArnoldNodes(); 
 };

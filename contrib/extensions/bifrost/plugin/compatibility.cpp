@@ -10,6 +10,12 @@
 //
 //*****************************************************************************
 
+#define FOAM_VOLUME_ONLY  0
+#define FOAM_SURFACE_ONLY 1
+#define FOAM_BOTH         2
+
+#define FOAM_DEFAULT FOAM_VOLUME_ONLY
+
 namespace ArnoldBifrost{
 namespace Compatibility{
 
@@ -38,37 +44,60 @@ void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & pl
       default: render_as.setInt(0); // Surface
       }
 
-      bool isVolume = renderType==0 || renderType==3; // Aero or Foam
-      MString shaderType = isVolume? "aiStandardVolume" : "aiStandardSurface";
-
-      MFnDependencyNode shadingGroup(otherPlug.node());
-      MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
-
-      MString command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
-      command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode "+shaderType+"`;replaceNode $oldShader $newShader;delete $oldShader;";
+      MString command = "";
       if(renderType == 0)
-      { // Aero => set density channel to smoke
-         command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
-      }
-      if(isVolume)
       {
+         // Aero
+         MFnDependencyNode shadingGroup(otherPlug.node());
+         MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
+
+         command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+         command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode aiStandardVolume`;replaceNode $oldShader $newShader;delete $oldShader;";
+         // Aero => set density channel to smoke
+         command += "string $densityChannelPlg = $newShader+\".densityChannel\"; setAttr $densityChannelPlg -type \"string\" \"smoke\"; ";
+         // Reconnect shader and set presets
          command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+         command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/aiStandardVolume/Smoke.mel\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
+         command += "select $sel;undoInfo -closeChunk;";
+      }
+      else if(renderType == 3)
+      {
+         // Foam
+         MFnDependencyNode shadingGroup(otherPlug.node());
+         
+#if FOAM_DEFAULT == FOAM_SURFACE_ONLY || FOAM_DEFAULT == FOAM_BOTH
+         MString oldSurfaceShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();
+
+         command += "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+         command += "string $oldSurfShader = \""+oldSurfaceShader+"\";string $newSurfShader = `createNode aiStandardSurface`;replaceNode $oldSurfShader $newSurfShader;delete $oldSurfShader;";
+         // Reconnect shader and set presets
+         command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\";";
+         command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/aiStandardSurface/Foam.mel\"; applyPresetToNode $newSurfShader \"\" \"\" $presetPath 1;";
+         command += "select $sel;undoInfo -closeChunk;";
+#endif
+
+         // If we want both a surface shader and volume shader (for the interior), the procedural supports it and will take both
+#if FOAM_DEFAULT == FOAM_VOLUME_ONLY || FOAM_DEFAULT == FOAM_BOTH
+         MString oldVolumeShader = MFnDependencyNode(shadingGroup.findPlug("volumeShader").source().node()).name();
+         command += "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+         command += "string $oldVolShader = \""+oldVolumeShader+"\";string $newVolShader = `createNode aiStandardVolume`;replaceNode $oldVolShader $newVolShader;delete $oldVolShader;";
+         // Reconnect shader and set presets
+         command += "string $srcPlug = `connectionInfo -sfd \""+shadingGroup.name()+".surfaceShader\"`;disconnectAttr $srcPlug \""+shadingGroup.name()+".surfaceShader\"; connectAttr $srcPlug \""+shadingGroup.name()+".volumeShader\";";
+         command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/aiStandardVolume/Foam.mel\"; applyPresetToNode $newVolShader \"\" \"\" $presetPath 1;";
+         command += "select $sel;undoInfo -closeChunk;";
+#endif
+      }
+      else
+      {
+          MFnDependencyNode shadingGroup(otherPlug.node());
+          MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
+
+          command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
+          command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode aiStandardSurface`;replaceNode $oldShader $newShader;delete $oldShader;";
+          command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/aiStandardSurface/Deep_Water.mel\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
+          command += "select $sel;undoInfo -closeChunk;";
       }
 
-      MString preset;
-      if(renderType==0)
-      { // aero
-         preset = "aiStandardVolume/Smoke.mel";
-      } else if(renderType==1 || renderType==2)
-      { // liquid
-         preset = "aiStandardSurface/Deep_Water.mel";
-      } else { // foam
-         preset = "aiStandardVolume/Foam.mel";
-      }
-
-      command += "string $presetPath = `getenv(\"MTOA_PATH\")`; $presetPath += \"presets/attrPresets/"+preset+"\"; applyPresetToNode $newShader \"\" \"\" $presetPath 1;";
-
-      command += "select $sel;undoInfo -closeChunk;";
       MGlobal::executeCommandOnIdle(command);
    }
 }

@@ -50,15 +50,15 @@ class MtoARenderToTexture(object):
         uScale = cmds.floatFieldGrp('uScale', q=True, v1=True)
         vStart = cmds.floatFieldGrp('vStart', q=True, v1=True)
         vScale = cmds.floatFieldGrp('vScale', q=True, v1=True)
-
-
+        extendEdges = cmds.checkBox('extendEdges', q=True, v=True)
+        
         selList = cmds.ls(sl=1)
 
         if (len(selList) == 0):
             cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale )
+        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, extend_edges=extendEdges,u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale )
 
         cmds.deleteUI(self.window)
         return True
@@ -88,7 +88,7 @@ class MtoARenderToTexture(object):
 
         winTitle = "Render To Texture"
 
-        self.window = cmds.window(self.window, widthHeight=(460, 270), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 300), title=winTitle)
         self.createUI()
 
 
@@ -144,6 +144,8 @@ class MtoARenderToTexture(object):
         cmds.textFieldGrp('shader', label='Shader Override', ct2=('left', 'left'), cw2=(90,110), text="", w=380)
         cmds.setParent("..")
         cmds.textFieldGrp('uv_set', label='UV Set', ct2=('left', 'left'), cw2=(90,110), text="", w=280)
+        cmds.setParent("..")
+        cmds.checkBox( 'extendEdges',label='Extend Edges', value=True )
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))

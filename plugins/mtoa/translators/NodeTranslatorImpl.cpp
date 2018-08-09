@@ -579,16 +579,20 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       unsigned int numChildren = plug.numChildren();
       if (numChildren== 3 || numChildren == 4)
       {
-         std::string closureName = arnoldParamName;
-         closureName += "_clos";
-         AtNode *child = m_tr.GetArnoldNode(closureName.c_str());
-         if (child == NULL)
-            child = m_tr.AddArnoldNode("MayaFlatClosure", closureName.c_str());
+         AtRGB col(plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
-         AiNodeSetRGB(child, "color", plug.child(0).asFloat(),
-                         plug.child(1).asFloat(),
-                         plug.child(2).asFloat());
-         AiNodeLink(child, arnoldParamName, arnoldNode);
+         // if the color is black (default), we don't need to connect anything
+         if (std::abs(col.r) > AI_EPSILON || std::abs(col.g) > AI_EPSILON || std::abs(col.b) > AI_EPSILON)
+         {
+            std::string closureName = arnoldParamName;
+            closureName += "_clos";
+            AtNode *child = m_tr.GetArnoldNode(closureName.c_str());
+            if (child == NULL)
+               child = m_tr.AddArnoldNode("MayaFlatClosure", closureName.c_str());
+
+            AiNodeSetRGB(child, "color", col.r, col.g, col.b);
+            AiNodeLink(child, arnoldParamName, arnoldNode);
+         }
 
       }
 

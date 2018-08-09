@@ -127,6 +127,9 @@ public:
    const char *Serialize(bool userSettings = true, bool sceneSettings = true);
    void SetFromSerialized(const char *);
 
+   // Host tells the renderview what status to display, so that we can get finer information about what happens during export
+   void SetStatusInfo(const char *); 
+
 /**  
  *    Functions that may be invoked by the RenderView depending 
  *    user actions. They need to be overridden to define what

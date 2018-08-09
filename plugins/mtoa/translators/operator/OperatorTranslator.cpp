@@ -1,6 +1,7 @@
 #include "OperatorTranslator.h"
 #include "utils/Universe.h"
 #include "translators/NodeTranslatorImpl.h"
+#include "translators/DagTranslator.h"
 #include <maya/MPlugArray.h>
 
 AtNode* COperatorTranslator::CreateArnoldNodes()
@@ -72,7 +73,66 @@ void COperatorTranslator::Export(AtNode *shader)
    static AtString set_parameter_str("set_parameter");
    if (AiNodeIs(shader, set_parameter_str ))
       ExportAssignedShaders(shader);      
-   
+
+
+   MPlug outPlug = FindMayaPlug("out");
+   MPlugArray outConn;
+   outPlug.connectedTo(outConn, false, true);
+   outPlug = FindMayaPlug("message");
+   MPlugArray messageConn;
+   outPlug.connectedTo(messageConn, false, true);
+   for (unsigned int i = 0; i < messageConn.length(); ++i)
+      outConn.append(messageConn[i]);
+
+   //bool globalOp = false;
+   MStringArray procList;
+
+   for (unsigned int i = 0; i < outConn.length(); ++i)
+   {
+      MStatus retStat;
+      MObject targetObj(outConn[i].node());
+      MFnDependencyNode target(targetObj, &retStat);
+      if (retStat != MS::kSuccess)
+         continue;
+
+      MString plugName = outConn[i].name();
+
+      // TODO : need to do the loop recursively until a procedural is found. 
+      // We're currently not supporting sub-graphs connected to procedurals
+      plugName = plugName.substring(plugName.rindex('.'), plugName.length()-1);
+      if (plugName.length() >= 10 && plugName.substringW(0, 9) == MString(".operators"))
+      {
+         MDagPath dagPath;      
+         if (MDagPath::getAPathTo(targetObj, dagPath) == MS::kSuccess)
+         {
+            MString dagName(CDagTranslator::GetArnoldNaming(dagPath));
+            if (dagName.length() > 0)
+            {
+               procList.append(dagName);
+            }
+         }
+      } 
+   }
+
+   if (procList.length() > 0)
+   {
+      MPlug selectionPlug = FindMayaPlug("selection");
+      MString selection = selectionPlug.asString();
+      MString finalSelection;
+      //if (globalOp)
+         //finalSelection = selection;
+
+      for (unsigned int i = 0; i < procList.length(); ++i)
+      {
+         if (finalSelection.length() > 0)
+            finalSelection += MString(" or ");
+
+         finalSelection += procList[i] + MString("/") + selection;
+      }
+      AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
+      
+   }
+   // add standin name   
 }
 void COperatorTranslator::NodeInitializer(CAbTranslator context)
 {   

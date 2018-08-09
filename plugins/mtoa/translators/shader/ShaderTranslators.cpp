@@ -72,6 +72,22 @@ bool IsVec2AttrDefault(MPlug plug, float valueX, float valueY)
 
 }
 
+bool IsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB)
+{
+   if (plug.isNull())
+      return true;
+
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+      return false; 
+
+   return (IsFloatAttrDefault(plug.child(0), valueR) &&
+           IsFloatAttrDefault(plug.child(1), valueG) &&
+           IsFloatAttrDefault(plug.child(1), valueB));
+
+}
+
 
 // Sky
 //
@@ -758,6 +774,193 @@ void CBump2DTranslator::NodeChanged(MObject& node, MPlug& plug)
 
    CShaderTranslator::NodeChanged(node, plug);
 }
+
+/////////////////////////////////////////////
+// Checkboard
+//
+AtNode*  CCheckerTranslator::CreateArnoldNodes()
+{
+   m_hasColorCorrect = RequiresColorCorrect();
+   m_hasUvTransform = RequiresUvTransform();
+   
+   AtNode *checkerNode = AddArnoldNode("checkerboard");
+   AtNode *colorCorrectNode = m_hasColorCorrect ? AddArnoldNode("color_correct", "cc") : NULL;
+   AtNode *uvTransformNode = m_hasUvTransform ? AddArnoldNode("uv_transform", "uv") : NULL;
+   
+   if (colorCorrectNode)
+      AiNodeLink(checkerNode, "input", colorCorrectNode);
+   
+   if (uvTransformNode)
+   {
+      AiNodeLink((colorCorrectNode) ? colorCorrectNode : checkerNode, "passthrough", uvTransformNode);
+      return uvTransformNode;
+   }
+
+   return (colorCorrectNode) ? colorCorrectNode : checkerNode;
+}
+
+void CCheckerTranslator::Export(AtNode* shader)
+{
+   MPlugArray connections;
+   
+   AtNode *colorCorrectNode = (m_hasColorCorrect) ? GetArnoldNode("cc") : NULL;
+   AtNode *uvTransformNode = (m_hasUvTransform) ? GetArnoldNode("uv") : NULL;
+   MPlug plug = FindMayaPlug("uvCoord");
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() != 0)
+   {
+      MObject srcObj = connections[0].node();
+      MFnDependencyNode srcNodeFn(srcObj);
+
+      if (srcNodeFn.typeName() == "place2dTexture")
+      {
+         srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
+         AiNodeSetStr(shader, "uvset", "");
+         if (connections.length() > 0)
+         {
+            MFnDependencyNode uvcNodeFn(connections[0].node());
+            if (uvcNodeFn.typeName() == "uvChooser")
+               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+         }
+         if (uvTransformNode)
+         {
+            // we need to set the UV controls in the uv_transform node
+            AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
+            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
+            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
+
+            if (srcNodeFn.findPlug("wrapU").asBool())
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+            else
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
+               
+
+            if (srcNodeFn.findPlug("wrapV").asBool())
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+            else
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
+            
+
+            ProcessParameter(uvTransformNode, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
+            if (!AiNodeIsLinked(uvTransformNode, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
+            {
+               AtRGBA col = AiNodeGetRGBA(uvTransformNode, "wrap_frame_color");
+               AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+            }
+            // if not linked, set alpha to zero
+            ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
+            ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
+
+            float rotateFrame = srcNodeFn.findPlug("rotateFrame").asFloat();
+            AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
+            //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
+            ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
+            float rotateUV = srcNodeFn.findPlug("rotateUV").asFloat();
+            AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
+            ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
+            ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
+
+         } else
+         {
+            MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV");
+            if (!repeatUVPlug.isNull())
+            {
+               AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
+               AiNodeSetFlt(shader, "u_frequency", repeatUV.x);
+               AiNodeSetFlt(shader, "v_frequency", repeatUV.y);
+            }
+            MPlug offsetUVPlug = srcNodeFn.findPlug("offset");
+            if (!offsetUVPlug.isNull())
+            {
+               AiNodeSetFlt(shader, "u_offset", offsetUVPlug.child(0).asFloat());
+               AiNodeSetFlt(shader, "v_offset", offsetUVPlug.child(1).asFloat());
+            }
+         }
+
+      }
+   }
+  
+   ProcessParameter(shader, "color1", AI_TYPE_RGB, "color2");
+   ProcessParameter(shader, "color2", AI_TYPE_RGB, "color1");
+   ProcessParameter(shader, "contrast", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "filter_strength", AI_TYPE_FLOAT, "filter");
+   ProcessParameter(shader, "filter_offset", AI_TYPE_FLOAT, "filterOffset");
+   
+   if (colorCorrectNode)
+   {
+      ProcessParameter(colorCorrectNode, "alpha_is_luminance", AI_TYPE_BOOLEAN, "alphaIsLuminance");
+      // when "invert" is enabled, we want it to invert both the RGB and the alpha
+      // this is done through 2 different attributes in color_correct
+      ProcessParameter(colorCorrectNode, "invert", AI_TYPE_BOOLEAN, "invert");
+      ProcessParameter(colorCorrectNode, "alpha_multiply", AI_TYPE_FLOAT, "alphaGain");
+      ProcessParameter(colorCorrectNode, "alpha_add", AI_TYPE_FLOAT, "alphaOffset");
+      ProcessParameter(colorCorrectNode, "multiply", AI_TYPE_RGB, "colorGain");
+      ProcessParameter(colorCorrectNode, "add", AI_TYPE_RGB, "colorOffset");
+   } 
+}
+
+void CCheckerTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "alphaGain" || plugName == "alphaOffset" || plugName == "alphaIsLuminance" || 
+      plugName == "invert" || plugName == "colorGain" || plugName == "colorOffset") &&
+      !RequiresColorCorrect())
+      SetUpdateMode(AI_RECREATE_NODE);
+
+if ((plugName == "uvCoord") &&
+      !RequiresUvTransform())
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
+
+bool CCheckerTranslator::RequiresColorCorrect() const
+{
+   return ! (IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
+             IsFloatAttrDefault(FindMayaPlug("alphaOffset"), 0.f) &&
+             IsBoolAttrDefault(FindMayaPlug("alphaIsLuminance"), false) &&
+             IsBoolAttrDefault(FindMayaPlug("invert"), false) &&
+             IsRGBAttrDefault(FindMayaPlug("colorGain"), 1.f, 1.f, 1.f) &&
+             IsRGBAttrDefault(FindMayaPlug("colorOffset"), 0.f, 0.f, 0.f));
+   
+}
+bool CCheckerTranslator::RequiresUvTransform() const
+{
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("uvCoord");
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() == 0)
+      return false;
+
+   MObject srcObj = connections[0].node();
+   MFnDependencyNode srcNodeFn(srcObj);
+
+   if (srcNodeFn.typeName() != "place2dTexture")
+      return false;
+
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger"), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU"), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV"), false) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame"), 0.f ) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV"), 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("coverage"), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame"), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV"), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("wrapU"), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("wrapV"), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorU"), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorV"), 0.f, 0.f ));
+
+}
+void CCheckerTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "checkerboard");
+}
+
+
 // Bump3d
 //
 AtNode*  CBump3DTranslator::CreateArnoldNodes()
@@ -1794,6 +1997,18 @@ AtNode* CMayaBlendColorsTranslator::CreateArnoldNodes()
    return AddArnoldNode("mix_rgba");
 }
 
+void CMayaClampTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB);
+   AiNodeSetStr(shader, AtString("mode"), AtString("color"));
+   ProcessParameter(shader, "min_color", AI_TYPE_RGB, "min");
+   ProcessParameter(shader, "max_color", AI_TYPE_RGB, "max");
+}
+
+AtNode* CMayaClampTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("clamp");
+}
 
 void CMayaRampShaderTranslator::Export(AtNode* shader)
 {
@@ -2514,10 +2729,6 @@ void* CreateQuadShadingSwitchTranslator()
 
 // Toon
 //
-void CToonTranslator::NodeInitializer(CAbTranslator context)
-{
-   CNodeTranslator::NodeInitializer(context);
-}
 
 void CToonTranslator::Export(AtNode* shader)
 {
@@ -2558,3 +2769,53 @@ AtNode* CToonTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("toon");
 }
+
+// MultiplyDivide shader
+AtNode* CMultiplyDivideTranslator::CreateArnoldNodes()
+{
+   MPlug operationPlug = FindMayaPlug("operation");
+   int op = 0;
+   if (!operationPlug.isNull())
+      op = operationPlug.asInt();
+
+   switch(op)
+   {
+      default:
+      case 0: // no op
+      case 1:
+         return AddArnoldNode("multiply");
+      case 2:
+         return AddArnoldNode("divide");
+      case 3:
+         return AddArnoldNode("pow");
+   }
+}
+
+void CMultiplyDivideTranslator::Export(AtNode* shader)
+{
+   MPlug operationPlug = FindMayaPlug("operation");
+   int op = 0;
+   if (!operationPlug.isNull())
+      op = operationPlug.asInt();
+
+   switch(op)
+   {
+      default:
+      case 0: // no op
+         ProcessParameter(shader, "input1", AI_TYPE_RGB);
+         break;
+      case 1:
+         ProcessParameter(shader, "input1", AI_TYPE_RGB);
+         ProcessParameter(shader, "input2", AI_TYPE_RGB);
+         break;
+      case 2:
+         ProcessParameter(shader, "input1", AI_TYPE_RGB);
+         ProcessParameter(shader, "input2", AI_TYPE_RGB);
+         break;         
+      case 3:
+         ProcessParameter(shader, "base", AI_TYPE_RGB, "input1");
+         ProcessParameter(shader, "exponent", AI_TYPE_RGB, "input2");
+         break;
+   }   
+}
+
