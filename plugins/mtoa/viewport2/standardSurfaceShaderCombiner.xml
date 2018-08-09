@@ -103,18 +103,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     
     // compute the fresnel factors for the specular, coat, and transmission layers
     if (NV >= 0.0f)
-    {
-        float3 SL = normalize(lightingData.SL);
-        float3 H = normalize(SL + lightingData.V);
-        float HV = dot(H, lightingData.V);
-
-        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
-        R0 = R0 * R0;      
-        
-        float roughnessOffset = 1.0f; //0.25*specularRoughness;
-        fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5)*roughnessOffset;
-        //fresnel *= 1.0f - roughnessOffset;
-    
+    {          
         coatFresnelWeight = (coatIOR - 1) / (coatIOR + 1);
         coatFresnelWeight *= coatFresnelWeight;
         
@@ -128,9 +117,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
         fweight *= fweight;
         fweight *= temp;
 
-        envFresnel = fresnelWeight + (1.0f - fresnelWeight) * fweight * roughnessOffset;
-        roughnessOffset = 0.3*specularRoughness;
-        envFresnel *= 1.0f - sqrt(roughnessOffset);
+        envFresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
                 
         coatFresnel = coatFresnelWeight + fweight * (1.0f - coatFresnelWeight);
         coatFresnelWeight = fweight;
@@ -156,7 +143,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the specular.  Specular goes to black as the metalness increases.
     // metalness has its own specularity
     //adjust the specular Env using the fresnel factor.
-    float3 specular = specularColor * (specularInput * fresnel + SpecularEnv * envFresnel) * Ks;   
+    float3 specular = specularColor * (specularInput + SpecularEnv * envFresnel) * Ks;   
     specular *= 1.0 - metalness;
     
     // compute the metal color
@@ -254,7 +241,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     mayaSurfaceShaderOutput result;
   
     float envFresnel = 1.0;
-    float fresnel = 1.0;
     float coatFresnel = 1.0;
     float transFresnel = 1.0;
     float coatFresnelWeight = 0.0;
@@ -265,16 +251,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the fresnel factors for the specular, coat, and transmission layers
     if (NV >= 0.0f)
     {
-        float3 SL = normalize(lightingData.SL);
-        float3 H = normalize(SL + lightingData.V);
-        float HV = dot(H, lightingData.V);
-
-        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
-        R0 = R0 * R0;      
-        
-        float roughnessOffset = 1.0f; //0.25*specularRoughness;
-        fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5)*roughnessOffset;
-    
         coatFresnelWeight = (coatIOR - 1) / (coatIOR + 1);
         coatFresnelWeight *= coatFresnelWeight;
         
@@ -287,10 +263,8 @@ mayaSurfaceShaderOutput standardShaderCombiner(
         float fweight = temp * temp;
         fweight *= fweight;
         fweight *= temp;
-
-        envFresnel = fresnelWeight + (1.0f - fresnelWeight) * fweight * roughnessOffset;
-        roughnessOffset = 0.3*specularRoughness;
-        envFresnel *= 1.0f - sqrt(roughnessOffset);
+        
+        envFresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
                 
         coatFresnel = coatFresnelWeight + fweight * (1.0f - coatFresnelWeight);
         coatFresnelWeight = fweight;
@@ -316,7 +290,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the specular.  Specular goes to black as the metalness increases.
     // metalness has its own specularity
     //adjust the specular Env using the fresnel factor.
-    float3 specular = specularColor * (specularInput * fresnel + SpecularEnv * envFresnel) * Ks;   
+    float3 specular = (specularColor * specularInput) + (specularColor * SpecularEnv * envFresnel * Ks);   
     specular *= 1.0 - metalness;
     
     // compute the metal color
@@ -412,7 +386,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     mayaSurfaceShaderOutput result;
   
     float envFresnel = 1.0;
-    float fresnel = 1.0;
     float coatFresnel = 1.0;
     float transFresnel = 1.0;
     float coatFresnelWeight = 0.0;
@@ -423,16 +396,6 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the fresnel factors for the specular, coat, and transmission layers
     if (NV >= 0.0f)
     {
-        vec3 SL = normalize(lightingData.SL);
-        vec3 H = normalize(SL + lightingData.V);
-        float HV = dot(H, lightingData.V);
-
-        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
-        R0 = R0 * R0;      
-        
-        float roughnessOffset = 1.0f; //0.25*specularRoughness;
-        fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5)*roughnessOffset;
-    
         coatFresnelWeight = (coatIOR - 1) / (coatIOR + 1);
         coatFresnelWeight *= coatFresnelWeight;
         
@@ -446,9 +409,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
         fweight *= fweight;
         fweight *= temp;
 
-        envFresnel = fresnelWeight + (1.0f - fresnelWeight) * fweight * roughnessOffset;
-        roughnessOffset = 0.3*specularRoughness;
-        envFresnel *= 1.0f - sqrt(roughnessOffset);
+        envFresnel = fresnelWeight + fweight * (1.0f - fresnelWeight);
                 
         coatFresnel = coatFresnelWeight + fweight * (1.0f - coatFresnelWeight);
         coatFresnelWeight = fweight;
@@ -474,7 +435,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     // compute the specular.  Specular goes to black as the metalness increases.
     // metalness has its own specularity
     //adjust the specular Env using the fresnel factor.
-    vec3 specular = specularColor * (specularInput * fresnel + SpecularEnv * envFresnel) * Ks;   
+    vec3 specular = specularColor * (specularInput + SpecularEnv * envFresnel) * Ks;   
     specular *= 1.0 - metalness;
     
     // compute the metal color
