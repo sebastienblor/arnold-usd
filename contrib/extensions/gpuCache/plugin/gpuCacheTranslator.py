@@ -2,8 +2,10 @@ import mtoa.ui.ae.templates as templates
 from mtoa.ui.ae.templates import AttributeTemplate, registerTranslatorUI
 from mtoa.ui.ae import aiStandInTemplate
 import mtoa.melUtils as mu
+import mtoa.utils as utils
 from mtoa.callbacks import *
 import maya.cmds as cmds
+import maya.mel as mel
 import os
 import os.path
 from ast import literal_eval
@@ -58,6 +60,30 @@ def abcToArnType(iObj):
         return None
 
 
+def createNewShader(nodeAttr, asShader=True):
+
+        selection = "-allWithShadersUp"
+        if not asShader:
+            selection = "-allWithTexturesUp"
+
+        _cmd = "createRenderNode {} \"defaultNavigation -force true -connectToExisting -source %node -destination {}\" \"\""
+
+        mel.eval(_cmd.format(selection, nodeAttr))
+
+        # make the operator if it doesn't allready exist for this sub-node
+        op = getOperator()
+
+
+def connectExistingShader(nodeAttr, dashSource, node):
+
+    print "connectExistingShader", nodeAttr, dashSource, node
+
+
+def connectAttrDropped(nodeAttr, dashSource, node):
+
+    print "connectAttrDropped", nodeAttr, dashSource, node
+
+
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def createCacheAttr(self, node):
@@ -75,7 +101,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def getPathProperties(self, path):
 
         num_overrides = mu.getAttrNumElements(self.nodeName, "aiOverrides")
-        path_props = {'shader': None, 'disp': None, 'overrides': [], 'index': num_overrides}
+        path_props = {'path': path, 'shader': None, 'disp': None, 'overrides': [], 'index': num_overrides}
         for i in range(num_overrides):
             _path = cmds.getAttr('{}.aiOverrides[{}].abcPath'.format(self.nodeName, i))
             if _path == path:
@@ -93,35 +119,121 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if itemName == item[0] and item[3] != VISIBILITY[1]:
                 cmds.setAttr('{}.cacheGeomPath'.format(self.nodeName), itemName.replace('/', '|'), type='string')
 
-    def getOpertator(self, item):
+    def getOperator(self, path_props):
+        # return the operator for this path,
+        # or create a new one placeed correctly in the heirarchy
+        #
+        # /root_op _
+        #           |---> /root_op/Geo1 _
+        #           |                    \-> /root_op_Geo/GeoShape1 __
+        #           |                                                 \--> MERGE
+        #            \--> /root_op/Geo2 _                             /
+        #                                \-> /root_op_Geo/GeoShape2 -/
+        #
 
-        return None
+        def walkInputs(op, path):
 
-    def showPropertyEditor(self, item, state):
+            selection_exp = '*{}*{}*'.format(self.nodeName, path)
 
-        print "showPropertyEditor", item, state
-        # get item type
+            if cmds.attributeQuery('inputs', node=op, exists=True):
+                inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
+                it = iter(inputs_raw)
+                inputs = zip(it, it)
+                for plug, ipt in inputs:
+                    if cmds.attributeQuery('selection', node=ipt, exists=True):
+                        _this_sel_exp = cmds.getAttr('{}.selection'.format(ipt))
+                        if selection_exp == _this_sel_exp:
+                            return ipt, plug
+
+                    return walkInputs(ipt, path)
+
+            return None, None
+
+        sel_path = path_props['path']
+
+        selection_exp = '*{}*{}*'.format(self.nodeName, sel_path)
+
+        out_op = None
+        plug = None
+        op_list = []
+
+        operators = cmds.listConnections('{}.operators'.format(self.nodeName)) or []
+        for op in operators:
+            out_op, plug = walkInputs(op, path_props['path'])
+
+        # if no operator matches make one
+        if not out_op:
+            op_name = '{}_setParam{}'.format(self.nodeName,path_props['index'])
+            out_op = cmds.createNode('aiSetParameter',
+                                     n=op_name,
+                                     ss=True)
+            cmds.setAttr("{}.selection".format(out_op), selection_exp, type="string")
+
+            # should this op be a child of an already existing op?
+
+            # get root merge node, create if doesn't exist
+            root_merge = None
+            root_merge_name = '{}_merge_op'.format(self.nodeName)
+            merge_nodes = cmds.listConnections('{}.operators'.format(self.nodeName), type='aiMerge') or []
+            root_merge_exists = False
+            if len(merge_nodes):
+                for mn in merge_nodes:
+                    if mn == root_merge_name:
+                        root_merge_exists = True
+                        root_merge = mn
+
+            if not root_merge_exists:
+                root_merge = cmds.createNode('aiMerge', n=root_merge_name, ss=True)
+                cmds.connectAttr('{}.out'.format(out_op), '{}.inputs[0]'.format(root_merge))
+                n_conn = len(cmds.listConnections("{}.operators".format(self.nodeName), c=True) or [])
+                cmds.connectAttr('{}.message'.format(root_merge), '{}.operators[{}]'.format(self.nodeName, n_conn))
+                return out_op
+            else:
+                # loop over the inputs for the root merge and walk the tree to
+                # find any ops that should be the parent of this op
+                path_bits = sel_path.split('/')
+                this_path = ''
+                parent_op = None
+                parent_plug = None
+                for p in range(len(path_bits)-1):
+                    this_path = '/'.join(path_bits[:len(path_bits)-1-p])
+                    if this_path == '':
+                        this_path = '/'
+                    parent_op, target_plug = walkInputs(root_merge, this_path)
+                    if parent_op and target_plug:
+                        break
+                if parent_op and target_plug:
+                    n_conn = len(cmds.listConnections("{}.inputs".format(out_op), c=True) or [])
+                    cmds.connectAttr('{}.out'.format(parent_op), '{}.inputs[{}]'.format(out_op, n_conn))
+                    cmds.connectAttr('{}.out'.format(out_op), target_plug, force=True)
+
+        return out_op
+
+    def shaderChanged(self):
+
+        if self.currentItem:
+            path_props = self.getPathProperties(self.currentItem)
+            path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+            shaderAttrName = "{}.abcShader".format(path_attr)
+
+            shader = cmds.listConnections(shaderAttrName) or []
+
+            # get an operator for the selection
+
+            if len(shader):
+                shader = shader[0]
+                op = self.getOperator(path_props)
+                n_conn = len(cmds.listConnections("{}.assignment".format(op), c=True) or [])
+                cmds.setAttr("{}.assignment[{}]".format(op, n_conn), "shader = \"{}\"".format(shader), type="string")
 
     def selectShader(self, item, state):
 
         print "selectShader", item, state
 
-    def createNewShader(self, attrName, asShader=True):
-
-        mel = "createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\""
-        cmds.exec(mel)
-
-        # make the operator if it doesn't allready exist for this sub-node
-        op = self.getOperator()
-
-    def connectExistingShader(self, node, attr):
-
-        print "connectExistingShader", node, attr
-
     def showAbcItemProperties(self):
         '''Display the shaders and overrides for the selected Item'''
 
-        item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True)
+        item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True) or []
         if len(item):
             item = item[0]
         # remove if deselected
@@ -142,9 +254,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             cmds.attrNavigationControlGrp(self.shaderAssignerField,
                                           edit=True, at=shaderAttrName,
                                           label="Surface Shader",
-                                          # cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\"",
-                                          cn=lambda *args:self.createNewShader(shaderAttrName, True),
-                                          cad=self.connectExistingShader
+                                          cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\"",
+                                          # createNew="{} {} true".format(self.createNewShaderProc, shaderAttrName),
+                                          # cn=lambda *args:self.createNewShader(shaderAttrName, True),
+                                          # connectToExisting="{} {}".format(self.connectExistingShaderProc, shaderAttrName),
+                                          # connectAttrToDropped="{} {}".format(self.connectAttrDroppedProc, shaderAttrName),
+                                          # dpc=self.shaderDropCallback
                                           )
 
             cmds.layout(self.displacementShaderAssignerLayout, e=True, visible=True)
@@ -168,6 +283,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             cmds.setParent('..')
 
             self.currentItem = item
+
+            cmds.scriptJob(attributeChange=[shaderAttrName, self.shaderChanged],
+                           replacePrevious=True, parent=self.shaderAssignerField)
 
         else:
             cmds.layout(self.shaderAssignerLayout, e=True, visible=False)
@@ -204,18 +322,14 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         # editor panel
         self.overrideEditorLabel = cmds.text(label="")
-        self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1)
-        # self.shaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Surface Shader', adjustableColumn=1)
-        # self.shaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='shader')
+        self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
         self.shaderAssignerField = cmds.attrNavigationControlGrp(
                                           label="Surface Shader",
                                           parent=self.shaderAssignerLayout)
 
 
         cmds.setParent('..')  # rowLayout
-        self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1)
-        # self.displacementShaderAssignerTextField = cmds.textFieldGrp(ed=False, label='Displacement Shader', adjustableColumn=1)
-        # self.displacementShaderAssignerButton = cmds.iconTextButton(style='iconOnly', image='navButtonUnconnected.png', label='displacementShader')
+        self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
         self.displacementShaderAssignerField = cmds.attrNavigationControlGrp(
                                                 label="Displacement Shader",
                                                 parent=self.displacementShaderAssignerLayout)
@@ -261,7 +375,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.treeView(self.abcInfoPath, edit=True, visible=True)
         cmds.button(self.inspectAlembicPath, edit=True, visible=False)
 
-        assigned_color = [0.2, 0.2, 0.9]
+        assigned_color = (0.2, 0.2, 0.9)
 
         for _path, _label, _parent, _visibility, _instancedPath, _entity_type in self.abcItems:
 
@@ -285,17 +399,17 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 _label += " overrides:{}".format(len(_path_props['overrides']))
                 cmds.treeView(self.abcInfoPath, e=True,
                               enableButton=[(_path, 1, 1)],
-                              textColor=(_path, *assigned_color))
+                              textColor=tuple([_path])+assigned_color)
             if _path_props['shader']:
                 _label += " surf: {}".format(','.join(_path_props['shader']))
                 cmds.treeView(self.abcInfoPath, e=True,
                               enableButton=[(_path, 2, 1)],
-                              textColor=(_path, *assigned_color))
+                              textColor=tuple([_path])+assigned_color)
             if _path_props['disp']:
                 _label += " disp: {}".format(','.join(_path_props['disp']))
                 cmds.treeView(self.abcInfoPath, e=True,
                               enableButton=[(_path, 3, 1)],
-                              textColor=(_path, *assigned_color))
+                              textColor=tuple([_path])+assigned_color)
 
             cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(_path, _label))
 
@@ -324,8 +438,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.visitObject( iArchive.getTop() )
 
         for i, v in enumerate(self.abcItems):
-            print i, v
-            print '{}.{}[{}]'.format(self.nodeName, CACHE_ATTR, i)
             cmds.setAttr('{}.{}[{}].ai_abcPath'.format(self.nodeName, CACHE_ATTR, i), v[0], type="string")
             cmds.setAttr('{}.{}[{}].ai_abcLabel'.format(self.nodeName, CACHE_ATTR, i), v[1], type="string")
             cmds.setAttr('{}.{}[{}].ai_abcParent'.format(self.nodeName, CACHE_ATTR, i), v[2], type="string")
@@ -348,7 +460,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             self.abcItems.append((_path, _label, _parent, _visibility, _instanced, _entity_type))
 
     def abcInfoReplace(self, nodeAttr):
-        print "REFRESH Attribute Editor"
         self.abcItems = []
         cache_attr_exists = cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True)
         if not cache_attr_exists:
@@ -646,6 +757,10 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.user_attrs = {}
         self.attr_ctrls = {}
         self.currentItem = None
+
+        self.createNewShaderProc = utils.pyToMelProc(createNewShader, [('string', 'nodeAttr'), ('int', 'asShader')], procPrefix='AEArnold')
+        self.connectExistingShaderProc = utils.pyToMelProc(connectExistingShader, [('string', 'nodeAttr'), ('string', 'dashSource'), ('string', 'node')], procPrefix='AEArnold')
+        self.connectAttrDroppedProc = utils.pyToMelProc(connectAttrDropped, [('string', 'nodeAttr'), ('string', 'dashSource'), ('string', 'node')], procPrefix='AEArnold')
 
         self.commonShapeAttributes()
         self.beginLayout("Translator Options", collapse=False)
