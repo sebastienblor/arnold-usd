@@ -476,8 +476,8 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setArray(true);
    addAttribute(s_render_devices);   
 
-   s_attributes.MakeInput("default_gpu_names");
-   s_attributes.MakeInput("default_gpu_min_memory_MB");
+   s_attributes.MakeInput("gpu_default_names");
+   s_attributes.MakeInput("gpu_default_min_memory_MB");
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");
