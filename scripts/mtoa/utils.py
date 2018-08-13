@@ -382,7 +382,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     if '<Frame>' in path and 'Frame' not in tokens:
         # TODO: add handling of sub-frames
         if frame is None:
-            frame = cmds.currentTime()
+            frame = cmds.currentTime(query=True)
         else:
             frame = float(frame)
         if settings.renumberFrames:
