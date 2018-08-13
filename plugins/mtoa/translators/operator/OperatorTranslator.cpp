@@ -75,10 +75,84 @@ void COperatorTranslator::Export(AtNode *shader)
       ExportAssignedShaders(shader);      
 
 
-   MPlug outPlug = FindMayaPlug("out");
+   // MPlug outPlug = FindMayaPlug("out");
+   // MPlugArray outConn;
+   // outPlug.connectedTo(outConn, false, true);
+   // outPlug = FindMayaPlug("message");
+   // MPlugArray messageConn;
+   // outPlug.connectedTo(messageConn, false, true);
+   // for (unsigned int i = 0; i < messageConn.length(); ++i)
+   //    outConn.append(messageConn[i]);
+
+   //bool globalOp = false;
+   MStringArray procList;
+
+   // for (unsigned int i = 0; i < outConn.length(); ++i)
+   // {
+   //    MStatus retStat;
+   //    MObject targetObj(outConn[i].node());
+   //    MFnDependencyNode target(targetObj, &retStat);
+   //    if (retStat != MS::kSuccess)
+   //       continue;
+
+   //    MString plugName = outConn[i].name();
+
+   //    // TODO : need to do the loop recursively until a procedural is found. 
+   //    // We're currently not supporting sub-graphs connected to procedurals
+   //    plugName = plugName.substring(plugName.rindex('.'), plugName.length()-1);
+   //    if (plugName.length() >= 10 && plugName.substringW(0, 9) == MString(".operators"))
+   //    {
+   //       MDagPath dagPath;      
+   //       if (MDagPath::getAPathTo(targetObj, dagPath) == MS::kSuccess)
+   //       {
+   //          MString dagName(CDagTranslator::GetArnoldNaming(dagPath));
+   //          if (dagName.length() > 0)
+   //          {
+   //             procList.append(dagName);
+   //          }
+   //       }
+   //    } 
+   // }
+   procList = WalkOutputs(GetMayaObject());
+
+   if (procList.length() > 0)
+   {
+      MPlug selectionPlug = FindMayaPlug("selection");
+      if (!selectionPlug.isNull())
+      {
+         MString selection = selectionPlug.asString();
+         MString finalSelection;
+         //if (globalOp)
+            //finalSelection = selection;
+
+         for (unsigned int i = 0; i < procList.length(); ++i)
+         {
+            if (finalSelection.length() > 0)
+               finalSelection += MString(" or ");
+
+            finalSelection += procList[i] + MString("*") + selection;
+         }
+         AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
+      }
+      
+   }
+   // add standin name
+}
+void COperatorTranslator::NodeInitializer(CAbTranslator context)
+{   
+}
+
+
+MStringArray COperatorTranslator::WalkOutputs(MObject obj)
+{
+   MStatus status(MStatus::kSuccess);
+
+   MFnDependencyNode fnNode(obj);
+
+   MPlug outPlug = fnNode.findPlug("out", &status);;
    MPlugArray outConn;
    outPlug.connectedTo(outConn, false, true);
-   outPlug = FindMayaPlug("message");
+   outPlug = fnNode.findPlug("message", &status);
    MPlugArray messageConn;
    outPlug.connectedTo(messageConn, false, true);
    for (unsigned int i = 0; i < messageConn.length(); ++i)
@@ -111,33 +185,15 @@ void COperatorTranslator::Export(AtNode *shader)
                procList.append(dagName);
             }
          }
-      } 
-   }
-
-   if (procList.length() > 0)
-   {
-      MPlug selectionPlug = FindMayaPlug("selection");
-      MString selection = selectionPlug.asString();
-      MString finalSelection;
-      //if (globalOp)
-         //finalSelection = selection;
-
-      for (unsigned int i = 0; i < procList.length(); ++i)
-      {
-         if (finalSelection.length() > 0)
-            finalSelection += MString(" or ");
-
-         finalSelection += procList[i] + MString("/") + selection;
+      } else {
+         MStringArray child_procList = WalkOutputs(targetObj);
+         for (unsigned int c = 0; c < child_procList.length(); ++c)
+            procList.append(child_procList[c]);
       }
-      AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
-      
    }
-   // add standin name   
-}
-void COperatorTranslator::NodeInitializer(CAbTranslator context)
-{   
-}
 
+   return procList;
+}
 
 // special case for set_parameter operators, we want to export the nodes which are eventually referenced.
 // We could derive operator translator classes to handle this, but for now it's still quite simple
