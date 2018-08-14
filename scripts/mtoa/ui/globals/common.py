@@ -36,6 +36,10 @@ import maya.mel as mel
 import mtoa.melUtils as mu
 
 from maya.app.stereo import stereoCameraRig
+_maya_version = utils.getMayaVersion()
+if _maya_version >= 2019:
+    import maya.app.general.updateRenderableCamerasList as updateCameras
+    
 
 MENU_SEPARATOR = ('-', None)
 
@@ -1319,6 +1323,12 @@ def createArnoldCommonFrameRange():
     #
     updateArnoldFileNameFormatControl()
 
+def onCameraChanged():
+    if _maya_version < 2019:
+        return
+
+    updateCameras.onCameraChangedAddRemoveCameras()
+    updateArnoldRendererCommonGlobalsTab()
 
 def createArnoldCommonRenderCameras():
     '''
@@ -1348,6 +1358,9 @@ def createArnoldCommonRenderCameras():
     cmds.columnLayout('mayaSoftwareCameraLayout')
     updateArnoldCameraControl()
     cmds.setParent('..')
+    if _maya_version >= 2019:
+        cmds.scriptJob(event = ['cameraChange', onCameraChanged])
+        updateCameras.createCommonRenderCamerasAddBaseCameras(fullPath, updateArnoldRendererCommonGlobalsTab)
 
     cmds.setParent(parent)
     cmds.setUITemplate(popTemplate=True)
