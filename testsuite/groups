@@ -18,13 +18,13 @@
 #######################
 
 # These tests are only executed on Windows
-windows: test_0098 test_0167_win test_0203_win test_0221_win
+windows: test_0098 test_0167_win test_0167_win_Maya2017 test_0203_win test_0221_win test_0221_win_Maya2017 
 
 # These tests are only executed on Linux
-linux: test_0167_linux test_0203_linux test_0221_linux
+linux: test_0167_linux test_0167_linux_Maya2017 test_0203_linux test_0221_linux test_0221_linux_Maya2017
 
 # These tests are only executed on Darwin
-darwin: test_0167_mac test_0203_mac test_0221_mac
+darwin: test_0167_mac test_0167_mac_Maya2017 test_0203_mac test_0221_mac test_0221_mac_Maya2017
 
 # Tests in this group will never be executed (you can use it to temporarily disable some tests and/or groups)
 # FIXME : motion blurred particles are not working properly (seems to be maya ?), temporarily disabling tests 60, 66, 74, 79 until solved
@@ -41,7 +41,7 @@ ignore_2015: test_0167_win test_0167_linux test_0167_mac test_0180 test_0181 tes
 
 ignore_2016: test_0167_win test_0167_linux test_0167_mac test_0180 test_0181 test_0185 test_0188 test_0209 test_0221_win test_0221_linux test_0221_mac test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0229 test_0237 test_0242
 
-ignore_2017: test_0237 test_0242 test_221_linux test_221_win test_221_mac test_0167_win test_0167_mac
+ignore_2017: test_0237 test_0242 test_0221_linux test_0221_win test_0221_mac test_0167_win test_0167_mac
 
 # bifrost tests are temporarily disabled
 ignore_2018: test_0139 test_0198 test_0202 test_0203_win test_0203_linux test_0203_mac test_0204 test_0233 test_0221_linux_Maya2017 test_0221_win_Maya2017 test_0221_mac_Maya2017 test_0167_win_Maya2017 test_0167_mac_Maya2017
