@@ -2498,6 +2498,7 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
    MFnDependencyNode dnode(GetMayaObject());
    MPlugArray conns;
 
+   bool isRGBA = AiNodeIs(shader, AtString("switch_rgba"));
 
    for (unsigned int i = 0; i < 20; ++i)
    {
@@ -2507,7 +2508,7 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
       MPlug inputPlug = dnode.findPlug(attrName);
       inputPlug.connectedTo(conns, true, false);
       if (conns.length() > 0)
-         ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
+         ProcessParameter(shader, attrName.asChar(), (isRGBA) ? AI_TYPE_RGBA : AI_TYPE_CLOSURE, attrName.asChar());
       else
          AiNodeResetParameter(shader, AtString(attrName.asChar()));
    }
