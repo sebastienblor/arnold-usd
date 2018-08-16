@@ -5,6 +5,42 @@
 
 #include <maya/MFnNumericData.h>
 
+void CLookDevKitTranslator::ExportRGBAChannels(AtNode *shader, const char *arnoldParam, const char *rgbParam, const char *alphaParam)
+{ 
+   ProcessParameter(shader, arnoldParam, AI_TYPE_RGBA, rgbParam); 
+      
+   MPlug alphaPlug = FindMayaPlug(MString(alphaParam));
+   MPlugArray connections;
+   alphaPlug.connectedTo(connections, true, false);
+   MString arnoldAlphaChannel = MString(arnoldParam) + MString(".a");
+
+   bool isLinked = AiNodeIsLinked(shader, arnoldParam);
+
+   if (connections.length() > 0)
+   {
+      AtNode* srcArnoldNode = ExportConnectedNode(connections[0]);
+      // don't do the link if we're already connected to the same shader
+      if ((!isLinked) || (srcArnoldNode != AiNodeGetLink(shader, arnoldParam)))
+         AiNodeLink(srcArnoldNode, arnoldAlphaChannel.asChar(), shader);
+      
+   } else 
+   {
+      float alpha = alphaPlug.asFloat();
+      if (alpha < 1.f)
+      {
+         if (!isLinked)
+         {
+            AtRGB col = AiNodeGetRGB(shader, arnoldParam);
+            AiNodeSetRGBA(shader, arnoldParam, col.r, col.g, col.b, alpha);
+         } else
+         {
+            // FIXME: color is connected and a transparent alpha is used, we need to insert a node
+         }
+      }
+   }
+}
+
+
 AtNode* CLookDevKitTranslator::CreateArnoldNodes()
 {
    MString nodeType = MFnDependencyNode(GetMayaObject()).typeName();
@@ -12,6 +48,10 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("shuffle");
    else if (nodeType == MString("colorComposite"))
       nodeType = MString("layer_rgba");
+   else if (nodeType == MString("colorCondition"))
+      nodeType = MString("switch_rgba");
+   else if (nodeType == MString("colorLogic"))
+      nodeType = MString("compare");
    else
    {
 	   MString prefix = nodeType.substringW(0, 0);
@@ -36,8 +76,9 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       return;
    } else if (nodeType == MString("colorComposite"))
    {
-      ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorA");
-      ProcessParameter(shader, "input2", AI_TYPE_RGBA, "colorB");
+      ExportRGBAChannels(shader, "input1", "colorA", "alphaA");
+      ExportRGBAChannels(shader, "input2", "colorB", "alphaB");
+
       bool linkedA = AiNodeIsLinked(shader, "input1");
       bool linkedB = AiNodeIsLinked(shader, "input2");
       
@@ -89,53 +130,40 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          }
       }
 
-      // Need to deal with alpha channel
-      MPlug alphaAPlug = FindMayaPlug("alphaA");
-      MPlugArray connections;
-      alphaAPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         AtNode* srcArnoldNode = ExportConnectedNode(connections[0]);
-         AiNodeLink(srcArnoldNode, "input1.a", shader);
-      } else 
-      {
-         float alphaA = alphaAPlug.asFloat();
-         if (alphaA < 1.f)
-         {
-            if (!linkedA)
-            {
-               AtRGB col = AiNodeGetRGB(shader, "input1");
-               AiNodeSetRGBA(shader, "input1", col.r, col.g, col.b, alphaA);
-            } else
-            {
-               // FIXME: color is connected and a transparent alpha is used, we need to insert a node
-            }
-         }
-      }
-
-      MPlug alphaBPlug = FindMayaPlug("alphaB");
-      connections.clear();
-      alphaBPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         AtNode* srcArnoldNode = ExportConnectedNode(connections[0]);
-         AiNodeLink(srcArnoldNode, "input2.a", shader);
-      } else 
-      {
-         float alphaB = alphaBPlug.asFloat();
-         if (alphaB < 1.f)
-         {
-            if (!linkedB)
-            {
-               AtRGB col = AiNodeGetRGB(shader, "input2");
-               AiNodeSetRGBA(shader, "input2", col.r, col.g, col.b, alphaB);
-            } else
-            {
-               // FIXME: color is connected and a transparent alpha is used, we need to insert a node
-            }
-         }
-      }
       
+   } else if (nodeType == MString("colorCondition"))
+   {
+      ProcessParameter(shader, "index", AI_TYPE_INT, "condition");
+      ExportRGBAChannels(shader, "input1", "colorA", "alphaA");
+      ExportRGBAChannels(shader, "input0", "colorB", "alphaB");
+
+   } else if (nodeType == MString("colorLogic"))
+   {
+      AtNode *rgb2floatA = GetArnoldNode("rgb2floatA");
+      if (rgb2floatA == NULL)
+         rgb2floatA = AddArnoldNode("rgb_to_float", "rgb2floatA");
+
+      AtNode *rgb2floatB = GetArnoldNode("rgb2floatB");
+      if (rgb2floatB == NULL)
+         rgb2floatB = AddArnoldNode("rgb_to_float", "rgb2floatB");
+
+      AiNodeSetStr(rgb2floatA, "mode", "sum");
+      AiNodeSetStr(rgb2floatB, "mode", "sum");
+
+      ProcessParameter(rgb2floatA, "input", AI_TYPE_RGB, "colorA");
+      ProcessParameter(rgb2floatB, "input", AI_TYPE_RGB, "colorB");
+
+      AiNodeLink(rgb2floatA, "input1", shader);
+      AiNodeLink(rgb2floatB, "input2", shader);
+
+
+      MPlug operationPlug = FindMayaPlug("operation");
+      if (!operationPlug.isNull())
+      {
+         MString operation = operationPlug.asString();
+         AiNodeSetStr(shader, "test", operation.asChar());
+      }
+   
    } else
       CNodeTranslator::Export(shader);
 }
