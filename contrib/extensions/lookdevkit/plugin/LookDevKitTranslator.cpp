@@ -52,6 +52,12 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("switch_rgba");
    else if (nodeType == MString("colorLogic"))
       nodeType = MString("compare");
+   else if (nodeType == MString("colorConstant"))
+      nodeType = MString("shuffle");
+   else if (nodeType == MString("floatLogic"))
+      nodeType = MString("compare");
+   else if (nodeType == MString("floatConstant"))
+      nodeType = MString("layer_float");
    else
    {
 	   MString prefix = nodeType.substringW(0, 0);
@@ -164,7 +170,25 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          AiNodeSetStr(shader, "test", operation.asChar());
       }
    
-   } else
+   } else if (nodeType == MString("colorConstant"))
+   {
+      ProcessParameter(shader, "color", AI_TYPE_RGB, "inColor");
+      ProcessParameter(shader, "alpha", AI_TYPE_FLOAT, "inAlpha");
+   }  else if (nodeType == MString("floatConstant"))
+   {
+      ProcessParameter(shader, "input1", AI_TYPE_FLOAT, "inFloat");
+   } else if (nodeType == MString("floatLogic"))
+   {
+      ProcessParameter(shader, "input1", AI_TYPE_FLOAT, "floatA");
+      ProcessParameter(shader, "input2", AI_TYPE_FLOAT, "floatB");
+
+      MPlug operationPlug = FindMayaPlug("operation");
+      if (!operationPlug.isNull())
+      {
+         MString operation = operationPlug.asString();
+         AiNodeSetStr(shader, "test", operation.asChar());
+      }
+   } else // default behaviour
       CNodeTranslator::Export(shader);
 }
 
