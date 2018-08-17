@@ -54,6 +54,8 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("compare");
    else if (nodeType == MString("colorConstant"))
       nodeType = MString("shuffle");
+   else if (nodeType == MString("colorMask"))
+      nodeType = MString("color_correct");
    else if (nodeType == MString("floatLogic"))
       nodeType = MString("compare");
    else if (nodeType == MString("floatConstant"))
@@ -186,7 +188,61 @@ void CLookDevKitTranslator::Export(AtNode* shader)
    {
       ProcessParameter(shader, "color", AI_TYPE_RGB, "inColor");
       ProcessParameter(shader, "alpha", AI_TYPE_FLOAT, "inAlpha");
-   }  else if (nodeType == MString("floatConstant"))
+   } else if (nodeType == MString("colorMask"))
+   {
+      ExportRGBAChannels(shader, "input", "inColor", "inAlpha");
+      MPlug alphaIsLuminancePlug = FindMayaPlug("maskAlphaIsLuminance");
+      AtNode *rgb_to_float = NULL;
+      if (!alphaIsLuminancePlug.isNull() && alphaIsLuminancePlug.asBool())
+      {
+         rgb_to_float = GetArnoldNode("rgb_to_float");
+         if (rgb_to_float == NULL)
+            rgb_to_float = AddArnoldNode("rgb_to_float", "rgb_to_float");
+         AiNodeSetStr(rgb_to_float, "mode", "luminance");
+         ProcessParameter(rgb_to_float, "input", AI_TYPE_RGB, "mask");
+      }
+      AtNode *float_to_rgb = GetArnoldNode("float_to_rgb");
+      if (float_to_rgb == NULL)
+         float_to_rgb = AddArnoldNode("float_to_rgb", "float_to_rgb");
+
+      if (rgb_to_float)
+      {
+         AiNodeLink(rgb_to_float, "r", float_to_rgb);
+         AiNodeLink(rgb_to_float, "g", float_to_rgb);
+         AiNodeLink(rgb_to_float, "b", float_to_rgb);
+      } else
+      {
+         ProcessParameter(float_to_rgb, "r", AI_TYPE_FLOAT, "maskAlpha");
+         ProcessParameter(float_to_rgb, "g", AI_TYPE_FLOAT, "maskAlpha");
+         ProcessParameter(float_to_rgb, "b", AI_TYPE_FLOAT, "maskAlpha");
+      } 
+
+      AtNode *negate = GetArnoldNode("negate");
+      if (negate == NULL)
+         negate = AddArnoldNode("negate", "negate");
+
+      AiNodeLink(float_to_rgb, "input", negate);
+
+      AtNode *rgb_to_float2 = GetArnoldNode("rgb_to_float2");
+      if (rgb_to_float2 == NULL)
+         rgb_to_float2 = AddArnoldNode("rgb_to_float", "rgb_to_float2");
+      AiNodeLink(negate, "input", rgb_to_float2);
+
+      AiNodeLink(rgb_to_float2, "alpha_add", shader);
+
+      MPlug preserveColorPlug = FindMayaPlug("preserveColor");
+      if (!preserveColorPlug.isNull() && !preserveColorPlug.asBool())
+      {
+         AtNode *complement = GetArnoldNode("complement");
+         if (complement == NULL)
+            complement = AddArnoldNode("complement", "complement");
+
+         AiNodeLink(float_to_rgb, "input", complement);
+         AiNodeLink(complement, "multiply", shader);
+      } else
+         AiNodeResetParameter(shader, "multiply");
+      
+   } else if (nodeType == MString("floatConstant"))
    {
       ProcessParameter(shader, "input1", AI_TYPE_FLOAT, "inFloat");
    } else if (nodeType == MString("floatLogic"))
