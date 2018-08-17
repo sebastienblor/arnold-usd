@@ -68,6 +68,18 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
    return node;
 }
 
+
+const char* OperationStrings[] =
+{
+   "==",
+   "!=",
+   "<",
+   ">",
+   "<=",
+   ">=",
+   NULL
+};
+
 void CLookDevKitTranslator::Export(AtNode* shader)
 {
    MString nodeType = MFnDependencyNode(GetMayaObject()).typeName();
@@ -184,9 +196,10 @@ void CLookDevKitTranslator::Export(AtNode* shader)
 
       MPlug operationPlug = FindMayaPlug("operation");
       if (!operationPlug.isNull())
-      {
-         MString operation = operationPlug.asString();
-         AiNodeSetStr(shader, "test", operation.asChar());
+      {         
+         int op = operationPlug.asInt();
+         if (op >= 0 && op <= 5)
+            AiNodeSetStr(shader, "test", OperationStrings[op]);
       }
    } else // default behaviour
       CNodeTranslator::Export(shader);
