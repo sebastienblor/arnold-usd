@@ -64,6 +64,8 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("rgb_to_float");
    else if (nodeType == MString("floatConstant"))
       nodeType = MString("layer_float");
+   else if (nodeType == MString("floatComposite"))
+      nodeType = MString("rgb_to_float");
    else
    {
 	   MString prefix = nodeType.substringW(0, 0);
@@ -309,6 +311,64 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       ProcessParameter(switchShader, "input1.r", AI_TYPE_FLOAT, "floatA");
       ProcessParameter(switchShader, "index", AI_TYPE_INT, "condition");
       AiNodeLink(switchShader, "input", shader);
+      AiNodeSetStr(shader, "mode", "sum");
+   } else if (nodeType == MString("floatComposite"))
+   {
+      AtNode *layerRgba = GetArnoldNode("layer_rgba");
+      if (layerRgba == NULL)
+         layerRgba = AddArnoldNode("layer_rgba", "layer_rgba");
+
+      ProcessParameter(layerRgba, "input1.r", AI_TYPE_FLOAT, "floatA");
+      ProcessParameter(layerRgba, "input2.r", AI_TYPE_FLOAT, "floatB");
+      ProcessParameter(layerRgba, "mix2", AI_TYPE_FLOAT, "factor");
+      AiNodeSetBool(layerRgba, "enable3", false);
+      AiNodeSetBool(layerRgba, "enable4", false);
+      AiNodeSetBool(layerRgba, "enable5", false);
+      AiNodeSetBool(layerRgba, "enable6", false);
+      AiNodeSetBool(layerRgba, "enable7", false);
+      AiNodeSetBool(layerRgba, "enable8", false);
+
+      MPlug operationPlug = FindMayaPlug("operation");
+      if (!operationPlug.isNull())
+      {
+         switch(operationPlug.asInt())
+         {
+            default:
+            case COP_ADD:
+               AiNodeSetStr(layerRgba, "operation2", "plus");
+            break;
+            case COP_SUBTRACT:
+               AiNodeSetStr(layerRgba, "operation2", "subtract");
+            break;
+            case COP_MIX:
+               AiNodeSetStr(layerRgba, "operation2", "overwrite");
+            break;
+            case COP_MULTIPLY:
+               AiNodeSetStr(layerRgba, "operation2", "multiply");            
+            break;
+            case COP_SCREEN:
+               // Note: in the past we were actually doing "add" here
+               AiNodeSetStr(layerRgba, "operation2", "screen");            
+            break;
+            case COP_OVERLAY:
+               // overlay formula seemed to be wrong before
+               AiNodeSetStr(layerRgba, "operation2", "overlay");
+            break;
+            case COP_DIFFERENCE:
+               // FIXME: should this be "minus" or "difference" ? it used to be "minus"...
+               AiNodeSetStr(layerRgba, "operation2", "difference");
+            break;
+            case COP_DODGE:
+               AiNodeSetStr(layerRgba, "operation2", "color_dodge");
+            break;
+            case COP_BURN:
+               // The previous result seemed to be wrong
+               AiNodeSetStr(layerRgba, "operation2", "color_burn");
+            break;
+         }
+      }
+
+      AiNodeLink(layerRgba, "input", shader);
       AiNodeSetStr(shader, "mode", "sum");
    } else // default behaviour
       CNodeTranslator::Export(shader);
