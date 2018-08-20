@@ -676,5 +676,5 @@ void CMeshLightNewTranslator::AddUpdateCallbacks()
       if (MS::kSuccess == status) RegisterUpdateCallback(id);
    }
    // Call the base class to get the others.
-   CNodeTranslator::AddUpdateCallbacks();
+   CDagTranslator::AddUpdateCallbacks();
 }
