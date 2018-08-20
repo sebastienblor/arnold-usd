@@ -56,6 +56,8 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("shuffle");
    else if (nodeType == MString("colorMask"))
       nodeType = MString("color_correct");
+   else if (nodeType == MString("colorMath"))
+      nodeType = MString("layer_rgba");
    else if (nodeType == MString("floatLogic"))
       nodeType = MString("compare");
    else if (nodeType == MString("floatConstant"))
@@ -257,6 +259,44 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          if (op >= 0 && op <= 5)
             AiNodeSetStr(shader, "test", OperationStrings[op]);
       }
+   } else if (nodeType == MString("colorMath"))
+   {
+      ExportRGBAChannels(shader, "input1", "colorA", "alphaA");
+      ExportRGBAChannels(shader, "input2", "colorB", "alphaB");
+
+      MPlug opPlug = FindMayaPlug("operation");
+      if (!opPlug.isNull())
+      {
+         int operation = opPlug.asInt();
+         switch (operation)
+         {
+            default:
+            case 0: // add
+               AiNodeSetStr(shader, "operation2", "plus");
+               break;
+            case 1:  // subtract
+               AiNodeSetStr(shader, "operation2", "minus");
+               break;
+            case 2: // multiply
+               AiNodeSetStr(shader, "operation2", "multiply");
+               break;
+            case 3: // divide
+               AiNodeSetStr(shader, "operation2", "divide");
+               break;
+            case 4:  // Min
+               AiNodeSetStr(shader, "operation2", "min");
+               break;
+            case 5: // Max
+               AiNodeSetStr(shader, "operation2", "max");
+               break;
+         }
+      }
+      AiNodeSetBool(shader, "enable3", false);
+      AiNodeSetBool(shader, "enable4", false);
+      AiNodeSetBool(shader, "enable5", false);
+      AiNodeSetBool(shader, "enable6", false);
+      AiNodeSetBool(shader, "enable7", false);
+      AiNodeSetBool(shader, "enable8", false);
    } else // default behaviour
       CNodeTranslator::Export(shader);
 }
