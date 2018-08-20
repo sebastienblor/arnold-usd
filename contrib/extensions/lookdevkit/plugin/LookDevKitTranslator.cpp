@@ -60,6 +60,8 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("layer_rgba");
    else if (nodeType == MString("floatLogic"))
       nodeType = MString("compare");
+   else if (nodeType == MString("floatCondition"))
+      nodeType = MString("rgb_to_float");
    else if (nodeType == MString("floatConstant"))
       nodeType = MString("layer_float");
    else
@@ -297,6 +299,17 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       AiNodeSetBool(shader, "enable6", false);
       AiNodeSetBool(shader, "enable7", false);
       AiNodeSetBool(shader, "enable8", false);
+   }  else if (nodeType == MString("floatCondition"))
+   {
+      AtNode *switchShader = GetArnoldNode("switch_rgba");
+      if (switchShader == NULL)
+         switchShader = AddArnoldNode("switch_rgba", "switch_rgba");
+
+      ProcessParameter(switchShader, "input0.r", AI_TYPE_FLOAT, "floatB");
+      ProcessParameter(switchShader, "input1.r", AI_TYPE_FLOAT, "floatA");
+      ProcessParameter(switchShader, "index", AI_TYPE_INT, "condition");
+      AiNodeLink(switchShader, "input", shader);
+      AiNodeSetStr(shader, "mode", "sum");
    } else // default behaviour
       CNodeTranslator::Export(shader);
 }
