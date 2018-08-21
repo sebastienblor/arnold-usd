@@ -68,6 +68,8 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("rgb_to_float");
    else if (nodeType == MString("floatMask"))
       nodeType = MString("rgb_to_float");
+   else if (nodeType == MString("floatMath"))
+      nodeType = MString("rgb_to_float");
    else
    {
 	   MString prefix = nodeType.substringW(0, 0);
@@ -88,6 +90,17 @@ const char* OperationStrings[] =
    "<=",
    ">=",
    NULL
+};
+
+enum operation
+{
+   OP_ADD = 0,
+   OP_SUBTRACT,
+   OP_MULTIPLY,
+   OP_DIVIDE,
+   OP_MIN,
+   OP_MAX,
+   OP_POW
 };
 
 void CLookDevKitTranslator::Export(AtNode* shader)
@@ -277,22 +290,22 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          switch (operation)
          {
             default:
-            case 0: // add
+            case OP_ADD: // add
                AiNodeSetStr(shader, "operation2", "plus");
                break;
-            case 1:  // subtract
+            case OP_SUBTRACT:  // subtract
                AiNodeSetStr(shader, "operation2", "minus");
                break;
-            case 2: // multiply
+            case OP_MULTIPLY: // multiply
                AiNodeSetStr(shader, "operation2", "multiply");
                break;
-            case 3: // divide
+            case OP_DIVIDE: // divide
                AiNodeSetStr(shader, "operation2", "divide");
                break;
-            case 4:  // Min
+            case OP_MIN:  // Min
                AiNodeSetStr(shader, "operation2", "min");
                break;
-            case 5: // Max
+            case OP_MAX: // Max
                AiNodeSetStr(shader, "operation2", "max");
                break;
          }
@@ -303,6 +316,54 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       AiNodeSetBool(shader, "enable6", false);
       AiNodeSetBool(shader, "enable7", false);
       AiNodeSetBool(shader, "enable8", false);
+   } else if (nodeType == MString("floatMath"))
+   {     
+      MPlug opPlug = FindMayaPlug("operation");
+      std::string opName;
+      if (!opPlug.isNull())
+      {
+         int operation = opPlug.asInt();
+         switch (operation)
+         {
+            default:
+            case OP_ADD: // add
+               opName = "add";
+               break;
+            case OP_SUBTRACT:  // subtract
+               opName = "subtract";
+               break;
+            case OP_MULTIPLY: // multiply
+               opName = "multiply";
+               break;
+            case OP_DIVIDE: // divide
+               opName = "divide";
+               break;
+            case OP_MIN:  // Min
+               opName = "min";
+               break;
+            case OP_MAX: // Max
+               opName = "max";
+            case OP_POW: // Pow
+               opName = "pow";
+               break;
+         }
+      }
+      AtNode *mathNode = GetArnoldNode(opName.c_str());
+      if (mathNode == NULL)
+         mathNode = AddArnoldNode(opName.c_str(), opName.c_str());
+
+      AiNodeLink(mathNode, "input", shader);
+      AiNodeSetStr(shader, "mode", "r");
+
+      if (opName == "pow")
+      {
+         ProcessParameter(mathNode, "base.r", AI_TYPE_FLOAT, "floatA");
+         ProcessParameter(mathNode, "exponent.r", AI_TYPE_FLOAT, "floatB");
+      } else
+      {
+         ProcessParameter(mathNode, "input1.r", AI_TYPE_FLOAT, "floatA");
+         ProcessParameter(mathNode, "input2.r", AI_TYPE_FLOAT, "floatB");
+      }
    }  else if (nodeType == MString("floatCondition"))
    {
       AtNode *switchShader = GetArnoldNode("switch_rgba");
@@ -313,7 +374,7 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       ProcessParameter(switchShader, "input1.r", AI_TYPE_FLOAT, "floatA");
       ProcessParameter(switchShader, "index", AI_TYPE_INT, "condition");
       AiNodeLink(switchShader, "input", shader);
-      AiNodeSetStr(shader, "mode", "sum");
+      AiNodeSetStr(shader, "mode", "r");
    } else if (nodeType == MString("floatComposite"))
    {
       AtNode *layerRgba = GetArnoldNode("layer_rgba");
@@ -371,7 +432,7 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       }
 
       AiNodeLink(layerRgba, "input", shader);
-      AiNodeSetStr(shader, "mode", "sum");
+      AiNodeSetStr(shader, "mode", "r");
    } else if (nodeType == MString("floatMask"))
    {
       AtNode *subtract = GetArnoldNode("subtract");
@@ -381,7 +442,7 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       ProcessParameter(subtract, "input1.r", AI_TYPE_FLOAT, "inFloat");
       ProcessParameter(subtract, "input2.r", AI_TYPE_FLOAT, "mask");
       AiNodeLink(subtract, "input", shader);
-      AiNodeSetStr(shader, "mode", "sum");
+      AiNodeSetStr(shader, "mode", "r");
    } else // default behaviour
       CNodeTranslator::Export(shader);
 }
