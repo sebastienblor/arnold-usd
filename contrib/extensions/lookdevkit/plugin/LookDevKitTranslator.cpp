@@ -66,6 +66,8 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
       nodeType = MString("layer_float");
    else if (nodeType == MString("floatComposite"))
       nodeType = MString("rgb_to_float");
+   else if (nodeType == MString("floatMask"))
+      nodeType = MString("rgb_to_float");
    else
    {
 	   MString prefix = nodeType.substringW(0, 0);
@@ -369,6 +371,16 @@ void CLookDevKitTranslator::Export(AtNode* shader)
       }
 
       AiNodeLink(layerRgba, "input", shader);
+      AiNodeSetStr(shader, "mode", "sum");
+   } else if (nodeType == MString("floatMask"))
+   {
+      AtNode *subtract = GetArnoldNode("subtract");
+      if (subtract == NULL)
+         subtract = AddArnoldNode("subtract", "subtract");
+
+      ProcessParameter(subtract, "input1.r", AI_TYPE_FLOAT, "inFloat");
+      ProcessParameter(subtract, "input2.r", AI_TYPE_FLOAT, "mask");
+      AiNodeLink(subtract, "input", shader);
       AiNodeSetStr(shader, "mode", "sum");
    } else // default behaviour
       CNodeTranslator::Export(shader);
