@@ -411,13 +411,20 @@ void CFileTranslator::Export(AtNode* shader)
          tokenStr = "<utile>"; 
          tokenOut = "<utile:1>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
-         tokenStr = "<u>";         
+         // #3413 <u> <v> tokens are expected to be 0-indexed. Should this be extended to other tiling modes ?
+         if (tilingMode == 1) 
+            tokenOut = "<utile>";
+         tokenStr = "<u>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<U>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<vtile>";
          tokenOut = "<vtile:1>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         
+         // #3413 <u> <v> tokens are expected to be 0-indexed. Should this be extended to other tiling modes ?
+         if (tilingMode == 1)
+            tokenOut = "<vtile>";
          tokenStr = "<v>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<V>";
