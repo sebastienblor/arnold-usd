@@ -22,7 +22,7 @@ class AEaiFlakesTemplate(ShaderAETemplate):
         self.addControl('normalRandomize', label='Normal Randomize')        
         self.addControl('coordSpace', label='Coord Space')
         self.addControl('outputSpace', label='Output Space')
-        
+        self.addControl('prefName', label='Pref Name')
         #self.addControl('size', label='Size')
         self.endLayout()
   
