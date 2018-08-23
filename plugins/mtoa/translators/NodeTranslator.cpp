@@ -1127,8 +1127,18 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
 
 void CNodeTranslator::NodeInitializer(CAbTranslator context)
 {
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(context.arnold.asChar());
+   if (nodeEntry == NULL)
+      return;
+
+   // maya.attrs is a metadata (true by default) used to prevent the creation of attributes in the existing maya nodes
+   // It avoids to set maya.hide on each of the parameters
+   bool createAttrs = true;
+   if (AiMetaDataGetBool(nodeEntry, NULL, "maya.attrs", &createAttrs) && (!createAttrs))
+      return; 
+   
    CExtensionAttrHelper helper(context.maya, context.arnold);
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeEntryLookUp(context.arnold.asChar()));
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);

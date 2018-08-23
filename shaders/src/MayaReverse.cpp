@@ -18,6 +18,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "reverse");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52525653);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize
