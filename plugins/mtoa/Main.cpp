@@ -892,6 +892,12 @@ namespace // <anonymous>
          shaders->RegisterTranslator("condition",
                                        "",
                                        CConditionTranslator::creator);
+         shaders->RegisterTranslator("luminance",
+                                       "",
+                                       CLuminanceTranslator::creator);
+         shaders->RegisterTranslator("reverse",
+                                       "",
+                                       CReverseTranslator::creator);
 
 
          if(MGlobal::apiVersion() >= 20180400)

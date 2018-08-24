@@ -47,7 +47,7 @@ node_parameters
 
 //   AiMetaDataSetStr(nentry, NULL, "maya.name", "condition");
 //   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434e44);
-   AiMetaDataSetBool(nentry, NULL, "hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    
 }

@@ -16,9 +16,11 @@ node_parameters
 {
    AiParameterRGB("input", 0, 0, 0);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "reverse");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52525653);
+//  AiMetaDataSetStr(nentry, NULL, "maya.name", "reverse");
+//   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52525653);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

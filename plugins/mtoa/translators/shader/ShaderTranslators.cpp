@@ -2827,6 +2827,27 @@ void CMultiplyDivideTranslator::Export(AtNode* shader)
    }   
 }
 
+// Luminance shader
+AtNode* CLuminanceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("rgb_to_float");
+}
+
+void CLuminanceTranslator::Export(AtNode* shader)
+{
+   AiNodeSetStr(shader, "mode", "luminance");
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
+}
+// Reverse shader
+AtNode* CReverseTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("complement");
+}
+
+void CReverseTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "input");
+}
 
 // Condition shader
 AtNode* CConditionTranslator::CreateArnoldNodes()
