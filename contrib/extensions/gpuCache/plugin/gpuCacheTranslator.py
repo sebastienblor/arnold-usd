@@ -91,13 +91,15 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def getPathProperties(self, path):
 
         num_overrides = mu.getAttrNumElements(self.nodeName, "aiOverrides")
-        path_props = {'path': path, 'shader': None, 'disp': None, 'overrides': {}, 'index': num_overrides}
+        path_props = {'path': path, 'shader': None, 'disp': None, 'overrides': [], 'index': num_overrides}
 
         for i, p in enumerate(self.abcItems):
             if p[0] == path:
                 path_props['path'] = p[0]
                 path_props['shader'] = cmds.listConnections('{}.aiOverrides[{}].abcShader'.format(self.nodeName, i)) or None
                 path_props['disp'] = cmds.listConnections('{}.aiOverrides[{}].abcDisplacement'.format(self.nodeName, i)) or None
+                for c in range(cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i), size=True)):
+                    path_props['overrides'].append(cmds.getAttr('{}.aiOverrides[{}].abcOverrides[{}]'.format(self.nodeName, i, c)))
                 path_props['index'] = i
                 break
         return path_props
@@ -517,7 +519,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                          attachButtonRight=True,
                                          selectionChangedCommand=self.showAbcItemProperties,
                                          itemDblClickCommand2=self.selectGeomPath,
-                                         pressCommand=[(2, self.selectShader),
+                                         pressCommand=[(1, self.selectOperator),
+                                                       (2, self.selectShader),
                                                        (3, self.selectDisplacment)]
                                          )
         self.createItemPopupMenu(self.abcInfoPath)
