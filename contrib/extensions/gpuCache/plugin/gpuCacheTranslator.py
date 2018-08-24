@@ -31,6 +31,7 @@ VISIBILITY = ['differed', 'hidden', 'visible']
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():
         AiBegin()
+        AiMsgSetConsoleFlags(AI_LOG_NONE)
         return True
     return False
 
@@ -44,6 +45,20 @@ def ArnoldUniverseEnd():
         AiEnd()
 
 
+def ArnoldGetArrayType(nodeType, paramName):
+    AiUniverseCreated = ArnoldUniverseOnlyBegin()
+    node_entry = AiNodeEntryLookUp(nodeType)
+    param_entry = AiNodeEntryLookUpParameter(node_entry, paramName)
+    param_type = AiParamGetType(param_entry)
+    if param_type == AI_TYPE_ARRAY:
+        array_default = AiParamGetDefault(param).contents.ARRAY
+        param_type = AiArrayGetType(array_default)
+    if AiUniverseCreated:
+        ArnoldUniverseEnd()
+
+    return param_type
+
+
 def abcToArnType(iObj):
     if not iObj:
         return
@@ -55,34 +70,8 @@ def abcToArnType(iObj):
         return 'points'
     elif ICurves.matches(md):
         return 'curves'
-    elif IXform.matches(md):
-        return 'xform'
     else:
         return None
-
-
-def createNewShader(nodeAttr, asShader=True):
-
-        selection = "-allWithShadersUp"
-        if not asShader:
-            selection = "-allWithTexturesUp"
-
-        _cmd = "createRenderNode {} \"defaultNavigation -force true -connectToExisting -source %node -destination {}\" \"\""
-
-        mel.eval(_cmd.format(selection, nodeAttr))
-
-        # make the operator if it doesn't allready exist for this sub-node
-        op = getOperator()
-
-
-def connectExistingShader(nodeAttr, dashSource, node):
-
-    print "connectExistingShader", nodeAttr, dashSource, node
-
-
-def connectAttrDropped(nodeAttr, dashSource, node):
-
-    print "connectAttrDropped", nodeAttr, dashSource, node
 
 
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
@@ -102,14 +91,13 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def getPathProperties(self, path):
 
         num_overrides = mu.getAttrNumElements(self.nodeName, "aiOverrides")
-        path_props = {'path': path, 'shader': None, 'disp': None, 'overrides': [], 'index': num_overrides}
-        for i in range(num_overrides):
-            _path = cmds.getAttr('{}.aiOverrides[{}].abcPath'.format(self.nodeName, i))
-            if _path == path:
+        path_props = {'path': path, 'shader': None, 'disp': None, 'overrides': {}, 'index': num_overrides}
+
+        for i, p in enumerate(self.abcItems):
+            if p[0] == path:
+                path_props['path'] = p[0]
                 path_props['shader'] = cmds.listConnections('{}.aiOverrides[{}].abcShader'.format(self.nodeName, i)) or None
                 path_props['disp'] = cmds.listConnections('{}.aiOverrides[{}].abcDisplacement'.format(self.nodeName, i)) or None
-                for o in range(cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i), size=True)):
-                    path_props['overrides'][o] = cmds.getAttr('{}.aiOverrides[{}].abcOverrides[{}]'.format(self.nodeName, i, o))
                 path_props['index'] = i
                 break
         return path_props
@@ -120,23 +108,19 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if itemName == item[0] and item[3] != VISIBILITY[1]:
                 cmds.setAttr('{}.cacheGeomPath'.format(self.nodeName), itemName.replace('/', '|'), type='string')
 
-    def getOperator(self, path_props):
+    def getOperator(self, path_props, createOp=True):
         # return the operator for this path,
-        # or create a new one placeed correctly in the heirarchy
-        #
-        #
-        #           /-> /root_op/Geo1 \
-        #           |                  \-> /root_op_Geo/GeoShape1 __
-        # /root_op -|                                               \--> MERGE
-        #           |                  /-> /root_op_Geo/GeoShape2 __/
-        #           \-> /root_op/Geo2 /
-        #
+        # or create a new one
 
-        def walkInputs(op, path):
+        def walkInputs(op, path, plug):
 
             selection_exp = '{}*'.format(path)
 
             r_ipt = r_plug = None
+            if cmds.attributeQuery('selection', node=op, exists=True):
+                _this_sel_exp = cmds.getAttr('{}.selection'.format(op))
+                if selection_exp == _this_sel_exp:
+                     return op, plug
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
                 inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
@@ -147,7 +131,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                         _this_sel_exp = cmds.getAttr('{}.selection'.format(ipt))
                         if selection_exp == _this_sel_exp:
                             return ipt, plug
-                    r_ipt, r_plug = walkInputs(ipt, path)
+                    r_ipt, r_plug = walkInputs(ipt, path, plug)
 
             return r_ipt, r_plug
 
@@ -160,92 +144,223 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         op_list = []
 
         operators = cmds.listConnections('{}.operators'.format(self.nodeName)) or []
-        for op in operators:
-            out_op, plug = walkInputs(op, path_props['path'])
+        for idx, op in enumerate(operators):
+            out_op, plug = walkInputs(op, path_props['path'], '{}.operators[{}]'.format(self.nodeName, idx))
             if out_op:
                 break
 
         # if no operator matches make one
-        if not out_op:
+        if not out_op and createOp:
             op_name = '{}_setParam{}'.format(self.nodeName,path_props['index'])
             out_op = cmds.createNode('aiSetParameter',
                                      n=op_name,
                                      ss=True)
             cmds.setAttr("{}.selection".format(out_op), selection_exp, type="string")
 
-            # get root merge node, create if doesn't exist
-            root_merge = None
-            root_merge_name = '{}_merge_op'.format(self.nodeName)
-            merge_nodes = cmds.listConnections('{}.operators'.format(self.nodeName), type='aiMerge') or []
-            root_merge_exists = False
-            if len(merge_nodes):
-                for mn in merge_nodes:
-                    if mn == root_merge_name:
-                        root_merge_exists = True
-                        root_merge = mn
-
-            if not root_merge_exists:
-                root_merge = cmds.createNode('aiMerge', n=root_merge_name, ss=True)
-                cmds.connectAttr('{}.out'.format(out_op), '{}.inputs[0]'.format(root_merge))
-                n_conn = len(cmds.listConnections("{}.operators".format(self.nodeName), c=True) or [])
-                cmds.connectAttr('{}.message'.format(root_merge), '{}.operators[{}]'.format(self.nodeName, n_conn))
-                return out_op
-            else:
-                # loop over the inputs for the root merge and walk the tree to
-                # find any ops that should be the parent of this op
-                path_bits = sel_path.split('/')
-                this_path = ''
-                parent_op = None
-                parent_plug = None
-                for p in range(len(path_bits)-1):
-                    this_path = '/'.join(path_bits[:len(path_bits)-1-p])
-                    if this_path == '':
-                        this_path = '/'
-                    parent_op, target_plug = walkInputs(root_merge, this_path)
-                    if parent_op and target_plug:
-                        break
-                if parent_op and target_plug:
-                    target_node = target_plug.split('.')[0]
-                    if target_node != root_merge:
-                        target_sel = cmds.getAttr('{}.selection'.format(target_node))
-                        # m = re.match(r'^\*(?P<node>.+)\*(?P<path>.+)\*', target_sel)
-                        m = re.match(r'^(?P<path>.+)\*', target_sel)
-                        if m and sel_path not in m.group('path'):
-                            r_conn = len(cmds.listConnections("{}.inputs".format(root_merge), c=True) or [])
-                            target_plug = '{}.inputs[{}]'.format(root_merge, r_conn)
-                    n_conn = len(cmds.listConnections("{}.inputs".format(out_op), c=True) or [])
-                    print "n_conn", n_conn
-                    cmds.connectAttr('{}.out'.format(parent_op), '{}.inputs[{}]'.format(out_op, n_conn))
-                    cmds.connectAttr('{}.out'.format(out_op), target_plug, force=True)
+            cmds.connectAttr("{}.message".format(out_op), "{}.operators[{}]".format(self.nodeName, path_props['index']))
 
         return out_op
 
-    def addOverride(self, layout):
+    def deleteOverride(self, op, index, layout):
+        status = cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
+        path_props = self.getPathProperties(self.currentItem)
+        path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+        status = cmds.removeMultiInstance("{}.abcOverrides[{}]".format(path_attr, index))
+
+        childUIs = cmds.layout(layout, q=True, childArray=True) or []
+        for cu in childUIs:
+            cmds.deleteUI(cu)
+        cmds.deleteUI(layout)
+        # update the label in the tree view
+        for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
+            if path == path_props['path']:
+                self.updateTreeItem(path, label, parent, visibility, instancedPath, entity_type)
+
+        return status
+
+    def addOverride(self):
         if self.currentItem:
             path_props = self.getPathProperties(self.currentItem)
             path_nodeAttr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
             # get the operator for this path
             op = self.getOperator(path_props)
 
-    def setOverride(self, op, param, value):
-        # get the assignment index for this parameter
-        n_conn = len(cmds.listConnections("{}.assignment".format(op), c=True) or [])
-        c_idx = n_conn
-        for c in range(n_conn):
-            ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
-            if ass_str.startswith("{} =".format(param)):
-                c_idx = c
+            self.setParamValueOverride(op, "newOverride", "newValue")
+            self.showAbcItemProperties(force=True)
+            # update the label in the tree view
+            for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
+                if path == path_props['path']:
+                    self.updateTreeItem(path, label, parent, visibility, instancedPath, entity_type)
 
-        cmds.setAttr("{}.assignment[{}]".format(op, n_conn),
-                     "{} = \"{}\"".format(param, value),
-                     type="string")
+    def addOverrideGUI(self, item, layout, attr, value, index):
+        path_props = self.getPathProperties(item)
+        path_nodeAttr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+        # get the operator for this path
+        op = self.getOperator(path_props)
+
+        _layout = cmds.formLayout(p=layout)
+
+        deleteBtn = cmds.iconTextButton(image="trash.png", style="iconOnly",
+                                        height=24,
+                                        width=24,
+                                        flat=True,
+                                        command=lambda *a: self.deleteOverride(op, index, _layout))
+        paramBox = cmds.optionMenu()
+
+        cmds.menuItem(label="Choose Override ..")
+        for param in sorted(self.paramDict.keys()):
+            cmds.menuItem(label=param)
+
+        # now make the control that is appropriate for the current parameter
+
+        paramValueLayout = cmds.formLayout(p=_layout)
+
+        cmds.formLayout(_layout, edit=True,
+                        attachForm=[(deleteBtn, 'left', 2),
+                                    (deleteBtn, 'bottom', 2), (paramBox, 'bottom', 2), (paramValueLayout, 'bottom', 0),
+                                    (deleteBtn, 'top', 2), (paramBox, 'top', 2), (paramValueLayout, 'top', 0)],
+                        attachControl=[(paramBox, 'left', 2, deleteBtn), (paramValueLayout, 'left', 2, paramBox)],
+                        attachNone=[(paramValueLayout, 'right')]
+                        )
+
+        if attr != "newOverride":
+            cmds.optionMenu(paramBox,  e=True, value=attr)
+
+        cmds.optionMenu(paramBox,  e=True,
+                        changeCommand=lambda v: self.setParamAttrOverride(op, v, paramValueLayout, index))
+
+        paramValueCtrl = None
+        if value != "newValue":
+            paramValueCtrl = self.makeValueControl(op, attr, value, paramBox)
+            cmds.formLayout(paramValueLayout, edit=True,
+                            attachForm=[(paramValueCtrl, 'left', 0),
+                                        (paramValueCtrl, 'bottom', 0),
+                                        (paramValueCtrl, 'top', 0)],)
+
+    def _convertValue(self, value, param_type):
+        o_value = value
+        if param_type in [AI_TYPE_INT, AI_TYPE_UINT, AI_TYPE_BYTE]:
+            o_value = int(value)
+        elif param_type == AI_TYPE_FLOAT:
+            o_value = float(value)
+        elif param_type == AI_TYPE_BOOLEAN:
+            if type(value) in [str, unicode]:
+                o_value = value.lower() == "true"
+            elif type(value) is bool:
+                o_value = value
+        elif param_type in [AI_TYPE_STRING, AI_TYPE_ENUM, AI_TYPE_POINTER]:
+            o_value = str(value.replace("'", ""))
+        return o_value
+
+    def makeValueControl(self, op, param_name, value, paramBox=None):
+
+        ctrl = None
+        node_type, param_type = self.paramDict.get(param_name, (None, None))
+
+        if not node_type and paramBox:
+            param_name = cmds.optionMenu(paramBox, q=True, value=True)
+            node_type, param_type = self.paramDict.get(param_name, (None, None))
+
+        AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        node_entry = AiNodeEntryLookUp(node_type)
+
+        if node_entry:
+            param_entry = AiNodeEntryLookUpParameter(node_entry, param_name)
+            if param_entry:
+                o_value = None
+                if value == "newValue":
+                    o_value = self._getDefaultValue(param_entry, param_type)
+                else:
+                    o_value = self._convertValue(value, param_type)
+
+                ctrl = self._createControl(node_type, param_name, param_type,
+                                           param_entry, "ARNOp{}_{}".format(node_type, param_name),
+                                           label="", value=o_value, changeCommand=lambda v: self.setParamValueOverride(op, param_name, v))
+        if AiUniverseCreated:
+            ArnoldUniverseEnd()
+        return ctrl
+
+    def setParamAttrOverride(self, op, newParam, layout, index):
+        AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        node_type, param_type = self.paramDict.get(newParam, (None, None))
+        node_entry = AiNodeEntryLookUp(node_type)
+        if node_entry:
+            param_entry = AiNodeEntryLookUpParameter(node_entry, newParam)
+            if param_entry:
+                value = self._getDefaultValue(param_entry, param_type)
+                if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER]:
+                    value = "'{}'".format(value)
+                param_exp = "{}={}".format(newParam, value)
+                cmds.setAttr("{}.assignment[{}]".format(op, index),
+                             param_exp,
+                             type="string")
+                path_props = self.getPathProperties(self.currentItem)
+                path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+                cmds.setAttr("{}.abcOverrides[{}]".format(path_attr, index), param_exp, type="string")
+
+                # recreate the value control
+                childUIs = cmds.layout(layout, q=True, childArray=True) or []
+                for cu in childUIs:
+                    cmds.deleteUI(cu)
+                cmds.setParent(layout)
+                ctrl = self.makeValueControl(op, newParam, value)
+                cmds.formLayout(layout, edit=True,
+                                attachForm=[(ctrl, 'left', 0),
+                                            (ctrl, 'bottom', 0),
+                                            (ctrl, 'top', 0)])
+                cmds.setParent("..")
+
+                # update the label in the tree view
+                for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
+                    if path == path_props['path']:
+                        self.updateTreeItem(path, label, parent, visibility, instancedPath, entity_type)
+
+        if AiUniverseCreated:
+            ArnoldUniverseEnd()
+
+    def setParamValueOverride(self, op, param, value):
+        node_type, param_type = self.paramDict.get(param, (None, None))
+        if param_type == AI_TYPE_ARRAY:
+            param_type = ArnoldGetArrayType(node_type, param)
+        # get the assignment index for this parameter
+        n_conn = mu.getAttrNumElements(op, "assignment")
+        c_idx = n_conn
+        if param != 'newOverride':
+            for c in range(n_conn):
+                ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                if ass_str.startswith(param):
+                    c_idx = c
+                    break
+
+        if value == "" and c_idx != n_conn:
+            status = cmds.removeMultiInstance('{}.assignment[{}]'.format(op, c_idx))
+        else:
+            if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
+                value = "'{}'".format(value)
+            param_exp = "{}={}".format(param, value)
+            cmds.setAttr("{}.assignment[{}]".format(op, c_idx),
+                         param_exp,
+                         type="string")
+            path_props = self.getPathProperties(self.currentItem)
+            path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+            cmds.setAttr("{}.abcOverrides[{}]".format(path_attr, c_idx), param_exp, type="string")
+
+        # update the label in the tree view
+        for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
+            if path == path_props['path']:
+                self.updateTreeItem(path, label, parent, visibility, instancedPath, entity_type)
 
     def shaderChanged(self):
+        self.setShading('abcShader', 'shader')
 
+    def displacementChanged(self):
+        self.setShading('abcDisplacement', 'disp_map')
+
+    def setShading(self, attrName, paramName):
         if self.currentItem:
             path_props = self.getPathProperties(self.currentItem)
             path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
-            shaderAttrName = "{}.abcShader".format(path_attr)
+            shaderAttrName = "{}.{}".format(path_attr, attrName)
 
             shader = cmds.listConnections(shaderAttrName) or []
 
@@ -254,20 +369,41 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if len(shader):
                 shader = shader[0]
                 op = self.getOperator(path_props)
-                self.setOverride(op, 'shader', shader)
+                self.setParamValueOverride(op, paramName, shader)
+                print "setShading", op, shader
+
+                # update the label in the tree view
+                for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
+                    if path == path_props['path']:
+                        self.updateTreeItem(path, label, parent, visibility, instancedPath, entity_type)
 
     def selectShader(self, item, state):
+        self.selectNode('abcShader', item)
+
+    def selectDisplacment(self, item, state):
+        self.selectNode('abcDisplacement', item)
+
+    def selectNode(self, attr, item):
 
         path_props = self.getPathProperties(item)
         path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
-        shaderAttrName = "{}.abcShader".format(path_attr)
+        connAttrName = "{}.{}".format(path_attr, attr)
 
-        shader = cmds.listConnections(shaderAttrName) or []
+        node_conn = cmds.listConnections(connAttrName) or []
 
-        if len(shader):
-            cmds.select(shader, r=True)
+        if len(node_conn):
+            cmds.select(node_conn, r=True)
 
-    def showAbcItemProperties(self):
+    def selectOperator(self, item, state):
+        path_props = self.getPathProperties(item)
+        path_attr = "{}.operators[{}]".format(self.nodeName, path_props['index'])
+
+        node_conn = cmds.listConnections(path_attr) or []
+
+        if len(node_conn):
+            cmds.select(node_conn, r=True)
+
+    def showAbcItemProperties(self, force=False):
         '''Display the shaders and overrides for the selected Item'''
 
         item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True) or []
@@ -278,50 +414,83 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         for cu in childUIs:
             cmds.deleteUI(cu)
 
-        if item is not self.currentItem and len(item):
+        # if item is not self.currentItem and (len(item) or force):
 
-            path_props = self.getPathProperties(item)
-            path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
-            cmds.layout(self.shaderAssignerLayout, e=True, visible=True)
-            cmds.text(self.overrideEditorLabel, e=True, label=item)
-            cmds.setAttr("{}.abcPath".format(path_attr), item, type="string")
-            shaderAttrName = "{}.abcShader".format(path_attr)
-            shaderConnection = cmds.listConnections("{}.abcShader".format(path_attr), s=True, d=False) or []
+        path_props = self.getPathProperties(item)
+        path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+        cmds.layout(self.shaderAssignerLayout, e=True, visible=True)
+        cmds.text(self.overrideEditorLabel, e=True, label=item)
+        cmds.setAttr("{}.abcPath".format(path_attr), item, type="string")
+        shaderAttrName = "{}.abcShader".format(path_attr)
+        shaderConnection = cmds.listConnections("{}.abcShader".format(path_attr), s=True, d=False) or []
 
-            cmds.attrNavigationControlGrp(self.shaderAssignerField,
-                                          edit=True, at=shaderAttrName,
-                                          label="Surface Shader",
-                                          cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\"")
+        cmds.attrNavigationControlGrp(self.shaderAssignerField,
+                                      edit=True, at=shaderAttrName,
+                                      label="Surface Shader",
+                                      cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+shaderAttrName+"\" \"\"")
 
-            cmds.layout(self.displacementShaderAssignerLayout, e=True, visible=True)
-            dispAttrName = "{}.abcDisplacement".format(path_attr)
-            displacementConnection = cmds.listConnections("{}.abcDisplacement".format(path_attr), s=True, d=False) or []
-            cmds.attrNavigationControlGrp(self.displacementShaderAssignerField,
-                                          edit=True,
-                                          at=dispAttrName,
-                                          label="Displacement Shader",
-                                          cn="createRenderNode -allWithTexturesUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+dispAttrName+"\" \"\"")
+        cmds.layout(self.displacementShaderAssignerLayout, e=True, visible=True)
+        dispAttrName = "{}.abcDisplacement".format(path_attr)
+        displacementConnection = cmds.listConnections("{}.abcDisplacement".format(path_attr), s=True, d=False) or []
+        cmds.attrNavigationControlGrp(self.displacementShaderAssignerField,
+                                      edit=True,
+                                      at=dispAttrName,
+                                      label="Displacement Shader",
+                                      cn="createRenderNode -allWithTexturesUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+dispAttrName+"\" \"\"")
 
-            overrides_collayout = cmds.columnLayout(p=self.overridesLayout)
-            if len(path_props['overrides']):
-                for override in path_props['overrides']:
-                    attr, value = override.split('=')
-                    _layout = cmds.rowLayout(p=overrides_collayout)
-                    _ctrl = cmds.textFieldButtonGrp()
-                    cmds.setParent('..')
+        # overrides_collayout = cmds.columnLayout(p=self.overridesLayout, adjustableColumn=True)
+        overrides_collayout = cmds.rowColumnLayout(p=self.overridesLayout, numberOfColumns=1)
 
-            # populate the overrides for this node
-            obtn_layout = cmds.rowLayout(p=overrides_collayout)
-            self.addOverrideBtn = cmds.iconTextButton(label='Add Override', image="gear.png", style="iconAndTextHorizontal", command=lambda *args: self.addOverride(obtn_layout))
-            cmds.setParent('..')
+        self.currentItem = item
+        self.paramDict = {}
+        node_types = []
+        # get the node_types from the current Item
+        for p in self.abcItems:
+            if item in p[0]:
+                node_types.append(p[5])
 
-            self.currentItem = item
+        AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        AiMsgSetConsoleFlags(AI_LOG_NONE)
 
-            cmds.scriptJob(attributeChange=[shaderAttrName, self.shaderChanged],
-                           replacePrevious=True, parent=self.shaderAssignerField)
-        else:
-            cmds.layout(self.shaderAssignerLayout, e=True, visible=False)
-            cmds.layout(self.displacementShaderAssignerLayout, e=True, visible=False)
+        for nodeType in node_types:
+            if nodeType:
+                nodeEntry = AiNodeEntryLookUp(nodeType)
+                paramIter = AiNodeEntryGetParamIterator(nodeEntry)
+                while not AiParamIteratorFinished(paramIter):
+                    param = AiParamIteratorGetNext(paramIter)
+                    param_type = AiParamGetType(param)
+                    if param_type == AI_TYPE_ARRAY:
+                        array_default = AiParamGetDefault(param).contents.ARRAY
+                        param_type = AiArrayGetType(array_default)
+
+                    paramName = AiParamGetName(param)
+                    if paramName not in self.paramDict:
+                        self.paramDict[paramName] = (nodeType, param_type)
+
+                AiParamIteratorDestroy(paramIter)
+
+        op = self.getOperator(path_props, False)
+        if op:
+            for o in range(mu.getAttrNumElements(op, "assignment")):
+                attr, value = cmds.getAttr('{}.assignment[{}]'.format(op, o)).split('=')
+                if attr not in ['shader', 'disp_map']:
+                    self.addOverrideGUI(item, overrides_collayout, attr.strip('\"'), value.strip('\"'), o)
+                    cmds.setParent(overrides_collayout)
+
+        cmds.setParent(overrides_collayout)
+
+        # populate the overrides for this node
+        # obtn_layout = cmds.rowLayout()
+        self.addOverrideBtn = cmds.iconTextButton(label='Add Override', image="gear.png", style="iconAndTextHorizontal", command=self.addOverride)
+        # cmds.setParent('..')
+
+        if AiUniverseCreated:
+            ArnoldUniverseEnd()
+
+        cmds.scriptJob(attributeChange=[shaderAttrName, self.shaderChanged],
+                       replacePrevious=True, parent=self.shaderAssignerField)
+        cmds.scriptJob(attributeChange=[dispAttrName, self.displacementChanged],
+                       replacePrevious=True, parent=self.displacementShaderAssignerField)
 
         return True
 
@@ -348,7 +517,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                          attachButtonRight=True,
                                          selectionChangedCommand=self.showAbcItemProperties,
                                          itemDblClickCommand2=self.selectGeomPath,
-                                         pressCommand=[(2, self.selectShader)]
+                                         pressCommand=[(2, self.selectShader),
+                                                       (3, self.selectDisplacment)]
                                          )
         self.createItemPopupMenu(self.abcInfoPath)
 
@@ -359,7 +529,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                           label="Surface Shader",
                                           parent=self.shaderAssignerLayout)
 
-
         cmds.setParent('..')  # rowLayout
         self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
         self.displacementShaderAssignerField = cmds.attrNavigationControlGrp(
@@ -367,7 +536,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                                 parent=self.displacementShaderAssignerLayout)
         cmds.setParent('..')  # rowLayout
         cmds.separator()
-        self.overridesLayout = cmds.columnLayout()
+        self.overridesLayout = cmds.columnLayout(adjustableColumn=True)
 
         cmds.setParent('..')  # rowLayout
 
@@ -402,6 +571,35 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         for child in iObj.children:
             self.visitObject(child, path, visibility)
 
+    def updateTreeItem(self, path, label, parent, visibility, instancedPath, entity_type):
+
+        assigned_color = (0.2, 0.2, 0.9)
+
+        path_props = self.getPathProperties(path)
+        if visibility == VISIBILITY[1]:
+            label += " (hidden)"
+            cmds.treeView(self.abcInfoPath, edit=True, textColor=(path, 0.5, 0.5, 0.9))
+        if instancedPath != '':
+            label += " (instanced)"
+            cmds.treeView(self.abcInfoPath, edit=True, textColor=(path, 0.5, 0.9, 0.5))
+        if len(path_props['overrides']):
+            label += " overrides:{}".format(len(path_props['overrides']))
+            cmds.treeView(self.abcInfoPath, e=True,
+                          enableButton=[(path, 1, 1)],
+                          textColor=tuple([path])+assigned_color)
+        if path_props['shader']:
+            label += " surf: {}".format(','.join(path_props['shader']))
+            cmds.treeView(self.abcInfoPath, e=True,
+                          enableButton=[(path, 2, 1)],
+                          textColor=tuple([path])+assigned_color)
+        if path_props['disp']:
+            label += " disp: {}".format(','.join(path_props['disp']))
+            cmds.treeView(self.abcInfoPath, e=True,
+                          enableButton=[(path, 3, 1)],
+                          textColor=tuple([path])+assigned_color)
+
+        cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(path, label))
+
     def displayTree(self):
         cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
         cmds.treeView(self.abcInfoPath, edit=True, visible=True)
@@ -412,7 +610,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         for _path, _label, _parent, _visibility, _instancedPath, _entity_type in self.abcItems:
 
             cmds.treeView(self.abcInfoPath, edit=True, addItem=(_path, _parent))
-            _path_props = self.getPathProperties(_path)
             cmds.treeView(self.abcInfoPath, e=True,
                           image=[(_path, 1, "gear.png"),
                                  (_path, 2, "shaderGlow.svg"),
@@ -421,29 +618,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                         (_path, 2, 0),
                                         (_path, 3, 0)])
 
-            if _visibility == VISIBILITY[1]:
-                _label += " (hidden)"
-                cmds.treeView(self.abcInfoPath, edit=True, textColor=(_path, 0.5, 0.5, 0.9))
-            if _instancedPath != '':
-                _label += " (instanced)"
-                cmds.treeView(self.abcInfoPath, edit=True, textColor=(_path, 0.5, 0.9, 0.5))
-            if len(_path_props['overrides']):
-                _label += " overrides:{}".format(len(_path_props['overrides']))
-                cmds.treeView(self.abcInfoPath, e=True,
-                              enableButton=[(_path, 1, 1)],
-                              textColor=tuple([_path])+assigned_color)
-            if _path_props['shader']:
-                _label += " surf: {}".format(','.join(_path_props['shader']))
-                cmds.treeView(self.abcInfoPath, e=True,
-                              enableButton=[(_path, 2, 1)],
-                              textColor=tuple([_path])+assigned_color)
-            if _path_props['disp']:
-                _label += " disp: {}".format(','.join(_path_props['disp']))
-                cmds.treeView(self.abcInfoPath, e=True,
-                              enableButton=[(_path, 3, 1)],
-                              textColor=tuple([_path])+assigned_color)
-
-            cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(_path, _label))
+            self.updateTreeItem(_path, _label, _parent, _visibility, _instancedPath, _entity_type)
 
         geomPathAttr = self.nodeName + '.cacheGeomPath'
         geomPath = cmds.getAttr(geomPathAttr).replace('|', '/')
@@ -521,29 +696,66 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 if param_type not in [AI_TYPE_ARRAY]:
                     self.user_attrs[node_type][param_name] = self._createControl(node_type, param_name, param_type, this_param)
 
-    def _createControl(self, node_type, param_name, param_type, param_entry):
-        control_name = '{}_{}_ctrl'.format(node_type,param_name)
+    def _createControl(self, node_type, param_name, param_type, param_entry, control_name="", label=None, value=None, changeCommand=None):
+        if not control_name:
+            control_name = '{}_{}_ctrl'.format(node_type,param_name)
         control = None
-        label = param_name.replace('_', ' ').title()
+        if label == None:
+            label = param_name.replace('_', ' ').title()
         if param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
-            control = cmds.intFieldGrp(control_name, label=label)
+            if label:
+                control = cmds.intFieldGrp(control_name, label=label)
+            else:
+                control = cmds.intFieldGrp(control_name)
+            if value:
+                cmds.intFieldGrp(control, edit=True, value1=value)
+            if changeCommand:
+                cmds.intFieldGrp(control, edit=True, changeCommand=changeCommand)
         elif param_type is AI_TYPE_FLOAT:
-            control = cmds.floatFieldGrp(control_name, label=label)
+            if label:
+                control = cmds.floatFieldGrp(control_name, label=label)
+            else:
+                control = cmds.floatFieldGrp(control_name)
+            if value:
+                cmds.floatFieldGrp(control, edit=True, value1=value)
+            if changeCommand:
+                cmds.floatFieldGrp(control, edit=True, changeCommand=changeCommand)
         elif param_type is AI_TYPE_BOOLEAN:
-            control = cmds.checkBoxGrp(control_name, label=label)
-        elif param_type is AI_TYPE_STRING:
-            control = cmds.textFieldGrp(control_name, label=label)
+            if label:
+                control = cmds.checkBoxGrp(control_name, label=label)
+            else:
+                control = cmds.checkBoxGrp(control_name)
+            if value:
+                cmds.checkBoxGrp(control, edit=True, value1=str(value).lower() == 'true' )
+            if changeCommand:
+                cmds.checkBoxGrp(control, edit=True, changeCommand=changeCommand)
+        elif param_type in [AI_TYPE_STRING, AI_TYPE_NODE, AI_TYPE_POINTER]:
+            if label:
+                control = cmds.textFieldGrp(control_name, label=label)
+            else:
+                control = cmds.textFieldGrp(control_name, label=label)
+            if value:
+                cmds.textFieldGrp(control, edit=True, value1=value)
+            if changeCommand:
+                cmds.textFieldGrp(control, edit=True, changeCommand=changeCommand)
         elif param_type is AI_TYPE_ENUM:
-            enum_ctrl = cmds.optionMenuGrp(control_name, label=label)
+            if label:
+                enum_ctrl = cmds.optionMenuGrp(control_name, label=label)
+            else:
+                enum_ctrl = cmds.optionMenuGrp(control_name)
             # populate the options
             i = 0
             t = True
             while t is not None:
                 t = AiEnumGetString(AiParamGetEnum(param_entry), i)
                 if t:
-                    cmds.menuItem( label=t )
+                    cmds.menuItem(label=t)
                 i += 1
             control = enum_ctrl
+            if value:
+                cmds.optionMenuGrp(enum_ctrl, edit=True, value=value)
+            if changeCommand:
+                cmds.optionMenuGrp(enum_ctrl, edit=True, changeCommand=changeCommand)
         return control
 
     def _getDefaultValue(self, param, param_type):
@@ -823,10 +1035,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.attr_ctrls = {}
         self.currentItem = None
 
-        self.createNewShaderProc = utils.pyToMelProc(createNewShader, [('string', 'nodeAttr'), ('int', 'asShader')], procPrefix='AEArnold')
-        self.connectExistingShaderProc = utils.pyToMelProc(connectExistingShader, [('string', 'nodeAttr'), ('string', 'dashSource'), ('string', 'node')], procPrefix='AEArnold')
-        self.connectAttrDroppedProc = utils.pyToMelProc(connectAttrDropped, [('string', 'nodeAttr'), ('string', 'dashSource'), ('string', 'node')], procPrefix='AEArnold')
-
         self.commonShapeAttributes()
         self.beginLayout("Translator Options", collapse=False)
         self.addControl("aiMakeInstance", label="Make Instance", annotation='Create instances where possible, to save geometry duplication')
@@ -861,5 +1069,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiPullUserParams", label="Enable Overrides", annotation='Enable to override the attributes found in the archive')
         self.addCustom('aiNodeAttrs', self.userAttrsNew, self.userAttrsReplace)
         self.endLayout()
+
 
 templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "alembic")
