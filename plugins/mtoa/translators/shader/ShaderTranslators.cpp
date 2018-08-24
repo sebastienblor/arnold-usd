@@ -2827,3 +2827,51 @@ void CMultiplyDivideTranslator::Export(AtNode* shader)
    }   
 }
 
+
+// Condition shader
+AtNode* CConditionTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("switch_rgba");
+}
+
+void CConditionTranslator::Export(AtNode* shader)
+{
+   MPlug opPlug = FindMayaPlug("operation");
+   AtNode *compare = GetArnoldNode("compare");
+   if (compare == NULL)
+      compare = AddArnoldNode("compare", "compare");
+
+
+   if (!opPlug.isNull())
+   {
+      switch (opPlug.asInt())
+      {
+         default:
+         case 0: // "equal"
+            AiNodeSetStr(compare, "test", "==");
+         break;
+         case 1: //"notequal"
+            AiNodeSetStr(compare, "test", "!=");
+         break;
+         case 2: // "greaterthan"
+            AiNodeSetStr(compare, "test", ">");
+         break;
+         case 3: //"greaterorequal"
+            AiNodeSetStr(compare, "test", ">=");
+         break;
+         case 4: // "lessthan"
+            AiNodeSetStr(compare, "test", "<");
+         break;
+         case 5: // "lessorequal"
+            AiNodeSetStr(compare, "test", "<=");
+         break;
+      }
+   }
+   ProcessParameter(compare, "input1", AI_TYPE_FLOAT, "firstTerm");
+   ProcessParameter(compare, "input2", AI_TYPE_FLOAT, "secondTerm");
+   AiNodeLink(compare, "index", shader);   
+   
+   ProcessParameter(shader, "input0", AI_TYPE_RGBA, "colorIfFalse");
+   ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorIfTrue");
+
+}

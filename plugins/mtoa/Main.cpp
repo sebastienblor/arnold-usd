@@ -889,6 +889,10 @@ namespace // <anonymous>
          shaders->RegisterTranslator("aiToon",
                                        "",
                                        CToonTranslator::creator);
+         shaders->RegisterTranslator("condition",
+                                       "",
+                                       CConditionTranslator::creator);
+
 
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");
