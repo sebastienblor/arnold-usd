@@ -2857,12 +2857,11 @@ AtNode* CConditionTranslator::CreateArnoldNodes()
 
 void CConditionTranslator::Export(AtNode* shader)
 {
-   MPlug opPlug = FindMayaPlug("operation");
    AtNode *compare = GetArnoldNode("compare");
    if (compare == NULL)
       compare = AddArnoldNode("compare", "compare");
 
-
+   MPlug opPlug = FindMayaPlug("operation");
    if (!opPlug.isNull())
    {
       switch (opPlug.asInt())
@@ -2895,4 +2894,21 @@ void CConditionTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "input0", AI_TYPE_RGBA, "colorIfFalse");
    ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorIfTrue");
 
+}
+
+// Surface Luminance shader
+AtNode* CSurfaceLuminanceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("rgb_to_float");
+}
+
+void CSurfaceLuminanceTranslator::Export(AtNode* shader)
+{
+   AtNode *utility = GetArnoldNode("utility");
+   if (utility == NULL)
+      utility = AddArnoldNode("utility", "utility");
+
+   AiNodeSetStr(utility, "shade_mode", "lambert");
+   AiNodeLink(utility, "input", shader);
+   AiNodeSetStr(shader, "mode", "luminance");
 }

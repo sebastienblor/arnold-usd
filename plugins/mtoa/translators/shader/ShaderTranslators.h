@@ -56,6 +56,7 @@ SHADER_TRANSLATOR(CToonTranslator);
 SHADER_TRANSLATOR(CConditionTranslator);
 SHADER_TRANSLATOR(CLuminanceTranslator);
 SHADER_TRANSLATOR(CReverseTranslator);
+SHADER_TRANSLATOR(CSurfaceLuminanceTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {

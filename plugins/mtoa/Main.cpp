@@ -898,6 +898,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("reverse",
                                        "",
                                        CReverseTranslator::creator);
+         shaders->RegisterTranslator("surfaceLuminance",
+                                       "",
+                                       CSurfaceLuminanceTranslator::creator);
 
 
          if(MGlobal::apiVersion() >= 20180400)
