@@ -371,8 +371,11 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     c_idx = c
                     break
 
+        path_props = self.getPathProperties(self.currentItem)
         if value == "" and c_idx != n_conn:
             status = cmds.removeMultiInstance('{}.assignment[{}]'.format(op, c_idx))
+            path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
+            status = cmds.removeMultiInstance("{}.abcOverrides[{}]".format(path_attr, c_idx))
         else:
             if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
                 value = "'{}'".format(value)
@@ -380,7 +383,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             cmds.setAttr("{}.assignment[{}]".format(op, c_idx),
                          param_exp,
                          type="string")
-            path_props = self.getPathProperties(self.currentItem)
             path_attr = "{}.aiOverrides[{}]".format(self.nodeName, path_props['index'])
             cmds.setAttr("{}.abcOverrides[{}]".format(path_attr, c_idx), param_exp, type="string")
 
@@ -405,15 +407,17 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
             # get an operator for the selection
 
+            op = self.getOperator(path_props)
             if len(shader):
                 shader = shader[0]
-                op = self.getOperator(path_props)
                 self.setParamValueOverride(op, paramName, shader)
 
                 # update the label in the tree view
                 for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
                     if path == path_props['path']:
                         self.updateTreeItem(path, label, parent, visibility, instancedPath, entity_type)
+            else:
+                self.setParamValueOverride(op, paramName, "")
 
     def selectShader(self, item, state):
         self.selectNode('abcShader', item)
@@ -533,20 +537,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         return True
 
-    def createItemPopupMenu(self, ctrl):
-
-        item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True)
-
-        popup = cmds.popupMenu(parent=ctrl)
-        cmds.menuItem(label="Select Shader on selected", command=lambda x: self.selectShader(item))
-        cmds.menuItem(label="Select Displacment on selected", command=lambda x: self.selectDisplacement(item))
-        cmds.menuItem(divider=True)
-        cmds.menuItem(label="Remove Properties on selected")
-        cmds.menuItem(label="Remove Shader on selected")
-        cmds.menuItem(label="Remove Displacment on selected")
-
-        return popup
-
     def abcInfoNew(self, nodeAttr):
         self.currentItem = None
         cmds.rowLayout(nc=2)
@@ -562,8 +552,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                                        (2, self.selectShader),
                                                        (3, self.selectDisplacment)]
                                          )
-        self.createItemPopupMenu(self.abcInfoPath)
-
         # editor panel
         self.overrideEditorLabel = cmds.text(label="")
         self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
@@ -618,26 +606,31 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         assigned_color = (0.8, 0.8, 1.0)
 
         path_props = self.getPathProperties(path)
+
+        overrides_length = len(path_props['overrides'])
+
         if visibility == VISIBILITY[1]:
             label += " (hidden)"
-            cmds.treeView(self.abcInfoPath, edit=True, textColor=(path, 0.5, 0.5, 0.9))
+            cmds.treeView(self.abcInfoPath, edit=True, textColor=(path, 0.5, 0.5, 0.5))
         if instancedPath != '':
             label += " (instanced)"
             cmds.treeView(self.abcInfoPath, edit=True, textColor=(path, 0.5, 0.9, 0.5))
-        if len(path_props['overrides']):
-            label += " overrides:{}".format(len(path_props['overrides']))
-            cmds.treeView(self.abcInfoPath, e=True,
-                          enableButton=[(path, 1, 1)],
-                          textColor=tuple([path])+assigned_color)
         if path_props['shader']:
+            overrides_length -= 1
             label += " surf: {}".format(','.join(path_props['shader']))
             cmds.treeView(self.abcInfoPath, e=True,
                           enableButton=[(path, 2, 1)],
                           textColor=tuple([path])+assigned_color)
         if path_props['disp']:
+            overrides_length -= 1
             label += " disp: {}".format(','.join(path_props['disp']))
             cmds.treeView(self.abcInfoPath, e=True,
                           enableButton=[(path, 3, 1)],
+                          textColor=tuple([path])+assigned_color)
+        if overrides_length >= 1:
+            label += " overrides:{}".format(len(path_props['overrides']))
+            cmds.treeView(self.abcInfoPath, e=True,
+                          enableButton=[(path, 1, 1)],
                           textColor=tuple([path])+assigned_color)
 
         cmds.treeView(self.abcInfoPath, edit=True, displayLabel=(path, label))
@@ -658,7 +651,10 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                  (_path, 3, "displacementShader.svg")],
                           enableButton=[(_path, 1, 0),
                                         (_path, 2, 0),
-                                        (_path, 3, 0)])
+                                        (_path, 3, 0)],
+                          buttonTooltip=[(_path, 1, "Select override"),
+                                         (_path, 2,  "Select Surface Shader"),
+                                         (_path, 3,  "Select Displacement Shader")])
 
             self.updateTreeItem(_path, _label, _parent, _visibility, _instancedPath, _entity_type)
 
