@@ -6,8 +6,11 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaSurfaceLuminanceMtd);
 
 node_parameters
 {
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "surfaceLuminance");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 1381190741);   
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "surfaceLuminance");
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 1381190741);  
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false); 
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true); 
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true); 
 }
 
 node_initialize

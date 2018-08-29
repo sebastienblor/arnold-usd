@@ -31,6 +31,7 @@ node_parameters
    AiParameterVec("normal", 0.f, 1.f, 0.f);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 
    AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaBump2D");
 }

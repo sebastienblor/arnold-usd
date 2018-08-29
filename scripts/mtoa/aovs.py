@@ -50,6 +50,7 @@ BUILTIN_AOVS = (
                 ('volume_indirect',     'rgb'),
                 ('volume_albedo',       'rgb'),
                 ('volume_opacity',      'rgb'),
+                ('volume_Z',           'float'),
                 ('shadow_matte',        'rgba'),
                 ('AA_inv_density',      'float')
 
@@ -96,7 +97,7 @@ TYPES = (
     ("vector2", arnold.ai_params.AI_TYPE_VECTOR2),
     ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
-defaultFiltersByName = {'Z' : 'closest', 'motion_vector' : 'closest', 'P' : 'closest', 'N' : 'closest', 'Pref' : 'closest', 'ID' : 'closest', 'AA_inv_density' : 'heatmap' }
+defaultFiltersByName = {'Z' : 'closest', 'motion_vector' : 'closest', 'P' : 'closest', 'N' : 'closest', 'Pref' : 'closest', 'ID' : 'closest', 'AA_inv_density' : 'heatmap', 'volume_Z' : 'closest' }
 
 GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 

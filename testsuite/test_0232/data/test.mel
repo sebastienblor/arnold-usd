@@ -1,12 +1,12 @@
 print "Running Render to Texture";
-arnoldRenderToTexture -f "." -r 160 -as 5 -af "box" -afw 1 -nof 0.01 testrenderSphere; // test different filters
-arnoldRenderToTexture -f "." -r 160 -as 1 -af "gaussian" -afw 3  testrenderSphere1; // test different filters
-arnoldRenderToTexture -f "." -r 160 -nof 10 testrenderTorus; // test high normal offset to get artifacts
-arnoldRenderToTexture -f "." -r 160 -s "aiUtility3"  testrenderSphere2; // test shader override
-arnoldRenderToTexture -f "." -r 160 -aov 1  testrenderAov; // test AOVs
-arnoldRenderToTexture -f "." -r 160 -ust 0.5 -usc 0.5 -vst 0.2 -vsc 2  testrenderTorus1; // test UV range
-arnoldRenderToTexture -f "." -r 160 -aud 1  testrenderTorus2;
-arnoldRenderToTexture -f "." -r 160 -ud "0:0,1:1"  testrenderTorus3;
-arnoldRenderToTexture -f "." -r 160 -uvs "toto"  testrenderSphere3; // test uv set
-arnoldRenderToTexture -f "." -r 160 aiStandIn; // test standins
-arnoldRenderToTexture -f "." -r 160 testrenderSphere5; // test '|' character in maya instances
+arnoldRenderToTexture -f "." -r 120 -as 5 -af "box" -afw 1 -nof 0.01 testrenderSphere; // test different filters
+arnoldRenderToTexture -f "." -r 120 -as 1 -af "gaussian" -afw 3  testrenderSphere1; // test different filters
+arnoldRenderToTexture -f "." -r 120 -nof 10 testrenderTorus; // test high normal offset to get artifacts
+arnoldRenderToTexture -f "." -r 120 -s "aiUtility3"  testrenderSphere2; // test shader override
+arnoldRenderToTexture -f "." -r 120 -aov 1  testrenderAov; // test AOVs
+arnoldRenderToTexture -f "." -r 120 -ust 0.5 -usc 0.5 -vst 0.2 -vsc 2  testrenderTorus1; // test UV range
+arnoldRenderToTexture -f "." -r 120 -aud 1  testrenderTorus2;
+arnoldRenderToTexture -f "." -r 120 -ud "0:0,1:1"  testrenderTorus3;
+arnoldRenderToTexture -f "." -r 120 -uvs "toto"  testrenderSphere3; // test uv set
+arnoldRenderToTexture -f "." -r 120 aiStandIn; // test standins
+arnoldRenderToTexture -f "." -r 120 testrenderSphere5; // test '|' character in maya instances

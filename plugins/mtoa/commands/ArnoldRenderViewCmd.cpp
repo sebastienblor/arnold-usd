@@ -71,7 +71,7 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
    syntax.addFlag("r", "region", MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned);
    syntax.addFlag("opt", "option", MSyntax::kString, MSyntax::kString);
    syntax.addFlag("get", "getoption", MSyntax::kString);
-
+   syntax.addFlag("st", "status", MSyntax::kString);
    return syntax;
 }
 
@@ -140,6 +140,15 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       setResult(CRenderSession::GetRenderViewOption(option));
       return MS::kSuccess;
    }
+
+   if (args.isFlagSet("status"))
+   {
+      MString statusLog = args.flagArgumentString("status", 0);
+      if (renderSession)
+         renderSession->SetRenderViewStatusInfo(statusLog);
+      return MS::kSuccess;
+   }
+
 
    // Get argument to "-mode" flag
    

@@ -6,7 +6,7 @@
 #define MTOA_VENDOR "Solid Angle SL"
 #define MTOA_ARCH_VERSION_NUM 3
 #define MTOA_MAJOR_VERSION_NUM 1
-#define MTOA_MINOR_VERSION_NUM 0
+#define MTOA_MINOR_VERSION_NUM 1
 #define MTOA_FIX_VERSION "wip"
 
 

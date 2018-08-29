@@ -15,4 +15,5 @@ public:
     }
 
 private:
+	void ExportRGBAChannels(AtNode *shader, const char *arnoldParam, const char *rgbParam, const char *alphaParam);
 };

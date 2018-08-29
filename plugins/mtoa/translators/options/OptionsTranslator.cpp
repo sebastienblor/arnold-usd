@@ -1466,8 +1466,8 @@ void COptionsTranslator::Export(AtNode *options)
 
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
-      CNodeTranslator::ProcessParameter(options, "default_gpu_names", AI_TYPE_STRING);
-      CNodeTranslator::ProcessParameter(options, "default_gpu_min_memory_MB", AI_TYPE_INT);
+      CNodeTranslator::ProcessParameter(options, "gpu_default_names", AI_TYPE_STRING);
+      CNodeTranslator::ProcessParameter(options, "gpu_default_min_memory_MB", AI_TYPE_INT);
       bool autoSelect = true;
       MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
       if (manualDevices.asBool())

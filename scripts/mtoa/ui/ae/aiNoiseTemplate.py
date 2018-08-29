@@ -21,6 +21,7 @@ class AEaiNoiseTemplate(ShaderAETemplate):
         self.addControl("color1", label="Color 1")
         self.addControl("color2", label="Color 2")
         self.addControl("mode", label="Mode")
+        self.addControl("prefName", label="Pref Name")
         
         self.endLayout()
         

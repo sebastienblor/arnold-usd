@@ -45,8 +45,11 @@ node_parameters
    AiParameterRGB("colorIfTrue", 0, 0, 0);
    AiParameterRGB("colorIfFalse", 1, 1, 1);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "condition");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434e44);
+//   AiMetaDataSetStr(nentry, NULL, "maya.name", "condition");
+//   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434e44);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   
 }
 
 node_initialize

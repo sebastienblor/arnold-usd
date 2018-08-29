@@ -53,7 +53,10 @@ SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
 SHADER_TRANSLATOR(CMayaClampTranslator);
 SHADER_TRANSLATOR(CMultiplyDivideTranslator);
 SHADER_TRANSLATOR(CToonTranslator);
-
+SHADER_TRANSLATOR(CConditionTranslator);
+SHADER_TRANSLATOR(CLuminanceTranslator);
+SHADER_TRANSLATOR(CReverseTranslator);
+SHADER_TRANSLATOR(CSurfaceLuminanceTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {

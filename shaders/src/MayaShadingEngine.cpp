@@ -25,6 +25,7 @@ node_parameters
    //AiMetaDataSetStr(nentry, NULL, "maya.name", "shadingEngine");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
+   // TODO : verify if the needed parameters are properly created in the shadingengine node somewhere else
    AiParameterClosure("beauty");
    AiParameterClosure("volume");
    AiParameterArray("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));

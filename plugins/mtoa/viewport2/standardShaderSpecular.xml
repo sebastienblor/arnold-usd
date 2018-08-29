@@ -3,6 +3,8 @@
     <properties>
         <struct name="lightingData" struct_name="standardShaderLightingData" />
         <float name="roughness" />
+        <float name="IOR" />
+        <float name="Ks" />
     </properties>
     <values>
         
@@ -23,7 +25,7 @@ float SQR(float a)
 // Specular Functions
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float roughness)
+        float roughness, float IOR, float weight)
 {
     const float M_PI = 3.14159265358;
     
@@ -31,7 +33,8 @@ float3 standardShaderSpecular(
     rx = max(rx, 0.002f);   
     float rx2 = SQR(rx);
     
-    float3 SL = normalize(lightingData.SL);
+    if (length(lightingData.SL) == 0.0)
+        return float3(0.0f, 0.0f, 0.0f);
         
     float NL = saturate(dot(lightingData.N, lightingData.L)); 
     if (NL == 0.0f)
@@ -40,7 +43,7 @@ float3 standardShaderSpecular(
     if (NV == 0.0f)
         return float3(0.0f, 0.0f, 0.0f);
     
-    float3 H = normalize(SL + lightingData.V);
+    float3 H = normalize(lightingData.SL + lightingData.V);
     float NH = dot(H, lightingData.N);   
     if (NH <= 0.0f) return float3(0.0f, 0.0f, 0.0f);
     
@@ -58,10 +61,22 @@ float3 standardShaderSpecular(
     float G2 = NL / (NL * (1.0 - k) + k);
     float G = (G1 * G2);
     
-    float atten = (1.0 + M_PI * roughness);
-    float3 spec = (lightingData.specular) / float3(atten, atten, atten);
+    //float atten = (1.0 + M_PI * roughness);
+    float3 spec = (lightingData.specular); // / float3(atten, atten, atten);
     
-    return spec * ((D * G) / ( NL * NV ));
+    // compute the fresnel factors for the specular, coat, and transmission layers
+    float fresnel = 1.0;
+    if (NV >= 0.0f)
+    {
+        float HV = dot(H, lightingData.V);
+        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
+        R0 = R0 * R0;      
+
+        fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5);
+    } 
+    fresnel *= weight;
+    
+    return (spec * D * G * fresnel) / ( 2.0 * NV );
 } 
                 ]]>
             </source>
@@ -78,7 +93,7 @@ float SQR(float a)
 // Specular Functions
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float roughness)
+        float roughness, float IOR, float weight)
 {
     const float M_PI = 3.14159265358;
     
@@ -86,7 +101,8 @@ float3 standardShaderSpecular(
     rx = max(rx, 0.002f);   
     float rx2 = SQR(rx);
     
-    float3 SL = normalize(lightingData.SL);
+    if (length(lightingData.SL) == 0.0)
+        return float3(0.0f, 0.0f, 0.0f);
         
     float NL = saturate(dot(lightingData.N, lightingData.L)); 
     if (NL == 0.0f)
@@ -95,7 +111,7 @@ float3 standardShaderSpecular(
     if (NV == 0.0f)
         return float3(0.0f, 0.0f, 0.0f);
     
-    float3 H = normalize(SL + lightingData.V);
+    float3 H = normalize(lightingData.SL + lightingData.V);
     float NH = dot(H, lightingData.N);   
     if (NH <= 0.0f) return float3(0.0f, 0.0f, 0.0f);
     
@@ -116,7 +132,21 @@ float3 standardShaderSpecular(
     float atten = (1.0 + M_PI * roughness);
     float3 spec = (lightingData.specular) / atten;
     
-    return (((D * G) / ( NL * NV )) * spec);
+    // compute the fresnel factors for the specular, coat, and transmission layers
+    float fresnel = 1.0;
+    if (NV >= 0.0f)
+    {
+        float HV = dot(H, lightingData.V);
+        
+        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
+        R0 = R0 * R0;      
+
+        fresnel = (R0 + (1.0-R0)*pow(1.0-HV, 5));
+    } 
+    
+    fresnel *= weight;
+    
+    return (spec * D * G * fresnel) / ( 2.0 * NV );
 }    
                 ]]>
             </source>
@@ -133,7 +163,7 @@ float SQR(float a)
 // Specular Functions
 vec3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float roughness)
+        float roughness, float IOR, float weight)
 {
     const float M_PI = 3.14159265358;
     
@@ -141,7 +171,8 @@ vec3 standardShaderSpecular(
     rx = max(rx, 0.002f);   
     float rx2 = SQR(rx);
     
-    vec3 SL = normalize(lightingData.SL);
+    if (length(lightingData.SL) == 0.0)
+        return vec3(0.0f, 0.0f, 0.0f);
         
     float NL = clamp(dot(lightingData.N, lightingData.L), 0.0, 1.0); 
     if (NL == 0.0f)
@@ -150,7 +181,7 @@ vec3 standardShaderSpecular(
     if (NV == 0.0f)
         return vec3(0.0f, 0.0f, 0.0f);
     
-    vec3 H = normalize(SL + lightingData.V);
+    vec3 H = normalize(lightingData.SL + lightingData.V);
     float NH = dot(H, lightingData.N);   
     if (NH <= 0.0f) return vec3(0.0f, 0.0f, 0.0f);
     
@@ -171,7 +202,19 @@ vec3 standardShaderSpecular(
     float atten = (1.0 + M_PI * roughness);
     vec3 spec = (lightingData.specular) / atten;
     
-    return (((D * G) / ( NL * NV )) * spec);
+    // compute the fresnel factors for the specular, coat, and transmission layers
+    float fresnel = 1.0;
+    if (NV >= 0.0f)
+    {
+        float HV = dot(H, lightingData.V);
+        float R0 = abs((1.0 - IOR) / (1.0 + IOR));
+        R0 = R0 * R0;      
+
+        fresnel = R0 + (1.0-R0)*pow(1.0-HV, 5);
+    } 
+    fresnel *= weight;
+    
+    return (spec * D * G * fresnel) / ( 2.0 * NV );
 } 
                 ]]>
             </source>

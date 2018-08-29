@@ -96,6 +96,8 @@ node_parameters
    AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   
 }
 
 node_initialize

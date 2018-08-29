@@ -50,6 +50,7 @@ node_parameters
 {
    AiMetaDataSetStr(nentry, NULL, "maya.name", "displacementShader");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52445348);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 
    AiParameterFlt("displacement", 0.0f);
    AiParameterVec("vectorDisplacement", 0.0f, 0.0f, 0.0f);
