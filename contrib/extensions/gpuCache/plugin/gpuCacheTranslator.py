@@ -20,8 +20,12 @@ from arnold import *
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
-BLACK_LIST_PARAMS = ['id', 'name', 'visibility', 'sidedness', 'matrix', 'motion_start', 'motion_end',
-                     'use_shadow_group', 'use_light_group', 'degree_u', 'degree_v', 'transform_type']
+BLACK_LIST_PARAMS = ['id', 'name', 'sidedness', 'matrix', 'motion_start',
+                     'motion_end', 'shader', 'disp_map', 'vidxs', 'vlist',
+                     'nsides', 'uvidxs', 'shidxs', 'nlist', 'uvlist',
+                     'crease_idxs', 'crease_sharpness', 'use_shadow_group',
+                     'use_light_group', 'degree_u', 'degree_v',
+                     'transform_type']
 
 CACHE_ATTR = 'ai_abccache'
 
@@ -74,6 +78,30 @@ def abcToArnType(iObj):
         return None
 
 
+def getVisibilityValue(vis_flags=[True]*8):
+
+    vis = AI_RAY_ALL
+
+    if not vis_flags[0]:
+        vis &= ~AI_RAY_CAMERA
+    if not vis_flags[1]:
+        vis &= ~AI_RAY_SHADOW
+    if not vis_flags[2]:
+        vis &= ~AI_RAY_DIFFUSE_TRANSMIT
+    if not vis_flags[3]:
+        vis &= ~AI_RAY_SPECULAR_TRANSMIT
+    if not vis_flags[4]:
+        vis &= ~AI_RAY_VOLUME
+    if not vis_flags[5]:
+        vis &= ~AI_RAY_DIFFUSE_REFLECT
+    if not vis_flags[6]:
+        vis &= ~AI_RAY_SPECULAR_REFLECT
+    if not vis_flags[7]:
+        vis &= ~AI_RAY_SUBSURFACE
+
+    return vis
+
+
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def createCacheAttr(self, node):
@@ -98,7 +126,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 path_props['path'] = p[0]
                 path_props['shader'] = cmds.listConnections('{}.aiOverrides[{}].abcShader'.format(self.nodeName, i)) or None
                 path_props['disp'] = cmds.listConnections('{}.aiOverrides[{}].abcDisplacement'.format(self.nodeName, i)) or None
-                for c in range(cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i), size=True)):
+                indices = cmds.getAttr('{}.aiOverrides[{}].abcOverrides'.format(self.nodeName, i), multiIndices=True) or []
+                for c in indices:
                     path_props['overrides'].append(cmds.getAttr('{}.aiOverrides[{}].abcOverrides[{}]'.format(self.nodeName, i, c)))
                 path_props['index'] = i
                 break
@@ -122,7 +151,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             if cmds.attributeQuery('selection', node=op, exists=True):
                 _this_sel_exp = cmds.getAttr('{}.selection'.format(op))
                 if selection_exp == _this_sel_exp:
-                     return op, plug
+                    return op, plug
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
                 inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
@@ -159,7 +188,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                      ss=True)
             cmds.setAttr("{}.selection".format(out_op), selection_exp, type="string")
 
-            cmds.connectAttr("{}.message".format(out_op), "{}.operators[{}]".format(self.nodeName, path_props['index']))
+            cmds.connectAttr("{}.message".format(out_op), "{}.operators[{}]".format(self.nodeName, path_props['index']), force=True)
 
         return out_op
 
@@ -203,26 +232,25 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         _layout = cmds.formLayout(p=layout)
 
         deleteBtn = cmds.iconTextButton(image="trash.png", style="iconOnly",
-                                        height=24,
-                                        width=24,
+                                        height=20,
+                                        width=20,
                                         flat=True,
                                         command=lambda *a: self.deleteOverride(op, index, _layout))
         paramBox = cmds.optionMenu()
 
         cmds.menuItem(label="Choose Override ..")
         for param in sorted(self.paramDict.keys()):
-            cmds.menuItem(label=param)
+            if param not in BLACK_LIST_PARAMS:
+                cmds.menuItem(label=param)
 
         # now make the control that is appropriate for the current parameter
 
         paramValueLayout = cmds.formLayout(p=_layout)
 
         cmds.formLayout(_layout, edit=True,
-                        attachForm=[(deleteBtn, 'left', 2),
-                                    (deleteBtn, 'bottom', 2), (paramBox, 'bottom', 2), (paramValueLayout, 'bottom', 0),
-                                    (deleteBtn, 'top', 2), (paramBox, 'top', 2), (paramValueLayout, 'top', 0)],
-                        attachControl=[(paramBox, 'left', 2, deleteBtn), (paramValueLayout, 'left', 2, paramBox)],
-                        attachNone=[(paramValueLayout, 'right')]
+                        attachForm=[(deleteBtn, 'left', 2),(paramValueLayout, 'right', 2),
+                                    (deleteBtn, 'top', 2), (paramBox, 'top', 4), (paramValueLayout, 'top', 4)],
+                        attachControl=[(paramBox, 'left', 2, deleteBtn), (paramValueLayout, 'left', 2, paramBox)]
                         )
 
         if attr != "newOverride":
@@ -233,11 +261,13 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         paramValueCtrl = None
         if value != "newValue":
-            paramValueCtrl = self.makeValueControl(op, attr, value, paramBox)
+            cmds.setParent(paramValueLayout)
+            paramValueCtrl = self.makeValueControl(op, attr, value, paramValueLayout, paramBox)
             cmds.formLayout(paramValueLayout, edit=True,
                             attachForm=[(paramValueCtrl, 'left', 0),
                                         (paramValueCtrl, 'bottom', 0),
-                                        (paramValueCtrl, 'top', 0)],)
+                                        (paramValueCtrl, 'top', 0)])
+            cmds.setParent("..")
 
     def _convertValue(self, value, param_type):
         o_value = value
@@ -254,8 +284,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             o_value = str(value.replace("'", ""))
         return o_value
 
-    def makeValueControl(self, op, param_name, value, paramBox=None):
-
+    def makeValueControl(self, op, param_name, value, parent, paramBox=None):
         ctrl = None
         node_type, param_type = self.paramDict.get(param_name, (None, None))
 
@@ -276,7 +305,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     o_value = self._convertValue(value, param_type)
 
                 ctrl = self._createControl(node_type, param_name, param_type,
-                                           param_entry, "ARNOp{}_{}".format(node_type, param_name),
+                                           param_entry, "ARNOp{}_{}".format(node_type, param_name), parent=parent,
                                            label="", value=o_value, changeCommand=lambda v: self.setParamValueOverride(op, param_name, v))
         if AiUniverseCreated:
             ArnoldUniverseEnd()
@@ -305,12 +334,11 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 for cu in childUIs:
                     cmds.deleteUI(cu)
                 cmds.setParent(layout)
-                ctrl = self.makeValueControl(op, newParam, value)
+                ctrl = self.makeValueControl(op, newParam, value, layout)
                 cmds.formLayout(layout, edit=True,
                                 attachForm=[(ctrl, 'left', 0),
                                             (ctrl, 'bottom', 0),
                                             (ctrl, 'top', 0)])
-                cmds.setParent("..")
 
                 # update the label in the tree view
                 for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
@@ -321,6 +349,15 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             ArnoldUniverseEnd()
 
     def setParamValueOverride(self, op, param, value):
+        if param == 'visibility':
+            vis_state = []
+            for ctrl in self.visibility_ctrls:
+                vis_state.append(cmds.checkBox(ctrl, q=True, value=True))
+            if len(vis_state) == 8:
+                value = getVisibilityValue(vis_state)
+            else:
+                return
+
         node_type, param_type = self.paramDict.get(param, (None, None))
         if param_type == AI_TYPE_ARRAY:
             param_type = ArnoldGetArrayType(node_type, param)
@@ -328,7 +365,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         n_conn = mu.getAttrNumElements(op, "assignment")
         c_idx = n_conn
         if param != 'newOverride':
-            for c in range(n_conn):
+            for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
                 ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
                 if ass_str.startswith(param):
                     c_idx = c
@@ -372,7 +409,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 shader = shader[0]
                 op = self.getOperator(path_props)
                 self.setParamValueOverride(op, paramName, shader)
-                print "setShading", op, shader
 
                 # update the label in the tree view
                 for path, label, parent, visibility, instancedPath, entity_type in self.abcItems:
@@ -411,6 +447,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True) or []
         if len(item):
             item = item[0]
+        else:
+            return False
         # remove if deselected
         childUIs = cmds.layout(self.overridesLayout, q=True, childArray=True) or []
         for cu in childUIs:
@@ -440,9 +478,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                                       label="Displacement Shader",
                                       cn="createRenderNode -allWithTexturesUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+dispAttrName+"\" \"\"")
 
-        # overrides_collayout = cmds.columnLayout(p=self.overridesLayout, adjustableColumn=True)
-        overrides_collayout = cmds.rowColumnLayout(p=self.overridesLayout, numberOfColumns=1)
+        overrides_collayout = cmds.columnLayout(p=self.overridesLayout, adjustableColumn=True)
 
+        self.visibility_ctrls = []
         self.currentItem = item
         self.paramDict = {}
         node_types = []
@@ -473,18 +511,17 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         op = self.getOperator(path_props, False)
         if op:
-            for o in range(mu.getAttrNumElements(op, "assignment")):
-                attr, value = cmds.getAttr('{}.assignment[{}]'.format(op, o)).split('=')
-                if attr not in ['shader', 'disp_map']:
-                    self.addOverrideGUI(item, overrides_collayout, attr.strip('\"'), value.strip('\"'), o)
-                    cmds.setParent(overrides_collayout)
-
-        cmds.setParent(overrides_collayout)
+            for o in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+                exp = cmds.getAttr('{}.assignment[{}]'.format(op, o))
+                if '=' in exp:
+                    attr, value = exp.split('=')
+                    if attr not in ['shader', 'disp_map']:
+                        cmds.setParent(overrides_collayout)
+                        self.addOverrideGUI(item, overrides_collayout, attr.strip('\"'), value.strip('\"'), o)
 
         # populate the overrides for this node
-        # obtn_layout = cmds.rowLayout()
-        self.addOverrideBtn = cmds.iconTextButton(label='Add Override', image="gear.png", style="iconAndTextHorizontal", command=self.addOverride)
-        # cmds.setParent('..')
+        self.addOverrideBtn = cmds.iconTextButton(parent=overrides_collayout, label='Add Override', image="gear.png",
+                                                  style="iconAndTextHorizontal", command=self.addOverride)
 
         if AiUniverseCreated:
             ArnoldUniverseEnd()
@@ -498,9 +535,11 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def createItemPopupMenu(self, ctrl):
 
+        item = cmds.treeView(self.abcInfoPath, q=True, selectItem=True)
+
         popup = cmds.popupMenu(parent=ctrl)
-        cmds.menuItem(label="Select Shader on selected")
-        cmds.menuItem(label="Select Displacment on selected")
+        cmds.menuItem(label="Select Shader on selected", command=lambda x: self.selectShader(item))
+        cmds.menuItem(label="Select Displacment on selected", command=lambda x: self.selectDisplacement(item))
         cmds.menuItem(divider=True)
         cmds.menuItem(label="Remove Properties on selected")
         cmds.menuItem(label="Remove Shader on selected")
@@ -576,7 +615,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def updateTreeItem(self, path, label, parent, visibility, instancedPath, entity_type):
 
-        assigned_color = (0.2, 0.2, 0.9)
+        assigned_color = (0.8, 0.8, 1.0)
 
         path_props = self.getPathProperties(path)
         if visibility == VISIBILITY[1]:
@@ -699,53 +738,122 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 if param_type not in [AI_TYPE_ARRAY]:
                     self.user_attrs[node_type][param_name] = self._createControl(node_type, param_name, param_type, this_param)
 
-    def _createControl(self, node_type, param_name, param_type, param_entry, control_name="", label=None, value=None, changeCommand=None):
+    def _createVisibilityCtrl(self, control_name, value=255, changeCommand=None, parent=None):
+        _layout = cmds.formLayout(parent=parent)
+
+        self.visibility_ctrls = []
+
+        s=0
+        for l in ['Camera', 'Shadow', 'Diffuse Transmission', 'Specualr Transmission',
+                  'Volume', 'Diffuse Reflections', 'Specular Reflections', 'Sub-Surface']:
+
+            vis_ctrl = cmds.checkBox(control_name+l.replace(" ", ""),
+                                     label=l,
+                                     changeCommand=changeCommand)
+
+            cmds.formLayout(_layout, edit=True,
+                            attachForm=[(vis_ctrl, 'left', 0)])
+            if s == 0:
+                cmds.formLayout(_layout, edit=True,
+                                attachForm=[(vis_ctrl, 'top', 0)])
+            else:
+                cmds.formLayout(_layout, edit=True,
+                                attachControl=[(vis_ctrl, 'top', 0, self.visibility_ctrls[-1])])
+            self.visibility_ctrls.append(vis_ctrl)
+            s += 1
+
+        # set the checkbox state based on the byte value
+
+        state_list = [True]*8
+        compViz = AI_RAY_ALL
+        if value < compViz:
+            compViz &= ~AI_RAY_SUBSURFACE
+            if value <= compViz:
+                state_list[7] = False
+            else:
+                compViz += AI_RAY_SUBSURFACE
+            compViz &= ~AI_RAY_SPECULAR_REFLECT
+            if value <= compViz:
+                state_list[6] = False
+            else:
+                compViz += AI_RAY_SPECULAR_REFLECT
+            compViz &= ~AI_RAY_DIFFUSE_REFLECT
+            if value <= compViz:
+                state_list[5] = False
+            else:
+                compViz += AI_RAY_DIFFUSE_REFLECT
+            compViz &= ~AI_RAY_VOLUME
+            if value <= compViz:
+                state_list[4] = False
+            else:
+                compViz += AI_RAY_VOLUME
+            compViz &= ~AI_RAY_SPECULAR_TRANSMIT
+            if value <= compViz:
+                state_list[3] = False
+            else:
+                compViz += AI_RAY_SPECULAR_TRANSMIT
+            compViz &= ~AI_RAY_DIFFUSE_TRANSMIT
+            if value <= compViz:
+                state_list[2] = False
+            else:
+                compViz += AI_RAY_DIFFUSE_TRANSMIT
+            compViz &= ~AI_RAY_SHADOW
+            if value <= compViz:
+                state_list[1] = False
+            else:
+                compViz += AI_RAY_SHADOW
+            compViz &= ~AI_RAY_CAMERA
+            if value <= compViz:
+                state_list[0] = False
+
+        c=0
+        for ctrl in self.visibility_ctrls:
+            cmds.checkBox(ctrl, edit=True, value=state_list[c])
+            c+=1
+
+        cmds.setParent('..')
+
+        return _layout
+
+    def _createControl(self, node_type, param_name, param_type, param_entry, control_name="", parent=None, label=None, value=None, changeCommand=None):
         if not control_name:
-            control_name = '{}_{}_ctrl'.format(node_type,param_name)
+            control_name = '{}_{}_ctrl'.format(node_type, param_name)
         control = None
+        args = {}
         if label == None:
             label = param_name.replace('_', ' ').title()
-        if param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
-            if label:
-                control = cmds.intFieldGrp(control_name, label=label)
-            else:
-                control = cmds.intFieldGrp(control_name)
+        # if label:
+        #     args['label'] = label
+        if parent:
+            args['parent'] = parent
+        if param_type in [AI_TYPE_BYTE] and param_name == 'visibility':
+            control = self._createVisibilityCtrl(control_name, value, changeCommand, parent)
+        elif param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
+            control = cmds.intField(control_name, **args)
             if value:
-                cmds.intFieldGrp(control, edit=True, value1=value)
+                cmds.intField(control, edit=True, value=value)
             if changeCommand:
-                cmds.intFieldGrp(control, edit=True, changeCommand=changeCommand)
+                cmds.intField(control, edit=True, changeCommand=changeCommand)
         elif param_type is AI_TYPE_FLOAT:
-            if label:
-                control = cmds.floatFieldGrp(control_name, label=label)
-            else:
-                control = cmds.floatFieldGrp(control_name)
+            control = cmds.floatField(control_name, **args)
             if value:
-                cmds.floatFieldGrp(control, edit=True, value1=value)
+                cmds.floatField(control, edit=True, value=value)
             if changeCommand:
-                cmds.floatFieldGrp(control, edit=True, changeCommand=changeCommand)
+                cmds.floatField(control, edit=True, changeCommand=changeCommand)
         elif param_type is AI_TYPE_BOOLEAN:
-            if label:
-                control = cmds.checkBoxGrp(control_name, label=label)
-            else:
-                control = cmds.checkBoxGrp(control_name)
+            control = cmds.checkBox(control_name, **args)
             if value:
-                cmds.checkBoxGrp(control, edit=True, value1=str(value).lower() == 'true' )
+                cmds.checkBox(control, edit=True, value=str(value).lower() == 'true' )
             if changeCommand:
-                cmds.checkBoxGrp(control, edit=True, changeCommand=changeCommand)
+                cmds.checkBox(control, edit=True, changeCommand=changeCommand)
         elif param_type in [AI_TYPE_STRING, AI_TYPE_NODE, AI_TYPE_POINTER]:
-            if label:
-                control = cmds.textFieldGrp(control_name, label=label)
-            else:
-                control = cmds.textFieldGrp(control_name, label=label)
+            control = cmds.textField(control_name, **args)
             if value:
-                cmds.textFieldGrp(control, edit=True, value1=value)
+                cmds.textField(control, edit=True, value=value)
             if changeCommand:
-                cmds.textFieldGrp(control, edit=True, changeCommand=changeCommand)
+                cmds.textField(control, edit=True, changeCommand=changeCommand)
         elif param_type is AI_TYPE_ENUM:
-            if label:
-                enum_ctrl = cmds.optionMenuGrp(control_name, label=label)
-            else:
-                enum_ctrl = cmds.optionMenuGrp(control_name)
+            enum_ctrl = cmds.optionMenu(control_name, **args)
             # populate the options
             i = 0
             t = True
@@ -756,9 +864,9 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 i += 1
             control = enum_ctrl
             if value:
-                cmds.optionMenuGrp(enum_ctrl, edit=True, value=value)
+                cmds.optionMenu(enum_ctrl, edit=True, value=value)
             if changeCommand:
-                cmds.optionMenuGrp(enum_ctrl, edit=True, changeCommand=changeCommand)
+                cmds.optionMenu(enum_ctrl, edit=True, changeCommand=changeCommand)
         return control
 
     def _getDefaultValue(self, param, param_type):
@@ -981,14 +1089,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             attrName = '{}[{}]'.format(nodeAttr, i)
             attrLabel = 'Operators[{}]'.format(i)
             ctrl = cmds.attrNavigationControlGrp(at=attrName,
-                                                    label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
-   
+                                                 label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
             self._msgCtrls.append(ctrl) 
 
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def operatorsNew(self, nodeAttr):
-        
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
 
@@ -1009,23 +1115,21 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         cmds.frameLayout(labelVisible=False, collapsable=False)
         self.otherCol = cmds.columnLayout(adjustableColumn=True)
-        
         attrSize = mu.getAttrNumElements(*nodeAttr.split('.', 1))
 
         for i in range(attrSize):
             attrName = '{}[{}]'.format(nodeAttr, i)
             attrLabel = 'Inputs[{}]'.format(i)
             ctrl = cmds.attrNavigationControlGrp(at=attrName,
-                                                    label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
-   
-            self._msgCtrls.append(ctrl) 
+                                                 label=attrLabel, cn="createRenderNode -allWithShadersUp \"defaultNavigation -force true -connectToExisting -source %node -destination "+attrName+"\" \"\"")
+            self._msgCtrls.append(ctrl)
 
         cmds.setParent('..') # columnLayout
         cmds.setParent('..') # frameLayout
 
         cmds.setParent('..') # columnLayout
         cmds.setParent('..') # frameLayout
-        
+
         cmds.setParent('..') # columnLayout
         cmds.setParent('..') # frameLayout
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
@@ -1068,10 +1172,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
         self.addSeparator()
-        self.beginLayout("Alembic Overrides", collapse=False)
-        self.addControl("aiPullUserParams", label="Enable Overrides", annotation='Enable to override the attributes found in the archive')
-        self.addCustom('aiNodeAttrs', self.userAttrsNew, self.userAttrsReplace)
-        self.endLayout()
 
 
 templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "alembic")
