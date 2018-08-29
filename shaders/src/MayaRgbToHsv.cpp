@@ -20,6 +20,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "rgbToHsv");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52523248);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize

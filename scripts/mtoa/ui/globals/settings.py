@@ -496,13 +496,13 @@ def createGpuSettings():
         ai.AiEnd()
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
-    cmds.attrControlGrp('default_gpu_names', 
+    cmds.attrControlGrp('gpu_default_names', 
                         label="GPU Names", 
-                        attribute='defaultArnoldRenderOptions.default_gpu_names')
+                        attribute='defaultArnoldRenderOptions.gpu_default_names')
 
-    cmds.attrControlGrp('default_gpu_min_memory_MB', 
+    cmds.attrControlGrp('gpu_default_min_memory_MB', 
                         label="Min. Memory (MB)", 
-                        attribute='defaultArnoldRenderOptions.default_gpu_min_memory_MB')
+                        attribute='defaultArnoldRenderOptions.gpu_default_min_memory_MB')
 
     cmds.setParent('..')
     cmds.frameLayout(label='Manual Device Selection (Local Render)', collapse=False)

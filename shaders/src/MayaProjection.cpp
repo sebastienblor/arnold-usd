@@ -360,6 +360,7 @@ node_parameters
    AiParameterBool("useReferenceObject", true);
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 typedef struct 

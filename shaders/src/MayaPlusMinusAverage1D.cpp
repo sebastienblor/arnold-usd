@@ -36,6 +36,7 @@ node_parameters
    AiParameterArray("input1D", AiArray(0, 0, AI_TYPE_FLOAT));
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize

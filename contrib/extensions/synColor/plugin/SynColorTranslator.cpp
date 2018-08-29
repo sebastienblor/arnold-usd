@@ -3,6 +3,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 
+#include "utils/MakeTx.h"
 #include "utils/time.h"
 
 #include <fstream>
@@ -17,17 +18,19 @@ void CSynColorTranslator::Export(AtNode* node)
       AtNode *options = AiUniverseGetOptions();
       AiNodeSetPtr(options, "color_manager", (void*)node);
 
+      MString renderingSpace = defaultColorSettings.findPlug("workingSpaceName").asString();
+
       const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled").asBool();
       if(cmOCIOEnabled)
       {
          AiNodeSetStr (node, "config",             defaultColorSettings.findPlug("configFilePath").asString().asChar());
-         AiNodeSetStr (node, "color_space_linear", defaultColorSettings.findPlug("workingSpaceName").asString().asChar());
+         AiNodeSetStr (node, "color_space_linear", renderingSpace.asChar());
       }
       else
       {
          // Take values from the defaultColorMgtGlobals node
 
-         AiNodeSetStr (node, "rendering_color_space",   defaultColorSettings.findPlug("workingSpaceName").asString().asChar());
+         AiNodeSetStr (node, "rendering_color_space",   renderingSpace.asChar());
 
          // Find the native catalog location
          // 
@@ -84,15 +87,33 @@ void CSynColorTranslator::Export(AtNode* node)
          AiNodeSetStr(node, "custom_catalog_path", customCatalogDir.asChar());
       }
    }
+
+   if (m_renderingSpaceChanged)
+   {
+      MGlobal::displayWarning("Updating All TX after rendering space change....");
+      MGlobal::executeCommand("arnoldRenderView -status \"Updating All TX after rendering space change....\"");
+      
+      updateAllTx();
+      m_renderingSpaceChanged = false;
+   }
 }
 
 void CSynColorTranslator::NodeInitializer(CAbTranslator context)
 {
 }
 
+void CSynColorTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   if (plug.name() == MString("defaultColorMgtGlobals.workingSpaceName"))
+      m_renderingSpaceChanged = true;
+
+   CNodeTranslator::NodeChanged(node, plug);
+}
+
 AtNode* CSynColorTranslator::CreateArnoldNodes()
 {
    MFnDependencyNode defaultColorSettings(GetMayaObject());
+   m_renderingSpaceChanged = false;
    const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled").asBool();
    if(cmEnabled)
    {

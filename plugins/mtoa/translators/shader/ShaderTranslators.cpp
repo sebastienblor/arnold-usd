@@ -411,13 +411,20 @@ void CFileTranslator::Export(AtNode* shader)
          tokenStr = "<utile>"; 
          tokenOut = "<utile:1>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
-         tokenStr = "<u>";         
+         // #3413 <u> <v> tokens are expected to be 0-indexed. Should this be extended to other tiling modes ?
+         if (tilingMode == 1) 
+            tokenOut = "<utile>";
+         tokenStr = "<u>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<U>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<vtile>";
          tokenOut = "<vtile:1>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
+         
+         // #3413 <u> <v> tokens are expected to be 0-indexed. Should this be extended to other tiling modes ?
+         if (tilingMode == 1)
+            tokenOut = "<vtile>";
          tokenStr = "<v>";
          ReplaceFileToken(resolvedFilename, tokenStr, tokenOut);
          tokenStr = "<V>";
@@ -2498,6 +2505,7 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
    MFnDependencyNode dnode(GetMayaObject());
    MPlugArray conns;
 
+   bool isRGBA = AiNodeIs(shader, AtString("switch_rgba"));
 
    for (unsigned int i = 0; i < 20; ++i)
    {
@@ -2507,7 +2515,7 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
       MPlug inputPlug = dnode.findPlug(attrName);
       inputPlug.connectedTo(conns, true, false);
       if (conns.length() > 0)
-         ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
+         ProcessParameter(shader, attrName.asChar(), (isRGBA) ? AI_TYPE_RGBA : AI_TYPE_CLOSURE, attrName.asChar());
       else
          AiNodeResetParameter(shader, AtString(attrName.asChar()));
    }
@@ -2819,3 +2827,88 @@ void CMultiplyDivideTranslator::Export(AtNode* shader)
    }   
 }
 
+// Luminance shader
+AtNode* CLuminanceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("rgb_to_float");
+}
+
+void CLuminanceTranslator::Export(AtNode* shader)
+{
+   AiNodeSetStr(shader, "mode", "luminance");
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
+}
+// Reverse shader
+AtNode* CReverseTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("complement");
+}
+
+void CReverseTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "input");
+}
+
+// Condition shader
+AtNode* CConditionTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("switch_rgba");
+}
+
+void CConditionTranslator::Export(AtNode* shader)
+{
+   AtNode *compare = GetArnoldNode("compare");
+   if (compare == NULL)
+      compare = AddArnoldNode("compare", "compare");
+
+   MPlug opPlug = FindMayaPlug("operation");
+   if (!opPlug.isNull())
+   {
+      switch (opPlug.asInt())
+      {
+         default:
+         case 0: // "equal"
+            AiNodeSetStr(compare, "test", "==");
+         break;
+         case 1: //"notequal"
+            AiNodeSetStr(compare, "test", "!=");
+         break;
+         case 2: // "greaterthan"
+            AiNodeSetStr(compare, "test", ">");
+         break;
+         case 3: //"greaterorequal"
+            AiNodeSetStr(compare, "test", ">=");
+         break;
+         case 4: // "lessthan"
+            AiNodeSetStr(compare, "test", "<");
+         break;
+         case 5: // "lessorequal"
+            AiNodeSetStr(compare, "test", "<=");
+         break;
+      }
+   }
+   ProcessParameter(compare, "input1", AI_TYPE_FLOAT, "firstTerm");
+   ProcessParameter(compare, "input2", AI_TYPE_FLOAT, "secondTerm");
+   AiNodeLink(compare, "index", shader);   
+   
+   ProcessParameter(shader, "input0", AI_TYPE_RGBA, "colorIfFalse");
+   ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorIfTrue");
+
+}
+
+// Surface Luminance shader
+AtNode* CSurfaceLuminanceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("rgb_to_float");
+}
+
+void CSurfaceLuminanceTranslator::Export(AtNode* shader)
+{
+   AtNode *utility = GetArnoldNode("utility");
+   if (utility == NULL)
+      utility = AddArnoldNode("utility", "utility");
+
+   AiNodeSetStr(utility, "shade_mode", "lambert");
+   AiNodeLink(utility, "input", shader);
+   AiNodeSetStr(shader, "mode", "luminance");
+}

@@ -1318,19 +1318,6 @@ elif system.os() == "darwin":
 else:
     installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
-import errno    
-import os
-
-
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
 def create_installer(target, source, env):
 
     import tempfile
@@ -1341,9 +1328,8 @@ def create_installer(target, source, env):
     if system.os() == "windows":
         import zipfile
         shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
-        mkdir_p(os.path.join(tempdir, 'installer'))
-        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'installer/left.bmp'))
-        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'installer/top.bmp'))
+        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
+        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
         zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)

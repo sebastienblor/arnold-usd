@@ -38,7 +38,8 @@ node_parameters
    AddMayaColorBalanceParams(params, nentry);
    AiParameterFlt("filter", 1.0f);
    AiParameterFlt("filterOffset", 0.0f);
-
+   
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    AiMetaDataSetStr(nentry, NULL, "maya.name", "grid");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544744);
 }

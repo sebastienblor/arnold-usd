@@ -80,6 +80,7 @@ node_parameters
    AiMetaDataSetStr(nentry, NULL, "maya.name", "water");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
    AiMetaDataSetStr(nentry, NULL, "_synonym", "mayaWater");
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 
 }
 

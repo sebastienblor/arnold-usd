@@ -21,6 +21,7 @@ node_parameters
    AiParameterRGB("color2", 0, 0, 1);
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    AiMetaDataSetBool(nentry, NULL, "deprecated", true);   
 }
 
