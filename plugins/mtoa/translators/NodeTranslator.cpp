@@ -212,7 +212,8 @@ void CNodeTranslator::Delete()
 #endif
 
    AtNode *mainNode = m_impl->m_atNode;
-   AiNodeDestroy(m_impl->m_atNode);
+   if (m_impl->m_atNode)
+      AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
    
    if (m_impl->m_additionalAtNodes)
