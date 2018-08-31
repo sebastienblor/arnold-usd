@@ -2909,6 +2909,10 @@ void CSurfaceLuminanceTranslator::Export(AtNode* shader)
       utility = AddArnoldNode("utility", "utility");
 
    AiNodeSetStr(utility, "shade_mode", "lambert");
+   // The lambert mode in utility forces a *0.7 factor.... I want this to be white diffuse
+   // Also, there's a PI factor to be added to get the same result as surface luminance.
+   // Note that we're now considering indirect illumination which wasn't the case before
+   AiNodeSetRGB(utility, "color", 3.14f / 0.7f, 3.14f / 0.7f, 3.14f / 0.7f); 
    AiNodeLink(utility, "input", shader);
    AiNodeSetStr(shader, "mode", "luminance");
 }
