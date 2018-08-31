@@ -357,7 +357,7 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -397,7 +397,7 @@ void CBaseAttrHelper::MakeInputByte(MObject& attrib, CAttrData& data)
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -475,7 +475,7 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -513,7 +513,7 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -545,7 +545,7 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -580,7 +580,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -589,7 +589,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setHidden(true);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setMin(0.);
@@ -623,7 +623,7 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -659,7 +659,7 @@ void CBaseAttrHelper::MakeInputVector2(MObject& attrib, MObject& attribX, MObjec
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
-   nAttr.setStorable(true);
+   nAttr.setStorable(data.storable);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setChannelBox(data.channelBox);
@@ -694,7 +694,7 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    tAttr.setArray(data.isArray);
    tAttr.setKeyable(data.keyable);
    tAttr.setConnectable(data.linkable);
-   tAttr.setStorable(true);
+   tAttr.setStorable(data.storable);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
    tAttr.setUsedAsFilename(data.usedAsFilename);
@@ -725,7 +725,7 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
    attrib = mAttr.create(data.name, data.shortName, MFnMatrixAttribute::kFloat);
    mAttr.setArray(data.isArray);
    mAttr.setKeyable(data.keyable);
-   mAttr.setStorable(true);
+   mAttr.setStorable(data.storable);
    mAttr.setReadable(true);
    mAttr.setWritable(true);
 
@@ -760,7 +760,7 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
    eAttr.setArray(data.isArray);
    eAttr.setKeyable(data.keyable);
    eAttr.setConnectable(data.linkable);
-   eAttr.setStorable(true);
+   eAttr.setStorable(data.storable);
    eAttr.setReadable(true);
    eAttr.setWritable(true);
    eAttr.setChannelBox(data.channelBox);
@@ -793,7 +793,7 @@ void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
       // no need to keep disconnected plugs around for message attributes
       msgAttr.setDisconnectBehavior(MFnAttribute::kDelete);
    msgAttr.setKeyable(true);
-   msgAttr.setStorable(true);
+   msgAttr.setStorable(data.storable);
    msgAttr.setReadable(true);
    msgAttr.setWritable(true);
 }
