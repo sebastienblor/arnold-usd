@@ -66,6 +66,7 @@ struct CAttrData
    bool         linkable;
    bool         channelBox;
    bool         usedAsFilename;
+   bool         storable;
 
    CAttrData() :  name(""),
                   shortName(""),
@@ -79,7 +80,8 @@ struct CAttrData
                   keyable(true),
                   linkable(true),
                   channelBox(false),
-                  usedAsFilename(false)
+                  usedAsFilename(false),
+                  storable(true)
    {
       memset(&defaultValue, 0, sizeof(AtParamValue));
    }

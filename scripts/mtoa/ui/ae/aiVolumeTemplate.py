@@ -3,10 +3,12 @@ import maya.cmds as cmds
 import arnold as ai
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
+from mtoa.ui.ae.utils import resolveFilePathSequence
 import mtoa.core as core
 import os
 import os.path
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import mtoa.melUtils as mu
 
 def ArnoldVolumeAutoStepChange(nodeName):
     autoStep = cmds.getAttr(nodeName+'.autoStepSize')
@@ -250,16 +252,19 @@ class AEaiVolumeTemplate(ShaderAETemplate):
 
         self.addCustom('grids', self.gridsParamNew, self.gridsParamReplace)
 
+        self.addControl('useFrameExtension', label='Use File Sequence', changeCommand=self.useSequenceChange)
         self.addControl('frame')
-        
+      
         self.addControl('MinBoundingBox')
         self.addControl('MaxBoundingBox')
         self.addControl('autoStepSize', label = "Automatic Step Size", changeCommand=ArnoldVolumeAutoStepChange)
+        
         self.addControl('stepSize')
         self.addControl('stepScale')
 #        self.addControl('loadAtInit')
         self.addSeparator()
         self.addControl('disableRayExtents')
+        
         self.addControl('volumePadding')
         self.addControl('compress')
         
@@ -378,7 +383,10 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addExtraControls()
         self.endScrollLayout()
 
-
-
-
-  
+    def useSequenceChange(self, nodeName):
+        resolveFilePathSequence( nodeName,
+                                'useFrameExtension',
+                                'filename',
+                                'arnoldVolumeFilenamePath',
+                                'frame'
+                                )
