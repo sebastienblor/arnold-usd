@@ -28,3 +28,5 @@ DLLEXPORT MStringArray getSourceImagesPath();
 DLLEXPORT MString getProjectFolderPath();
 
 DLLEXPORT MString replaceInString(const MString& source, const MString& origString, const MString& toReplace);
+
+DLLEXPORT MString resolveFilePathForSequences(const MString& sourceFileName, const int frameNumber);
