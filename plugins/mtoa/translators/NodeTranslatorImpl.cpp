@@ -1106,10 +1106,13 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
 
 void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
 {
-   // TODO: allow overrides here too ?
+   // Exporting User Attributes from override sets (#1741)
+   for (std::vector<CNodeTranslator*>::const_iterator it = m_overrideSets.begin() ; it != m_overrideSets.end(); ++it)
+      CNodeTranslator::ExportUserAttributes(anode, (*it)->GetMayaObject(), &m_tr);
+ 
    CNodeTranslator::ExportUserAttributes(anode, m_tr.GetMayaObject(), &m_tr);
    
-   // Exporting the UnexposedOptions parameter
+   // Exporting the unexposed options parameter
    MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
