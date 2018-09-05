@@ -1,0 +1,43 @@
+Cannot open log file 'C:\Users\Krishnan\Documents\dev\mtoa\build\windows_x86_64\20180100\msvc_opt\testsuite\test_0295\test_0295.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2018\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 2016.11.35.12. Feature Level 5.
+  Adapter : GeForce GTX 1080/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 7040
+  Driver : nvoglv64.dll:23.21.13.9124.
+  API : OpenGL V.4.6.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 8192 MB.
+  CPU Memory Limit: 11604.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+Warning: file: C:/Users/Krishnan/Documents/dev/mtoa/build/windows_x86_64/20180100/msvc_opt/testsuite/test_0295/test.ma line 273: 'defaultColorMgtGlobals.cmEnabled' is already connected to 'aiImage1.colorManagementEnabled'.
+Warning: file: C:/Users/Krishnan/Documents/dev/mtoa/build/windows_x86_64/20180100/msvc_opt/testsuite/test_0295/test.ma line 274: 'defaultColorMgtGlobals.configFileEnabled' is already connected to 'aiImage1.colorManagementConfigFileEnabled'.
+Warning: file: C:/Users/Krishnan/Documents/dev/mtoa/build/windows_x86_64/20180100/msvc_opt/testsuite/test_0295/test.ma line 275: 'defaultColorMgtGlobals.configFilePath' is already connected to 'aiImage1.colorManagementConfigFilePath'.
+Warning: file: C:/Users/Krishnan/Documents/dev/mtoa/build/windows_x86_64/20180100/msvc_opt/testsuite/test_0295/test.ma line 276: 'defaultColorMgtGlobals.workingSpaceName' is already connected to 'aiImage1.workingSpace'.
+File read in  0.75 seconds.
+File read in  0.75 seconds.
+Result: C:/Users/Krishnan/Documents/dev/mtoa/build/windows_x86_64/20180100/msvc_opt/testsuite/test_0295/test.ma
+00:00:00   585MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   585MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   591MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   591MB WARNING | rendering with watermarks because of failed authorization:
+Scene C:\Users\Krishnan\Documents\dev\mtoa\build\windows_x86_64\20180100\msvc_opt\testsuite\test_0295\test.ma completed.
