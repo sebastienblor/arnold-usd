@@ -114,6 +114,10 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          {
                value.RGB() = AiArrayGetRGB(value.ARRAY(), 0);
          }
+
+         if (type == AI_TYPE_RGBA)
+            value.RGBA().a = 1.f; // FIXME shouldn't we get the RGBA metadata instead ?
+         
          break;
       }
       case AI_TYPE_STRING:
