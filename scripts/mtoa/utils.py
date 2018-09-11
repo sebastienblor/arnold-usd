@@ -506,12 +506,13 @@ def createLocator(locatorType, asLight=False):
     if asLight:
         lName = cmds.shadingNode(locatorType, name=('%sShape1' % locatorType), asLight=True)
         shapeNames = cmds.listRelatives(lName, shapes=True)
+        cmds.select(lName, r = True)
         return (shapeNames[0], lName)
 
     lNode = cmds.createNode('transform', name='%s1' % locatorType)
     lId = lNode[len(locatorType):]
     shapeName = '%sShape%s' % (locatorType, lId)
-    cmds.createNode(locatorType, name=shapeName, parent=lNode)       
+    cmds.createNode(locatorType, name=shapeName, parent=lNode, skipSelect = True)
     return (shapeName, lNode)
 
 # in theory we could merge this function with the one above easily,
