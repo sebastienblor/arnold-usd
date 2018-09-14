@@ -59,7 +59,7 @@ def doCreateCurveCollector():
     if len(sls) > 0:
         for slsElem in sls:
             print slsElem
-            shs = cmds.listRelatives(slsElem, type='nurbsCurve', allDescendents=True)
+            shs = cmds.listRelatives(slsElem, fullPath=True, type='nurbsCurve', allDescendents=True)
             if shs is None:
                 continue
             if len(shs):
@@ -79,11 +79,11 @@ def doCreateOperator(opName):
     cmds.select(opNode, replace=True)
 
 def doCreateOldMeshLight():
-    sls = cmds.ls(sl=True, et='transform')
+    sls = cmds.ls(sl=True, fullPath=True, et='transform')
     if len(sls) == 0:
         cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
         return
-    shs = cmds.listRelatives(sls[0], type='mesh')
+    shs = cmds.listRelatives(sls[0], fullPath=True, type='mesh')
     if shs is None:
         cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
         return
