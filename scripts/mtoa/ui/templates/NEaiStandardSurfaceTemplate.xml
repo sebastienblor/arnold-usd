@@ -68,12 +68,25 @@
 		<attribute name='normalCamera' type='maya.float3'>
 			<label>Normal Camera</label>
 		</attribute>
+		<attribute name='sheen' type='maya.float'>
+			<label>Sheen</label>
+		</attribute>
+		<attribute name='sheenColor' type='maya.float3'>
+			<label>Sheen Color</label>
+		</attribute>
+		<attribute name='sheenRoughness' type='maya.float'>
+			<label>Sheen Roughness</label>
+		</attribute>
+		<attribute name='metalness' type='maya.float'>
+			<label>Metalness</label>
+		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiStandardSurface'>
 		<property name='outColor'/>
 		<property name='base'/>
 		<property name='baseColor'/>
 		<property name='diffuseRoughness'/>
+		<property name='metalness'/
 		<property name='specular'/>
 		<property name='specularColor'/>
 		<property name='specularRoughness'/>
@@ -88,12 +101,13 @@
 		<property name='coat'/>
 		<property name='coatColor'/>
 		<property name='coatRoughness'/>
+		<property name='sheen'/>
+		<property name='sheenColor'/>
+		<property name='sheenRoughness'/>
 		<property name='emission'/>
 		<property name='emissionColor'/>
 		<property name='opacity'/>
 		<property name='normalCamera'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiStandardSurface'>
-		<property name='outColor'/>
+>
 	</view>
 </templates>

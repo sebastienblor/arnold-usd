@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiLayerRgba'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outTransparency' type='maya.float3'>
+			<label>Out Transparency</label>
+		</attribute>
+		<attribute name='input1' type='maya.float3'>
+			<label>Input 1</label>
+		</attribute>
+		<attribute name='mix1' type='maya.float'>
+			<label>Mix 1</label>
+		</attribute>
+		<attribute name='input2' type='maya.float3'>
+			<label>Input 2</label>
+		</attribute>
+		<attribute name='mix2' type='maya.float'>
+			<label>Mix 2</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiLayerRgba'>
+		<property name='message'/>
+		<property name='outColor'/>
+		<property name='outTransparency'/>
+		<property name='input1'/>
+		<property name='mix1'/>
+		<property name='input2'/>
+		<property name='mix2'/>
+	</view>
+</templates>

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiCellNoise'>
+		<attribute name='message' type='maya.message'>
+			<label>Message</label>
+		</attribute>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+		<attribute name='outTransparency' type='maya.float3'>
+			<label>Out Transparency</label>
+		</attribute>
+		<attribute name='amplitude' type='maya.float'>
+			<label>Amplitude</label>
+		</attribute>
+		<attribute name='scale' type='maya.float3'>
+			<label>Scale</label>
+		</attribute>
+		<attribute name='offset' type='maya.float3'>
+			<label>Offset</label>
+		</attribute>
+		<attribute name='P' type='maya.float3'>
+			<label>P</label>
+		</attribute>
+		<attribute name='time' type='maya.float'>
+			<label>Time</label>
+		</attribute>
+		<attribute name='color' type='maya.float3'>
+			<label>Color</label>
+		</attribute>
+		<attribute name='palette' type='maya.float3'>
+			<label>Palette</label>
+		</attribute>
+		<attribute name='density' type='maya.float'>
+			<label>Density</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiCellNoise'>
+		<property name='message'/>
+		<property name='outColor'/>
+		<property name='outTransparency'/>
+		<property name='amplitude'/>
+		<property name='scale'/>
+		<property name='offset'/>
+		<property name='P'/>
+		<property name='time'/>
+		<property name='color'/>
+		<property name='palette'/>
+		<property name='density'/>
+	</view>
+</templates>
