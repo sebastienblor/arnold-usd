@@ -505,7 +505,7 @@ def setEnvironmentVariable(name, value):
 def createLocator(locatorType, asLight=False):
     if asLight:
         lName = cmds.shadingNode(locatorType, name=('%sShape1' % locatorType), asLight=True)
-        shapeNames = cmds.listRelatives(lName, shapes=True)
+        shapeNames = cmds.listRelatives(lName, fullPath=True, shapes=True)
         cmds.select(lName, r = True)
         return (shapeNames[0], lName)
 
@@ -520,7 +520,7 @@ def createLocator(locatorType, asLight=False):
 def createLocatorWithName(locatorType, nodeName, asLight=False):
     if asLight:
         lName = cmds.shadingNode(locatorType, name=('%sShape' % nodeName), asLight=True)
-        shapeNames = cmds.listRelatives(lName, shapes=True)
+        shapeNames = cmds.listRelatives(lName, fullPath=True, shapes=True)
         return (shapeNames[0], lName)
 
     lNode = cmds.createNode('transform', name='%s' % nodeName)
@@ -536,7 +536,7 @@ def createMeshLight(legacy=False, centerPivot=True):
         cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
         return
     meshTransform = sls[0]
-    shs = cmds.listRelatives(meshTransform, type='mesh')
+    shs = cmds.listRelatives(meshTransform, fullPath=True, type='mesh')
     if shs is None or len(shs) == 0:
         cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
         return

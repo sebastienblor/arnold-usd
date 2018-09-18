@@ -397,7 +397,7 @@ def removeSubdivDicingCamera(field, doDelete, select):
         cmds.textField(field, edit=True, text="")
         cmds.symbolButton(select, edit=True, enable=False)
         if doDelete:
-            parent = cmds.listRelatives( 'cameraShape1', parent=True )
+            parent = cmds.listRelatives( 'cameraShape1', fullPath=True, parent=True )
             if parent and len(parent):
                 cmds.delete(parent)
     
