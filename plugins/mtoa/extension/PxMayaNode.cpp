@@ -390,6 +390,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
              if (drawdbClassification.numChars() == 0)
                  drawdbClassification = ":drawdb/shader/utility/math/arnold/clamp";
          }
+        else if (id == ARNOLD_NODEID_SHADER_FLAT)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/flat";
+         }
          else
          {
             creator    = CArnoldShaderNode::creator;

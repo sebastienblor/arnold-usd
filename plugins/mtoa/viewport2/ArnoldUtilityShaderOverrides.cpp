@@ -138,3 +138,8 @@ MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_C
 {
     return new ArnoldUtilityShaderOverride(obj, "aiClamp");
 }
+
+MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_Flat(const MObject& obj)
+{
+    return new ArnoldUtilityShaderOverride(obj, "aiFlat");
+}

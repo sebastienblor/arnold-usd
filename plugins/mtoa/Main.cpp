@@ -383,6 +383,10 @@ namespace // <anonymous>
            "drawdb/shader/utility/math/arnold/clamp",
            "arnoldAiClampShaderOverride",
            ArnoldUtilityShaderOverride::creator_Clamp
+       }, {
+           "drawdb/shader/surface/flat",
+           "arnoldAiFlatShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Flat
        }
    };
 
