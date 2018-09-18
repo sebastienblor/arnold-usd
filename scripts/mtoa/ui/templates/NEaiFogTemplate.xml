@@ -8,12 +8,17 @@
 		<attribute name='color' type='maya.float3'>
 			<label>Color</label>
 		</attribute>
+		<attribute name='distance' type='maya.float'>
+			<label>Distance</label>
+		</attribute>
+		<attribute name='height' type='maya.float'>
+			<label>Height</label>
+		</attribute>
 	</template>
 	<view name='NEDefault' template='NEaiFog'>
 		<property name='outColor'/>
 		<property name='color'/>
-	</view>
-	<view name='NEDefaultSoloOutput' template='NEaiFog'>
-		<property name='outColor'/>
+		<property name='distance'/>
+		<property name='height'/>
 	</view>
 </templates>
