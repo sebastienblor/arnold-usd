@@ -3,6 +3,7 @@ import mtoa.ui.ae.utils as aeUtils
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import maya.mel as mel
+from mtoa.ui.ae.utils import resolveFilePathSequence
 
 class AEaiImageTemplate(ShaderAETemplate):
     def filenameEdit(self, newFilename) :
@@ -84,6 +85,8 @@ class AEaiImageTemplate(ShaderAETemplate):
         
         self.beginLayout("Image Attributes", collapse=False)
         self.addCustom('filename', self.filenameNew, self.filenameReplace)
+        self.addControl('useFrameExtension', label='Use File Sequence', changeCommand=self.useSequenceChange)
+        self.addControl('frame')
         self.addControl("filter", label="Filter")
         
         self.addControl("mipmap_bias", label="Mipmap Bias")
@@ -128,3 +131,11 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addExtraControls()
         self.endScrollLayout()
 
+    def useSequenceChange(self, nodeName):
+
+        resolveFilePathSequence( nodeName,
+                                'useFrameExtension',
+                                'filename',
+                                'filenameImageGrp',
+                                'frame'
+                                )

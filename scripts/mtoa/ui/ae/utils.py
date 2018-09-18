@@ -282,7 +282,8 @@ def resolveFilePathSequence( nodeName,
     mNodeType = cmds.nodeType(nodeName)
     mPath = mOrigPath
     mExpression = ''
-
+    supportedImageFormats = ['bmp', 'cin', 'dds', 'dpx', 'hdr', 'iff', 'jpg', 'exr', 'png', 'psd', 'rla', 'sgi', 'tga', 'tif']
+    imageFormats = '.\\'+'|.\\'.join(supportedImageFormats)
     if useSequence:
         # check if something is connected to FrameNumber
         if not mu.hasAttrInputs(nodeName, frameAttribute):
@@ -294,7 +295,9 @@ def resolveFilePathSequence( nodeName,
             mExpression = '(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.vdb)$'
         elif mNodeType == 'aiStandIn':
             mExpression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
-        
+        elif mNodeType == 'aiImage':
+            mExpression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(%s)$' %(imageFormats)
+
         if re.search(mExpression,mPath) != None: # check if format is recognized
             m_groups = re.search(mExpression,mPath).groups()
             # Single file
@@ -334,7 +337,12 @@ def resolveFilePathSequence( nodeName,
 
             mPath = mPath[:startIndex] + frameStr + mPath[startIndex+hashCount:]
 
-
     if mPath != mOrigPath:
         cmds.setAttr(nodeName+'.%s' %(filenameAttribute), mPath, type='string')
-    cmds.textField(filenameTextField, edit=True, text=mPath)
+
+    # aiImage using a different text widget to aiStandIn and aiVolume
+    if mNodeType == 'aiImage':
+        cmds.textFieldGrp(filenameTextField, edit=True, text=mPath)
+    else:
+        cmds.textField(filenameTextField, edit=True, text=mPath)
+    

@@ -28,6 +28,8 @@
 #include <string>
 #include <fstream>
 
+#include <utils/MayaUtils.h>
+
 bool IsFloatAttrDefault(MPlug plug, float value)
 {
    if (plug.isNull())
@@ -2139,14 +2141,14 @@ void CAiImageTranslator::Export(AtNode* image)
 
    // keep the previous filename
    MString prevFilename = AiNodeGetStr(image, "filename").c_str();
+   prevFilename = resolveFilePathForSequences(prevFilename, FindMayaPlug("frame").asInt());
 
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)
    {
-      MString filename(AiNodeGetStr(image, "filename"));
-      filename = filename.expandEnvironmentVariablesAndTilde();
-      
-      options.FormatTexturePath(filename);
+        MString filename(AiNodeGetStr(image, "filename"));
+        filename = resolveFilePathForSequences(filename, FindMayaPlug("frame").asInt());
+        options.FormatTexturePath(filename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
 
@@ -2253,6 +2255,16 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.name = "workingSpace";
    data.shortName = "ws";
    helper.MakeInputString(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "useFrameExtension";
+   data.shortName = "useFrameExtension";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.FLT() = 0.f;
+   data.name = "frame";
+   data.shortName = "frame";
+   helper.MakeInputFloat(data);
 
 /* 
    // In case we need to have an attribute named imageName
