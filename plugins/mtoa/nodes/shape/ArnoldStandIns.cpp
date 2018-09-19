@@ -1,3 +1,4 @@
+
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/options/ArnoldOptionsNode.h"
@@ -260,7 +261,6 @@ MStatus CArnoldStandInShape::compute(const MPlug& plug, MDataBlock& data)
 MStatus CArnoldStandInShape::GetPointsFromAss()
 {
    MStatus status;
-
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
    
@@ -1108,6 +1108,7 @@ bool CArnoldStandInShape::deferStandinLoad()
 CArnoldStandInGeom* CArnoldStandInShape::geometry()
 {
    int tmpMode = fGeometry.mode;
+   int tmpDrawOverride = fGeometry.drawOverride;
 
    MString tmpFilename = fGeometry.filename;
    MString tmpDso = fGeometry.dso;
@@ -1256,23 +1257,24 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.filename = fGeometry.dso;
       }
    }
-   /*
-   if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale )
+   
+   // Check if something has changed that requires us to reload the .ass (or at least the bounding box)
+   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride))
    {
-      fGeometry.updateBBox = true;
-   }*/
-
-   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData))
-   {
-      //refresh bounding box
+      // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
+      // If we can't, we have to load the .ass file and compute it ourselves
       if (fGeometry.mode != 0 || !LoadBoundingBox())
       {
-         GetPointsFromAss();
+         MStatus load = GetPointsFromAss();
+         //if we cant load the geom, we force bounding box
+         if (load != MS::kSuccess && fGeometry.mode != 0)
+         {
+            plug.setAttribute(s_mode);
+            plug.setValue(0);
+         }
       }
-      
       MPoint bbMin = fGeometry.bbox.min();
       MPoint bbMax = fGeometry.bbox.max();
-      
       // If BBox has zero size, make it default size
       if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
       {
@@ -1286,6 +1288,12 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
+         // empty geometry, so set the mode to 0
+         if (fGeometry.mode != 0)
+         {
+            plug.setAttribute(s_mode);
+            plug.setValue(0);
+         }
       }
       else
       {
@@ -1304,99 +1312,6 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
       }
-      
-      fGeometry.updateView = true;
-   }
-
-   if (fGeometry.mode == 0 && fGeometry.mode != tmpMode)
-   {
-      // Try first to load bounding box size
-      if (!LoadBoundingBox())
-      {
-         MPoint bbMin = fGeometry.bbox.min();
-         MPoint bbMax = fGeometry.bbox.max();
-         
-         // If BBox has zero size, make it default size
-         if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
-         {
-            float3 m_value;
-            plug.setAttribute(s_boundingBoxMin);
-            GetPointPlugValue(plug, m_value);
-            fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-            plug.setAttribute(s_boundingBoxMax);
-            GetPointPlugValue(plug, m_value);
-            fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-
-            fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         }
-         else
-         {
-            float3 m_value;
-            m_value[0] = (float)bbMin.x;
-            m_value[1] = (float)bbMin.y;
-            m_value[2] = (float)bbMin.z;
-            plug.setAttribute(s_boundingBoxMin);
-            SetPointPlugValue(plug, m_value);
-            fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-            m_value[0] = (float)bbMax.x;
-            m_value[1] = (float)bbMax.y;
-            m_value[2] = (float)bbMax.z;
-            plug.setAttribute(s_boundingBoxMax);
-            SetPointPlugValue(plug, m_value);
-            fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-         }
-      }
-      fGeometry.updateView = true;
-   }
-   else if (fGeometry.mode != 0 && fGeometry.mode != tmpMode)
-   {
-      MStatus load = GetPointsFromAss();
-      //if we cant load the geom, we force bounding box
-      if (load != MS::kSuccess)
-      {
-         plug.setAttribute(s_mode);
-         plug.setValue(0);
-      }
-         
-      MPoint bbMin = fGeometry.bbox.min();
-      MPoint bbMax = fGeometry.bbox.max();
-      
-      // If BBox has zero size, make it default size and mode = 0
-      if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
-      {
-         float3 m_value;
-         plug.setAttribute(s_boundingBoxMin);
-         GetPointPlugValue(plug, m_value);
-         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         plug.setAttribute(s_boundingBoxMax);
-         GetPointPlugValue(plug, m_value);
-         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         plug.setAttribute(s_mode);
-         plug.setValue(0);
-      }
-      else
-      {
-         float3 m_value;
-         m_value[0] = (float)bbMin.x;
-         m_value[1] = (float)bbMin.y;
-         m_value[2] = (float)bbMin.z;
-         plug.setAttribute(s_boundingBoxMin);
-         SetPointPlugValue(plug, m_value);
-         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         m_value[0] = (float)bbMax.x;
-         m_value[1] = (float)bbMax.y;
-         m_value[2] = (float)bbMax.z;
-         plug.setAttribute(s_boundingBoxMax);
-         SetPointPlugValue(plug, m_value);
-         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-      }
-      
       fGeometry.updateView = true;
    }
 
