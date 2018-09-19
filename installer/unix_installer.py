@@ -303,7 +303,9 @@ for ex in exList:
         if not silent:
             print('Error adding +x to executable %s' % ex)
         sys.exit(0)
-subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
+
+# stop relying on pitreg
+#subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
 
 if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser(userString)
@@ -359,8 +361,12 @@ if installMode == 1: # do the proper installation
             shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
             shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
 
-    pitreg_result = os.system(os.path.join(installDir, 'pit', 'pitreg')) # register pit file
-    print pitreg_result
+
+    #pitreg_result = os.system(os.path.join(installDir, 'pit', 'pitreg')) # register pit file
+    #print pitreg_result
+
+    # stop relying on pitreg
+    pitreg_result = 0
 
     if int(pitreg_result) > 0:                
         os.system('clear')
