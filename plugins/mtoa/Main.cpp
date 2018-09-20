@@ -387,6 +387,10 @@ namespace // <anonymous>
            "drawdb/shader/surface/flat",
            "arnoldAiFlatShaderOverride",
            ArnoldUtilityShaderOverride::creator_Flat
+       }, {
+           "drawdb/shader/surface/mix",
+           "arnoldAiMixShaderOverride",
+           ArnoldUtilityShaderOverride::creator_Mix
        }
    };
 
