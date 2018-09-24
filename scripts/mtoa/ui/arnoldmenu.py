@@ -337,7 +337,12 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
     cmds.setParent( '..' )
     
     cmds.showWindow(w)
-    
+   
+def arnoldLicensingSignIn():
+    ai.AiLicenseClmSignIn()
+
+def arnoldLicensingLicenseManager():
+    ai.AiLicenseClmLicenseManager()  
         
 def arnoldLicensingGetMacAddress():
     if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
@@ -561,6 +566,10 @@ def createArnoldMenu():
 
         cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingSignIn())
+        cmds.menuItem('ArnoldLicensingLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingLicenseManager())
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
         cmds.menuItem('ArnoldGetDiagnostics', label='Diagnostics', parent='ArnoldLicensingMenu',
