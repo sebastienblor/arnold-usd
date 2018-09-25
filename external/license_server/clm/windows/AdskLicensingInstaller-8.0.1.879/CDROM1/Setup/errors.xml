@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<errors xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="./ errors.xsd">
+  <version>1.0.0.225</version>
+  <settings>
+    <downloadPath>https://emsfs.autodesk.com/utility/SolutionFramework/FY19/SolutionProvider.exe</downloadPath>
+    <!--The attribute to search for an error solution in the errors.xml
+     options are:
+     errorSignature = 1
+     errorCode = 2
+     errorCode and errorSignature = 3
+    -->
+    <searchOption>3</searchOption>
+    <productPropWeights>
+      <prodline>160</prodline>
+      <release>80</release>
+      <componentName>40</componentName>
+      <platform>20</platform>
+      <language>10</language>
+    </productPropWeights>
+  </settings>
+  <!--
+    Error Classes represent groups of errors. e.g Install errors, Download errors, Deployment errors.
+    origin is a type of component from where error is originated
+    -->
+  <!--<class id="ErrorClass" origin="">
+    <error id = "errorId" name="Error name" errorCode="" signature="" aknURL="">
+      <product prodline="" language=""  release="" />
+      -->
+  <!-- optional, by default applicable to all. -->
+  <!--
+      -->
+  <!-- For future use.. We may enhance to fix install errors. -->
+  <!--
+      <solution id="" ActionType="" ActionName = "" source = ""/>
+    </error>
+  </class>-->
+  <class id="EXE-Errors" originator="ThirdPartyEXE">
+    <error id="DotNet-5100" name=".NET Framework 4.7 Installation Failure" errorCode="5100" signature="" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/NET-Framework-4-7-Installation-Failure-Error-Code-5100.html">
+      <product componentName=".NET Framework Runtime 4.7"/>
+    </error>
+    <error id="vcRedist-1603" name="Microsoft Visual C++ 2017 Redistributable (x64)" errorCode="1603" signature="" aknURL="https://www.autodesk.com/install-visual-c-runtime-libraries">  
+      <product componentName="Microsoft Visual C++ 2017 Redistributable (x64)"/>
+      <product componentName="Microsoft Visual C++ 2017 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2012 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2012 Redistributable (x64)"/>
+      <product componentName="Microsoft Visual C++ 2015 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2015 Redistributable (x64)"/>
+      <product componentName="Microsoft Visual C++ 2010 SP1 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2010 SP1 Redistributable (x64)"/>
+      <product componentName="Microsoft Visual C++ 2008 SP1 Redistributable (x86) 9.0.30729.6161"/>
+      <product componentName="Microsoft Visual C++ 2008 SP1 Redistributable (x64) 9.0.30729.6161"/>
+      <product componentName="Microsoft Visual C++ 2008 SP1 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2008 SP1 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2005 SP1 Redistributable ATL Security Update (x86)"/>
+      <product componentName="Microsoft Visual C++ 2005 SP1 Redistributable ATL Security Update (x64)"/>
+      <product componentName="Microsoft Visual C++ 2005 Redistributable (x86)"/>
+      <product componentName="Microsoft Visual C++ 2005 Redistributable (x64)"/>
+    </error>
+  </class>
+  <class id="MSI-Errors" originator="WindowsInstaller">
+    <error id="MissingFile" name="Missing File Error" errorCode="1603" signature="Error 1309. Error reading from file:" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Error-1309-Error-reading-from-file-during-installation.html">
+    </error>
+    <error id="SECUREREPAIR" name="Secure Repair (SECREPAIR) Failure" errorCode="1603" signature="SECUREREPAIR: Failed to CreateContentHash of the file:" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Install-Failure-Error-997-Overlapped-I-O-operation-is-in-progress.html">
+    </error>
+    <error id="SECUREREPAIR" name="SecRepair redirect" errorCode="1603" signature="SECREPAIR: Failed to create hash for the install source files" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Install-Failure-Error-997-Overlapped-I-O-operation-is-in-progress.html">
+      <product prodline="" language="" release="" componentName=""/>
+    </error>
+    <error id="OverlappedIO" name="SecRepair Overlapped IO Redirect" errorCode="1603" signature="Error 997. Overlapped I/O operation is in progress." aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Install-Failure-Error-997-Overlapped-I-O-operation-is-in-progress.html">
+    </error>
+    <error id="1706-NoValidSource" name="Unable to resolve source" errorCode="1603" signature="Error 1706. No valid source could be found for" aknURL="https://knowledge.autodesk.com/support/autocad-civil-3d/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-1706-Installing-Civil-3D-2008-Service-Pack-2-on-Windows-Vista.html">
+    </error>
+    <error id="1638" name="Another version already installed" errorCode="1638" signature="Another version of this product is already installed" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Autodesk-installer-says-the-product-is-already-installed.html">
+    </error>
+    <error id="dllreqerror1723" name="Error 1723 DLL required" errorCode="1603" signature="Error 1723. There is a problem with this Windows Installer package. A DLL required for this install to complete could not be run" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Error-1723-A-DLL-required-for-the-install-to-complete-cannot-be-found.html">
+    </error>	
+	<error id="internalerror2337-0" name="Internal Error 2337" errorCode="1603" signature="Internal Error 2337. 0, Ac32BitAppServer.dll" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Internal-Error-2337-0-Ac32BitAppServer-dll.html">
+    </error>
+    <error id="Revit_2017_1601" name="1601 for Revit 2017" errorCode="1601" signature="MainEngineThread is returning 1601" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-1601-installing-Revit-or-Revit-LT-2017-or-other-Autodesk-products.html">
+      <product prodline="RVT" release="2017" componentName=""/>
+    </error>
+    <error id="Revit_2018_1601" name="1601 for Revit 2018" errorCode="1601" signature="MainEngineThread is returning 1601" aknURL="https://knowledge.autodesk.com/support/revit-products/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-1601-installing-Revit-or-Revit-LT-2018.html">
+      <product prodline="RVT" release="2018" componentName=""/>
+    </error>
+	<error id="1327 Invalid Drive" name="Error 1327 Invalid Drive" errorCode="1603" signature="Error 1327. Invalid Drive" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Error-1327-Invalid-Drive-when-starting-install.html">
+    </error>
+	<error id="Error 1935" name="Error 1935" errorCode="1603" signature="Error 1935. An error occurred during the installation of assembly" aknURL="https://knowledge.autodesk.com/search?search=error%201935&amp;sort=score">
+    </error>	
+	<error id="Error 1638" name="1638:Product is already installed" errorCode="1638" signature="MainEngineThread is returning 1638" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Installation-error-A-newer-version-of-this-product-is-already-installed-error-code-1603-or-the-product-is-already-installed-error-code-1638.html">
+    </error>	
+	<error id="Error 1603:NewerVersionAlreadyInstalled" name="1603:newer version already installed" errorCode="1603" signature="A newer version of this software is already installed" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Installation-error-A-newer-version-of-this-product-is-already-installed-error-code-1603-or-the-product-is-already-installed-error-code-1638.html">
+    </error>
+	<error id="Error 1603:NewerVersionAlreadyInstalled" name="1603:newer version already installed" errorCode="1603" signature="A newer version of this software is already installed" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Installation-error-A-newer-version-of-this-product-is-already-installed-error-code-1603-or-the-product-is-already-installed-error-code-1638.html">
+	</error>
+	<error id="Error 1402:CouldNotOpenKey" name="1402:Could not open key" errorCode="1603" signature="Error 1402. Could not open key" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-1402-or-1406-During-Installation.html">
+    </error>
+	<error id="Error 1308:SourceFileNotFound" name="1308:Source file not found" errorCode="1603" signature="Error 1308. Source file not found" aknURL="https://knowledge.autodesk.com/article/File-not-found-during-installation-error-code-1308-or-1311">
+    </error>
+	<error id="Error 1311:CannotLocateFile" name="1311:Cannot Locate Source File" errorCode="1603" signature="Error 1311. cannot locate source file" aknURL="https://knowledge.autodesk.com/article/File-not-found-during-installation-error-code-1308-or-1311">
+    </error>
+	<error id="CustomActionUnzipZipFiles" name="CustomAction UnzipZipFiles Returned 1603" errorCode="1603" signature="CustomAction UnzipZipFiles returned actual error code 1603" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/CustomAction-UnzipZipFiles-error-code-1603.html">
+    </error>
+	<error id="ErrorWritingToFile" name="1310:Error writing to file" errorCode="1603" signature="Error 1310. Error writing to file" aknURL="https://knowledge.autodesk.com/support/inventor-products/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-1310-Error-writing-to-file-Verify-that-you-have-access-to-that-directory-during-Inventor-2018-installation.html">
+    </error>	
+	<error id="InvalidCharInFolderPath" name="1324:Invalid Char in Folder Path" errorCode="1603" signature="Error 1324. The folder path" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-1324-The-folder-path-path-name-contains-an-invalid-character.html">
+    </error> 
+	<error id="MaterialLibraryAlreadyInstalled" name="Material Library Already Installed" errorCode="1603" signature="A newer version of Autodesk Material Library" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Installation-error-A-newer-version-of-Material-Library-is-already-installed-error-code-1603.html">
+    </error> 
+  </class>
+  <class id="Install-Framework-Errors" originator="InstallFramework">
+    <error id="incompleteInstall" name="Some products failed to install" errorCode="" signature="Installation complete. Some products failed to install" aknURL="https://knowledge.autodesk.com/search-result/caas/sfdcarticles/sfdcarticles/Install-complete-Some-Products-Failed-to-Install.html">
+    </error>
+    <error id="installFailed" name="Product Already Installed" errorCode="" signature="Product Already Installed" aknURL="https://knowledge.autodesk.com/customer-service/download-install/remove-products/using-microsoft-fixit">
+    </error>
+    <error id="IFAlliedProduct" name="Allied product not found" errorCode="1603" signature="Allied product is not found" aknURL="https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Error-when-installing-Autodesk-Products-Allied-products-not-found.html">
+    </error>
+  </class>
+</errors>
