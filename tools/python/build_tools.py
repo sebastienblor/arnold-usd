@@ -28,7 +28,7 @@ def find_in_path(file):
    path = string.split(path, os.pathsep)
    return filter(os.path.exists, map(lambda dir, file=file: os.path.join(dir, file), path))
 
-def find_files_recursive(path, valid_extensions):
+def find_files_recursive(path, valid_extensions = None):
    '''
    Returns a list of all files with an extension from the 'valid_extensions' list
    '''
@@ -38,7 +38,7 @@ def find_files_recursive(path, valid_extensions):
       if '.svn' in dirs:
          dirs.remove('.svn')
       for f in files:
-         if os.path.splitext(f)[1] in valid_extensions:
+         if (valid_extensions == None) or os.path.splitext(f)[1] in valid_extensions:
             # Build the absolute path and then remove the root path, to get the relative path from root
             file = os.path.join(root, f)[len(path) + 1:]
             list += [file]
