@@ -341,6 +341,9 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
 def arnoldLicensingSignIn():
     ai.AiLicenseClmSignIn()
 
+def arnoldLicensingSignOut():
+    ai.AiLicenseClmSignOut()
+
 def arnoldLicensingLicenseManager():
     ai.AiLicenseClmLicenseManager()  
         
@@ -568,6 +571,8 @@ def createArnoldMenu():
                     subMenu=True, tearOff=True)
         cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingSignIn())
+        cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingSignOut())
         cmds.menuItem('ArnoldLicensingLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingLicenseManager())
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
