@@ -11,7 +11,7 @@ install_rpm()
 
     rpm -q "$filename"
     if [ $? -ne 0 ]; then
-        rpm -ivh "$SCRIPT_DIR/x86_64/$filename.rpm"
+        rpm -Uvh "$SCRIPT_DIR/x86_64/$filename.rpm"
         errcode=$?
         if [ $errcode -ne 0 ]; then
             echo "[ERROR] Failed to install $name ($errcode)"
@@ -41,4 +41,7 @@ if [ $errcode -ne 0 ]; then
 else
     echo "Arnold product registration done"
 fi
+
+# successful install
+echo "OK" > "$SCRIPT_DIR/.success"
 
