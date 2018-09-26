@@ -1379,6 +1379,8 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'install.sh')])
+        
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
                 
         #subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'pit', 'pitreg')])
@@ -1394,18 +1396,15 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
-        '''
-        Stop relying on pitreg as it's not distributed anymore
-        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
+        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-        pitregCommand = "  $2/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
+        pitregCommand = "  $2/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('else\n')
-        pitregCommand = "  $3/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
+        pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('fi\n')
-        '''
         pitregScript.write('\n')
         pitregScript.close()
 
