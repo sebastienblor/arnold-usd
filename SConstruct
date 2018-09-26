@@ -1212,7 +1212,7 @@ clmfiles = find_files_recursive(clm_utils_path)
 for clmfile in clmfiles:
     PACKAGE_FILES.append([os.path.join(clm_utils_path, clmfile), os.path.join('license', os.path.dirname(clmfile))])
 
-#PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
+PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
 if env['ENABLE_VP2'] == 1:
     vp2shaders = GetViewportShaders(maya_version)
