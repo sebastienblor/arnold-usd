@@ -1159,6 +1159,7 @@ PACKAGE_FILES = [
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.png'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 #[os.path.join(ARNOLD_BINARIES, '*.pit'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
