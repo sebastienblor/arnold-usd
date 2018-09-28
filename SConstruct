@@ -1207,11 +1207,7 @@ nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os(
 clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os())
 PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
 PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
-#PACKAGE_FILES.append([os.path.join(clm_utils_path, '*'), 'license'])
-
-clmfiles = find_files_recursive(clm_utils_path)
-for clmfile in clmfiles:
-    PACKAGE_FILES.append([os.path.join(clm_utils_path, clmfile), os.path.join('license', os.path.dirname(clmfile))])
+PACKAGE_FILES.append([os.path.join(clm_utils_path, '*'), 'license'])
 
 PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
@@ -1397,6 +1393,7 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
+        '''
         pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
@@ -1406,6 +1403,7 @@ def create_installer(target, source, env):
         pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('fi\n')
+        '''
         pitregScript.write('\n')
         pitregScript.close()
 
