@@ -562,8 +562,8 @@ def createMeshLight(legacy=False, centerPivot=True):
 
         cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
 
-        cmds.parent(lightTransform, meshTransform, relative=True)
-        
+        p = cmds.parent(lightTransform, meshTransform, relative=True)
+        lightShape = cmds.listRelatives(p[0], shapes=True, fullPath=True)[0]
         # Hide the original mesh using the visibility attribute
         # We previously used lodVisibility to keep the dirtiness propagation enabled,
         # but I can't manage to find a situation that fails. So we're now using visibility
