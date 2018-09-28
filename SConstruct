@@ -1376,7 +1376,7 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'install.sh')])
+        #subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'install.sh')])
         
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
                 
@@ -1393,19 +1393,26 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
-        '''
-        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
+        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC4-darwin.dmg\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-        pitregCommand = "  $2/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
+        pitregCommand = "  hdiutil attach $2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC4-darwin.dmg\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('else\n')
-        pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/install.sh\n" % maya_version
+        pitregCommand = "  hdiutil attach $3/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC4-darwin.dmg\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('fi\n')
-        '''
+        pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC4-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.951_RC4-darwin --silent\n"
+        pitregScript.write(pitregCommand)
+        pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
+        pitregScript.write(pitregCommand)        
         pitregScript.write('\n')
         pitregScript.close()
+
+        pitregScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
+        pitregScript.write('#!/usr/bin/env bash\n')
+        pitregScript.close()
+
 
         signed_extensions = ['.dylib', '.pkg', '.exe', '.bundle']
         excluded_files = [] #['libOpenColorIO.1.dylib']

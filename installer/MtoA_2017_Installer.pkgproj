@@ -677,7 +677,7 @@
 				<key>POSTINSTALL_PATH</key>
 				<dict>
 					<key>PATH</key>
-					<string>pitreg_script.sh</string>
+					<string>empty_script.sh</string>
 					<key>PATH_TYPE</key>
 					<integer>1</integer>
 				</dict>
