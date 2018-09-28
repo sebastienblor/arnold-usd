@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<templates>
+	<using package='maya'/>
+	<template name='NEaiRoundedCorners'>
+		<attribute name='outColor' type='maya.float3'>
+			<label>Out Color</label>
+		</attribute>
+	</template>
+	<view name='NEDefault' template='NEaiRoundedCorners'>
+		<property name='outColor'/>
+		
+	</view>
+	<view name='NEDefaultSoloOutput' template='NEaiRoundedCorners'>
+		<property name='outColor'/>
+	</view>
+</templates>
