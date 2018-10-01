@@ -1,7 +1,7 @@
 import maya.mel
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-class AEaiRoundedCornersTemplate(ShaderAETemplate):
+class AEaiRoundCornersTemplate(ShaderAETemplate):
     def setup(self):
         self.beginScrollLayout()
         

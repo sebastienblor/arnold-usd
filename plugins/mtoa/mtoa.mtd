@@ -3322,7 +3322,7 @@ desc STRING "Apply a gamma correction to the color."
     [attr aov_rim_light]
         aov.type        INT     0x05
 
-[node rounded_corners]
+[node round_corners]
     maya.id                 INT     0x00115D0C
     maya.classification     STRING  "utility/shader"
     maya.id                 INT     0x00115DA2
