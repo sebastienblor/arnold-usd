@@ -569,12 +569,12 @@ def createArnoldMenu():
 
         cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
+        cmds.menuItem('ArnoldLicensingLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
+                    c=lambda *args: arnoldLicensingLicenseManager())
         cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingSignIn())
         cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingSignOut())
-        cmds.menuItem('ArnoldLicensingLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingLicenseManager())
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
         cmds.menuItem('ArnoldGetDiagnostics', label='Diagnostics', parent='ArnoldLicensingMenu',
