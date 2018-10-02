@@ -1393,16 +1393,16 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
-        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC5-darwin.dmg\n" % maya_version
+        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC6-darwin.dmg\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-        pitregCommand = "  hdiutil attach $2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC5-darwin.dmg\n" % maya_version
+        pitregCommand = "  hdiutil attach $2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC6-darwin.dmg\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('else\n')
-        pitregCommand = "  hdiutil attach $3/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC5-darwin.dmg\n" % maya_version
+        pitregCommand = "  hdiutil attach $3/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.951_RC6-darwin.dmg\n" % maya_version
         pitregScript.write(pitregCommand)
         pitregScript.write('fi\n')
-        pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC5-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.951_RC5-darwin --silent\n"
+        pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.951_RC6-darwin --silent\n"
         pitregScript.write(pitregCommand)
         pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
         pitregScript.write(pitregCommand)        

@@ -567,14 +567,8 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
 
-        cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
+        cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
-        cmds.menuItem('ArnoldLicensingLicenseManager', label='License Manager', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingLicenseManager())
-        cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingSignIn())
-        cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldLicensingMenu',
-                    c=lambda *args: arnoldLicensingSignOut())
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
         cmds.menuItem('ArnoldGetDiagnostics', label='Diagnostics', parent='ArnoldLicensingMenu',
@@ -645,3 +639,12 @@ def createArnoldMenu():
                     
         cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())
+        cmds.menuItem(divider=1, parent='ArnoldMenu')
+
+        cmds.menuItem('ArnoldLicensingLicenseManager', label='Manage License...', parent='ArnoldMenu',
+                    c=lambda *args: arnoldLicensingLicenseManager())
+        cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
+                    c=lambda *args: arnoldLicensingSignIn())
+        cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
+                    c=lambda *args: arnoldLicensingSignOut())
+        
