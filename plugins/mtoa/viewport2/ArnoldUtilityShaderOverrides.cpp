@@ -143,3 +143,8 @@ MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_F
 {
     return new ArnoldUtilityShaderOverride(obj, "aiFlat");
 }
+
+MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_Mix(const MObject& obj)
+{
+    return new ArnoldUtilityShaderOverride(obj, "aiMixShader");
+}

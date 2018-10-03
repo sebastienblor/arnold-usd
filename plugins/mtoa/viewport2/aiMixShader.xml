@@ -1,0 +1,94 @@
+<!--
+===========================================================================
+Copyright 2018 Autodesk, Inc. All rights reserved.
+
+Use of this software is subject to the terms of the Autodesk license
+agreement provided at the time of installation or download, or which
+otherwise accompanies this software in either electronic or hard copy form.
+===========================================================================
+-->
+<fragment  uiName="aiMixShader" name="aiMixShader" type="plumbing" class="ShadeFragment" version="1.0" feature_level="20" >
+  <description>
+    <![CDATA[Mix 2 arnold shaders]]>
+  </description>
+  <keyword value="arnold" />
+  <properties>
+    <int     name="mode" />
+    <float   name="mix" />
+    <float3  name="shader1" />
+    <float3  name="shader2" />
+  </properties>
+  <values>
+  </values>
+  <outputs>
+    <float3  name="outColor" />
+  </outputs>
+  <implementation  >
+    <implementation  render="OGSRenderer" language="Cg" lang_version="2.100000" >
+      <function_name val="aiMixShader" />
+      <source>
+        <![CDATA[
+float3 aiMixShader(int mode, float mix, float3 shader1, float3 shader2)
+{
+    if (mode == 0)
+    {
+        float negmix = 1.0f - mix;
+        shader1 *= negmix;
+        shader2 *= mix;
+        return shader1 + shader2 ;
+
+    }
+    else
+    {
+        return shader1 + shader2 ;
+    }
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="HLSL" lang_version="11.000000" >
+      <function_name val="aiMixShader" />
+      <source>
+        <![CDATA[
+float3 aiMixShader(int mode, float mix, float3 shader1, float3 shader2)
+{
+    if (mode == 0)
+    {
+        float negmix = 1.0f - mix;
+        shader1 *= negmix;
+        shader2 *= mix;
+        return shader1 + shader2 ;
+
+    }
+    else
+    {
+        return shader1 + shader2 ;
+    }
+}
+            ]]>
+      </source>
+    </implementation>
+    <implementation  render="OGSRenderer" language="GLSL" lang_version="3.000000" >
+      <function_name val="aiMixShader" />
+      <source>
+        <![CDATA[
+vec3 aiMixShader(int mode, float mix, vec3 shader1, vec3 shader2)
+{
+    if (mode == 0)
+    {
+        float negmix = 1.0f - mix;
+        shader1 *= negmix;
+        shader2 *= mix;
+        return shader1 + shader2 ;
+
+    }
+    else
+    {
+        return shader1 + shader2 ;
+    }
+}
+            ]]>
+      </source>
+    </implementation>
+  </implementation>
+</fragment>
