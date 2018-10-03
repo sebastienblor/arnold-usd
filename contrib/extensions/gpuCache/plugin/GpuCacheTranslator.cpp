@@ -55,6 +55,16 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
    data.defaultValue.BOOL() = false;
+   data.name = "aiOverrideFrame";
+   data.shortName = "aiOverrideFrame";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.FLT() = 0.0f;
+   data.name = "aiFrame";
+   data.shortName = "aiFrame";
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.BOOL() = false;
    data.name = "aiPullUserParams";
    data.shortName = "apup";
    helper.MakeInputBoolean(data);
@@ -166,7 +176,11 @@ void CGpuCacheTranslator::Export( AtNode *shape )
       ExportShaders();
 
    MTime curTime = MAnimControl::currentTime();
-   AiNodeSetFlt(shape, "frame", float(curTime.value()));
+
+   if (FindMayaPlug("aiOverrideFrame").asBool())
+      AiNodeSetFlt(shape, "frame", float(FindMayaPlug("aiFrame").asFloat()));
+   else
+      AiNodeSetFlt(shape, "frame", float(curTime.value()));
 
    float fps = 24.0f;
    MTime::Unit unit = curTime.unit();

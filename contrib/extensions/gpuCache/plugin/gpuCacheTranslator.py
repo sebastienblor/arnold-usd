@@ -347,6 +347,33 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         else:
             self.user_attrs[nodeParamName]['value'] = value
 
+    def overridesChanged(self, nodeAttr, control, *args):
+
+        enabled = bool(cmds.getAttr(nodeAttr))
+        cmds.attrControlGrp(control, edit=True, enable=enabled)
+
+    def overrideFrameNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+
+        self.aiOverrideFrameCtrl = cmds.attrControlGrp('aiOverrideFrameCtrl', label="Override Frame",
+                                                       attribute='.'.join([self.nodeName, 'aiOverrideFrame']))
+        self.aiFrameCtrl = cmds.attrControlGrp("aiFrameCtrl", label=" Arnold Frame",
+                                               annotation="Set the frame number that is rendered, affects Arnold only, not viewport",
+                                               attribute='.'.join([self.nodeName, 'aiFrame']))
+
+        cmds.setUITemplate(ppt=True)
+
+        self.overrideFrameReplace(nodeAttr)
+
+    def overrideFrameReplace(self, nodeAttr):
+
+        cmds.attrControlGrp(self.aiOverrideFrameCtrl, edit=True,
+                            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideFrame']), self.aiFrameCtrl, *args),
+                            attribute='.'.join([self.nodeName, 'aiOverrideFrame']))
+        cmds.attrControlGrp(self.aiFrameCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiFrame']),
+                            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideFrame']))))
+
     def setup(self):
         self.abcInfoPath = ''
         self.inspectAlembicPath = ''
@@ -365,6 +392,8 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         self.addControl("aiVelocityIgnore", label="Velocity Ignore", annotation='Ignore Velocity attributes on geometry')
         self.addControl("aiVelocityScale", label="Velocity Scale", annotation='Scale the velocity')
+        self.addSeparator()
+        self.addCustom("aiOverrideFrame", self.overrideFrameNew, self.overrideFrameReplace)
         self.addSeparator()
 
         self.addControl("aiRadiusAttribute", label="Radius Attribute", annotation='Set the attribute to read for getting the width/radius of points/curves')
