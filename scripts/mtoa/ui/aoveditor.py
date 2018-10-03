@@ -949,6 +949,7 @@ def createArnoldAOVTab():
     updateAovShaders()
 
     cmds.setParent('..')
+    platformName = sys.platform    
     
     if not platformName.startswith('darwin'):
         denoiserFrame = cmds.frameLayout('denoiserFrame', label='Denoiser', width=WIDTH,
