@@ -1130,6 +1130,33 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.setParent('..') # frameLayout
         cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
+    def overridesChanged(self, nodeAttr, control, *args):
+
+        enabled = bool(cmds.getAttr(nodeAttr))
+        cmds.attrControlGrp(control, edit=True, enable=enabled)
+
+    def overrideFrameNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+
+        self.aiOverrideFrameCtrl = cmds.attrControlGrp('aiOverrideFrameCtrl', label="Override Frame",
+                                                       attribute='.'.join([self.nodeName, 'aiOverrideFrame']))
+        self.aiFrameCtrl = cmds.attrControlGrp("aiFrameCtrl", label=" Arnold Frame",
+                                               annotation="Set the frame number that is rendered, affects Arnold only, not viewport",
+                                               attribute='.'.join([self.nodeName, 'aiFrame']))
+
+        cmds.setUITemplate(ppt=True)
+
+        self.overrideFrameReplace(nodeAttr)
+
+    def overrideFrameReplace(self, nodeAttr):
+
+        cmds.attrControlGrp(self.aiOverrideFrameCtrl, edit=True,
+                            changeCommand=lambda *args: self.overridesChanged('.'.join([self.nodeName, 'aiOverrideFrame']), self.aiFrameCtrl, *args),
+                            attribute='.'.join([self.nodeName, 'aiOverrideFrame']))
+        cmds.attrControlGrp(self.aiFrameCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiFrame']),
+                            enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideFrame']))))
+
     def setup(self):
         self.abcInfoPath = ''
         self.inspectAlembicPath = ''
