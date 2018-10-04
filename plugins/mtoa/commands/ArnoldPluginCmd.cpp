@@ -30,6 +30,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("llx", "listLoadedExtensions", MSyntax::kNoArg);
    syntax.addFlag("gev", "getExtensionApiVersion", MSyntax::kString);
    syntax.addFlag("gbi", "getBuildID", MSyntax::kNoArg);
+   syntax.addFlag("gcv", "getClmVersion", MSyntax::kNoArg);
 
 
    return syntax;
@@ -202,6 +203,15 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    else if(args.isFlagSet("getBuildID"))
    {
       setResult(MString(BUILD_ID));
+   }
+   else if(args.isFlagSet("getClmVersion"))
+   {
+#ifdef CLIC_V1
+      setResult(MString("1"));
+#endif
+#ifdef CLIC_V2
+      setResult(MString("2"));
+#endif
    }
 
    // FIXME: error on unknown flag

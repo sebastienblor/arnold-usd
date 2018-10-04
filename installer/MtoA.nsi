@@ -181,7 +181,35 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     ${EndIf}
 
     ; run the install script
-    ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.951_RC6-win.exe --silent'
+
+    StrCpy $R3 "$INSTDIR\license\ArnoldLicensing-8.1.0.951_RC6-win.exe"
+    ${If} ${FileExists} "$R3"
+      ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.951_RC6-win.exe --silent'
+    ${EndIf}
+    
+
+    StrCpy $R4 "$INSTDIR\license\pitreg.exe"
+    ${If} ${FileExists} "$R4"
+        ExecWait '"$INSTDIR\license\pitreg.exe"' $0
+        StrCpy $R3 "Error $0"
+        ${If} "$0" == "2"
+           StrCpy $R3 "File could not be opened"
+        ${ElseIf} "$0" == "24"
+          StrCpy $R3 "File not found"
+        ${ElseIf} "$0" == "25"
+          StrCpy $R3 "Error while parsing .pit file"
+        ${ElseIf} "$0" == "27"
+          StrCpy $R3 "Invalid PIT File"
+        ${ElseIf} "$0" == "32"
+          StrCpy $R3 "Unable to set write access for all user in Linux and MAC"
+        ${EndIf}    
+
+        ${If} "$0" > "0"
+          MessageBox MB_TOPMOST|MB_OK  \
+            "Couldn't register Arnold renderer in Maya PIT file ($R3). Please contact support@solidangle.com"
+        ${EndIf}
+    ${EndIf}
+
      
 SectionEnd
 

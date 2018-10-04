@@ -303,7 +303,8 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
     arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID
-    arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())+"\n\n"
+    arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
+    arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
     arnoldAboutText += u"Copyright (c) 2001-2009 Marcos Fajardo and\nCopyright (c) 2009-2016 Solid Angle  S.L.\nAll rights reserved\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant"
