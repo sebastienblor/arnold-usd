@@ -53,6 +53,8 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = false;
    data.name = "aiRenderCurve";
    data.shortName = "rcurve";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.FLT() = 0.01f;
@@ -62,6 +64,8 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.min.FLT() = 0.0f;
    data.hasSoftMax = true;
    data.softMax.FLT() = 1.0f;
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputFloat(data);
 
    data.defaultValue.INT() = 5;
@@ -70,6 +74,8 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.hasMin = true;
    data.min.INT() = 1;
    data.softMax.INT() = 20;
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputInt(data);
 
    data.hasSoftMax = false;
@@ -77,6 +83,8 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiCurveShader";
    data.shortName = "ai_curve_shader";
    data.hasMin = false;
+   data.channelBox = false;
+   data.keyable = false;
    data.defaultValue.RGB() = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
 

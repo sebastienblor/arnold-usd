@@ -56,6 +56,8 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = false;
    data.name = "aiExportParticleIDs";
    data.shortName = "ai_export_particle_ids";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.STR() = AtString("");

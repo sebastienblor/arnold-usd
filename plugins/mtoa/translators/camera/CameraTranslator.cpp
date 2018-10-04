@@ -372,6 +372,8 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
    data.defaultValue.BOOL() = true;
    data.name = "aiUseGlobalShutter";
    data.shortName = "ai_ugs";
+   data.keyable = false;
+   data.channelBox = false;
    helper.MakeInputBoolean(data);
 }
 
@@ -389,6 +391,8 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    data.defaultValue.BOOL() = false;
    data.name = "aiEnableDOF";
    data.shortName = "ai_edof";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 }
 

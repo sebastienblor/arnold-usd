@@ -586,6 +586,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
                CAttrData data;
                data.name = "aiTranslator";
                data.shortName = "ai_translator";
+               data.keyable = false;
+               data.channelBox = false;
                helper.MakeInputString(data);
             } 
             else

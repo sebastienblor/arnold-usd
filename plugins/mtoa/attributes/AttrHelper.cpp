@@ -1235,6 +1235,8 @@ void CExtensionAttrHelper::AddCommonAttributes()
    data.name = "aiUserOptions";
    data.shortName = "ai_user_options";
    data.stringDefault = "";
+   data.keyable = false;
+   data.channelBox = false;
    MakeInputString(data);
 }
 

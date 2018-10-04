@@ -17,6 +17,9 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.softMax.FLT() = 2.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
+   data.channelBox = false;
+   data.keyable = false;       
+
    helper.MakeInputFloat(data);
    
    data.hasSoftMax = false;

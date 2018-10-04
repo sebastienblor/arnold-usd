@@ -106,6 +106,8 @@ MStatus CArnoldCurveCollector::initialize()
    data.stringDefault = "";
    data.name = "aiTraceSets";
    data.shortName = "trace_sets";
+   data.keyable = false;
+   data.channelBox = false;
    data.type = AI_TYPE_STRING;   
    s_attributes.MakeInput(data);
    
@@ -113,6 +115,8 @@ MStatus CArnoldCurveCollector::initialize()
    data.name = "aiSssSetname";
    data.shortName = "ai_sss_setname";
    data.type = AI_TYPE_STRING;
+   data.keyable = false;
+   data.channelBox = false;
    s_attributes.MakeInput(data);
 
 
@@ -120,6 +124,8 @@ MStatus CArnoldCurveCollector::initialize()
    data.name = "aiUserOptions";
    data.shortName = "user_options";
    data.type = AI_TYPE_STRING;   
+   data.keyable = false;
+   data.channelBox = false;
    s_attributes.MakeInput(data);
 
    MRampAttribute rAttr;

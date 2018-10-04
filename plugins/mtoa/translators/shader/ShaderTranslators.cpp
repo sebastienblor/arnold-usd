@@ -641,6 +641,8 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
 
    data.defaultValue.INT() = 0;
@@ -665,6 +667,8 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiFlipR";
    data.shortName = "flip_r";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
    
    data.name = "aiFlipG";
@@ -1394,6 +1398,8 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiUseReferenceObject";
    data.shortName = "ai_use_reference_object";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
 }
 
@@ -1451,6 +1457,8 @@ void CRampTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiCurveImplicitUvs";
    data.shortName = "ai_curve_implicit_uvs";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
 }
 
@@ -1810,6 +1818,8 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.defaultValue.FLT() = 0.f;
    data.name = "aiDisplacementPadding";
    data.shortName = "ai_displacement_padding";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputFloat(data);
    
    data.defaultValue.FLT() = 0.f;
