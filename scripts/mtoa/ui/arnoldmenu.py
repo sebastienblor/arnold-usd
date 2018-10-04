@@ -642,10 +642,12 @@ def createArnoldMenu():
                     c=lambda *args: arnoldAboutDialog())
         cmds.menuItem(divider=1, parent='ArnoldMenu')
 
-        cmds.menuItem('ArnoldLicensingLicenseManager', label='Manage License...', parent='ArnoldMenu',
-                    c=lambda *args: arnoldLicensingLicenseManager())
-        cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
-                    c=lambda *args: arnoldLicensingSignIn())
-        cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
-                    c=lambda *args: arnoldLicensingSignOut())
-        
+        clmVersion = cmds.arnoldPlugins(getClmVersion=True)
+        if int(clmVersion) > 1:
+            cmds.menuItem('ArnoldLicensingLicenseManager', label='Manage License...', parent='ArnoldMenu',
+                        c=lambda *args: arnoldLicensingLicenseManager())
+            cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
+                        c=lambda *args: arnoldLicensingSignIn())
+            cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
+                        c=lambda *args: arnoldLicensingSignOut())
+            
