@@ -390,11 +390,11 @@ class AOVItem(object):
         # all new output starts with the default driver/filter nodes
         driverNode = 'defaultArnoldDriver'
         filterNode = 'defaultArnoldFilter'
-        outputAttr = '{}.outputs'.format(self.aov)
+        outputAttr = '{}.outputs'.format(self.aov.node)
         outputAttr = '{}[{}]'.format(outputAttr, melUtils.getAttrNumElements(*outputAttr.split('.', 1)))
 
-        cmds.connectAttr('{}.message'.format(driverNode), '{}.driver'.fornat(outputAttr))
-        cmds.connectAttr('{}.message'.format(filterNode), '{}.filter'.fornat(outputAttr))
+        cmds.connectAttr('{}.message'.format(driverNode), '{}.driver'.format(outputAttr))
+        cmds.connectAttr('{}.message'.format(filterNode), '{}.filter'.format(outputAttr))
         outputRow = AOVOutputItem(self.outputColumn, outputAttr, self)
         self.outputs.append(outputRow)
         self.outputsChanged = True
