@@ -7,10 +7,10 @@ class AEaiRoundCornersTemplate(ShaderAETemplate):
         
         self.addControl('samples')
         self.addControl('radius')
-        self.addControl('normal')
         self.addControl('traceSet')
         self.addControl('inclusive')
         self.addControl('selfOnly')
+        self.addControl('normal', label='Normal Map')
         
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
         

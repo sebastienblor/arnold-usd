@@ -185,6 +185,14 @@ private:
    MString m_colorSpace;
 };
 
+class CAiRoundCornersTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiRoundCornersTranslator();}
+
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
+
 class CAiRaySwitchTranslator : public CShaderTranslator{
 public:
    static void* creator(){return new CAiRaySwitchTranslator();}

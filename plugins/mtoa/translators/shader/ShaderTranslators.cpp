@@ -689,7 +689,24 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   MPlug plug = FindMayaPlug("bumpInterp");
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("bumpValue");
+   if (!plug.isNull())
+   {
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         MObject mayaNode = connections[0].node();
+         if (!mayaNode.isNull())
+         {
+            MString typeName = MFnDependencyNode(mayaNode).typeName();
+            if (typeName == "aiRoundCorners")
+               return AddArnoldNode("add");
+         }
+      }
+   }
+
+   plug = FindMayaPlug("bumpInterp");
    if (!plug.isNull() && plug.asShort() > 0)
       return AddArnoldNode("normal_map");
 
@@ -700,6 +717,7 @@ AtNode*  CBump2DTranslator::CreateArnoldNodes()
 void CBump2DTranslator::Export(AtNode* shader)
 {
    static const AtString normalMapStr("normal_map");
+   static const AtString addStr("add");
    if (AiNodeIs(shader, normalMapStr))
    {
       // either Object-space or Tangent-space normal
@@ -766,7 +784,19 @@ void CBump2DTranslator::Export(AtNode* shader)
       else 
          AiNodeResetParameter(shader, "input");
 
-   } else
+   } else if (AiNodeIs(shader, addStr))
+   {
+      MPlugArray connections;
+      MPlug plug = FindMayaPlug("bumpValue");
+      plug.connectedTo(connections, true, false);
+      AtNode *bumpMap = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+
+      if (bumpMap)
+         AiNodeLink(bumpMap, "input1", shader);
+      else 
+         AiNodeResetParameter(shader, "input1");
+
+   } else   
    {
       // Bump mode
       // just need to export bump_map & bump_height
@@ -2938,3 +2968,22 @@ void CSurfaceLuminanceTranslator::Export(AtNode* shader)
    AiNodeLink(utility, "input", shader);
    AiNodeSetStr(shader, "mode", "luminance");
 }
+
+AtNode* CAiRoundCornersTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("round_corners");
+}
+
+void CAiRoundCornersTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "round_corners");
+   
+   CAttrData data;
+   data.defaultValue.FLT() = 0.f;
+   data.name = "outAlpha";
+   data.shortName = "out_alpha";
+   helper.MakeInputFloat(data);
+
+}
+
+

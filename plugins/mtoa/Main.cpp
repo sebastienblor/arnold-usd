@@ -649,6 +649,11 @@ namespace // <anonymous>
                                     "",
                                     CArnoldVolumeTranslator::creator,
                                     CArnoldVolumeTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiRoundCorners",
+                                    "",
+                                    CAiRoundCornersTranslator::creator,
+                                    CAiRoundCornersTranslator::NodeInitializer);
+
       // Multiple camera translators for single Maya camera node
       builtin->RegisterTranslator("camera",
                                     "perspective",
