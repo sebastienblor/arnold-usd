@@ -295,7 +295,7 @@ mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
-exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil')]
+exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil'), os.path.join('license', 'pitreg')]
 for ex in exList:
     try:
         subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
