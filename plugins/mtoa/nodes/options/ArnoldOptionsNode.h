@@ -35,7 +35,7 @@ public:
    static CStaticAttrHelper s_attributes;
 
    static MObject s_optionsNode;
-
+  
    static MObject s_imageFormat;
    static MObject s_aovs;
    static MObject s_aovMode;
