@@ -1,0 +1,41 @@
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\201900\msvc_opt\testsuite\test_0299\test_0299.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2019\bin\mayabatch.exe"
+00:00:00   242MB WARNING |  synColor_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   246MB WARNING |  hairPhysicalShader_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   246MB WARNING |  lookdevkit_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   247MB WARNING |  renderSetup_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   247MB WARNING |  xgenSpline_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+C:\solidangle\mtoadeploy\2019\scripts\mtoa\cmds\rendererCallbacks.py:23: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+  cmds.loadPlugin("renderSetup", qt=True)
+Failed to locate log configuration file WebServices.logconfig in the following search paths:
+C:/Program Files/Autodesk/Autodesk AdSSO/SSOClient/Current
+C:/Program Files/Autodesk/Maya2019/bin
+log4cplus:ERROR No appenders could be found for logger (AdSSOServices).
+log4cplus:ERROR Please initialize the log4cplus system properly.
+Failed to locate log configuration file WebServices.logconfig in the following search paths:
+C:/Program Files/Autodesk/Autodesk AdSSO/SSOClient/Current
+C:/Program Files/Autodesk/Maya2019/bin
+Failed to locate log configuration file WebServices.logconfig in the following search paths:
+C:/Program Files/Autodesk/Autodesk AdSSO/SSOClient/Current
+C:/Program Files/Autodesk/Maya2019/bin
+Failed to locate log configuration file WebServices.logconfig in the following search paths:
+C:/Program Files/Autodesk/Autodesk AdSSO/SSOClient/Current
+C:/Program Files/Autodesk/Maya2019/bin
+File read in  0.33 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/201900/msvc_opt/testsuite/test_0299/test.ma
+00:00:00   312MB WARNING |  hairPhysicalShader_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   312MB WARNING |  lookdevkit_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   312MB WARNING |  renderSetup_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   312MB WARNING |  xgenSpline_shaders.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   312MB WARNING |  xgenSpline_procedural.dll was compiled against non-compatible Arnold 5.3.0.0.wip
+00:00:00   313MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   313MB ERROR   |  [mtoa.translator]   synColorTranslator: Arnold node type color_manager_syncolor does not exist.
+00:00:00   313MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   313MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+DOI?G 0: RGBA
+ has 1 outputs
+getting filename with  ::: RenderPass=beauty ::: testrender
+RESULT IS D:/arnold/mtoa/build/windows_x86_64/201900/msvc_opt/testsuite/test_0299/testrender.tif
+00:00:00   316MB WARNING | rendering with watermarks because of failed authorization:
+Scene D:\arnold\mtoa\build\windows_x86_64\201900\msvc_opt\testsuite\test_0299\test.ma completed.
