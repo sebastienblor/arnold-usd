@@ -20,6 +20,9 @@ defaultFolder = ""
 defaultOperatorsFolder = ""
 
 _maya_version = mutils.getMayaVersion()
+clmVersion = cmds.arnoldPlugins(getClmVersion=True)
+if clmVersion > 1:
+    import arnold.ai_license_clm
 
 def doCreateStandInFile():
     node = createStandIn()
@@ -340,13 +343,13 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
     cmds.showWindow(w)
    
 def arnoldLicensingSignIn():
-    ai.AiLicenseClmSignIn()
+    ai.ai_license_clm.AiLicenseClmSignIn()
 
 def arnoldLicensingSignOut():
-    ai.AiLicenseClmSignOut()
+    ai.ai_license_clm.AiLicenseClmSignOut()
 
 def arnoldLicensingLicenseManager():
-    ai.AiLicenseClmLicenseManager()  
+    ai.ai_license_clm.AiLicenseClmLicenseManager()  
         
 def arnoldLicensingGetMacAddress():
     if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
