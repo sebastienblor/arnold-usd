@@ -535,9 +535,33 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
 
     //s_creatingARV = false;
 #else
-    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
 #endif
 
+   // Callbacks for scene open/save, as well as render layers changes
+   MStatus status;   
+   if (m_rvSceneSaveCb == 0)
+   {
+      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+   }
+   if (m_rvSceneOpenCb == 0)
+   {
+      m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
+   }
+   if (m_rvLayerManagerChangeCb == 0)
+   {
+      m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+   if (m_rvLayerChangeCb == 0)
+   {
+      m_rvLayerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+
+   UpdateRenderCallbacks();
 }
 
 void CRenderViewMtoA::RenderChanged()
