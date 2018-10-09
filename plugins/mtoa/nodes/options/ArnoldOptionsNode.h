@@ -153,5 +153,6 @@ public:
    static MObject s_stats_mode;
    static MObject s_profile_enable;
    static MObject s_profile_file;
+   static MObject s_ignore_list;
 
 };  // class CArnoldOptionsNode
