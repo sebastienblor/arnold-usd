@@ -20,7 +20,7 @@ defaultFolder = ""
 defaultOperatorsFolder = ""
 
 _maya_version = mutils.getMayaVersion()
-clmVersion = cmds.arnoldPlugins(getClmVersion=True)
+clmVersion = int(cmds.arnoldPlugins(getClmVersion=True))
 if clmVersion > 1:
     import arnold.ai_license_clm
 
