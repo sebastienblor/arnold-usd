@@ -3339,6 +3339,9 @@ desc STRING "Apply a gamma correction to the color."
         min                 FLOAT 0
         softmax             FLOAT 10    
         default             FLOAT 0.1
+    [attr normal]
+        maya.name           STRING "normal"
+        maya.shortname      STRING "normalCamera"
 
 # Operators
 [node merge]
