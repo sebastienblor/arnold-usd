@@ -35,7 +35,7 @@ public:
    static CStaticAttrHelper s_attributes;
 
    static MObject s_optionsNode;
-
+  
    static MObject s_imageFormat;
    static MObject s_aovs;
    static MObject s_aovMode;
@@ -153,5 +153,6 @@ public:
    static MObject s_stats_mode;
    static MObject s_profile_enable;
    static MObject s_profile_file;
+   static MObject s_ignore_list;
 
 };  // class CArnoldOptionsNode

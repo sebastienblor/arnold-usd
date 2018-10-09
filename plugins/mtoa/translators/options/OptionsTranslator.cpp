@@ -1219,6 +1219,24 @@ void COptionsTranslator::Export(AtNode *options)
             // only expose progressive render for interactive sessions 
             if (GetSessionOptions().IsInteractiveRender())
                CNodeTranslator::ProcessParameter(options, "enable_progressive_render", AI_TYPE_BOOLEAN);
+         } else if (strcmp(paramName, "ignore_list") == 0)
+         {
+            // Ticket #3608
+            MString ignoreList = FindMayaPlug("ignore_list").asString();
+            if (ignoreList.length() > 0)
+            {
+               MStringArray ignoreListSplit;
+               ignoreList.split(' ', ignoreListSplit);
+               AtArray *ignoreListArray = AiArrayAllocate(ignoreListSplit.length(), 1, AI_TYPE_STRING);
+               
+               // FIXME do we want to convert the maya node types to arnold node types ?
+               for (unsigned int a = 0; a < ignoreListSplit.length(); ++a)
+                  AiArraySetStr(ignoreListArray, a, AtString(ignoreListSplit[a].asChar()));
+               
+               AiNodeSetArray(options, "ignore_list", ignoreListArray);
+
+            } else
+               AiNodeResetParameter(options, "ignore_list");
          }
          else
          {

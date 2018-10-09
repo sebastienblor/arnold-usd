@@ -123,6 +123,7 @@ MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
 MObject CArnoldOptionsNode::s_gpu;
 MObject CArnoldOptionsNode::s_render_devices;
 MObject CArnoldOptionsNode::s_manual_devices;
+MObject CArnoldOptionsNode::s_ignore_list;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -493,6 +494,13 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
    s_attributes.MakeInput("ignore_operators");
+   
+   s_ignore_list = tAttr.create("ignore_list", "igl", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_ignore_list);
+
+   
+
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
