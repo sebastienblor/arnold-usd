@@ -351,6 +351,10 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         enabled = bool(cmds.getAttr(nodeAttr))
         cmds.attrControlGrp(control, edit=True, enable=enabled)
+        if enabled:
+            # check if aiFrame is connected, if not connect to time1
+            if not len(cmds.listConnections(".aiFrame".format(self.nodeName)) or []):
+                cmds.connectAttr("time1.outTime", ".aiFrame".format(self.nodeName))
 
     def overrideFrameNew(self, nodeAttr):
 
@@ -374,9 +378,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.attrControlGrp(self.aiFrameCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiFrame']),
                             enable=bool(cmds.getAttr('.'.join([self.nodeName, 'aiOverrideFrame']))))
 
-        # check if aiFrame is connected, if not connect to time1
-        if not len(cmds.listConnections(".aiFrame".format(self.nodeName)) or []):
-            cmds.connectAttr("time1.outTime", ".aiFrame".format(self.nodeName))
+        
 
     def setup(self):
         self.abcInfoPath = ''
