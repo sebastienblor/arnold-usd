@@ -51,6 +51,11 @@ class MtoARenderToTexture(object):
         vStart = cmds.floatFieldGrp('vStart', q=True, v1=True)
         vScale = cmds.floatFieldGrp('vScale', q=True, v1=True)
         extendEdges = cmds.checkBox('extendEdges', q=True, v=True)
+        useSequence = cmds.checkBox('sequence', q=True, v=True)
+        frameStart = cmds.intFieldGrp('frameStart', q=True, v1=True)
+        frameEnd = cmds.intFieldGrp('frameEnd', q=True, v1=True)
+        frameStep = cmds.intFieldGrp('frameStep', q=True, v1=True)
+        framePadding = cmds.intFieldGrp('framePadding', q=True, v1=True)
         
         selList = cmds.ls(sl=1)
 
@@ -58,7 +63,7 @@ class MtoARenderToTexture(object):
             cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
             return False
 
-        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, extend_edges=extendEdges,u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale )
+        cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width, all_udims=all_udims, udims=udims, uv_set=uv_set, normal_offset=normalOffset, enable_aovs=enableAovs, extend_edges=extendEdges,u_start=uStart, u_scale=uScale, v_start=vStart, v_scale=vScale, sequence= useSequence, frame_start=frameStart, frame_end=frameEnd, frame_step=frameStep, frame_padding=framePadding)
 
         cmds.deleteUI(self.window)
         return True
@@ -88,7 +93,7 @@ class MtoARenderToTexture(object):
 
         winTitle = "Render To Texture"
 
-        self.window = cmds.window(self.window, widthHeight=(460, 300), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 320), title=winTitle)
         self.createUI()
 
 
@@ -161,12 +166,18 @@ class MtoARenderToTexture(object):
         cmds.floatFieldGrp('vStart', label='V Start', value1= 0, ct2=('left', 'left'),  cw2=(90,110), w=230)
         cmds.floatFieldGrp('vScale', label='V Scale', value1= 1.0, cw2=(150,60), w=200)
         cmds.setParent("..")
-        
-
 
         cmds.checkBox( 'enableAovs',label='Enable AOVs', value=False )
         
         cmds.floatFieldGrp('normalOffset', label='Normal Offset', w=380, ct2=('left', 'left'), cw2=(90,110), value1=0.1)
+        cmds.setParent("..")
+
+        cmds.rowLayout(numberOfColumns=5, columnAlign5=('left', 'left', 'left', 'left', 'left'))
+        cmds.checkBox( 'sequence',label='Sequence', value=False )
+        cmds.intFieldGrp('frameStart', label='Start', value1= 0, ct2=('left', 'left'),  cw2=(30,40), w=70)
+        cmds.intFieldGrp('frameEnd', label='End', value1= 10, cw2=(30,40), w=70)
+        cmds.intFieldGrp('frameStep', label='Step', value1= 1, cw2=(30,40), w=70)
+        cmds.intFieldGrp('framePadding', label='Frame Padding', value1= 0, cw2=(80,40), w=120)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))
