@@ -406,6 +406,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/mix";
          }
+        else if (id == ARNOLD_NODEID_SHADER_ROUND_CORNERS)
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/round_corners";
+         }
          else
          {
             creator    = CArnoldShaderNode::creator;

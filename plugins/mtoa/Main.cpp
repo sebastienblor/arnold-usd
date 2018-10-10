@@ -391,6 +391,10 @@ namespace // <anonymous>
            "drawdb/shader/surface/mix",
            "arnoldAiMixShaderOverride",
            ArnoldUtilityShaderOverride::creator_Mix
+       }, {
+           "drawdb/shader/utility/round_corners",
+           "arnoldAiRoundCornersOverride",
+           ArnoldUtilityShaderOverride::creator_Round_Corners
        }
    };
 

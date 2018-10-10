@@ -148,3 +148,8 @@ MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_M
 {
     return new ArnoldUtilityShaderOverride(obj, "aiMixShader");
 }
+
+MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_Round_Corners(const MObject& obj)
+{
+    return new ArnoldUtilityShaderOverride(obj, "aiRoundCorners");
+}
