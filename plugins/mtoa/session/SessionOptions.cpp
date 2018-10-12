@@ -69,7 +69,7 @@ MStatus CSessionOptions::GetFromMaya()
                                 | (fnArnoldRenderOptions.findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA)
                                 | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_OBJECT)
                                 | (fnArnoldRenderOptions.findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM)
-                                | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_SHADER);
+                                | (fnArnoldRenderOptions.findPlug("mb_sen").asBool() * MTOA_MBLUR_SHADER);
       }
       else
          m_motion.enable_mask     = MTOA_MBLUR_DISABLE;

@@ -1620,7 +1620,7 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    int attrNameLength = plugName.length();
    if (attrNameLength == 0) return;
 
-   if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || 
+   if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || plugName == "mb_shader_enable" || 
          plugName == "motion_steps" || plugName == "range_type" || plugName == "motion_frames" ||
          plugName == "motion_start" || plugName == "motion_end")
    {

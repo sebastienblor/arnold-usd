@@ -1693,6 +1693,9 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
 {
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_SHADER))
+      return NULL;
+
    return AddArnoldNode("MtoaAnimFloat");
 }
 

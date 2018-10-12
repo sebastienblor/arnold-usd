@@ -128,6 +128,7 @@ def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     cmds.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
+    cmds.attrControlGrp('mb_shader_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
     cmds.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
     cmds.attrControlGrp('textArnoldMBAngle', edit=True, enable=flag)
@@ -1114,6 +1115,12 @@ def createArnoldMotionBlurSettings():
                      
     cmds.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=1)
     cmds.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=2)
+    
+    cmds.checkBoxGrp('mb_shader_enable',
+                    label='Shaders')
+                     
+    cmds.connectControl('mb_shader_enable', 'defaultArnoldRenderOptions.mb_shader_enable', index=1)
+    cmds.connectControl('mb_shader_enable', 'defaultArnoldRenderOptions.mb_shader_enable', index=2)
     
     cmds.attrControlGrp('mb_motion_steps',
                         label="Keys",
