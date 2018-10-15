@@ -366,8 +366,8 @@ if installMode == 1: # do the proper installation
 
 
     print "Installing CLM Licensing Components...."
-    if os.path.exists(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.951_RC6-linux.run')):
-        os.system(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.951_RC6-linux.run --silent')) # register pit file
+    if os.path.exists(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1020_RC6-linux.run')):
+        os.system(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1020_RC6-linux.run --silent')) # register pit file
     elif os.path.exists(os.path.join(installDir, 'license', 'pitreg')):
         pitreg_result = os.system(os.path.join(installDir, 'license', 'pitreg'))
         if int(pitreg_result) > 0:                
