@@ -95,6 +95,16 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
+   // When the workspace is closed, we used to call directly -mode "visChanged" below. 
+   // But since Maya 2018 this isn't working properly and this callback is invoked too early. 
+   // When we ask (see below) its visibility, it didn't return the correct value. So now we're first going though an "idle" callback
+   // See #3518
+   if (mode == "visChanged_cb")
+   {
+      MGlobal::executeCommandOnIdle("arnoldRenderView -mode visChanged");
+      return MS::kSuccess;
+   }
+
    if (mode == "visChanged")
    {
       // this signal is emitted by maya workspaces when the workspace visibility changes

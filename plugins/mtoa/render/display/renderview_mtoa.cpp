@@ -326,7 +326,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\"  -visibleChangeCommand \"arnoldRenderView -mode visChanged\" \"ArnoldRenderView\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\"  -visibleChangeCommand \"arnoldRenderView -mode visChanged_cb\" \"ArnoldRenderView\"");
    MGlobal::executeCommand(uiScriptCommand);
 
 //   MString visChangeCommand("workspaceControl -e -vcc \"arnoldRenderView -mode workspaceChange\" \"ArnoldRenderView\"");
@@ -530,7 +530,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
       s_optWorkspaceControl->show();
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged\" \"ArnoldViewportRendererOptions\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
    MGlobal::executeCommand(uiScriptCommand);
 
     //s_creatingARV = false;
