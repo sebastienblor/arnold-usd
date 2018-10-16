@@ -649,8 +649,11 @@ def createArnoldMenu():
         if int(clmVersion) > 1:
             cmds.menuItem('ArnoldLicensingLicenseManager', label='Manage License...', parent='ArnoldMenu',
                         c=lambda *args: arnoldLicensingLicenseManager())
-            cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
-                        c=lambda *args: arnoldLicensingSignIn())
-            cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
-                        c=lambda *args: arnoldLicensingSignOut())
+
+            darkSite = int(os.getenv('ADLSDK_DARK_SITE') or 0)
+            if not darkSite:
+                cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
+                            c=lambda *args: arnoldLicensingSignIn())
+                cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
+                            c=lambda *args: arnoldLicensingSignOut())
             
