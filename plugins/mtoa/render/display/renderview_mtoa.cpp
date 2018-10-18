@@ -98,7 +98,7 @@ static bool s_creatingARV = false;
 static MString s_renderLayer = "";
 static std::string s_lastCameraName = "";
 
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20190000
 
 class CRenderViewMtoA::CustomCallback : public MColorPickerCallback
 {
@@ -145,13 +145,13 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_hasProgressiveRenderFinished(false),
    m_viewportRendering(false)
 {   
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20190000
    m_colorPickingCallback = 0x0;
 #endif
 }
 CRenderViewMtoA::~CRenderViewMtoA()
 {
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20190000
    delete m_colorPickingCallback;
    MColorPickerUtilities::unregisterFromColorPicking(GetRenderView());
 #endif
@@ -472,7 +472,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
 #endif
 
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20190000
    if(!m_colorPickingCallback)
    {
       m_colorPickingCallback = new CustomCallback(GetRenderView(), this);

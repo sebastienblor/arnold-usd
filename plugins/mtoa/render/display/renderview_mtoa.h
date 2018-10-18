@@ -48,7 +48,7 @@ class CRenderViewZoomManipulator;
 #include <maya/MFnCamera.h>
 #include <maya/MDagPath.h>
 #include <maya/MMatrix.h>
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20190000
 #include <maya/MColorPickerUtilities.h>
 #endif
 
