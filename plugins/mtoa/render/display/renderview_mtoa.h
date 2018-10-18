@@ -110,7 +110,7 @@ private:
    void UpdateColorManagement();
    void UpdateRenderCallbacks();
 
-#ifdef MAYA_MAINLINE
+#if MAYA_API_VERSION >= 20190000
    class CustomCallback;
    CustomCallback* m_colorPickingCallback;
    MColor ColorPickingCallback(QWidget*, QWidget*, const QPoint&, bool);
