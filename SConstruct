@@ -163,7 +163,7 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2018', False),
+    BoolVariable('MAYA_MAINLINE', 'Set correct MtoA version for Maya mainline 2020', False),
     BoolVariable('BUILD_EXT_TARGET_INCLUDES', 'Build MtoA extensions against the target API includes', False),
     BoolVariable('PREBUILT_MTOA', 'Use already built MtoA targets, instead of triggering a rebuild', False),
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
@@ -294,7 +294,7 @@ else:
 if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
-    maya_version = '201900'
+    maya_version = '202000'
     env.Append(CPPDEFINES = Split('MAYA_MAINLINE')) 
 
 maya_version_base = maya_version[0:4]
