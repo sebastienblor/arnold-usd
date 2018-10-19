@@ -128,6 +128,17 @@ void XgSplineProcedural::CreateCurves(AtNode* procedural, bool procParent)
    AiNodeSetFlt(_curves, "motion_start", AiNodeGetFlt(procedural, "motion_start"));
    AiNodeSetFlt(_curves, "motion_end", AiNodeGetFlt(procedural, "motion_end"));
 
+   if (procParent == NULL)
+   {
+      // Transmitting parent node parameters to child nodes (#2752)
+      // ... but only do it when there's no parent procedural (#3606)
+      AiNodeSetBool(_curves, "opaque", AiNodeGetBool(procedural, "opaque"));
+      AiNodeSetByte(_curves, "visibility", AiNodeGetByte(procedural, "visibility"));
+      AiNodeSetBool(_curves, "self_shadows", AiNodeGetBool(procedural, "self_shadows"));
+      AiNodeSetBool(_curves, "receive_shadows", AiNodeGetBool(procedural, "receive_shadows"));
+      AiNodeSetBool(_curves, "matte", AiNodeGetBool(procedural, "matte"));
+   }
+
 }
 
 

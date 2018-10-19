@@ -36,6 +36,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "snow");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x5254534e);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize

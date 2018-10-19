@@ -10,6 +10,8 @@
 #include <maya/MRenderUtil.h>
 #include <algorithm>
 
+#include <utils/MayaUtils.h>
+
 MHWRender::MPxSurfaceShadingNodeOverride* ArnoldAiImageShaderOverride::creator(const MObject& obj)
 {
    return new ArnoldAiImageShaderOverride(obj);
@@ -138,12 +140,14 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
 				renderer->getTextureManager();
 			if (textureManager)
 			{
-                MStatus status;
+				MStatus status;
                 MFnDependencyNode node(m_object, &status);
                 if(status)
                 {
-                    MString name, filename;
-                    node.findPlug("filename").getValue(name);
+					MString name, filename;
+					node.findPlug("filename").getValue(name);
+
+                    name = resolveFilePathForSequences(name, node.findPlug("frame").asInt());
                     MRenderUtil::exactFileTextureName(name, false, "", filename);
 
                     MHWRender::MTexture* texture =

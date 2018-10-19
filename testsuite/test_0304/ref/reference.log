@@ -1,0 +1,79 @@
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+Initialized VP2.0 renderer {
+  Version : 2016.11.40.12. Feature Level 5.
+  Adapter : Quadro K620/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 5051
+  Driver : nvoglv64.dll:23.21.13.9103.
+  API : OpenGL V.4.6.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 2048 MB.
+  CPU Memory Limit: 62185.1 MB.
+  MultiDraw consolidation: enabled
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.1.84.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+File read in  0.033 seconds.
+File read in  0.033 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0304/test.ma
+Running Render to Texture00:00:00   509MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   509MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   509MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   509MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   509MB WARNING | distant_light(color.r): trying to link to a parameter declared as non-linkable
+00:00:00   509MB WARNING | [mtoa] Could not link directionalLightShape1_colorR to directionalLightShape1.color.r.
+00:00:00   509MB WARNING | distant_light(color.g): trying to link to a parameter declared as non-linkable
+00:00:00   509MB WARNING | [mtoa] Could not link directionalLightShape1_colorG to directionalLightShape1.color.g.
+00:00:00   509MB WARNING | distant_light(color.b): trying to link to a parameter declared as non-linkable
+00:00:00   509MB WARNING | [mtoa] Could not link directionalLightShape1_colorB to directionalLightShape1.color.b.
+00:00:00   513MB WARNING | rendering with watermarks because of failed authorization:
+[mtoa] Render to Texture : Rendering polymesh pSphereShape1
+[mtoa] Render to Texture : Rendered to ./pSphereShape1.1.exr
+00:00:00   529MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING | distant_light(color.r): trying to link to a parameter declared as non-linkable
+00:00:00   529MB WARNING | [mtoa] Could not link directionalLightShape1_colorR to directionalLightShape1.color.r.
+00:00:00   529MB WARNING | distant_light(color.g): trying to link to a parameter declared as non-linkable
+00:00:00   529MB WARNING | [mtoa] Could not link directionalLightShape1_colorG to directionalLightShape1.color.g.
+00:00:00   529MB WARNING | distant_light(color.b): trying to link to a parameter declared as non-linkable
+00:00:00   529MB WARNING | [mtoa] Could not link directionalLightShape1_colorB to directionalLightShape1.color.b.
+00:00:00   529MB WARNING | rendering with watermarks because of failed authorization:
+[mtoa] Render to Texture : Rendering polymesh pSphereShape1
+[mtoa] Render to Texture : Rendered to ./pSphereShape1.3.exr
+00:00:00   531MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   531MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   531MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   531MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   531MB WARNING | distant_light(color.r): trying to link to a parameter declared as non-linkable
+00:00:00   531MB WARNING | [mtoa] Could not link directionalLightShape1_colorR to directionalLightShape1.color.r.
+00:00:00   531MB WARNING | distant_light(color.g): trying to link to a parameter declared as non-linkable
+00:00:00   531MB WARNING | [mtoa] Could not link directionalLightShape1_colorG to directionalLightShape1.color.g.
+00:00:00   531MB WARNING | distant_light(color.b): trying to link to a parameter declared as non-linkable
+00:00:00   531MB WARNING | [mtoa] Could not link directionalLightShape1_colorB to directionalLightShape1.color.b.
+00:00:00   531MB WARNING | rendering with watermarks because of failed authorization:
+[mtoa] Render to Texture : Rendering polymesh pSphereShape2
+[mtoa] Render to Texture : UDIM 0:0 Rendered to ./aiStandardSurface1_pSphereShape2_1001.02
+[mtoa] Render to Texture : Rendered to ./aiStandardSurface1_pSphereShape2_1001.02.exr
+00:00:00   529MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   529MB WARNING | distant_light(color.r): trying to link to a parameter declared as non-linkable
+00:00:00   529MB WARNING | [mtoa] Could not link directionalLightShape1_colorR to directionalLightShape1.color.r.
+00:00:00   529MB WARNING | distant_light(color.g): trying to link to a parameter declared as non-linkable
+00:00:00   529MB WARNING | [mtoa] Could not link directionalLightShape1_colorG to directionalLightShape1.color.g.
+00:00:00   529MB WARNING | distant_light(color.b): trying to link to a parameter declared as non-linkable
+00:00:00   529MB WARNING | [mtoa] Could not link directionalLightShape1_colorB to directionalLightShape1.color.b.
+00:00:00   529MB WARNING | rendering with watermarks because of failed authorization:
+[mtoa] Render to Texture : Rendering polymesh pSphereShape2
+[mtoa] Render to Texture : UDIM 0:0 Rendered to ./aiStandardSurface1_pSphereShape2_1001.03
+[mtoa] Render to Texture : Rendered to ./aiStandardSurface1_pSphereShape2_1001.03.exr

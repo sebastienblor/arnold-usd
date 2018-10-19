@@ -678,21 +678,32 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                MString tokens = aovData.tokens;
                MString path = output.prefix;
 
+               // No override provided, use globals default                  
                if (path == "")
-                  // No override provided, use globals default
                   path = defaultRenderGlobalsData.name;
 
                // Eventually add a suffix to the filename. We don't add it if the corresponding token is 
                // already present in the filename. We don't do it if the AOVs are merged
                if (!output.mergeAOVs)
                {
+                  MString tmpPath = path;
+                  if (path.length() == 0)
+                     tmpPath = "<Scene>";
                   if (aovData.lightGroup.length() > 0 && path.rindexW("<LightGroup>") < 0)
-                     path += aovData.lightGroup;
+                     tmpPath = path + aovData.lightGroup;
 
                   if (aovData.aovSuffix.length() > 0 && path.rindexW("<AovSuffix>") < 0)
-                     path += aovData.aovSuffix;
-               }
+                     tmpPath = path + aovData.aovSuffix;
 
+                  if (j > 0 && output.driver != aovData.outputs[j-1].driver)
+                  {
+                     tmpPath += MString("_");
+                     tmpPath += j;
+                  }
+                  if (tmpPath.length() > 7)
+                     path = tmpPath;
+               }
+               
                bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
             
                MString eyeToken = "";
@@ -866,10 +877,11 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                str += MString(AiNodeGetName(output.filter)) + MString(" ");
                str += MString(AiNodeGetName(output.driver));
 
-               if (aovData.layerName.length() > 0)
+               if (aovData.layerName.length() > 0 || output.layerSuffix.length() > 0)
                {
                   str += MString(" ");
                   str += aovData.layerName;
+                  str += output.layerSuffix;
                }
    
             }
@@ -988,11 +1000,45 @@ unsigned int COptionsTranslator::GetOutputArray(const CAOV& aov,
       return 0;
    fnNode.setObject(aovNode);
    MPlug outputsPlug = fnNode.findPlug("outputs", true);
+   
+   std::vector<AtNode *> aovDrivers;
+   aovDrivers.reserve(outputsPlug.numElements());
+
    for (unsigned int i=0; i<outputsPlug.numElements(); ++i)
    {
       CAOVOutput output;
       if (GetOutput(outputsPlug[i].child(0), outputsPlug[i].child(1), output))
+      {
+         if (output.driver != NULL && !aovDrivers.empty() && std::find(aovDrivers.begin(), aovDrivers.end(), output.driver) != aovDrivers.end())
+         {
+            if (!output.mergeAOVs)
+            {
+
+               // I have several outputs for this same AOV
+               // need to duplicate the driver and give it a different filename
+               // aovs aren't merged, so we must duplicate the driver
+               MString varName = MString(AiNodeGetName(output.driver));
+               varName += MString("_");
+               varName +=int(i);
+               MString outputKey;
+               outputKey += int(i);
+               if (output.driverTranslator)
+                  output.driver = output.driverTranslator->GetChildDriver(outputKey.asChar());
+               else
+                  output.driver = AiNodeClone(output.driver);
+
+               //output.prefix += int(i);
+               AiNodeSetStr(output.driver, "name", varName.asChar());
+            } else
+            {
+               output.layerSuffix = aov.GetName();
+               output.layerSuffix += MString("_");
+               output.layerSuffix += int(i);
+            }
+         }
          outputs.push_back(output);
+         aovDrivers.push_back(output.driver);
+      } 
    }
    return outputs.size();
 }
@@ -1173,6 +1219,24 @@ void COptionsTranslator::Export(AtNode *options)
             // only expose progressive render for interactive sessions 
             if (GetSessionOptions().IsInteractiveRender())
                CNodeTranslator::ProcessParameter(options, "enable_progressive_render", AI_TYPE_BOOLEAN);
+         } else if (strcmp(paramName, "ignore_list") == 0)
+         {
+            // Ticket #3608
+            MString ignoreList = FindMayaPlug("ignore_list").asString();
+            if (ignoreList.length() > 0)
+            {
+               MStringArray ignoreListSplit;
+               ignoreList.split(' ', ignoreListSplit);
+               AtArray *ignoreListArray = AiArrayAllocate(ignoreListSplit.length(), 1, AI_TYPE_STRING);
+               
+               // FIXME do we want to convert the maya node types to arnold node types ?
+               for (unsigned int a = 0; a < ignoreListSplit.length(); ++a)
+                  AiArraySetStr(ignoreListArray, a, AtString(ignoreListSplit[a].asChar()));
+               
+               AiNodeSetArray(options, "ignore_list", ignoreListArray);
+
+            } else
+               AiNodeResetParameter(options, "ignore_list");
          }
          else
          {
@@ -1466,8 +1530,8 @@ void COptionsTranslator::Export(AtNode *options)
 
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)
    {
-      CNodeTranslator::ProcessParameter(options, "default_gpu_names", AI_TYPE_STRING);
-      CNodeTranslator::ProcessParameter(options, "default_gpu_min_memory_MB", AI_TYPE_INT);
+      CNodeTranslator::ProcessParameter(options, "gpu_default_names", AI_TYPE_STRING);
+      CNodeTranslator::ProcessParameter(options, "gpu_default_min_memory_MB", AI_TYPE_INT);
       bool autoSelect = true;
       MPlug manualDevices = FindMayaPlug("manual_gpu_devices");
       if (manualDevices.asBool())
@@ -1556,7 +1620,7 @@ void COptionsTranslator::NodeChanged(MObject& node, MPlug& plug)
    int attrNameLength = plugName.length();
    if (attrNameLength == 0) return;
 
-   if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || 
+   if (plugName == "motion_blur_enable" || plugName == "mb_object_deform_enable" || plugName == "mb_camera_enable" || plugName == "mb_shader_enable" || 
          plugName == "motion_steps" || plugName == "range_type" || plugName == "motion_frames" ||
          plugName == "motion_start" || plugName == "motion_end")
    {

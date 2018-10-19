@@ -584,7 +584,6 @@
         max                 FLOAT   1
         maya.channelbox     BOOL    true
 
-
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -782,6 +781,9 @@
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    false
+    [attr filters]
+        maya.channelbox     BOOL    false
+        maya.keyable        BOOL    false
 
 # light filters
 
@@ -961,7 +963,9 @@
     [attr radial_distortion]
         softmin             FLOAT     -0.2
         softmax             FLOAT     2.0
-
+    [attr horizontal_fov]
+        maya.keyable        BOOL      false
+        maya.channelbox     BOOL      false
 [node ortho_camera]
     maya.name               STRING  "camera"
     maya.id                 INT     0x4443414d
@@ -992,6 +996,8 @@
         max                 FLOAT   1000000000.0
         softmax             FLOAT   360.0
         animatable          BOOL    true
+        maya.channelbox     BOOL    false
+        maya.keyable        BOOL    false
     [attr focus_distance]
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
@@ -1050,11 +1056,14 @@
         max                 FLOAT   1000000000.0
         softmax             FLOAT   360.0
         animatable          BOOL    true
+        maya.channelbox     BOOL    false
+        maya.keyable        BOOL    false
     [attr vertical_fov]
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
         softmax             FLOAT   180.0
         animatable          BOOL    true
+
     [attr exposure]
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
@@ -3321,6 +3330,18 @@ desc STRING "Apply a gamma correction to the color."
         aov.type        INT     0x05
     [attr aov_rim_light]
         aov.type        INT     0x05
+
+[node round_corners]
+    maya.id                 INT     0x00115D0C
+    maya.classification     STRING  "utility/shader"
+    maya.id                 INT     0x00115DA2
+    [attr radius]
+        min                 FLOAT 0
+        softmax             FLOAT 10    
+        default             FLOAT 0.1
+    [attr normal]
+        maya.name           STRING "normal"
+        maya.shortname      STRING "normalCamera"
 
 # Operators
 [node merge]

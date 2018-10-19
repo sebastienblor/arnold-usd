@@ -84,6 +84,8 @@ private:
    static MObject s_field_channel;
    static MObject s_field;
 
+   static MObject s_useFrameExtension;
+
    MString m_filename;
    MString m_grids;
    float m_padding;

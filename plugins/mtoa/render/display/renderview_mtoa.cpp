@@ -326,7 +326,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\"  -visibleChangeCommand \"arnoldRenderView -mode visChanged\" \"ArnoldRenderView\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldRenderView -mode open\"  -visibleChangeCommand \"arnoldRenderView -mode visChanged_cb\" \"ArnoldRenderView\"");
    MGlobal::executeCommand(uiScriptCommand);
 
 //   MString visChangeCommand("workspaceControl -e -vcc \"arnoldRenderView -mode workspaceChange\" \"ArnoldRenderView\"");
@@ -512,7 +512,7 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
    }
    workspaceCmd += " \"ArnoldViewportRendererOptions\""; // name of the workspace, to get it back later
 
-   std::string menusFilter = "Crop Region;AOVs;Refresh Render;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
+   std::string menusFilter = "Crop Region;AOVs;Update Full Scene;Abort Render;Log;Save UI Threads;Debug Shading;Isolate Selection;Lock Selection";
    menusFilter += ";Save Final Images;Save Multi-Layer EXR;Run IPR";
    CRenderViewInterface::OpenOptionsWindow(250, 50, menusFilter.c_str(), MQtUtil::mainWindow(), false);
    QMainWindow *optWin = GetOptionsWindow();
@@ -530,14 +530,38 @@ void CRenderViewMtoA::OpenMtoAViewportRendererOptions()
       s_optWorkspaceControl->show();
    }
    // now set the uiScript, so that Maya can create ARV in the middle of the workspaces
-   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged\" \"ArnoldViewportRendererOptions\"");
+   MString uiScriptCommand("workspaceControl -e -uiScript \"arnoldViewOverrideOptionBox\" -visibleChangeCommand \"arnoldViewOverrideOptionBox -mode visChanged_cb\" \"ArnoldViewportRendererOptions\"");
    MGlobal::executeCommand(uiScriptCommand);
 
     //s_creatingARV = false;
 #else
-    CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
+   CRenderViewInterface::OpenOptionsWindow(200, 50, NULL, MQtUtil::mainWindow(), false);
 #endif
 
+   // Callbacks for scene open/save, as well as render layers changes
+   MStatus status;   
+   if (m_rvSceneSaveCb == 0)
+   {
+      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+   }
+   if (m_rvSceneOpenCb == 0)
+   {
+      m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
+   }
+   if (m_rvLayerManagerChangeCb == 0)
+   {
+      m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+   if (m_rvLayerChangeCb == 0)
+   {
+      m_rvLayerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+
+   UpdateRenderCallbacks();
 }
 
 void CRenderViewMtoA::RenderChanged()

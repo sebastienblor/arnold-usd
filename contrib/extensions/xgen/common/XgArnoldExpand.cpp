@@ -1061,13 +1061,17 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
 
       // Transmitting parent node parameters to child nodes (#2752)
-      AiNodeSetBool(nodeCurves, "opaque", AiNodeGetBool(m_node, "opaque"));
-      AiNodeSetByte(nodeCurves, "visibility", AiNodeGetByte(m_node, "visibility"));
-      AiNodeSetBool(nodeCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
-      AiNodeSetBool(nodeCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
-      AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
-      AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-      AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      // ... but only do it when there's no parent procedural (#3606)
+      if (m_parent == NULL)
+      {
+         AiNodeSetBool(nodeCurves, "opaque", AiNodeGetBool(m_node, "opaque"));
+         AiNodeSetByte(nodeCurves, "visibility", AiNodeGetByte(m_node, "visibility"));
+         AiNodeSetBool(nodeCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+         AiNodeSetBool(nodeCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+         AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
+         AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+         AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      }
       
 
       // Add custom renderer parameters.
@@ -1259,13 +1263,17 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
 
         // Transmitting parent node parameters to child nodes (#2752)
-        AiNodeSetBool(nodeInstance, "opaque", AiNodeGetBool(m_node, "opaque"));
-        AiNodeSetBool(nodeInstance, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
-        AiNodeSetBool(nodeInstance, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
-        AiNodeSetBool(nodeInstance, "matte", AiNodeGetBool(m_node, "matte"));
+        // ... but only do it when there's no parent procedural (#3606)
+        if (m_parent == NULL)
+        {
+           AiNodeSetBool(nodeInstance, "opaque", AiNodeGetBool(m_node, "opaque"));
+           AiNodeSetBool(nodeInstance, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+           AiNodeSetBool(nodeInstance, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+           AiNodeSetBool(nodeInstance, "matte", AiNodeGetBool(m_node, "matte"));
 
-        AiNodeSetFlt(nodeInstance, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-        AiNodeSetFlt(nodeInstance, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+           AiNodeSetFlt(nodeInstance, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+           AiNodeSetFlt(nodeInstance, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+         }
       
         // Add custom renderer parameters.
         pushCustomParams( nodeInstance, pc, j);
@@ -1338,14 +1346,18 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AiNodeSetArray( nodeCard, "cvs", cvs );
 
       // Transmitting parent node parameters to child nodes (#2752)
-      AiNodeSetByte(nodeCard, "visibility", AiNodeGetByte(m_node, "visibility"));
-      AiNodeSetBool(nodeCard, "opaque", AiNodeGetBool(m_node, "opaque"));
-      AiNodeSetBool(nodeCard, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
-      AiNodeSetBool(nodeCard, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
-      AiNodeSetBool(nodeCard, "matte", AiNodeGetBool(m_node, "matte"));
-      
-      AiNodeSetFlt(nodeCard, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-      AiNodeSetFlt(nodeCard, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      // ... but only do it when there's no parent procedural (#3606)
+      if (m_parent == NULL)
+      {
+         AiNodeSetByte(nodeCard, "visibility", AiNodeGetByte(m_node, "visibility"));
+         AiNodeSetBool(nodeCard, "opaque", AiNodeGetBool(m_node, "opaque"));
+         AiNodeSetBool(nodeCard, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+         AiNodeSetBool(nodeCard, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+         AiNodeSetBool(nodeCard, "matte", AiNodeGetBool(m_node, "matte"));
+         
+         AiNodeSetFlt(nodeCard, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+         AiNodeSetFlt(nodeCard, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+      }
       
       // Add custom renderer parameters.
        pushCustomParams( nodeCard, pc );

@@ -36,6 +36,10 @@ import maya.mel as mel
 import mtoa.melUtils as mu
 
 from maya.app.stereo import stereoCameraRig
+_maya_version = utils.getMayaVersion()
+if _maya_version >= 2019:
+    import maya.app.general.updateRenderableCamerasList as updateCameras
+    
 
 MENU_SEPARATOR = ('-', None)
 
@@ -65,7 +69,7 @@ def getStereoLeftCamera(camera):
     else:
         return None
 def getStereoRightCamera(camera):
-    result = cmds.listConnections('{}.leftCam'.format(camera), d=False, s=True)                
+    result = cmds.listConnections('{}.rightCam'.format(camera), d=False, s=True)                
     if result and len(result):
         return result[0]
     else:
@@ -757,7 +761,7 @@ def extendToShape(cam):
         return None
 
     try:
-      camShapes = cmds.listRelatives(cam, shapes=True)
+      camShapes = cmds.listRelatives(cam, fullPath=True, shapes=True)
       if camShapes and len(camShapes):
           return camShapes[0]
       else:
@@ -835,7 +839,6 @@ def arnoldChangedCamera(camera, cameraMode, menu):
                 cameras = [camera]
             else:
                 cameras = getMultiCameraChildren(camera)
-
             for cam in cameras:
                 camShape = extendToShape(cam)
                 if camShape:
@@ -937,20 +940,20 @@ def updateArnoldCameraControl(*args):
             except IndexError:
                 cmds.warning("Stereo camera %s is missing required connections" % rig)
                 continue
-            cameras = cmds.listRelatives(rig, type="camera", allDescendents=True) or []
+            cameras = cmds.listRelatives(rig, type="camera", fullPath=True, allDescendents=True) or []
             # Add an entry for the rig pair if at least one cam is not
             # renderable. Use the + character to mark it.
             skipLR = False
-            if cmds.getAttr('{}.renderable'.format(lCam)) and cmds.getAttr('{}.renderable'.format(rCam)):
+            if lCam and rCam and cmds.getAttr('{}.renderable'.format(lCam)) and cmds.getAttr('{}.renderable'.format(rCam)):
                 renderableCameras.append((rig, True))
                 skipLR = True
             else:
                 nonRenderableCameras.append((rig, True))
 
             for camShape in cameras:
-                camParents = cmds.listRelatives(camShape, parent=True) or []
+                camParents = cmds.listRelatives(camShape, fullPath=True, parent=True) or []
                 if len(camParents) and cmds.getAttr('{}.renderable'.format(camShape)):
-                    camera = camParents[0]
+                    camera = cmds.ls(camParents[0])[0]
                     if (camShape == lCam or camShape == rCam):
                         if not skipLR:
                             renderableCameras.append((camera, False))
@@ -959,8 +962,11 @@ def updateArnoldCameraControl(*args):
                     else:
                         renderableCameras.append((camera, False))
                 else:
+                    camera = camShape
+                    if len(camParents):
+                      camera = cmds.ls(camParents[0])[0]
                     nonRenderableCameras.append((camera, False))
-                
+
         # Remove the separator if nothing was added.
         if nonRenderableCameras and nonRenderableCameras[-1] == MENU_SEPARATOR:
             nonRenderableCameras.pop()
@@ -1319,6 +1325,12 @@ def createArnoldCommonFrameRange():
     #
     updateArnoldFileNameFormatControl()
 
+def onCameraChanged():
+    if _maya_version < 2019:
+        return
+
+    updateCameras.onCameraChangedAddRemoveCameras()
+    updateArnoldRendererCommonGlobalsTab()
 
 def createArnoldCommonRenderCameras():
     '''
@@ -1348,6 +1360,9 @@ def createArnoldCommonRenderCameras():
     cmds.columnLayout('mayaSoftwareCameraLayout')
     updateArnoldCameraControl()
     cmds.setParent('..')
+    if _maya_version >= 2019:
+        cmds.scriptJob(event = ['cameraChange', onCameraChanged])
+        updateCameras.createCommonRenderCamerasAddBaseCameras(fullPath, updateArnoldRendererCommonGlobalsTab)
 
     cmds.setParent(parent)
     cmds.setUITemplate(popTemplate=True)

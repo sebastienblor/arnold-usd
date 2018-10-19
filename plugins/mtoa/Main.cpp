@@ -383,6 +383,20 @@ namespace // <anonymous>
            "drawdb/shader/utility/math/arnold/clamp",
            "arnoldAiClampShaderOverride",
            ArnoldUtilityShaderOverride::creator_Clamp
+       }, 
+    //    {
+    //        "drawdb/shader/surface/flat",
+    //        "arnoldAiFlatShaderOverride",
+    //        ArnoldUtilityShaderOverride::creator_Flat
+    //    }, {
+    //        "drawdb/shader/surface/mix",
+    //        "arnoldAiMixShaderOverride",
+    //        ArnoldUtilityShaderOverride::creator_Mix
+    //    },
+        {
+           "drawdb/shader/utility/round_corners",
+           "arnoldAiRoundCornersOverride",
+           ArnoldUtilityShaderOverride::creator_Round_Corners
        }
    };
 
@@ -641,6 +655,11 @@ namespace // <anonymous>
                                     "",
                                     CArnoldVolumeTranslator::creator,
                                     CArnoldVolumeTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiRoundCorners",
+                                    "",
+                                    CAiRoundCornersTranslator::creator,
+                                    CAiRoundCornersTranslator::NodeInitializer);
+
       // Multiple camera translators for single Maya camera node
       builtin->RegisterTranslator("camera",
                                     "perspective",
@@ -889,6 +908,19 @@ namespace // <anonymous>
          shaders->RegisterTranslator("aiToon",
                                        "",
                                        CToonTranslator::creator);
+         shaders->RegisterTranslator("condition",
+                                       "",
+                                       CConditionTranslator::creator);
+         shaders->RegisterTranslator("luminance",
+                                       "",
+                                       CLuminanceTranslator::creator);
+         shaders->RegisterTranslator("reverse",
+                                       "",
+                                       CReverseTranslator::creator);
+         shaders->RegisterTranslator("surfaceLuminance",
+                                       "",
+                                       CSurfaceLuminanceTranslator::creator);
+
 
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");

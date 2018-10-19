@@ -71,7 +71,7 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
    syntax.addFlag("r", "region", MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned);
    syntax.addFlag("opt", "option", MSyntax::kString, MSyntax::kString);
    syntax.addFlag("get", "getoption", MSyntax::kString);
-
+   syntax.addFlag("st", "status", MSyntax::kString);
    return syntax;
 }
 
@@ -94,6 +94,16 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
 
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
+
+   // When the workspace is closed, we used to call directly -mode "visChanged" below. 
+   // But since Maya 2018 this isn't working properly and this callback is invoked too early. 
+   // When we ask (see below) its visibility, it didn't return the correct value. So now we're first going though an "idle" callback
+   // See #3518
+   if (mode == "visChanged_cb")
+   {
+      MGlobal::executeCommandOnIdle("arnoldRenderView -mode visChanged");
+      return MS::kSuccess;
+   }
 
    if (mode == "visChanged")
    {
@@ -140,6 +150,15 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       setResult(CRenderSession::GetRenderViewOption(option));
       return MS::kSuccess;
    }
+
+   if (args.isFlagSet("status"))
+   {
+      MString statusLog = args.flagArgumentString("status", 0);
+      if (renderSession)
+         renderSession->SetRenderViewStatusInfo(statusLog);
+      return MS::kSuccess;
+   }
+
 
    // Get argument to "-mode" flag
    

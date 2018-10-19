@@ -306,10 +306,12 @@ void CImagePlaneTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
+   data.channelBox = false;
+   data.keyable = false;       
+
    helper.MakeInputBoolean(data);
 
    data.defaultValue.RGBA() = AI_RGBA_ZERO;
-   data.keyable = true;
    data.linkable = true;
    data.name = "aiOffscreenColor";
    data.shortName = "ai_offrscreen_color";

@@ -22,6 +22,8 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "primaryVisibility";
    data.shortName = "vis";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
    
    data.defaultValue.BOOL() = true;

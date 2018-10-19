@@ -142,6 +142,8 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.stringDefault = "";
    data.name = "aiTraceSets";
    data.shortName = "trace_sets";
+   data.keyable = false;
+   data.channelBox = false;
    data.type = AI_TYPE_STRING;
    
    helper.MakeInput(data);
@@ -149,12 +151,16 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.stringDefault = "";
    data.name = "aiSssSetname";
    data.shortName = "ai_sss_setname";
+   data.keyable = false;
+   data.channelBox = false;
    data.type = AI_TYPE_STRING;
    helper.MakeInput(data);
 
    data.stringDefault = "";
    data.name = "aiToonId";
    data.shortName = "ai_toon_id";
+   data.keyable = false;
+   data.channelBox = false;
    data.type = AI_TYPE_STRING;
    helper.MakeInput(data);
 

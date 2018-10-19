@@ -266,3 +266,83 @@ class AttrControlGrp(object):
         if self.callback:
             cmds.scriptJob(attributeChange=[self.attribute, self.callback],
                          replacePrevious=True, parent=self.control)
+
+# when "Use File Sequence" is toggled we need to change the Filename
+# -> enabling it should replace the numeric part by ###
+# -> disabling it should replace ### by the frameNumber value
+def resolveFilePathSequence( nodeName, 
+                            sequenceAttribute,
+                            filenameAttribute,
+                            filenameTextField,
+                            frameAttribute,
+                            subFrameAttribute = None):
+
+    useSequence = cmds.getAttr(nodeName + '.%s' %(sequenceAttribute))
+    mOrigPath = cmds.getAttr(nodeName + '.%s' %(filenameAttribute)) or r''
+    mNodeType = cmds.nodeType(nodeName)
+    mPath = mOrigPath
+    mExpression = ''
+    supportedImageFormats = ['bmp', 'cin', 'dds', 'dpx', 'hdr', 'iff', 'jpg', 'exr', 'png', 'psd', 'rla', 'sgi', 'tga', 'tif']
+    imageFormats = '.\\'+'|.\\'.join(supportedImageFormats)
+    if useSequence:
+        # check if something is connected to FrameNumber
+        if not mu.hasAttrInputs(nodeName, frameAttribute):
+            # Nothing connected yet, make an expression and connect it to frame
+            cmds.expression(s= nodeName +'.%s=frame' %(frameAttribute) )
+
+        # We're supposed to find a file sequence, let's see if there is one
+        if mNodeType == 'aiVolume':
+            mExpression = '(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.vdb)$'
+        elif mNodeType == 'aiStandIn':
+            mExpression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
+        elif mNodeType == 'aiImage':
+            mExpression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(%s)$' %(imageFormats)
+
+        if re.search(mExpression,mPath) != None: # check if format is recognized
+            m_groups = re.search(mExpression,mPath).groups()
+            # Single file
+            if not m_groups[2]:
+                cmds.setAttr(nodeName + '.useFrameExtension', False)
+                cmds.error(("[mtoa] StandIn Sequence not recognized with filename %s" % mPath))
+            # Sequence without subframes    
+            elif not m_groups[3]:
+                mPath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
+
+                if subFrameAttribute and cmds.getAttr(nodeName+'.%s' %(subFrameAttribute)):
+                    cmds.setAttr(nodeName+'.%s' %(subFrameAttribute),False)
+            else:
+                # Supporting subframes only for standins for now
+                if mNodeType == 'aiStandin':
+                    mPath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
+
+                    if not cmds.getAttr(nodeName+'.%s' %(subFrameAttribute)):
+                        cmds.setAttr(nodeName+'.%s' %(subFrameAttribute),True)
+
+    else:
+        # replace #### by the current frame
+        frameNumber = int(cmds.getAttr(nodeName + '.%s' %(frameAttribute)))
+        startIndex = mPath.find('#')
+        if startIndex >= 0 :
+            hashCount = 0
+            for i in range(startIndex, len(mPath)):
+                if mPath[i] == '#':
+                    hashCount=hashCount+1
+                else:
+                    break
+            frameStr = str(frameNumber)
+
+            # apply the padding
+            while len(frameStr) < hashCount:
+                frameStr = '0' + frameStr
+
+            mPath = mPath[:startIndex] + frameStr + mPath[startIndex+hashCount:]
+
+    if mPath != mOrigPath:
+        cmds.setAttr(nodeName+'.%s' %(filenameAttribute), mPath, type='string')
+
+    # aiImage using a different text widget to aiStandIn and aiVolume
+    if mNodeType == 'aiImage':
+        cmds.textFieldGrp(filenameTextField, edit=True, text=mPath)
+    else:
+        cmds.textField(filenameTextField, edit=True, text=mPath)
+    

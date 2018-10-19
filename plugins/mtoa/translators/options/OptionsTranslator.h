@@ -16,6 +16,7 @@ struct CAOVOutput
    bool singleLayer;
    bool raw;
    MString prefix;
+   MString layerSuffix;
    CDriverTranslator *driverTranslator;
 };
 

@@ -138,3 +138,18 @@ MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_C
 {
     return new ArnoldUtilityShaderOverride(obj, "aiClamp");
 }
+
+MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_Flat(const MObject& obj)
+{
+    return new ArnoldUtilityShaderOverride(obj, "aiFlat");
+}
+
+MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_Mix(const MObject& obj)
+{
+    return new ArnoldUtilityShaderOverride(obj, "aiMixShader");
+}
+
+MHWRender::MPxSurfaceShadingNodeOverride* ArnoldUtilityShaderOverride::creator_Round_Corners(const MObject& obj)
+{
+    return new ArnoldUtilityShaderOverride(obj, "aiRoundCorners");
+}

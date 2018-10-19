@@ -95,6 +95,8 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiSurfaceShader";
    data.shortName = "ai_surface_shader";
    data.isArray = false;   
+   data.channelBox = false;
+   data.keyable = false;       
    data.defaultValue.RGB() = AI_RGB_BLACK;
 
    helper.MakeInputRGB(data);
@@ -204,7 +206,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
    // we happen to receive this signal quite often, but it doesn't seem to affect the render.
    // For example, when we select a shader in the hypershade (#2540), it used to trigger a re-render.
    // We're returning without calling CNodeTranslator::NodeChanged so that it doesn't request an update
-   if(plugName == "dagSetMembers") return;
+   if(plugName == "dagSetMembers" || plugName == "soloShader") return;
 
    if(plugName == "displacementShader")
    {

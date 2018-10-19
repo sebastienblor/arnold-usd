@@ -20,6 +20,9 @@ defaultFolder = ""
 defaultOperatorsFolder = ""
 
 _maya_version = mutils.getMayaVersion()
+clmVersion = int(cmds.arnoldPlugins(getClmVersion=True))
+if clmVersion > 1:
+    import arnold.ai_license_clm
 
 def doCreateStandInFile():
     node = createStandIn()
@@ -59,7 +62,7 @@ def doCreateCurveCollector():
     if len(sls) > 0:
         for slsElem in sls:
             print slsElem
-            shs = cmds.listRelatives(slsElem, type='nurbsCurve', allDescendents=True)
+            shs = cmds.listRelatives(slsElem, fullPath=True, type='nurbsCurve', allDescendents=True)
             if shs is None:
                 continue
             if len(shs):
@@ -79,11 +82,11 @@ def doCreateOperator(opName):
     cmds.select(opNode, replace=True)
 
 def doCreateOldMeshLight():
-    sls = cmds.ls(sl=True, et='transform')
+    sls = cmds.ls(sl=True, fullPath=True, et='transform')
     if len(sls) == 0:
         cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
         return
-    shs = cmds.listRelatives(sls[0], type='mesh')
+    shs = cmds.listRelatives(sls[0], fullPath=True, type='mesh')
     if shs is None:
         cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
         return
@@ -280,6 +283,12 @@ PROFITS; OR BUSINESS INTERRUPTION), HOWEVER CAUSED AND ON ANY THEORY OF LIABILIT
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE OPEN SOURCE COMPONENTS, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. \n\
 \n\
 \n\
+Copyright © 2014 Inigo Quilez, Voronoise Version 1/15/2014.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
+\n\
+Copyright (c) 2014, 2015, 2016 Cryptomatte Version 1.0.0 Psyop Media Company, LLC All rights reserved.  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.  Neither the name of the <organization> nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
+\n\
+Alligator Noise is provided by Side Effects Software Inc. and is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.\n\
+\n\
 Boost C++ Libraries \n\
 ------------------------------------------------------------------------ \n\
 Boost Software License – Version 1.0 August 17th, 2003 Permission is hereby granted, free of charge, to any person or organization obtaining a copy of the software and accompanying documentation \n\
@@ -290,15 +299,6 @@ The copyright notices in the Software and this entire statement, including the a
 THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF \n\
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. \n\
 \n\
-MurmurHash3 \n\
-------------------------------------------------------------------------  \n\
-The MIT License (MIT) \n\
-\n\
-Copyright (c) <year> <copyright holders>. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, \n\
-distribute, sublicense, and/or sell copies of the Software, and to \n\
-permit persons to whom the Software is furnished to do so, subject to \n\
-the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
-\n\
 \n"
     
     arnoldAboutText =  u"Arnold for Maya\n\n"
@@ -306,9 +306,10 @@ the following conditions: The above copyright notice and this permission notice 
     arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
     if not '(Master)' in arnoldBuildID:
         arnoldAboutText += " - " + arnoldBuildID
-    arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())+"\n\n"
+    arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
+    arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
     arnoldAboutText += u"Copyright (c) 2001-2009 Marcos Fajardo and\nCopyright (c) 2009-2016 Solid Angle  S.L.\nAll rights reserved\n\n"
-    arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack\n\n"
+    arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard, Yannick Puech,\nBorja Morales, Nicolas Dumay, Pedro Fernando Gomez,\nPál Mezei, Sebastien Blaineau-Ortega, Ashley Handscomb Retallack,\nKrishnan Ramachandran\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, Lee Griggs,\nChad Dombrova, Gaetan Guidet, Gaël Honorez, Diego Garcés,\nKevin Tureski, Frédéric Servant, Darin Grant"
 
     if (cmds.window("AboutArnold", ex=True)):
@@ -340,7 +341,15 @@ the following conditions: The above copyright notice and this permission notice 
     cmds.setParent( '..' )
     
     cmds.showWindow(w)
-    
+   
+def arnoldLicensingSignIn():
+    ai.ai_license_clm.AiLicenseClmSignIn()
+
+def arnoldLicensingSignOut():
+    ai.ai_license_clm.AiLicenseClmSignOut()
+
+def arnoldLicensingLicenseManager():
+    ai.ai_license_clm.AiLicenseClmLicenseManager()  
         
 def arnoldLicensingGetMacAddress():
     if (cmds.window("ArnoldLicenseGetMacAddress", ex=True)):
@@ -562,7 +571,7 @@ def createArnoldMenu():
         cmds.menuItem('ArnoldConvertShaders', label='Convert Shaders to Arnold', parent='ArnoldUtilities',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldConvertDeprecated()')
 
-        cmds.menuItem('ArnoldLicensingMenu', label='Licensing', parent='ArnoldMenu',
+        cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
                     c=lambda *args: arnoldLicensingConnectLicenseServer())
@@ -634,3 +643,17 @@ def createArnoldMenu():
                     
         cmds.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu', image ='menuIconHelp.png',
                     c=lambda *args: arnoldAboutDialog())
+        cmds.menuItem(divider=1, parent='ArnoldMenu')
+
+        clmVersion = cmds.arnoldPlugins(getClmVersion=True)
+        if int(clmVersion) > 1:
+            cmds.menuItem('ArnoldLicensingLicenseManager', label='Manage License...', parent='ArnoldMenu',
+                        c=lambda *args: arnoldLicensingLicenseManager())
+
+            darkSite = int(os.getenv('ADLSDK_DARK_SITE') or 0)
+            if not darkSite:
+                cmds.menuItem('ArnoldLicensingSignIn', label='Sign-In', parent='ArnoldMenu',
+                            c=lambda *args: arnoldLicensingSignIn())
+                cmds.menuItem('ArnoldLicensingSignOut', label='Sign-Out', parent='ArnoldMenu',
+                            c=lambda *args: arnoldLicensingSignOut())
+            

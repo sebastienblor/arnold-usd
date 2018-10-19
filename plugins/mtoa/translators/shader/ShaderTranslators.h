@@ -53,7 +53,10 @@ SHADER_TRANSLATOR(CMayaBlendColorsTranslator);
 SHADER_TRANSLATOR(CMayaClampTranslator);
 SHADER_TRANSLATOR(CMultiplyDivideTranslator);
 SHADER_TRANSLATOR(CToonTranslator);
-
+SHADER_TRANSLATOR(CConditionTranslator);
+SHADER_TRANSLATOR(CLuminanceTranslator);
+SHADER_TRANSLATOR(CReverseTranslator);
+SHADER_TRANSLATOR(CSurfaceLuminanceTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
@@ -180,6 +183,14 @@ public:
    AtNode* CreateArnoldNodes();
 private:
    MString m_colorSpace;
+};
+
+class CAiRoundCornersTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiRoundCornersTranslator();}
+
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
 };
 
 class CAiRaySwitchTranslator : public CShaderTranslator{

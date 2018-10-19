@@ -28,6 +28,8 @@
 #include <string>
 #include <fstream>
 
+#include <utils/MayaUtils.h>
+
 bool IsFloatAttrDefault(MPlug plug, float value)
 {
    if (plug.isNull())
@@ -639,6 +641,8 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiAutoTx";
    data.shortName = "autotx";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
 
    data.defaultValue.INT() = 0;
@@ -663,6 +667,8 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiFlipR";
    data.shortName = "flip_r";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
    
    data.name = "aiFlipG";
@@ -683,7 +689,24 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   MPlug plug = FindMayaPlug("bumpInterp");
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("bumpValue");
+   if (!plug.isNull())
+   {
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         MObject mayaNode = connections[0].node();
+         if (!mayaNode.isNull())
+         {
+            MString typeName = MFnDependencyNode(mayaNode).typeName();
+            if (typeName == "aiRoundCorners")
+               return AddArnoldNode("add");
+         }
+      }
+   }
+
+   plug = FindMayaPlug("bumpInterp");
    if (!plug.isNull() && plug.asShort() > 0)
       return AddArnoldNode("normal_map");
 
@@ -694,6 +717,7 @@ AtNode*  CBump2DTranslator::CreateArnoldNodes()
 void CBump2DTranslator::Export(AtNode* shader)
 {
    static const AtString normalMapStr("normal_map");
+   static const AtString addStr("add");
    if (AiNodeIs(shader, normalMapStr))
    {
       // either Object-space or Tangent-space normal
@@ -760,7 +784,19 @@ void CBump2DTranslator::Export(AtNode* shader)
       else 
          AiNodeResetParameter(shader, "input");
 
-   } else
+   } else if (AiNodeIs(shader, addStr))
+   {
+      MPlugArray connections;
+      MPlug plug = FindMayaPlug("bumpValue");
+      plug.connectedTo(connections, true, false);
+      AtNode *bumpMap = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+
+      if (bumpMap)
+         AiNodeLink(bumpMap, "input1", shader);
+      else 
+         AiNodeResetParameter(shader, "input1");
+
+   } else   
    {
       // Bump mode
       // just need to export bump_map & bump_height
@@ -1392,6 +1428,8 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiUseReferenceObject";
    data.shortName = "ai_use_reference_object";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
 }
 
@@ -1449,6 +1487,8 @@ void CRampTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiCurveImplicitUvs";
    data.shortName = "ai_curve_implicit_uvs";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputBoolean(data);
 }
 
@@ -1653,6 +1693,9 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
 {
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_SHADER))
+      return NULL;
+
    return AddArnoldNode("MtoaAnimFloat");
 }
 
@@ -1808,6 +1851,8 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.defaultValue.FLT() = 0.f;
    data.name = "aiDisplacementPadding";
    data.shortName = "ai_displacement_padding";
+   data.channelBox = false;
+   data.keyable = false;       
    helper.MakeInputFloat(data);
    
    data.defaultValue.FLT() = 0.f;
@@ -2139,14 +2184,14 @@ void CAiImageTranslator::Export(AtNode* image)
 
    // keep the previous filename
    MString prevFilename = AiNodeGetStr(image, "filename").c_str();
+   prevFilename = resolveFilePathForSequences(prevFilename, FindMayaPlug("frame").asInt());
 
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)
    {
-      MString filename(AiNodeGetStr(image, "filename"));
-      filename = filename.expandEnvironmentVariablesAndTilde();
-      
-      options.FormatTexturePath(filename);
+        MString filename(AiNodeGetStr(image, "filename"));
+        filename = resolveFilePathForSequences(filename, FindMayaPlug("frame").asInt());
+        options.FormatTexturePath(filename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
 
@@ -2253,6 +2298,16 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.name = "workingSpace";
    data.shortName = "ws";
    helper.MakeInputString(data);
+
+   data.defaultValue.BOOL() = false;
+   data.name = "useFrameExtension";
+   data.shortName = "useFrameExtension";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.FLT() = 0.f;
+   data.name = "frame";
+   data.shortName = "frame";
+   helper.MakeInputFloat(data);
 
 /* 
    // In case we need to have an attribute named imageName
@@ -2826,4 +2881,112 @@ void CMultiplyDivideTranslator::Export(AtNode* shader)
          break;
    }   
 }
+
+// Luminance shader
+AtNode* CLuminanceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("rgb_to_float");
+}
+
+void CLuminanceTranslator::Export(AtNode* shader)
+{
+   AiNodeSetStr(shader, "mode", "luminance");
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
+}
+// Reverse shader
+AtNode* CReverseTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("complement");
+}
+
+void CReverseTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "input");
+}
+
+// Condition shader
+AtNode* CConditionTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("switch_rgba");
+}
+
+void CConditionTranslator::Export(AtNode* shader)
+{
+   AtNode *compare = GetArnoldNode("compare");
+   if (compare == NULL)
+      compare = AddArnoldNode("compare", "compare");
+
+   MPlug opPlug = FindMayaPlug("operation");
+   if (!opPlug.isNull())
+   {
+      switch (opPlug.asInt())
+      {
+         default:
+         case 0: // "equal"
+            AiNodeSetStr(compare, "test", "==");
+         break;
+         case 1: //"notequal"
+            AiNodeSetStr(compare, "test", "!=");
+         break;
+         case 2: // "greaterthan"
+            AiNodeSetStr(compare, "test", ">");
+         break;
+         case 3: //"greaterorequal"
+            AiNodeSetStr(compare, "test", ">=");
+         break;
+         case 4: // "lessthan"
+            AiNodeSetStr(compare, "test", "<");
+         break;
+         case 5: // "lessorequal"
+            AiNodeSetStr(compare, "test", "<=");
+         break;
+      }
+   }
+   ProcessParameter(compare, "input1", AI_TYPE_FLOAT, "firstTerm");
+   ProcessParameter(compare, "input2", AI_TYPE_FLOAT, "secondTerm");
+   AiNodeLink(compare, "index", shader);   
+   
+   ProcessParameter(shader, "input0", AI_TYPE_RGBA, "colorIfFalse");
+   ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorIfTrue");
+
+}
+
+// Surface Luminance shader
+AtNode* CSurfaceLuminanceTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("rgb_to_float");
+}
+
+void CSurfaceLuminanceTranslator::Export(AtNode* shader)
+{
+   AtNode *utility = GetArnoldNode("utility");
+   if (utility == NULL)
+      utility = AddArnoldNode("utility", "utility");
+
+   AiNodeSetStr(utility, "shade_mode", "lambert");
+   // The lambert mode in utility forces a *0.7 factor.... I want this to be white diffuse
+   // Also, there's a PI factor to be added to get the same result as surface luminance.
+   // Note that we're now considering indirect illumination which wasn't the case before
+   AiNodeSetRGB(utility, "color", 3.14f / 0.7f, 3.14f / 0.7f, 3.14f / 0.7f); 
+   AiNodeLink(utility, "input", shader);
+   AiNodeSetStr(shader, "mode", "luminance");
+}
+
+AtNode* CAiRoundCornersTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("round_corners");
+}
+
+void CAiRoundCornersTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "round_corners");
+   
+   CAttrData data;
+   data.defaultValue.FLT() = 0.f;
+   data.name = "outAlpha";
+   data.shortName = "out_alpha";
+   helper.MakeInputFloat(data);
+
+}
+
 

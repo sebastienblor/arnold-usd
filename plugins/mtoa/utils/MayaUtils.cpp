@@ -70,3 +70,27 @@ MString replaceInString(const MString& source, const MString& origString, const 
       ret = ret.substringW(0, index) + toReplace + ret.substringW(index + origString.numChars(), ret.numChars());
    return ret;
 }
+
+MString resolveFilePathForSequences(const MString& sourceFileName, const int frameNumber)
+{
+
+    MString newFilename = "";
+    int start, end  = 0;
+    char frameExt[64];
+
+    start = sourceFileName.index('#');
+    end = sourceFileName.rindex('#');
+
+    if(start >= 0)
+    {
+        sprintf(frameExt, "%0*d", end - start + 1, frameNumber);
+        newFilename = sourceFileName.substring(0,start-1) + frameExt + sourceFileName.substring(end+1,sourceFileName.length());
+    }
+    else
+    {
+        newFilename = sourceFileName;
+    }
+
+    return newFilename.expandEnvironmentVariablesAndTilde();
+
+}

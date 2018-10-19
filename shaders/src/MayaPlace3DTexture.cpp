@@ -65,6 +65,7 @@ node_parameters
    //AiMetaDataSetStr(nentry, NULL, "maya.name", "place3dTexture");
    //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52504c44);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize

@@ -16,6 +16,9 @@ void CObjectSetTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL() = true;
    data.name = "aiOverride";
    data.shortName = "ai_override";
+   data.channelBox = false;
+   data.keyable = false;
+
    data.type = AI_TYPE_BOOLEAN;
 
    helper.MakeInput(data);

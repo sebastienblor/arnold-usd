@@ -122,12 +122,20 @@ void CAOV::Strip(MString &mstr) const
 bool CAOV::FromMaya(MObject &AOVNode)
 {
    if (AOVNode.isNull())
-   {
       return false;
-   }
+   
    m_object = AOVNode;
    MFnDependencyNode fnNode;
    fnNode.setObject(AOVNode);
+
+   // check if this AOV is Valid
+   MString isValidCmd = MString("import mtoa.aovs;mtoa.aovs.isValidAOVNode(\"") + fnNode.name() + MString("\")");
+   int isValidRes = 1;
+   MGlobal::executePythonCommand(isValidCmd, isValidRes);
+
+   if (isValidRes == 0)
+      return false;
+
    m_name = fnNode.findPlug("name").asString();
    Strip(m_name);
 

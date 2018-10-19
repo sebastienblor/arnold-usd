@@ -273,7 +273,24 @@ env['ENABLE_COLOR_MANAGEMENT'] = 0
 env['ENABLE_GPU_CACHE'] = 1
 
 # Get arnold and maya versions used for this build
+
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
+
+clm_version = 1
+
+p = subprocess.Popen(os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), shell=True, stdout = subprocess.PIPE)
+retcode = p.wait()
+for line in p.stdout:
+    if 'clm-' in line:
+        clmIndex = line.find('clm-')
+        if line[clmIndex + 4:clmIndex + 5] == '2':
+            clm_version = 2
+
+if clm_version == 2:
+    env.Append(CPPDEFINES = Split('CLIC_V2')) 
+else:
+    env.Append(CPPDEFINES = Split('CLIC_V1')) 
+    
 if not env['MAYA_MAINLINE']:
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 else:
@@ -342,6 +359,7 @@ print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
+print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 if system.os() == 'linux':
@@ -794,8 +812,13 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
 # Install the licensing tools
 rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os())
 nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os())
+clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os())
+
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
+
+env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'license'), glob.glob(os.path.join(clm_utils_path, "*")))
+
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(ARNOLD, 'osl'))
@@ -1154,6 +1177,7 @@ PACKAGE_FILES = [
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.png'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.pit'), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'oslc%s' % get_executable_extension()), 'bin'],
@@ -1198,10 +1222,14 @@ if (int(maya_version) >= 201700):
 # package the licensing tools
 rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os())
 nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os())
+clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os())
 PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
 PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 
-PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'pit'])
+if clm_version == 2:
+    PACKAGE_FILES.append([os.path.join(clm_utils_path, '*'), 'license'])
+
+PACKAGE_FILES.append([os.path.join(ARNOLD, 'license', 'pit', '*'), 'license'])
 
 if env['ENABLE_VP2'] == 1:
     vp2shaders = GetViewportShaders(maya_version)
@@ -1332,6 +1360,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
+
         zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)
         NSIS_PATH = env.subst(env['NSIS_PATH'])
         os.environ['NSISDIR'] = NSIS_PATH
@@ -1368,8 +1397,11 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'lmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'rlmutil')])
         subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'noice')])
+        
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
-        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'pit', 'pitreg')])
+        
+        if os.path.exists(os.path.join(tempdir, maya_version, 'license', 'pitreg')):
+            subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'license', 'pitreg')])
 
 
         installPath = '/Applications/solidangle/mtoa/' + maya_version
@@ -1382,17 +1414,39 @@ def create_installer(target, source, env):
 
         pitregScript = open(os.path.join(tempdir, 'pitreg_script.sh'), 'w')
         pitregScript.write('#!/usr/bin/env bash\n')
-        pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
-        pitregScript.write(pitregCommand)
-        pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
-        pitregCommand = "  $2/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
-        pitregScript.write(pitregCommand)
-        pitregScript.write('else\n')
-        pitregCommand = "  $3/Applications/solidangle/mtoa/%s/pit/pitreg\n" % maya_version
-        pitregScript.write(pitregCommand)
-        pitregScript.write('fi\n')
+
+        if clm_version == 2:
+            pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1020_RC6-darwin.dmg\n" % maya_version
+            pitregScript.write(pitregCommand)
+            pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
+            pitregCommand = "  hdiutil attach $2/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1020_RC6-darwin.dmg\n" % maya_version
+            pitregScript.write(pitregCommand)
+            pitregScript.write('else\n')
+            pitregCommand = "  hdiutil attach $3/Applications/solidangle/mtoa/%s/license/ArnoldLicensing-8.1.0.1020_RC6-darwin.dmg\n" % maya_version
+            pitregScript.write(pitregCommand)
+            pitregScript.write('fi\n')
+            pitregCommand = "/Volumes/ArnoldLicensing/ArnoldLicensing-8.1.0.951_RC6-darwin.app/Contents/MacOS/ArnoldLicensing-8.1.0.1020_RC6-darwin --silent\n"
+            pitregScript.write(pitregCommand)
+            pitregCommand = "hdiutil detach /Volumes/ArnoldLicensing"
+            pitregScript.write(pitregCommand)        
+        else:
+            pitregCommand = "PITREG_FILE=$2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregScript.write(pitregCommand)
+            pitregScript.write('if [ -e $PITREG_FILE ]; then\n')
+            pitregCommand = "  $2/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregScript.write(pitregCommand)
+            pitregScript.write('else\n')
+            pitregCommand = "  $3/Applications/solidangle/mtoa/%s/license/pitreg\n" % maya_version
+            pitregScript.write(pitregCommand)
+            pitregScript.write('fi\n')
+
         pitregScript.write('\n')
         pitregScript.close()
+
+        pitregScript = open(os.path.join(tempdir, 'empty_script.sh'), 'w')
+        pitregScript.write('#!/usr/bin/env bash\n')
+        pitregScript.close()
+
 
         signed_extensions = ['.dylib', '.pkg', '.exe', '.bundle']
         excluded_files = [] #['libOpenColorIO.1.dylib']

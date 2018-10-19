@@ -26,6 +26,9 @@ public:
     static MHWRender::MPxSurfaceShadingNodeOverride* creator_Modulo(const MObject& obj);
     static MHWRender::MPxSurfaceShadingNodeOverride* creator_Fraction(const MObject& obj);
     static MHWRender::MPxSurfaceShadingNodeOverride* creator_Clamp(const MObject& obj);
+    static MHWRender::MPxSurfaceShadingNodeOverride* creator_Flat(const MObject& obj);
+    static MHWRender::MPxSurfaceShadingNodeOverride* creator_Mix(const MObject& obj);
+    static MHWRender::MPxSurfaceShadingNodeOverride* creator_Round_Corners(const MObject& obj);
 
     virtual ~ArnoldUtilityShaderOverride();
 

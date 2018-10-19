@@ -128,6 +128,7 @@ def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     cmds.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
+    cmds.attrControlGrp('mb_shader_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
     cmds.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
     cmds.attrControlGrp('textArnoldMBAngle', edit=True, enable=flag)
@@ -397,7 +398,7 @@ def removeSubdivDicingCamera(field, doDelete, select):
         cmds.textField(field, edit=True, text="")
         cmds.symbolButton(select, edit=True, enable=False)
         if doDelete:
-            parent = cmds.listRelatives( 'cameraShape1', parent=True )
+            parent = cmds.listRelatives( 'cameraShape1', fullPath=True, parent=True )
             if parent and len(parent):
                 cmds.delete(parent)
     
@@ -496,13 +497,13 @@ def createGpuSettings():
         ai.AiEnd()
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
-    cmds.attrControlGrp('default_gpu_names', 
+    cmds.attrControlGrp('gpu_default_names', 
                         label="GPU Names", 
-                        attribute='defaultArnoldRenderOptions.default_gpu_names')
+                        attribute='defaultArnoldRenderOptions.gpu_default_names')
 
-    cmds.attrControlGrp('default_gpu_min_memory_MB', 
+    cmds.attrControlGrp('gpu_default_min_memory_MB', 
                         label="Min. Memory (MB)", 
-                        attribute='defaultArnoldRenderOptions.default_gpu_min_memory_MB')
+                        attribute='defaultArnoldRenderOptions.gpu_default_min_memory_MB')
 
     cmds.setParent('..')
     cmds.frameLayout(label='Manual Device Selection (Local Render)', collapse=False)
@@ -1115,6 +1116,12 @@ def createArnoldMotionBlurSettings():
     cmds.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=1)
     cmds.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=2)
     
+    cmds.checkBoxGrp('mb_shader_enable',
+                    label='Shaders')
+                     
+    cmds.connectControl('mb_shader_enable', 'defaultArnoldRenderOptions.mb_shader_enable', index=1)
+    cmds.connectControl('mb_shader_enable', 'defaultArnoldRenderOptions.mb_shader_enable', index=2)
+    
     cmds.attrControlGrp('mb_motion_steps',
                         label="Keys",
                         attribute='defaultArnoldRenderOptions.motion_steps')                   
@@ -1310,6 +1317,9 @@ def createArnoldOverrideSettings():
 
     cmds.attrControlGrp('force_translate_shading_engines',
                        attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Shader Assignments')
+
+    cmds.attrControlGrp('ignore_list',
+                       attribute='defaultArnoldRenderOptions.ignore_list', label='Ignore List')
 
     cmds.setParent('..')
 

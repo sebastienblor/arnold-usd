@@ -18,6 +18,7 @@ node_parameters
 
    AiMetaDataSetStr(nentry, NULL, "maya.name", "MayaFlatClosure");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52535983);
 }
 

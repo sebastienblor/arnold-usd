@@ -67,6 +67,7 @@ MObject CArnoldVolumeShape::s_volume_padding;
 MObject CArnoldVolumeShape::s_step_scale;
 MObject CArnoldVolumeShape::s_step_size;
 MObject CArnoldVolumeShape::s_compress;
+MObject CArnoldVolumeShape::s_useFrameExtension;
 
 MObject CArnoldVolumeShape::s_grids;
 MObject CArnoldVolumeShape::s_frame;
@@ -294,6 +295,12 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setWritable(true);
    nAttr.setDefault(0.f, 0.f, 0.f);
    addAttribute(s_field);
+
+   s_useFrameExtension = nAttr.create("useFrameExtension", "useFrameExtension",
+         MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_useFrameExtension);
 
    return MStatus::kSuccess;
 }

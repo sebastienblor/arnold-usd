@@ -205,7 +205,9 @@ previousFiles = [
 'bin/libcudart.so.9.0',
 'bin/libcudnn.so.7',
 'bin/liboptix_denoiser.so',
+'bin/liboptix_denoiser.so.51',
 'bin/liboptix.so.1',
+'bin/liboptix.so.51',
 'plug-ins/mtoa.mtd',
 'plug-ins/mtoa.so',
 'plugins/alembic_proc.so',
@@ -295,7 +297,7 @@ mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
-exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil')]
+exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil'), os.path.join('license', 'pitreg')]
 for ex in exList:
     try:
         subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
@@ -303,7 +305,9 @@ for ex in exList:
         if not silent:
             print('Error adding +x to executable %s' % ex)
         sys.exit(0)
-subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
+
+# stop relying on pitreg
+#subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
 
 if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser(userString)
@@ -359,29 +363,33 @@ if installMode == 1: # do the proper installation
             shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
             shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
 
-    pitreg_result = os.system(os.path.join(installDir, 'pit', 'pitreg')) # register pit file
-    print pitreg_result
 
-    if int(pitreg_result) > 0:                
-        os.system('clear')
 
-        pitreg_msg = "Error %s" % pitreg_result
-        if int(pitreg_result) == 2:
-            pitreg_msg = "File could not be opened"
-        elif int(pitreg_result) == 24:
-            pitreg_msg = "File not found"
-        elif int(pitreg_result) == 25:
-            pitreg_msg = "Error while parsing .pit file"
-        elif int(pitreg_result) == 27:
-            pitreg_msg = "Invalid .pit file"
-        elif int(pitreg_result) == 32:
-            pitreg_msg = "Unable to set write access for all user in Linux and MAC"
-        
-        pitreg_msg = "Couldn't register Arnold renderer in Maya PIT file (%s). Please contact support@solidangle.com" % pitreg_msg
-        os.system('clear')    
-        print(pitreg_msg)        
-        sys.exit(1)
-    
+    print "Installing CLM Licensing Components...."
+    if os.path.exists(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1020_RC6-linux.run')):
+        os.system(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1020_RC6-linux.run --silent')) # register pit file
+    elif os.path.exists(os.path.join(installDir, 'license', 'pitreg')):
+        pitreg_result = os.system(os.path.join(installDir, 'license', 'pitreg'))
+        if int(pitreg_result) > 0:                
+            os.system('clear')
+
+            pitreg_msg = "Error %s" % pitreg_result
+            if int(pitreg_result) == 2:
+                pitreg_msg = "File could not be opened"
+            elif int(pitreg_result) == 24:
+                pitreg_msg = "File not found"
+            elif int(pitreg_result) == 25:
+                pitreg_msg = "Error while parsing .pit file"
+            elif int(pitreg_result) == 27:
+                pitreg_msg = "Invalid .pit file"
+            elif int(pitreg_result) == 32:
+                pitreg_msg = "Unable to set write access for all user in Linux and MAC"
+            
+            pitreg_msg = "Couldn't register Arnold renderer in Maya PIT file (%s). Please contact support@solidangle.com" % pitreg_msg
+            os.system('clear')    
+            print(pitreg_msg)        
+            sys.exit(1)
+
 if not silent:
     os.system('clear')
     print('Installation successful!')

@@ -643,24 +643,95 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
    case AI_TYPE_FLOAT:
       {
          float val = plug.asFloat();
-         // check for scaling
-         const AtNodeEntry* nentry = AiNodeGetNodeEntry(arnoldNode);
-         AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(nentry, arnoldParamName);
-         while(!AiMetaDataIteratorFinished(miter))
-         {
-            const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
-            if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
-            {
-               if (mentry->value.INT() == 1) // scale distance
-                  m_session->ScaleDistance(val);
-            }
-            continue;
-         }
-         AiMetaDataIteratorDestroy(miter);
 
-         float prevVal = AiNodeGetFlt(arnoldNode, arnoldParamName);
-         if (val != prevVal)
-            AiNodeSetFlt(arnoldNode, arnoldParamName, val);
+         const AtNodeEntry* nentry = AiNodeGetNodeEntry(arnoldNode);
+
+         std::string paramNameStr(arnoldParamName);
+         size_t paramNameLength = paramNameStr.length();
+         if (paramNameLength > 2 && paramNameStr[paramNameLength - 2] == '.')
+         {
+            // This is one element from a RGB / RGBA / VEC / VEC2 parameter
+            std::string baseParam = paramNameStr.substr(0, paramNameLength - 2);
+            std::string component = paramNameStr.substr(paramNameLength - 1, 1);
+            const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, baseParam.c_str());
+            if (paramEntry)
+            {
+               switch(AiParamGetType(paramEntry))
+               {
+                  {
+                  case AI_TYPE_RGB:
+                     AtRGB col = AiNodeGetRGB(arnoldNode, baseParam.c_str());
+                     if (component == "r")
+                        col.r = val;
+                     else if (component == "g")
+                        col.g = val;
+                     else if (component == "b")
+                        col.b = val;
+                     AiNodeSetRGB(arnoldNode, (const char *)baseParam.c_str(), col.r, col.g, col.b);
+                  break;
+                  }
+                  {
+                  case AI_TYPE_RGBA:
+                     AtRGBA col = AiNodeGetRGBA(arnoldNode, baseParam.c_str());
+                     if (component == "r")
+                        col.r = val;
+                     else if (component == "g")
+                        col.g = val;
+                     else if (component == "b")
+                        col.b = val;
+                     else if (component == "a")
+                        col.a = val;
+                     AiNodeSetRGBA(arnoldNode, (const char *)baseParam.c_str(), col.r, col.g, col.b, col.a);
+
+                  break;
+                  }
+                  {
+                  case AI_TYPE_VECTOR:
+                     AtVector vec = AiNodeGetVec(arnoldNode, baseParam.c_str());
+                     if (component == "x")
+                        vec.x = val;
+                     else if (component == "y")
+                        vec.y = val;
+                     else if (component == "z")
+                        vec.z = val;
+                     AiNodeSetVec(arnoldNode, (const char *)baseParam.c_str(), vec.x, vec.y, vec.z);
+
+                  break;
+                  }
+                  {
+                  case AI_TYPE_VECTOR2:
+                     AtVector2 vec = AiNodeGetVec(arnoldNode, baseParam.c_str());
+                     if (component == "x")
+                        vec.x = val;
+                     else if (component == "y")
+                        vec.y = val;
+                     AiNodeSetVec2(arnoldNode, (const char *)baseParam.c_str(), vec.x, vec.y);
+                  break;
+                  }
+                  default:
+                  break;
+               }
+            }
+         } else
+         {
+            // check for scaling
+            AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(nentry, arnoldParamName);
+            while(!AiMetaDataIteratorFinished(miter))
+            {
+               const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
+               if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
+               {
+                  if (mentry->value.INT() == 1) // scale distance
+                     m_session->ScaleDistance(val);
+               }
+               continue;
+            }
+            AiMetaDataIteratorDestroy(miter);
+         
+            float prevVal = AiNodeGetFlt(arnoldNode, arnoldParamName);
+            if (val != prevVal)
+               AiNodeSetFlt(arnoldNode, arnoldParamName, val);
+         }
       }
       break;
    case AI_TYPE_VECTOR2:
@@ -1035,10 +1106,13 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
 
 void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
 {
-   // TODO: allow overrides here too ?
+   // Exporting User Attributes from override sets (#1741)
+   for (std::vector<CNodeTranslator*>::const_iterator it = m_overrideSets.begin() ; it != m_overrideSets.end(); ++it)
+      CNodeTranslator::ExportUserAttributes(anode, (*it)->GetMayaObject(), &m_tr);
+ 
    CNodeTranslator::ExportUserAttributes(anode, m_tr.GetMayaObject(), &m_tr);
    
-   // Exporting the UnexposedOptions parameter
+   // Exporting the unexposed options parameter
    MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());

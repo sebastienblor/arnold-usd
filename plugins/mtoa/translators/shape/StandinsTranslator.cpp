@@ -18,39 +18,19 @@
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 {
-   // #2771 for interactive sessions, we export standin instances as 
-   // several procedurals instead of ginstances. We could do this for all
-   // kind of exports, but for now we only change it in IPR.
-   // We can only do this for .ass files, which arnold core will
-   // handle through the procedural cache. We don't want to duplicate other kind
-   // of procedurals, since they'd really be duplicated.
-   bool isInstanced = (!IsMasterInstance()) && (!GetSessionOptions().IsInteractiveRender());
-
-   // Note that the code below is possible because RequestUpdate sets the 
-   // update mode to AI_RECREATE_NODE, otherwise we could have invalid arnold nodes
-   // when the filename is changed during IPR
-   if (!isInstanced)
-      return AddArnoldNode("procedural");
-   else
-      return AddArnoldNode("ginstance");
+   // #3592 : Now we always export Standins as a procedural, even if they come from a Maya instance.
+   // Arnold itself will handle the procedural cache, and the procedural is as lightweight as the ginstance anyway
+   return AddArnoldNode("procedural");
 }
 
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)
 {
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else
-   {
-      // First export the generic procedural parameters defined in ProceduralTranslator
-      ExportProcedural(anode);
+   // First export the generic procedural parameters defined in ProceduralTranslator
+   ExportProcedural(anode);
 
-      // Then export the standin filename
-      ExportStandInFilename(anode);  
-   }
+   // Then export the standin filename
+   ExportStandInFilename(anode);  
 }
 
 void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)

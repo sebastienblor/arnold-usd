@@ -4,6 +4,7 @@ import maya.mel as mel
 import os.path
 import mtoa.melUtils as mu
 from mtoa.ui.ae.utils import aeCallback
+from mtoa.ui.ae.utils import resolveFilePathSequence
 import mtoa.core as core
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import arnold as ai
@@ -408,67 +409,15 @@ class AEaiStandInTemplate(ShaderAETemplate):
         for s in cache_str_list:
             self.assItems.append(s.split(','))
 
-    # when "Use File Sequence" is toggled we need to change the Filename
-    # -> enabling it should replace the numeric part by ###
-    # -> disabling it should replace ### by the frameNumber value
     def useSequenceChange(self, nodeName):
-        useSequence = cmds.getAttr(nodeName + '.useFrameExtension')
-        mOrigPath = cmds.getAttr(nodeName + '.dso') or r''
-        mPath = mOrigPath
-
-        if useSequence:
-            # check if something is connected to FrameNumber
-            if not mu.hasAttrInputs(nodeName, 'frameNumber'):
-                # Nothing connected yet, make an expression and connect it to frameNumber
-                cmds.expression(s= nodeName +'.frameNumber=frame' )
-
-            # We're supposed to find a file sequence, let's see if there is one
-            expression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
-            if re.search(expression,mPath) != None: # check if format is recognized
-                m_groups = re.search(expression,mPath).groups()
-                # Single file
-                if not m_groups[2]:
-                    cmds.setAttr(nodeName + '.useFrameExtension', False)
-                    cmds.error(("[mtoa] StandIn Sequence not recognized with filename %s" % mPath))
-                # Sequence without subframes    
-                elif not m_groups[3]:
-                #    cmds.setAttr(nodeName+'.useFrameExtension',True)
-                    mPath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
-                    
-                    if cmds.getAttr(nodeName+'.useSubFrame'):
-                        cmds.setAttr(nodeName+'.useSubFrame',False)
-                    
-                # Sequence with subframes
-                else:
-                    mPath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
-
-                    if not cmds.getAttr(nodeName+'.useSubFrame'):
-                        cmds.setAttr(nodeName+'.useSubFrame',True)       
-
-        else:
-            # replace #### by the current frame
-            frameNumber = float(cmds.getAttr(nodeName + '.frameNumber')) + float(cmds.getAttr(nodeName + '.frameOffset'))
-            if not cmds.getAttr(nodeName + '.useSubFrame'):
-                frameNumber = int(frameNumber)
-            startIndex = mPath.find('#')
-            if startIndex >= 0 :
-                hashCount = 0
-                for i in range(startIndex, len(mPath)):
-                    if mPath[i] == '#':
-                        hashCount=hashCount+1
-                    else:
-                        break            
-                frameStr = str(frameNumber)
-
-                # apply the padding
-                while len(frameStr) < hashCount:
-                    frameStr = '0' + frameStr
-
-                mPath = mPath[:startIndex] + frameStr + mPath[startIndex+hashCount:]
-
-        if mPath != mOrigPath:
-            cmds.setAttr(nodeName+'.dso', mPath, type='string')
-        cmds.textField('standInDsoPath', edit=True, text=mPath)
+        
+        resolveFilePathSequence(nodeName,
+                                'useFrameExtension',
+                                'dso',
+                                'standInDsoPath',
+                                'frameNumber',
+                                'useSubFrame'
+                                )
     
     def operatorsReplace(self, nodeAttr):
         self._setActiveNodeAttr(nodeAttr)

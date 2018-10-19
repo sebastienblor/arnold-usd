@@ -1,0 +1,4 @@
+print "Running Render to Texture";
+arnoldRenderToTexture -f "." -r 120 -aov 1 -sequence true -frame_start 1 -frame_end 3 -frame_step 2 pSphereShape1;
+arnoldRenderToTexture -f "." -r 120 -aov 1 -aud 1 -sequence true -frame_start 2 -frame_end 3 -frame_padding 2 pSphereShape2;
+
