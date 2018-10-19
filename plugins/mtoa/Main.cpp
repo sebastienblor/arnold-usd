@@ -383,15 +383,17 @@ namespace // <anonymous>
            "drawdb/shader/utility/math/arnold/clamp",
            "arnoldAiClampShaderOverride",
            ArnoldUtilityShaderOverride::creator_Clamp
-       }, {
-           "drawdb/shader/surface/flat",
-           "arnoldAiFlatShaderOverride",
-           ArnoldUtilityShaderOverride::creator_Flat
-       }, {
-           "drawdb/shader/surface/mix",
-           "arnoldAiMixShaderOverride",
-           ArnoldUtilityShaderOverride::creator_Mix
-       }, {
+       }, 
+    //    {
+    //        "drawdb/shader/surface/flat",
+    //        "arnoldAiFlatShaderOverride",
+    //        ArnoldUtilityShaderOverride::creator_Flat
+    //    }, {
+    //        "drawdb/shader/surface/mix",
+    //        "arnoldAiMixShaderOverride",
+    //        ArnoldUtilityShaderOverride::creator_Mix
+    //    },
+        {
            "drawdb/shader/utility/round_corners",
            "arnoldAiRoundCornersOverride",
            ArnoldUtilityShaderOverride::creator_Round_Corners
