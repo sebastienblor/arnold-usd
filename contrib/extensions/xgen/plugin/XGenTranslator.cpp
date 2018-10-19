@@ -120,6 +120,11 @@ struct DescInfo
    std::string auxRenderPatch;
    bool useAuxRenderPatch;
 
+   bool useDeltaFile;
+   std::string deltaFiles;
+   std::string palBaseFile;
+   std::string palFileName;
+
    bool multithreading;
 
    void setBoundingBox( float xmin, float ymin, float zmin, float xmax, float ymax, float zmax )
@@ -255,8 +260,19 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          palDagPath.pop();
          info.strPalette = palDagPath.partialPathName().asChar();
          const std::string strPaletteFullPath = palDagPath.fullPathName().asChar();
+
+         MFnDagNode  xgenPalette;
+         xgenPalette.setObject(palDagPath.node());
+         info.useDeltaFile = xgenPalette.findPlug("xgExportAsDelta").asBool();
+         info.deltaFiles = xgenPalette.findPlug("xgDeltaFiles").asString().asChar();
+         info.palBaseFile = xgenPalette.findPlug("xgBaseFile").asString().asChar();
+         info.palFileName = xgenPalette.findPlug("xgFileName").asString().asChar();
+
 #ifdef DEBUG_MTOA
-         printf("strPalette=%s\n",info.strPalette.c_str() );
+      printf("deltaFiles=%s\n",info.deltaFiles.c_str() );
+      printf("palBaseFile=%s\n",info.palBaseFile.c_str() );
+      printf("palFileName=%s\n",info.palFileName.c_str() );
+      printf("strPalette=%s\n",info.strPalette.c_str() );
 #endif
 
          MDagPath descDagPath = m_dagPath;
@@ -266,6 +282,8 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 #ifdef DEBUG_MTOA
          printf("strDescription=%s\n",info.strDescription.c_str() );
 #endif
+
+
          unsigned int c = descDagPath.childCount();
          for( unsigned int i=0; i<c; ++i )
          {
@@ -274,12 +292,16 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 
             std::string strChild = childDagPath.fullPathName().asChar();
             char buf[512];
+#ifdef DEBUG_MTOA
+      printf("strChild=%s\n",strChild.c_str() );
+#endif
             sprintf(buf,"nodeType %s;",strChild.c_str());
             MString nodeType = MGlobal::executeCommandStringResult(buf);
 
             strChild = strChild.substr( strPaletteFullPath.size() + 1 + info.strDescription.size() + 1 );
 
          // Get the data for the translation from the description shape
+
             if (nodeType == "xgmDescription") 
             {
                MFnDagNode  xgenDesc;
@@ -707,8 +729,19 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          pos = info.strDescription.rfind(":");
          if(pos != std::string::npos)
             info.strDescription.erase(0,pos + 1);
-                 
-         strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
+
+         if (info.useDeltaFile)
+         {
+            strData += " -file " + strScenePath + info.palBaseFile;
+            strData += " -delta " + strScenePath + info.palFileName;
+            if ( !info.deltaFiles.empty())
+               strData += " "+ strScenePath + info.deltaFiles;
+         }
+         else
+         {
+            strData += " -file " + strScenePath + "__" + filePallete + ".xgen";
+         }
+
          strData += " -palette " + info.strPalette;
          
          // We only have to remove namespace character ':' if there is a patch cache file
