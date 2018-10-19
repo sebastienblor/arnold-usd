@@ -739,7 +739,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          }
          else
          {
-            strData += " -file " + strScenePath + "__" + filePallete + ".xgen";
+            strData += " -file " + strScenePath + info.palFileName;
          }
 
          strData += " -palette " + info.strPalette;
