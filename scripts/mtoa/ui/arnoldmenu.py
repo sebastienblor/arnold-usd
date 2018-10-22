@@ -304,8 +304,9 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
     arnoldAboutText =  u"Arnold for Maya\n\n"
     arnoldAboutText += "MtoA " + cmds.pluginInfo( 'mtoa', query=True, version=True)
     arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
+    mtoaBuildDate = cmds.arnoldPlugins(getBuildDate=True)
     if not '(Master)' in arnoldBuildID:
-        arnoldAboutText += " - " + arnoldBuildID
+        arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
     arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
     arnoldAboutText += u"Copyright (c) 2001-2009 Marcos Fajardo and\nCopyright (c) 2009-2016 Solid Angle  S.L.\nAll rights reserved\n\n"
