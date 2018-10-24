@@ -12,11 +12,35 @@
 
 using namespace XGenArnold;
 
+class Guard
+{
+public:
+
+    Guard() : critical_section(0) {
+        AiCritSecInit(&critical_section);
+    }
+    virtual ~Guard() {
+        AiCritSecClose(&critical_section);
+    }
+
+    void enter() {
+        AiCritSecEnter(&critical_section);
+    }
+    void leave() {
+        AiCritSecLeave(&critical_section);
+    }
+
+private:
+    AtCritSec critical_section;
+};
+
+Guard guard;
+
 AI_PROCEDURAL_NODE_EXPORT_METHODS(XgArnoldProceduralMtd);
 
 node_parameters
 {
-	AiParameterStr("data", "");
+   AiParameterStr("data", "");
 }
 
 procedural_init
@@ -30,14 +54,21 @@ procedural_init
       *user_ptr = 0;
       return 1;
    }
+
+   guard.enter();
    ProceduralWrapper* ud = new ProceduralWrapper( new Procedural(), false /* Won't do cleanup */ );
    if( !ud )
-     return 0;
-   
+   {
+      guard.leave();
+      return 0;
+   }
 
    *user_ptr = (void*)ud;
 
-   return ud->Init( node, true ); // "true" means that the procedural parent must be set
+   bool result = ud->Init( node, true );
+   guard.leave();
+
+   return result; // "true" means that the procedural parent must be set
 }
 
 // Cleanup
