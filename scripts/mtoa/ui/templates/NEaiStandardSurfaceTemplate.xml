@@ -86,7 +86,7 @@
 		<property name='base'/>
 		<property name='baseColor'/>
 		<property name='diffuseRoughness'/>
-		<property name='metalness'/
+		<property name='metalness'/>
 		<property name='specular'/>
 		<property name='specularColor'/>
 		<property name='specularRoughness'/>
@@ -108,6 +108,6 @@
 		<property name='emissionColor'/>
 		<property name='opacity'/>
 		<property name='normalCamera'/>
->
+
 	</view>
 </templates>
