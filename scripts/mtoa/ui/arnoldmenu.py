@@ -125,7 +125,7 @@ def doCreateLightPortal():
 def arnoldAboutDialog():
     legaltext = "Arnold\n\
 \n\
-© 2018 Autodesk, Inc.  All rights reserved.\n\
+(c) 2018 Autodesk, Inc.  All rights reserved.\n\
 \n\
 All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
 \n\
