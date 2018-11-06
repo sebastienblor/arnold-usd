@@ -2989,4 +2989,27 @@ void CAiRoundCornersTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
+    void CAiOslShaderTranslator::Export(AtNode* shader)
+    {
+          CNodeTranslator::Export(shader);
+          CNodeTranslator::Export(shader);
+    }
 
+   void CAiOslShaderTranslator::NodeInitializer(CAbTranslator context)
+   {
+         
+   }
+   
+   AtNode* CAiOslShaderTranslator::CreateArnoldNodes()
+   {
+         return AddArnoldNode("osl");
+   }
+
+void CAiOslShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // MString plugName = plug.partialName(false, false, false, false, false, true);
+   // if (plugName == MString("code"))
+   //    SetUpdateMode(AI_RECREATE_NODE);
+
+   // CShaderTranslator::NodeChanged(node, plug);
+}

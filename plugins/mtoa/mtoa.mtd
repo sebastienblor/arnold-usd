@@ -1771,9 +1771,7 @@
     maya.name               STRING  "aiOslShader"
     maya.id                 INT     0x00115D56  
     maya.classification     STRING  "shader/surface"
-    maya.hide               BOOL    true
-
-
+    maya.hide               BOOL    false
 
 [node sky]
     desc                    STRING  "Sky environment texture."
