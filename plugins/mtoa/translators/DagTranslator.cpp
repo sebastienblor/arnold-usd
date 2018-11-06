@@ -422,10 +422,18 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
    // testing if anode is ginstance instead of calling IsMasterInstance
    // for efficiency reasons.
    static const AtString ginstance_str("ginstance");
-   if (AiNodeIs(anode, ginstance_str))
-   {
-      CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+   static const AtString procedural_str("procedural");
+   CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
 
+   bool isInstance = AiNodeIs(anode, ginstance_str);
+   
+   // special case for instanced standins that are exported as duplicated procedurals
+   // FIXME can't we always use m_isMasterDag ?
+   if ((!isInstance) && AiNodeIs(anode, procedural_str))
+      isInstance = m_isMasterDag;
+
+   if (isInstance)
+   {      
       CNodeTranslator::ExportUserAttributes(anode, dagTr->GetMayaDagPath().transform(), &m_tr);
       
       // FIXME below is what's being done in parent function for aiUserOptions
