@@ -3326,6 +3326,12 @@ desc STRING "Apply a gamma correction to the color."
     [attr indirect_specular]
         min             FLOAT   0
         max             FLOAT   1
+    [attr sheen]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr sheen_roughness]
+        min             FLOAT   0
+        max             FLOAT   1
     [attr aov_highlight]
         aov.type        INT     0x05
     [attr aov_rim_light]
