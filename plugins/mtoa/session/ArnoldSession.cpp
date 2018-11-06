@@ -207,8 +207,9 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug,
    CNodeTranslator* translator = NULL;
    MDagPath dagPath;
    // FIXME: should get correct instance number from plug
-   if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
+   if (MFnDagNode(MFnDagNode(mayaNode).parent(0)).getPath(dagPath) == MS::kSuccess)
    {
+      dagPath.push(mayaNode);
       MStatus status = MStatus::kSuccess;
       translator = (CNodeTranslator*)ExportDagPath(dagPath, initOnly, &status);
       // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
