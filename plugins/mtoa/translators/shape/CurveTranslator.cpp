@@ -353,7 +353,8 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
       }
       
       nurbsCurve.getKnotDomain(start, end);
-      numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
+      // need to consider 1 extremity sample #3637 
+      numcvs = (unsigned int)std::ceil((end - start) * sampleRate) + 1;
       incPerSample = 1.0 / sampleRate;
 
       if (numcvs <=0)

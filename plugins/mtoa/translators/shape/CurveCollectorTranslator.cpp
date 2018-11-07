@@ -209,7 +209,9 @@ static MStatus GetCurveSegments(MDagPath& curvePath, CCurvesData &curvesData,
 
    
    nurbsCurve.getKnotDomain(start, end);
-   numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
+   // need to add 1 extremity sample #3637
+   numcvs = (unsigned int)std::ceil((end - start) * sampleRate) + 1; 
+   
    incPerSample = 1.0 / sampleRate;
 
    if (numcvs <= 1)
