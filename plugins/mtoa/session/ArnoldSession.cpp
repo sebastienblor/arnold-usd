@@ -1813,26 +1813,32 @@ UPDATE_BEGIN:
                MDagPath shapePath = path;
                shapePath.extendToShape();
 
-               int instanceNum = shapePath.instanceNumber();
-
-               if (instanceNum > 0)
+               if (shapePath.isInstanced())
                {
-                  dagTr = ExportDagPath(shapePath);
-                  if (dagTr)
-                  {
-                     name = shapePath.partialPathName();
-                     if (mtoa_translation_info)
-                        MtoaDebugLog("[mtoa] Exported new node: "+ name);
+                  MDagPath srcParent;
+                  MFnDagNode(MFnDagNode(shapePath.node()).parent(0)).getPath(srcParent);
+                  srcParent.push(dagPath.node());
 
-                     newDag = true;
-                     
-                     translatorsToUpdate.push_back(dagTr);
-                     if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                  // If this isn't the master instance
+                  if (srcParent != shapePath)
+                  {
+                     dagTr = ExportDagPath(shapePath);
+                     if (dagTr)
                      {
-                        // Find out if we need to call ExportMotion for each motion step
-                        // or if a single Export is enough. 
-                        exportMotion = true;
-                        mbRequiresFrameChange = true;
+                        name = shapePath.partialPathName();
+                        if (mtoa_translation_info)
+                           MtoaDebugLog("[mtoa] Exported new node: "+ name);
+
+                        newDag = true;
+                        
+                        translatorsToUpdate.push_back(dagTr);
+                        if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                        {
+                           // Find out if we need to call ExportMotion for each motion step
+                           // or if a single Export is enough. 
+                           exportMotion = true;
+                           mbRequiresFrameChange = true;
+                        }
                      }
                   }
                }
