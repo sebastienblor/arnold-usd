@@ -143,7 +143,7 @@ static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *sessi
 
       masterDag.set(srcParent);
       // first instance
-      if (srcParent.fullPathName() == dagPath.fullPathName())
+      if (srcParent == dagPath)
       {
          // first visible instance is always the master (passed dagPath is assumed to be visible)
          session->AddMasterInstanceHandle(handle, srcParent);
@@ -151,8 +151,6 @@ static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *sessi
       }
       else
       {
-         // didn't find a master: dagPath is the master
-         session->AddMasterInstanceHandle(handle, dagPath);
          return false;
       }
    }

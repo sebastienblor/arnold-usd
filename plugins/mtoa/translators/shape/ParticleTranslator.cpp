@@ -1666,6 +1666,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
    
+   int masterInstanceNum =  masterInstance.instanceNumber();
    int instanceNum =  m_dagPath.instanceNumber();
 
    AiNodeSetStr(instance, "name", CDagTranslator::GetArnoldNaming(m_dagPath).asChar());
@@ -1696,8 +1697,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
    iogPlug.elementByLogicalIndex(instanceNum).connectedTo(iogConnections, false, true);
 
-   // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
-   iogPlugMaster.elementByLogicalIndex(0).connectedTo(iogConnectionsMaster, false, true);
+   iogPlugMaster.elementByLogicalIndex(masterInstanceNum).connectedTo(iogConnectionsMaster, false, true);
 
    if (iogConnectionsMaster[0].node() != iogConnections[0].node())
    {
