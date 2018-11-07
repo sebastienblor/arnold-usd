@@ -136,41 +136,22 @@ static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *sessi
    if (dagPath.isInstanced())
    {
       MObjectHandle handle = MObjectHandle(dagPath.node());
-      unsigned int instNum = dagPath.instanceNumber();
+
+      MDagPath srcParent;
+      MFnDagNode(MFnDagNode(dagPath.node()).parent(0)).getPath(srcParent);
+      srcParent.push(dagPath.node());
+
+      masterDag.set(srcParent);
       // first instance
-      if (instNum == 0)
+      if (srcParent == dagPath)
       {
          // first visible instance is always the master (passed dagPath is assumed to be visible)
-         session->AddMasterInstanceHandle(handle, dagPath);
+         session->AddMasterInstanceHandle(handle, srcParent);
          return true;
       }
       else
       {
-         // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = session->GetMasterInstanceDagPath(handle);
-         if (currDag.isValid())
-         {
-            // previously found the master
-            masterDag.set(currDag);
-            return false;
-         }
-         // find the master by searching preceding instances
-         MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
-         for (unsigned int master_index = 0; master_index < instNum; master_index++)
-         {
-            currDag = allInstances[master_index];
-            if (currDag.isValid() && currDag.isVisible() && translator->IsRenderable())
-            {
-               // found it
-               session->AddMasterInstanceHandle(handle, currDag);
-               masterDag.set(currDag);
-               return false;
-            }
-         }
-         // didn't find a master: dagPath is the master
-         session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
+         return false;
       }
    }
    // not instanced: dagPath is the master

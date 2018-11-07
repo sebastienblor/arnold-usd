@@ -207,8 +207,9 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug,
    CNodeTranslator* translator = NULL;
    MDagPath dagPath;
    // FIXME: should get correct instance number from plug
-   if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
+   if (MFnDagNode(MFnDagNode(mayaNode).parent(0)).getPath(dagPath) == MS::kSuccess)
    {
+      dagPath.push(mayaNode);
       MStatus status = MStatus::kSuccess;
       translator = (CNodeTranslator*)ExportDagPath(dagPath, initOnly, &status);
       // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
@@ -1812,26 +1813,32 @@ UPDATE_BEGIN:
                MDagPath shapePath = path;
                shapePath.extendToShape();
 
-               int instanceNum = shapePath.instanceNumber();
-
-               if (instanceNum > 0)
+               if (shapePath.isInstanced())
                {
-                  dagTr = ExportDagPath(shapePath);
-                  if (dagTr)
-                  {
-                     name = shapePath.partialPathName();
-                     if (mtoa_translation_info)
-                        MtoaDebugLog("[mtoa] Exported new node: "+ name);
+                  MDagPath srcParent;
+                  MFnDagNode(MFnDagNode(shapePath.node()).parent(0)).getPath(srcParent);
+                  srcParent.push(dagPath.node());
 
-                     newDag = true;
-                     
-                     translatorsToUpdate.push_back(dagTr);
-                     if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                  // If this isn't the master instance
+                  if (srcParent != shapePath)
+                  {
+                     dagTr = ExportDagPath(shapePath);
+                     if (dagTr)
                      {
-                        // Find out if we need to call ExportMotion for each motion step
-                        // or if a single Export is enough. 
-                        exportMotion = true;
-                        mbRequiresFrameChange = true;
+                        name = shapePath.partialPathName();
+                        if (mtoa_translation_info)
+                           MtoaDebugLog("[mtoa] Exported new node: "+ name);
+
+                        newDag = true;
+                        
+                        translatorsToUpdate.push_back(dagTr);
+                        if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                        {
+                           // Find out if we need to call ExportMotion for each motion step
+                           // or if a single Export is enough. 
+                           exportMotion = true;
+                           mbRequiresFrameChange = true;
+                        }
                      }
                   }
                }

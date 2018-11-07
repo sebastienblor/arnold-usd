@@ -1480,6 +1480,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
 
    int instanceNum = m_dagPath.instanceNumber();
+   int masterInstanceNum = masterInstance.instanceNumber();
 
    ExportMatrix(instance);
 
@@ -1503,9 +1504,9 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
       bool shadersDifferent = false;
 
       // checking the connections from the master instance
-      plug.elementByLogicalIndex(0).connectedTo(conns0, false, true); 
+      plug.elementByLogicalIndex(masterInstanceNum).connectedTo(conns0, false, true);
       // checking the connections from the actual instance
-      plug.elementByLogicalIndex(instanceNum).connectedTo(connsI, false, true); 
+      plug.elementByLogicalIndex(instanceNum).connectedTo(connsI, false, true);
 
       // checking if it`s connected to a different shading network
       // this should be enough, because arnold does not supports
