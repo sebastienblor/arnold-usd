@@ -92,7 +92,7 @@ createNode aiStandIn -n "aiStandInShape" -p "aiStandIn";
 	setAttr -s 4 ".iog";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr ".dso" -type "string" "C:/Users/blaines/Downloads/box.ass";
+	setAttr ".dso" -type "string" "box.ass";
 	setAttr ".min" -type "float3" -0.5 -0.5 -0.5 ;
 	setAttr ".max" -type "float3" 0.5 0.5 0.5 ;
 	setAttr ".overrideCastsShadows" yes;
