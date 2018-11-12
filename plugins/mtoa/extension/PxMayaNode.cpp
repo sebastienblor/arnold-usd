@@ -398,14 +398,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/flat";
          }
-        else if (id == ARNOLD_NODEID_SHADER_MIX)
+        /*else if (id == ARNOLD_NODEID_SHADER_MIX)
          {
             creator = CArnoldShaderNode::creator;
             initialize = CArnoldShaderNode::initialize;
             abstract = &CArnoldShaderNode::s_abstract;
             if (drawdbClassification.numChars() == 0)
                drawdbClassification = ":drawdb/shader/surface/mix";
-         }
+         }*/
         else if (id == ARNOLD_NODEID_SHADER_ROUND_CORNERS)
          {
             creator = CArnoldShaderNode::creator;
