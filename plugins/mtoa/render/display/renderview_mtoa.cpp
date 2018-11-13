@@ -290,6 +290,13 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       firstCreation = false;
    } else
    {
+      int arv_exists = 0;
+      MString testExisting = "workspaceControl -exists \"ArnoldRenderView\"";
+      MGlobal::executeCommand(testExisting, arv_exists);
+      if (arv_exists)
+      {
+         workspaceCmd += " -edit -visible true ";
+      }
       workspaceCmd += " -li 1"; // load immediately
       workspaceCmd += " -iw "; // initial width
       workspaceCmd += width;
