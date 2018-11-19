@@ -104,7 +104,7 @@ class AEaiToonTemplate(ShaderAETemplate):
 
         self.beginLayout("Sheen", collapse=True)
         self.addControl("sheen", label="Sheen")
-        self.addControl("sheenColor", label="Sheen Colour")
+        self.addControl("sheenColor", label="Sheen Color")
         self.addControl("sheenRoughness", label="Sheen Roughness")
         self.endLayout()
 
