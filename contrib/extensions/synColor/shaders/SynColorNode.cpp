@@ -143,6 +143,23 @@ namespace
 
       switch(layout.channel_type)
       {
+         case AI_TYPE_HALF:
+         {
+            switch(layout.type)
+            {
+               case AI_TYPE_RGB:
+               {
+                  pxlFormat = SYNCOLOR::PF_RGB_16f;
+                  break;
+               }
+               case AI_TYPE_RGBA:
+               {
+                  pxlFormat = SYNCOLOR::PF_RGBA_16f;
+                  break;
+               }
+            }
+            break;
+         }
          case AI_TYPE_FLOAT:
          {
             switch(layout.type)
@@ -200,6 +217,8 @@ namespace
    }
 
    SYNCOLOR::PixelFormat all_pixel_formats[] = {
+      SYNCOLOR::PF_RGBA_16f,
+      SYNCOLOR::PF_RGB_16f,
       SYNCOLOR::PF_RGBA_32f,
       SYNCOLOR::PF_RGB_32f,
       SYNCOLOR::PF_RGBA_16i,
