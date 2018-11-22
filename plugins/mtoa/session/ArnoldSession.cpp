@@ -362,6 +362,13 @@ void CArnoldSession::EraseActiveTranslator(CNodeTranslator *translator)
 bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 {
    MStatus stat = MStatus::kSuccess;
+
+   // We were testing the render layer in some places but not here.
+   // This made us ignore the render layers during IPR updates (see #3144 #3350)
+   unsigned int mask = GetExportFilterMask();
+   if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(dagPath))
+      return false;
+   
    while (stat == MStatus::kSuccess)
    {
       MFnDagNode node;
