@@ -17,7 +17,7 @@ class Guard
 public:
 
     Guard() : critical_section(0) {
-        AiCritSecInit(&critical_section);
+        AiCritSecInitRecursive(&critical_section);
     }
     virtual ~Guard() {
         AiCritSecClose(&critical_section);
@@ -74,35 +74,50 @@ procedural_init
 // Cleanup
 procedural_cleanup
 {
-   //AiMsgInfo("[xgArnoldProcedural] Cleanup()");
+   // AiMsgDebug("[xgArnoldProcedural] Cleanup()");
 
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
-      return 0;
+   {
+         guard.leave();
+         return 0;
+   }
    int ret = ud->Cleanup();
    delete ud;
+   guard.leave();
    return ret;
 }
 
 // Get number of nodes
 procedural_num_nodes
 {
-   //AiMsgInfo("[xgArnoldProcedural] NumNodes()");
+   // AiMsgDebug("[xgArnoldProcedural] NumNodes()");
 
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
+   {
+      guard.leave();
       return 0;
+   }
+   guard.leave();
    return ud->NumNodes();
 }
 
 // Get the i_th node
 procedural_get_node
 {
-   //AiMsgInfo("[xgArnoldProcedural] GetNode()");
+   // AiMsgDebug("[xgArnoldProcedural] GetNode()");
 
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
+   {
+      guard.leave();
       return 0;
+   }
+   guard.leave();
    return ud->GetNode(i);
 }
 

@@ -136,11 +136,11 @@ struct XgMergedData
 class XgMutex
 {
 public:
-   XgMutex()
+   XgMutex() : mMutex(0)
    {
       AiCritSecInitRecursive(&mMutex);
    }
-   ~XgMutex()
+   virtual ~XgMutex()
    {
       AiCritSecClose(&mMutex);
    }
@@ -152,6 +152,7 @@ public:
    {
       AiCritSecLeave(&mMutex);
    }
+private:
    AtCritSec mMutex;
 };
 
@@ -161,7 +162,7 @@ XgMutex* Procedural::m_mutex = new XgMutex();
 
 #define XGDebug( x ) {}
 #define XGError( x ) {}
-#define XGDebugLevel 4
+#define XGDebugLevel 3
 
 #define XGRenderAPIError XGError
 #define XGRenderAPIWarning XGWarning
@@ -195,6 +196,8 @@ Procedural::Procedural()
 
 Procedural::~Procedural()
 {
+
+#ifndef XGEN_RENDER_API_PARALLEL
    if( m_patch )
    {
       delete m_patch;
@@ -202,9 +205,6 @@ Procedural::~Procedural()
       m_patch = NULL;
       //m_mutex = NULL;
    }
-
-#ifdef XGEN_RENDER_API_PARALLEL
-    delete m_parallel;
 #endif
 }
 
@@ -258,6 +258,7 @@ bool Procedural::render()
            m_parallel->enqueue(*it);
        }
        m_parallel->spawnAndWait();
+       m_parallel->destroy();
    }
    else
    {
@@ -350,6 +351,7 @@ int Procedural::Init(AtNode* node, bool procParent)
          pProc->m_sphere = m_sphere;
          pProc->m_shaders = m_shaders;*/
 
+         // m_mutex->enter();
    
          while( nextFace( b, f ) )
          {
@@ -382,6 +384,7 @@ int Procedural::Init(AtNode* node, bool procParent)
          AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
 
          m_nodes.push_back( nodeFaceProc );*/
+         // m_mutex->leave();
       }
 
       // Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
@@ -425,12 +428,12 @@ int Procedural::Cleanup()
    m_nodes.clear();
    m_node = m_node_face = m_options = m_sphere = m_parent = NULL; // Don't delete.
 
-   if( m_faces.size()!=0 )
-   {
-      for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
-         delete *it;
-      m_faces.clear();
-   }
+   // if( m_faces.size()!=0 )
+   // {
+   //    for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
+   //       delete *it;
+   //    m_faces.clear();
+   // }
    return 1;
 }
 
@@ -955,6 +958,7 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
+    XGRenderAPIDebug( "[xgen_procedural] Flush Splines" );
     bool bFaceCamera = pc->get( PC(FaceCamera) );
     int mode = AiNodeGetInt( m_node, "ai_mode" );
 
