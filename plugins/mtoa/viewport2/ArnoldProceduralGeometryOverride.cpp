@@ -311,6 +311,12 @@ void CArnoldProceduralGeometryOverride::populateGeometry(const MHWRender::MGeome
 					item->associateWithIndexBuffer(wireIndexBuffer);
 				}
 			}
+		} else
+		{
+			MHWRender::MRenderItem* item = (MHWRender::MRenderItem*)renderItems.itemAt(i);
+			// need to disable all the unused render items to avoid crashes (see #3616)
+			if (item)
+				item->enable(false);
 		}
 	}
 }
