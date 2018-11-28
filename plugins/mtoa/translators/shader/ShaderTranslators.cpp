@@ -2989,4 +2989,28 @@ void CAiRoundCornersTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
+void CAiOslShaderTranslator::NodeInitializer(CAbTranslator context)
+{
+}
 
+AtNode* CAiOslShaderTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("osl");
+}
+void CAiOslShaderTranslator::Export(AtNode* shader)
+{
+   // First, we need set the code string, so that all "param*" attributes are created properly on the arnold OSL node.
+   ProcessParameter(shader, "code", AI_TYPE_STRING);
+   // Now that all parameters were created, we can export all of them
+   CNodeTranslator::Export(shader);
+}
+void CAiOslShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   // If the code has changed, it's better to re-generate the arnold OSL node 
+   // as the parameters and output type might become different
+   if (plugName == MString("code"))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}

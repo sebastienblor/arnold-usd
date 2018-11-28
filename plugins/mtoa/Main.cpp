@@ -568,7 +568,11 @@ namespace // <anonymous>
                                     "",
                                     CAiAovWriteColorTranslator::creator,
                                     CAiAovWriteColorTranslator::NodeInitializer);
-
+      
+      builtin->RegisterTranslator("aiOslShader",
+                                    "",
+                                    CAiOslShaderTranslator::creator,
+                                    CAiOslShaderTranslator::NodeInitializer);
 
       // Lights
       builtin->RegisterTranslator("directionalLight",
