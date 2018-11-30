@@ -1069,9 +1069,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
          AiNodeSetArray(arnoldNode, arnoldParamName, array);
       }
       else
-         // TODO: Change this to: AiNodeSetArray(arnoldNode, arnoldParamName, NULL);
-         // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
-         AiNodeSetArray(arnoldNode, arnoldParamName, AiArrayAllocate(0,0, AI_TYPE_NODE));
+         AiNodeResetParameter(arnoldNode, arnoldParamName);
    }
    else
    {
@@ -1090,7 +1088,9 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
             m_impl->ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
          }
          AiNodeSetArray(arnoldNode, arnoldParamName, array);
-      }
+      } else
+         AiNodeResetParameter(arnoldNode, arnoldParamName);
+      
    }
 }
 
