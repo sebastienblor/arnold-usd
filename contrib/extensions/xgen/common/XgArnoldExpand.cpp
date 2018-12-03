@@ -136,7 +136,7 @@ struct XgMergedData
 class XgMutex
 {
 public:
-   XgMutex() : mMutex(0)
+   XgMutex()
    {
       AiCritSecInitRecursive(&mMutex);
    }
@@ -201,9 +201,9 @@ Procedural::~Procedural()
    if( m_patch )
    {
       delete m_patch;
-      //delete m_mutex;
+      delete m_mutex;
       m_patch = NULL;
-      //m_mutex = NULL;
+      m_mutex = NULL;
    }
 #endif
 }
@@ -276,13 +276,6 @@ bool Procedural::render()
    m_mutex->leave();
    return true;
 }
-/*
-const char* Procedural::getUniqueName( char* buf, const char* basename )
-{
-   static unsigned int g_counter = 0;
-   sprintf( buf, "%s__%X", basename, g_counter++ );
-   return buf;
-}*/
 
 int Procedural::Init(AtNode* node, bool procParent)
 {
@@ -340,19 +333,6 @@ int Procedural::Init(AtNode* node, bool procParent)
       unsigned int f = -1;
       //while( nextFace( b, f ) )
       {
-         // Skip camera culled bounding boxes.
-         //if( isEmpty( b ) )
-         //   continue;
-
-         //string strFaceProcName = strParentName + string("_face");// + itoa( f );
-
-         /*Procedural* pProc = new Procedural();
-         pProc->m_node = m_node;
-         pProc->m_sphere = m_sphere;
-         pProc->m_shaders = m_shaders;*/
-
-         // m_mutex->enter();
-   
          while( nextFace( b, f ) )
          {
             // Skip camera culled bounding boxes.
@@ -371,40 +351,7 @@ int Procedural::Init(AtNode* node, bool procParent)
          }
 
          m_node_face = m_node;
-         // Clone ourself, this will help us keep all the user parameters.
-         // We could also provide a back pointer to the original top level node.
-         /*AtNode* nodeFaceProc = AiNode( "procedural" );
-         pProc->m_node_face = nodeFaceProc;
-
-         // Change name, dso, userdata, and bounding box
-         AiNodeSetStr( nodeFaceProc, "name", getUniqueName(buf,strFaceProcName.c_str()) );
-         AiNodeSetStr( nodeFaceProc, "dso", strParentDso.c_str() );
-         AiNodeSetPtr( nodeFaceProc, "userptr", (void*)new ProceduralWrapper( pProc, false ) );
-         AiNodeSetPnt( nodeFaceProc, "min", (float)total.xmin, (float)total.ymin, (float)total.zmin );
-         AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
-
-         m_nodes.push_back( nodeFaceProc );*/
-         // m_mutex->leave();
       }
-
-      // Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
-      /*{
-         AtNode* nodeCleanupProc = AiNode( "procedural" );
-         string strCleanupProcName =  strParentName + "_cleanup";
-
-         AiNodeSetStr( nodeCleanupProc, "name", getUniqueName(buf,strCleanupProcName.c_str()) );
-         AiNodeSetStr( nodeCleanupProc, "dso", strParentDso.c_str() );
-         AiNodeSetStr( nodeCleanupProc, "data", "cleanup" );
-         AiNodeSetPtr( nodeCleanupProc, "userptr", (void*)new ProceduralWrapper( this, true ) );
-
-         AtPoint minParentBBox = AiNodeGetPnt( m_node, "min" );
-         AtPoint maxParentBBox = AiNodeGetPnt( m_node, "max" );
-
-         AiNodeSetPnt( nodeCleanupProc, "min", minParentBBox.x, minParentBBox.y, minParentBBox.z );
-         AiNodeSetPnt( nodeCleanupProc, "max", maxParentBBox.x, maxParentBBox.y, maxParentBBox.z );
-
-         m_nodes.push_back( nodeCleanupProc );
-      }*/
    }
 
    // Face Init
@@ -428,12 +375,6 @@ int Procedural::Cleanup()
    m_nodes.clear();
    m_node = m_node_face = m_options = m_sphere = m_parent = NULL; // Don't delete.
 
-   // if( m_faces.size()!=0 )
-   // {
-   //    for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
-   //       delete *it;
-   //    m_faces.clear();
-   // }
    return 1;
 }
 
@@ -824,92 +765,6 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
       out_bbox = m_bboxes[asstocfile];
    }
    return true;
-
-   // Use an auto_fclose since we are returning from the function all over the place.
-
- //   // Do not attempt to read non-RIB archives (e.g. .caf)
- //   if (XGDebugLevel >= 2)
- //       XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Reading "+ fname);
-
- //   if (fname.find(".abc") == (fname.length()-4))
- //   {
- //      out_bbox.xmin = -1.0;
- //      out_bbox.ymin = -1.0;
- //      out_bbox.zmin = -1.0;
-
- //      out_bbox.xmax = 1.0;
- //      out_bbox.ymax = 1.0;
- //      out_bbox.zmax = 1.0;
-
- //       return true;
- //   }
-
- //   if (fname.find(".ass") == (fname.length()-4))
- //   {
-   //   FILE *fd = fopen(in_filename, "rb");
-   //   if (!fd) {
-   //      if (XGDebugLevel >= 2)
-   //         XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ fname);
-   //      return false;
-   //   }
-
-   //   // Use an auto_fclose since we are returning from the function all over the place.
-   //   auto_fclose afd( fd );
-
-   //   // Scan the first N lines searching for "## BBOX ...."
-   //   const int limit = 13;
-   //   const int inner_limit = 192;
-   //   int matched;
-   //   int count = 0;
-   //   int inner_count = 0;
-
-   //   while (count < limit) {
-   //      count++;
-   //      inner_count = 0;
-   //      matched = fscanf(fd, "## BBOX %lf %lf %lf %lf %lf %lf",
-   //                   &out_bbox.xmin, &out_bbox.xmax, &out_bbox.ymin, &out_bbox.ymax, &out_bbox.zmin, &out_bbox.zmax);
-
-   //      if (matched == 0) {
-   //         // Skip this line
-   //         char c = fgetc(fd);
-   //         if (/*EOF == c ||*/ feof(fd))
-   //            return false;
-
-   //         while (c != '\n') {
-   //            c = fgetc(fd);
-   //            // Guard against really long lines
-   //            if (inner_limit <= inner_count++)
-   //               break;
-   //            if (/*EOF == c ||*/ feof(fd)) {
-   //               if (XGDebugLevel >= 2)
-   //                  XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
-   //               return false;
-   //            }
-   //         }
-   //         continue;
-   //      }
-
-   //      if (matched == 6) {
-   //         if (XGDebugLevel >= 2)
-   //            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/
-   //                  "DRA BBOX" +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.xmin) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.xmax) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.ymin) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.ymax) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.zmin) +
-   //                  std::string(" ") + std::to_string((long double)out_bbox.zmax));
-
-   //         return true;
-   //      }
-   //      if (EOF == matched || feof(fd)) {
-   //         if (XGDebugLevel >= 2)
-   //            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
-   //         break;
-   //      }
-   //   }
- //   }
-
 }
 
 void Procedural::convertMatrix( const AtMatrix in_mat, mat44& out_mat )
@@ -1756,7 +1611,6 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                AiNodeSetPtr( archive_procedural, "shader", materialNode );
             else if(materialName.size() > 0 && m_shaders != NULL)
                AiNodeSetArray( archive_procedural, "shader", AiArrayCopy(m_shaders));
-            
 
             // Add custom renderer parameters.
             pushCustomParams( archive_procedural, pc ,j);
@@ -1767,7 +1621,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
       AiArrayDestroy(matrix);
     }
-    
+
     delete [] archives;
     delete [] archivesAbsolute;
 }
