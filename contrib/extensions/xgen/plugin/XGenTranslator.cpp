@@ -1005,7 +1005,9 @@ void CXgDescriptionTranslator::ExpandProcedural()
    for ( int nidx=0; nidx<m_expandedProcedurals.back()->NumNodes(); nidx++)
    {
       AtNode *thisnode = m_expandedProcedurals.back()->GetNode(nidx);
-      ExportIdentityMatrix( thisnode );
+      AtMatrix proc_matrix = AiNodeGetMatrix(node, "matrix");
+      AtMatrix current_matrix = AiNodeGetMatrix(thisnode, "matrix");
+      AiNodeSetMatrix(thisnode, "matrix", AiM4Mult(proc_matrix, current_matrix));
    }
 #endif
    // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
@@ -1031,7 +1033,9 @@ void CXgDescriptionTranslator::ExpandProcedural()
       for ( int nidx=0; nidx<m_expandedProcedurals.back()->NumNodes(); nidx++)
       {
          AtNode *thisnode = m_expandedProcedurals.back()->GetNode(nidx);
-         ExportIdentityMatrix( thisnode );
+         AtMatrix proc_matrix = AiNodeGetMatrix(node, "matrix");
+         AtMatrix current_matrix = AiNodeGetMatrix(thisnode, "matrix");
+         AiNodeSetMatrix(thisnode, "matrix", AiM4Mult(proc_matrix, current_matrix));
       }
 #endif
       AiNodeSetDisabled(procNode, true);
