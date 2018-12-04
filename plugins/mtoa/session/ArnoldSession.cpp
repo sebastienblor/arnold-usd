@@ -989,7 +989,7 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
       MFnDagNode cameraNode;
-      MPlug renderable;
+      MPlug renderablePlug;
       // First we export all cameras
       // We do not reset the iterator to avoid getting kWorld
       for (; (!dagIterCameras.isDone()); dagIterCameras.next())
@@ -1001,8 +1001,14 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
             cameraNode.setObject(path);
             // Note that some non-renderable cameras are still exported in 
             // ExportDag, if their filteredStatus is "accepted"
-            renderable = cameraNode.findPlug("renderable", false, &stat);
-            if (stat == MS::kSuccess && renderable.asBool())
+            renderablePlug = cameraNode.findPlug("renderable", false, &stat);
+            bool isRenderable = (stat == MS::kSuccess) ? renderablePlug.asBool() : false;
+
+            // Force the export of default persp camera for ARV (#3655)
+            if (isRenderable == false && GetSessionMode() ==  MTOA_SESSION_RENDERVIEW && path.partialPathName() == MString("perspShape"))
+               isRenderable = true;
+
+            if (isRenderable)
                ExportDagPath(path, true, &stat);
 
             if (stat != MStatus::kSuccess)
