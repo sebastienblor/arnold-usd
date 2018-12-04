@@ -514,14 +514,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          // Export shaders
          rootShader = ExportRootShader(shape);
 
-
-         // Only exporting matrix for maya < 2017 (#2681)
-#if MAYA_API_VERSION < 201700
          ExportMatrix(shape);
-#else
-         // export identiy matrix with offset applied
-         ExportIdentityMatrix(shape);
-#endif
       }
       // For other patches we reuse the shaders and create new procedural
       else
@@ -827,53 +820,21 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
-  // Only exporting matrix for maya < 2017 (#2681)
-#if MAYA_API_VERSION < 201700
    ExportMatrix(shape);
-#else
-   // export identiy matrix with offset applied
-   ExportIdentityMatrix(shape);
-#endif
 }
 
-void CXgDescriptionTranslator::ExportIdentityMatrix(AtNode* node)
+void CXgDescriptionTranslator::GetMatrix(AtMatrix& matrix)
 {
-   AtMatrix matrix;
-   GetIdentityMatrix(matrix);
-   if (!IsExportingMotion())
-   {
-      // why not only RequiresMotionData() ??
-      if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
-      {
-         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, GetMotionStep(), matrix);
-         AiNodeSetArray(node, "matrix", matrices);
-      }
-      else
-      {
-         AiNodeSetMatrix(node, "matrix", matrix);
-      }
-   }
-   else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
-   {
-      AtArray* matrices = AiNodeGetArray(node, "matrix");
-      if (matrices)
-      {
-         int step = GetMotionStep();
-         if (step >= (int)(AiArrayGetNumKeys(matrices) * AiArrayGetNumElements(matrices)))
-         {
-            AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
-
-         } else
-            AiArraySetMtx(matrices, step, matrix);
-      }
-   }
-}
-
-void CXgDescriptionTranslator::GetIdentityMatrix(AtMatrix& matrix)
-{
+#if MAYA_API_VERSION < 201700
    MStatus stat;
+   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
+   if (MStatus::kSuccess != stat)
+   {
+      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
+   }
+#else
    MMatrix tm = MMatrix();
+#endif
    ConvertMatrix(matrix, tm);
 }
 
