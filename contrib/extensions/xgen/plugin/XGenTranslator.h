@@ -28,6 +28,8 @@ public:
 
 protected:
    virtual void PostExport(AtNode *node);
+   void ExportIdentityMatrix(AtNode* node);
+   virtual void GetIdentityMatrix(AtMatrix& matrix);
 private:
 
    AtNode* ExportRootShader(AtNode *);
