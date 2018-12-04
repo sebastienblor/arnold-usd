@@ -207,7 +207,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    }
    else if(args.isFlagSet("getBuildDate"))
    {
-      setResult(MString(__TIMESTAMP__));
+      setResult(MString(__DATE__) + MString (" ")+ MString(__TIME__));
    }
    else if(args.isFlagSet("getClmVersion"))
    {
