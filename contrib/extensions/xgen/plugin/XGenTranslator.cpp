@@ -518,6 +518,9 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          // Only exporting matrix for maya < 2017 (#2681)
 #if MAYA_API_VERSION < 201700
          ExportMatrix(shape);
+#else
+         // export identiy matrix with offset applied
+         ExportIdentityMatrix(shape);
 #endif
       }
       // For other patches we reuse the shaders and create new procedural
@@ -827,7 +830,51 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
   // Only exporting matrix for maya < 2017 (#2681)
 #if MAYA_API_VERSION < 201700
    ExportMatrix(shape);
+#else
+   // export identiy matrix with offset applied
+   ExportIdentityMatrix(shape);
 #endif
+}
+
+void CXgDescriptionTranslator::ExportIdentityMatrix(AtNode* node)
+{
+   AtMatrix matrix;
+   GetIdentityMatrix(matrix);
+   if (!IsExportingMotion())
+   {
+      // why not only RequiresMotionData() ??
+      if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
+      {
+         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, GetMotionStep(), matrix);
+         AiNodeSetArray(node, "matrix", matrices);
+      }
+      else
+      {
+         AiNodeSetMatrix(node, "matrix", matrix);
+      }
+   }
+   else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
+   {
+      AtArray* matrices = AiNodeGetArray(node, "matrix");
+      if (matrices)
+      {
+         int step = GetMotionStep();
+         if (step >= (int)(AiArrayGetNumKeys(matrices) * AiArrayGetNumElements(matrices)))
+         {
+            AiMsgError("Matrix AtArray steps not set properly for %s",  m_dagPath.partialPathName().asChar());
+
+         } else
+            AiArraySetMtx(matrices, step, matrix);
+      }
+   }
+}
+
+void CXgDescriptionTranslator::GetIdentityMatrix(AtMatrix& matrix)
+{
+   MStatus stat;
+   MMatrix tm = MMatrix();
+   ConvertMatrix(matrix, tm);
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -953,8 +1000,14 @@ void CXgDescriptionTranslator::ExpandProcedural()
    MGlobal::executeCommand("xgmCache -clearPtexCache;");
 #endif
 
-   // FIXME verify if we need to do something about the procedural matrix ?
-
+#if MAYA_API_VERSION >= 201700
+   // Apply any matrix offsets from the render settings
+   for ( int nidx=0; nidx<m_expandedProcedurals.back()->NumNodes(); nidx++)
+   {
+      AtNode *thisnode = m_expandedProcedurals.back()->GetNode(nidx);
+      ExportIdentityMatrix( thisnode );
+   }
+#endif
    // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
    // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now
    AiNodeSetDisabled(node, true);
@@ -973,6 +1026,14 @@ void CXgDescriptionTranslator::ExpandProcedural()
       m_expandedProcedurals.back()->SetInitCallback(&ExportMissingNode);
       m_expandedProcedurals.back()->Init( procNode, false );
 
+#if MAYA_API_VERSION >= 201700
+      // Apply any matrix offsets from the render settings
+      for ( int nidx=0; nidx<m_expandedProcedurals.back()->NumNodes(); nidx++)
+      {
+         AtNode *thisnode = m_expandedProcedurals.back()->GetNode(nidx);
+         ExportIdentityMatrix( thisnode );
+      }
+#endif
       AiNodeSetDisabled(procNode, true);
       i++;
    }
