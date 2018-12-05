@@ -2,7 +2,7 @@
 #
 # Version:  /software/maya/2018/plug-ins/xgen/
 # Author:   handsca
-# Date:     Tue Dec  4 11:57:05 2018
+# Date:     Wed Dec  5 10:34:58 2018
 
 FileVersion 18
 
@@ -10,7 +10,7 @@ Palette
 	name			collection8
 	parent			
 	xgDataPath		${PROJECT}xgen/collections/collection8
-	xgProjectPath		/data/Support/00019856_cinesite_xgen_origin_offset/
+	xgProjectPath		/home/handsca/Dev/mtoa/testsuite/test_0314/data/
 	xgDogTag		
 	endAttrs
 
@@ -29,7 +29,7 @@ Description
 	groom			
 	descriptionId		2
 	xgDataPath		${PROJECT}xgen/collections/collection8/
-	xgProjectPath		/data/Support/00019856_cinesite_xgen_origin_offset/
+	xgProjectPath		/home/handsca/Dev/mtoa/testsuite/test_0314/data/
 	endAttrs
 
 RendermanRenderer
