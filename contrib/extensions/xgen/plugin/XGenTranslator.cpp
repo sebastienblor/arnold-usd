@@ -826,16 +826,12 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 void CXgDescriptionTranslator::GetMatrix(AtMatrix& matrix)
 {
 #if MAYA_API_VERSION < 201700
-   MStatus stat;
-   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
-   if (MStatus::kSuccess != stat)
-   {
-      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
-   }
+   CShapeTranslator::GetMatrix(matrix);
 #else
+   // make sure the matrix is not inherited for maya >= 2017
    MMatrix tm = MMatrix();
-#endif
    ConvertMatrix(matrix, tm);
+#endif
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
@@ -961,16 +957,6 @@ void CXgDescriptionTranslator::ExpandProcedural()
    MGlobal::executeCommand("xgmCache -clearPtexCache;");
 #endif
 
-#if MAYA_API_VERSION >= 201700
-   // Apply any matrix offsets from the render settings
-   for ( int nidx=0; nidx<m_expandedProcedurals.back()->NumNodes(); nidx++)
-   {
-      AtNode *thisnode = m_expandedProcedurals.back()->GetNode(nidx);
-      AtMatrix proc_matrix = AiNodeGetMatrix(node, "matrix");
-      AtMatrix current_matrix = AiNodeGetMatrix(thisnode, "matrix");
-      AiNodeSetMatrix(thisnode, "matrix", AiM4Mult(proc_matrix, current_matrix));
-   }
-#endif
    // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
    // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now
    AiNodeSetDisabled(node, true);
@@ -989,16 +975,6 @@ void CXgDescriptionTranslator::ExpandProcedural()
       m_expandedProcedurals.back()->SetInitCallback(&ExportMissingNode);
       m_expandedProcedurals.back()->Init( procNode, false );
 
-#if MAYA_API_VERSION >= 201700
-      // Apply any matrix offsets from the render settings
-      for ( int nidx=0; nidx<m_expandedProcedurals.back()->NumNodes(); nidx++)
-      {
-         AtNode *thisnode = m_expandedProcedurals.back()->GetNode(nidx);
-         AtMatrix proc_matrix = AiNodeGetMatrix(node, "matrix");
-         AtMatrix current_matrix = AiNodeGetMatrix(thisnode, "matrix");
-         AiNodeSetMatrix(thisnode, "matrix", AiM4Mult(proc_matrix, current_matrix));
-      }
-#endif
       AiNodeSetDisabled(procNode, true);
       i++;
    }

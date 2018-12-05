@@ -1071,6 +1071,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
          AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
          AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
          AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+         AiNodeSetArray(nodeCurves, "matrix", AiArrayCopy(AiNodeGetArray(m_node, "matrix")));
       }
       
 
@@ -1139,6 +1140,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
     for ( unsigned int j=0; j<cacheCount; j++ )
     {
        AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+       AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
 
         for ( unsigned int i=0; i < numSamples; i++ )
         {
@@ -1244,7 +1246,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
                             {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
 
-            AiArraySetMtx( matrix, i, tmp );
+            if (m_parent == NULL)
+               AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
+            else
+               AiArraySetMtx( matrix, i, tmp );
         }
 
         // Add custom parameters and call sphere.
@@ -1357,6 +1362,8 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
          
          AiNodeSetFlt(nodeCard, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
          AiNodeSetFlt(nodeCard, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+
+         AiNodeSetArray(nodeCard, "matrix", AiArrayCopy( AiNodeGetArray(m_node, "matrix")));
       }
       
       // Add custom renderer parameters.
@@ -1543,6 +1550,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
     for ( unsigned int j = 0; j < cacheCount; j++ ) {
 
         AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+        AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
 
         // Build up the token and parameter lists to output for all
         // passes of motionBlur.
@@ -1649,7 +1657,11 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
                             {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
-            AiArraySetMtx( matrix, i, tmp );
+
+            if (m_parent == NULL)
+               AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
+            else
+               AiArraySetMtx( matrix, i, tmp );
         }
 
         // Add custom parameters.
