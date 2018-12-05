@@ -1,12 +1,18 @@
 import maya.mel
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
+import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
 class AEaiStandardHairTemplate(ShaderAETemplate):
     convertToMayaStyle = True
    
+    def updateAnisotropicRoughness(self, nodeName):
+        anisoAttr = '%s.%s' % (nodeName, 'roughnessAnisotropic')
+        anisoValue = cmds.getAttr(anisoAttr)
+        cmds.editorTemplate(dimControl=(nodeName, 'roughnessAzimuthal', not anisoValue))
+
     def setup(self):
         self.addSwatch()
 
@@ -26,6 +32,10 @@ class AEaiStandardHairTemplate(ShaderAETemplate):
 
         self.beginLayout("Specular", collapse=False)
         self.addControl("roughness",  label="Roughness", annotation="Roughness")
+        self.addControl("roughnessAnisotropic",  label="Anisotropic Roughness", annotation="Anisotropic Roughness", changeCommand=self.updateAnisotropicRoughness)
+        self.addControl("roughnessAzimuthal",  label="Azimuthal Roughness", annotation="Azimuthal Roughness")
+        self.updateAnisotropicRoughness(self.nodeName)
+        
         self.addControl("ior",  label="IOR", annotation="IOR")
         self.addControl("shift",  label="Shift", annotation="IOR")
         self.beginLayout("Tint", collapse=True)

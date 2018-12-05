@@ -125,7 +125,7 @@ def doCreateLightPortal():
 def arnoldAboutDialog():
     legaltext = "Arnold\n\
 \n\
-© 2018 Autodesk, Inc.  All rights reserved.\n\
+(c) 2018 Autodesk, Inc.  All rights reserved.\n\
 \n\
 All use of this Software is subject to the terms and conditions of the software license agreement accepted upon installation of this Software and/or packaged with the Software.\n\
 \n\
@@ -304,8 +304,9 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. I
     arnoldAboutText =  u"Arnold for Maya\n\n"
     arnoldAboutText += "MtoA " + cmds.pluginInfo( 'mtoa', query=True, version=True)
     arnoldBuildID = cmds.arnoldPlugins(getBuildID=True)
+    mtoaBuildDate = cmds.arnoldPlugins(getBuildDate=True)
     if not '(Master)' in arnoldBuildID:
-        arnoldAboutText += " - " + arnoldBuildID
+        arnoldAboutText += " - " + arnoldBuildID + " - " + mtoaBuildDate
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())
     arnoldAboutText += "\nCLM V"+ cmds.arnoldPlugins(getClmVersion=True) + "\n\n"
     arnoldAboutText += u"Copyright (c) 2001-2009 Marcos Fajardo and\nCopyright (c) 2009-2016 Solid Angle  S.L.\nAll rights reserved\n\n"

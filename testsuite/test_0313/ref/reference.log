@@ -1,0 +1,35 @@
+Cannot open log file 'C:\dev\mtoa\build\windows_x86_64\20180000\msvc_opt\testsuite\test_0313\test_0313.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2018\bin\mayabatch.exe"
+sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+Initialized VP2.0 renderer {
+  Version : 2016.11.35.12. Feature Level 5.
+  Adapter : GeForce GTX 1050 Ti with Max-Q Design/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 16027
+  Driver : .
+  API : OpenGL V.4.6.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 4096 MB.
+  CPU Memory Limit: 30879.9 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 2 OpenCL Platforms: 
+ 0: Intel(R) Corporation. Intel(R) OpenCL. OpenCL 2.1 .
+ Supported extensions: cl_intel_dx9_media_sharing cl_khr_3d_image_writes cl_khr_byte_addressable_store cl_khr_d3d11_sharing cl_khr_depth_images cl_khr_dx9_media_sharing cl_khr_fp64 cl_khr_gl_sharing cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_icd cl_khr_image2d_from_buffer cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_spir
+ 1: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 9.2.127.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: invertShape, mayaHIK, GamePipeline, CloudImportExport, curveWarp, tiffFloatReader, MASH, poseInterpolator, bifrostvisplugin, ATFPlugin, hairPhysicalShader, ikSpringSolver, ik2Bsolver, xgenToolkit, AbcExport, retargeterNodes, VectorRender, gameFbxExporter, renderSetup, OpenEXRLoader, lookdevKit, Unfold3D, Type, fbxmaya
+File read in  0.028 seconds.
+File read in  0.028 seconds.
+Result: C:/dev/mtoa/build/windows_x86_64/20180000/msvc_opt/testsuite/test_0313/test.ma
+00:00:00   621MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   621MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   623MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   623MB WARNING | rendering with watermarks because of failed authorization:
+Scene C:\dev\mtoa\build\windows_x86_64\20180000\msvc_opt\testsuite\test_0313\test.ma completed.

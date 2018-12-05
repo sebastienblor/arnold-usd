@@ -346,14 +346,22 @@ MPlug CProceduralTranslator::FindProceduralPlug(const char *name)
    if (attrName.length() == 0)
       return MPlug();
 
-   MPlug result = m_DagNode.findPlug(MString(name));
-   if (!result.isNull())
-      return result;
+   MPlug plug = m_DagNode.findPlug(MString(name));
+   if (plug.isNull())
+   {
+      MString prefix = attrName.substringW(0, 0);
+      attrName = MString ("ai") + prefix.toUpperCase() + attrName.substringW(1, attrName.length() - 1);
 
-   MString prefix = attrName.substringW(0, 0);
-   attrName = MString ("ai") + prefix.toUpperCase() + attrName.substringW(1, attrName.length() - 1);
+      plug = m_DagNode.findPlug(attrName);
+   }
 
-   result = m_DagNode.findPlug(attrName);
-   return result;
+   MStatus overstat;
+   MString attrLongName = plug.partialName(false, true, true, false, true, true, &overstat);
+   MPlug overridePlug = m_impl->FindMayaOverridePlug(attrLongName, &overstat);
+   if ((MStatus::kSuccess == overstat) && !overridePlug.isNull())
+   {
+      plug = overridePlug;
+   }
 
+   return plug;
 }

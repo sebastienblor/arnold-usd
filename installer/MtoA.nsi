@@ -182,9 +182,9 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
 
     ; run the install script
 
-    StrCpy $R3 "$INSTDIR\license\ArnoldLicensing-8.1.0.1020_RC6-win.exe"
+    StrCpy $R3 "$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe"
     ${If} ${FileExists} "$R3"
-      ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.1020_RC6-win.exe --silent'
+      ExecWait '$INSTDIR\license\ArnoldLicensing-8.1.0.1084_RC6-win.exe --silent'
     ${EndIf}
     
 

@@ -207,8 +207,9 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug,
    CNodeTranslator* translator = NULL;
    MDagPath dagPath;
    // FIXME: should get correct instance number from plug
-   if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
+   if (MFnDagNode(MFnDagNode(mayaNode).parent(0)).getPath(dagPath) == MS::kSuccess)
    {
+      dagPath.push(mayaNode);
       MStatus status = MStatus::kSuccess;
       translator = (CNodeTranslator*)ExportDagPath(dagPath, initOnly, &status);
       // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
@@ -361,6 +362,13 @@ void CArnoldSession::EraseActiveTranslator(CNodeTranslator *translator)
 bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 {
    MStatus stat = MStatus::kSuccess;
+
+   // We were testing the render layer in some places but not here.
+   // This made us ignore the render layers during IPR updates (see #3144 #3350)
+   unsigned int mask = GetExportFilterMask();
+   if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(dagPath))
+      return false;
+   
    while (stat == MStatus::kSuccess)
    {
       MFnDagNode node;
@@ -981,7 +989,7 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
       MFnDagNode cameraNode;
-      MPlug renderable;
+      MPlug renderablePlug;
       // First we export all cameras
       // We do not reset the iterator to avoid getting kWorld
       for (; (!dagIterCameras.isDone()); dagIterCameras.next())
@@ -993,8 +1001,14 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
             cameraNode.setObject(path);
             // Note that some non-renderable cameras are still exported in 
             // ExportDag, if their filteredStatus is "accepted"
-            renderable = cameraNode.findPlug("renderable", false, &stat);
-            if (stat == MS::kSuccess && renderable.asBool())
+            renderablePlug = cameraNode.findPlug("renderable", false, &stat);
+            bool isRenderable = (stat == MS::kSuccess) ? renderablePlug.asBool() : false;
+
+            // Force the export of default persp camera for ARV (#3655)
+            if (isRenderable == false && GetSessionMode() ==  MTOA_SESSION_RENDERVIEW && path.partialPathName() == MString("perspShape"))
+               isRenderable = true;
+
+            if (isRenderable)
                ExportDagPath(path, true, &stat);
 
             if (stat != MStatus::kSuccess)
@@ -1812,26 +1826,32 @@ UPDATE_BEGIN:
                MDagPath shapePath = path;
                shapePath.extendToShape();
 
-               int instanceNum = shapePath.instanceNumber();
-
-               if (instanceNum > 0)
+               if (shapePath.isInstanced())
                {
-                  dagTr = ExportDagPath(shapePath);
-                  if (dagTr)
-                  {
-                     name = shapePath.partialPathName();
-                     if (mtoa_translation_info)
-                        MtoaDebugLog("[mtoa] Exported new node: "+ name);
+                  MDagPath srcParent;
+                  MFnDagNode(MFnDagNode(shapePath.node()).parent(0)).getPath(srcParent);
+                  srcParent.push(shapePath.node());
 
-                     newDag = true;
-                     
-                     translatorsToUpdate.push_back(dagTr);
-                     if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                  // If this isn't the master instance
+                  if (!(srcParent == shapePath))
+                  {
+                     dagTr = ExportDagPath(shapePath);
+                     if (dagTr)
                      {
-                        // Find out if we need to call ExportMotion for each motion step
-                        // or if a single Export is enough. 
-                        exportMotion = true;
-                        mbRequiresFrameChange = true;
+                        name = shapePath.partialPathName();
+                        if (mtoa_translation_info)
+                           MtoaDebugLog("[mtoa] Exported new node: "+ name);
+
+                        newDag = true;
+                        
+                        translatorsToUpdate.push_back(dagTr);
+                        if (motionBlur && (!(exportMotion && mbRequiresFrameChange)) && dagTr->RequiresMotionData())
+                        {
+                           // Find out if we need to call ExportMotion for each motion step
+                           // or if a single Export is enough. 
+                           exportMotion = true;
+                           mbRequiresFrameChange = true;
+                        }
                      }
                   }
                }

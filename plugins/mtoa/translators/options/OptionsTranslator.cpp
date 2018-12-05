@@ -1526,6 +1526,12 @@ void COptionsTranslator::Export(AtNode *options)
          gpuRender = gpuPlug.asBool();
 
       AiNodeSetStr(options, "render_device", (gpuRender) ? "GPU" : "CPU");
+
+      // For GPU render, we want to force options.enable_progressive_render to be ON, even if its value is ignored by Arnold.
+      // At least we can take this parameter into account later on, for example when ARV needs to do special things depending on 
+      // whether this option is enabled or not. See #3627
+      if (gpuRender && GetSessionOptions().IsInteractiveRender())
+         AiNodeSetBool(options, "enable_progressive_render", true);
    }
 
    if ((gpuRender || optixDenoiser) && GetSessionMode() != MTOA_SESSION_SWATCH)

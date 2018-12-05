@@ -61,6 +61,50 @@ class NParticleTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
 
 class MeshTemplate(templates.ShapeTranslatorTemplate):
+
+    def updateSubdiv(self, *args):
+        enabled = True if (cmds.getAttr(self.nodeAttr('aiSubdivType')) > 0) else False
+            
+        cmds.attrControlGrp(self.aiSubdivIterationsCtrl, edit=True, enable=enabled)
+        cmds.attrControlGrp(self.aiSubdivAdaptiveMetricCtrl, edit=True, enable=enabled)
+        cmds.attrControlGrp(self.aiSubdivPixelErrorCtrl, edit=True, enable=enabled)
+        cmds.attrControlGrp(self.aiSubdivAdaptiveSpaceCtrl, edit=True, enable=enabled)
+        cmds.attrControlGrp(self.aiSubdivUvSmoothingCtrl, edit=True, enable=enabled)
+        cmds.attrControlGrp(self.aiSubdivSmoothDerivsCtrl, edit=True, enable=enabled)
+        cmds.attrControlGrp(self.aiSubdivFrustumIgnoreCtrl, edit=True, enable=enabled)
+
+    def subdivNew(self, nodeAttr):
+
+        cmds.setUITemplate('attributeEditorTemplate', pst=True)
+
+        self.aiSubdivIterationsCtrl = cmds.attrControlGrp("aiSubdivIterationsCtrl", label="Iterations", 
+            attribute='.'.join([self.nodeName, 'aiSubdivIterations']))
+        self.aiSubdivAdaptiveMetricCtrl = cmds.attrControlGrp("aiSubdivAdaptiveMetricCtrl", label="Adaptive Metric", 
+            attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveMetric']))
+        self.aiSubdivPixelErrorCtrl = cmds.attrControlGrp("aiSubdivPixelErrorCtrl", label="Adaptive Error", 
+            attribute='.'.join([self.nodeName, 'aiSubdivPixelError']))
+        self.aiSubdivAdaptiveSpaceCtrl = cmds.attrControlGrp("aiSubdivAdaptiveSpaceCtrl", label="Adaptive Space", 
+            attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveSpace']))
+        self.aiSubdivUvSmoothingCtrl = cmds.attrControlGrp("aiSubdivUvSmoothingCtrl", label="UV Smoothing", 
+            attribute='.'.join([self.nodeName, 'aiSubdivUvSmoothing']))
+        self.aiSubdivSmoothDerivsCtrl = cmds.attrControlGrp("aiSubdivSmoothDerivsCtrl", label="Smooth Tangents", 
+            attribute='.'.join([self.nodeName, 'aiSubdivSmoothDerivs']))
+        self.aiSubdivFrustumIgnoreCtrl = cmds.attrControlGrp("aiSubdivFrustumIgnoreCtrl", label="Ignore Frustum Culling", 
+            attribute='.'.join([self.nodeName, 'aiSubdivFrustumIgnore']))
+
+        cmds.setUITemplate(ppt=True)
+        self.subdivReplace(nodeAttr)
+
+    def subdivReplace(self, nodeAttr):
+        cmds.attrControlGrp(self.aiSubdivIterationsCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivIterations']))
+        cmds.attrControlGrp(self.aiSubdivAdaptiveMetricCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveMetric']))
+        cmds.attrControlGrp(self.aiSubdivPixelErrorCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivPixelError']))
+        cmds.attrControlGrp(self.aiSubdivAdaptiveSpaceCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivAdaptiveSpace']))
+        cmds.attrControlGrp(self.aiSubdivUvSmoothingCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivUvSmoothing']))
+        cmds.attrControlGrp(self.aiSubdivSmoothDerivsCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivSmoothDerivs']))
+        cmds.attrControlGrp(self.aiSubdivFrustumIgnoreCtrl, edit=True, attribute='.'.join([self.nodeName, 'aiSubdivFrustumIgnore']))
+        self.updateSubdiv()
+
     def setup(self):
         self.commonShapeAttributes()
         
@@ -85,15 +129,16 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         
         self.beginLayout('Subdivision', collapse=True)
-        self.addControl("aiSubdivType", label="Type")
-        self.addControl("aiSubdivIterations", label="Iterations")
-        self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
-        self.addControl("aiSubdivPixelError", label="Adaptative Error")
-        self.addControl("aiSubdivAdaptiveSpace", label="Adaptative Space")
-        # TODO: add dicing camera UI
-        self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
-        self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
-        self.addControl("aiSubdivFrustumIgnore ", label="Ignore Frustum Culling")
+        self.addControl("aiSubdivType", label="Type", changeCommand=self.updateSubdiv)
+
+        self.aiSubdivAdaptiveMetricCtrl = ""
+        self.aiSubdivIterationsCtrl = ""
+        self.aiSubdivPixelErrorCtrl = ""
+        self.aiSubdivAdaptiveSpaceCtrl = ""
+        self.aiSubdivUvSmoothingCtrl = ""
+        self.aiSubdivSmoothDerivsCtrl = ""
+        self.aiSubdivFrustumIgnoreCtrl = ""
+        self.addCustom("aiSubdivIterations", self.subdivNew, self.subdivReplace)
         
         self.endLayout()
         

@@ -344,8 +344,9 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
    // will be cleared and a new one will be generated
    if (plugName == "aiTranslator") SetUpdateMode(AI_RECREATE_TRANSLATOR);
 
-   // ignore this signal emitted from "Render Setup" as it shouldn't trigger a refresh
-   if (plugName.length() >= 15 && plugName.substringW(0, 14) == "renderLayerInfo") return;
+   // Signals coming from "renderLayerInfo" used to be ignored. But this is causing issues when nodes are
+   // added / removed from collections (see #3144 / #3350)
+   //if (plugName.length() >= 15 && plugName.substringW(0, 14) == "renderLayerInfo") return;
 
    RequestUpdate();
 }
@@ -1068,9 +1069,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
          AiNodeSetArray(arnoldNode, arnoldParamName, array);
       }
       else
-         // TODO: Change this to: AiNodeSetArray(arnoldNode, arnoldParamName, NULL);
-         // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
-         AiNodeSetArray(arnoldNode, arnoldParamName, AiArrayAllocate(0,0, AI_TYPE_NODE));
+         AiNodeResetParameter(arnoldNode, arnoldParamName);
    }
    else
    {
@@ -1089,7 +1088,9 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
             m_impl->ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
          }
          AiNodeSetArray(arnoldNode, arnoldParamName, array);
-      }
+      } else
+         AiNodeResetParameter(arnoldNode, arnoldParamName);
+      
    }
 }
 

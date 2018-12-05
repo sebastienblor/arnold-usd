@@ -1,0 +1,18 @@
+# XGen Delta File
+#
+# Version:  /usr/autodesk/maya2018/plug-ins/xgen/
+# Author:   handsca
+# Date:     Mon Nov  5 13:28:36 2018
+
+FileVersion 18
+
+AddFXModule    description    SplinePrimitive    NoiseFXModule    Noise1
+description    NoiseFXModule    Noise1    active    true
+description    NoiseFXModule    Noise1    mask    1.0
+description    NoiseFXModule    Noise1    frequency    1.0
+description    NoiseFXModule    Noise1    magnitude    1.0
+description    NoiseFXModule    Noise1    magnitudeScale    rampUI(0.0,0.0,1:1.0,1.0,1)
+description    NoiseFXModule    Noise1    correlation    0.0
+description    NoiseFXModule    Noise1    preserveLength    0.0
+description    NoiseFXModule    Noise1    mode    0
+description    NoiseFXModule    Noise1    bakeDir    ${DESC}/${FXMODULE}/

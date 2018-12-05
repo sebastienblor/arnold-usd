@@ -102,6 +102,13 @@ class AEaiToonTemplate(ShaderAETemplate):
         self.addControl("energy_conserving", label="Energy Conserving")
         self.endLayout()
 
+        self.beginLayout("Sheen", collapse=True)
+        self.addControl("sheen", label="Sheen")
+        self.addControl("sheenColor", label="Sheen Color")
+        self.addControl("sheenRoughness", label="Sheen Roughness")
+        self.endLayout()
+
+
         maya.mel.eval('AEdependNodeTemplate '+self.nodeName)
 
         self.addExtraControls()

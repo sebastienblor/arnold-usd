@@ -831,7 +831,8 @@ def updateAovShaders(*args):
     global _aovShadersFrame
 
     for row in _aovShaders:
-        row.delete()
+        if cmds.frameLayout(row, exists=True):
+            cmds.deleteUI(row)
 
     _aovShaders = []
 

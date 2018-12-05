@@ -261,3 +261,16 @@ public:
    AtNode* CreateArnoldNodes();
 
 };
+
+class CAiOslShaderTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiOslShaderTranslator();}
+
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+
+
+};

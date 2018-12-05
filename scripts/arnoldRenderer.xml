@@ -175,6 +175,11 @@
     <attr n="ai:lve" s="defaultArnoldRenderOptions.log_verbosity" t="int" h="Verbosity level. (0 - Errors, 1 - Warnings, 2 - Info, 3 - Debug)"/>       
     <attr n="ai:lmw" s="defaultArnoldRenderOptions.log_max_warnings" t="int" h="Maximum number of warnings."/>
     <attr n="ai:mti" s="defaultArnoldRenderOptions.mtoa_translation_info" t="boolean" h="MtoA Translation Info."/>
+    <attr n="ai:ste" s="defaultArnoldRenderOptions.stats_enable" t="boolean" h="Enable Stats."/>
+    <attr n="ai:stf" s="defaultArnoldRenderOptions.stats_file" t="string" h="Stats Filename ."/>
+    <attr n="ai:stm" s="defaultArnoldRenderOptions.stats_mode" t="int" h="Stats Mode"/>
+    <attr n="ai:pfe" s="defaultArnoldRenderOptions.profile_enable" t="boolean" h="Enable profile."/>
+    <attr n="ai:pff" s="defaultArnoldRenderOptions.profile_file" t="string" h="Profile Filename."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Mel callbacks"/>

@@ -297,14 +297,15 @@ mtoaMod.write('MAYA_RENDER_DESC_PATH += %s\n' % installDir)
 mtoaMod.close()
 
 # setting up executables properly
-exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil'), os.path.join('license', 'pitreg')]
+exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx'), os.path.join('bin', 'noice'), os.path.join('bin', 'oslc'), os.path.join('bin', 'oslinfo'), os.path.join('bin', 'lmutil'),os.path.join('bin', 'rlmutil'), os.path.join('license', 'pitreg'), os.path.join('license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run')]
 for ex in exList:
-    try:
-        subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
-    except:
-        if not silent:
-            print('Error adding +x to executable %s' % ex)
-        sys.exit(0)
+    if os.path.exists(os.path.join(installDir, ex)):
+        try:
+            subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
+        except:
+            if not silent:
+                print('Error adding +x to executable %s' % ex)
+            sys.exit(0)
 
 # stop relying on pitreg
 #subprocess.call(['chmod', '+x', os.path.join(installDir, 'pit', 'pitreg')])
@@ -366,8 +367,8 @@ if installMode == 1: # do the proper installation
 
 
     print "Installing CLM Licensing Components...."
-    if os.path.exists(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1020_RC6-linux.run')):
-        os.system(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1020_RC6-linux.run --silent')) # register pit file
+    if os.path.exists(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run')):
+        os.system(os.path.join(installDir, 'license', 'ArnoldLicensing-8.1.0.1084_RC6-linux.run --silent')) # register pit file
     elif os.path.exists(os.path.join(installDir, 'license', 'pitreg')):
         pitreg_result = os.system(os.path.join(installDir, 'license', 'pitreg'))
         if int(pitreg_result) > 0:                

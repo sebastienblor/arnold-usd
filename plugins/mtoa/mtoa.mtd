@@ -1699,6 +1699,9 @@
     [attr roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+    [attr roughness_azimuthal]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
     [attr ior]
         min                 FLOAT   0.0
         softmax             FLOAT   5.0
@@ -1770,10 +1773,8 @@
     desc                    STRING  "OSL-based shader"
     maya.name               STRING  "aiOslShader"
     maya.id                 INT     0x00115D56  
-    maya.classification     STRING  "shader/surface"
-    maya.hide               BOOL    true
-
-
+    maya.classification     STRING  "utility/shader"
+    maya.hide               BOOL    false
 
 [node sky]
     desc                    STRING  "Sky environment texture."
@@ -3324,6 +3325,12 @@ desc STRING "Apply a gamma correction to the color."
         min             FLOAT   0
         max             FLOAT   1
     [attr indirect_specular]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr sheen]
+        min             FLOAT   0
+        max             FLOAT   1
+    [attr sheen_roughness]
         min             FLOAT   0
         max             FLOAT   1
     [attr aov_highlight]
