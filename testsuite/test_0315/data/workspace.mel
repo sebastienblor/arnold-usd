@@ -1,0 +1,9 @@
+//Maya 2018 Project Definition
+
+workspace -fr "particles" "particles";
+workspace -fr "templates" "assets";
+workspace -fr "alembicCache" "cache/alembic";
+
+print "------TEST 315 workspace";
+string $ws_dir=`workspace -q -rd`;
+print $ws_dir;

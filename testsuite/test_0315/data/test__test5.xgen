@@ -1,0 +1,285 @@
+# XGen Palette File
+#
+# Version:  /software/maya/2018/plug-ins/xgen/
+# Author:   handsca
+# Date:     Wed Dec  5 17:03:06 2018
+
+FileVersion 18
+
+Palette
+	name			test5
+	parent			
+	xgDataPath		${PROJECT}xgen/collections/test5
+	xgProjectPath		${MAYA_PROJECT}/
+	xgDogTag		
+	endAttrs
+
+Description
+	name			test2
+	flipNormals		false
+	strayPercentage		0.0
+	lodFlag			false
+	averageWidth		1.0
+	pixelCullSize		0.0
+	pixelFadeSize		20.0
+	cullFade		0.1
+	minDensity		0.01
+	cullWidthRatio		0.01
+	maxWidthRatio		20.0
+	groom			
+	descriptionId		0
+	xgDataPath		${PROJECT}xgen/collections/test5/
+	xgProjectPath		${MAYA_PROJECT}/
+	endAttrs
+
+PointGenerator
+	displacement		$a=0.0000;#-1.0,1.0\n$a
+	vectorDisplacement	0
+	bump			$a=0.0000;#-1.0,1.0\n$a
+	offset			$a=0.0000;#-1.0,1.0\n$a
+	cullFlag		false
+	cullBackface		false
+	cullFrustrum		false
+	cullAngleBF		0.0
+	cullAngleF		0.0
+	cullExpr		$a=0.0000;#0.0,1.0\n$a
+	pointDir		${DESC}/Points/
+	ptLength		1.0
+	endAttrs
+
+NullRenderer
+	percent			100.000000
+	startPercent		0.0
+	inCameraOnly		false
+	inCameraMargin		0.0
+	maxBound		1.060000
+	endAttrs
+
+RendermanRenderer
+	percent			100.0
+	startPercent		0.0
+	inCameraOnly		false
+	inCameraMargin		0.0
+	length_XP		true
+	width_XP		true
+	T_XP			false
+	stray_XP		false
+	id_XP			false
+	descid_XP		false
+	ri_XP			true
+	rf_XP			true
+	u_XS			true
+	v_XS			true
+	faceid_XS		true
+	geomid_XS		false
+	geomName_XS		true
+	P_XS			true
+	Pref_XS			false
+	Pg_XS			false
+	Prefg_XS		false
+	N_XS			true
+	Ng_XS			false
+	Nref_XS			false
+	Nrefg_XS		false
+	dPdu_XS			true
+	dPduref_XS		false
+	dPdug_XS		false
+	dPdurefg_XS		false
+	dPdv_XS			true
+	dPdvref_XS		false
+	dPdvg_XS		false
+	dPdvrefg_XS		false
+	renderer		Arnold Renderer
+	renderMethod		2
+	draMode			0
+	primitiveBound		1.060000
+	custom__arnold_rendermode	1
+	custom__arnold_curveMode	1
+	custom__arnold_minPixelWidth	0.0
+	custom__arnold_motion_blur	0
+	custom__arnold_motion_blur_mode	1
+	custom__arnold_motion_blur_steps	3
+	custom__arnold_motion_blur_factor	2.0
+	custom__arnold_useAuxRenderPatch	0
+	custom__arnold_auxRenderPatch	0
+	custom__arnold_multithreading	1
+	endAttrs
+
+GuideGenerator
+	displacement		$a=0.0000;#-1.0,1.0\n$a
+	vectorDisplacement	0
+	bump			$a=0.0000;#-1.0,1.0\n$a
+	offset			$a=0.0000;#-1.0,1.0\n$a
+	cullFlag		false
+	cullBackface		false
+	cullFrustrum		false
+	cullAngleBF		0.0
+	cullAngleF		0.0
+	cullExpr		$a=0.0000;#0.0,1.0\n$a
+	endAttrs
+
+RandomGenerator
+	displacement		$a=0.0000;#-1.0,1.0\n$a
+	vectorDisplacement	0
+	bump			$a=0.0000;#-1.0,1.0\n$a
+	offset			$a=0.0000;#-1.0,1.0\n$a
+	cullFlag		false
+	cullBackface		false
+	cullFrustrum		false
+	cullAngleBF		0.0
+	cullAngleF		0.0
+	cullExpr		$a=0.0000;#0.0,1.0\n$a
+	density			1.0
+	mask			1.0 # map('${DESC}/density/')
+	dcFlag			false
+	scFlag			true
+	usePoints		false
+	pointDir		${DESC}/Points/
+	ptLength		1.0
+	endAttrs
+
+GLRenderer
+	percent			100.0
+	startPercent		0.0
+	inCameraOnly		true
+	inCameraMargin		0.0
+	patchNames		false
+	faceIds			false
+	primIDs			false
+	primIDsAt		1.0
+	vertices		false
+	poly			false
+	culled			false
+	unitCube		false
+	color			$a=[0,0,0];#color\n$a
+	guideColor		$a=[1.0,0.4313725,0.0];#color\n$a
+	TEXCOORD3		[ $cWidth, 0, 0 ]  # red channel reserved by XGen
+	TEXCOORD4		
+	TEXCOORD5		
+	TEXCOORD6		
+	TEXCOORD7		
+	splineSegments		2
+	primNumLimit		100000000
+	endAttrs
+
+ArchivePrimitive
+	_patchNames		
+	length			$a=1.0000;#0.05,5.0\n$a
+	width			$a=0.0950;#0.05,5.0\n$a
+	depth			$a=1.1550;#0.05,5.0\n$a
+	offU			$a=0.0000;#-2.0,2.0\n$a
+	offV			$a=0.0000;#-2.0,2.0\n$a
+	offN			$a=0.0000;#-180.0,180.0\n$a
+	aboutN			$a=0.0000;#-180.0,180.0\n$a
+	regionMap		${DESC}/Region/
+	regionMask		0.0
+	iMethod			1
+	useCache		false
+	liveMode		false
+	_wireNames		
+	cacheFileName		C:/qvisten_pipeline/guides.abc
+	twist			$a=0.0000;#-180.0,180.0\n$a
+	files			#ArchiveGroup 0 name="Archive" thumbnail="" description="No description." materials="../../../assets/plane/materials/Archive.ma" color=[0.0,1.0,0.0126999998465]\n0 "${PROJECT}/assets/plane/abc/Archive.abc" material=Archive:initialShadingGroup objects=|pPlane1\n1 "${PROJECT}/assets/plane/abc/Archive.abc" material=Archive:initialShadingGroup objects=|pPlane1\n2 "${PROJECT}/assets/plane/abc/Archive.abc" material=Archive:initialShadingGroup objects=|pPlane1\n3 "${PROJECT}/assets/plane/ass/Archive__pPlane1.ass.gz" material=Archive:lambert1 objects=|pPlane1\n4 "${PROJECT}/assets/plane/ass/Archive__pPlane1.ass.gz" material=Archive:lambert1 objects=|pPlane1\n5 "${PROJECT}/assets/plane/ass/Archive__pPlane1.ass.gz" material=Archive:lambert1 objects=|pPlane1\n\n
+	aCount			1
+	hiIndex			$aIndex*$aMul + 0 + 3
+	medIndex		$aIndex*$aMul + 1 + 3
+	loIndex			$aIndex*$aMul + 2 + 3
+	proxyIndex		$aIndex*$aMul + $aLOD
+	aIndex			pick(rand(),0,$aCount-1)
+	aLOD			$lowDistance=30.0000;#0.0,50.0\n$mediumDistance=10.0000;#0.0,50.0\nd=length(cam-P);\nret=0;\nif( d>$lowDistance ){ret=2;}\nelse if( d>$mediumDistance ){ret=1;}\nret\n
+	lodLoLower		0
+	lodLoUpper		2500
+	lodMedLower		10000
+	lodMedUpper		40000
+	lodHiLower		62500
+	lodHiUpper		160000
+	archiveSize		1.0
+	frame			$a=0;#0,100\n$a
+	archive__aColor[0]	[0.0,1.0,0.0126999998465]
+	endAttrs
+
+	Active	ArchivePrimitive
+	Active	GuideGenerator
+	Active	RendermanRenderer
+	Preview	GLRenderer
+
+Patches	test2	9
+Patch	Subd
+	name		pTorus1
+	faceIds		400	 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283 284 285 286 287 288 289 290 291 292 293 294 295 296 297 298 299 300 301 302 303 304 305 306 307 308 309 310 311 312 313 314 315 316 317 318 319 320 321 322 323 324 325 326 327 328 329 330 331 332 333 334 335 336 337 338 339 340 341 342 343 344 345 346 347 348 349 350 351 352 353 354 355 356 357 358 359 360 361 362 363 364 365 366 367 368 369 370 371 372 373 374 375 376 377 378 379 380 381 382 383 384 385 386 387 388 389 390 391 392 393 394 395 396 397 398 399
+	animCurves	0	
+Guides	Archive	9
+	id			1
+	loc			4.8480999469757080e-01 5.9786099195480347e-01 111
+	blend			0.0000000000000000e+00
+	interp			2.2081105117299042e+00:9.6943793034088122e-01:9.5880279972864857e-02:2.2081005117299042e+00:9.7960249362747032e-01:1.6877176292752729e+00:1.3338322805658969e+00
+	CVs			4
+	1.5015766408055242e-13 9.9999999999998956e-01 1.5213595494500964e-08
+	5.0000000000005818e-01 4.9999999999991812e-01 -3.5386429064754310e-09
+	-1.1145363271181097e-08 5.0000000760679242e-01 -4.9999999239319243e-01
+	id			2
+	loc			2.7759501338005066e-01 4.2044198513031006e-01 128
+	blend			0.0000000000000000e+00
+	interp			2.1663364693342473e+00:9.8622981580585944e-01:3.8710799676476726e-02:1.9706381046953356e+00:6.7124940827358481e-01:2.1663264693342472e+00:1.0363274082344487e+00:9.6943793034088122e-01:1.7534997779363981e+00
+	CVs			4
+	4.5117923175297392e-08 9.9999994804780301e-01 3.5833646827576615e-07
+	5.0000002775864949e-01 4.9999993068860621e-01 9.1856983262805780e-08
+	-6.1585574417932776e-09 5.0000018061011420e-01 -4.9999987422572956e-01
+	id			3
+	loc			8.0019199848175049e-01 5.2905297279357910e-01 146
+	blend			0.0000000000000000e+00
+	interp			2.2980508067055303e+00:7.4313037559549799e-01:3.9985234918749057e-03:1.4149233159978634e+00:3.0709211519790591e-01:2.2980408067055302e+00:9.4474418404856653e-01:9.8622981580585944e-01:1.8088922039064343e+00:8.2470949852821906e-01:3.9210943552539734e+00
+	CVs			4
+	1.3500084383721855e-09 9.9999999999995137e-01 -2.9644454946353704e-07
+	5.0000000067498684e-01 4.9999999932498779e-01 -8.5352420520212746e-08
+	6.3544860318121010e-08 4.9999985177770401e-01 -5.0000014822224170e-01
+	id			4
+	loc			6.2197899818420410e-01 1.4809200167655945e-01 122
+	blend			0.0000000000000000e+00
+	interp			2.2081105117299042e+00:1.5043424852114560e+00:5.1830477747550185e-01:2.2081005117299042e+00:1.0192843138895991e+00:1.9706381046953356e+00:1.3363168703738968e+00:1.4149233159978634e+00:1.8164409159125721e+00:8.6487857134516888e-01:2.0006778496900752e+00:4.5475893891958330e-01:2.5619958097025135e+00:5.4821550069534741e-01:2.8917098051975278e+00
+	CVs			4
+	-1.0824674490095276e-15 1.0000000000000120e+00 1.8873791418627661e-15
+	5.0000000000000389e-01 5.0000000000000699e-01 2.0539125955565396e-15
+	-5.2735593669694936e-16 5.0000000000000222e-01 -5.0000000000000089e-01
+	id			5
+	loc			4.9039301276206970e-01 1.9307899475097656e-01 117
+	blend			0.0000000000000000e+00
+	interp			2.2980508067055303e+00:1.6877176292752729e+00:6.3223207868984543e-01:2.1663264693342472e+00:9.5781236156721683e-01:2.2980408067055302e+00:1.0543228428094045e+00:1.5043424852114560e+00:1.5899847836995389e+00
+	CVs			4
+	-5.5609724880500977e-08 1.0000000084434093e+00 1.3770647941391267e-07
+	4.9999994439016926e-01 5.0000000844330661e-01 8.4272119199590989e-08
+	-9.2762105691202024e-08 5.0000002472549177e-01 -4.9999987857560713e-01
+	id			6
+	loc			4.8107999563217163e-01 1.0198999941349030e-01 204
+	blend			0.0000000000000000e+00
+	interp			8.2471774570567613e-01:8.2376236622494525e-01:2.4110712964954262e-03:7.1237513421780896e-01:9.3976014321780266e-02:2.9679714179137079e-01:9.8920613479032282e-01:8.2470949852821906e-01:1.7853585802879355e+00
+	CVs			4
+	-1.2796329620553873e-01 4.8585714705949734e-01 -8.6462027935702523e-01
+	4.3154995066881335e-01 2.9080640827696969e-01 -4.7874447566817802e-01
+	-4.5145955258160127e-02 -1.9145998652071239e-01 -6.7919431408495834e-01
+	id			7
+	loc			5.4859399795532227e-01 1.5888799726963043e-01 164
+	blend			0.0000000000000000e+00
+	interp			8.6488722021737097e-01:8.6487857134516888e-01:2.6040649876527211e-01:7.4313037559549799e-01:1.9221112339857083e+00:2.9679714179137079e-01:2.9879470074868606e+00:6.3514680592728834e-01:3.9999981360401762e+00
+	CVs			4
+	-1.0862475027180862e-01 8.8184772985775561e-01 -4.5885209487710127e-01
+	4.4272902508088596e-01 4.8915585894267344e-01 -2.5439645440332936e-01
+	-5.4201120338090159e-02 2.1014297297802159e-01 -6.7298006616990735e-01
+	id			8
+	loc			9.8658901453018188e-01 6.6837698221206665e-01 163
+	blend			0.0000000000000000e+00
+	interp			7.1238225804038935e-01:4.5475893891958330e-01:7.0811100489468837e-01:6.3514680592728834e-01:1.9534466838999600e+00:7.1237513421780896e-01:2.0476670853471566e+00:2.2215426718408143e-01:3.4060060381523716e+00
+	CVs			4
+	4.4531486041697071e-02 7.0042459258390277e-01 -7.1233582519292771e-01
+	5.1609636028984684e-01 2.8119714250611882e-01 -3.9315732579705598e-01
+	-5.2804528178967441e-02 8.6238067506544391e-05 -7.0513238650719989e-01
+	id			9
+	loc			2.9008600115776062e-01 8.0311799049377441e-01 182
+	blend			0.0000000000000000e+00
+	interp			8.2377060393098456e-01:5.4821550069534741e-01:9.3294345497232067e-01:2.2215426718408143e-01:1.3838017133078628e+00:8.2376236622494525e-01:2.0016421632786954e+00
+	CVs			4
+	3.7145022642478043e-02 4.1265438175911551e-01 -9.1013005230641308e-01
+	5.1587320049616159e-01 1.5454035591538429e-01 -4.5824900447231776e-01
+	-2.9874143768120531e-02 -2.4616281061934170e-01 -6.6220196119894548e-01
+endObject
+endPatches
