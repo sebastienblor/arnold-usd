@@ -9,6 +9,7 @@
 
 #include <maya/MString.h>
 #include <maya/MPxNode.h>
+#include <maya/MPlug.h>
 
 class CAbMayaNode;
 
