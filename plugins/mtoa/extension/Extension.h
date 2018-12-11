@@ -5,7 +5,7 @@
 
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>
-#include <maya/MPlug.h>
+#include <maya/MPlugin.h>
 
 #include <algorithm>
 
