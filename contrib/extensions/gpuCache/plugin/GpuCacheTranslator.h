@@ -1,17 +1,17 @@
 #pragma once
 
-#include "translators/shape/ShapeTranslator.h"
+#include "translators/shape/ProceduralTranslator.h"
 
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
 #include <maya/MRenderLineArray.h>
 
 class CGpuCacheTranslator
-   :   public CShapeTranslator
+   :   public CProceduralTranslator
 {
 public:
    CGpuCacheTranslator() : 
-      CShapeTranslator() 
+      CProceduralTranslator() 
    {}
 
    virtual void Export(AtNode* curve);
