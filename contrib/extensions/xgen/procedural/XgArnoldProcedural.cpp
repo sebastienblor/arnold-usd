@@ -76,16 +76,16 @@ procedural_cleanup
 {
    // AiMsgDebug("[xgArnoldProcedural] Cleanup()");
 
-   // guard.enter();
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
    {
-         // guard.leave();
+         guard.leave();
          return 0;
    }
    int ret = ud->Cleanup();
    delete ud;
-   // guard.leave();
+   guard.leave();
    return ret;
 }
 
@@ -94,14 +94,14 @@ procedural_num_nodes
 {
    // AiMsgDebug("[xgArnoldProcedural] NumNodes()");
 
-   // guard.enter();
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
    {
-      // guard.leave();
+      guard.leave();
       return 0;
    }
-   // guard.leave();
+   guard.leave();
    return ud->NumNodes();
 }
 
@@ -110,14 +110,14 @@ procedural_get_node
 {
    // AiMsgDebug("[xgArnoldProcedural] GetNode()");
 
-   // guard.enter();
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
    {
-      // guard.leave();
+      guard.leave();
       return 0;
    }
-   // guard.leave();
+   guard.leave();
    return ud->GetNode(i);
 }
 
