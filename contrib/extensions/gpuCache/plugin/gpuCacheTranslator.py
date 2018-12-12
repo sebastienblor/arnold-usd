@@ -182,13 +182,14 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         # if no operator matches make one
         if not out_op and createOp:
+            num_ops = mu.getAttrNumElements(self.nodeName, "operators")
             op_name = '{}_setParam{}'.format(self.nodeName,path_props['index'])
             out_op = cmds.createNode('aiSetParameter',
                                      n=op_name,
                                      ss=True)
             cmds.setAttr("{}.selection".format(out_op), selection_exp, type="string")
 
-            cmds.connectAttr("{}.message".format(out_op), "{}.operators[{}]".format(self.nodeName, path_props['index']), force=True)
+            cmds.connectAttr("{}.message".format(out_op), "{}.operators[{}]".format(self.nodeName, num_ops), force=True)
 
         return out_op
 
