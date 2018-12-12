@@ -966,8 +966,13 @@ void CRenderSession::FillRenderViewCameras()
             MStatus stat;
             MFnDagNode cameraNode(path);
             MPlug renderable = cameraNode.findPlug("renderable", false, &stat);
+            bool isRenderable = (stat == MS::kSuccess) ? renderable.asBool() : false;
+            // Force the export of default persp camera for ARV (#3655)
+            if (cameraNode.name() == MString("perspShape"))
+               isRenderable = true;
 
-            if (stat != MS::kSuccess || (!renderable.asBool()))
+
+            if (!isRenderable)
                continue;
          }
          // we can't call GetArnoldNaming if there's no active session

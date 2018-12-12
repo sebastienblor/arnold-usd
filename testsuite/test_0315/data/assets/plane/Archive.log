@@ -1,0 +1,460 @@
+pymel.core : INFO : Updating pymel with pre-loaded plugins: renderSetup
+Warning: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/initialStartup.mel line 179: Y-axis is already the Up-axis
+Warning: file: C:\Users\raymond\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\raymond\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\raymond\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiStandIn.dso' is invalid or is not designated 'usedAsFilename'.
+Warning: file: C:\Users\raymond\Documents\maya\2018\prefs\filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+AbcExport v1.0 using Alembic 1.7.5 (built Feb  6 2018 18:28:08)
+Initialized VP2.0 renderer {
+  Version : 2016.11.40.12. Feature Level 5.
+  Adapter : NVIDIA GeForce GTX TITAN
+  Vendor ID: 4318. Device ID : 4101
+  Driver : C:\Windows\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2607ccebc5b08aba\nvldumdx.dll,C:\Windows\System32\DriverStore:24.21.14.1170.
+  API : DirectX V.11.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Active stereo support available : 0
+  GPU Memory Limit : 6144 MB.
+  CPU Memory Limit: 62141.1 MB.
+}
+OpenCL evaluator is attempting to initialize OpenCL.
+Detected 1 OpenCL Platforms: 
+ 0: NVIDIA Corporation. NVIDIA CUDA. OpenCL 1.2 CUDA 10.0.150.
+ Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
+OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
+Choosing OpenCL Device GeForce GTX TITAN.  Device Type: GPU  Device is available.
+
+Warning: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: Loading plug-in "lookdevKit" has resulted in changes to the scene that may need to be saved.
+Warning: line 1: filePathEditor: Attribute 'aiStandIn.dso' and label 'Standin' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiVolume.filename' and label 'VDB' have been saved already.
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.lightFilters
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.lightFilters
+
+API error detected in plugins\mtoa\extension\PxMayaNode.cpp at line 436
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.lightFilters
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.lightFilters
+
+API error detected in plugins\mtoa\extension\PxMayaNode.cpp at line 436
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.lightFilters
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.lightFilters
+
+API error detected in plugins\mtoa\extension\PxMayaNode.cpp at line 436
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.lightFilters
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.lightFilters
+
+API error detected in plugins\mtoa\extension\PxMayaNode.cpp at line 436
+: (kFailure): Unexpected Internal Failure
+Warning: line 1: filePathEditor: Attribute 'aiImage.filename' and label 'Image' have been saved already.
+Warning: line 1: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' and label 'IES' have been saved already.
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named mtoa.api.extensions
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named mtoa.api.extensions
+
+API error detected in plugins\mtoa\extension\ExtensionsManager.cpp at line 653
+: (kFailure): Unexpected Internal Failure
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: No module named arnold
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# ImportError: No module named arnold
+
+API error detected in plugins\mtoa\Main.cpp at line 1203
+: (kFailure): Unexpected Internal Failure
+00:00:00   615MB ERROR   | Failed to import python module 'arnold'
+Error: Failed to import python module 'arnold'
+Error: file: C:/Program Files/Autodesk/Maya2018/scripts/startup/autoLoadPlugin.mel line 35: initializePlugin function failed (mtoa)
+AbcImport v1.0 using Alembic 1.7.5 (built Feb  6 2018 18:28:08)
+Error: file: C:/Users/raymond/Documents/maya/scripts/usersetup.mel line 18: 'module' object has no attribute 'main'
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+#   File "C:/Users/raymond/Documents/maya/scripts\usersetup.py", line 106, in <module>
+#     ENV = execute()
+#   File "C:/Users/raymond/Documents/maya/scripts\usersetup.py", line 60, in execute
+#     global_usersetup.main()
+# AttributeError: 'module' object has no attribute 'main'
+[DEBUG] support.py (155): setLevel - Set log level 1
+[INFO] support.py (186): connectSocket - Connecting socket handler...
+[INFO] support.py (192): connectSocket - Connected socket handler in 0.001000 seconds
+[DEBUG] support.py (204): _init_logging - Finished setting up loggers
+[INFO] global_usersetup.py (58): <module> - RUNNING USER SETUP
+[INFO] global_usersetup.py (59): <module> - S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya\startup\global_usersetup.pyc
+[DEBUG] global_usersetup.py (60): <module> - Logged in user: raymond
+[DEBUG] global_usersetup.py (61): <module> - Imported PyMel in 27.908000 seconds
+[DEBUG] global_usersetup.py (92): <module> - sys.path.insert(0, 'C:\qvisten_pipeline\python\py27-x64')
+[INFO] global_usersetup.py (118): _import_qshot - qshot imported from C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\qshot\__init__.pyc
+[INFO] global_usersetup.py (119): _import_qshot - qconfig imported from C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\qconfig\__init__.pyc
+[DEBUG] support.py (39): setup_error_handling - 
+[DEBUG] global_usersetup.py (209): <module> - sys.path.insert(1, 'S:\pipeline\qscripts\qscripts_current\qscripts\packages\qpath')
+[DEBUG] global_usersetup.py (210): <module> - sys.path.insert(2, 'S:\pipeline\qscripts\qscripts_current\qscripts\packages\qlib')
+[INFO] global_usersetup.py (251): <module> - qscripts imported from S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\__init__.pyc
+[DEBUG] initializeMtoa.py (29): <module> - [DEBUG] mtoa version mtoa_3.1.0_q005
+[DEBUG] initializeMtoa.py (36): <module> - [DEBUG] globalMtoaPath S:/pipeline/plugins/plugins_2018-win64/arnold
+[INFO] global_usersetup.py (320): globalUserSetup - global_usersetup.main()
+[INFO] global_usersetup.py (822): MayaSetup.setPaths_plugins - PLUGIN_VERSION mainDir: S:\pipeline\plugins\plugins_2018-win64
+mysql_hostname: qman.qvisten.no:3306 - user: Qshot_root, db:qshot4
+performFileDropAction: Mel procedure entered interactively. # 39831
+
+sys.path:
+    C:\qvisten_pipeline\python\py27-x64
+    S:\pipeline\qscripts\qscripts_current\qscripts\packages\qpath
+    S:\pipeline\qscripts\qscripts_current\qscripts\packages\qlib
+    C:\qvisten_pipeline\python\py27-x64\PyQt-maya2016
+    C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2
+    C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\external
+    C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\external\sqlalchemy
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya\startup
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya\startup
+    C:\Program Files\Autodesk\Maya2018\plug-ins\xgen\scripts\xgenm\xmaya
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\packages
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya-packages
+    S:\pipeline\qscripts\qpublish\qpublish_1.1.4
+    S:\pipeline\qscripts\qrender\qrender_2.7
+    S:\pipeline\qscripts\fmrig\fmrig_1.005
+    S:\pipeline\qscripts\light_toolbox\light_toolbox_1.6
+    S:\pipeline\qscripts\qcache\qcache_1.3
+    S:\pipeline\qscripts\studio\studio-master
+    S:\pipeline\qscripts\qudini\qudini_1.0
+    S:\pipeline\qscripts\qnuke\qnuke_1.0
+    S:\pipeline\qscripts\maya_userscripts\maya_userscripts-1.0
+    S:\pipeline\qscripts\qload_plugins\qload_plugins-1.0
+    S:\pipeline\qscripts\qrig\qrig-master
+    S:\pipeline\qscripts\vendor\pyblish_1.4.3
+    S:\pipeline\qscripts\vendor\red9_1.33
+    S:\pipeline\qscripts\vendor\alembicholder_1.0
+    S:\pipeline\qscripts\vendor\shadermanager_None
+    S:\pipeline\qscripts\vendor\cvwrap_1.0
+    C:\Program Files\Autodesk\Maya2018\plug-ins\ATF\scripts
+    C:\Program Files\Autodesk\Bifrost\Maya2018\scripts\boss
+    C:\Program Files\Autodesk\Bifrost\Maya2018\scripts\presets
+    C:\Program Files\Autodesk\Bifrost\Maya2018\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\MASH\scripts
+    C:\ProgramData\Autodesk\ApplicationPlugins\MayaBonusTools-2015-2018\Contents\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\fbx\scripts
+    C:\Program Files\Side Effects Software\Houdini 17.0.352\engine\maya\maya2018\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\camd\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\substance\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\xgen\scripts
+    C:\Program Files\Autodesk\Maya2018\bin\python27.zip
+    C:\Program Files\Autodesk\Maya2018\Python\DLLs
+    C:\Program Files\Autodesk\Maya2018\Python\lib
+    C:\Program Files\Autodesk\Maya2018\Python\lib\plat-win
+    C:\Program Files\Autodesk\Maya2018\Python\lib\lib-tk
+    C:\Program Files\Autodesk\Maya2018\bin
+    C:\Program Files\Autodesk\Maya2018\Python
+    C:\Program Files\Autodesk\Maya2018\Python\lib\site-packages
+    C:\Program Files\Autodesk\Maya2018\\plug-ins\\xgen\\scripts
+    C:\Program Files\Autodesk\Maya2018\bin\python27.zip\lib-tk
+    C:\Users\raymond\Documents\maya\2018\prefs\scripts
+    C:\Users\raymond\Documents\maya\2018\scripts
+    C:\Users\raymond\Documents\maya\scripts
+
+  .--.      .-'.      .--.      .--.      .--.      .--.      .-.      .--.  .--.      .-'.      .--.      .--.      .--.      .--.
+:::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.:::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.
+
+----------------------------------------------------------------------------------------------------
+Warning: 	string $thisFile=`tok $thisFile "/" -1`;
+Warning: "S:/pipeline/qscripts/qscripts/qscripts_2.2.2/qscripts/apps/maya-packages/svn_integration/svnInit.mel" line 153.41 : Redeclaration of variable "$thisFile" shadows previous declaration at line 152. Previous value will be overwritten by explicit initializer.
+svnInit done
+[INFO] global_usersetup.py (506): MayaSetup.main - MayaSetup.main() done
+[INFO] global_usersetup.py (341): globalUserSetup - Usersetup loaded in 33.734 seconds
+[DEBUG] support.py (155): MayaLogger.setLevel - Set log level 1
+[DEBUG] support.py (204): _init_logging - Finished setting up loggers
+[INFO] global_usersetup.py (58): <module> - RUNNING USER SETUP
+[INFO] global_usersetup.py (59): <module> - S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya\startup\global_usersetup.pyc
+[DEBUG] global_usersetup.py (60): <module> - Logged in user: raymond
+[DEBUG] global_usersetup.py (61): <module> - Imported PyMel in 0.000000 seconds
+[DEBUG] global_usersetup.py (92): <module> - sys.path.insert(0, 'C:\qvisten_pipeline\python\py27-x64')
+[INFO] global_usersetup.py (118): _import_qshot - qshot imported from C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\qshot\__init__.pyc
+[INFO] global_usersetup.py (119): _import_qshot - qconfig imported from C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\qconfig\__init__.pyc
+[DEBUG] support.py (39): setup_error_handling - 
+[DEBUG] global_usersetup.py (209): <module> - sys.path.insert(1, 'S:\pipeline\qscripts\qscripts_current\qscripts\packages\qpath')
+[DEBUG] global_usersetup.py (210): <module> - sys.path.insert(2, 'S:\pipeline\qscripts\qscripts_current\qscripts\packages\qlib')
+[INFO] global_usersetup.py (251): <module> - qscripts imported from S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\__init__.pyc
+[INFO] global_usersetup.py (1021): init_snapshot - Install QLoad save override (snapshot)
+[INFO] global_usersetup.py (1028): init_snapshot - Install QLoad save override done
+
+sys.path:
+    C:\qvisten_pipeline\python\py27-x64
+    S:\pipeline\qscripts\qscripts_current\qscripts\packages\qpath
+    S:\pipeline\qscripts\qscripts_current\qscripts\packages\qlib
+    C:\qvisten_pipeline\python\py27-x64\PyQt-maya2016
+    S:\pipeline\qscripts\vendor\pyblish_1.4.3\pyblish\vendor
+    S:\pipeline\qscripts\qscripts_current\qscripts\packages\qpath
+    S:\pipeline\qscripts\qscripts_current\qscripts\packages\qlib
+    C:\qvisten_pipeline\python\py27-x64\PyQt-maya2016
+    C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2
+    C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\external
+    C:\qvisten_pipeline\qshot_testing\qshot_3_0_pyside2\external\sqlalchemy
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya\startup
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya\startup
+    C:\Program Files\Autodesk\Maya2018\plug-ins\xgen\scripts\xgenm\xmaya
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\packages
+    S:\pipeline\qscripts\qscripts\qscripts_2.2.2\qscripts\apps\maya-packages
+    S:\pipeline\qscripts\qpublish\qpublish_1.1.4
+    S:\pipeline\qscripts\qrender\qrender_2.7
+    S:\pipeline\qscripts\fmrig\fmrig_1.005
+    S:\pipeline\qscripts\light_toolbox\light_toolbox_1.6
+    S:\pipeline\qscripts\qcache\qcache_1.3
+    S:\pipeline\qscripts\studio\studio-master
+    S:\pipeline\qscripts\qudini\qudini_1.0
+    S:\pipeline\qscripts\qnuke\qnuke_1.0
+    S:\pipeline\qscripts\maya_userscripts\maya_userscripts-1.0
+    S:\pipeline\qscripts\qload_plugins\qload_plugins-1.0
+    S:\pipeline\qscripts\qrig\qrig-master
+    S:\pipeline\qscripts\vendor\pyblish_1.4.3
+    S:\pipeline\qscripts\vendor\red9_1.33
+    S:\pipeline\qscripts\vendor\alembicholder_1.0
+    S:\pipeline\qscripts\vendor\shadermanager_None
+    S:\pipeline\qscripts\vendor\cvwrap_1.0
+    C:\Program Files\Autodesk\Maya2018\plug-ins\ATF\scripts
+    C:\Program Files\Autodesk\Bifrost\Maya2018\scripts\boss
+    C:\Program Files\Autodesk\Bifrost\Maya2018\scripts\presets
+    C:\Program Files\Autodesk\Bifrost\Maya2018\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\MASH\scripts
+    C:\ProgramData\Autodesk\ApplicationPlugins\MayaBonusTools-2015-2018\Contents\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\fbx\scripts
+    C:\Program Files\Side Effects Software\Houdini 17.0.352\engine\maya\maya2018\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\camd\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\substance\scripts
+    C:\Program Files\Autodesk\Maya2018\plug-ins\xgen\scripts
+    C:\Program Files\Autodesk\Maya2018\bin\python27.zip
+    C:\Program Files\Autodesk\Maya2018\Python\DLLs
+    C:\Program Files\Autodesk\Maya2018\Python\lib
+    C:\Program Files\Autodesk\Maya2018\Python\lib\plat-win
+    C:\Program Files\Autodesk\Maya2018\Python\lib\lib-tk
+    C:\Program Files\Autodesk\Maya2018\bin
+    C:\Program Files\Autodesk\Maya2018\Python
+    C:\Program Files\Autodesk\Maya2018\Python\lib\site-packages
+    C:\Program Files\Autodesk\Maya2018\\plug-ins\\xgen\\scripts
+    C:\Program Files\Autodesk\Maya2018\bin\python27.zip\lib-tk
+    C:\Users\raymond\Documents\maya\2018\prefs\scripts
+    C:\Users\raymond\Documents\maya\2018\scripts
+    C:\Users\raymond\Documents\maya\scripts
+    C:/qvisten_pipeline/arnold/2018_64/mtoa_3.1.0_q005/scripts
+
+  .--.      .-'.      .--.      .--.      .--.      .--.      .-.      .--.  .--.      .-'.      .--.      .--.      .--.      .--.
+:::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.:::::.\::::::::.\::::::::.\::::::::.\::::::::.\::::::::.
+
+----------------------------------------------------------------------------------------------------
+import qshot.apps.snapshot as snap; snap.init_save_ovveride()
+# QLOAD SNAPSHOT: source "C:/qvisten_pipeline/qshot_testing/qshot_3_0_pyside2/qshot/apps/snapshot/mel/FileMenu_SaveItem-2018.mel";
+# QLOAD SNAPSHOT: current script: C:/Program Files/Autodesk/Maya2018/scripts/startup/FileMenu.mel
+Warning: Plug-in, "AbcExport.mll", is already loaded.  Skipped.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+Successfully registered renderer 'arnold'
+hlp = xgenm.xmaya.xgmArchiveExport.xgmArchiveExport()
+hlp.processDir( 'Archive', 'S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/', ['S:/pipeline/test_projects/xgen_archive_motionblkur_problem/test1.ma'], ['|pPlane1'], 0, '0.0', '0.0', 1.000000, 1.000000 )
+[  0.00%] creating sub directoriesS:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/
+[  0.00%]  processing file S:/pipeline/test_projects/xgen_archive_motionblkur_problem/test1.ma
+[  0.00%]   processing scene S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/Archive
+[  0.00%]    openScene S:/pipeline/test_projects/xgen_archive_motionblkur_problem/test1.ma
+File read in  0.51 seconds.
+File read in  0.51 seconds.
+Importing XGen Collections...
+Done.
+Error: file: C:/Program Files/Autodesk/Maya2018/plug-ins/xgen/scripts/xgen.mel line 627: 'NoneType' object has no attribute 'tracking'
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# AttributeError: 'NoneType' object has no attribute 'tracking'
+Error: file: C:/Program Files/Autodesk/Maya2018/plug-ins/xgen/scripts/xgen.mel line 590: 'NoneType' object has no attribute 'tracking'
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# AttributeError: 'NoneType' object has no attribute 'tracking'
+[  0.00%]    fixNodeToShapeParent objs - ['|pPlane1']
+[  0.00%]    fixNodeToShapeParent shapeParentObj - ['|pPlane1']
+[ 25.00%]    processScene 1 ['|pPlane1']
+[ 25.00%]    processScene 2 ['|pPlane1']
+[  0.00%]     splitByShadingGroups ['|pPlane1']
+[  0.00%]     getSGsFromObj |pPlane1
+[  0.00%]     getSGsFromObj( |pPlane1 ) returned [u'initialShadingGroup']
+[ 12.50%]    processScene ['|pPlane1']
+[ 12.50%]    before archiveExport ['|pPlane1']
+[  0.00%]     archiveExport alembic object: ['|pPlane1']
+[  0.00%]     abcExport S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/abc/Archive.abc
+[  0.00%]     abcExport objects ['|pPlane1']
+[  0.00%]     abcExport select objects [u'|pPlane1|pPlaneShape1']
+[  0.00%]     abcExport -selection -uvWrite -frameRange 1.000000 1.000000 -worldSpace -file "S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/abc/Archive.abc"
+[  0.00%]     getSGsFromObj |pPlane1
+[ 25.00%]     archiveExport for callbacks
+[  0.00%]      assExport S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/ass/Archive
+Warning: [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+[mtoa.ext]  aiAOVDriver Found no translator named "maya"
+Warning: [mtoa] No light in scene
+[mtoa] No light in scene
+Warning: [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+[mtoa.ext]  aiAOVDriver Found no translator named "maya"
+[  0.00%]      assExport S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/ass/Archive__pPlane1.ass.gz
+[  0.00%]      getSGsFromObj |pPlane1
+[ 25.00%]     archiveExport for callbacks finished
+[  8.33%]    before materialExport ['|pPlane1']
+[  8.33%]    materialExport S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/materials/Archive.ma
+[  8.33%]    getSGsFromObj |pPlane1
+[100.00%]  done in 3.767 sec S:/pipeline/test_projects/xgen_archive_motionblkur_problem/assets/plane/
+Error: file: C:/Program Files/Autodesk/Maya2018/plug-ins/xgen/scripts/xgen.mel line 878: 'NoneType' object has no attribute 'deleteAll'
+# Traceback (most recent call last):
+#   File "<maya console>", line 1, in <module>
+# AttributeError: 'NoneType' object has no attribute 'deleteAll'

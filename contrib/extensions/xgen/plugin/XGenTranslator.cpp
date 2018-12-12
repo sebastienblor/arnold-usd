@@ -514,11 +514,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          // Export shaders
          rootShader = ExportRootShader(shape);
 
-
-         // Only exporting matrix for maya < 2017 (#2681)
-#if MAYA_API_VERSION < 201700
          ExportMatrix(shape);
-#endif
       }
       // For other patches we reuse the shaders and create new procedural
       else
@@ -824,9 +820,17 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
-  // Only exporting matrix for maya < 2017 (#2681)
-#if MAYA_API_VERSION < 201700
    ExportMatrix(shape);
+}
+
+void CXgDescriptionTranslator::GetMatrix(AtMatrix& matrix)
+{
+#if MAYA_API_VERSION < 201700
+   CShapeTranslator::GetMatrix(matrix);
+#else
+   // make sure the matrix is not inherited for maya >= 2017
+   MMatrix tm = MMatrix();
+   ConvertMatrix(matrix, tm);
 #endif
 }
 
@@ -952,8 +956,6 @@ void CXgDescriptionTranslator::ExpandProcedural()
 #if MAYA_API_VERSION >= 201600
    MGlobal::executeCommand("xgmCache -clearPtexCache;");
 #endif
-
-   // FIXME verify if we need to do something about the procedural matrix ?
 
    // in theory we could simply delete the procedural node, but I'm afraid of the consequences it may
    // have if GetArnoldNode returns NULL. So for safety we're just disabling this node for now

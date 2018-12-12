@@ -1,0 +1,8 @@
+#ArchiveGroup 0 name="Archive" description="No description." thumbnail="Archive.png" materials="${PROJECT}/assets/plane/materials/Archive.ma" color=[1,0,0]
+0 "${PROJECT}/assets/plane/abc/Archive.abc" material=Archive:initialShadingGroup objects=|pPlane1
+1 "${PROJECT}/assets/plane/abc/Archive.abc" material=Archive:initialShadingGroup objects=|pPlane1
+2 "${PROJECT}/assets/plane/abc/Archive.abc" material=Archive:initialShadingGroup objects=|pPlane1
+3 "${PROJECT}/assets/plane/ass/Archive__pPlane1.ass.gz" material=Archive:lambert1 objects=|pPlane1
+4 "${PROJECT}/assets/plane/ass/Archive__pPlane1.ass.gz" material=Archive:lambert1 objects=|pPlane1
+5 "${PROJECT}/assets/plane/ass/Archive__pPlane1.ass.gz" material=Archive:lambert1 objects=|pPlane1
+

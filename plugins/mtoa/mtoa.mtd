@@ -1699,6 +1699,9 @@
     [attr roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+    [attr roughness_azimuthal]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
     [attr ior]
         min                 FLOAT   0.0
         softmax             FLOAT   5.0
@@ -1770,10 +1773,8 @@
     desc                    STRING  "OSL-based shader"
     maya.name               STRING  "aiOslShader"
     maya.id                 INT     0x00115D56  
-    maya.classification     STRING  "shader/surface"
-    maya.hide               BOOL    true
-
-
+    maya.classification     STRING  "utility/shader"
+    maya.hide               BOOL    false
 
 [node sky]
     desc                    STRING  "Sky environment texture."

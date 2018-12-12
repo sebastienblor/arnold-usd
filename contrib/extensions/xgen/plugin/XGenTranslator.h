@@ -28,6 +28,7 @@ public:
 
 protected:
    virtual void PostExport(AtNode *node);
+   virtual void GetMatrix(AtMatrix& matrix);
 private:
 
    AtNode* ExportRootShader(AtNode *);

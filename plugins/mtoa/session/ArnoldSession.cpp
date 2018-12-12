@@ -362,6 +362,13 @@ void CArnoldSession::EraseActiveTranslator(CNodeTranslator *translator)
 bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 {
    MStatus stat = MStatus::kSuccess;
+
+   // We were testing the render layer in some places but not here.
+   // This made us ignore the render layers during IPR updates (see #3144 #3350)
+   unsigned int mask = GetExportFilterMask();
+   if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(dagPath))
+      return false;
+   
    while (stat == MStatus::kSuccess)
    {
       MFnDagNode node;
@@ -982,7 +989,7 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
       MFnDagNode cameraNode;
-      MPlug renderable;
+      MPlug renderablePlug;
       // First we export all cameras
       // We do not reset the iterator to avoid getting kWorld
       for (; (!dagIterCameras.isDone()); dagIterCameras.next())
@@ -994,8 +1001,14 @@ MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
             cameraNode.setObject(path);
             // Note that some non-renderable cameras are still exported in 
             // ExportDag, if their filteredStatus is "accepted"
-            renderable = cameraNode.findPlug("renderable", false, &stat);
-            if (stat == MS::kSuccess && renderable.asBool())
+            renderablePlug = cameraNode.findPlug("renderable", false, &stat);
+            bool isRenderable = (stat == MS::kSuccess) ? renderablePlug.asBool() : false;
+
+            // Force the export of default persp camera for ARV (#3655)
+            if (isRenderable == false && GetSessionMode() ==  MTOA_SESSION_RENDERVIEW && path.partialPathName() == MString("perspShape"))
+               isRenderable = true;
+
+            if (isRenderable)
                ExportDagPath(path, true, &stat);
 
             if (stat != MStatus::kSuccess)

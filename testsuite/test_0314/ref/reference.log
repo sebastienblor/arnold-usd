@@ -1,0 +1,523 @@
+
+Starting "/usr/autodesk/maya2018/bin/maya"
+This plugin does not support createPlatformOpenGLContext!
+
+libai.so already loaded
+00:00:00   359MB         | log started Tue Dec  4 13:57:34 2018
+00:00:00   359MB         | Arnold 5.2.2.0 [c70eaf39] linux clang-5.0.0 oiio-2.0.1 osl-1.10.1 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 2018/12/01 05:41:11
+00:00:00   359MB         | running on rems4dc9705.ads.autodesk.com, pid=25479
+00:00:00   359MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz (24 cores, 48 logical) with 63995MB
+00:00:00   359MB         |  Nvidia driver version 410.78
+00:00:00   359MB         |  GPU 0: TITAN V @ 1455MHz (compute 7.0) with 12003MB (6221MB available)
+00:00:00   359MB         |  GPU 1: Quadro M2000 @ 1162MHz (compute 5.2) with 4043MB (4031MB available)
+00:00:00   359MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-862.14.4.el7.x86_64
+00:00:00   359MB         |  soft limit for open files raised from 4094 to 4094
+00:00:00   359MB         |  
+00:00:00   359MB         | loading plugins from /software/golaem/6.3.3/2018/shaders ...
+00:00:00   359MB         |  glmCrowdArnoldShaders.so: CrowdSwitchShaderArnold uses Arnold 5.0.0.3
+00:00:00   359MB         |  glmCrowdArnoldShaders.so: CrowdHSLShaderArnold uses Arnold 5.0.0.3
+00:00:00   359MB         |  [metadata] loading metadata file: /software/golaem/6.3.3/2018/shaders/glmCrowdArnoldShaders.mtd
+00:00:00   359MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/shaders ...
+00:00:00   359MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.2.2.0
+00:00:00   359MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.2.2.0
+00:00:00   359MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.2.2.0
+00:00:00   359MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.2.2.0
+00:00:00   359MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatConstant uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatComposite uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatCondition uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatCorrect uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatLogic uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatMask uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkFloatMath uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorComposite uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorCondition uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorConstant uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorCorrect uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorLogic uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorMask uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkColorMath uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkChannels uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkPremultiply uses Arnold 5.2.2.0
+00:00:00   359MB         |  lookdevkit_shaders.so: ldkSimplexNoise uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaClamp uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaCondition uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaReverse uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaFile uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRamp uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaProjection uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaChecker uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaBulge uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaCloth uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaGrid uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaFractal uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaNoise uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaCloud uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSnow uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaContrast uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaStucco uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaColorToFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaVectorToFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaPointToFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaPoint2ToFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaWriteColor uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAovWriteColor uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaWriteFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAovWriteFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAnimFloat uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAnimPoint uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAnimVector uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAnimColor uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAnimMatrix uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaUserDataVector uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaUserDataColor uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAovWriteVector uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaAovWriteVector2 uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaUserDataBool uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaHair uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaMeshLightMaterial uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaUserDataVec2 uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaBump2D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaFluid uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaMarble uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaMountain uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaWater uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaCrater uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaLeather uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaGranite uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaRock uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSingleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaDoubleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaTripleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaQuadShadingSwitch uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaFluidData uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaFluidTexture2D uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaSurfaceLuminance uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MtoaCameraUvMapper uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_shaders.so: MayaFlatClosure uses Arnold 5.2.2.0
+00:00:00   359MB         |  [metadata] loading metadata file: /opt/solidangle/mtoa/dev/2018/shaders/mtoa_shaders.mtd
+00:00:00   359MB         |  renderSetup_shaders.so: applyAbsFloatOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyAbs2FloatsOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyAbs3FloatsOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyAbsIntOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyRelFloatOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyRel2FloatsOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyRel3FloatsOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  renderSetup_shaders.so: applyRelIntOverride uses Arnold 5.2.2.0
+00:00:00   359MB         |  xgenSpline_shaders.so: XGenHairMapping uses Arnold 5.2.2.0
+00:00:00   359MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/procedurals ...
+00:00:00   359MB         |  mtoa_ParticleInstancer_proc.so: particleInstancer uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_ParticleVolume_proc.so: volume_particle uses Arnold 5.2.2.0
+00:00:00   359MB         |  mtoa_ParticleVolume_proc.so: implicit_particle uses Arnold 5.2.2.0
+00:00:00   359MB         |  xgenSpline_procedural.so: xgenProcedural uses Arnold 5.2.2.0
+00:00:00   359MB         |  xgen_procedural.so: xgen_procedural uses Arnold 5.2.2.0
+00:00:00   359MB         | loaded 124 plugins from 10 lib(s) in 0:00.01
+00:00:00   359MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/plug-ins/../bin/../plugins ...
+00:00:00   359MB         |  alembic_proc.so: alembic uses Arnold 5.2.2.0
+00:00:00   359MB         |  cryptomatte.so: cryptomatte uses Arnold 5.2.2.0
+00:00:00   359MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 5.2.2.0
+00:00:00   359MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 5.2.2.0
+00:00:00   359MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 5.2.2.0
+00:00:00   359MB         | loaded 5 plugins from 3 lib(s) in 0:00.01
+00:00:00   359MB         | [metadata] loading metadata file: /opt/solidangle/mtoa/dev/2018/plug-ins/mtoa.mtd
+00:00:00   359MB         |  
+00:00:00   359MB         | releasing resources
+00:00:00   355MB         |  unloading 13 plugins
+00:00:00   355MB         |   closing glmCrowdArnoldShaders.so ...
+00:00:00   355MB         |   closing hairPhysicalShader_shaders.so ...
+00:00:00   355MB         |   closing lookdevkit_shaders.so ...
+00:00:00   355MB         |   closing mtoa_shaders.so ...
+00:00:00   354MB         |   closing renderSetup_shaders.so ...
+00:00:00   354MB         |   closing xgenSpline_shaders.so ...
+00:00:00   354MB         |   closing mtoa_ParticleInstancer_proc.so ...
+00:00:00   354MB         |   closing mtoa_ParticleVolume_proc.so ...
+00:00:00   354MB         |   closing xgenSpline_procedural.so ...
+00:00:00   354MB         |   closing xgen_procedural.so ...
+00:00:00   354MB         |   closing alembic_proc.so ...
+00:00:00   354MB         |   closing cryptomatte.so ...
+00:00:00   354MB         |   closing synColor_shaders.so ...
+00:00:00   354MB         |  unloading plugins done
+00:00:00   354MB         | Arnold shutdown
+00:00:00   358MB         | log started Tue Dec  4 13:57:34 2018
+00:00:00   358MB         | Arnold 5.2.2.0 [c70eaf39] linux clang-5.0.0 oiio-2.0.1 osl-1.10.1 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 2018/12/01 05:41:11
+00:00:00   358MB         | running on rems4dc9705.ads.autodesk.com, pid=25479
+00:00:00   358MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz (24 cores, 48 logical) with 63995MB
+00:00:00   358MB         |  Nvidia driver version 410.78
+00:00:00   358MB         |  GPU 0: TITAN V @ 1455MHz (compute 7.0) with 12003MB (6221MB available)
+00:00:00   358MB         |  GPU 1: Quadro M2000 @ 1162MHz (compute 5.2) with 4043MB (4031MB available)
+00:00:00   358MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-862.14.4.el7.x86_64
+00:00:00   358MB         |  soft limit for open files raised from 4094 to 4094
+00:00:00   358MB         |  
+00:00:00   358MB         | loading plugins from /software/golaem/6.3.3/2018/shaders ...
+00:00:00   358MB         |  glmCrowdArnoldShaders.so: CrowdSwitchShaderArnold uses Arnold 5.0.0.3
+00:00:00   358MB         |  glmCrowdArnoldShaders.so: CrowdHSLShaderArnold uses Arnold 5.0.0.3
+00:00:00   358MB         |  [metadata] loading metadata file: /software/golaem/6.3.3/2018/shaders/glmCrowdArnoldShaders.mtd
+00:00:00   358MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/shaders ...
+00:00:00   358MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.2.2.0
+00:00:00   358MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.2.2.0
+00:00:00   358MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.2.2.0
+00:00:00   358MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.2.2.0
+00:00:00   358MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatConstant uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatComposite uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatCondition uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatCorrect uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatLogic uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatMask uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkFloatMath uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorComposite uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorCondition uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorConstant uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorCorrect uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorLogic uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorMask uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkColorMath uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkChannels uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkPremultiply uses Arnold 5.2.2.0
+00:00:00   358MB         |  lookdevkit_shaders.so: ldkSimplexNoise uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaClamp uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaCondition uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaReverse uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaFile uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRamp uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaProjection uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaChecker uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaBulge uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaCloth uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaGrid uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaFractal uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaNoise uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaCloud uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSnow uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaContrast uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaStucco uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaColorToFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaVectorToFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaPointToFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaPoint2ToFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaWriteColor uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAovWriteColor uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaWriteFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAovWriteFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAnimFloat uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAnimPoint uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAnimVector uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAnimColor uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAnimMatrix uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaUserDataVector uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaUserDataColor uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAovWriteVector uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaAovWriteVector2 uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaUserDataBool uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaHair uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaMeshLightMaterial uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaUserDataVec2 uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaBump2D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaFluid uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaMarble uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaMountain uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaWater uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaCrater uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaLeather uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaGranite uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaRock uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSingleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaDoubleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaTripleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaQuadShadingSwitch uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaFluidData uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaFluidTexture2D uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaSurfaceLuminance uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MtoaCameraUvMapper uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_shaders.so: MayaFlatClosure uses Arnold 5.2.2.0
+00:00:00   358MB         |  [metadata] loading metadata file: /opt/solidangle/mtoa/dev/2018/shaders/mtoa_shaders.mtd
+00:00:00   358MB         |  renderSetup_shaders.so: applyAbsFloatOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyAbs2FloatsOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyAbs3FloatsOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyAbsIntOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyRelFloatOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyRel2FloatsOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyRel3FloatsOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  renderSetup_shaders.so: applyRelIntOverride uses Arnold 5.2.2.0
+00:00:00   358MB         |  xgenSpline_shaders.so: XGenHairMapping uses Arnold 5.2.2.0
+00:00:00   358MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/procedurals ...
+00:00:00   358MB         |  mtoa_ParticleInstancer_proc.so: particleInstancer uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_ParticleVolume_proc.so: volume_particle uses Arnold 5.2.2.0
+00:00:00   358MB         |  mtoa_ParticleVolume_proc.so: implicit_particle uses Arnold 5.2.2.0
+00:00:00   358MB         |  xgenSpline_procedural.so: xgenProcedural uses Arnold 5.2.2.0
+00:00:00   358MB         |  xgen_procedural.so: xgen_procedural uses Arnold 5.2.2.0
+00:00:00   358MB         | loaded 124 plugins from 10 lib(s) in 0:00.01
+00:00:00   358MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/plug-ins/../bin/../plugins ...
+00:00:00   358MB         |  alembic_proc.so: alembic uses Arnold 5.2.2.0
+00:00:00   358MB         |  cryptomatte.so: cryptomatte uses Arnold 5.2.2.0
+00:00:00   358MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 5.2.2.0
+00:00:00   358MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 5.2.2.0
+00:00:00   358MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 5.2.2.0
+00:00:00   358MB         | loaded 5 plugins from 3 lib(s) in 0:00.01
+00:00:00   358MB         | [metadata] loading metadata file: /opt/solidangle/mtoa/dev/2018/plug-ins/mtoa.mtd
+00:00:00   401MB         |  
+00:00:00   401MB         | releasing resources
+00:00:00   399MB         |  unloading 13 plugins
+00:00:00   399MB         |   closing glmCrowdArnoldShaders.so ...
+00:00:00   399MB         |   closing hairPhysicalShader_shaders.so ...
+00:00:00   399MB         |   closing lookdevkit_shaders.so ...
+00:00:00   399MB         |   closing mtoa_shaders.so ...
+00:00:00   399MB         |   closing renderSetup_shaders.so ...
+00:00:00   399MB         |   closing xgenSpline_shaders.so ...
+00:00:00   399MB         |   closing mtoa_ParticleInstancer_proc.so ...
+00:00:00   398MB         |   closing mtoa_ParticleVolume_proc.so ...
+00:00:00   398MB         |   closing xgenSpline_procedural.so ...
+00:00:00   398MB         |   closing xgen_procedural.so ...
+00:00:00   398MB         |   closing alembic_proc.so ...
+00:00:00   398MB         |   closing cryptomatte.so ...
+00:00:00   398MB         |   closing synColor_shaders.so ...
+00:00:00   398MB         |  unloading plugins done
+00:00:00   398MB         | Arnold shutdown
+unable to bind to socket
+Set 'MAYA_DEBUG_STDOUT' to enable stdout to the terminal
+Error: file: /usr/autodesk/ApplicationPlugins/MayaBonusTools-2015-2018/Contents/scripts-2018/bonusToolsMenu.mel line 1666: UI commands can't be run in batch mode.
+Running submission script "//opt/Thinkbox/DeadlineRepository10/submission/Maya/Main/SubmitMayaToDeadline.mel"
+00:00:00   427MB         | log started Tue Dec  4 13:57:37 2018
+00:00:00   427MB         | Arnold 5.2.2.0 [c70eaf39] linux clang-5.0.0 oiio-2.0.1 osl-1.10.1 vdb-4.0.0 clm-1.0.3.513 rlm-12.4.2 2018/12/01 05:41:11
+00:00:00   427MB         | running on rems4dc9705.ads.autodesk.com, pid=25479
+00:00:00   427MB         |  2 x Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz (24 cores, 48 logical) with 63995MB
+00:00:00   427MB         |  Nvidia driver version 410.78
+00:00:00   427MB         |  GPU 0: TITAN V @ 1455MHz (compute 7.0) with 12003MB (6205MB available)
+00:00:00   427MB         |  GPU 1: Quadro M2000 @ 1162MHz (compute 5.2) with 4043MB (4031MB available)
+00:00:00   427MB         |  CentOS Linux 7 (Core), Linux kernel 3.10.0-862.14.4.el7.x86_64
+00:00:00   427MB         |  soft limit for open files raised from 4096 to 4094
+00:00:00   427MB         |  
+00:00:00   427MB         | loading plugins from /software/golaem/6.3.3/2018/shaders ...
+00:00:00   427MB         |  glmCrowdArnoldShaders.so: CrowdSwitchShaderArnold uses Arnold 5.0.0.3
+00:00:00   427MB         |  glmCrowdArnoldShaders.so: CrowdHSLShaderArnold uses Arnold 5.0.0.3
+00:00:00   427MB         |  [metadata] loading metadata file: /software/golaem/6.3.3/2018/shaders/glmCrowdArnoldShaders.mtd
+00:00:00   427MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/shaders ...
+00:00:00   427MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderDiffuseColorAdapter uses Arnold 5.2.2.0
+00:00:00   427MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularWeightAdapter uses Arnold 5.2.2.0
+00:00:00   427MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderSpecularGlossAdapter uses Arnold 5.2.2.0
+00:00:00   427MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionWeightAdapter uses Arnold 5.2.2.0
+00:00:00   427MB         |  hairPhysicalShader_shaders.so: HairPhysicalShaderTransmissionSpreadAdapter uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatConstant uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatComposite uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatCondition uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatCorrect uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatLogic uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatMask uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkFloatMath uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorComposite uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorCondition uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorConstant uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorCorrect uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorLogic uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorMask uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkColorMath uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkChannels uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkPremultiply uses Arnold 5.2.2.0
+00:00:00   427MB         |  lookdevkit_shaders.so: ldkSimplexNoise uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaClamp uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaCondition uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaReverse uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaFile uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRamp uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaProjection uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaChecker uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaBulge uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaCloth uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaGrid uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaFractal uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaNoise uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaCloud uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSnow uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaContrast uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaStucco uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaColorToFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaVectorToFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaPointToFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaPoint2ToFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaWriteColor uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAovWriteColor uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaWriteFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAovWriteFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAnimFloat uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAnimPoint uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAnimVector uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAnimColor uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAnimMatrix uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaUserDataVector uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaUserDataColor uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAovWriteVector uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaAovWriteVector2 uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaUserDataBool uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaHair uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaMeshLightMaterial uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaUserDataVec2 uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaBump2D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaFluid uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaMarble uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaMountain uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaWater uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaCrater uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaLeather uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaGranite uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaRock uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSingleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaDoubleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaTripleShadingSwitch uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaQuadShadingSwitch uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaFluidData uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaFluidTexture2D uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaSurfaceLuminance uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MtoaCameraUvMapper uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_shaders.so: MayaFlatClosure uses Arnold 5.2.2.0
+00:00:00   427MB         |  [metadata] loading metadata file: /opt/solidangle/mtoa/dev/2018/shaders/mtoa_shaders.mtd
+00:00:00   427MB         |  renderSetup_shaders.so: applyAbsFloatOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyAbs2FloatsOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyAbs3FloatsOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyAbsIntOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyRelFloatOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyRel2FloatsOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyRel3FloatsOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  renderSetup_shaders.so: applyRelIntOverride uses Arnold 5.2.2.0
+00:00:00   427MB         |  xgenSpline_shaders.so: XGenHairMapping uses Arnold 5.2.2.0
+00:00:00   427MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/procedurals ...
+00:00:00   427MB         |  mtoa_ParticleInstancer_proc.so: particleInstancer uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_ParticleVolume_proc.so: volume_particle uses Arnold 5.2.2.0
+00:00:00   427MB         |  mtoa_ParticleVolume_proc.so: implicit_particle uses Arnold 5.2.2.0
+00:00:00   427MB         |  xgenSpline_procedural.so: xgenProcedural uses Arnold 5.2.2.0
+00:00:00   427MB         |  xgen_procedural.so: xgen_procedural uses Arnold 5.2.2.0
+00:00:00   427MB         | loaded 124 plugins from 10 lib(s) in 0:00.01
+00:00:00   427MB         | loading plugins from /opt/solidangle/mtoa/dev/2018/plug-ins/../bin/../plugins ...
+00:00:00   427MB         |  alembic_proc.so: alembic uses Arnold 5.2.2.0
+00:00:00   427MB         |  cryptomatte.so: cryptomatte uses Arnold 5.2.2.0
+00:00:00   427MB         |  cryptomatte.so: cryptomatte_filter uses Arnold 5.2.2.0
+00:00:00   427MB         |  cryptomatte.so: cryptomatte_manifest_driver uses Arnold 5.2.2.0
+00:00:00   427MB         |  synColor_shaders.so: color_manager_syncolor uses Arnold 5.2.2.0
+00:00:00   427MB         | loaded 5 plugins from 3 lib(s) in 0:00.01
+00:00:00   427MB         | [metadata] loading metadata file: /opt/solidangle/mtoa/dev/2018/plug-ins/mtoa.mtd
+00:00:00   427MB         |  
+00:00:00   427MB         | releasing resources
+00:00:00   427MB         |  unloading 13 plugins
+00:00:00   427MB         |   closing glmCrowdArnoldShaders.so ...
+00:00:00   427MB         |   closing hairPhysicalShader_shaders.so ...
+00:00:00   427MB         |   closing lookdevkit_shaders.so ...
+00:00:00   427MB         |   closing mtoa_shaders.so ...
+00:00:00   427MB         |   closing renderSetup_shaders.so ...
+00:00:00   427MB         |   closing xgenSpline_shaders.so ...
+00:00:00   427MB         |   closing mtoa_ParticleInstancer_proc.so ...
+00:00:00   427MB         |   closing mtoa_ParticleVolume_proc.so ...
+00:00:00   426MB         |   closing xgenSpline_procedural.so ...
+00:00:00   426MB         |   closing xgen_procedural.so ...
+00:00:00   426MB         |   closing alembic_proc.so ...
+00:00:00   426MB         |   closing cryptomatte.so ...
+00:00:00   426MB         |   closing synColor_shaders.so ...
+00:00:00   426MB         |  unloading plugins done
+00:00:00   426MB         | Arnold shutdown
+File read in  0.16 seconds.
+File read in  0.16 seconds.
+Importing XGen Collections...
+Done.
+Result: /home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_debug/testsuite/test_0314/test.ma
+00:00:00   432MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   432MB WARNING |  node entry "hair" is deprecated, and may be removed in the future
+00:00:00   432MB WARNING |  [hairPhysicalShader] Glint (.intensityG) is not supported.
+00:00:00   432MB WARNING | [xgen] Batch mode tests failed! proceeding with Xgeneration... using live scene data
+
+XGen Version: /usr/autodesk/maya2018/plug-ins/xgen/  Build Date: Nov 12 2018  23:15:17
+
+00:00:00   433MB WARNING | description8Shape: could not read ARRAY parameter "time_samples"
+00:00:00   434MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   434MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+Scene /home/handsca/Dev/mtoa/build/linux_x86_64/20180500/gcc_debug/testsuite/test_0314/test.ma completed.

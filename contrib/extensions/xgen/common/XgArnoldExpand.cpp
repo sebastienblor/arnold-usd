@@ -919,6 +919,8 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
       AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
 
+      AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+      AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
       // Transmitting parent node parameters to child nodes (#2752)
       // ... but only do it when there's no parent procedural (#3606)
       if (m_parent == NULL)
@@ -928,8 +930,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
          AiNodeSetBool(nodeCurves, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
          AiNodeSetBool(nodeCurves, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
          AiNodeSetBool(nodeCurves, "matte", AiNodeGetBool(m_node, "matte"));
-         AiNodeSetFlt(nodeCurves, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-         AiNodeSetFlt(nodeCurves, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+         AiNodeSetArray(nodeCurves, "matrix", AiArrayCopy(AiNodeGetArray(m_node, "matrix")));
       }
       
 
@@ -998,6 +999,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
     for ( unsigned int j=0; j<cacheCount; j++ )
     {
        AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+       AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
 
         for ( unsigned int i=0; i < numSamples; i++ )
         {
@@ -1103,7 +1105,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
                             {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
 
-            AiArraySetMtx( matrix, i, tmp );
+            if (m_parent == NULL)
+               AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
+            else
+               AiArraySetMtx( matrix, i, tmp );
         }
 
         // Add custom parameters and call sphere.
@@ -1204,6 +1209,8 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AiNodeSetArray( nodeCard, "knots_v", knotsV );
       AiNodeSetArray( nodeCard, "cvs", cvs );
 
+      AiNodeSetFlt(nodeCard, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
+      AiNodeSetFlt(nodeCard, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
       // Transmitting parent node parameters to child nodes (#2752)
       // ... but only do it when there's no parent procedural (#3606)
       if (m_parent == NULL)
@@ -1213,9 +1220,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
          AiNodeSetBool(nodeCard, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
          AiNodeSetBool(nodeCard, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
          AiNodeSetBool(nodeCard, "matte", AiNodeGetBool(m_node, "matte"));
-         
-         AiNodeSetFlt(nodeCard, "motion_start", AiNodeGetFlt(m_node, "motion_start"));
-         AiNodeSetFlt(nodeCard, "motion_end", AiNodeGetFlt(m_node, "motion_end"));
+         AiNodeSetArray(nodeCard, "matrix", AiArrayCopy( AiNodeGetArray(m_node, "matrix")));
       }
       
       // Add custom renderer parameters.
@@ -1402,6 +1407,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
     for ( unsigned int j = 0; j < cacheCount; j++ ) {
 
         AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+        AtArray* p_matrix = AiNodeGetArray(m_node, "matrix");
 
         // Build up the token and parameter lists to output for all
         // passes of motionBlur.
@@ -1508,7 +1514,11 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
                             {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}}};
-            AiArraySetMtx( matrix, i, tmp );
+
+            if (m_parent == NULL)
+               AiArraySetMtx( matrix, i, AiM4Mult(tmp, AiArrayGetMtx(p_matrix, i)) );
+            else
+               AiArraySetMtx( matrix, i, tmp );
         }
 
         // Add custom parameters.
@@ -1612,6 +1622,17 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             else if(materialName.size() > 0 && m_shaders != NULL)
                AiNodeSetArray( archive_procedural, "shader", AiArrayCopy(m_shaders));
 
+            AiNodeSetFlt( archive_procedural, "motion_start", AiNodeGetFlt(m_node, "motion_start") );
+            AiNodeSetFlt( archive_procedural, "motion_end", AiNodeGetFlt(m_node, "motion_end") );
+
+            if (m_parent == NULL)
+            {
+               AiNodeSetByte(archive_procedural, "visibility", AiNodeGetByte(m_node, "visibility"));
+               AiNodeSetBool(archive_procedural, "opaque", AiNodeGetBool(m_node, "opaque"));
+               AiNodeSetBool(archive_procedural, "self_shadows", AiNodeGetBool(m_node, "self_shadows"));
+               AiNodeSetBool(archive_procedural, "receive_shadows", AiNodeGetBool(m_node, "receive_shadows"));
+               AiNodeSetBool(archive_procedural, "matte", AiNodeGetBool(m_node, "matte"));
+            }
             // Add custom renderer parameters.
             pushCustomParams( archive_procedural, pc ,j);
 
