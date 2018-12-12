@@ -249,7 +249,11 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
 
-   AiNodeSetStr(shape, "nameprefix", FindMayaPlug("aiNameprefix").asString().asChar());
+   MString namePrefix = FindMayaPlug("aiNameprefix").asString();
+   if (namePrefix.length() > 0)
+      AiNodeSetStr(shape, "nameprefix", namePrefix.asChar());
+   else
+      AiNodeResetParameter(shape, "nameprefix");
 
    // now the user attributes
    MPlug arrayPlug = FindMayaPlug("aiNodeAttrs");
