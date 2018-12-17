@@ -101,8 +101,9 @@ procedural_num_nodes
       guard.leave();
       return 0;
    }
+   int numnodes = ud->NumNodes();
    guard.leave();
-   return ud->NumNodes();
+   return numnodes;
 }
 
 // Get the i_th node
@@ -117,8 +118,9 @@ procedural_get_node
       guard.leave();
       return 0;
    }
+   AtNode *this_node = ud->GetNode(i);
    guard.leave();
-   return ud->GetNode(i);
+   return this_node;
 }
 
 // DSO hook
