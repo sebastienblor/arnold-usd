@@ -28,8 +28,10 @@ def _setup(module, pymodules, modules, moduleName=None):
 
         setattr(Qt, modules[index], submodule)
 
-
-version = cmds.about(v=True)
+try:
+    version = cmds.about(v=True) 
+except AttributeError:
+    version = 2018
 
 if int(version) < 2018:
     import PySide as module
