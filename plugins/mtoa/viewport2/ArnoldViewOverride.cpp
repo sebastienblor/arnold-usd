@@ -15,6 +15,8 @@
 #include <maya/MRenderUtil.h>
 #include <maya/M3dView.h>
 #include <maya/MSceneMessage.h>
+#include <maya/MConditionMessage.h>
+
 
 #include "scene/MayaScene.h"
 #include "translators/DagTranslator.h"
@@ -40,6 +42,8 @@ ArnoldViewOverride::ArnoldViewOverride(const MString & name)
     // register a file open and file new callback
     mFileNewCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeNew, sPreFileOpen, this);
     mFileOpenCallbackID = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, sPreFileOpen, this);
+    mPlablastCB = MConditionMessage::addConditionCallback( "playblasting",CRenderSession::RenderViewPlayblast);
+   
 }
 
 // On destruction all operations are deleted.
@@ -67,6 +71,7 @@ ArnoldViewOverride::~ArnoldViewOverride()
 
     MSceneMessage::removeCallback(mFileOpenCallbackID);
     MSceneMessage::removeCallback(mFileNewCallbackID);
+    MMessage::removeCallback(mPlablastCB);
 }
 
 // Drawing uses all internal code so will support all draw APIs
@@ -79,7 +84,6 @@ MHWRender::DrawAPI ArnoldViewOverride::supportedDrawAPIs() const
 void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int height)
 {
     CMayaScene::End();
-
 /*
     MCommonRenderSettingsData renderGlobals;
     MRenderUtil::getCommonRenderSettings(renderGlobals);
@@ -101,7 +105,9 @@ void ArnoldViewOverride::startRenderView(const MDagPath &camera, int width, int 
 
 MStatus ArnoldViewOverride::setup(const MString & destination)
 {
-	if (CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsExportingMotion())
+
+        
+    if (CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsExportingMotion())
 		return MStatus::kFailure;
 
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
@@ -212,6 +218,7 @@ MStatus ArnoldViewOverride::setup(const MString & destination)
     s_activeViewport = destination; // set this viewport as the "active" one
 
     CRenderSession* renderSession = CMayaScene::GetRenderSession();
+
 
     if (!state.initialized)
     {
@@ -459,6 +466,7 @@ void ArnoldViewOverride::sRenderOverrideChangeFunc(
     const MString& newOverride,
     void* clientData)
 {
+           
     if (oldOverride == "arnoldViewOverride")
     {
         // Kill everything !!
