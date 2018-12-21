@@ -1,9 +1,12 @@
+from . import toPyObject
 from .Qt import OpenMayaUI
 from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .utils import dpiScale
+import weakref
+from copy import deepcopy
 
 
 NODE_BAR_COLOUR = QtCore.Qt.UserRole + 1
@@ -31,7 +34,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
         self.setAnimated(True)
 
-        self.setExpandsOnDoubleClick(False)
+        self.setExpandsOnDoubleClick(True)
 
         # We need this custom flag because if setDropIndicatorShown is set to
         # false, dropIndicatorPosition returns wrong data. We use this flag to
@@ -213,7 +216,7 @@ class BaseModel(QtCore.QAbstractItemModel):
         pass
 
 
-class BaseDelegate(QtWidgets.QAbstractItemDelegate):
+class BaseDelegate(QtWidgets.QItemDelegate):
     """Custom display delegate for the tree items."""
 
     ICON_PADDING = dpiScale(10)

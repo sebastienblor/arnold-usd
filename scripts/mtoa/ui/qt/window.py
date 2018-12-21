@@ -19,9 +19,8 @@ class BaseWindow(QtWidgets.QMainWindow):
 
 class TreeWindow(BaseWindow):
     """docstring for TreeWindow"""
-    def __init__(self, arg, parent=None):
+    def __init__(self, parent=None):
         super(TreeWindow, self).__init__(parent)
-        self.arg = arg
 
         self.treeView = BaseTreeView(self)
 
