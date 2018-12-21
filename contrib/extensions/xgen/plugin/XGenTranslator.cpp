@@ -9,6 +9,8 @@
 #include <maya/MFnCamera.h>
 #include <maya/MMatrix.h>
 #include <maya/MSelectionList.h>
+#include <maya/MItDag.h>
+#include <maya/MDagPathArray.h>
 
 #include "XGenTranslator.h"
 
@@ -424,6 +426,36 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       //float s = 100000.f * fUnitConvFactor;
       //info.setBoundingBox( -s,-s,-s, s, s, s );
       MDagPath camera = GetSessionOptions().GetExportCamera();
+
+      // FIXME currently only fix is to get the first renderable camera if we can't get the session camera
+      // due to it being added to the session after the rest of the scene is translated.
+      if (!camera.isValid())
+      {
+         MDagPath dagPath;
+
+         MDagPathArray cameras;
+         MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+         // get all renderable cameras
+         for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+         {
+            if (!dagIterCameras.getPath(dagPath))
+            {
+               AiMsgError("[xgen] Could not get path for DAG iterator");
+            }
+
+            MFnDependencyNode camDag(dagIterCameras.item());
+            if (camDag.findPlug("renderable").asBool())
+            {
+               cameras.append(dagPath);
+            }
+         }
+         for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
+         {
+            if (cameras[arrayIter].isValid())
+               camera = cameras[arrayIter];
+               break;
+         }
+      }
 
       if (camera.isValid())
       {
