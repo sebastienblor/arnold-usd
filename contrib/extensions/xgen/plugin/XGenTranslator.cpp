@@ -431,29 +431,14 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       // due to it being added to the session after the rest of the scene is translated.
       if (!camera.isValid())
       {
-         MDagPath dagPath;
-
-         MDagPathArray cameras;
-         MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-         // get all renderable cameras
-         for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+         // Export Camera isn't set in the options for some reason, let's see if it
+         // has been set on arnold options side
+         AtNode *arnoldCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+         if (arnoldCamera)
          {
-            if (!dagIterCameras.getPath(dagPath))
-            {
-               AiMsgError("[xgen] Could not get path for DAG iterator");
-            }
-
-            MFnDependencyNode camDag(dagIterCameras.item());
-            if (camDag.findPlug("renderable").asBool())
-            {
-               cameras.append(dagPath);
-            }
-         }
-         for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
-         {
-            if (cameras[arrayIter].isValid())
-               camera = cameras[arrayIter];
-               break;
+            MSelectionList camList;
+            camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
+            camList.getDagPath(0, camera);
          }
       }
 
