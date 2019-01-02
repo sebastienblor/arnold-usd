@@ -6,7 +6,6 @@ from SCons.Script import *
 
 
 def list_tests(target, source, env):
-    print "Have you been called yet "
     for file in source:
         name = os.path.basename(os.path.dirname(str(file)))
         f = open(os.path.join(str(file)), 'r')

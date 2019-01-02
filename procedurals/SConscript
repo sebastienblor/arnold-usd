@@ -1,8 +1,8 @@
 # vim: filetype=python
 
 ## load our own python modules
-import system
-from build_tools import find_files_recursive
+import utils.system as system
+from utils.build_tools import find_files_recursive
 
 import os, glob
 
@@ -43,10 +43,10 @@ for dir in PROCEDURALS:
             # Name of the final dll will be "mtoa_<directory>_proc"
             MTOA_PROCS    += local_env.SharedLibrary(os.path.join(dir, 'mtoa_%s_proc' % dir), proc_src_files)
 
-if system.os() == 'darwin':
+if system.os == 'darwin':
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     #local_env.Append(LINKFLAGS = Split('-Wl,-rpath="\\$$ORIGIN" -z origin'))
-elif system.os() != 'windows':
+elif system.os != 'windows':
     local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
     local_env.Append(LINKFLAGS = Split('-Wl,-rpath="\\$$ORIGIN" -z origin'))
 

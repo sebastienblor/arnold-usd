@@ -13,7 +13,7 @@ class MayaTestRunner():
     
     def __init__(self, maya_version = '2018'):
         print "Inited"
-        script = 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"'
+        script = 
         if system.is_windows:
             self.script = os.path.normpath(script)
         else:

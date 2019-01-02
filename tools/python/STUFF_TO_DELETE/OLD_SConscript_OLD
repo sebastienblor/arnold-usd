@@ -1,0 +1,914 @@
+# vim: filetype=python
+
+## load our own python modules
+import system
+from build_tools import *
+import os
+import glob
+import shutil
+import time
+import subprocess
+import sys
+import signal
+import subprocess
+from colorama import Fore, Style, Back
+
+Import('env')
+
+color_green   = ''
+color_red     = ''
+color_bright  = ''
+color_bgreen  = ''
+color_bred    = ''
+color_reset   = ''
+color_cyan    = ''
+if env['COLOR_CMDS']:
+    color_green   = Fore.GREEN
+    color_red     = Fore.RED
+    color_bright  = Style.BRIGHT
+    color_bgreen  = color_green + color_bright
+    color_bred    = color_red   + color_bright
+    color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
+    color_cyan    = Fore.CYAN
+
+
+# Obtain information about the system only once, when loaded
+os_name = platform.system().lower()
+
+_linux   = 'linux'
+_darwin  = 'darwin'
+_windows = 'windows'
+
+# These data avoid writing error prone checks like "os.system.os == 'linux'"
+is_linux   = os_name == _linux
+is_darwin  = os_name == _darwin
+is_windows = os_name == _windows
+
+## Finds a test group and returns a list of all tests included
+def find_test_group(group):
+    def find_test_group_in_file(group, file):
+        TEST_GROUP = []
+   
+        f = open(file, 'r')
+        for line in f.readlines():
+            line = line.lstrip(' \t')
+            if line.startswith('#'):
+                # Skip comment lines
+                continue
+            (l, s, r) = strpartition(line, ':')
+            if s == ':':
+                if group == l.rstrip():
+                    # We found the test group
+                    TEST_GROUP += Split(r)
+                    index = 0
+                    while True:
+                        if index == len(TEST_GROUP):
+                            break
+                        test = TEST_GROUP[index]
+                        if not test.startswith('test_'):
+                            # We found a nested group, expand it into single tests
+                            TEST_GROUP += find_test_group(test)
+                            del TEST_GROUP[0]
+                        else:
+                            index += 1
+                    break
+        f.close()
+        return TEST_GROUP
+
+    TEST_GROUP = []
+   
+    # First search the user local file for this group (only if the local file exists)
+    if os.path.exists(os.path.join('testsuite', 'groups.local')):
+        TEST_GROUP = find_test_group_in_file(group, os.path.join('testsuite', 'groups.local'))
+      
+    # If not found, then search the global test groups mapping file
+    if len(TEST_GROUP) == 0:
+        TEST_GROUP = find_test_group_in_file(group, os.path.join('testsuite', 'groups'))
+   
+    return TEST_GROUP
+
+## Gets the next test name from the list of existing tests (assuming a 'test_0000' format)
+def get_next_test_name():
+    l = glob.glob(os.path.join("testsuite", 'test_[0-9][0-9][0-9][0-9]'))
+    l.sort()
+    result = int(os.path.basename(l[len(l) - 1])[5:]) + 1
+    return "%04d" % result
+
+def list_tests(target, source, env):
+    for file in source:
+        name = os.path.basename(os.path.dirname(str(file)))
+        f = open(os.path.join(str(file)), 'r')
+        summary = f.readline().strip('\n')
+        f.close
+        print '%s: %s' % (name, summary)
+    return None
+
+def list_test_errors(target, source, env):
+    for file in source:
+        dirname = os.path.dirname(str(file))
+        name = os.path.basename(dirname)
+        f = open(str(file), 'r')
+        value = f.readline().strip('\n')
+        if value != 'OK':
+            print '%s: %s' % (name, value)
+            l = open(os.path.join(dirname, name + '.log'), 'r')
+            while True:
+                line = l.readline().strip('\n')
+                if line == "":
+                    # We have reached the end of file.
+                    break
+                if (line.lower().find('error') != -1) or (line.lower().find('warning') != -1):
+                    print line
+            l.close()
+        f.close
+    return None
+
+## Creates a new test in the testsuite directory
+def make_test(target, source, env):
+    testpath = str(target[0])
+    testname = os.path.basename(testpath)
+    os.mkdir(testpath)
+    os.mkdir(os.path.join(testpath, 'data'))
+    os.mkdir(os.path.join(testpath, 'ref'))
+
+    # Write README file
+    f = open(os.path.join(testpath, 'README'), 'w')
+    f.write('''****TODO**** write a one-line description for test case %s
+
+author: --''' % testname)
+    f.close()
+
+    return None ## always succeeds
+
+class MayaTestRunner(object):
+    """
+    Test a maya batch render.
+    Assumes you are rendering tif files.
+    """
+    def __init__(self,
+                script = 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',
+                plugin_sources      = '*.c*',
+                program_sources     = '',
+                program_name        = 'prog',
+                plugin_dependencies = '',
+                output_basename        = 'testrender',     ## can be '' if the test does not generate an image
+                reference_basename     = os.path.join('ref', 'reference'),  ## can be '' if the test does not generate an image
+                force_result        = 'OK',
+                multiprocess        = True,
+                maya_version        = '2018'):
+      ## save the params
+        if is_windows:
+            self.script = os.path.normpath(script)
+        else:
+            self.script = script
+        self.plugin_sources = plugin_sources
+        self.program_sources = program_sources
+        self.program_name = program_name
+        self.plugin_dependencies = plugin_dependencies
+        self.output_image = output_basename
+        self.reference_image = reference_basename
+        self.force_result = force_result
+        self.multiprocess = multiprocess
+        self.tests = []
+        self.test_results = []
+        self.total_running_time = 0
+        self.black_list = []
+        self.gui_list = []
+        self.install_files = []
+        # test source directory, before it has been copied to build dir
+        self.source_dir  = os.path.abspath(os.path.join('testsuite')) 
+        self.build_dir = None
+        self.fill_blacklist(maya_version)        
+        self.gui_list = find_test_group('gui')
+
+    def fill_blacklist(self, maya_version):
+        # blacklist
+        self.black_list = find_test_group('ignore')
+
+        # Add tests intended for other platforms to the black list
+        for o in system.get_valid_oses():
+            if o != os_name:
+                self.black_list.extend(find_test_group(o))
+
+        ignore_os = 'ignore_' + os_name
+
+        self.black_list.extend(find_test_group(ignore_os))
+
+        ignore_version = 'ignore_' + maya_version
+        self.black_list.extend(find_test_group(ignore_version))
+
+    def add_test(self, test_dir):
+        test_name = os.path.basename(test_dir)
+        if self.prepare_test(test_name):
+            self.tests.append(test_name)
+
+    def prepare_test(self, test_name):
+
+        # Avoid having duplicate test cases
+        if test_name in self.tests:
+            return False
+
+        test_dir       = os.path.join(self.source_dir, test_name)
+        test_data_dir  = os.path.join(test_dir, 'data')
+        test_build_dir = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', test_name))
+
+        test_env.VariantDir(test_build_dir, test_data_dir)
+        if test_name in self.black_list:
+            print 'skipping test %s -- found in black list' % (test_name)
+            return False
+        if not (os.path.exists(os.path.join(test_dir, 'README'))):
+            print 'skipping test %s -- missing README' % (test_name)
+            return False
+        
+        # print 'test %s in %s will be built in %s' % (test_name, test_dir, test_build_dir)
+        ## process the current test directory
+        ## Step 1: build any shaders/procedurals that might exist
+        SHADERS = []
+        if self.plugin_sources.find('*') == -1:
+            ## just a list of regular file names
+            shader_files = Split(self.plugin_sources)
+        else:
+            ## use recursive glob pattern
+            shader_files = []
+            for root, dirs, files in os.walk(test_data_dir):
+                if '.svn' in dirs:
+                    dirs.remove('.svn')
+                shader_files += glob.glob(os.path.join(root, self.plugin_sources))
+        for c_file in shader_files:
+            BUILD_C_FILE = c_file.replace(test_data_dir, test_build_dir)
+            SHADERS += test_env.SharedLibrary(os.path.splitext(BUILD_C_FILE)[0], BUILD_C_FILE)
+        if not self.program_sources == '':
+            ## we need to build a program
+            SHADERS += test_env.Program(os.path.join(test_build_dir, self.program_name), [os.path.join(test_build_dir, f) for f in Split(self.program_sources)], LIBS=Split('ai'))
+
+        self.install_files += test_env.Install(test_build_dir, os.path.join(test_dir, 'README'))
+        refimg = os.path.join(test_dir, self.reference_image)
+        if os.path.exists(refimg):
+            self.install_files += test_env.Install(test_build_dir, os.path.join(test_dir, refimg))
+   
+        for root, dirs, files in os.walk(test_data_dir):
+            if '.svn' in dirs:
+                dirs.remove('.svn')
+            for f in files:
+                if os.path.basename(f) == 'Makefile':
+                    continue
+                if os.path.splitext(f)[1] == 'c':
+                    continue
+                if os.path.splitext(f)[1] == 'cpp':
+                    continue
+                d = root
+                d = d.replace(test_data_dir, test_build_dir)
+                self.install_files += test_env.Install(d, os.path.join(root, f))  
+            
+#      ## generate the build action that will run the test and produce the html output
+#      test_output = test_env.RunTest(os.path.join(test_build_dir, test_name + '.html'),
+#         MTOA + MTOA_SHADERS + DIFFTIFF + TIFF2JPEG + FILES + SHADERS,
+#         TEST_SCRIPT = self.script,
+#         REFERENCE_IMAGE = self.reference_image != '' and os.path.join(test_dir, self.reference_image) or '',
+#         OUTPUT_IMAGE = self.output_image,
+#         FORCE_RESULT = self.force_result,
+#         test_name = test_name,
+#         PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
+#         chdir = 1)
+#         
+#      test_env.AlwaysBuild(test_output)
+#      test_env.Alias(test_name, test_output)
+#
+#      TESTS += test_output
+#      TEST_NAMES += [test_name]
+#
+#      test_env.Depends(test_output, MTOA)
+#      test_env.Depends(test_output, MTOA_SHADERS)
+#      if self.plugin_dependencies != '':
+#         for p in Split(self.plugin_dependencies):
+#            test_env.Depends(test_output, os.path.join(SPI_PLUGIN_PATH, p + env['SHLIBSUFFIX']))
+
+        return True  # The test has been prepared and can be run
+
+    def create_job(self):
+        # we used to have index.html instead of dummy.html. But we don't actually want previous index.html 
+        # files to be removed (which happens when you fix independent tests after running a whole testsuite)
+        job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'dummy.html')),
+                                self.install_files, # MTOA + MTOA_SHADERS  were removed, I no longer want to trigger a rebuild during the testsuite
+                                PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
+                                chdir = 1
+                                )
+        test_env.AlwaysBuild(job)
+    
+        # MTOA + MTOA_SHADERS  were removed, I no longer want to trigger a rebuild during the testsuite
+        # This way we can run the tests on an installed package
+        #test_env.Depends(job, MTOA)
+        #test_env.Depends(job, MTOA_SHADERS)
+        return job
+
+    def _setup_sig_handler(self):
+        # the only way to completely abort is to override SCons' interrupt signal handler
+        def handler(signum, stack, self=self, parentpid=os.getpid()):
+            self.old_sigint(signum, stack)
+            self.pool.terminate()
+
+        self.old_sigint  = signal.signal(signal.SIGINT, handler)
+
+    def _reset_sig_handler(self): 
+        """Restore the signal handlers to their previous state (before the 
+        call to _setup_sig_handler().""" 
+
+        signal.signal(signal.SIGINT, self.old_sigint) 
+        #signal.signal(signal.SIGTERM, self.old_sigterm) 
+
+    def run(self, target, source, env):
+        self.results_dir = os.getcwd()
+        self.build_dir = os.path.dirname(self.results_dir)
+
+        test_env = env.Clone()
+    
+        # add libai to library search path, and Arnold bin dir to path
+        if is_darwin:
+            #test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+            test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
+            test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
+            previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
+            os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
+        elif is_linux:
+            #test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+            test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
+            test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
+            previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
+            os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
+        else:
+            previous_lib_path = None
+           
+        ## setup program path   
+        previous_path = os.environ.get('PATH')
+
+        path_separator = ':'
+        if is_windows:
+            path_separator = ';'
+
+        #make sure mtoa's kick path is set *before* the arnold one
+        test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'bin') + ";" + test_env['ENV']['PATH']
+        os.environ['PATH'] = test_env['ENV']['PATH']
+
+        # make sure we'll load the .mod file in the target mtoa foler, and thus load the right version of mtoa
+        os.environ['MAYA_MODULE_PATH'] = test_env['TARGET_MODULE_PATH']
+       
+        ## why this being in Maya.env doesn't work?
+        previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
+        os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
+        os.environ['MAYA_VERSION'] = test_env['MAYA_VERSION']
+    
+        os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
+        show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') \
+            or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
+
+        # temporarily removing multi-threads testsuite
+        oiiotool_path = os.path.join(test_env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', os_name, 'oiiotool')
+        self.tests.sort()
+        if not self.multiprocess:
+            # disable multi-threading for windows
+            lock = DummyLock()
+            for test_name in self.tests:
+                test_dir       = os.path.join(self.build_dir, test_name)
+                test_script = self.script
+
+
+                if not ' ' in test_env['MAYA_ROOT']:
+                    test_script = os.path.join(test_env['MAYA_ROOT'], 'bin', test_script)
+
+
+                # if a file test.mel is found, we want to run mayabatch with this script
+                # Note that we won't be loading the scene because it seems that the script is called before scene load.
+                # So it's the script itself that loads whatever scene it wants
+                if os.path.exists(os.path.join(test_dir, 'test.mel')):
+                    if is_windows:
+                        mayabatch_cmd = 'mayabatch'
+                    else:
+                        mayabatch_cmd = 'maya -batch'
+                    if not ' ' in test_env['MAYA_ROOT']:
+                        mayabatch_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', mayabatch_cmd)
+
+                    test_script = mayabatch_cmd + ' -file %file% -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+                # If a file gui_test.mel is found, we want to run maya with this script
+                # As above, it's up to the script to load a maya scene
+                elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
+
+                    maya_cmd = 'maya'
+                    if not ' ' in test_env['MAYA_ROOT']:
+                        maya_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', maya_cmd)
+
+                    test_script = maya_cmd + ' -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
+                elif os.path.exists(os.path.join(test_dir, 'test.py')):
+
+                    maya_root = test_env['MAYA_ROOT']
+                    test_script = ''
+                    if is_darwin:   
+                        test_script = 'python '
+                        maya_root = maya_root.replace('/Maya.app/Contents', '')
+
+                    test_script += os.path.join(test_dir, 'test.py "%s" "%s"' % (maya_root, test_env['TARGET_MODULE_PATH']) )
+                    
+                elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
+                # If the test.py is found, we want to run mayapy with this script
+                    maya_root = test_env['MAYA_ROOT']
+                    mayapy_cmd = 'mayapy '
+                    if is_darwin:   
+                        maya_root = maya_root.replace('/Maya.app/Contents', '')
+
+                    if not ' ' in test_env['MAYA_ROOT']:
+                        mayapy_cmd = os.path.join(test_env['MAYA_ROOT'], 'bin', mayapy_cmd)
+
+
+                    test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
+                        % (maya_root, test_env['TARGET_MODULE_PATH'], test_dir) )
+
+
+                t, files = run_test(test_name,
+                                    lock,
+                                    test_dir,
+                                    test_script,
+                                    self.output_image,
+                                    os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
+                                    self.force_result,
+                                    oiiotool_path,
+                                    test_env['UPDATE_REFERENCE'],
+                                    show_test_output,
+                                test_env['COLOR_CMDS'])
+                self.total_running_time += t
+                self.test_results.append(files)
+        else:
+            manager = multiprocessing.Manager()
+            self.pool = multiprocessing.Pool(int(test_env['TEST_THREADS']))
+            try:
+                self._setup_sig_handler()
+            except ValueError:
+                print "Sorry, you can't use --jobs or -j with testsuite"
+                return
+            lock = manager.Lock()
+            args = []
+            for test_name in self.tests:
+                test_dir       = os.path.join(self.build_dir, test_name)
+                maya_root = test_env['MAYA_ROOT']
+
+                # if a file test.mel is found, we want to run mayabatch with this script
+                # Note that we won't be loading the scene because it seems that the script is called before scene load.
+                # So it's the script itself that loads whatever scene it wants
+                if os.path.exists(os.path.join(test_dir, 'test.mel')):
+                    test_script = maya_root +'/bin/maya -batch -file %file% -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+                # If a file gui_test.mel is found, we want to run maya with this script
+                # As above, it's up to the script to load a maya scene
+                elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
+                    test_script = maya_root + '/bin/maya  -script "' + os.path.join(test_dir, 'gui_test.mel')+ '" -proj "%proj%"'
+                elif os.path.exists(os.path.join(test_dir, 'test.py')):
+                    test_script = 'python '+ os.path.join(test_dir, 'test.py "%s" "%s"' % (maya_root, test_env['TARGET_MODULE_PATH']) )
+                    
+                elif os.path.exists(os.path.join(test_dir, 'mayapy_test.py')):
+                # If the test.py is found, we want to run mayapy with this script
+                   
+                    test_script = maya_root + '/bin/mayapy ' + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
+                        % (maya_root, test_env['TARGET_MODULE_PATH'], test_dir) )
+                else:
+                    test_script = os.path.join(test_env['MAYA_ROOT'],'bin',self.script)
+
+
+                args.append((test_name,
+                            lock,
+                            test_dir,
+                            test_script,
+                            self.output_image,
+                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
+                            self.force_result,
+                            oiiotool_path,
+                            test_env['UPDATE_REFERENCE'],
+                            show_test_output,
+                            test_env['COLOR_CMDS']) )
+    
+            # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
+            # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
+    
+#            # no KeyboardInterrupts are detected at any level:
+#           results = self.pool.map(do_run_test, args)
+#           self.total_running_time = sum(results)
+    
+            # This succeeds in allowing scons to detect the KeyboardInterrupt, but not us.
+            # Scons hangs bc we cannot terminate the pool.
+            results = self.pool.imap(do_run_test, args)
+            try:
+                while 1:
+                    # timeout seconds per job
+                    t, files = results.next(timeout=900)
+                    self.total_running_time += t
+                    self.test_results.append(files)
+            except StopIteration:
+                self.pool.close()
+                self.pool.join()
+            except KeyboardInterrupt:
+                # this never gets called
+                print "terminating"
+                self.pool.terminate()
+    
+            self._reset_sig_handler()
+
+       ## restore environment
+        if previous_path :
+            os.environ['PATH'] = previous_path
+        if previous_lib_path :
+            if is_darwin:
+                os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
+            elif is_linux:
+                os.environ['LD_LIBRARY_PATH'] = previous_lib_path
+        if previous_render_desc :
+            os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
+
+        arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
+   
+        #os.chdir(self.results_dir)
+        passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), os.path.join(self.results_dir, 'errors.html'), arnold_version)
+        return None # always succeds, jenkins will keep track of the test results not us
+
+    def write_html_header(self, outfile, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed):
+
+            outfile.write('''
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+        <head>
+        <title>
+        MtoA testsuite
+        </title>
+        </head>
+        <body>
+        ''')
+            outfile.write('''
+        <table border="0" cellpadding="15" cellspacing="2">
+        <tr>
+        <td>
+        <font face="Arial"><h1>MtoA %s testsuite (%s / Maya %s)</h1>
+        revision: %s<br>branch: %s</font>
+        </td>
+        <td>
+        <pre>
+        |     
+        |     patterns/tags:      %s
+        |     tests:              %-4d
+        |     passed:             %-4d (%.2f%%)
+        |     failed:             %-4d (%.2f%%)
+        |     total running time: %.2f s
+        |     
+        |     
+        </pre>
+        </td>
+        </tr>
+        </table>
+        <br>
+        ''' % (MTOA_VERSION, os_name, MAYA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
+                len(self.tests),
+                passed,
+                (100.0 * passed) / (passed + failed),
+                failed, (100.0 * failed) / (passed + failed),
+                self.total_running_time))
+            outfile.write('''
+        <table border="0" cellpadding="0">
+        <tr>
+        <th><font face="Arial">test</font></th>
+        <th><font face="Arial">description</font></th>
+        <th><font face="Arial">new</font></th>
+        <th><font face="Arial">ref</font></th>
+        </tr>
+        ''')   
+
+    def process_results(self, html_index, html_errors, arnold_version):
+        if not os.path.exists(self.results_dir):
+            os.mkdir(self.results_dir)
+
+        ## get number of failed tests
+        passed = 0
+        failed = 0
+        test_statuses = {}
+        for test_dir in self.tests:
+            f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
+            status = f.readline() ## just one line
+            f.close()
+            if status == 'OK':
+                test_statuses[test_dir] = True
+                passed += 1
+            else:
+                test_statuses[test_dir] = False
+                failed += 1
+
+        if failed == 0:
+            print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_green + 'ALL TESTS OK' 
+        else:
+            print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_red + ('%d failed!' % failed)
+
+        import xml.etree.ElementTree as ET
+        root = ET.Element('testsuite')
+        root.attrib['test'] = str(len(self.tests))
+        tree = ET.ElementTree(root)
+
+        for key, value in test_statuses.items():
+            test = ET.Element('testcase')
+            test.attrib['name'] = key.replace('test_', '')
+            test.attrib['classname'] = 'maya_batch'
+            if not value:
+                failure = ET.Element('failure')
+                failure.text = 'Render Failed.'
+                test.append(failure)
+            root.append(test)
+
+        junit_file = html_index.replace('index.html', 'junit.xml')
+        tree.write(junit_file)
+
+        print 'Junit results xml at: file://%s' % (os.path.abspath(junit_file))
+
+        if len(self.tests) <= 1:
+            return passed, failed
+
+        MTOA_VERSION    = env['MTOA_VERSION']
+        ARNOLD_VERSION  = arnold_version
+        (REVISION, URL) = get_latest_revision()
+        MAYA_VERSION = env['MAYA_VERSION']
+             
+        ## create testsuite html
+        outfile = open(html_index, 'w')
+        self.write_html_header(outfile, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+
+        if failed > 0:
+            errors_file = open(html_errors, 'w')
+            self.write_html_header(errors_file, MAYA_VERSION, MTOA_VERSION, REVISION, URL, PATTERNS, TAGS, passed, failed)
+        
+        for test_name, test_files in zip(self.tests, self.test_results):
+            test_dir = test_name
+            test_results_dir = os.path.join(self.results_dir, test_dir)
+            test_link = os.path.join(test_dir, test_dir + '.html')
+          
+            def copy_to_results(file):
+                file = os.path.join('..', file)
+                if os.path.exists(file):
+                    dest = os.path.join(test_results_dir, os.path.basename(file))
+                    shutil.copy(file, dest)
+                    return dest
+                #else:  print "does not exist", file
+    
+            f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
+            description = f.readline() ## just one line
+            f.close()
+
+            if not os.path.exists(test_results_dir):
+                os.mkdir(test_results_dir)
+    
+            copy_to_results(test_link)
+        
+            for new, ref, dif in test_files:
+
+                # copy images to results directory
+                new_img_dest = copy_to_results(os.path.join(test_dir, new))
+                ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
+                copy_to_results(os.path.join(test_dir, dif))
+                copy_to_results(os.path.join(test_dir, test_name + '.log'))
+
+                f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
+                status = f.readline() ## just one line
+                f.close()
+                bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
+
+                # if the test has failed, copy the new render to results
+                if status != 'OK':
+                    out_img = new.replace('.jpg', '.tif')
+                    out_img = out_img[4:]
+                    copy_to_results(os.path.join(test_dir, out_img))
+   
+                outfile.write('''
+        <tr>
+          <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
+          <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
+          <td><a href="%s">%s</a></td>
+          <td><a href="%s">%s</a></td>
+        </tr>
+              ''' % (bgcolor,
+                    test_link,
+                    test_name,
+                    bgcolor,
+                    len(test_files) < 2 and
+                       description
+                       or description+': <small>'+ref+'</small>',
+                    test_link,
+                    new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
+                    test_link,
+                    ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
+                    ))
+                if status != 'OK':
+                    errors_file.write('''
+        <tr>
+          <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
+          <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
+          <td><a href="%s">%s</a></td>
+          <td><a href="%s">%s</a></td>
+        </tr>
+              ''' % (bgcolor,
+                    test_link,
+                    test_name,
+                    bgcolor,
+                    len(test_files) < 2 and
+                       description
+                       or description+': <small>'+ref+'</small>',
+                    test_link,
+                    new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
+                    test_link,
+                    ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
+                    ))
+                
+        
+        outfile.write('''
+    </table>
+    </body>
+    </html>
+       ''')
+        outfile.close()
+             
+        if failed > 0:   
+            errors_file.write('''
+                </table>
+                </body>
+                </html>
+                    ''')
+            errors_file.close()
+            
+        print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
+        return passed, failed
+
+
+if __name__ == 'SCons.Script':
+    Import('env BUILD_BASE_DIR MTOA MTOA_SHADERS ')
+
+    # process build targets
+    TESTSUITE = []
+    TEST_TARGETS = []
+    TAGS = []
+    PATTERNS = []
+    
+    if is_windows:
+       test_env = env.Clone(SHLIBPREFIX = '', SHLIBSUFFIX='.dll')
+    else:
+       test_env = env.Clone(SHLIBPREFIX = '', SHLIBSUFFIX='.so')
+
+    # Disable multiprocess if the operating system is Windows or a Linux without multiprocessing 
+    multiprocess = False
+    if test_env['MULTIPROCESS'] == True:
+        if is_linux and (int(test_env['TEST_THREADS']) > 1):
+            try:
+                import multiprocessing
+                multiprocess = True
+            except:
+                pass
+
+    # temporarily disabling multi-thread
+    if multiprocess:
+        from testsuite import do_run_test
+        # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
+        sys.modules.pop('pickle')
+        import pickle
+    else:
+        from testsuite import DummyLock, run_test
+    
+    listtest_bld = Builder(action = Action(list_tests, "Listing tests..."))
+    listtesterrors_bld = Builder(action = Action(list_test_errors, "Listing broken tests..."))
+    maketest_bld = Builder(action = Action(make_test, "Creating test '$TARGET'..."))
+
+    test_env.Append(BUILDERS = {'ListTests' : listtest_bld})
+    test_env.Append(BUILDERS = {'ListTestErrors' : listtesterrors_bld})
+    test_env.Append(BUILDERS = {'MakeTest' : maketest_bld})
+    
+    # we need to link against libai for some reason?
+    test_env.Append(LIBS = Split('ai'))
+    
+    ## make sure we can find any generated programs
+    prepend_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
+    prepend_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
+    ## as well as Arnold executables
+    prepend_to_path(test_env, env.subst(test_env['ARNOLD_BINARIES']))
+    ## and Maya's
+    prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
+    
+    testRunner = MayaTestRunner(multiprocess = multiprocess, maya_version = test_env['MAYA_VERSION_BASE'])
+    testrunner_bld = Builder(action = testRunner.run)
+    test_env.Append(BUILDERS = {'Testsuite' : testrunner_bld})
+    
+    ind = -1
+    ## First stage. Process build targets, expanding the groups and patterns into single tests
+    for target in BUILD_TARGETS:
+        ind = ind + 1
+
+        (l, s, r) = strpartition(target, ':')
+        if s == ':':
+            BUILD_TARGETS[ind] = l
+
+        # Target "maketest[:testname]", creates a new test in the testsuite (defaults to the next available name in ascending order)
+        if l == 'maketest':
+            if r == '':
+                r = get_next_test_name()
+            if r != '':
+                testpath = os.path.abspath(os.path.join('testsuite', 'test_' + r))
+                if os.path.exists(testpath):
+                    print "ERROR: Test %s already exists!" % r
+                else:
+                    MAKETEST = test_env.MakeTest(testpath, None)
+                    test_env.Alias(target, MAKETEST)
+                    test_env.AlwaysBuild(MAKETEST)
+    
+        elif l == 'testlist':
+            if r == '':
+                testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
+                SRC = []
+                GUI_LIST = find_test_group('gui')
+
+                for fullName in testlist:
+                    name = os.path.basename(fullName)
+                    if name in GUI_LIST and (not is_windows):
+                        continue
+                    SRC += [os.path.join(name, 'README')]
+            else:
+                tags = r.split(',')
+                SRC = []
+                for tag in tags:
+                    TEST_GROUP = find_test_group(tag)
+                    if len(TEST_GROUP) == 0:
+                        print "WARNING: No tests related to tag \"%s\"" % tag
+                    else:
+                        for test in TEST_GROUP:
+                            SRC += [os.path.join(test, 'README')]
+            SRC.sort()
+            TESTLIST = test_env.ListTests(target, SRC)
+            test_env.Alias(target, TESTLIST)
+            test_env.AlwaysBuild(TESTLIST)
+    
+        elif l == 'testerrors':
+            testlist = glob.glob(os.path.join(BUILD_BASE_DIR, 'testsuite', 'test_*'))
+            SRC = []
+            for name in testlist:
+                SRC += [os.path.join(os.path.basename(name), 'STATUS')]
+            SRC.sort()
+            TESTLIST = test_env.ListTestErrors(target, SRC)
+            test_env.Alias(target, TESTLIST)
+            test_env.AlwaysBuild(TESTLIST)
+    
+        elif l == 'testsuite':
+            if r == '':
+                # Special 'testsuite' target is expanded to the whole testsuite, filtered by the value of TEST_PATTERN
+                PATTERNS += [env['TEST_PATTERN']]
+                testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
+                GUI_LIST = find_test_group('gui')
+                for fullName in testlist:
+                    name = os.path.basename(fullName)
+                    if name in GUI_LIST and (not is_windows):
+                        print "Skipping GUI test \"%s\"" % name
+                        continue
+                    testRunner.add_test(name)
+            else:
+                # Target "testsuite:tag[,tag...]", runs all tests related to the given tag(s)
+                tags = r.split(',')
+                for tag in tags:
+                    TEST_GROUP = find_test_group(tag)
+                    if len(TEST_GROUP) == 0:
+                        print "WARNING: No tests related to tag \"%s\"" % tag
+                    else:
+                        TAGS += [tag]
+                        for name in TEST_GROUP:
+                            testRunner.add_test(name)  
+        else:
+            if s != ':' and target.startswith('test_'):
+                # Expand test patterns
+                l = glob.glob(os.path.join('testsuite', target))
+                if len(l) == 1 and os.path.basename(l[0]) == target:
+                    testRunner.add_test(l[0])
+                elif len(l) == 0:
+                    print "WARNING: No tests matching expression \"%s\"" % target
+                else:
+                    PATTERNS += [target]
+                    for name in l:
+                        name = os.path.basename(name)
+                        testRunner.add_test(name)
+    
+    for test in testRunner.tests:
+        try:
+            index = BUILD_TARGETS.index(test)
+            BUILD_TARGETS.pop(index)
+        except ValueError:
+            pass
+    
+    # Second stage. We have a flat list of single tests, so we prepare them for building
+    
+    ## create top-level makeweb html
+    if testRunner.tests:
+        BUILD_TARGETS += ["testsuite"]
+        TESTSUITE = testRunner.create_job()
+
+       
+#    elif len(TESTS) == 1:
+#       # Special case for groups or patterns with a single test
+#       for t in TEST_TARGETS:
+#          test_env.Alias(t, TESTS[0])
+       
+    Return('TESTSUITE')

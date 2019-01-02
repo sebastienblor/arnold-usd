@@ -1,7 +1,7 @@
 # vim: filetype=python
 
 import system, os
-from build_tools import find_files_recursive
+from utils.build_tools import find_files_recursive
 
 # import build env
 Import('ext_env')

@@ -202,6 +202,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     
     before_time = time.time()
     try:
+        print cmd
         retcode = os.system(cmd)
     except KeyboardInterrupt:
         print "child keyboard interrupt"

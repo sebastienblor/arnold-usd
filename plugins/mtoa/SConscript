@@ -1,8 +1,9 @@
 # vim: filetype=python
 
 ## load our own python modules
-import system
-from build_tools import find_files_recursive, find_files, get_maya_version
+import utils.system as system
+from utils.build_tools import find_files_recursive
+from utils.mtoa_build_tools import get_maya_version, find_files
 from shutil import copyfile
 import os
 
@@ -56,7 +57,7 @@ source_files  += find_files(src_base_dir, ['.c', '.cpp'])
 MAYA_ROOT = local_env.subst(local_env['MAYA_ROOT'])
 MAYA_INCLUDE_PATH = local_env.subst(local_env['MAYA_INCLUDE_PATH'])
 if MAYA_INCLUDE_PATH == '.':
-    if system.os() == 'darwin':
+    if system.os == 'darwin':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
     else:
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
@@ -71,7 +72,7 @@ mayaQtTarGz = ""
 MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
 
 if (int(maya_version_base) == 2014):
-    if system.os() == 'darwin':
+    if system.os == 'darwin':
         mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.2-include')
         mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-include.tar.gz')
     else:
@@ -103,7 +104,7 @@ local_env['QT_ROOT_DIR'] = mayaQtFolder
 
 local_env.Append(CPPPATH = [mayaQtFolder])
 
-if system.os() == 'darwin':
+if system.os == 'darwin':
     maya_qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
     if (int(maya_version_base) <= 2016):
         qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
@@ -122,7 +123,7 @@ else:
     qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
-if system.os() == 'windows':
+if system.os == 'windows':
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
     else:
@@ -131,7 +132,7 @@ if system.os() == 'windows':
         else:
             local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
     local_env.Append(LIBS = ['user32.lib', 'advapi32.lib']) # this is needed for the licensing tools, for system environment variables
-elif system.os() == 'linux':
+elif system.os == 'linux':
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
     else:
@@ -155,25 +156,25 @@ if not local_env['MTOA_DISABLE_RV']:
     local_env.Append(LIBPATH = [renderViewLibFolder])
     local_env.Append(CPPPATH = [renderViewIncludeFolder])
 
-    if system.os() == 'windows':
+    if system.os == 'windows':
         local_env.Append(LIBS = ['ai_renderview.lib'])
     else:
         local_env.Append(LIBS = ['ai_renderview'])
 
 
 
-if system.os() == 'darwin':
+if system.os == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')
 
 if local_env['ENABLE_VP2']:
-    if system.os() == 'windows':
+    if system.os == 'windows':
         local_env.Append(CPPPATH = [GLEW_INCLUDES])
         if local_env['REQUIRE_DXSDK']:
             local_env.Append(CPPPATH = [os.path.join(local_env["EXTERNAL_PATH"], 'directx11', 'include')])
             local_env.Append(LIBPATH = [os.path.join(local_env["EXTERNAL_PATH"], 'directx11', 'lib')])
 
 # LoadableModule doesn't work on windows for now.
-if system.os() == 'windows':
+if system.os == 'windows':
     if local_env['ENABLE_VP2']:
         local_env.Append(LIBS=['d3d11.lib', 'd3dcompiler.lib'])
         if local_env['REQUIRE_DXSDK']:
@@ -188,24 +189,24 @@ local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
 local_env.Append(LIBS = ['mtoa_api'])
 
 if local_env['ENABLE_VP2']:
-    if system.os() == 'linux':
+    if system.os == 'linux':
         local_env.Append(CPPPATH = [GLEW_INCLUDES])
         local_env.Append(LIBS = [File(GLEW_LIB)])
-    elif system.os() == 'windows':
+    elif system.os == 'windows':
         local_env.Append(CPPPATH = [GLEW_INCLUDES])
         local_env.Append(LIBPATH = [os.path.dirname(GLEW_LIB)])
         local_env.Append(LIBS = [os.path.basename(GLEW_LIB)])
         local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
-    elif system.os() == 'darwin':
+    elif system.os == 'darwin':
         local_env.Append(CPPPATH = [GLEW_INCLUDES])
         local_env.Append(LIBS = [File(GLEW_LIB)])
         local_env.Append(CPPDEFINES = ['GLEW_STATIC'])
         
-if system.os() == 'darwin':
+if system.os == 'darwin':
     local_env.Append(CPPDEFINES = Split('DARWIN'))
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
-elif system.os() == 'linux':
+elif system.os == 'linux':
     local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
 Return('MTOA')
