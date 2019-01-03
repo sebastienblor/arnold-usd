@@ -4,10 +4,20 @@ import platform, string
 
 from os import environ   # To avoid name clashes with os() function
 
-OS          = ''
+OS          = platform.system().lower()
 HOST_ARCH   = ''
 TARGET_ARCH = ''
 VALID_OSES  = ['linux', 'darwin', 'windows']
+
+_linux   = 'linux'
+_darwin  = 'darwin'
+_windows = 'windows'
+
+# These data avoid writing error prone checks like "os.system.os == 'linux'"
+is_linux   = OS == _linux
+is_darwin  = OS == _darwin
+is_windows = OS == _windows
+
 
 ## Returns the name of the OS ('windows', 'linux', darwin')
 def os():
@@ -98,3 +108,4 @@ elif OS == 'linux':
       HOST_ARCH = 'x86'
 
 TARGET_ARCH = HOST_ARCH
+
