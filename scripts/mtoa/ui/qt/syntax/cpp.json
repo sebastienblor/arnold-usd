@@ -1,0 +1,36 @@
+{
+    "syntax": {
+                "keywords":{"patterns":["\\bchar\\b", "\\bclass\\b", "\\bconst\\b",
+                                        "\\bdouble\\b", "\\benum\\b", "\\bexplicit\\b", "\\bfriend\\b",
+                                        "\\binline\\b", "\\bint\\b", "\\blong\\b", "\\bnamespace\\b",
+                                        "\\boperator\\b", "\\bprivate\\b", "\\bprotected\\b",
+                                        "\\bpublic\\b", "\\bshort\\b", "\\bsignals\\b", "\\bsigned\\b",
+                                        "\\bslots\\b", "\\bstatic\\b", "\\bstruct\\b",
+                                        "\\btemplate\\b", "\\btypedef\\b", "\\btypename\\b",
+                                        "\\bunion\\b", "\\bunsigned\\b", "\\bvirtual\\b", "\\bvoid\\b",
+                                        "\\bvolatile\\b"],
+                             "color": [0, 255, 255],
+                             "weight": "bold"},
+
+                 "header":  {"patterns":["#include[^\n]*"],
+                             "color": [0, 200, 200],
+                             "italic": true},
+
+                 "class":   {"patterns":["\\b[A-Z][A-Za-z]+\\b"],
+                             "color": [128, 0, 128],
+                             "weight": "bold"},
+                 "function": {"patterns": ["\\b[A-Za-z0-9_]+(?=\\()"],
+                              "color": [128, 0, 128],
+                              "italic": true},
+                 "quotation": {"patterns": ["\".*\""],
+                               "color": [0, 128, 0]}
+                },
+
+    "comments": {
+                 "single-line":{"patterns": ["//[^\n]*"],
+                                "color": [128, 0, 0]},
+                 "multi-line":{"start_pattern": "/\\*",
+                               "end_pattern": "\\*/",
+                               "color": [128, 0, 0]}
+                }
+}

@@ -1,68 +1,59 @@
 from .Qt import QtCore
 from .Qt import QtGui
+import os.path as path
+import json
 
 
-class CppHighlighter(QtGui.QSyntaxHighlighter):
+SYNTAX_DIR = path.join(path.split(path.realpath(__file__))[0], "syntax")
+
+
+class BaseHighlighter(QtGui.QSyntaxHighlighter):
+
     def __init__(self, parent=None):
-        super(CppHighlighter, self).__init__(parent)
+        super(BaseHighlighter, self).__init__(parent)
 
-        keywordFormat = QtGui.QTextCharFormat()
-        keywordFormat.setForeground(QtCore.Qt.darkBlue)
-        keywordFormat.setFontWeight(QtGui.QFont.Bold)
-
-        keywordPatterns = ["\\bchar\\b", "\\bclass\\b", "\\bconst\\b",
-                "\\bdouble\\b", "\\benum\\b", "\\bexplicit\\b", "\\bfriend\\b",
-                "\\binline\\b", "\\bint\\b", "\\blong\\b", "\\bnamespace\\b",
-                "\\boperator\\b", "\\bprivate\\b", "\\bprotected\\b",
-                "\\bpublic\\b", "\\bshort\\b", "\\bsignals\\b", "\\bsigned\\b",
-                "\\bslots\\b", "\\bstatic\\b", "\\bstruct\\b",
-                "\\btemplate\\b", "\\btypedef\\b", "\\btypename\\b",
-                "\\bunion\\b", "\\bunsigned\\b", "\\bvirtual\\b", "\\bvoid\\b",
-                "\\bvolatile\\b"]
-
-        self.highlightingRules = [(QtCore.QRegExp(pattern), keywordFormat)
-                for pattern in keywordPatterns]
-
-        headerFormat = QtGui.QTextCharFormat()
-        headerFormat.setForeground(QtCore.Qt.darkMagenta)
-        self.highlightingRules.append((QtCore.QRegExp("\\b#include\\b"),
-                headerFormat))
-
-        classFormat = QtGui.QTextCharFormat()
-        classFormat.setFontWeight(QtGui.QFont.Bold)
-        classFormat.setForeground(QtCore.Qt.darkMagenta)
-        self.highlightingRules.append((QtCore.QRegExp("\\bQ[A-Za-z]+\\b"),
-                classFormat))
-
-        singleLineCommentFormat = QtGui.QTextCharFormat()
-        singleLineCommentFormat.setForeground(QtCore.Qt.red)
-        self.highlightingRules.append((QtCore.QRegExp("//[^\n]*"),
-                singleLineCommentFormat))
-
-        self.multiLineCommentFormat = QtGui.QTextCharFormat()
-        self.multiLineCommentFormat.setForeground(QtCore.Qt.red)
-
-        quotationFormat = QtGui.QTextCharFormat()
-        quotationFormat.setForeground(QtCore.Qt.darkGreen)
-        self.highlightingRules.append((QtCore.QRegExp("\".*\""),
-                quotationFormat))
-
-        functionFormat = QtGui.QTextCharFormat()
-        functionFormat.setFontItalic(True)
-        functionFormat.setForeground(QtCore.Qt.blue)
-        self.highlightingRules.append((QtCore.QRegExp("\\b[A-Za-z0-9_]+(?=\\()"),
-                functionFormat))
-
+        self.json_data = {}
+        self.highlightingRules = []
         self.commentStartExpression = QtCore.QRegExp("/\\*")
         self.commentEndExpression = QtCore.QRegExp("\\*/")
+        self.multiLineCommentFormat = QtGui.QTextCharFormat()
+
+    def loadSyntaxJSON(self, json_data):
+
+
+        if json_data:
+            self.json_data = json.load(json_data)
+
+            # load syntax patterns
+            for root in self.json_data:
+                for key, data in self.json_data[root].items():
+                    _format = QtGui.QTextCharFormat()
+                    if data.get("weight") == "bold":
+                        _format.setFontWeight(QtGui.QFont.Bold)
+                    if data.get("italic"):
+                        _format.setFontItalic(True)
+                    _syntaxColor = data.get("color", [128, 128, 128])
+                    _format.setForeground(QtGui.QColor(*_syntaxColor))
+                    _patterns = data.get("patterns", [])
+                    for pat in _patterns:
+                        self.highlightingRules.append((QtCore.QRegExp(pat), _format))
+
+                    if key == 'single-line' and root == 'comment':
+                        _patterns = data.get("patterns", [])
+                        for pat in _patterns:
+                            self.highlightingRules.append((QtCore.QRegExp(pat), _format))
+                    elif key == 'multi-line' and root == 'comment':
+                        self.commentStartExpression = QtCore.QRegExp(str(data.get("start_pattern", "")))
+                        self.commentEndExpression = QtCore.QRegExp(data.get("end_pattern", ""))
+                        self.multiLineCommentFormat = _format
 
     def highlightBlock(self, text):
-        for pattern, format in self.highlightingRules:
+        for pattern, fmt in self.highlightingRules:
             expression = QtCore.QRegExp(pattern)
             index = expression.indexIn(text)
             while index >= 0:
                 length = expression.matchedLength()
-                self.setFormat(index, length, format)
+                self.setFormat(index, length, fmt)
                 index = expression.indexIn(text, index + length)
 
         self.setCurrentBlockState(0)
@@ -84,3 +75,14 @@ class CppHighlighter(QtGui.QSyntaxHighlighter):
                     self.multiLineCommentFormat)
             startIndex = self.commentStartExpression.indexIn(text,
                     startIndex + commentLength)
+
+
+class CppHighlighter(BaseHighlighter):
+
+    FILE_PATH = path.join(SYNTAX_DIR, "cpp.json")
+
+    def __init__(self, parent=None):
+        super(CppHighlighter, self).__init__(parent)
+
+        json_data = open(self.FILE_PATH)
+        self.loadSyntaxJSON(json_data)

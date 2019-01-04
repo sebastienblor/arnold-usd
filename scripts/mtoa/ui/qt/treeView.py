@@ -5,41 +5,62 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .utils import dpiScale
+from .color import Color
+from .style import MtoAStyle
 import weakref
 from copy import deepcopy
 
+
+# Global look variables.
+ITEM_HEIGHT = dpiScale(22)
+ITEM_INDENT = dpiScale(8)
+EXPAND_SENSITIVITY = dpiScale(4)
 
 NODE_BAR_COLOUR = QtCore.Qt.UserRole + 1
 ACTIONS = QtCore.Qt.UserRole + 2
 ICON = QtCore.Qt.UserRole + 3
 TEXT_INDENT = QtCore.Qt.UserRole + 4
 
+CHILD_COUNT = QtCore.Qt.UserRole + 64
+
 
 class BaseTreeView(QtWidgets.QTreeView):
-    """The main view, used to show the Alembic files."""
+    """The main view, used to show the heirarchy."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, style=None):
         """Called after the instance has been created."""
         super(BaseTreeView, self).__init__(parent)
 
+        if not style:
+            style = MtoAStyle.currentStyle()
+        style.apply(self)
+
+        self.setObjectName("BaseTreeView")
         # Set the custom tree model
         model = BaseModel(self)
         self.setModel(model)
 
+        # Hide the header
+        self.header().hide()
+
         # Custom style
         delegate = BaseDelegate(self)
         self.setItemDelegate(delegate)
-        self.setStyle(ItemStyle(self.style()))
+        self.setIndentation(ITEM_INDENT)
+
         self.setRootIsDecorated(False)
 
         self.setAnimated(True)
 
-        self.setExpandsOnDoubleClick(True)
+        self.setExpandsOnDoubleClick(False)
 
         # We need this custom flag because if setDropIndicatorShown is set to
         # false, dropIndicatorPosition returns wrong data. We use this flag to
         # skip drawing of the indicator.
-        self.customIndicatorShown = True
+        self.customIndicatorShown = False
+
+        # do connections
+        self.clicked.connect(self.executeAction)
 
     def mousePressEvent(self, event):
         """Receive mouse press events for the widget."""
@@ -59,10 +80,36 @@ class BaseTreeView(QtWidgets.QTreeView):
         if not index.isValid():
             return
 
-        action = self.itemDelegate().getLastAction()
-
         # Redraw the item
         self.redraw(index)
+
+    def mouseDoubleClickEvent(self, event):
+        """Receive mouse double click events for the widget."""
+        super(BaseTreeView, self).mouseDoubleClickEvent(event)
+        index = self.indexAt(event.pos())
+
+        self.setExpandedChildren(index, not self.isExpanded(index))
+
+    def setExpandedChildren(self, index, expanded):
+        """
+        Set the item referred to by index and all the children to either
+        collapse or expanded, depending on the value of expanded.
+        """
+        if not index.isValid():
+            return
+
+        # Expand this
+        self.setExpanded(index, expanded)
+
+        # Expand children
+        childCount = index.model().rowCount(index)
+        for i in range(childCount):
+            child = index.child(i, 0)
+            self.setExpandedChildren(child, expanded)
+
+    def executeAction(self, index):
+        action = self.itemDelegate(index).getLastAction()
+        self.model().executeAction(action, index)
 
     def leaveEvent(self, *args, **kwargs):
         """Clear the action tracking."""
@@ -133,11 +180,13 @@ class BaseModel(QtCore.QAbstractItemModel):
                 role == QtCore.Qt.EditRole or role == QtCore.Qt.ToolTipRole):
             return item.getName()
         elif role == QtCore.Qt.SizeHintRole:
-            return QtCore.QSize(dpiScale(250), dpiScale(20))
+            return QtCore.QSize(250, ITEM_HEIGHT)
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(71, 71, 71)
         elif role == NODE_BAR_COLOUR:
             return QtGui.QColor(113, 142, 164)
+        elif role == CHILD_COUNT:
+            return item.childCount()
         elif role == ACTIONS:
             return item.getActions()
         elif role == ICON:
@@ -209,14 +258,16 @@ class BaseModel(QtCore.QAbstractItemModel):
 
     def executeAction(self, action, index):
         """User pressed by one of the actions."""
-        pass
+        if action == BaseItem.ACTION_EXPAND:
+            self.treeView().setExpanded(
+                index, not self.treeView().isExpanded(index))
 
     def executeContextAction(self, action, index, point):
         """User pressed with right button by one of the actions."""
         pass
 
 
-class BaseDelegate(QtWidgets.QItemDelegate):
+class BaseDelegate(QtWidgets.QStyledItemDelegate):
     """Custom display delegate for the tree items."""
 
     ICON_PADDING = dpiScale(10)
@@ -224,6 +275,16 @@ class BaseDelegate(QtWidgets.QItemDelegate):
     ICON_WIDTH = dpiScale(20)
     ACTION_BORDER = dpiScale(2)
     ICON_HIGHLIGHT = QtGui.QColor(113, 142, 164)
+
+    EXPANDED_ARROW = (
+        dpiScale(QtCore.QPointF(12.0, -2.5)),
+        dpiScale(QtCore.QPointF(22.0, -2.5)),
+        dpiScale(QtCore.QPointF(17.0, 2.5)))
+    COLLAPSED_ARROW = (
+        dpiScale(QtCore.QPointF(15.0, -5.0)),
+        dpiScale(QtCore.QPointF(20.0, 0.0)),
+        dpiScale(QtCore.QPointF(15.0, 5.0)))
+    ARROW_COLOR = QtGui.QColor(189, 189, 189)
 
     def __init__(self, treeView):
         """Called after the instance has been created."""
@@ -254,6 +315,38 @@ class BaseDelegate(QtWidgets.QItemDelegate):
         actionIconRect = self.drawActionIcons(rect, painter, option, index)
         textRect = self.drawText(rect, actionIconRect, painter, index)
         self.drawIcon(textRect, painter, option, index)
+        rect = deepcopy(option.rect)
+        self.drawArrowDragLock(painter, rect, index)
+
+    def drawArrowDragLock(self, painter, rect, index):
+        """Draw the expansion arrow on the nodes that want it."""
+        painter.save()
+
+        arrow = None
+        if index.data(CHILD_COUNT):
+            center = index.data(QtCore.Qt.SizeHintRole).height() / 2
+            painter.translate(rect.left(), rect.top() + center)
+            # Draw the arrow
+            if self.treeView().isExpanded(index):
+                arrow = self.EXPANDED_ARROW
+            else:
+                arrow = self.COLLAPSED_ARROW
+
+            painter.setBrush(self.ARROW_COLOR)
+            painter.setPen(QtCore.Qt.NoPen)
+            painter.drawPolygon(arrow)
+
+            cursorPosition = self.treeView().mapFromGlobal(QtGui.QCursor.pos())
+            if rect.contains(cursorPosition):
+                x = cursorPosition.x()
+                arrowPoints = [p.x() for p in arrow]
+                minX = min(arrowPoints) + rect.left() - EXPAND_SENSITIVITY
+                maxX = max(arrowPoints) + rect.left() + EXPAND_SENSITIVITY
+                if x >= minX and x <= maxX:
+                    # Save the action to expand
+                    self.lastHitAction = BaseItem.ACTION_EXPAND
+
+        painter.restore()
 
     def drawBackground(
             self, painter, rect, index, isHighlighted, highlightColor):
@@ -309,9 +402,8 @@ class BaseDelegate(QtWidgets.QItemDelegate):
     def drawText(self, rect, actionIconRect, painter, index):
         """Draw the node name."""
         # Text color
-        # TODO: If the item is disabed, draw a lighter text
         painter.setPen(
-            QtGui.QPen(self.textColor, 1))
+            QtGui.QPen(QtGui.QColor(182, 182, 182), 1))
 
         # Text font
         painter.setFont(QtWidgets.QApplication.font())
@@ -458,6 +550,8 @@ class BaseItem(object):
     A Python object used to store an item's data, and keep note of it's parents
     and/or children. It's a tree data structure with parent and children.
     """
+
+    ACTION_EXPAND = 1
 
     def __init__(self, parentItem, name):
         """Called after the instance has been created."""

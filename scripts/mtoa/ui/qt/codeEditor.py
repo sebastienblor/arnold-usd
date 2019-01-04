@@ -4,6 +4,7 @@ from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .utils import dpiScale
+from .style import MtoAStyle
 from .syntaxhighlighter import CppHighlighter
 
 
@@ -24,15 +25,19 @@ class LineNumberArea(QtWidgets.QWidget):
 class BaseCodeEditor(QtWidgets.QPlainTextEdit):
     """Base coed editor box"""
 
-    def __init__(self, parent=None, syntax_higlighter=CppHighlighter):
+    def __init__(self, parent=None, syntax_higlighter=None, style=None):
         super(BaseCodeEditor, self).__init__(parent)
 
         self.lineNumberArea = LineNumberArea(self)
 
+        if not style:
+            style = MtoAStyle.currentStyle()
+        style.apply(self)
+
         font = QtGui.QFont()
         font.setFamily("Courier")
         font.setFixedPitch(True)
-        font.setPointSize(10)
+        font.setPointSize(8)
         self.setFont(font)
 
         self.highlighter = None
@@ -80,7 +85,7 @@ class BaseCodeEditor(QtWidgets.QPlainTextEdit):
         if not self.isReadOnly():
             selection = QtWidgets.QTextEdit.ExtraSelection()
 
-            lineColor = QtGui.QColor(QtCore.Qt.yellow).lighter(160)
+            lineColor = QtGui.QColor(90, 90, 90)
 
             selection.format.setBackground(lineColor)
             selection.format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
@@ -93,6 +98,8 @@ class BaseCodeEditor(QtWidgets.QPlainTextEdit):
     def lineNumberAreaPaintEvent(self, event):
         painter = QtGui.QPainter(self.lineNumberArea)
         painter.fillRect(event.rect(), QtCore.Qt.lightGray)
+        font = self.font()
+        painter.setFont(font)
 
         block = self.firstVisibleBlock()
         blockNumber = block.blockNumber()
