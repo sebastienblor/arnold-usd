@@ -72,8 +72,9 @@ class Test:
    # This function is called when the script was not especified (self.script is null)
    def generate_command_line(self, test_dir, env):
 
+
       maya_root = env['MAYA_ROOT']
-      test_script = ''
+      test_script = self.script 
 
 
       if not ' ' in env['MAYA_ROOT']:
@@ -120,8 +121,8 @@ class Test:
             mayapy_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayapy_cmd)
          test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
             % (maya_root, env['TARGET_MODULE_PATH'], test_dir) )
-      else:
-         test_script = os.path.join(env['MAYA_ROOT'],'bin',self.script)
+      # else:
+      #    test_script = os.path.join(env['MAYA_ROOT'],'bin',self.script)
       
       
 
