@@ -121,10 +121,6 @@ class Test:
             mayapy_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayapy_cmd)
          test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
             % (maya_root, env['TARGET_MODULE_PATH'], test_dir) )
-      # else:
-      #    test_script = os.path.join(env['MAYA_ROOT'],'bin',self.script)
-      
-      
 
       self.script = test_script
 

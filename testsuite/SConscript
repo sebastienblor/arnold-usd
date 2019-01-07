@@ -151,13 +151,10 @@ def run_test(target, source, env):
    status = 'OK'
    status_valgrind = 'OK'
    TEST_NAME = env['TEST_NAME']
-   #use_shell = True
-
-
    test_dir = os.path.dirname(target[0].get_abspath())
-
    test_env = env.Clone()
-
+   logfile = "%s.log" % (TEST_NAME)
+   logfile = os.path.join(test_dir, logfile)
 
    show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(TEST_TARGETS) == 1))
 
@@ -223,9 +220,7 @@ def run_test(target, source, env):
       
       # TODO : THESE NEED TO SET properly
       use_shell = True
-      show_test_output= True
 
-      
       if test_env['USE_VALGRIND'] != 'False':
          cmd = '''
          valgrind \
@@ -246,20 +241,21 @@ def run_test(target, source, env):
       print os.getenv('PATH')
 
       options =''
+
       cmd = string.replace(cmd, "%proj%", test_dir)
       cmd = string.replace(cmd, "%dir%", test_dir)
       cmd = string.replace(cmd, "%file%", os.path.join(test_dir, 'test.ma'))
+
       
       if show_test_output:
          cmd = string.replace(cmd, "%options%", options)
       else:
-         logfile = "%s.log" % (TEST_NAME)
-         logfile = os.path.join(test_dir, logfile)
          cmd = string.replace(cmd, "%options%", '-log %s %s' % (logfile, options))
          #if is_windows:
          #   cmd = '%s  1> "%s" 2>&1' % (cmd, logfile)
          #else:
          #   cmd = '%s  > "%s" 2>> "%s"' % (cmd, logfile, logfile)
+
 
       if os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') not in test_env['ENV']['PATH'] :
          test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') + ";" + test_env['ENV']['PATH']
@@ -282,11 +278,13 @@ def run_test(target, source, env):
    
       os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
 
-      printstr = cmd + '\n\n ' + str(local_env)
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
-      with open(os.path.join(test_dir, "%s.log") % TEST_NAME, 'w') as f:
+      with open(logfile, 'w') as f:
+         f.write('==== Setting Path ===== \n \n ')
+         f.write(str(local_env) + '\n \n ')
+         f.write('==== Exec cmd ==== \n \n')
+         f.write(cmd + '\n \n ')
          f.writelines(l + '\n' for l in out)
-         f.writelines(printstr)
 
       running_time = time.time() - before_time
       TOTAL_RUNNING_TIME += running_time
