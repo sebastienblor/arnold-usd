@@ -1,6 +1,6 @@
 // requires maya "2019";
 startAttrPreset( "aiStandardVolume" );
-blendAttrStr "densityChannel" "fog_density"; 
+blendAttrStr "densityChannel" "voxel_fog_density"; 
 blendAttrStr "scatterColorChannel" ""; 
 blendAttrStr "transparentChannel" ""; 
 blendAttrStr "emissionChannel" "temperature"; 
