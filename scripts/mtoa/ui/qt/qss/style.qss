@@ -16,6 +16,7 @@ QAbstractItemView
     border:1px solid {BORDER_COLOR1};
     gridline-color: {BORDER_COLOR1};
     color: {TEXT_COLOR2};
+    selection-background-color:{BACKGROUND_SELECTED_COLOR2};
 }}
 
 QTreeView::item::text

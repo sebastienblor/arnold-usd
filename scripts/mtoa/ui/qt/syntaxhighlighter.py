@@ -19,8 +19,6 @@ class BaseHighlighter(QtGui.QSyntaxHighlighter):
         self.multiLineCommentFormat = QtGui.QTextCharFormat()
 
     def loadSyntaxJSON(self, json_data):
-
-
         if json_data:
             self.json_data = json.load(json_data)
 
@@ -38,11 +36,11 @@ class BaseHighlighter(QtGui.QSyntaxHighlighter):
                     for pat in _patterns:
                         self.highlightingRules.append((QtCore.QRegExp(pat), _format))
 
-                    if key == 'single-line' and root == 'comment':
+                    if key == 'single-line' and root == 'comments':
                         _patterns = data.get("patterns", [])
                         for pat in _patterns:
                             self.highlightingRules.append((QtCore.QRegExp(pat), _format))
-                    elif key == 'multi-line' and root == 'comment':
+                    elif key == 'multi-line' and root == 'comments':
                         self.commentStartExpression = QtCore.QRegExp(str(data.get("start_pattern", "")))
                         self.commentEndExpression = QtCore.QRegExp(data.get("end_pattern", ""))
                         self.multiLineCommentFormat = _format

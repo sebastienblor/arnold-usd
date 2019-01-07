@@ -17,8 +17,11 @@ EXAMPLE_CPP = """
 
 int main()
 {
-  /* code */
-  std::cout << "Hello World!" << "\\n";
+  /*
+    multi-line comment
+  */
+  // single line comment
+  std::cout << "Hello World!" << "\\"quote in quote\\"" << "\\n";
   return 0;
 }
 
