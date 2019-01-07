@@ -74,7 +74,7 @@ vars.AddVariables(
     BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
     BoolVariable('SHOW_PLOTS', 'Display timing plots for the testsuite. gnuplot has to be found in the environment path.', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
-    ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_00*'),
+    ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
     PathVariable('BUILD_DIR',

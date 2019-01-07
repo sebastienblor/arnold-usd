@@ -242,9 +242,8 @@ def run_test(target, source, env):
       # NOTE #5079: Execute the test printing the logs to the standard output
       # if requested (parameter verbose), and always write them to a .log file.
 
-      # TODO : REMOVE THESE COMMENTS
-      #print '====Exec %s' % cmd
-      #print os.getenv('PATH')
+      print '====Exec %s' % cmd
+      print os.getenv('PATH')
 
       options =''
       cmd = string.replace(cmd, "%proj%", test_dir)
@@ -262,13 +261,16 @@ def run_test(target, source, env):
          #else:
          #   cmd = '%s  > "%s" 2>> "%s"' % (cmd, logfile, logfile)
 
-      
-      test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') + ";" + test_env['ENV']['PATH']
-      test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'lib') + ";" + test_env['ENV']['PATH']
-      
+      if os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') not in test_env['ENV']['PATH'] :
+         test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') + ";" + test_env['ENV']['PATH']
+      if os.path.join(test_env['TARGET_MODULE_PATH'], 'lib') not in test_env['ENV']['PATH'] :
+         test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'lib') + ";" + test_env['ENV']['PATH']
       #test_env['ENV']['PATH'] = os.path.join(test_env['ARNOLD_BINARIES'], 'bin') + ";" + test_env['ENV']['PATH']
-      test_env['ENV']['PATH'] = os.path.join(test_env['MAYA_ROOT'], 'bin') + ";" + test_env['ENV']['PATH']
-      test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'bin') + ";" + test_env['ENV']['PATH']
+      if os.path.join(test_env['MAYA_ROOT'], 'bin') not in test_env['ENV']['PATH']:
+         test_env['ENV']['PATH'] = os.path.join(test_env['MAYA_ROOT'], 'bin') + ";" + test_env['ENV']['PATH']
+      if os.path.join(test_env['TARGET_MODULE_PATH'], 'bin') not in test_env['ENV']['PATH']:
+         test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'bin') + ";" + test_env['ENV']['PATH']
+      
       local_env['PATH'] = test_env['ENV']['PATH']
 
       # make sure we'll load the .mod file in the target mtoa folder, and thus load the right version of mtoa
@@ -281,10 +283,8 @@ def run_test(target, source, env):
       os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
 
       printstr = cmd + '\n\n ' + str(local_env)
-      print printstr 
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
       with open(os.path.join(test_dir, "%s.log") % TEST_NAME, 'w') as f:
-         print " Writing Log file"
          f.writelines(l + '\n' for l in out)
          f.writelines(printstr)
 
@@ -335,9 +335,9 @@ def run_test(target, source, env):
    if test_env['MAKE_THUMBNAILS'] and os.path.exists(reference_image) :
       cmd = oiiotool_path + ' -v --info ' + reference_image
       retcode, info = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell)
-      # TODO : REMOVE THESE COMMENTS
-      #print "Exec %s" % cmd
-      #print info
+
+      print "Exec %s" % cmd
+      print info
 
       #is_deep = 'deep' in info[1].split(',')[-1]
       channel_names = ['R', 'G', 'B', 'A'] #info[2].split(': ')[1].split(',')
