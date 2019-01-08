@@ -71,7 +71,9 @@ class Test:
 
    # This function is called when the script was not especified (self.script is null)
    def generate_command_line(self, test_dir, env):
-
+      
+      # the test scenes are in the folder 'data'
+      test_dir = os.path.join(test_dir, 'data')
 
       maya_root = env['MAYA_ROOT']
       test_script = self.script 
