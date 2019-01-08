@@ -570,7 +570,12 @@ def process_testsuite(target, source, env):
          running_time = float(running_time_str) ## just one line
 
       try:
-         test_number = int(test_name[5:])
+         test_number = 0
+         test_name = test_name[5:]
+         # check if there's an underscore (eg test_0167_win)
+         if test_name.find('_') > 0:
+            test_name = test_name[:test_name.find('_')]
+         test_number = int(test_name)
          time_table.add(test_number, running_time)
       except (ValueError, TypeError):
          pass
@@ -632,7 +637,16 @@ def process_testsuite(target, source, env):
          else:
             nMemLeaks = nMemLeaksDL
       try:
-         test_number = int(test_name[5:])
+         # check if there's an underscore (eg test_0167_win)
+         test_id = test_name[5:]
+         if test_id.find('_') > 0:
+            test_id = test_id[:test_name.find('_')]
+         
+         test_number = 0
+         try:
+            test_number = int(test_id)
+         except (ValueError, TypeError):
+            pass
 
          # checking all the thumbnails in this folder and adding them to the list.
          # FIXME there should be a better way to factorize this with the work done above
@@ -649,7 +663,6 @@ def process_testsuite(target, source, env):
             new_thumbnail = 'new_'+ref_thumbnail[4:]
             dif_thumbnail = 'dif_'+ref_thumbnail[4:]
             
-
             report_params['tests'].append({
                'name':          test_name,
                'url':           test_link,
