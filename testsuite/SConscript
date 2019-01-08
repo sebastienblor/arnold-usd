@@ -780,6 +780,16 @@ SKIPPED_TESTS = {'ignore':0, 'os':0, 'other':0}
 
 # Tests in 'ignore' group are always added to the black list
 BLACKLIST['ignore'] = find_test_group('ignore', env)
+
+# We also want to ignore the tests specific to this maya version
+# FIXME : let put all these "ignore" groups in an env variable that is filled in 
+# MtoA's Sconstruct and just used here, so that this file isn't Maya-specific
+ignore_version = 'ignore_' + test_env['MAYA_VERSION_BASE']
+BLACKLIST['ignore'] |= find_test_group(ignore_version, env)
+
+# FIXME For now I'm ignoring the gui tests because they might cause issues in multi-thread
+BLACKLIST['ignore'] |= find_test_group('gui', env)
+
 # Tests intended for this platform
 OSTESTLIST = find_test_group(sa.system.os, env)
 # Add tests intended for other platforms to the black list
@@ -788,6 +798,11 @@ for o in sa.system.allowed.os:
       for atest in find_test_group(o, env):
          if atest not in OSTESTLIST:
             BLACKLIST['os'].append(atest)
+
+# There are also tests to be ignored on specific OS
+ignore_os = 'ignore_' + sa.system.os
+for atest in find_test_group(ignore_os, env):
+   BLACKLIST['os'].append(atest)
 
 for target in sorted(TEST_NAMES, reverse=(env['TEST_ORDER']=='normal')):
    # Don't skip ignored tests when a single test was explicitly requested
