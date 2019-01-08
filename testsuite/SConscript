@@ -143,6 +143,17 @@ def list_groups(target, source, env):
 
 listgroups_bld = Builder(action = Action(list_groups, "Listing test groups..."))
 
+def remove_files(path):
+   '''
+   handy function to remove files only if they exist
+   '''
+   for p in glob.glob(path):
+      if os.path.isfile(p):
+         try:
+            sa.path.remove(p)
+         except OSError as e:
+            print "Couldn't remove %s"  % p
+
 def run_test(target, source, env):
 
    global TOTAL_RUNNING_TIME
@@ -201,9 +212,9 @@ def run_test(target, source, env):
       output_images.append(output_image_name)
 
    ## remove any leftovers
-   sa.path.remove(os.path.join(test_dir, 'new.png'))
-   sa.path.remove(os.path.join(test_dir, 'ref.png'))
-   sa.path.remove(os.path.join(test_dir, 'dif.png'))
+   remove_files(os.path.join(test_dir, 'new*.png'))
+   remove_files(os.path.join(test_dir, 'ref*.png'))
+   remove_files(os.path.join(test_dir, 'dif*.png'))
    sa.path.remove(os.path.join(test_dir, 'STATUS'))
    sa.path.remove(os.path.join(test_dir, 'STATUS.vg'))
    sa.path.remove(os.path.join(test_dir, '%s.vg.xml' % TEST_NAME))
@@ -352,7 +363,10 @@ def run_test(target, source, env):
    for reference_image in reference_images:
       index = reference_images.index(reference_image)
       output_image = os.path.join(test_dir,output_images[index])
-      
+      dif_thumbnail = os.path.join(test_dir, 'dif_'+output_images[index] + '.png')
+      new_thumbnail = os.path.join(test_dir, 'new_'+output_images[index] + '.png')
+      ref_thumbnail = os.path.join(test_dir, 'ref_'+output_images[index] + '.png')
+
       if test_env['MAKE_THUMBNAILS'] and os.path.exists(reference_image) :
          cmd = oiiotool_path + ' -v --info ' + reference_image
          retcode, info = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell)
@@ -410,7 +424,8 @@ def run_test(target, source, env):
                if test_env['MAKE_THUMBNAILS'] :
                   if is_deep :
                      img_diff_cmd += ' --flatten --swap --flatten --swap '
-                  img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o dif.png ' % tuple([channels] + [alpha] * 4)
+                  img_diff_cmd += ' --sub --abs --cmul 8 -ch "%s,%s" --dup --ch "%s,%s,%s,0" --add -ch "0,1,2" -o ' % tuple([channels] + [alpha] * 4)
+                  img_diff_cmd += dif_thumbnail + ' '
                retcode, out = sa.system.execute(img_diff_cmd, cwd=test_dir, env=local_env, shell=use_shell)
                with open(os.path.join(test_dir, "%s.diff.log") % TEST_NAME, 'w') as f:
                   f.writelines(l + '\n' for l in out)
@@ -424,13 +439,13 @@ def run_test(target, source, env):
             ## convert these to jpg form for makeweb
             if test_env['MAKE_THUMBNAILS']:
                if os.path.exists(output_image):
-                  cmd = oiiotool_path + ' --threads 1 ' + output_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o new.png'
+                  cmd = oiiotool_path + ' --threads 1 ' + output_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + new_thumbnail
                   sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
                else:
                   status = 'FAILED'
 
       if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image) and test_env['MAKE_THUMBNAILS'] :
-         cmd = oiiotool_path + ' --threads 1 ' + reference_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ref.png'
+         cmd = oiiotool_path + ' --threads 1 ' + reference_image + (' --flatten ' if is_deep else '') + ' --ch ' + str(channels) + ' -o ' + ref_thumbnail
          sa.system.execute(cmd, cwd=test_dir, shell=use_shell)
 
    readme_file = os.path.join(test_dir, 'README')
@@ -479,15 +494,22 @@ def run_test(target, source, env):
    html_file = str(target[0])
    sa.path.remove(html_file)
    with open(html_file, 'w') as f:
-      params = {
-         'name': TEST_NAME,
-         'status': status,
-         'readme': readme,
-         'new_image': os.path.exists(os.path.join(test_dir, 'new.png')) and '<a href="new.png" target="_blank"><img src="new.png" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="new image" title="new image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>' or '&nbsp;',
-         'ref_image': os.path.exists(os.path.join(test_dir, 'ref.png')) and '<a href="ref.png" target="_blank"><img src="ref.png" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="ref image" title="ref image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>' or '&nbsp;',
-         'diff_image': os.path.exists(os.path.join(test_dir, 'dif.png')) and '<a href="dif.png" target="_blank"><img src="dif.png" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="difference image" title="difference image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>' or '&nbsp;<b>no difference</b>&nbsp;'
-      }
-      f.write(html_template.format(**params))
+      for reference_image in reference_images:
+
+         index = reference_images.index(reference_image)
+         dif_thumbnail = os.path.join(test_dir, 'dif_'+output_images[index] + '.png')
+         new_thumbnail = os.path.join(test_dir, 'new_'+output_images[index] + '.png')
+         ref_thumbnail = os.path.join(test_dir, 'ref_'+output_images[index] + '.png')
+
+         params = {
+            'name': TEST_NAME,
+            'status': status,
+            'readme': readme,
+            'new_image': os.path.exists(os.path.join(test_dir, new_thumbnail)) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="new image" title="new image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(new_thumbnail, new_thumbnail) or '&nbsp;',
+            'ref_image': os.path.exists(os.path.join(test_dir, ref_thumbnail)) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="ref image" title="ref image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(ref_thumbnail, ref_thumbnail) or '&nbsp;',
+            'diff_image': os.path.exists(os.path.join(test_dir, dif_thumbnail)) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="difference image" title="difference image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(dif_thumbnail, dif_thumbnail) or '&nbsp;<b>no difference</b>&nbsp;'
+         }
+         f.write(html_template.format(**params))
 
       vg_write_report(f, os.path.join(test_dir, "%s.vg.xml") % TEST_NAME, test_env['USE_VALGRIND'])
 
@@ -609,22 +631,39 @@ def process_testsuite(target, source, env):
             nMemLeaks = nMemLeaksDL + nMemLeaksPL
          else:
             nMemLeaks = nMemLeaksDL
-
       try:
          test_number = int(test_name[5:])
-         report_params['tests'].append({
-            'name':          test_name,
-            'url':           test_link,
-            'descr_summary': summary,
-            'descr_details': description,
-            'status':        { 'OK': 'passed', 'FAILED': 'failed', 'CRASHED': 'crashed' }[status],
-            'time':          time_table._data[-1][test_number].timing,
-            'new_img':       os.path.exists(os.path.join(test_dir, 'new.png')) and test_name + '/new.png' or '',
-            'ref_img':       os.path.exists(os.path.join(test_dir, 'ref.png')) and test_name + '/ref.png' or '',
-            'dif_img':       os.path.exists(os.path.join(test_dir, 'dif.png')) and test_name + '/dif.png' or '',
-            'mem_leaks':     nMemLeaks,
-            'mem_errors':    nMemErrors
-         })
+
+         # checking all the thumbnails in this folder and adding them to the list.
+         # FIXME there should be a better way to factorize this with the work done above
+         reference_images = []
+         if glob.glob(os.path.join(test_dir, 'ref_testrender*.png')):
+            reference_images = glob.glob(os.path.join(test_dir , 'ref_testrender*.png'))
+
+         # if 'MAKE_THUMBNAIL' is disabled, there won't be any png thumbnail in the test folder, let's use the default one
+         if not reference_images:
+            reference_images = 'ref_testrenderer.png'
+
+         for reference_image in reference_images:
+            ref_thumbnail = os.path.basename(reference_image)
+            new_thumbnail = 'new_'+ref_thumbnail[4:]
+            dif_thumbnail = 'dif_'+ref_thumbnail[4:]
+            
+
+            report_params['tests'].append({
+               'name':          test_name,
+               'url':           test_link,
+               'descr_summary': summary,
+               'descr_details': description,
+               'status':        { 'OK': 'passed', 'FAILED': 'failed', 'CRASHED': 'crashed' }[status],
+               'time':          time_table._data[-1][test_number].timing,
+               'new_img':       os.path.exists(os.path.join(test_dir, new_thumbnail)) and test_name + '/{}'.format(new_thumbnail) or '',
+               'ref_img':       os.path.exists(os.path.join(test_dir, ref_thumbnail)) and test_name + '/{}'.format(ref_thumbnail) or '',
+               'dif_img':       os.path.exists(os.path.join(test_dir, dif_thumbnail)) and test_name + '/{}'.format(dif_thumbnail) or '',
+               'mem_leaks':     nMemLeaks,
+               'mem_errors':    nMemErrors
+            })
+
       except (ValueError, TypeError):
          pass
 
