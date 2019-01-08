@@ -98,7 +98,7 @@ class Test:
          if not ' ' in env['MAYA_ROOT']:
             mayabatch_cmd = os.path.join(env['MAYA_ROOT'], 'bin', mayabatch_cmd)
 
-         test_script = mayabatch_cmd + ' -file %file % -script "' + os.path.join(test_dir, 'test.mel')+ '" -proj "%proj%"'
+         test_script = mayabatch_cmd + ' -file %file% -script "' + os.path.join('%proj%', 'test.mel')+ '" -proj "%proj%"'
       # If a file gui_test.mel is found, we want to run maya with this script
       # As above, it's up to the script to load a maya scene
       elif os.path.exists(os.path.join(test_dir, 'gui_test.mel')):
