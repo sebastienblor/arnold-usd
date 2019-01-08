@@ -170,6 +170,18 @@ def run_test(target, source, env):
             print_safe("Setting environment var '%s' to '%s'" % (var[0], var[1]))
          local_env[var[0]] = str(var[1])
 
+   # if a 'plugin' folder is found, it's because it contains custom shaders/procedurals
+   plugin_dir = os.path.join(test_dir, 'plugin')
+   if os.path.exists(plugin_dir):
+      print '---- Plugin folder exists %s' % plugin_dir
+      local_env['ARNOLD_PLUGIN_PATH'] = plugin_dir
+
+   # if an 'extension' folder exists, we want to add it for MtoA extensions
+   extension_dir = os.path.join(test_dir, 'extension')
+   if os.path.exists(extension_dir):
+      local_env['MTOA_EXTENSIONS_PATH'] = extension_dir
+      
+
    # Force CLM Hub to write the log files in the test working directory and
    # raise the log level to "trace" in order to get the full verbosity
    # (see #5658).
