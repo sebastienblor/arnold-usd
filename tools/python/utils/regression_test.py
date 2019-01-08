@@ -26,7 +26,7 @@ class Test:
                 program_sources     = '',
                 program_name        = 'test',
                 plugin_dependencies = '',
-                output_image        = 'testrender.tif',     ## can be '' if the test does not generate an image
+                output_image        = '',     ## can be '' if the test does not generate an image
                 reference_image     = '',
                 progressive         = False,
                 kick_params         = '',
@@ -146,35 +146,13 @@ class Test:
       # Silence test preparation by globally overriding the paramater PRINT_CMD_LINE_FUNC
       # in this current SCons sub-environment, used in target generation (Program(),
       # SharedLibrary(), Install(), etc.).
-      #print env.Dump('ENV')
       env['PRINT_CMD_LINE_FUNC'] = lambda s, target, src, env : None
-
 
       test_dir       = os.path.join(env.Dir('.').srcnode().abspath, test_name)
       test_data_dir  = os.path.join(test_dir, 'data')
       test_build_dir = os.path.join(env.Dir('.').abspath, test_name)
 
-      
-
       env.VariantDir(test_build_dir, test_data_dir)
-
-      # if os.path.exists(os.path.join(test_data_dir, 'test.cpp')):
-      #    if not self.script:
-      #       self.script = os.path.join(test_build_dir, 'test')
-      #    self.program_name    = 'test'
-      #    self.program_sources = 'test.cpp'
-      
-      # if os.path.exists(os.path.join(test_data_dir, 'test.py')):
-      #    if not self.script:
-      #       self.script = './test.py'
-
-      # If reference_image was not specified, try to guess from existing files
-      if not self.reference_image:
-         if os.path.exists(os.path.join(test_dir, 'ref', 'reference.exr')):
-            self.reference_image = os.path.join('ref', 'reference.exr')
-            self.output_image    = 'testrender.exr'
-         elif os.path.exists(os.path.join(test_dir, 'ref', 'reference.tif')):
-            self.reference_image = os.path.join('ref', 'reference.tif')
 
       # If an execution command line was not specified or generated, set the default one
       #if not self.script:
@@ -221,9 +199,10 @@ class Test:
             d = d.replace(test_data_dir, test_build_dir)
             FILES += env.Install(d, os.path.join(root, f))
       ## generate the build action that will run the test and produce the html output
+
       test_target = env.RunTest(os.path.join(test_build_dir, test_name + '.html'), FILES + SHADERS,
          TEST_SCRIPT = self.script,
-         REFERENCE_IMAGE = self.reference_image != '' and os.path.join(test_dir, self.reference_image) or '',
+         REFERENCE_IMAGE = self.reference_image ,
          OUTPUT_IMAGE = self.output_image,
          MAKE_THUMBNAILS = self.make_thumbnails,
          DIFF_HARDFAIL = self.diff_hardfail,
