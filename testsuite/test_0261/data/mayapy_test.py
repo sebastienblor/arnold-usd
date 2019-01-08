@@ -100,7 +100,7 @@ else:
 
 
 
-post_script = 'import sys\ntest_root_path = sys.argv[1]\noiiotool_path  = sys.argv[2]\n'
+post_script = 'import sys\nimport os\ntest_root_path = sys.argv[1]\noiiotool_path  = sys.argv[2]\n'
 post_script += 'cmd = oiiotool_path\n'
 post_script += 'cmd += " --create 160x120 3 -d uint8 --fill:color={} 160x120 -o "\n'.format(resultColor)
 post_script += 'cmd += os.path.join(test_root_path, "testrender.tif")\n'
