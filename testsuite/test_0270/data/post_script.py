@@ -1,3 +1,4 @@
+import os
 test_root_path = sys.argv[1]
 oiiotool_path  = sys.argv[2]
 mtoa_path = sys.argv[3]

@@ -6,13 +6,18 @@ from SCons.Script import *
 import system
 import testsuite
 import string
+import platform
 
 # Set NOCRASH string for tests which we don't want to debug on crash (Windows only)
 NOCRASH = ''
 if system.is_windows:
    NOCRASH = '-nocrashpopup'
 
+# Obtain information about the system only once, when loaded
+os_name = platform.system().lower()
+
 testsuite_common = os.path.abspath(os.path.join('testsuite', 'common'))
+
 #Import('env')
 class Test:
    def __init__(self,
@@ -124,6 +129,17 @@ class Test:
          test_script = mayapy_cmd + os.path.join(test_dir, 'mayapy_test.py "%s" "%s" "%s"' \
             % (maya_root, env['TARGET_MODULE_PATH'], test_dir) )
 
+
+      # Now check if a post_script.py file exists.
+      # If it does, we add its command to the script, separated by a newline.
+      # All the commands will be executed sequentially.
+      post_script = os.path.join(test_dir, 'post_script.py')
+      if os.path.exists(post_script):
+         # FIXME could we get the ooiotool_path somehow from the environment somehow ?
+         oiiotool_path = os.path.join(env['ROOT_DIR'], 'external', 'OpenImageIO', 'bin', os_name, 'oiiotool')
+         test_script += '\n'
+         test_script += '{} {} {} {}'.format('post_script.py', '.', oiiotool_path,  env['TARGET_MODULE_PATH'])
+         
       self.script = test_script
 
    def prepare_test(self, test_name, env):
