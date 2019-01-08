@@ -334,8 +334,7 @@ bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
    {
       MString uvName = uvns[i];
       int numUVs = fnMesh.numUVs(uvName);
-      if (numUVs < 1)
-         continue;
+
       AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_VECTOR2);
       
       MFloatArray uArray, vArray;
@@ -622,13 +621,16 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
          {
             for (i = 0; i < numUVSets; ++i)
             {
-               if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
+               if ( fnMesh.numUVs(uvNames[i]) > 0 )
                {
-                  uv_id = 0;
-                  AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
-                               uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
+                  if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
+                  {
+                     uv_id = 0;
+                     AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
+                                 uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
+                  }
+                  AiArraySetUInt(uvidxs[i], id, uv_id);
                }
-               AiArraySetUInt(uvidxs[i], id, uv_id);
             }
          }
          if (hasHoles)
@@ -673,14 +675,17 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
                {
                   for (size_t i = 0; i < numUVSets; ++i)
                   {
-                     // FIXME : I have a problem here, the index doesn't seem to be correct for holes
-                     if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
-                     {
-                        uv_id = 0;
-                        AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
-                                     uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
+                     if ( fnMesh.numUVs(uvNames[i]) > 0 )
+                     {  
+                        // FIXME : I have a problem here, the index doesn't seem to be correct for holes
+                        if (pit.getUVIndex(v, uv_id, &uvNames[i]) != MS::kSuccess)
+                        {
+                           uv_id = 0;
+                           AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
+                                       uvNames[i].asChar(), faceIndex, v, fnMesh.name().asChar());
+                        }
+                        AiArraySetUInt(uvidxs[i], id, uv_id);
                      }
-                     AiArraySetUInt(uvidxs[i], id, uv_id);
                   }
                }
                polyVtxRemap[mayaPolyVtxId + v] = id;
@@ -1258,8 +1263,11 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       {
          if (uvs.size() > 0 && uvidxs.size() > 0)
          {
-            AiNodeSetArray(polymesh, "uvlist", uvs[0]);
-            AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+            if ( AiArrayGetNumElements(uvs[0]) > 0 )
+            {
+               AiNodeSetArray(polymesh, "uvlist", uvs[0]);
+               AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+            }
             for (size_t i = 1; i < uvs.size(); ++i)
             {
                if (uvNames.size() > i && uvidxs.size() > i)

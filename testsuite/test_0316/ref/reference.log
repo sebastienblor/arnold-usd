@@ -1,4 +1,4 @@
-Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0033\test_0033.log', using stdout instead
+Cannot open log file 'D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0316\test_0316.log', using stdout instead
 
 Starting "D:\arnold\Maya-runtimes\windows\Maya2018\bin\mayabatch.exe"
 sys:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
@@ -23,15 +23,15 @@ Detected 1 OpenCL Platforms:
  Supported extensions: cl_khr_global_int32_base_atomics cl_khr_global_int32_extended_atomics cl_khr_local_int32_base_atomics cl_khr_local_int32_extended_atomics cl_khr_fp64 cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll cl_nv_d3d9_sharing cl_nv_d3d10_sharing cl_khr_d3d10_sharing cl_nv_d3d11_sharing cl_nv_copy_opts cl_khr_gl_event cl_nv_create_buffer
 OpenCL evaluator choosing OpenCL platform NVIDIA Corporation.
 OpenCL evaluator is unable to find a GPU device that can share VBOs with OpenGL.
-00:00:00   431MB WARNING | [mtoa] [usd_proc] [node usd] Assigning temporary node id 1138176 to associated Maya type name aiUsd.
-Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0033/test.ma line 5: Unknown Maya file version: 2018ff09.
+Error: file: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0316/test.ma line 5: Unknown Maya file version: 2018ff09.
 Warning: line 1: Errors have occurred while reading this scene that may result in data loss.
-File read in  0.071 seconds.
-File read in  0.071 seconds.
-Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0033/test.ma
+File read in  0.073 seconds.
+File read in  0.073 seconds.
+Result: D:/arnold/mtoa/build/windows_x86_64/20180300/msvc_opt/testsuite/test_0316/test.ma
+File read in  0.016 seconds.
+File read in  0.016 seconds.
 00:00:00   521MB WARNING |  [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   521MB WARNING | [mtoa] No light in scene
 00:00:00   521MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   536MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
-00:00:00   538MB WARNING | rendering with watermarks because of failed authorization:
-Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0033\test.ma completed.
+00:00:00   523MB WARNING | [mtoa.ext]  aiAOVDriver Found no translator named "maya"
+00:00:00   526MB WARNING | rendering with watermarks because of failed authorization:
+Scene D:\arnold\mtoa\build\windows_x86_64\20180300\msvc_opt\testsuite\test_0316\test.ma completed.
