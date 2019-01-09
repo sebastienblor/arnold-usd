@@ -509,6 +509,7 @@ def run_test(target, source, env):
    # If this variable is defined, we delete everything in the test folder (scenes, temporary files, etc...),
    # except the files that are needed for the report. 
    if test_env['CLEAN_TESTSUITE_RESULTS']:
+      print 'Cleaning testsuite results'
       whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
       whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
       whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
