@@ -681,6 +681,7 @@ def process_testsuite(target, source, env):
          for reference_image in reference_images:
 
             ref_thumbnail = os.path.basename(reference_image)
+            print "Output image %s" % ref_thumbnail[4:-4]
             new_thumbnail = 'new_'+ref_thumbnail[4:]
             dif_thumbnail = 'dif_'+ref_thumbnail[4:]
             
