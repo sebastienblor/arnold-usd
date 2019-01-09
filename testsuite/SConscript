@@ -351,6 +351,20 @@ def run_test(target, source, env):
    is_deep = False
    channels = 'R,G,B'
    alpha = 'A'
+
+   # if we're updating the reference image, we must check first if there are new rendered images that
+   # should be added to the "ref" folder
+   if test_env['UPDATE_REFERENCE']:
+      # look for all files testrender*.tif in the test_dir folder
+      update_images = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
+      for update_image in update_images:
+         image_basename = os.path.basename(update_image)
+         if not image_basename in output_images:
+            output_images.append(image_basename)
+         reference_image = os.path.join(test_ref_dir, image_basename.replace('testrender', 'reference'))
+         if not reference_image in reference_images:
+            reference_images.append(reference_image)
+
    # if output is deep and determine which channels to display
    for reference_image in reference_images:
       index = reference_images.index(reference_image)
@@ -364,7 +378,8 @@ def run_test(target, source, env):
          retcode, info = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell)
 
          print "Exec %s" % cmd
-         print info
+         # FIXME: do we really want to print the output ?
+         #print info
 
          #is_deep = 'deep' in info[1].split(',')[-1]
          channel_names = ['R', 'G', 'B', 'A'] #info[2].split(': ')[1].split(',')
