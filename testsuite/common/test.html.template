@@ -50,7 +50,13 @@ Arnold testsuite - {name}
 <center>
 <font face="Arial">
 &nbsp;{name}&nbsp;
+<br />
+<br />
+&nbsp;<a href="{name}.log">log</a>&nbsp;
+<br />
+&nbsp;<a href="{output_image}">output image</a>&nbsp;
 </font>
+
 </center>
 </td>
 <td style="border: 1px solid white;" bgcolor="#ececec">

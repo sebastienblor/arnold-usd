@@ -143,17 +143,6 @@ def list_groups(target, source, env):
 
 listgroups_bld = Builder(action = Action(list_groups, "Listing test groups..."))
 
-def remove_files(path):
-   '''
-   handy function to remove files only if they exist
-   '''
-   for p in glob.glob(path):
-      if os.path.isfile(p):
-         try:
-            sa.path.remove(p)
-         except OSError as e:
-            print "Couldn't remove %s"  % p
-
 def run_test(target, source, env):
 
    global TOTAL_RUNNING_TIME
@@ -212,9 +201,12 @@ def run_test(target, source, env):
       output_images.append(output_image_name)
 
    ## remove any leftovers
-   remove_files(os.path.join(test_dir, 'new*.png'))
-   remove_files(os.path.join(test_dir, 'ref*.png'))
-   remove_files(os.path.join(test_dir, 'dif*.png'))
+   for p in glob.glob(os.path.join(test_dir, 'new*.png')):
+      sa.path.remove(p)
+   for p in glob.glob(os.path.join(test_dir, 'ref*.png')):
+      sa.path.remove(p)
+   for p in glob.glob(os.path.join(test_dir, 'dif*.png')):
+      sa.path.remove(p)
    sa.path.remove(os.path.join(test_dir, 'STATUS'))
    sa.path.remove(os.path.join(test_dir, 'STATUS.vg'))
    sa.path.remove(os.path.join(test_dir, '%s.vg.xml' % TEST_NAME))
@@ -490,7 +482,7 @@ def run_test(target, source, env):
    with open(os.path.join(testsuite_common, 'test.html.template')) as f:
       html_template = f.read()
 
-   ## create the html file with the results
+   ## create the html file with the results, for a specific test
    html_file = str(target[0])
    sa.path.remove(html_file)
    with open(html_file, 'w') as f:
@@ -505,9 +497,10 @@ def run_test(target, source, env):
             'name': TEST_NAME,
             'status': status,
             'readme': readme,
-            'new_image': os.path.exists(os.path.join(test_dir, new_thumbnail)) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="new image" title="new image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(new_thumbnail, new_thumbnail) or '&nbsp;',
-            'ref_image': os.path.exists(os.path.join(test_dir, ref_thumbnail)) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="ref image" title="ref image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(ref_thumbnail, ref_thumbnail) or '&nbsp;',
-            'diff_image': os.path.exists(os.path.join(test_dir, dif_thumbnail)) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="difference image" title="difference image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(dif_thumbnail, dif_thumbnail) or '&nbsp;<b>no difference</b>&nbsp;'
+            'new_image': os.path.exists(new_thumbnail) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="new image" title="new image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(new_thumbnail, new_thumbnail) or '&nbsp;',
+            'ref_image': os.path.exists(ref_thumbnail) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="ref image" title="ref image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(ref_thumbnail, ref_thumbnail) or '&nbsp;',
+            'diff_image': os.path.exists(dif_thumbnail) and '<a href="{}" target="_blank"><img src="{}" style="padding: 0 2px 0 2px;" border="0" hspace="0" width="160" height="120" alt="difference image" title="difference image (opens in a new tab)" onMouseOver="javascript:showPreview(this)" onMouseOut="javascript:hidePreview()"/></a>'.format(dif_thumbnail, dif_thumbnail) or '&nbsp;<b>no difference</b>&nbsp;',
+            'output_image': os.path.join(output_images[index])
          }
          f.write(html_template.format(**params))
 
@@ -588,6 +581,10 @@ def process_testsuite(target, source, env):
 
    report_params = {
       'arnold_version':    env['ARNOLD_VERSION'],
+      'mtoa_version':      env['MTOA_VERSION'],
+      'os_name':           os_name,
+      'maya_version':      env['MAYA_VERSION'],
+      'branch':            sa.git.branch(),
       'revision':          sa.git.sha1()[:8] if sa.git.sha1() else 'not found',
       'repo_url':          sa.git.remote_url() or 'not found',
       'patterns':          PATTERNS,
@@ -862,7 +859,8 @@ BLACKLIST['ignore'] = find_test_group('ignore', env)
 ignore_version = 'ignore_' + test_env['MAYA_VERSION_BASE']
 BLACKLIST['ignore'] |= find_test_group(ignore_version, env)
 
-# FIXME For now I'm ignoring the gui tests because they might cause issues in multi-thread
+# FIXME For now I'm ignoring the gui tests because they cause hangs in multi-thread
+# should we use a lock system ? or run them separatey in single thread ?
 BLACKLIST['ignore'] |= find_test_group('gui', env)
 
 # Tests intended for this platform
