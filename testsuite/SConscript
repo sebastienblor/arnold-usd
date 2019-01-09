@@ -676,9 +676,10 @@ def process_testsuite(target, source, env):
 
          # if 'MAKE_THUMBNAIL' is disabled, there won't be any png thumbnail in the test folder, let's use the default one
          if not reference_images:
-            reference_images = 'ref_testrenderer.png'
+            reference_images = ['ref_testrenderer.png']
 
          for reference_image in reference_images:
+
             ref_thumbnail = os.path.basename(reference_image)
             new_thumbnail = 'new_'+ref_thumbnail[4:]
             dif_thumbnail = 'dif_'+ref_thumbnail[4:]
