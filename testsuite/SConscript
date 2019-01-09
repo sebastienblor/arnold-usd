@@ -862,6 +862,9 @@ BLACKLIST['ignore'] = find_test_group('ignore', env)
 ignore_version = 'ignore_' + test_env['MAYA_VERSION_BASE']
 BLACKLIST['ignore'] |= find_test_group(ignore_version, env)
 
+# FIXME For now I'm ignoring the gui tests because they might cause issues in multi-thread
+BLACKLIST['ignore'] |= find_test_group('gui', env)
+
 # Tests intended for this platform
 OSTESTLIST = find_test_group(sa.system.os, env)
 # Add tests intended for other platforms to the black list
