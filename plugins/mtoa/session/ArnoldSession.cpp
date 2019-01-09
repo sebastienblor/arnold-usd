@@ -701,6 +701,13 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
    m_motionStep = 0;
 
+
+   if (exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_ASS)
+   {
+      MGlobal::executeCommand("prepareRender -setup");
+      MGlobal::executeCommand("prepareRender -invokePreRender");
+   }
+
    CRenderSession *renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
       renderSession->SetRenderViewStatusInfo(MString("Exporting Arnold Scene..."));
@@ -954,6 +961,12 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    if (m_rebuildProceduralOperators && m_optionsTranslator)
       ExportProceduralOperators();
    
+   if (exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_ASS)
+   {
+      MGlobal::executeCommand("prepareRender -invokePostRender");
+      MGlobal::executeCommand("prepareRender -restore");    
+   }
+
    return status;
 }
 

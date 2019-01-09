@@ -16,8 +16,8 @@ class Guard
 {
 public:
 
-    Guard() : critical_section(0) {
-        AiCritSecInit(&critical_section);
+    Guard(){
+        AiCritSecInitRecursive(&critical_section);
     }
     virtual ~Guard() {
         AiCritSecClose(&critical_section);
@@ -65,45 +65,62 @@ procedural_init
 
    *user_ptr = (void*)ud;
 
-   bool result = ud->Init( node, true );
+   bool result = ud->Init( node, true ); // "true" means that the procedural parent must be set
    guard.leave();
 
-   return result; // "true" means that the procedural parent must be set
+   return result;
 }
 
 // Cleanup
 procedural_cleanup
 {
-   //AiMsgInfo("[xgArnoldProcedural] Cleanup()");
+   // AiMsgDebug("[xgArnoldProcedural] Cleanup()");
 
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
-      return 0;
+   {
+         guard.leave();
+         return 0;
+   }
    int ret = ud->Cleanup();
    delete ud;
+   guard.leave();
    return ret;
 }
 
 // Get number of nodes
 procedural_num_nodes
 {
-   //AiMsgInfo("[xgArnoldProcedural] NumNodes()");
+   // AiMsgDebug("[xgArnoldProcedural] NumNodes()");
 
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
+   {
+      guard.leave();
       return 0;
-   return ud->NumNodes();
+   }
+   int numnodes = ud->NumNodes();
+   guard.leave();
+   return numnodes;
 }
 
 // Get the i_th node
 procedural_get_node
 {
-   //AiMsgInfo("[xgArnoldProcedural] GetNode()");
+   // AiMsgDebug("[xgArnoldProcedural] GetNode()");
 
+   guard.enter();
    ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
    if( !ud )
+   {
+      guard.leave();
       return 0;
-   return ud->GetNode(i);
+   }
+   AtNode *this_node = ud->GetNode(i);
+   guard.leave();
+   return this_node;
 }
 
 // DSO hook

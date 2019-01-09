@@ -17,6 +17,7 @@ try:
     import mtoa.ui.exportass as exportass
     import mtoa.ui.nodeTreeLister as nodeTreeLister
     import mtoa.ui.globals.common
+    import mtoa.ui.qt as qt
     from mtoa.ui.globals.settings import updateBackgroundSettings, updateAtmosphereSettings
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu

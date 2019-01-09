@@ -9,6 +9,8 @@
 #include <maya/MFnCamera.h>
 #include <maya/MMatrix.h>
 #include <maya/MSelectionList.h>
+#include <maya/MItDag.h>
+#include <maya/MDagPathArray.h>
 
 #include "XGenTranslator.h"
 
@@ -424,6 +426,21 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       //float s = 100000.f * fUnitConvFactor;
       //info.setBoundingBox( -s,-s,-s, s, s, s );
       MDagPath camera = GetSessionOptions().GetExportCamera();
+
+      // FIXME currently only fix is to get the first renderable camera if we can't get the session camera
+      // due to it being added to the session after the rest of the scene is translated.
+      if (!camera.isValid())
+      {
+         // Export Camera isn't set in the options for some reason, let's see if it
+         // has been set on arnold options side
+         AtNode *arnoldCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+         if (arnoldCamera)
+         {
+            MSelectionList camList;
+            camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
+            camList.getDagPath(0, camera);
+         }
+      }
 
       if (camera.isValid())
       {

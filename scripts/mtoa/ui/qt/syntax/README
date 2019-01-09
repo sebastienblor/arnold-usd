@@ -1,0 +1,41 @@
+syntax JSON format file
+
+Two sections "syntax" is the main keywords, with a key for each sytax color that you want to use and "comments" is a section dedicated to highlighting single and double line comments
+
+== Syntax section ==
+
+Each keyword section can have three subsections
+
+    * "paterns" - a list of regEx patterns to match to
+    * "color" - a list of three byte size values (0-255) to set the highlight color for the text that matches the above pattern
+    * "weight" - (optional) an enum of the weight of the text, currently only accepts "bold" as a setting
+    * "italic" - (optional) a boolen value if set to true will set the text to italic
+
+
+                "firstkeyword":{"patterns":["\\bmytext\\b"],
+                             "color": [0, 255, 255],
+                             "weight": "bold",
+                             "italic": true},
+                "secondkeyword":{"patterns":["\\bmyothertext\\b""],
+                             "color": [255, 0, 255],
+                             "weight": "bold",
+                             "italic": true},
+
+== Comments Section ==
+    There are two types of comment, "single-line" and "multi-line".
+    the signle -line comment has the same options as a normal syntax keyword as above.
+
+    The multi-line commant has two pattern paramaters:
+
+    * "start_pattern" - a regex pattern for matching the characters for the start of a multi-line comment
+    * "end_pattern" - a regex pattern for matching the characters for the end of a multi-line comment
+
+    the rest of the options (color, weight, italic) can be sued as above
+
+    "comments": {
+                 "single-line":{"patterns": ["//[^\n]*"],
+                                "color": [128, 0, 0]},
+                 "multi-line":{"start_pattern": "/\\*",
+                               "end_pattern": "\\*/",
+                               "color": [128, 0, 0]}
+                }
