@@ -11,6 +11,8 @@ from utils.build_tools import *
 from utils.mtoa_build_tools import *
 #from solidangle_tools import *
 
+from multiprocessing import cpu_count
+
 import SCons
 
 from colorama import init
@@ -219,6 +221,10 @@ env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
 
+# Set default amount of threads set to the cpu counts in this machine.
+# This can be overridden through command line by setting e.g. "abuild -j 1"
+SetOption('num_jobs', int(cpu_count()))
+
 set_target_arch('x86_64')
 
 # Configure colored output
@@ -368,6 +374,7 @@ print 'Maya version   : %s' % maya_version
 print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os)
+print 'Threads        : %s' % GetOption('num_jobs')
 if system.os == 'linux':
     try:
         if env['SHCC'] != '' and env['SHCC'] != '$CC':
