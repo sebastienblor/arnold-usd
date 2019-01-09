@@ -73,6 +73,7 @@ vars.AddVariables(
     EnumVariable('USE_VALGRIND', 'Enable Valgrinding', 'False', allowed_values=('False', 'True', 'Full')),
     BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
     BoolVariable('SHOW_PLOTS', 'Display timing plots for the testsuite. gnuplot has to be found in the environment path.', False),
+    BoolVariable('CLEAN_TESTSUITE_RESULTS', 'Remove all the test files from the testsuite output and only keep the reports/images', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),

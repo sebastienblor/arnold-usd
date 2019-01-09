@@ -506,6 +506,28 @@ def run_test(target, source, env):
 
       vg_write_report(f, os.path.join(test_dir, "%s.vg.xml") % TEST_NAME, test_env['USE_VALGRIND'])
 
+   # If this variable is defined, we delete everything in the test folder (scenes, temporary files, etc...),
+   # except the files that are needed for the report. 
+   if test_env['CLEAN_TESTSUITE_RESULTS']:
+      whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
+      whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
+      whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
+      whitelist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
+      whitelist.append(os.path.join(test_dir, TEST_NAME +'.log'))
+      whitelist.append(os.path.join(test_dir, TEST_NAME +'.html'))
+      whitelist.append(os.path.join(test_dir, TEST_NAME +'.vg.xml'))
+      whitelist.append(os.path.join(test_dir, 'README'))
+      whitelist.append(os.path.join(test_dir, 'STATUS'))
+      whitelist.append(os.path.join(test_dir, 'TIMINGS'))      
+      for root, dirs, files in os.walk(test_dir):
+         for folder in dirs:
+            sa.path.remove(os.path.join(test_dir, folder))
+         for file in files:
+            full_path = os.path.join(test_dir, file)
+            if not full_path in whitelist:
+               sa.path.remove(full_path)
+
+
    ## always succeeds (unless some of the functions above throw an error)
    return None
 
