@@ -196,7 +196,8 @@ def run_test(target, source, env):
    
    output_images = []
    for ref in reference_images:
-      output_image_name = ref.split('\\')[-1].replace("reference","testrender")
+      output_image_name = os.path.basename(ref).replace("reference","testrender")
+
       sa.path.remove(output_image_name)
       output_images.append(output_image_name)
 
@@ -691,7 +692,7 @@ def process_testsuite(target, source, env):
 
          # if 'MAKE_THUMBNAIL' is disabled, there won't be any png thumbnail in the test folder, let's use the default one
          if not reference_images:
-            reference_images = ['ref_testrenderer.png']
+            reference_images = ['ref_testrenderer.tif.png']
 
          for reference_image in reference_images:
 
