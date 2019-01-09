@@ -5,6 +5,7 @@ import os
 from utils.build_tools import find_files_recursive
 import glob
 import subprocess
+from utils.mtoa_build_tools import get_library_extension, get_library_prefix
 
 # import build env
 Import('ext_env')
