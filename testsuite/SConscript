@@ -100,7 +100,7 @@ def make_test(target, source, env):
    os.mkdir(os.path.join(testpath, 'data'))
    os.mkdir(os.path.join(testpath, 'ref'))
    shutil.copy(os.path.join(testsuite_common, 'README.template'), os.path.join(testpath, 'README'))
-   shutil.copy(os.path.join(testsuite_common, 'test.ass.template'), os.path.join(testpath, 'data', 'test.ass'))
+   shutil.copy(os.path.join(testsuite_common, 'test.ma.template'), os.path.join(testpath, 'data', 'test.ma'))  
    return None ## always succeeds
 
 maketest_bld = Builder(action = Action(make_test, "Creating test '$TARGET'..."))
