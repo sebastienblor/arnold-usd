@@ -238,7 +238,8 @@ def run_test(target, source, env):
          cmd += ' -l ' + test_env['USD_PROCEDURAL_INSTALL_PATH']
       elif os.path.splitext(tokens[0])[1] == '.py':
          # Use the same Python interpreter we used for launching SCons
-         cmd = sys.executable + ' ' + cmd
+         # But don't forget to add double quotes in case this path contains spaces (eg C:\Program Files(x86)\Python\python.exe ...)
+         cmd = '"' + sys.executable + '" ' + cmd
          use_shell = True
       
       # TODO : THESE NEED TO SET properly
@@ -261,7 +262,7 @@ def run_test(target, source, env):
       # if requested (parameter verbose), and always write them to a .log file.
 
       print '====Exec %s' % cmd
-      print os.getenv('PATH')
+      #print os.getenv('PATH')
 
       options =''
 
