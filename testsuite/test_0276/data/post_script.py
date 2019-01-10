@@ -1,10 +1,11 @@
+import sys
+import os
+import shutil
+
 test_root_path = sys.argv[1]
 oiiotool_path  = sys.argv[2]
 mtoa_path = sys.argv[3]
 
-import sys
-import os
-import shutil
 
 
 previousPath = os.environ['PATH']

@@ -1,0 +1,13 @@
+TODO #1: write a one-line description here
+
+TODO #2: optional, multi-line description here
+
+TODO #3: if you create a new maya scene, run the script common/prepare_test.mel. Check the script comments if you need several AOVs
+
+TODO #4: add to the testsuite/groups file if needed
+
+See trac#****
+
+author: ****
+
+PARAMS: {} # Remove this line if no custom params are needed

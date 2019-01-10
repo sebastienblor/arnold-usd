@@ -3,12 +3,15 @@
 ## first we extend the module path to load our own modules
 import subprocess
 import sys, os
-sys.path = ["tools/python"] + sys.path
+sys.path = ["tools/python"]  + sys.path
 
-import system
+import utils.system
 import glob
-from build_tools import *
-from solidangle_tools import *
+from utils.build_tools import *
+from utils.mtoa_build_tools import *
+#from solidangle_tools import *
+
+from multiprocessing import cpu_count
 
 import SCons
 
@@ -24,24 +27,24 @@ MTOA_VERSION = get_mtoa_version(4)
 
 EXTERNAL_PATH = os.path.abspath('external')
 
-if system.os() == 'darwin':
+if system.os == 'darwin':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
     glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
     glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
-elif system.os() == 'linux':
+elif system.os == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
     glew_default_lib = '/usr/lib64/libGLEW.a'
     glew_default_include = '/usr/include'
-elif system.os() == 'windows':
+elif system.os == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
     glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'glew32s.lib')
     glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
 else:
-    print "Unknown operating system: %s" % system.os()
+    print "Unknown operating system: %s" % system.os
     Exit(1)
 
 ################################################################################
@@ -68,7 +71,11 @@ vars.AddVariables(
                   
     BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
     EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
+    EnumVariable('TEST_ORDER', 'Set the execution order of tests to be run', 'reverse', allowed_values=('normal', 'reverse')),
+    EnumVariable('USE_VALGRIND', 'Enable Valgrinding', 'False', allowed_values=('False', 'True', 'Full')),
     BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
+    BoolVariable('SHOW_PLOTS', 'Display timing plots for the testsuite. gnuplot has to be found in the environment path.', False),
+    BoolVariable('CLEAN_TESTSUITE_RESULTS', 'Remove all the test files from the testsuite output and only keep the reports/images', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
@@ -169,11 +176,11 @@ vars.AddVariables(
     ('SIGN_COMMAND', 'Script to be executed in each of the packaged files', '')
 )
 
-if system.os() == 'darwin':
+if system.os == 'darwin':
     vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
-if system.os() == 'windows':
+if system.os == 'windows':
     vars.Add(BoolVariable('USE_VISUAL_STUDIO_EXPRESS', 'Use the express version of visual studio. (UNSUPPORTED!)', False))
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
@@ -214,7 +221,11 @@ env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 env['MTOA_VERSION'] = MTOA_VERSION
 
-system.set_target_arch('x86_64')
+# Set default amount of threads set to the cpu counts in this machine.
+# This can be overridden through command line by setting e.g. "abuild -j 1"
+SetOption('num_jobs', int(cpu_count()))
+
+set_target_arch('x86_64')
 
 # Configure colored output
 color_green   = ''
@@ -235,7 +246,7 @@ if env['COLOR_CMDS']:
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
 MAYA_INCLUDE_PATH = env.subst(env['MAYA_INCLUDE_PATH'])
 if env['MAYA_INCLUDE_PATH'] == '.':
-    if system.os() == 'darwin':
+    if system.os == 'darwin':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
     else:
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
@@ -274,8 +285,9 @@ env['ENABLE_GPU_CACHE'] = 1
 
 # Get arnold and maya versions used for this build
 
-arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
 
+arnold_version    = get_arnold_version(ARNOLD_API_INCLUDES)
+env['ARNOLD_VERSION'] = arnold_version
 clm_version = 1
 
 p = subprocess.Popen(os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), shell=True, stdout = subprocess.PIPE)
@@ -306,7 +318,7 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
 
-    if system.os() == 'linux' or env['MODE'] != 'debug' :    
+    if system.os == 'linux' or env['MODE'] != 'debug' :    
         env['ENABLE_BIFROST'] = 1
 
     bifrost_ext = 'bifrost_2016'
@@ -320,7 +332,7 @@ if int(maya_version) >= 201650:
 
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
-    if (system.os() == "windows") and (int(maya_version_base) == 2014):
+    if (system.os == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
 
 if int(maya_version) >= 201700:
@@ -361,8 +373,9 @@ print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
 print 'CLM version    : %s' % clm_version
 print 'Mode           : %s' % (env['MODE'])
-print 'Host OS        : %s' % (system.os())
-if system.os() == 'linux':
+print 'Host OS        : %s' % (system.os)
+print 'Threads        : %s' % GetOption('num_jobs')
+if system.os == 'linux':
     try:
         if env['SHCC'] != '' and env['SHCC'] != '$CC':
             print 'Compiler       : %s'  % (env['SHCC'])
@@ -372,7 +385,7 @@ if system.os() == 'linux':
             print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
     except:
         pass
-elif system.os() == 'windows':
+elif system.os == 'windows':
     print 'MSVC version   : %s' % (env['MSVC_VERSION'])
 print 'Build ID       : %s' % build_id
 print 'SCons          : %s' % (SCons.__version__)
@@ -401,7 +414,7 @@ except:
 ################################
 
 ## Generic Windows stuff476
-if system.os() == 'windows':
+if system.os == 'windows':
     # Embed manifest in executables and dynamic libraries
     env['LINKCOM'] = [env['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
     env['SHLINKCOM'] = [env['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
@@ -411,7 +424,7 @@ export_symbols = env['MODE'] in ['debug', 'profile']
 # FIXME : Bifrost library "bifrostrendercore" is returning warnings. Until we solve this I'm forcing warn_only here :-/
 env['WARN_LEVEL'] = 'warn_only'
 if env['COMPILER'] == 'gcc':
-    if system.os() == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
+    if system.os == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
         env['CC'] = env['SHCC']
         env['CXX'] = env['SHCXX']
         #env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
@@ -448,7 +461,7 @@ if env['COMPILER'] == 'gcc':
 
 
     ## Hardcode '.' directory in RPATH in linux
-    if system.os() == 'linux':
+    if system.os == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
         if int(maya_version_base) >= 2018:
             env.Append(CXXFLAGS = Split('-std=c++11'))
@@ -468,14 +481,14 @@ if env['COMPILER'] == 'gcc':
         env.Append(CCFLAGS = Split(env['GCC_OPT_FLAGS']))
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
 
-        if system.os() == 'darwin': 
+        if system.os == 'darwin': 
             env.Append(CCFLAGS = Split('-gstabs')) 
             env.Append(LINKFLAGS = Split('-gstabs')) 
         else: 
             env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
             env.Append(LINKFLAGS = Split('-g')) 
 
-    if system.os() == 'darwin':
+    if system.os == 'darwin':
         ## tell gcc to compile a 64 bit binary
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
@@ -613,12 +626,12 @@ if int(maya_version_base) < 2017:
     env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
 
 ## platform related defines
-if system.os() == 'windows':
+if system.os == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
     env.Append(CPPDEFINES = Split('_WIN64'))
-elif system.os() == 'darwin':
+elif system.os == 'darwin':
     env.Append(CPPDEFINES = Split('_DARWIN OSMac_'))
-elif system.os() == 'linux':
+elif system.os == 'linux':
     env.Append(CPPDEFINES = Split('_LINUX'))
 
 ## Add path to Arnold API by default
@@ -626,7 +639,7 @@ env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os, target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
@@ -649,7 +662,7 @@ if env['MTOA_DISABLE_RV']:
 env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
-if system.os() == 'windows':
+if system.os == 'windows':
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
     maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
@@ -689,12 +702,12 @@ else:
     maya_env.Append(CPPPATH = ['.'])
     maya_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
 
-    if system.os() == 'linux':
+    if system.os == 'linux':
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
-    elif system.os() == 'darwin':
+    elif system.os == 'darwin':
         # MAYA_LOCATION on osx includes Maya.app/Contents
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
@@ -703,7 +716,7 @@ else:
 
     if env['PREBUILT_MTOA']:       
         MTOA_API = [os.path.join(BUILD_BASE_DIR, 'api', 'libmtoa_api' + get_library_extension())]
-        if system.os() == 'darwin':
+        if system.os == 'darwin':
             MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.bundle')]
         else:
             MTOA = [os.path.join(BUILD_BASE_DIR, 'mtoa', 'mtoa.so')]
@@ -743,7 +756,7 @@ else:
 
         return 0
 
-    if system.os() == 'darwin':
+    if system.os == 'darwin':
         env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Adjusting paths in mtoa_api.dylib ...'))
         env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Adjusting paths in mtoa.boundle ...'))
         #env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
@@ -768,7 +781,7 @@ env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if not env['DISABLE_COMMON']:
     env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
-if system.os() == 'windows':
+if system.os == 'windows':
     # Rename plugins as .mll and install them in the target path
     mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
@@ -787,7 +800,7 @@ else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
     env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
-    if system.os() == 'linux':
+    if system.os == 'linux':
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
     else:
         libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.dylib'))
@@ -800,8 +813,8 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_exten
 if env['ENABLE_COLOR_MANAGEMENT'] == 1:
     
     # install syncolor packages 
-    syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os())
-    if (system.os() == 'linux'):
+    syncolor_library_path = os.path.join(env['ROOT_DIR'], 'external', 'synColor', 'lib', system.os)
+    if (system.os == 'linux'):
         # on linux the version number is after ".so."
         env.Install(env['TARGET_BINARIES'], glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*"))
     else:
@@ -810,9 +823,9 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 1:
 
 
 # Install the licensing tools
-rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os())
-nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os())
-clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os())
+rlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'rlm', system.os)
+nlm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'nlm', system.os)
+clm_utils_path = os.path.join(env['ROOT_DIR'], 'external', 'license_server', 'clm', system.os)
 
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(rlm_utils_path, "*")))
 env.Install(env['TARGET_BINARIES'], glob.glob(os.path.join(nlm_utils_path, "*")))
@@ -827,7 +840,7 @@ env.Install(os.path.join(env['TARGET_MODULE_PATH'], 'materialx'), os.path.join(A
 env.Install(TARGET_PLUGINS_PATH, glob.glob(os.path.join(ARNOLD, 'plugins', "*")))
 
 if env['ENABLE_BIFROST'] and int(maya_version) >= 201800 :
-    env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os(), '*')))
+    env.Install(os.path.join(TARGET_EXTENSION_PATH, 'bifrost', '1.5.0'), glob.glob(os.path.join(env['ROOT_DIR'], 'external', 'bifrost', '1.5.0', system.os, '*')))
 
 OCIO_DYLIBPATH =""
 
@@ -866,7 +879,7 @@ def GetViewportShaders(maya_version):
     vp2ShadersList = []
     vp2ShaderExtensions = ['.xml', '.cgfx', '.fx', '.ogsfx']
     
-    if system.os() == 'windows':
+    if system.os == 'windows':
         vp2ShaderExtensions.append('.hlsl')
     vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
     old_vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2', '2016'), vp2ShaderExtensions)
@@ -984,7 +997,7 @@ if maya_base_version == '2016':
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + PACKAGE_SUFFIX
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os + "-" + maya_base_version + PACKAGE_SUFFIX
 
 if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
@@ -1149,7 +1162,7 @@ for ext in os.listdir(ext_base_dir):
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        extension_package_name = '%s-MtoA-%s-%s-%s%s' % (ext, MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+        extension_package_name = '%s-MtoA-%s-%s-%s%s' % (ext, MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX)
         EXT_PACKAGE = local_env.MakePackage(extension_package_name, EXT)        
         top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)        
         local_env.AlwaysBuild(EXT_PACKAGE)
@@ -1205,8 +1218,8 @@ if env['ENABLE_COLOR_MANAGEMENT'] > 0:
     
     # we also need to copy the syncolor dylib, for syncolor extension
     # FIXME couldn't this be done in the extension script ?
-    syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os())
-    if (system.os() == 'linux'):
+    syncolor_library_path = os.path.join(EXTERNAL_PATH, 'synColor', 'lib', system.os)
+    if (system.os == 'linux'):
         # on linux the syncolor version number is after ".so."
         syncolor_files = glob.glob(syncolor_library_path + "/"+ get_library_prefix() + "synColor"+get_library_extension()+".*")
     else:
@@ -1220,9 +1233,9 @@ if (int(maya_version) >= 201700):
     PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 # package the licensing tools
-rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os())
-nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os())
-clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os())
+rlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'rlm', system.os)
+nlm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'nlm', system.os)
+clm_utils_path = os.path.join(EXTERNAL_PATH, 'license_server', 'clm', system.os)
 PACKAGE_FILES.append([os.path.join(rlm_utils_path, '*'), 'bin'])
 PACKAGE_FILES.append([os.path.join(nlm_utils_path, '*'), 'bin'])
 
@@ -1261,7 +1274,7 @@ if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', bifrost_ext, 'plugin', '*.py'), 'extensions'])
 
     if bifrost_ext == 'bifrost':
-        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', '1.5.0', system.os()), os.path.join('extensions', 'bifrost', '1.5.0')])
+        PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', '1.5.0', system.os), os.path.join('extensions', 'bifrost', '1.5.0')])
     else:
          #PACKAGE_FILES.append([os.path.join(EXTERNAL_PATH, 'bifrost', 'bifrost_procedural_0_1%s' % get_library_extension()), 'procedurals'])
     #else:
@@ -1317,16 +1330,16 @@ for p in apiheaders:
         [os.path.join('plugins', 'mtoa', p), os.path.join('include', d)]
     ]
 
-if system.os() == 'windows':
+if system.os == 'windows':
     PACKAGE_FILES += [
         [MTOA[0], 'plug-ins', 'mtoa.mll'],
     ]
-elif system.os() == 'linux':
+elif system.os == 'linux':
     PACKAGE_FILES += [
         [MTOA[0], 'plug-ins'],
         [os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()), 'bin'],
     ]
-elif system.os() == 'darwin':
+elif system.os == 'darwin':
     PACKAGE_FILES += [
        [MTOA[0], 'plug-ins'],
     ]
@@ -1339,12 +1352,12 @@ if not env['MTOA_DISABLE_RV']:
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
-if system.os() == "windows":
+if system.os == "windows":
     installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
-elif system.os() == "darwin":
-    installer_name = 'MtoA-%s-%s-%s%s.zip' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+elif system.os == "darwin":
+    installer_name = 'MtoA-%s-%s-%s%s.zip' % (MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX)
 else:
-    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
 
@@ -1353,7 +1366,7 @@ def create_installer(target, source, env):
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
 
-    if system.os() == "windows":
+    if system.os == "windows":
         import zipfile
         shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
         shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
@@ -1384,7 +1397,7 @@ def create_installer(target, source, env):
         sign_packaged_file(env['SIGN_COMMAND'], os.path.join(tempdir, 'MtoA.exe'), signed_extensions)
 
         shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
-    elif system.os() == "darwin":
+    elif system.os == "darwin":
         import zipfile
         maya_version = maya_base_version.replace('20135', '2013.5')
         shutil.copyfile(os.path.abspath('installer/MtoA_'+maya_version+'_Installer.pkgproj'), os.path.join(tempdir, 'MtoA_Installer.pkgproj'))
@@ -1475,7 +1488,7 @@ def create_installer(target, source, env):
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 
-if system.os() == 'linux':
+if system.os == 'linux':
     def check_compliance(target, source, env):
         REFERENCE_API_LIB = env['REFERENCE_API_LIB']
         REFERENCE_API_VERSION = env['REFERENCE_API_VERSION']

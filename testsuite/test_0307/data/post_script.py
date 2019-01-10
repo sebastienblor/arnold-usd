@@ -1,6 +1,7 @@
 import sys
 import os
 import os.path
+import shutil
 
 num_png = 0
 files = [f for f in os.listdir('.') if os.path.isfile(f)]

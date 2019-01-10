@@ -2,7 +2,7 @@
 #
 # Version:  C:/Program Files/Autodesk/Maya2017/plug-ins/xgen/
 # Author:   blaines
-# Date:     Thu Oct 13 11:52:57 2016
+# Date:     Wed Jan 09 17:50:02 2019
 
 FileVersion 18
 
@@ -10,7 +10,7 @@ Palette
 	name			collection9
 	parent			
 	xgDataPath		${PROJECT}xgen/collections/collection9
-	xgProjectPath		C:/Users/blaines/Downloads/LW_Maya_Arnold/LW_Maya_Arnold/
+	xgProjectPath		C:/Users/blaines/Documents/maya/projects/default/
 	xgDogTag		
 	endAttrs
 
@@ -29,7 +29,7 @@ Description
 	groom			
 	descriptionId		0
 	xgDataPath		${PROJECT}xgen/collections/collection9/
-	xgProjectPath		C:/Users/blaines/Downloads/LW_Maya_Arnold/LW_Maya_Arnold/
+	xgProjectPath		C:/Users/blaines/Documents/maya/projects/default/
 	endAttrs
 
 NullRenderer
@@ -92,6 +92,7 @@ RendermanRenderer
 	custom__arnold_motion_blur_factor	0.5
 	custom__arnold_useAuxRenderPatch	0
 	custom__arnold_auxRenderPatch	0
+	custom__arnold_multithreading	1
 	endAttrs
 
 SplinePrimitive
