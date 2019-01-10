@@ -154,8 +154,12 @@ def run_test(target, source, env):
    logfile = "%s.log" % (TEST_NAME)
    logfile = os.path.join(test_dir, logfile)
 
+   summary = ''
+   with open(os.path.join(test_dir, 'README'), 'r') as f:
+      summary = f.readline() ## summary is on the first line
 
-
+   print_safe('.... starting {} {}'.format(TEST_NAME, summary))
+     
    test_ref_dir =   os.path.join(env.Dir('.').srcnode().abspath, 'testsuite', TEST_NAME, 'ref')
    
    show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(TEST_TARGETS) == 1))
@@ -175,12 +179,15 @@ def run_test(target, source, env):
    # if a 'plugin' folder is found, it's because it contains custom shaders/procedurals
    plugin_dir = os.path.join(test_dir, 'plugin')
    if os.path.exists(plugin_dir):
-      print '---- Plugin folder exists %s' % plugin_dir
+      if show_test_output:
+         print_safe('---- Plugin folder exists %s' % plugin_dir)
       local_env['ARNOLD_PLUGIN_PATH'] = plugin_dir
 
    # if an 'extension' folder exists, we want to add it for MtoA extensions
    extension_dir = os.path.join(test_dir, 'extension')
    if os.path.exists(extension_dir):
+      if show_test_output:
+         print_safe('---- Extensions folder exists %s' % plugin_dir)
       local_env['MTOA_EXTENSIONS_PATH'] = extension_dir
       
 
@@ -261,8 +268,9 @@ def run_test(target, source, env):
       # NOTE #5079: Execute the test printing the logs to the standard output
       # if requested (parameter verbose), and always write them to a .log file.
 
-      print '====Exec %s' % cmd
-      #print os.getenv('PATH')
+      if show_test_output:
+         print '====Exec %s' % cmd
+         print os.getenv('PATH')
 
       options =''
 
@@ -302,6 +310,8 @@ def run_test(target, source, env):
    
       os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
 
+      # Do we want to print the actual command ?
+      
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
       with open(logfile, 'w') as f:
          f.write('==== Setting Path ===== \n \n ')
@@ -379,9 +389,9 @@ def run_test(target, source, env):
          cmd = oiiotool_path + ' -v --info ' + reference_image
          retcode, info = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell)
 
-         print "Exec %s" % cmd
-         # FIXME: do we really want to print the output ?
-         #print info
+         if show_test_output:
+            print "Exec %s" % cmd
+            print info
 
          #is_deep = 'deep' in info[1].split(',')[-1]
          channel_names = ['R', 'G', 'B', 'A'] #info[2].split(': ')[1].split(',')
@@ -459,28 +469,6 @@ def run_test(target, source, env):
 
    readme_file = os.path.join(test_dir, 'README')
 
-   ## progress text (scream if the test didn't pass)
-   progress_text = ''
-   if status_valgrind == 'OK':
-      if status == 'OK':
-         progress_text = TEST_NAME
-      else:
-         with open(readme_file, 'r') as f:
-            summary = f.readline().strip('\n')
-         progress_text = ('%s %7s: %s') % (TEST_NAME, status, summary)
-   elif status_valgrind == 'MEMERROR':
-         with open(readme_file, 'r') as f:
-            summary = f.readline().strip('\n')
-         f.close
-         progress_text = '%s %s (%d): %s' % (TEST_NAME, status_valgrind, nMemErrors, summary)
-   elif status_valgrind == 'MEMLEAK':
-         with open(readme_file, 'r') as f:
-            summary = f.readline().strip('\n')
-         f.close
-         progress_text = '%s %s  (%d): %s' % (TEST_NAME, status_valgrind, nMemLeaks, summary)
-
-   print_safe(progress_text)
-
    with open(os.path.join(test_dir, 'STATUS'), 'w') as f:
       f.write(status) ## so we can get the status of this test later
 
@@ -526,26 +514,51 @@ def run_test(target, source, env):
    # If this variable is defined, we delete everything in the test folder (scenes, temporary files, etc...),
    # except the files that are needed for the report. 
    if test_env['CLEAN_TESTSUITE_RESULTS']:
-      print 'Cleaning testsuite results'
-      whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
-      whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
-      whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
-      whitelist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
-      whitelist.append(os.path.join(test_dir, TEST_NAME +'.log'))
-      whitelist.append(os.path.join(test_dir, TEST_NAME +'.html'))
-      whitelist.append(os.path.join(test_dir, TEST_NAME +'.vg.xml'))
-      whitelist.append(os.path.join(test_dir, 'README'))
-      whitelist.append(os.path.join(test_dir, 'STATUS'))
-      whitelist.append(os.path.join(test_dir, 'TIMINGS'))      
-      for root, dirs, files in os.walk(test_dir):
-         for folder in dirs:
-            sa.path.remove(os.path.join(test_dir, folder))
-         for file in files:
-            full_path = os.path.join(test_dir, file)
-            if not full_path in whitelist:
-               sa.path.remove(full_path)
+      try:
+         if show_test_output:
+            print 'Cleaning testsuite results'
+         whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
+         whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
+         whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
+         whitelist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
+         whitelist.append(os.path.join(test_dir, TEST_NAME +'.log'))
+         whitelist.append(os.path.join(test_dir, TEST_NAME +'.html'))
+         whitelist.append(os.path.join(test_dir, TEST_NAME +'.vg.xml'))
+         whitelist.append(os.path.join(test_dir, 'README'))
+         whitelist.append(os.path.join(test_dir, 'STATUS'))
+         whitelist.append(os.path.join(test_dir, 'TIMINGS'))      
+         for root, dirs, files in os.walk(test_dir):
+            for folder in dirs:
+               sa.path.remove(os.path.join(test_dir, folder))
+            for file in files:
+               full_path = os.path.join(test_dir, file)
+               if not full_path in whitelist:
+                  sa.path.remove(full_path)
+      except (ValueError, TypeError):
+         pass
 
+   ## progress text (scream if the test didn't pass)
+   progress_text = ''
+   if status_valgrind == 'OK':
+      if status == 'OK':
+         progress_text = '%s OK' % TEST_NAME 
+      else:
+         with open(readme_file, 'r') as f:
+            summary = f.readline().strip('\n')
+         progress_text = ('%s %7s: %s') % (TEST_NAME, status, summary)
+   elif status_valgrind == 'MEMERROR':
+         with open(readme_file, 'r') as f:
+            summary = f.readline().strip('\n')
+         f.close
+         progress_text = '%s %s (%d): %s' % (TEST_NAME, status_valgrind, nMemErrors, summary)
+   elif status_valgrind == 'MEMLEAK':
+         with open(readme_file, 'r') as f:
+            summary = f.readline().strip('\n')
+         f.close
+         progress_text = '%s %s  (%d): %s' % (TEST_NAME, status_valgrind, nMemLeaks, summary)
 
+   print_safe(progress_text)
+   
    ## always succeeds (unless some of the functions above throw an error)
    return None
 
@@ -698,7 +711,6 @@ def process_testsuite(target, source, env):
          for reference_image in reference_images:
 
             ref_thumbnail = os.path.basename(reference_image)
-            print "Output image %s" % ref_thumbnail[4:-4]
             new_thumbnail = 'new_'+ref_thumbnail[4:]
             dif_thumbnail = 'dif_'+ref_thumbnail[4:]
             
