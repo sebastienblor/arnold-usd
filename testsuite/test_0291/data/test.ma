@@ -2,7 +2,7 @@
 //Name: test.ma
 //Last modified: Tue, Aug 07, 2018 05:06:10 PM
 //Codeset: 1252
-requires maya "2018ff08";
+requires maya "2018";
 requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiStandardSurface"
 		 -nodeType "aiMerge" -nodeType "aiSetParameter" -nodeType "aiDisable" -nodeType "aiSwitchOperator"
 		 "mtoa" "3.1.0.wip";
