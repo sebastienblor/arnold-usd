@@ -277,17 +277,8 @@ def run_test(target, source, env):
       cmd = string.replace(cmd, "%proj%", test_dir)
       cmd = string.replace(cmd, "%dir%", test_dir)
       cmd = string.replace(cmd, "%file%", os.path.join(test_dir, 'test.ma'))
-
       
-      if show_test_output:
-         cmd = string.replace(cmd, "%options%", options)
-      else:
-         cmd = string.replace(cmd, "%options%", '-log %s %s' % (logfile, options))
-         #if is_windows:
-         #   cmd = '%s  1> "%s" 2>&1' % (cmd, logfile)
-         #else:
-         #   cmd = '%s  > "%s" 2>> "%s"' % (cmd, logfile, logfile)
-
+      cmd = string.replace(cmd, "%options%", options)
 
       if os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') not in test_env['ENV']['PATH'] :
          test_env['ENV']['PATH'] = os.path.join(test_env['TARGET_MODULE_PATH'], 'plug-ins') + ";" + test_env['ENV']['PATH']
@@ -310,16 +301,15 @@ def run_test(target, source, env):
    
       os.environ['PYMEL_SKIP_MEL_INIT'] = "1"
 
-      # Do we want to print the actual command ?
-      
       retcode, out = sa.system.execute(cmd, cwd=test_dir, env=local_env, shell=use_shell, timeout=test_env.get('TIMELIMIT', 0), verbose=show_test_output)
+      
       with open(logfile, 'w') as f:
          f.write('==== Setting Path ===== \n \n ')
          f.write(str(local_env) + '\n \n ')
          f.write('==== Exec cmd ==== \n \n')
          f.write(cmd + '\n \n ')
          f.writelines(l + '\n' for l in out)
-
+      
       running_time = time.time() - before_time
       TOTAL_RUNNING_TIME += running_time
       if test_env['USE_VALGRIND'] != 'False':
@@ -515,21 +505,21 @@ def run_test(target, source, env):
    progress_text = ''
    if status_valgrind == 'OK':
       if status == 'OK':
-         progress_text = '->%s OK' % TEST_NAME 
+         progress_text = '-> %s OK' % TEST_NAME 
       else:
          with open(readme_file, 'r') as f:
             summary = f.readline().strip('\n')
-         progress_text = ('->%s %7s: %s') % (TEST_NAME, status, summary)
+         progress_text = ('-> %s %7s: %s') % (TEST_NAME, status, summary)
    elif status_valgrind == 'MEMERROR':
          with open(readme_file, 'r') as f:
             summary = f.readline().strip('\n')
          f.close
-         progress_text = '->%s %s (%d): %s' % (TEST_NAME, status_valgrind, nMemErrors, summary)
+         progress_text = '-> %s %s (%d): %s' % (TEST_NAME, status_valgrind, nMemErrors, summary)
    elif status_valgrind == 'MEMLEAK':
          with open(readme_file, 'r') as f:
             summary = f.readline().strip('\n')
          f.close
-         progress_text = '->%s %s  (%d): %s' % (TEST_NAME, status_valgrind, nMemLeaks, summary)
+         progress_text = '-> %s %s  (%d): %s' % (TEST_NAME, status_valgrind, nMemLeaks, summary)
 
    print_safe(progress_text)
    
