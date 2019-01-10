@@ -3,5 +3,6 @@ Testing hairShader override on the hairSystem.
 author: Pal
 
 PARAMS: {
-   'diff_fail': 0.04
+   'diff_fail': 0.04,
+   'diff_hardfail': 0.04
 }

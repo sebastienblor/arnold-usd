@@ -3,5 +3,6 @@ Test Render To Texture w/ different options
 author: sebastien.ortega
 
 PARAMS: {
-   'diff_fail': 0.02
+   'diff_fail': 0.04,
+   'diff_hardfail': 0.04
 }

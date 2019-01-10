@@ -510,52 +510,26 @@ def run_test(target, source, env):
          f.write(html_template.format(**params))
 
       vg_write_report(f, os.path.join(test_dir, "%s.vg.xml") % TEST_NAME, test_env['USE_VALGRIND'])
-
-   # If this variable is defined, we delete everything in the test folder (scenes, temporary files, etc...),
-   # except the files that are needed for the report. 
-   if test_env['CLEAN_TESTSUITE_RESULTS']:
-      try:
-         if show_test_output:
-            print 'Cleaning testsuite results'
-         whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
-         whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
-         whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
-         whitelist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
-         whitelist.append(os.path.join(test_dir, TEST_NAME +'.log'))
-         whitelist.append(os.path.join(test_dir, TEST_NAME +'.html'))
-         whitelist.append(os.path.join(test_dir, TEST_NAME +'.vg.xml'))
-         whitelist.append(os.path.join(test_dir, 'README'))
-         whitelist.append(os.path.join(test_dir, 'STATUS'))
-         whitelist.append(os.path.join(test_dir, 'TIMINGS'))      
-         for root, dirs, files in os.walk(test_dir):
-            for folder in dirs:
-               sa.path.remove(os.path.join(test_dir, folder))
-            for file in files:
-               full_path = os.path.join(test_dir, file)
-               if not full_path in whitelist:
-                  sa.path.remove(full_path)
-      except (ValueError, TypeError):
-         pass
-
+         
    ## progress text (scream if the test didn't pass)
    progress_text = ''
    if status_valgrind == 'OK':
       if status == 'OK':
-         progress_text = '%s OK' % TEST_NAME 
+         progress_text = '->%s OK' % TEST_NAME 
       else:
          with open(readme_file, 'r') as f:
             summary = f.readline().strip('\n')
-         progress_text = ('%s %7s: %s') % (TEST_NAME, status, summary)
+         progress_text = ('->%s %7s: %s') % (TEST_NAME, status, summary)
    elif status_valgrind == 'MEMERROR':
          with open(readme_file, 'r') as f:
             summary = f.readline().strip('\n')
          f.close
-         progress_text = '%s %s (%d): %s' % (TEST_NAME, status_valgrind, nMemErrors, summary)
+         progress_text = '->%s %s (%d): %s' % (TEST_NAME, status_valgrind, nMemErrors, summary)
    elif status_valgrind == 'MEMLEAK':
          with open(readme_file, 'r') as f:
             summary = f.readline().strip('\n')
          f.close
-         progress_text = '%s %s  (%d): %s' % (TEST_NAME, status_valgrind, nMemLeaks, summary)
+         progress_text = '->%s %s  (%d): %s' % (TEST_NAME, status_valgrind, nMemLeaks, summary)
 
    print_safe(progress_text)
    
@@ -731,6 +705,34 @@ def process_testsuite(target, source, env):
       except (ValueError, TypeError):
          pass
 
+   # If this variable is defined, we delete everything in the test folder (scenes, temporary files, etc...),
+   # except the files that are needed for the report. 
+   if test_env['CLEAN_TESTSUITE_RESULTS']:
+      print 'Cleaning testsuite results'
+      for test in source:
+         test_dir  = str(test.dir)
+         test_name = os.path.basename(test_dir)
+         try:        
+            whitelist = glob.glob(os.path.join(test_dir, 'testrender*.tif'))
+            whitelist.extend(glob.glob(os.path.join(test_dir, 'new_*.png')))
+            whitelist.extend(glob.glob(os.path.join(test_dir, 'ref_*.png')))
+            whitelist.extend(glob.glob(os.path.join(test_dir, 'dif_*.png')))
+            whitelist.append(os.path.join(test_dir, test_name +'.log'))
+            whitelist.append(os.path.join(test_dir, test_name +'.html'))
+            whitelist.append(os.path.join(test_dir, test_name +'.vg.xml'))
+            whitelist.append(os.path.join(test_dir, 'README'))
+            whitelist.append(os.path.join(test_dir, 'STATUS'))
+            whitelist.append(os.path.join(test_dir, 'TIMINGS'))      
+            for root, dirs, files in os.walk(test_dir):
+               for folder in dirs:
+                  sa.path.remove(os.path.join(test_dir, folder))
+               for file in files:
+                  full_path = os.path.join(test_dir, file)
+                  if not full_path in whitelist:
+                     sa.path.remove(full_path)
+         except (ValueError, TypeError):
+            print 'Could not clear the testsuite folder {}'.format(test_dir)
+   
    ## Render report to HTML file using template
    with open(os.path.join(testsuite_common, 'testsuite.html.template'), 'r') as template_file:
       with open(str(target[0]), 'w') as report_file:
