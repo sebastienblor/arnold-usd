@@ -18,8 +18,8 @@ def find_tests_using_node(name, env):
                ext = os.path.splitext(f)[1]
                expression = {
                   ".ass": "^[ \t]*%s[ \t]*\n[ \t]*{" % name,
-                  ".py": "AiNode\([\"\']%s[\"\']\)" % name,
-                  ".cpp": "AiNode\(\"%s\"\);" % name
+                  ".ma": "[.]*%s[.]*" % name,
+                  ".mel": "[.]*%s[.]*" % name,
                }.get(ext, None)
                
                if expression:
