@@ -410,8 +410,11 @@ void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
    
    // special case for instanced standins that are exported as duplicated procedurals
    // FIXME can't we always use m_isMasterDag ?
+
+   // Note: since we test m_isMasterDag we must be sure that it was initialized by calling IsMasterInstance/GetMasterInstance
+   // And we cannot do it here because this function is protected. See #3673
    if ((!isInstance) && AiNodeIs(anode, procedural_str))
-      isInstance = m_isMasterDag;
+      isInstance = !m_isMasterDag;
 
    if (isInstance)
    {      
