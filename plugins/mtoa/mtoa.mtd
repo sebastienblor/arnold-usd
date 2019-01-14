@@ -3404,6 +3404,13 @@ desc STRING "Apply a gamma correction to the color."
     maya.output_shortname   STRING  "out"
     maya.id                 INT     0x00115D9C
 
+[node include_graph]
+    desc                    STRING  "Include Operator Graph"
+    maya.classification     STRING  "operator"
+    maya.output_name        STRING  "out"
+    maya.output_shortname   STRING  "out"
+    maya.id                 INT     0x00115DA3
+
 
 # Cryptomatte
 [node cryptomatte]
