@@ -74,6 +74,14 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "aiin";
    helper.MakeInputBoolean(data);
 
+   //// operators
+
+   data.name = "operators";
+   data.shortName = "operators";
+   data.type = AI_TYPE_NODE;
+   data.isArray = true;
+   helper.MakeInput(data);
+
    //// userattrs
 
    std::vector<CAttrData> children(3);
@@ -125,10 +133,6 @@ void CGpuCacheTranslator::timeChangedCallback(void* clientData)
       translator->RequestUpdate();
    }
 
-   // AtNode *node =  translator->GetArnoldNode();
-
-   // MTime curTime = MAnimControl::currentTime();
-   // AiNodeSetFlt(node, "frame", float(curTime.value()));
 }
 
 void CGpuCacheTranslator::AddUpdateCallbacks()
@@ -152,9 +156,6 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 {
    if (s_alembicSupported == false || shape == NULL)
       return;
-
-   ExportMatrix(shape);
-   ProcessRenderFlags(shape);
 
    // export gpuCache parameters   
    MPlug filenamePlug = FindMayaPlug("cacheFileName");
@@ -214,12 +215,6 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
 
-   MString nsName = FindMayaPlug("aiNamespace").asString();
-   if (nsName.length() > 0)
-      AiNodeSetStr(shape, "namespace", nsName.asChar());
-   else
-      AiNodeResetParameter(shape, "namespace");
-
    AiNodeSetStr(shape, "nameprefix", FindMayaPlug("aiNameprefix").asString().asChar());
 
    // now the user attributes
@@ -262,6 +257,8 @@ void CGpuCacheTranslator::Export( AtNode *shape )
          AiNodeSetAttributes(shape, attribute_set.c_str());
       }
    }
+
+   ExportProcedural(shape);
 }
 
 
@@ -298,7 +295,6 @@ void CGpuCacheTranslator::ExportMotion(AtNode *shape)
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
-
    // Set transform matrix
    ExportMatrix(shape);
 
@@ -308,11 +304,9 @@ void CGpuCacheTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    if (s_alembicSupported == false)
       return;
-   
+
    // Check if
    if (!IsTransformPlug(plug))
       SetUpdateMode(AI_RECREATE_NODE);
    CShapeTranslator::NodeChanged(node, plug);
 }
-   
-
