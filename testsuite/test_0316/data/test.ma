@@ -2,7 +2,7 @@
 //Name: test.ma
 //Last modified: Fri, Dec 21, 2018 06:05:33 PM
 //Codeset: 1252
-requires maya "2018ff09";
+requires maya "2018";
 requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" -nodeType "aiPhysicalSky"
 		 "mtoa" "3.1.3.wip";
 requires -nodeType "assemblyDefinition" -nodeType "adskPrepareRenderGlobals" "sceneAssembly" "1.0";

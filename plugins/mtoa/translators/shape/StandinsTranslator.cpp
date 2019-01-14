@@ -20,6 +20,10 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 {
    // #3592 : Now we always export Standins as a procedural, even if they come from a Maya instance.
    // Arnold itself will handle the procedural cache, and the procedural is as lightweight as the ginstance anyway
+
+   // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
+   // before we test it in ExportUserAttribute #3673
+   IsMasterInstance();
    return AddArnoldNode("procedural");
 }
 

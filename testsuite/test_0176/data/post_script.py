@@ -1,4 +1,5 @@
 import sys
+import os
 
 oiiotool_path = sys.argv[2]
 

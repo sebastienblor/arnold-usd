@@ -1,5 +1,5 @@
 import sys
-
+import os
 oiiotool_path = sys.argv[2]
 
 #cmd = ('%s -v --info %s') % (oiiotool_path, 'testrender_diffuse_direct.exr')

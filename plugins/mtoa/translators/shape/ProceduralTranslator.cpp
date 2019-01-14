@@ -297,23 +297,40 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
    else
       AiNodeResetParameter(procedural, "namespace");
 
+
+   // Now check the "operators" input. In Arnold it's a single node pointer, whereas MtoA provides an array.
+   // If there are multiple inputs in the maya node we'll insert a merge op in the middle
+   std::vector<AtNode *> inputOps;
    MPlug ops = FindMayaPlug("operators");
    unsigned nelems = ops.numElements();
    MPlug elemPlug;
-   bool hasOperators = false;
    for (unsigned int i = 0; i < nelems; ++i)
    {
       elemPlug = ops[i];       
-      
       MPlugArray connections;
       elemPlug.connectedTo(connections, true, false);
       if (connections.length() > 0)
-         if (ExportConnectedNode(connections[0]))
-            hasOperators = true;
+      {
+         AtNode *op = ExportConnectedNode(connections[0]); // ensure this operator is exported
+         if (op)
+            inputOps.push_back(op); // append the operator node to the list 
+      }
    }
-   if (hasOperators)
-      m_impl->m_session->AddProceduralOperators(m_impl->m_handle);
-
+   if (inputOps.empty())
+      AiNodeResetParameter(procedural, "operator"); // don't forget to clear this attribute for IPR updates
+   else if (inputOps.size() == 1)
+      AiNodeSetPtr(procedural, "operator", (void*)inputOps[0]); // single input, basic translation
+   else
+   {
+      // Multiple ops, let's insert a merge operator
+      AtNode *mergeOp = AddArnoldNode("merge", "input_merge_op");
+      AtArray* opArray = AiArrayAllocate(inputOps.size(), 1, AI_TYPE_NODE);
+      for (unsigned int i = 0; i < inputOps.size(); ++i)
+         AiArraySetPtr(opArray, i, (void*)inputOps[i]);
+      
+      AiNodeSetArray(mergeOp, "inputs", opArray);
+      AiNodeSetPtr(procedural, "operator", mergeOp);
+   }
    return procedural;
 }
 

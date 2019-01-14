@@ -74,51 +74,11 @@ void COperatorTranslator::Export(AtNode *shader)
    if (AiNodeIs(shader, set_parameter_str ))
       ExportAssignedShaders(shader);      
 
-   MStringArray procList;
-
-   procList = WalkOutputs(GetMayaObject());
-
-   if (procList.length() > 0)
-   {
-      MPlug selectionPlug = FindMayaPlug("selection");
-      if (!selectionPlug.isNull())
-      {
-         MString selection = selectionPlug.asString();
-         MString finalSelection;
-         //if (globalOp)
-            //finalSelection = selection;
-
-         for (unsigned int i = 0; i < procList.length(); ++i)
-         {
-            if (finalSelection.length() > 0)
-               finalSelection += MString(" or ");
-
-            if (selection.substringW(0, 0) != MString("/"))
-               selection = MString("/") + selection;
-
-            finalSelection += procList[i] + selection;
-         }
-         AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
-      }
-      
-   }
-   // add standin name
-}
-void COperatorTranslator::NodeInitializer(CAbTranslator context)
-{   
-}
-
-
-MStringArray COperatorTranslator::WalkOutputs(MObject obj)
-{
-   MStatus status(MStatus::kSuccess);
-
-   MFnDependencyNode fnNode(obj);
-
-   MPlug outPlug = fnNode.findPlug("out", &status);;
+   // FIXME: Ideally we shouldn't have to append the name of the node here
+   MPlug outPlug = FindMayaPlug("out");
    MPlugArray outConn;
    outPlug.connectedTo(outConn, false, true);
-   outPlug = fnNode.findPlug("message", &status);
+   outPlug = FindMayaPlug("message");
    MPlugArray messageConn;
    outPlug.connectedTo(messageConn, false, true);
    for (unsigned int i = 0; i < messageConn.length(); ++i)
@@ -151,15 +111,32 @@ MStringArray COperatorTranslator::WalkOutputs(MObject obj)
                procList.append(dagName);
             }
          }
-      } else {
-         MStringArray child_procList = WalkOutputs(targetObj);
-         for (unsigned int c = 0; c < child_procList.length(); ++c)
-            procList.append(child_procList[c]);
-      }
+      } 
    }
 
-   return procList;
+   if (procList.length() > 0)
+   {
+      MPlug selectionPlug = FindMayaPlug("selection");
+      MString selection = selectionPlug.asString();
+      MString finalSelection;
+      //if (globalOp)
+         //finalSelection = selection;
+
+      for (unsigned int i = 0; i < procList.length(); ++i)
+      {
+         if (finalSelection.length() > 0)
+            finalSelection += MString(" or ");
+
+         finalSelection += procList[i] + MString("/") + selection;
+      }
+      AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
+      
+   }
 }
+void COperatorTranslator::NodeInitializer(CAbTranslator context)
+{   
+}
+
 
 // special case for set_parameter operators, we want to export the nodes which are eventually referenced.
 // We could derive operator translator classes to handle this, but for now it's still quite simple

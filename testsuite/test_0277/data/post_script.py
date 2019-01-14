@@ -1,10 +1,11 @@
+import sys
+import os
+import shutil
+
 test_root_path = sys.argv[1]
 oiiotool_path  = sys.argv[2]
 mtoa_path = sys.argv[3]
 
-import sys
-import os
-import shutil
 
 os.environ['PATH']= '{}:{}'.format(os.environ['PATH'], os.path.join(mtoa_path, 'bin'))
 sys.path.append(os.path.join(mtoa_path, 'scripts'))

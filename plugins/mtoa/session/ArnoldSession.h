@@ -141,9 +141,7 @@ public:
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
    inline unsigned int MayaLightCount() const { return m_numLights; }
    void ExportLightLinking(AtNode* shape, const MDagPath& path);
-
-   void AddProceduralOperators(const CNodeAttrHandle &handle);
-
+   
    // Flag to avoid IPR loops
    inline bool IsExportingMotion() const {return m_isExportingMotion; }
 
@@ -214,7 +212,6 @@ private:
       ,  m_updateTx(false)
       ,  m_updateMotionData(false)
       ,  m_updateOptions(false)
-      ,  m_rebuildProceduralOperators(false)
    {
    }
 
@@ -256,7 +253,7 @@ private:
    static bool IsVisiblePath(MDagPath dagPath);
    
    void RecursiveUpdateDagChildren(MDagPath &parent);
-   void ExportProceduralOperators();
+   
 private:
 
    CSessionOptions m_sessionOptions;
@@ -280,8 +277,7 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-   unordered_set<std::string> m_proceduralOperators;
-
+   
 protected:
    ObjectHandleToDagMap m_masterInstances;
 
@@ -290,5 +286,4 @@ protected:
    bool                 m_updateTx;
    bool                 m_updateMotionData;
    bool                 m_updateOptions;
-   bool                 m_rebuildProceduralOperators;
 };  // class CArnoldSession

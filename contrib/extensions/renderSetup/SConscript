@@ -1,7 +1,8 @@
 # vim: filetype=python
 
-import system, os
-from build_tools import find_files_recursive
+import utils.system as system
+import os
+from utils.build_tools import find_files_recursive
 
 # import build env
 Import('ext_env')
@@ -15,7 +16,7 @@ include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_bas
 
 EXT = local_env.SharedLibrary('renderSetup', source_files, LIBPREFIX='')
 
-if system.os() == 'windows':
+if system.os == 'windows':
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')   
    local_env.Append(CPPPATH = ['.'])
 else:
@@ -31,7 +32,7 @@ src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'r
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
-if system.os() =='windows':
+if system.os =='windows':
    shader_env.Append(CPPPATH = ['.'])
    shader_env.Append(CPPPATH = [os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'renderSetup', 'common')])
    shader_env.Append(LIBS=Split('ai.lib'))
@@ -44,7 +45,7 @@ else:
 
 EXT_SHADERS = shader_env.SharedLibrary('renderSetup_shaders', source_files, LIBPREFIX='')
 
-if system.os() == 'windows':
+if system.os == 'windows':
    shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
 
 Return('EXT EXT_SHADERS')

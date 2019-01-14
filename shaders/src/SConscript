@@ -1,8 +1,8 @@
 # vim: filetype=python
 
 ## load our own python modules
-import system
-from build_tools import find_files_recursive
+import utils.system as system
+from utils.build_tools import find_files_recursive
 
 import os
 
@@ -17,7 +17,7 @@ include_files = find_files_recursive(src_base_dir, ['.h'])
 
 local_env.Append(CPPPATH = ['.'])
 
-if system.os() =='windows':
+if system.os =='windows':
     local_env.Append(LIBS=Split('ai.lib ws2_32.lib'))
 else:    
     local_env.Append(LIBS=Split('ai'))

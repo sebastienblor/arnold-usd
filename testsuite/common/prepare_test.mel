@@ -1,0 +1,12 @@
+// MEL script to be executed on a Maya scene to format it for rendering.
+// If it has multiple AOVs, run also:
+// setAttr -type "string" defaultRenderGlobals.imageFilePrefix "testrender_<RenderLayer>";
+// FIXME can we do this automatically ?
+
+setAttr "defaultRenderGlobals.ren" -type "string" "arnold";
+setAttr "defaultRenderGlobals.imfkey" -type "string" "tif";
+setAttr "defaultRenderGlobals.imageFormat" 3;
+setAttr -type "string" defaultRenderGlobals.imageFilePrefix "testrender";
+setAttr "defaultResolution.width" 160;
+setAttr "defaultResolution.height" 120;
+setAttr "defaultArnoldDriver.aiTranslator" -type "string" "tif"
