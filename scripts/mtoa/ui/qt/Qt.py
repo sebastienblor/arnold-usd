@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import maya.OpenMayaUI as OpenMayaUI
-
+import mtoa.utils as utils
 import importlib
 import sys
 
@@ -29,9 +29,9 @@ def _setup(module, pymodules, modules, moduleName=None):
         setattr(Qt, modules[index], submodule)
 
 try:
-    version = cmds.about(v=True) 
+    version = utils.getMayaVersion()
 except AttributeError:
-    version = 2018
+    version = 2020
 
 if int(version) < 2018:
     import PySide as module
