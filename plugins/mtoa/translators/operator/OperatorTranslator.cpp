@@ -74,7 +74,7 @@ void COperatorTranslator::Export(AtNode *shader)
    if (AiNodeIs(shader, set_parameter_str ))
       ExportAssignedShaders(shader);      
 
-
+   // FIXME: Ideally we shouldn't have to append the name of the node here
    MPlug outPlug = FindMayaPlug("out");
    MPlugArray outConn;
    outPlug.connectedTo(outConn, false, true);
@@ -132,7 +132,6 @@ void COperatorTranslator::Export(AtNode *shader)
       AiNodeSetStr(shader, "selection", AtString(finalSelection.asChar()));
       
    }
-   // add standin name   
 }
 void COperatorTranslator::NodeInitializer(CAbTranslator context)
 {   
