@@ -20,7 +20,7 @@ except:
 
 global arnoldAOVCallbacks
 try:
-    cmds.loadPlugin("renderSetup", qt=True)
+    cmds.loadPlugin('renderSetup', qt=True)
 except RuntimeError:
     pass
 
