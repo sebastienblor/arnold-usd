@@ -40,7 +40,7 @@ if int(version) < 2018:
     import shiboken as shModule
     setattr(Qt, 'shiboken', shModule)
 
-elif int(version) == 2018:
+elif int(version) >= 2018:
     import PySide2 as module
     _setup(module, PYSIDE2_SUB_MODULES, SUB_MODULES)
 
