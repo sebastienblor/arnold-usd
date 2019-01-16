@@ -122,7 +122,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def showProperties(self, event):
         """Show the properties of the item at index `index`."""
-        pass
+        raise NotImplemenedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
 
 
 class BaseModel(QtCore.QAbstractItemModel):

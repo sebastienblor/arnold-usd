@@ -1,15 +1,25 @@
 import mtoa.ui.ae.templates as templates
 from mtoa.ui.ae.templates import AttributeTemplate, registerTranslatorUI
 from mtoa.ui.ae import aiStandInTemplate
+
+from mtoa.ui.qt.Qt import QtCore
+from mtoa.ui.qt.Qt import QtGui
+from mtoa.ui.qt.Qt import QtWidgets
+from mtoa.ui.qt.Qt import shiboken
+
 import mtoa.melUtils as mu
 import mtoa.utils as utils
 from mtoa.callbacks import *
+import maya.OpenMayaUI as OpenMayaUI
 import maya.cmds as cmds
 import maya.mel as mel
 import re
 import os
 import os.path
 from ast import literal_eval
+
+from AbcTreeView import AbcTreeView
+from AbcTransverser import AlembicTransverser
 
 from alembic.AbcCoreAbstract import *
 from alembic.Abc import *
@@ -103,6 +113,15 @@ def getVisibilityValue(vis_flags=[True]*8):
 
 
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
+
+    def __currentWidget(self, pySideType=QtWidgets.QWidget):
+        """Cast and return the current widget."""
+        # Get the current widget Maya name.
+        currentWidgetName = cmds.setParent(query=True)
+        # Convert it to C++ ptr.
+        ptr = OpenMayaUI.MQtUtil.findLayout(currentWidgetName)
+        # Convert it to PySide object.
+        return shiboken.wrapInstance(long(ptr), pySideType)
 
     def createCacheAttr(self, node):
         if not cmds.attributeQuery(CACHE_ATTR, node=node, exists=True):
@@ -540,42 +559,68 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def abcInfoNew(self, nodeAttr):
         self.currentItem = None
-        cmds.rowLayout(nc=2)
-        cmds.text(label='')
-        self.inspectAlembicPath = cmds.button(align="center", label='Inspect Alembic File', command=lambda *args: self.inspectAlembic())
-        cmds.setParent('..')  # rowLayout
-        self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=3,
-                                         allowReparenting=False,
-                                         attachButtonRight=True,
-                                         selectionChangedCommand=self.showAbcItemProperties,
-                                         itemDblClickCommand2=self.selectGeomPath,
-                                         pressCommand=[(1, self.selectOperator),
-                                                       (2, self.selectShader),
-                                                       (3, self.selectDisplacment)]
-                                         )
-        # editor panel
-        self.overrideEditorLabel = cmds.text(label="")
-        self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
-        self.shaderAssignerField = cmds.attrNavigationControlGrp(
-                                          label="Surface Shader",
-                                          parent=self.shaderAssignerLayout)
+        currentWidget = self.__currentWidget()
 
-        cmds.setParent('..')  # rowLayout
-        self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
-        self.displacementShaderAssignerField = cmds.attrNavigationControlGrp(
-                                                label="Displacement Shader",
-                                                parent=self.displacementShaderAssignerLayout)
-        cmds.setParent('..')  # rowLayout
-        cmds.separator()
-        self.overridesLayout = cmds.columnLayout(adjustableColumn=True)
-
-        cmds.setParent('..')  # rowLayout
+        tree = AbcTreeView(AlembicTransverser(), currentWidget)
+        currentWidget.layout().addWidget(tree)
+        tree.setObjectName("abcTreeWidget")
 
         self.abcInfoReplace(nodeAttr)
 
-        fileAttr = self.nodeName + ".cacheFileName"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile],
-                       replacePrevious=True, parent=self.inspectAlembicPath)
+        # cmds.rowLayout(nc=2)
+        # cmds.text(label='')
+        # self.inspectAlembicPath = cmds.button(align="center", label='Inspect Alembic File', command=lambda *args: self.inspectAlembic())
+        # cmds.setParent('..')  # rowLayout
+        # self.abcInfoPath = cmds.treeView(height=300, numberOfButtons=3,
+        #                                  allowReparenting=False,
+        #                                  attachButtonRight=True,
+        #                                  selectionChangedCommand=self.showAbcItemProperties,
+        #                                  itemDblClickCommand2=self.selectGeomPath,
+        #                                  pressCommand=[(1, self.selectOperator),
+        #                                                (2, self.selectShader),
+        #                                                (3, self.selectDisplacment)]
+        #                                  )
+        # # editor panel
+        # self.overrideEditorLabel = cmds.text(label="")
+        # self.shaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
+        # self.shaderAssignerField = cmds.attrNavigationControlGrp(
+        #                                   label="Surface Shader",
+        #                                   parent=self.shaderAssignerLayout)
+
+        # cmds.setParent('..')  # rowLayout
+        # self.displacementShaderAssignerLayout = cmds.rowLayout(nc=2, columnWidth=[[2, 30]], adjustableColumn=1, visible=False)
+        # self.displacementShaderAssignerField = cmds.attrNavigationControlGrp(
+        #                                         label="Displacement Shader",
+        #                                         parent=self.displacementShaderAssignerLayout)
+        # cmds.setParent('..')  # rowLayout
+        # cmds.separator()
+        # self.overridesLayout = cmds.columnLayout(adjustableColumn=True)
+
+        # cmds.setParent('..')  # rowLayout
+
+        # self.abcInfoReplace(nodeAttr)
+
+        # fileAttr = self.nodeName + ".cacheFileName"
+        # cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile],
+        #                replacePrevious=True, parent=self.inspectAlembicPath)
+
+    def abcInfoReplace(self, nodeAttr):
+        currentWidget = self.__currentWidget()
+
+        tree = currentWidget.layout().itemAt(0).widget()
+        tree.setCurrentNode(nodeAttr.split('.')[0])
+        # self.abcItems = []
+        # cache_attr_exists = cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True)
+        # if not cache_attr_exists:
+        #     self.createCacheAttr(self.nodeName)
+        # else:
+        #     self.populateItems()
+        #     if len(self.abcItems):
+        #         self.displayTree()
+        #     else:
+        #         cmds.treeView(self.abcInfoPath, edit=True, visible=False)
+        #         cmds.button(self.inspectAlembicPath, edit=True, visible=True)
+        #         cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
 
     def updateAlembicFile(self):
         # clear the cache
@@ -706,20 +751,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             _entity_type= cmds.getAttr('{}.{}[{}].ai_entity_type'.format(self.nodeName, CACHE_ATTR, i))
 
             self.abcItems.append((_path, _label, _parent, _visibility, _instanced, _entity_type))
-
-    def abcInfoReplace(self, nodeAttr):
-        self.abcItems = []
-        cache_attr_exists = cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True)
-        if not cache_attr_exists:
-            self.createCacheAttr(self.nodeName)
-        else:
-            self.populateItems()
-            if len(self.abcItems):
-                self.displayTree()
-            else:
-                cmds.treeView(self.abcInfoPath, edit=True, visible=False)
-                cmds.button(self.inspectAlembicPath, edit=True, visible=True)
-                cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
 
     def populateParams(self, node_type):
         # iterate over params
