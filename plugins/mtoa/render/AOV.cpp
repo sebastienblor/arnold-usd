@@ -136,7 +136,7 @@ bool CAOV::FromMaya(MObject &AOVNode)
    if (isValidRes == 0)
       return false;
 
-   m_name = fnNode.findPlug("name").asString();
+   m_name = fnNode.findPlug("name", true).asString();
    Strip(m_name);
 
    if (m_name.length() == 0)
@@ -157,29 +157,29 @@ bool CAOV::FromMaya(MObject &AOVNode)
    }
    else
    {
-      m_type = fnNode.findPlug("type").asInt();
-      m_enabled = fnNode.findPlug("enabled").asBool();
+      m_type = fnNode.findPlug("type", true).asInt();
+      m_enabled = fnNode.findPlug("enabled", true).asBool();
    }
-   m_prefix = fnNode.findPlug("prefix").asString();
+   m_prefix = fnNode.findPlug("prefix", true).asString();
    Strip(m_prefix);
    NormalizePath(m_prefix);
 
    m_imageformat = fnNode.findPlug("imageFormat", true).asString();
-   m_denoise = fnNode.findPlug("denoise").asBool();
+   m_denoise = fnNode.findPlug("denoise", true).asBool();
 
-   m_lightGroups = fnNode.findPlug("lightGroups").asBool();
-   m_lightPathExpression = fnNode.findPlug("lightPathExpression").asString();
-   m_lightGroupsList = fnNode.findPlug("lightGroupsList").asString();
-   m_globalAov = fnNode.findPlug("globalAov").asBool();
+   m_lightGroups = fnNode.findPlug("lightGroups", true).asBool();
+   m_lightPathExpression = fnNode.findPlug("lightPathExpression", true).asString();
+   m_lightGroupsList = fnNode.findPlug("lightGroupsList", true).asString();
+   m_globalAov = fnNode.findPlug("globalAov", true).asBool();
 
    m_shaderPlug = MPlug();
    MPlugArray connections;
-   fnNode.findPlug("defaultValue").connectedTo(connections, true, false);
+   fnNode.findPlug("defaultValue", true).connectedTo(connections, true, false);
 
    if (connections.length() > 0)
       m_shaderPlug = connections[0];
    
-   m_camera = fnNode.findPlug("camera").asString();
+   m_camera = fnNode.findPlug("camera", true).asString();
 
    return true;
 }

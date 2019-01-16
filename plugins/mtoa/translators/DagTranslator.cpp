@@ -492,7 +492,7 @@ MStatus CDagTranslatorImpl::ExportOverrideSets()
    for (unsigned int i = 0; i < ns; ++i)
    {
       fnSet.setObject(overrideSetObjs[i]);
-      CNodeTranslator *translator = m_session->ExportNode(fnSet.findPlug("message"));
+      CNodeTranslator *translator = m_session->ExportNode(fnSet.findPlug("message", true));
       if (translator)
          m_overrideSets.push_back(translator);
    }

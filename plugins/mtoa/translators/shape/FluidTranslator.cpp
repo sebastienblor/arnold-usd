@@ -327,21 +327,21 @@ void CFluidTranslator::Export(AtNode* fluid)
       ProcessParameter(fluid_shader, "num_waves", AI_TYPE_INT, "numWaves");
    }
 
-   const int colorGradientType = mayaFluidNode.findPlug("colorInput").asShort();
+   const int colorGradientType = mayaFluidNode.findPlug("colorInput", true).asShort();
 
-   ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient");
+   ExportRGBGradient(mayaFluidNode.findPlug("color", true), fluid_shader, "color_gradient");
    AiNodeSetInt(fluid_shader, "color_gradient_type", colorGradientType);
-   AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
+   AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias", true).asFloat());
    
-   const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput").asShort();
-   ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid_shader, "incandescence_gradient");
+   const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput", true).asShort();
+   ExportRGBGradient(mayaFluidNode.findPlug("incandescence", true), fluid_shader, "incandescence_gradient");
    AiNodeSetInt(fluid_shader, "incandescence_gradient_type", incandescenceGradientType);
-   AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());   
+   AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias", true).asFloat());   
    
-   const int opacityGradientType = mayaFluidNode.findPlug("opacityInput").asShort();
-   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient");
+   const int opacityGradientType = mayaFluidNode.findPlug("opacityInput", true).asShort();
+   ExportFloatGradient(mayaFluidNode.findPlug("opacity", true), fluid_shader, "opacity_gradient");
    AiNodeSetInt(fluid_shader, "opacity_gradient_type", opacityGradientType);
-   AiNodeSetFlt(fluid_shader, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias").asFloat());
+   AiNodeSetFlt(fluid_shader, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias", true).asFloat());
    
    ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
@@ -389,7 +389,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    mayaFluid.getResolution(xRes, yRes, zRes);
    mayaFluid.getDimensions(xDim, yDim, zDim);
-   plug = mayaFluid.findPlug("dynamicOffset");
+   plug = mayaFluid.findPlug("dynamicOffset", true);
    float dynOffX = plug.child(0).asFloat();
    float dynOffY = plug.child(1).asFloat();
    float dynOffZ = plug.child(2).asFloat();

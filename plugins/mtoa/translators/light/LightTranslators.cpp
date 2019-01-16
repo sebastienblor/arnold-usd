@@ -507,7 +507,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       ProcessParameter(shaderNode, "color", AI_TYPE_RGB, FindMayaPlug("color"));
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
-   if (fnDepNode.findPlug("lightVisible").asBool())
+   if (fnDepNode.findPlug("lightVisible", true).asBool())
    {      
       AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);
       

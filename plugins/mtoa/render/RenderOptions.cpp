@@ -116,7 +116,7 @@ MStatus CRenderOptions::ProcessCommonRenderOptions()
 
       MFnDependencyNode fnRenderGlobals(node);
 
-      m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
+      m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion", true).asBool();
 
       MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
 
@@ -127,14 +127,14 @@ MStatus CRenderOptions::ProcessCommonRenderOptions()
 
       if (m_useRenderRegion)
       {
-         m_minx = fnRenderGlobals.findPlug("left").asInt();
-         m_miny = fnRenderGlobals.findPlug("bot").asInt();
-         m_maxx = fnRenderGlobals.findPlug("rght").asInt();
-         m_maxy = fnRenderGlobals.findPlug("top").asInt();
+         m_minx = fnRenderGlobals.findPlug("left", true).asInt();
+         m_miny = fnRenderGlobals.findPlug("bot", true).asInt();
+         m_maxx = fnRenderGlobals.findPlug("rght", true).asInt();
+         m_maxy = fnRenderGlobals.findPlug("top", true).asInt();
       }
 
       MPlugArray connectedPlugs;
-      MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
+      MPlug      resPlug = fnRenderGlobals.findPlug("resolution", true);
 
       resPlug.connectedTo(connectedPlugs,
          true,  // asDestination
@@ -150,9 +150,9 @@ MStatus CRenderOptions::ProcessCommonRenderOptions()
          {
             MFnDependencyNode fnRes(resNode);
 
-            m_width  = fnRes.findPlug("width").asInt();
-            m_height = fnRes.findPlug("height").asInt();
-            m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
+            m_width  = fnRes.findPlug("width", true).asInt();
+            m_height = fnRes.findPlug("height", true).asInt();
+            m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio", true).asFloat());
          }
       }
 
@@ -182,36 +182,36 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
          AiMsgError("[mtoa] Invalid Arnold render options node");
          return status;
       }
-      m_progressive_rendering     = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
-      m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level").asInt();
-      m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
-      m_useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
-      m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
-      m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
-      m_mtoa_translation_info = fnArnoldRenderOptions.findPlug("mtoa_translation_info").asBool();
+      m_progressive_rendering     = fnArnoldRenderOptions.findPlug("progressive_rendering", true).asBool();
+      m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level", true).asInt();
+      m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render", true).asBool();
+      m_useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss", true).asBool();
+      m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh", true).asBool();
+      m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render", true).asBool();
+      m_mtoa_translation_info = fnArnoldRenderOptions.findPlug("mtoa_translation_info", true).asBool();
       
-      m_autotx = fnArnoldRenderOptions.findPlug("autotx").asBool();
+      m_autotx = fnArnoldRenderOptions.findPlug("autotx", true).asBool();
 
       // if auto-tx is ON, we force use TX to be ON
-      m_use_existing_tiled_textures = (m_autotx) ? true : fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
+      m_use_existing_tiled_textures = (m_autotx) ? true : fnArnoldRenderOptions.findPlug("use_existing_tiled_textures", true).asBool();
 
-      m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
-      m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
-      m_exportShadingEngine = fnArnoldRenderOptions.findPlug("exportShadingEngine").asBool();
+      m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename", true).asString();
+      m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask", true).asInt();
+      m_exportShadingEngine = fnArnoldRenderOptions.findPlug("exportShadingEngine", true).asBool();
 
-      m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file").asBool();
-      m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console").asBool();
-      m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
-      m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
-      m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity").asInt());
+      m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file", true).asBool();
+      m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console", true).asBool();
+      m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename", true).asString();
+      m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings", true).asInt();
+      m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity", true).asInt());
 
-      m_stats_enable         =  fnArnoldRenderOptions.findPlug("stats_enable").asBool();
-      m_stats_mode           = fnArnoldRenderOptions.findPlug("stats_mode").asInt();
-      m_stats_file           = fnArnoldRenderOptions.findPlug("stats_file").asString();
-      m_profile_enable         =  fnArnoldRenderOptions.findPlug("profile_enable").asBool();
-      m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file").asString();
+      m_stats_enable         =  fnArnoldRenderOptions.findPlug("stats_enable",true).asBool();
+      m_stats_mode           = fnArnoldRenderOptions.findPlug("stats_mode", true).asInt();
+      m_stats_file           = fnArnoldRenderOptions.findPlug("stats_file", true).asString();
+      m_profile_enable         =  fnArnoldRenderOptions.findPlug("profile_enable", true).asBool();
+      m_profile_file           = fnArnoldRenderOptions.findPlug("profile_file", true).asString();
 
-      m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath").asString();
+      m_plugin_searchpath = fnArnoldRenderOptions.findPlug("plugin_searchpath", true).asString();
 
       status = MStatus::kSuccess;
    }

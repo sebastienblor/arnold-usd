@@ -185,7 +185,7 @@ void COptionsTranslator::ExportAOVs()
          {
             camObject.extendToShape();
             MFnDependencyNode fnNode(camObject.node());
-            MPlug dummyPlug = fnNode.findPlug("matrix"); // I need a dummy plug from the camera node
+            MPlug dummyPlug = fnNode.findPlug("matrix", true); // I need a dummy plug from the camera node
             if (!dummyPlug.isNull())
             {
                m_impl->ExportConnectedNode(dummyPlug, true, &aovData.cameraTranslator);
@@ -319,7 +319,7 @@ void COptionsTranslator::ExportAOVs()
                   // FIXME: does a light need to be in layer to render actually in Maya?
                   MFnDependencyNode depFn(path.node());
                   MStatus stat;
-                  MPlug lgroups = depFn.findPlug("aiAov");
+                  MPlug lgroups = depFn.findPlug("aiAov", true);
                   if (!lgroups.isNull())
                   {
                      MString lgroupStr = lgroups.asString();
@@ -342,7 +342,7 @@ void COptionsTranslator::ExportAOVs()
                   {
                      MFnDagNode node(path.node());
                      MStatus stat;
-                     MPlug lgroups = depFn.findPlug("aiAov");
+                     MPlug lgroups = depFn.findPlug("aiAov", true);
                      if (!lgroups.isNull())
                      {
                         MString lgroupStr = lgroups.asString();
@@ -967,12 +967,12 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, CAOVOutput &ou
    output.singleLayer = false;
    AiMetaDataGetBool(entry, NULL, "single_layer_driver", &output.singleLayer);
    if (!output.singleLayer)
-      output.mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
+      output.mergeAOVs = fnNode.findPlug("mergeAOVs", true).asBool();
    else
       output.mergeAOVs = false;
    output.raw = false;
    AiMetaDataGetBool(entry, NULL, "raw_driver", &output.raw);
-   output.prefix = fnNode.findPlug("prefix").asString();
+   output.prefix = fnNode.findPlug("prefix", true).asString();
    return output.driver;
 }
 

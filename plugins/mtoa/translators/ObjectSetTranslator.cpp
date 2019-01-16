@@ -214,7 +214,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          return;
       }
       MFnSet fnSet(node);
-      MPlug msg = fnSet.findPlug("message");
+      MPlug msg = fnSet.findPlug("message", true);
       MItDependencyGraph iter(msg,
                               MFn::kLightLink,
                               MItDependencyGraph::kDownstream,

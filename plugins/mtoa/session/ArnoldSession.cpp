@@ -71,9 +71,9 @@ namespace // <anonymous>
       if (node.isIntermediateObject())
         return false;
 
-      MPlug templatePlug = node.findPlug("template", &status);
-      MPlug overEnablePlug = node.findPlug("overrideEnabled", &status);
-      MPlug overDispPlug = node.findPlug("overrideDisplayType", &status);
+      MPlug templatePlug = node.findPlug("template", true, &status);
+      MPlug overEnablePlug = node.findPlug("overrideEnabled", true, &status);
+      MPlug overDispPlug = node.findPlug("overrideDisplayType", true, &status);
 
       if (status == MStatus::kFailure)
          return false;
@@ -628,7 +628,7 @@ AtNode* CArnoldSession::ExportOptions()
    if(MtoaTranslationInfo())
       MtoaDebugLog("[mtoa] Exporting Arnold options "+ fnNode.name());
 
-   MPlug optPlug = fnNode.findPlug("message");
+   MPlug optPlug = fnNode.findPlug("message", true);
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, false);
 
    ExportColorManager();
@@ -652,7 +652,7 @@ AtNode *CArnoldSession::ExportColorManager()
       MObject colorMgtObject;
       activeList.getDependNode(0,colorMgtObject);
       MFnDependencyNode fnSNode(colorMgtObject);
-      MPlug mgtPlug = fnSNode.findPlug("message");
+      MPlug mgtPlug = fnSNode.findPlug("message", true);
       CNodeTranslator* syncolorTr = ExportNode(mgtPlug, false);
 
       if(syncolorTr)
@@ -808,7 +808,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          shaderAttrs.append("displacementShader");
          for (unsigned int a = 0; a < shaderAttrs.length(); a++)
          {
-            MPlug shaderPlug = shEngineNode.findPlug(shaderAttrs[a]);
+            MPlug shaderPlug = shEngineNode.findPlug(shaderAttrs[a], true);
             if (!shaderPlug.isNull())
             {
                shaderPlug.connectedTo(connections, true, false);
@@ -1140,7 +1140,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
          if (MStatus::kSuccess == status)
          {
             depFn.setObject(node);
-            MPlug plug = depFn.findPlug("message");
+            MPlug plug = depFn.findPlug("message", true);
             ExportNode(plug);
          }
          else
@@ -2245,7 +2245,7 @@ bool CArnoldSession::IsVisible(MFnDagNode &node)
    if (session && session->GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
       return true;
 
-   MPlug visPlug = node.findPlug("visibility", &status);
+   MPlug visPlug = node.findPlug("visibility", true, &status);
    // Check standard visibility
    if (status == MStatus::kFailure || !visPlug.asBool())
       return false;
@@ -2261,10 +2261,10 @@ bool CArnoldSession::IsVisible(MFnDagNode &node)
       return false;
 */
    // Check override visibility
-   MPlug overPlug = node.findPlug("overrideEnabled", &status);
+   MPlug overPlug = node.findPlug("overrideEnabled", true, &status);
    if (status == MStatus::kSuccess && overPlug.asBool())
    {
-      MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
+      MPlug overVisPlug = node.findPlug("overrideVisibility", true, &status);
       if (status == MStatus::kFailure || !overVisPlug.asBool())
          return false;
    }
@@ -2744,7 +2744,7 @@ void CArnoldSession::ExportImagePlane()
    MDagPath camera = m_sessionOptions.GetExportCamera();
 
    MFnDependencyNode fnNode (camera.node());
-   MPlug imagePlanePlug = fnNode.findPlug("imagePlane");
+   MPlug imagePlanePlug = fnNode.findPlug("imagePlane", true);
 
    AtNode *options = AiUniverseGetOptions();
 

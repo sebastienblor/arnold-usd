@@ -53,34 +53,34 @@ MStatus CSessionOptions::GetFromMaya()
    
       // Light linking options
       MPlug plug;
-      plug = fnArnoldRenderOptions.findPlug("llnk");
+      plug = fnArnoldRenderOptions.findPlug("llnk", true);
       if (!plug.isNull())
          m_lightlink = ArnoldLightLinkMode(plug.asInt());
 
-      plug = fnArnoldRenderOptions.findPlug("slnk");
+      plug = fnArnoldRenderOptions.findPlug("slnk", true);
       if (!plug.isNull())
          m_shadowlink = ArnoldShadowLinkMode(plug.asInt());
 
       // Motion blur options
       // disable motion for material viewer and swatch rendering
-      if (m_mode != MTOA_SESSION_MATERIALVIEW && m_mode != MTOA_SESSION_SWATCH && fnArnoldRenderOptions.findPlug("mb_en").asBool())
+      if (m_mode != MTOA_SESSION_MATERIALVIEW && m_mode != MTOA_SESSION_SWATCH && fnArnoldRenderOptions.findPlug("mb_en", true).asBool())
       {
-         m_motion.enable_mask   = (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_LIGHT)
-                                | (fnArnoldRenderOptions.findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA)
-                                | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_OBJECT)
-                                | (fnArnoldRenderOptions.findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM)
-                                | (fnArnoldRenderOptions.findPlug("mb_sen").asBool() * MTOA_MBLUR_SHADER);
+         m_motion.enable_mask   = (fnArnoldRenderOptions.findPlug("mb_en", true).asBool() * MTOA_MBLUR_LIGHT)
+                                | (fnArnoldRenderOptions.findPlug("mb_cen", true).asBool() * MTOA_MBLUR_CAMERA)
+                                | (fnArnoldRenderOptions.findPlug("mb_en", true).asBool() * MTOA_MBLUR_OBJECT)
+                                | (fnArnoldRenderOptions.findPlug("mb_den", true).asBool() * MTOA_MBLUR_DEFORM)
+                                | (fnArnoldRenderOptions.findPlug("mb_sen", true).asBool() * MTOA_MBLUR_SHADER);
       }
       else
          m_motion.enable_mask     = MTOA_MBLUR_DISABLE;
 
       if (m_motion.enable_mask)
       {
-         m_motion.steps           = fnArnoldRenderOptions.findPlug("motion_steps").asInt();
-         m_motion.range_type      = fnArnoldRenderOptions.findPlug("range_type").asInt();
-         m_motion.motion_frames   = fnArnoldRenderOptions.findPlug("motion_frames").asFloat();
-         m_motion.motion_start    = fnArnoldRenderOptions.findPlug("motion_start").asFloat();
-         m_motion.motion_end      = fnArnoldRenderOptions.findPlug("motion_end").asFloat();
+         m_motion.steps           = fnArnoldRenderOptions.findPlug("motion_steps", true).asInt();
+         m_motion.range_type      = fnArnoldRenderOptions.findPlug("range_type", true).asInt();
+         m_motion.motion_frames   = fnArnoldRenderOptions.findPlug("motion_frames", true).asFloat();
+         m_motion.motion_start    = fnArnoldRenderOptions.findPlug("motion_start", true).asFloat();
+         m_motion.motion_end      = fnArnoldRenderOptions.findPlug("motion_end", true).asFloat();
       }
       else
       {
@@ -89,24 +89,24 @@ MStatus CSessionOptions::GetFromMaya()
          m_motion.motion_frames   = 0;
       }
 
-      plug = fnArnoldRenderOptions.findPlug("absolute_texture_paths");
+      plug = fnArnoldRenderOptions.findPlug("absolute_texture_paths", true);
       if (!plug.isNull())
          m_absoluteTexturePaths = plug.asBool();
       else
          m_absoluteTexturePaths = true;
 
-      plug = fnArnoldRenderOptions.findPlug("exportAllShadingGroups");
+      plug = fnArnoldRenderOptions.findPlug("exportAllShadingGroups", true);
       if (!plug.isNull())
          m_exportAllShadingGroups = plug.asBool();
       else
          m_exportAllShadingGroups = false;
 
-      plug = fnArnoldRenderOptions.findPlug("exportFullPaths");
+      plug = fnArnoldRenderOptions.findPlug("exportFullPaths", true);
       if (!plug.isNull())
          m_exportFullPath = plug.asBool();
       
 
-      plug = fnArnoldRenderOptions.findPlug("texture_searchpath");
+      plug = fnArnoldRenderOptions.findPlug("texture_searchpath", true);
       if (!plug.isNull())
       {
          plug.asString().split(PATHSEP, m_textureSearchPaths);
@@ -122,13 +122,13 @@ MStatus CSessionOptions::GetFromMaya()
       else
          m_textureSearchPaths.clear();
 
-      plug = fnArnoldRenderOptions.findPlug("absolute_procedural_paths");
+      plug = fnArnoldRenderOptions.findPlug("absolute_procedural_paths", true);
       if (!plug.isNull())
          m_absoluteProceduralPaths = plug.asBool();
       else
          m_absoluteProceduralPaths = true;
 
-      plug = fnArnoldRenderOptions.findPlug("procedural_searchpath");
+      plug = fnArnoldRenderOptions.findPlug("procedural_searchpath",true);
       if (!plug.isNull())
       {         
          plug.asString().split(PATHSEP, m_proceduralSearchPaths);
@@ -142,7 +142,7 @@ MStatus CSessionOptions::GetFromMaya()
       else
          m_proceduralSearchPaths.clear();
 
-      const short renderUnit = fnArnoldRenderOptions.findPlug("renderUnit").asShort();
+      const short renderUnit = fnArnoldRenderOptions.findPlug("renderUnit", true).asShort();
 
       MDistance dist(1.0, MDistance::uiUnit());
 
@@ -152,7 +152,7 @@ MStatus CSessionOptions::GetFromMaya()
             m_scaleFactor = 1.0;
             break;
          case RU_USE_CUSTOM_SCALING:
-            m_scaleFactor = fnArnoldRenderOptions.findPlug("sceneScale").asDouble();
+            m_scaleFactor = fnArnoldRenderOptions.findPlug("sceneScale", true).asDouble();
             break;
          case RU_INCH:
             m_scaleFactor = dist.asInches();
@@ -186,10 +186,10 @@ MStatus CSessionOptions::GetFromMaya()
 
       m_origin = MVector(0.0, 0.0, 0.0);
 
-      if (fnArnoldRenderOptions.findPlug("offsetOrigin").asBool())
+      if (fnArnoldRenderOptions.findPlug("offsetOrigin", true).asBool())
       {
          MPlugArray conns;
-         if (fnArnoldRenderOptions.findPlug("origin").connectedTo(conns, true, false, &status))
+         if (fnArnoldRenderOptions.findPlug("origin", true).connectedTo(conns, true, false, &status))
          {
             if (status && (conns.length() > 0))
             {

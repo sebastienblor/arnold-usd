@@ -58,40 +58,40 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
    
    AtByte visibility = AI_RAY_ALL;
    
-   MPlug plug = fnNode.findPlug("castsShadows");
+   MPlug plug = fnNode.findPlug("castsShadows", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SHADOW;
    }
 
-   plug = fnNode.findPlug("primaryVisibility");
+   plug = fnNode.findPlug("primaryVisibility", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_CAMERA;
    }
-   plug = fnNode.findPlug("aiVisibleInDiffuseReflection");
+   plug = fnNode.findPlug("aiVisibleInDiffuseReflection", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~(AI_RAY_DIFFUSE_REFLECT);
    }
-   plug = fnNode.findPlug("aiVisibleInSpecularReflection");
+   plug = fnNode.findPlug("aiVisibleInSpecularReflection", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SPECULAR_REFLECT;
    }
-   plug = fnNode.findPlug("aiVisibleInDiffuseTransmission");
+   plug = fnNode.findPlug("aiVisibleInDiffuseTransmission", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~(AI_RAY_DIFFUSE_TRANSMIT);
    }
 
-   plug = fnNode.findPlug("aiVisibleInSpecularTransmission");
+   plug = fnNode.findPlug("aiVisibleInSpecularTransmission", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SPECULAR_TRANSMIT;
    }
 
-   plug = fnNode.findPlug("aiVisibleInVolume");
+   plug = fnNode.findPlug("aiVisibleInVolume", true);
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_VOLUME;
@@ -117,7 +117,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    // the particleShape attached
    MFnDependencyNode depNodeInstancer(m_dagPath.node());
 
-   MPlug inputPointsPlug = depNodeInstancer.findPlug("inputPoints");
+   MPlug inputPointsPlug = depNodeInstancer.findPlug("inputPoints", true);
    inputPointsPlug.connectedTo(conn, true, false);
    
    MObject inputPointsData = inputPointsPlug.asMObject();
@@ -229,10 +229,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
    MStringArray attrs;
    if( usingParticleSource )
    {
-      exportID = m_fnParticleSystem.findPlug("aiExportParticleIDs").asBool();
+      exportID = m_fnParticleSystem.findPlug("aiExportParticleIDs", true).asBool();
 
       /// STORE the custom attrs for use later
-      m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes").asString();
+      m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes", true).asString();
 
       status = m_customAttrs.split(' ', attrs);
 
@@ -255,7 +255,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                   continue;
                }
 
-               m_fnParticleSystem.findPlug(currentAttr, &status);
+               m_fnParticleSystem.findPlug(currentAttr, true, &status);
                if (status != MS::kSuccess)
                   continue;
 
@@ -295,10 +295,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       }
    } else
    {
-      MPlug plug = fnParticle.findPlug("aiExportParticleIDs");
+      MPlug plug = fnParticle.findPlug("aiExportParticleIDs", true);
       exportID = (!plug.isNull() && plug.asBool());
 
-      plug = fnParticle.findPlug("aiExportAttributes");
+      plug = fnParticle.findPlug("aiExportAttributes", true);
       m_customAttrs = (plug.isNull() ? "" : plug.asString());
 
       status = m_customAttrs.split(' ', attrs);
@@ -376,7 +376,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          {
             // Check if the node is in the scene already.
             MFnDependencyNode masterDepNode(dagPathMaster.node());
-            MPlug dummyPlug = masterDepNode.findPlug("matrix");
+            MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
             // in case master instance wasn't exported (#648)
             // and also to create the reference between both translators
             if (!dummyPlug.isNull())
@@ -504,7 +504,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                               exportID = true;
                               continue;
                            }
-                           m_fnParticleSystem.findPlug(currentAttr, &status);
+                           m_fnParticleSystem.findPlug(currentAttr, true, &status);
                            if (status != MS::kSuccess)
                               continue;
 

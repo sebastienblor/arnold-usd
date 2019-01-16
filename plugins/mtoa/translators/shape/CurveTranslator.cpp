@@ -329,7 +329,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
    mayaCurve.clear(); // just to be sure
    MFnDependencyNode fnDepNodeCurve(curve);
    MStatus stat;
-   MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", &stat);
+   MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", true, &stat);
    if (stat == MStatus::kSuccess)
    {
       float globalWidth = 1.0;

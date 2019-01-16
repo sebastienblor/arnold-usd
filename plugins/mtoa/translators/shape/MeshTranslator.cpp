@@ -13,7 +13,7 @@ static unsigned int GetNumMeshGroups(const MDagPath& dagPath)
    MFnDependencyNode fnDGNode(node);
    int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
-   MPlug plug = fnDGNode.findPlug("instObjGroups");
+   MPlug plug = fnDGNode.findPlug("instObjGroups", true);
 
    if (plug.elementByLogicalIndex(instanceNum).isConnected())
    {
@@ -22,7 +22,7 @@ static unsigned int GetNumMeshGroups(const MDagPath& dagPath)
    else
    {
       MFnMesh mesh(node);
-      MPlug plug = mesh.findPlug("instObjGroups").elementByLogicalIndex(instanceNum);
+      MPlug plug = mesh.findPlug("instObjGroups", true).elementByLogicalIndex(instanceNum);
       MPlugArray conns;
       plug.connectedTo(conns, false, true);
       if (conns.length() != 0) // no per face assigment
@@ -79,7 +79,7 @@ bool CMeshTranslator::IsGeoDeforming()
    bool history = false;
    bool pnts = false;
 
-   MPlug inMeshPlug = fnMesh.findPlug("inMesh");
+   MPlug inMeshPlug = fnMesh.findPlug("inMesh", true);
    MPlugArray conn;
    inMeshPlug.connectedTo(conn, true, false);
    if (conn.length())
@@ -87,7 +87,7 @@ bool CMeshTranslator::IsGeoDeforming()
      history = true;
    }
 
-   inMeshPlug = fnMesh.findPlug("pnts");
+   inMeshPlug = fnMesh.findPlug("pnts", true);
    unsigned int numElements = inMeshPlug.numElements();
    if (numElements > 0)
    {
@@ -115,7 +115,7 @@ bool CMeshTranslator::Tessellate(const MDagPath &path)
    m_geometry = path.node();
 
    // Check if the object is smoothed with maya method
-   if (fnMesh.findPlug("displaySmoothMesh").asBool())
+   if (fnMesh.findPlug("displaySmoothMesh", true).asBool())
    {
       MMeshSmoothOptions options;
       status = fnMesh.getSmoothMeshDisplayOptions(options);

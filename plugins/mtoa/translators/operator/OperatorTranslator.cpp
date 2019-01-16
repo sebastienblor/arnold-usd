@@ -117,7 +117,7 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
       sel.getDependNode(0,shaderNode);
       if (shaderNode.isNull())
          return;
-      MPlug dummyPlug = MFnDependencyNode(shaderNode).findPlug("message");
+      MPlug dummyPlug = MFnDependencyNode(shaderNode).findPlug("message", true);
       if (dummyPlug.isNull())
          return;
       

@@ -150,7 +150,7 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
                tr = session->ExportDagPath(dag, false);
             } else if (sel.getDependNode(i, objNode) == MS::kSuccess)
             {
-               MPlug shaderPlug = MFnDependencyNode(objNode).findPlug("message");
+               MPlug shaderPlug = MFnDependencyNode(objNode).findPlug("message", true);
                if (!shaderPlug.isNull())
                {
                  tr = session->ExportNode(shaderPlug, 

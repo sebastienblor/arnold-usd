@@ -364,7 +364,7 @@ bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
 
    if (fnMesh.numColorSets() > 0)
    {
-      MPlug plug = fnMesh.findPlug("aiExportColors");
+      MPlug plug = fnMesh.findPlug("aiExportColors", true);
       if (!plug.isNull())
          exportColors = plug.asBool();
    }
@@ -728,12 +728,12 @@ void CPolygonGeometryTranslator::GetDisplacement(MObject& obj,
                                           bool& enableAutoBump)
 {
    MFnDependencyNode dNode(obj);
-   MPlug plug = dNode.findPlug("aiDisplacementPadding");
+   MPlug plug = dNode.findPlug("aiDisplacementPadding", true);
    if (!plug.isNull())
       dispPadding = AiMax(dispPadding, plug.asFloat());
    if (!enableAutoBump)
    {
-      plug = dNode.findPlug("aiDisplacementAutoBump");
+      plug = dNode.findPlug("aiDisplacementAutoBump", true);
       if (!plug.isNull())
          enableAutoBump = enableAutoBump || plug.asBool();
    }
@@ -753,7 +753,7 @@ static MPlug MtoaGetAssignedShaderPlug(const MPlug &shadingGroupPlug, bool isVol
    // check if it has custom AOVs
    bool hasCustomAovs = false;
    MPlugArray connections;
-   MPlug arrayPlug = sgNode.findPlug("aiCustomAOVs");
+   MPlug arrayPlug = sgNode.findPlug("aiCustomAOVs", true);
 
    for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
    {
@@ -777,11 +777,11 @@ static MPlug MtoaGetAssignedShaderPlug(const MPlug &shadingGroupPlug, bool isVol
    MString aiShaderName =  (isVolume) ? "aiVolumeShader" : "aiSurfaceShader";
 
    connections.clear();
-   MPlug shaderPlug = sgNode.findPlug(aiShaderName);
+   MPlug shaderPlug = sgNode.findPlug(aiShaderName, true);
    shaderPlug.connectedTo(connections, true, false);
    if (connections.length() == 0)
    {
-      shaderPlug = sgNode.findPlug(shaderName);
+      shaderPlug = sgNode.findPlug(shaderName, true);
       if (MtoaTranslationInfo())
          MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug "+ shaderPlug.name());
       shaderPlug.connectedTo(connections, true, false);
@@ -806,7 +806,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    // What's even worse is that GetNodeShadingGroup is static so I can't get the AtNode
    // => verify if this works with fluids
    MFnDependencyNode fnDGNode(path.node());
-   MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize");
+   MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize", true);
 //   if (!stepSizePlug.isNull())
 //      isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
 
@@ -838,7 +838,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // DISPLACEMENT MATERIAL EXPORT
       MPlugArray        connections;
       MFnDependencyNode fnDGShadingGroup(shadingGroupPlug.node());
-      MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+      MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader", true);
       shaderPlug.connectedTo(connections, true, false);
 
       // are there any connections to displacementShader?
@@ -911,7 +911,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
 
          MPlugArray        connections;
          MFnDependencyNode fnDGShadingGroup(shadingGroups[J]);
-         MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+         MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader", true);
          shaderPlug.connectedTo(connections, true, false);
 
          // are there any connections to displacementShader?
@@ -953,7 +953,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       int divisions = 0;
       int multiplier = 0;
       
-      if (fnMesh.findPlug("displaySmoothMesh").asBool())
+      if (fnMesh.findPlug("displaySmoothMesh", true).asBool())
       {
          MMeshSmoothOptions options;
          MStatus status = fnMesh.getSmoothMeshDisplayOptions(options);
@@ -1305,7 +1305,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // for the first version we always export them
       // since the user might override the subdiv options
       // from a procedural, node processor etc...
-      if (!fnMesh.findPlug("displaySmoothMesh").asBool())
+      if (!fnMesh.findPlug("displaySmoothMesh", true).asBool())
       {
          MUintArray creaseEdgeIds;
          MDoubleArray creaseEdgeDatas;
@@ -1482,7 +1482,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    MFnDependencyNode masterDepNode(masterInstance.node());
-   MPlug dummyPlug = masterDepNode.findPlug("matrix");
+   MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
    // in case master instance wasn't exported (#648)
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
@@ -1505,7 +1505,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
       //
       // MFnMesh           meshNode(m_dagPath.node());
       MFnMesh meshNode(m_geometry);
-      MPlug plug = meshNode.findPlug("instObjGroups");
+      MPlug plug = meshNode.findPlug("instObjGroups", true);
 
       MPlugArray conns0, connsI;
 
@@ -1539,7 +1539,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
 
       if (shadersDifferent)
       {
-         MPlug stepSizePlug = meshNode.findPlug("aiStepSize");
+         MPlug stepSizePlug = meshNode.findPlug("aiStepSize", true);
          bool isVolume = (stepSizePlug.isNull()) ? false : (stepSizePlug.asFloat() > AI_EPSILON); 
          MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
          MPlug shaderPlug = MtoaGetAssignedShaderPlug(shadingGroupPlug, isVolume);

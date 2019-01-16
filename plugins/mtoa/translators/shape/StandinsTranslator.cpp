@@ -44,7 +44,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    if (IsExported())
       return;
    
-   MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
+   MString dso = m_DagNode.findPlug("dso", true).asString().expandEnvironmentVariablesAndTilde();
    MString filename;
    MString nodeName = m_dagPath.fullPathName();
 

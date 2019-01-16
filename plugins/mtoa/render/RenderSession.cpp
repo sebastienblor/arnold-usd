@@ -777,10 +777,10 @@ void CRenderSession::DoIPRRender()
       MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
       if (status)
       {
-         IPRRefinementStarted = optionsNode.findPlug("IPRRefinementStarted").asString();
-         IPRRefinementFinished = optionsNode.findPlug("IPRRefinementFinished").asString();
-         IPRStepStarted = optionsNode.findPlug("IPRStepStarted").asString();
-         IPRStepFinished = optionsNode.findPlug("IPRStepFinished").asString();
+         IPRRefinementStarted = optionsNode.findPlug("IPRRefinementStarted", true).asString();
+         IPRRefinementFinished = optionsNode.findPlug("IPRRefinementFinished", true).asString();
+         IPRStepStarted = optionsNode.findPlug("IPRStepStarted", true).asString();
+         IPRStepFinished = optionsNode.findPlug("IPRStepFinished", true).asString();
       }
       else
       {
@@ -1095,7 +1095,7 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
 #ifdef MTOA_ENABLE_GAMMA
-   float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+   float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma", true).asFloat() : 2.2f;
    AiNodeSetFlt(render_view, "gamma", gamma);
 #endif
 

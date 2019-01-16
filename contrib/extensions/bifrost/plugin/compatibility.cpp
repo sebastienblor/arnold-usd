@@ -34,9 +34,9 @@ void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & pl
    {
       removeCallback(connectionCbId);
       // connection to shading engine made => replace shader
-      int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType").asInt();
+      int renderType = MFnDependencyNode(plug.node()).findPlug("bifrostRenderType", true).asInt();
 
-      MPlug render_as = MFnDependencyNode(plug.node()).findPlug("render_as");
+      MPlug render_as = MFnDependencyNode(plug.node()).findPlug("render_as", true);
       std::cerr << "RENDER TYPE: " << renderType << std::endl;
       switch(renderType){
       case 0: render_as.setInt(2); break; // Aero => Volume
@@ -49,7 +49,7 @@ void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & pl
       {
          // Aero
          MFnDependencyNode shadingGroup(otherPlug.node());
-         MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
+         MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader", true).source().node()).name();// oddly, even aero has a surfaceShader
 
          command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
          command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode aiStandardVolume`;replaceNode $oldShader $newShader;delete $oldShader;";
@@ -66,7 +66,7 @@ void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & pl
          MFnDependencyNode shadingGroup(otherPlug.node());
          
 #if FOAM_DEFAULT == FOAM_SURFACE_ONLY || FOAM_DEFAULT == FOAM_BOTH
-         MString oldSurfaceShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();
+         MString oldSurfaceShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader", true).source().node()).name();
 
          command += "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
          command += "string $oldSurfShader = \""+oldSurfaceShader+"\";string $newSurfShader = `createNode aiStandardSurface`;replaceNode $oldSurfShader $newSurfShader;delete $oldSurfShader;";
@@ -78,7 +78,7 @@ void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & pl
 
          // If we want both a surface shader and volume shader (for the interior), the procedural supports it and will take both
 #if FOAM_DEFAULT == FOAM_VOLUME_ONLY || FOAM_DEFAULT == FOAM_BOTH
-         MString oldVolumeShader = MFnDependencyNode(shadingGroup.findPlug("volumeShader").source().node()).name();
+         MString oldVolumeShader = MFnDependencyNode(shadingGroup.findPlug("volumeShader", true).source().node()).name();
          command += "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
          command += "string $oldVolShader = \""+oldVolumeShader+"\";string $newVolShader = `createNode aiStandardVolume`;replaceNode $oldVolShader $newVolShader;delete $oldVolShader;";
          // Reconnect shader and set presets
@@ -90,7 +90,7 @@ void bifrostShapeAttributeChanged(MNodeMessage::AttributeMessage msg, MPlug & pl
       else
       {
           MFnDependencyNode shadingGroup(otherPlug.node());
-          MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader").source().node()).name();// oddly, even aero has a surfaceShader
+          MString oldShader = MFnDependencyNode(shadingGroup.findPlug("surfaceShader", true).source().node()).name();// oddly, even aero has a surfaceShader
 
           command = "undoInfo -openChunk; $sel = `selectedNodes`;"; // next line doesn't work with createNode -skipSelection...
           command += "string $oldShader = \""+oldShader+"\";string $newShader = `createNode aiStandardSurface`;replaceNode $oldShader $newShader;delete $oldShader;";

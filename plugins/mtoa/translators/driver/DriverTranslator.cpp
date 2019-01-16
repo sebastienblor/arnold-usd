@@ -69,7 +69,7 @@ void CDriverTranslator::Export(AtNode *shader)
       MFnDependencyNode fnOpts(GetArnoldRenderOptions());
       if (AiNodeEntryLookUpParameter(entry, "gamma") != NULL)
 #ifdef MTOA_ENABLE_GAMMA
-         AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma").asFloat());
+         AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma", true).asFloat());
 #else
 //         AiNodeSetFlt(shader, "gamma", 1.f); 
 #endif

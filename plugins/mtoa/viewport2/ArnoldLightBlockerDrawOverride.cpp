@@ -49,7 +49,7 @@ struct CArnoldLightBlockerUserData : public MUserData{
 		MFnDependencyNode depNode(objPath.node());		
 		MStatus status;
 		short primitiveType = 0;
-        MPlug plug = depNode.findPlug("geometryType", &status);
+        MPlug plug = depNode.findPlug("geometryType", true, &status);
         if (status && !plug.isNull())
         {
 			primitiveType = plug.asShort();

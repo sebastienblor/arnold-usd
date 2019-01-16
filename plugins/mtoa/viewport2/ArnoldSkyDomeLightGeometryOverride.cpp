@@ -287,13 +287,13 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
    // Cache format for uv geometry update
    m_format = 0;
    MStatus status;
-   MPlug plug = depNode.findPlug("format", &status);
+   MPlug plug = depNode.findPlug("format", true, &status);
    if (status && !plug.isNull())
       m_format = plug.asInt();
 
    // Cache scale value for position geometry update
    // Currently need a rebuild if radius changed
-   plug = depNode.findPlug("skyRadius", &status);
+   plug = depNode.findPlug("skyRadius", true, &status);
    if (status && !plug.isNull())
    {
       float newRadius = plug.asFloat();
@@ -466,7 +466,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
       // Set culling state
       int facing = 0;
-      MPlug facingPlug  = depNode.findPlug("skyFacing");
+      MPlug facingPlug  = depNode.findPlug("skyFacing", true);
       facingPlug.getValue(facing);
       if (facing == 0)
          userData->m_rasterizerState = m_cullBackState;
@@ -515,7 +515,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          }
          bool useUnconnectedColor = true;
          MObject connectedObject = MObject::kNullObj;
-         MPlug plug = depNode.findPlug("color");
+         MPlug plug = depNode.findPlug("color", true);
          if (!texture)
          {
             if (!plug.isNull())
@@ -541,7 +541,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 #if MAYA_API_VERSION >= 201700
                      MFnDependencyNode fileNode(connectedObject);
                      // Check for color management. Maya 2017 required
-                     MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled");
+                     MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled", true);
                      bool cmEnabled = false;
                      if (!cmEnabledPlug.isNull())
                      {
@@ -552,10 +552,10 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                         cmEnabledPlug.getValue(cmEnabled);
                         if (cmEnabled)
                         {
-                           MPlug workingColorSpacePlug = fileNode.findPlug("workingSpace");
+                           MPlug workingColorSpacePlug = fileNode.findPlug("workingSpace", true);
                            workingColorSpacePlug.getValue(workingColorSpace);
 
-                           MPlug colorSpacePlug = fileNode.findPlug("colorSpace");
+                           MPlug colorSpacePlug = fileNode.findPlug("colorSpace", true);
                            colorSpacePlug.getValue(colorSpace);
 
                            // If working or input color space changes then 
@@ -590,12 +590,12 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      }
 
                      // Update exposure
-                     MPlug exposurePlug = fileNode.findPlug("exposure");
+                     MPlug exposurePlug = fileNode.findPlug("exposure", true);
                      if (!exposurePlug.isNull())
                         exposurePlug.getValue(exposure);
 
                      // Update alpha is luminance
-                     MPlug alphaIsLuminancePlug = fileNode.findPlug("alphaIsLuminance");
+                     MPlug alphaIsLuminancePlug = fileNode.findPlug("alphaIsLuminance", true);
                      if (!alphaIsLuminancePlug.isNull())
                         alphaIsLuminancePlug.getValue(alphaIsLuminance);
 #endif
@@ -646,31 +646,31 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
             if (connectedObject != MObject::kNullObj)
             {
                MFnDependencyNode depNode(connectedObject);
-               MPlug plug = depNode.findPlug("colorGain");
+               MPlug plug = depNode.findPlug("colorGain", true);
                if (!plug.isNull())
                {
                   plug.child(0).getValue(colorGain[0]);
                   plug.child(1).getValue(colorGain[1]);
                   plug.child(2).getValue(colorGain[2]);
                }
-               MPlug plug2 = depNode.findPlug("colorOffset");
+               MPlug plug2 = depNode.findPlug("colorOffset", true);
                if (!plug2.isNull())
                {
                   plug2.child(0).getValue(colorOffset[0]);
                   plug2.child(1).getValue(colorOffset[1]);
                   plug2.child(2).getValue(colorOffset[2]);
                }
-               MPlug plug3 = depNode.findPlug("alphaGain");
+               MPlug plug3 = depNode.findPlug("alphaGain", true);
                if (!plug3.isNull())
                {
                   plug3.getValue(alphaGain);
                }
-               MPlug plug4 = depNode.findPlug("alphaOffset");
+               MPlug plug4 = depNode.findPlug("alphaOffset", true);
                if (!plug4.isNull())
                {
                   plug4.getValue(alphaOffset);
                }
-               MPlug plug5 = depNode.findPlug("invert");
+               MPlug plug5 = depNode.findPlug("invert", true);
                if (!plug5.isNull())
                {
                   plug5.getValue(invert);
@@ -689,7 +689,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          
          // Check for transparency
          //
-         float hwTexAlpha  = useUnconnectedColor ? 0.3f : depNode.findPlug("hwtexalpha").asFloat();
+         float hwTexAlpha  = useUnconnectedColor ? 0.3f : depNode.findPlug("hwtexalpha", true).asFloat();
 
          float alphaThreshold = 0.0f;       
          status = shaderInst->setParameter("alphaThreshold", &alphaThreshold);			

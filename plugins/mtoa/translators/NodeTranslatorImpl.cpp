@@ -385,7 +385,7 @@ MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus
 MPlug CNodeTranslatorImpl::FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus) const
 {
    MFnDependencyNode fnNode(m_handle.object());
-   return fnNode.findPlug(attrName, ReturnStatus);
+   return fnNode.findPlug(attrName, true, ReturnStatus);
 }
 
 void CNodeTranslatorImpl::RemoveUpdateCallbacks()
@@ -480,7 +480,7 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
    for (unsigned int i=0; i<ns; i++)
    {
       fnSet.setObject(overrideSetObjs[i]);
-      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
+      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message", true)));
    }
    if (MtoaTranslationInfo())
    {
@@ -1030,9 +1030,9 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          if (AiNodeIs(node, polymeshStr) || AiNodeIs(node, pointsStr) || AiNodeIs(node, boxStr) || AiNodeIs(node, sphereStr))
          {
             MFnDependencyNode fnDGNode(m_tr.GetMayaObject());
-            MPlug stepSizePlug = fnDGNode.findPlug("stepSize");
+            MPlug stepSizePlug = fnDGNode.findPlug("stepSize", true);
             if (stepSizePlug.isNull())
-               stepSizePlug = fnDGNode.findPlug("aiStepSize");
+               stepSizePlug = fnDGNode.findPlug("aiStepSize", true);
 
             if (!stepSizePlug.isNull())
                isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
@@ -1082,7 +1082,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
          
          for (unsigned int i = 0; i < 4; ++i)
          {
-            MPlug plug = sgNode.findPlug(shaderAttrNames[i]);
+            MPlug plug = sgNode.findPlug(shaderAttrNames[i], true);
             if (plug.isNull()) continue;
             
             connections.clear();

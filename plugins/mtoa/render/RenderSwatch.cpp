@@ -496,7 +496,7 @@ bool CRenderSwatchGenerator::doIteration()
       // FIXME: what do we want to do when no ArnoldOptionsNode exists yet
       // (happens if you open hypershade and create a shader before opening render settings
       if (!ArnoldRenderOptionsNode.isNull()
-         && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render").asBool())
+         && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool())
       {
          return true;
       }
@@ -537,7 +537,7 @@ bool CRenderSwatchGenerator::doIteration()
 
             // if use tx is enabled, call exportTx that will *not* try to convert the mipmaps
             // but will check for existing tx for sake of optimization
-            if (ArnoldRenderOptionsNode.isNull() || MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("use_existing_tiled_textures").asBool())
+            if (ArnoldRenderOptionsNode.isNull() || MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("use_existing_tiled_textures", true).asBool())
                CMayaScene::GetArnoldSession()->ExportTxFiles();
 
 

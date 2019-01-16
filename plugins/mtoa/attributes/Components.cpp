@@ -75,7 +75,7 @@ ComponentType ResolveFloatComponent(const MPlug &plug, MPlug &attrResult)
       {
 
          MFnDependencyNode fnNode(plug.node());
-         attrResult = fnNode.findPlug(OUT_COLOR_NAME, stat);
+         attrResult = fnNode.findPlug(OUT_COLOR_NAME, true, &stat);
          if (stat != MS::kSuccess)
          {
             AiMsgError("[mtoa] [maya %s] Error exporting components: \"%s\" is connected, but node has no \"%s\" attribute",

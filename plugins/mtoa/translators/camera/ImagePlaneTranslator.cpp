@@ -64,14 +64,14 @@ void CImagePlaneTranslator::ExportImagePlane()
    if (validCamera)
    {
       MFnCamera fnCamera(pathCamera);
-      lensSqueeze = fnCamera.findPlug("lensSqueezeRatio").asDouble();   
+      lensSqueeze = fnCamera.findPlug("lensSqueezeRatio", true).asDouble();   
    }
 
    
    AtNode *imagePlaneShader = GetArnoldNode();
 
    // check if the image plane should be created
-   int displayMode = fnRes.findPlug("displayMode").asInt();
+   int displayMode = fnRes.findPlug("displayMode", true).asInt();
    AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
 
    if (displayMode <= 1)
@@ -82,7 +82,7 @@ void CImagePlaneTranslator::ExportImagePlane()
    MImage mImage;
 
    //type: 0 == Image, 1 == Texture, 2 == Movie
-   int type = fnRes.findPlug("type", &status).asInt();
+   int type = fnRes.findPlug("type", true, &status).asInt();
 
    if (type == 2)//Not supporting type Movie for now....
    {
@@ -92,17 +92,17 @@ void CImagePlaneTranslator::ExportImagePlane()
 
    // UV Values
    
-   double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
-   double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
+   double planeSizeX = fnRes.findPlug("sizeX", true, &status).asDouble();
+   double planeSizeY = fnRes.findPlug("sizeY", true, &status).asDouble();
    
-   double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
-   double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
+   double coverageX = fnRes.findPlug("coverageX", true, &status).asDouble();
+   double coverageY = fnRes.findPlug("coverageY", true, &status).asDouble();
 
-   double coverageOriginX = fnRes.findPlug("coverageOriginX", &status).asDouble();
-   double coverageOriginY = fnRes.findPlug("coverageOriginY", &status).asDouble();
+   double coverageOriginX = fnRes.findPlug("coverageOriginX", true, &status).asDouble();
+   double coverageOriginY = fnRes.findPlug("coverageOriginY", true, &status).asDouble();
 
-   double offsetX = fnRes.findPlug("offsetX", &status).asDouble();
-   double offsetY = fnRes.findPlug("offsetY", &status).asDouble();
+   double offsetX = fnRes.findPlug("offsetX", true, &status).asDouble();
+   double offsetY = fnRes.findPlug("offsetY", true, &status).asDouble();
    
 
    unsigned int iWidth = 1;
@@ -127,7 +127,7 @@ void CImagePlaneTranslator::ExportImagePlane()
       double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
       if (iAspect != planeAspect)
       {
-         FitType fit = (FitType)fnRes.findPlug("fit", &status).asInt();
+         FitType fit = (FitType)fnRes.findPlug("fit", true, &status).asInt();
 
          if (fit == FIT_BEST)
          {
@@ -175,7 +175,7 @@ void CImagePlaneTranslator::ExportImagePlane()
       MString resolvedFilename = imageName; // do we need to do anything else to resolve the filename ?
 
 
-      MString colorSpace = fnRes.findPlug("colorSpace").asString();
+      MString colorSpace = fnRes.findPlug("colorSpace", true).asString();
       
       bool requestUpdateTx = (colorSpace != m_colorSpace);
       m_colorSpace = colorSpace;
@@ -258,7 +258,7 @@ void CImagePlaneTranslator::ExportImagePlane()
       scaleX = planeSizeX;
       scaleY = planeSizeY;
 
-      MPlug sourceTexturePlug  = fnRes.findPlug("sourceTexture");
+      MPlug sourceTexturePlug  = fnRes.findPlug("sourceTexture", true);
       sourceTexturePlug.connectedTo(conn, true, false);
       if (conn.length())
       {
@@ -271,7 +271,7 @@ void CImagePlaneTranslator::ExportImagePlane()
    AiNodeSetVec2(imagePlaneShader, "coverageOrigin", (float)coverageOriginX / (float)iWidth , (float)coverageOriginY / (float)iHeight);
    AiNodeSetVec2(imagePlaneShader, "translate", (float)offsetX, (float)offsetY);
    
-   colorPlug  = fnRes.findPlug("colorGain");
+   colorPlug  = fnRes.findPlug("colorGain", true);
    colorPlug.connectedTo(conn, true, false);
    if (!conn.length())
      AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
@@ -280,7 +280,7 @@ void CImagePlaneTranslator::ExportImagePlane()
       AiNodeLink(ExportConnectedNode(conn[0]), "colorGain", imagePlaneShader);
    }
 
-   colorPlug  = fnRes.findPlug("colorOffset");
+   colorPlug  = fnRes.findPlug("colorOffset", true);
    colorPlug.connectedTo(conn, true, false);
    if (!conn.length())
       AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
@@ -289,11 +289,11 @@ void CImagePlaneTranslator::ExportImagePlane()
       AiNodeLink(ExportConnectedNode(conn[0]), "colorOffset", imagePlaneShader);
    }
 
-   float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
+   float alphaGain = fnRes.findPlug("alphaGain", true, &status).asFloat();
    AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
 
 
-   float rotate = fnRes.findPlug("rotate", &status).asFloat();
+   float rotate = fnRes.findPlug("rotate", true, &status).asFloat();
    AiNodeSetFlt(imagePlaneShader, "rotate", rotate);
 
    

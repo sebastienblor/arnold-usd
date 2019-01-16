@@ -89,8 +89,8 @@ MBoundingBox CArnoldProceduralDrawOverride::boundingBox(
     MBoundingBox bbox;
     MFnDependencyNode depNode(objPath.node());
 
-    MPlug minPlug = depNode.findPlug("minBoundingBox");
-    MPlug maxPlug = depNode.findPlug("maxBoundingBox");
+    MPlug minPlug = depNode.findPlug("minBoundingBox", true);
+    MPlug maxPlug = depNode.findPlug("maxBoundingBox", true);
 
     if (minPlug.isNull() || maxPlug.isNull())
     {
@@ -125,7 +125,7 @@ struct SArnoldProceduralUserData : public MUserData{
         m_wireframeColor[3] = color.a;
 
         MFnDependencyNode depNode(objPath.node());
-        MPlug minPlug = depNode.findPlug("minBoundingBox");
+        MPlug minPlug = depNode.findPlug("minBoundingBox", true);
         AtVector mn (-1.f, -1.f, -1.f);
         if (!minPlug.isNull())
         {
@@ -135,7 +135,7 @@ struct SArnoldProceduralUserData : public MUserData{
         }
 
         AtVector mx (1.f, 1.f, 1.f);
-        MPlug maxPlug = depNode.findPlug("maxBoundingBox");
+        MPlug maxPlug = depNode.findPlug("maxBoundingBox", true);
         if (!maxPlug.isNull())
         {
             mx.x = maxPlug.child(0).asFloat();

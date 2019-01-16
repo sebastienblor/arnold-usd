@@ -61,14 +61,14 @@ void ArnoldStandardHairShaderOverride::updateDG()
 	if (status)
 	{
 		float opacity[3];
-		node.findPlug("opacityR").getValue(opacity[0]);
-		node.findPlug("opacityG").getValue(opacity[1]);
-		node.findPlug("opacityB").getValue(opacity[2]);
+		node.findPlug("opacityR", true).getValue(opacity[0]);
+		node.findPlug("opacityG", true).getValue(opacity[1]);
+		node.findPlug("opacityB", true).getValue(opacity[2]);
 
 		// transfer the opacity values to a transparency attribute the VP2 API can recognize.
-		node.findPlug("aiTransparencyR").setValue(1.0f - opacity[0]);
-		node.findPlug("aiTransparencyG").setValue(1.0f - opacity[1]);
-		node.findPlug("aiTransparencyB").setValue(1.0f - opacity[2]);
+		node.findPlug("aiTransparencyR", true).setValue(1.0f - opacity[0]);
+		node.findPlug("aiTransparencyG", true).setValue(1.0f - opacity[1]);
+		node.findPlug("aiTransparencyB", true).setValue(1.0f - opacity[2]);
 	}
 }
 

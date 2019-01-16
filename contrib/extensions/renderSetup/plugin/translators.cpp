@@ -7,22 +7,22 @@ namespace
     inline void transfer(const MFnDependencyNode& mnode, const char* name, AtNode* node);
 
     template<> void transfer<bool>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        AiNodeSetBool(node, name, mnode.findPlug(name).asBool());
+        AiNodeSetBool(node, name, mnode.findPlug(name, true).asBool());
     }
     template<> void transfer<float>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        AiNodeSetFlt(node, name, mnode.findPlug(name).asFloat());
+        AiNodeSetFlt(node, name, mnode.findPlug(name, true).asFloat());
     }
     template<> void transfer<float2>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        const float2& v = mnode.findPlug(name).asMDataHandle().asFloat2();
+        const float2& v = mnode.findPlug(name, true).asMDataHandle().asFloat2();
         AiNodeSetVec2(node, name, v[0], v[1]);
     }
     template<> void transfer<float3>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        const float3& v = mnode.findPlug(name).asMDataHandle().asFloat3();
+        const float3& v = mnode.findPlug(name, true).asMDataHandle().asFloat3();
         AiNodeSetRGB(node, name, v[0], v[1], v[2]);
 
     }
     template<> void transfer<int>(const MFnDependencyNode& mnode, const char* name, AtNode* node){
-        AiNodeSetInt(node, name, mnode.findPlug(name).asInt());
+        AiNodeSetInt(node, name, mnode.findPlug(name, true).asInt());
     }
 }
 

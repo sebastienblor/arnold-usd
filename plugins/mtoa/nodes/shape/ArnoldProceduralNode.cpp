@@ -240,8 +240,8 @@ MBoundingBox CArnoldProceduralNode::boundingBox() const
 {
    MBoundingBox box;
    MFnDependencyNode depNode(thisMObject());
-   MPlug minPlug = depNode.findPlug("minBoundingBox");
-   MPlug maxPlug = depNode.findPlug("maxBoundingBox");
+   MPlug minPlug = depNode.findPlug("minBoundingBox", true);
+   MPlug maxPlug = depNode.findPlug("maxBoundingBox", true);
 
    if (minPlug.isNull() || maxPlug.isNull())
    {

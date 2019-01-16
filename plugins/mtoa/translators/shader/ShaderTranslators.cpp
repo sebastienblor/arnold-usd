@@ -264,29 +264,29 @@ void CFileTranslator::Export(AtNode* shader)
 
       if (srcNodeFn.typeName() == "place2dTexture")
       {
-         srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
+         srcNodeFn.findPlug("uvCoord", true).connectedTo(connections, true, false);
          AiNodeSetStr(shader, "uvset", "");
          if (connections.length() > 0)
          {
             MFnDependencyNode uvcNodeFn(connections[0].node());
             if (uvcNodeFn.typeName() == "uvChooser")
-               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
          }
          if (uvTransformNode)
          {
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
-            ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
-            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
-            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
+            ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
+            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
+            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
 
-            if (srcNodeFn.findPlug("wrapU").asBool())
+            if (srcNodeFn.findPlug("wrapU", true).asBool())
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
                
 
-            if (srcNodeFn.findPlug("wrapV").asBool())
+            if (srcNodeFn.findPlug("wrapV", true).asBool())
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
@@ -299,23 +299,23 @@ void CFileTranslator::Export(AtNode* shader)
                AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
             }
             // if not linked, set alpha to zero
-            ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
-            ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
+            ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV", true));
+            ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset", true));
 
-            float rotateFrame = srcNodeFn.findPlug("rotateFrame").asFloat();
+            float rotateFrame = srcNodeFn.findPlug("rotateFrame", true).asFloat();
             AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
             //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
-            ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
-            float rotateUV = srcNodeFn.findPlug("rotateUV").asFloat();
+            ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame", true));
+            float rotateUV = srcNodeFn.findPlug("rotateUV", true).asFloat();
             AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
-            ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
-            ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
+            ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger", true));
+            ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV", true));
 
          } else
          {
-            if (srcNodeFn.findPlug("wrapU").asBool())
+            if (srcNodeFn.findPlug("wrapU", true).asBool())
             {
-               if (srcNodeFn.findPlug("mirrorU").asBool())
+               if (srcNodeFn.findPlug("mirrorU", true).asBool())
                   AiNodeSetStr(shader, "swrap", "mirror");
                else
                   AiNodeSetStr(shader, "swrap", "periodic");
@@ -323,9 +323,9 @@ void CFileTranslator::Export(AtNode* shader)
             } else
                AiNodeSetStr(shader, "swrap", "missing");
 
-            if (srcNodeFn.findPlug("wrapV").asBool())
+            if (srcNodeFn.findPlug("wrapV", true).asBool())
             {
-               if (srcNodeFn.findPlug("mirrorV").asBool())
+               if (srcNodeFn.findPlug("mirrorV", true).asBool())
                   AiNodeSetStr(shader, "twrap", "mirror");
                else
                   AiNodeSetStr(shader, "twrap", "periodic");
@@ -333,14 +333,14 @@ void CFileTranslator::Export(AtNode* shader)
             } else
                AiNodeSetStr(shader, "twrap", "missing");
             
-            MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV");
+            MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV", true);
             if (!repeatUVPlug.isNull())
             {
                AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
                AiNodeSetFlt(shader, "sscale", repeatUV.x);
                AiNodeSetFlt(shader, "tscale", repeatUV.y);
             }
-            MPlug offsetUVPlug = srcNodeFn.findPlug("offset");
+            MPlug offsetUVPlug = srcNodeFn.findPlug("offset", true);
             if (!offsetUVPlug.isNull())
             {
                AiNodeSetFlt(shader, "soffset", offsetUVPlug.child(0).asFloat());
@@ -611,15 +611,15 @@ bool CFileTranslator::RequiresUvTransform() const
    if (srcNodeFn.typeName() != "place2dTexture")
       return false;
 
-   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger"), false) &&
-            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU"), false) &&
-            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV"), false) &&
-            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame"), 0.f ) &&
-            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV"), 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("coverage"), 1.f, 1.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV"), 1.f, 1.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV"), 0.f, 0.f ) );
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV", true), false) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame", true), 0.f ) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV", true), 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV", true), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) );
 
 }
 void CFileTranslator::ReplaceFileToken(MString &filename, const MString &tokenIn, const MString &tokenOut)
@@ -858,29 +858,29 @@ void CCheckerTranslator::Export(AtNode* shader)
 
       if (srcNodeFn.typeName() == "place2dTexture")
       {
-         srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
+         srcNodeFn.findPlug("uvCoord", true).connectedTo(connections, true, false);
          AiNodeSetStr(shader, "uvset", "");
          if (connections.length() > 0)
          {
             MFnDependencyNode uvcNodeFn(connections[0].node());
             if (uvcNodeFn.typeName() == "uvChooser")
-               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+               AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
          }
          if (uvTransformNode)
          {
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
-            ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage"));
-            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU"));
-            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV"));
+            ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
+            ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
+            ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
 
-            if (srcNodeFn.findPlug("wrapU").asBool())
+            if (srcNodeFn.findPlug("wrapU", true).asBool())
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
                
 
-            if (srcNodeFn.findPlug("wrapV").asBool())
+            if (srcNodeFn.findPlug("wrapV", true).asBool())
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
@@ -893,28 +893,28 @@ void CCheckerTranslator::Export(AtNode* shader)
                AiNodeSetRGBA(uvTransformNode, "wrap_frame_color", col.r, col.g, col.b, 0.f);
             }
             // if not linked, set alpha to zero
-            ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV"));
-            ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset"));
+            ProcessParameter(uvTransformNode, "repeat", AI_TYPE_VECTOR2, srcNodeFn.findPlug("repeatUV", true));
+            ProcessParameter(uvTransformNode, "offset", AI_TYPE_VECTOR2, srcNodeFn.findPlug("offset", true));
 
-            float rotateFrame = srcNodeFn.findPlug("rotateFrame").asFloat();
+            float rotateFrame = srcNodeFn.findPlug("rotateFrame", true).asFloat();
             AiNodeSetFlt(uvTransformNode, "rotate_frame", rotateFrame * 180.f / AI_PI);
             //ProcessParameter(uvTransformNode, "rotate_frame", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateFrame"));
-            ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame"));
-            float rotateUV = srcNodeFn.findPlug("rotateUV").asFloat();
+            ProcessParameter(uvTransformNode, "translate_frame", AI_TYPE_VECTOR2, srcNodeFn.findPlug("translateFrame", true));
+            float rotateUV = srcNodeFn.findPlug("rotateUV", true).asFloat();
             AiNodeSetFlt(uvTransformNode, "rotate", rotateUV * 180.f / AI_PI);
-            ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger"));
-            ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV"));
+            ProcessParameter(uvTransformNode, "stagger", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("stagger", true));
+            ProcessParameter(uvTransformNode, "noise", AI_TYPE_VECTOR2, srcNodeFn.findPlug("noiseUV", true));
 
          } else
          {
-            MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV");
+            MPlug repeatUVPlug = srcNodeFn.findPlug("repeatUV", true);
             if (!repeatUVPlug.isNull())
             {
                AtVector2 repeatUV = AtVector2(repeatUVPlug.child(0).asFloat(), repeatUVPlug.child(1).asFloat());
                AiNodeSetFlt(shader, "u_frequency", repeatUV.x);
                AiNodeSetFlt(shader, "v_frequency", repeatUV.y);
             }
-            MPlug offsetUVPlug = srcNodeFn.findPlug("offset");
+            MPlug offsetUVPlug = srcNodeFn.findPlug("offset", true);
             if (!offsetUVPlug.isNull())
             {
                AiNodeSetFlt(shader, "u_offset", offsetUVPlug.child(0).asFloat());
@@ -984,18 +984,18 @@ bool CCheckerTranslator::RequiresUvTransform() const
    if (srcNodeFn.typeName() != "place2dTexture")
       return false;
 
-   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger"), false) &&
-            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU"), false) &&
-            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV"), false) &&
-            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame"), 0.f ) &&
-            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV"), 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("coverage"), 1.f, 1.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapU"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("wrapV"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorU"), 0.f, 0.f ) &&
-            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorV"), 0.f, 0.f ));
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV", true), false) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame", true), 0.f ) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV", true), 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("wrapU", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("wrapV", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorU", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("mirrorV", true), 0.f, 0.f ));
 
 }
 void CCheckerTranslator::NodeInitializer(CAbTranslator context)
@@ -1516,12 +1516,12 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
-   fnNode.findPlug("uvCoord").connectedTo(connections, true, false);
+   fnNode.findPlug("uvCoord", true).connectedTo(connections, true, false);
    if (connections.length() > 0)
    {
       MFnDependencyNode uvcNodeFn(connections[0].node());
       if (uvcNodeFn.typeName() == "uvChooser")
-         AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+         AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
    }
 }
 
@@ -1542,7 +1542,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    
    MFnDependencyNode fnNode(GetMayaObject());
 
-   attr = fnNode.findPlug("inputs");
+   attr = fnNode.findPlug("inputs", true);
    unsigned int numElements = attr.numElements();
    if (numElements > 16)
    {
@@ -1634,7 +1634,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
    
    MFnDependencyNode fnNode(GetMayaObject());
-   attr = fnNode.findPlug("inputs");
+   attr = fnNode.findPlug("inputs", true);
    unsigned int numElements = attr.numElements();
    if (numElements > 16)
    {
@@ -1763,7 +1763,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    CShaderTranslator::NodeChanged(node, plug);
 
-   MPlug disp = MFnDependencyNode(node).findPlug("displacement");
+   MPlug disp = MFnDependencyNode(node).findPlug("displacement", true);
    MPlugArray connectedPlugs;
    disp.connectedTo(connectedPlugs,false,true);
 
@@ -1776,7 +1776,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
       std::vector< CNodeTranslator * > translatorsToUpdate;
       
       MFnDependencyNode shadingEngineDNode(shadingEngine);
-      MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
+      MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers", true);
       const unsigned int numElements = dagSetMembersPlug.numElements();
 
       // For each geometry connected to the shading engine
@@ -2354,7 +2354,7 @@ AtNode* CAiRaySwitchTranslator::CreateArnoldNodes()
    for (unsigned int i = 0; i < attributeNames.length(); ++i)
    {
 
-      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      MPlug inputPlug = dnode.findPlug(attributeNames[i], true);
       if (inputPlug.isNull())
          continue;
 
@@ -2455,7 +2455,7 @@ AtNode* CAiMixShaderTranslator::CreateArnoldNodes()
    bool hasRGB = false;
    for (unsigned int i = 0; i < attributeNames.length(); ++i)
    {
-      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      MPlug inputPlug = dnode.findPlug(attributeNames[i], true);
       if (inputPlug.isNull())
          continue;
 
@@ -2527,7 +2527,7 @@ AtNode* CAiSwitchShaderTranslator::CreateArnoldNodes()
    bool hasRGB = false;
    for (unsigned int i = 0; i < attributeNames.length(); ++i)
    {
-      MPlug inputPlug = dnode.findPlug(attributeNames[i]);
+      MPlug inputPlug = dnode.findPlug(attributeNames[i], true);
       if (inputPlug.isNull())
          continue;
 
@@ -2567,7 +2567,7 @@ void CAiSwitchShaderTranslator::Export(AtNode* shader)
       MString attrName = "input";
       attrName += (int)i;
 
-      MPlug inputPlug = dnode.findPlug(attrName);
+      MPlug inputPlug = dnode.findPlug(attrName, true);
       inputPlug.connectedTo(conns, true, false);
       if (conns.length() > 0)
          ProcessParameter(shader, attrName.asChar(), (isRGBA) ? AI_TYPE_RGBA : AI_TYPE_CLOSURE, attrName.asChar());
@@ -2605,7 +2605,7 @@ void CAiPassthroughTranslator::Export(AtNode* shader)
       MString attrName = "eval";
       attrName += (int)i;
 
-      MPlug inputPlug = dnode.findPlug(attrName);
+      MPlug inputPlug = dnode.findPlug(attrName, true);
       inputPlug.connectedTo(conns, true, false);
       if (conns.length() > 0)
          ProcessParameter(shader, attrName.asChar(), AI_TYPE_CLOSURE, attrName.asChar());
@@ -2624,7 +2624,7 @@ void CAiPassthroughTranslator::NodeInitializer(CAbTranslator context)
 AtNode* CAiAovWriteColorTranslator::CreateArnoldNodes()
 {
    MFnDependencyNode dnode(GetMayaObject());
-   MPlug inputPlug = dnode.findPlug("beauty");
+   MPlug inputPlug = dnode.findPlug("beauty", true);
 
    bool isClosure = false;
    if (!inputPlug.isNull())
@@ -2670,7 +2670,7 @@ void CAiAovWriteColorTranslator::NodeInitializer(CAbTranslator context)
 AtNode* CAiAovWriteFloatTranslator::CreateArnoldNodes()
 {
    MFnDependencyNode dnode(GetMayaObject());
-   MPlug inputPlug = dnode.findPlug("beauty");
+   MPlug inputPlug = dnode.findPlug("beauty", true);
 
    bool isRGBA = false;
    if (!inputPlug.isNull())
@@ -2728,7 +2728,7 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
 
    MFnDependencyNode dnode(GetMayaObject());
 
-   MPlug inputPlug = dnode.findPlug("input");
+   MPlug inputPlug = dnode.findPlug("input", true);
    MIntArray existingIndices;
    inputPlug.getExistingArrayAttributeIndices(existingIndices);
    if (existingIndices.length() == 0)
@@ -2815,7 +2815,7 @@ void CToonTranslator::Export(AtNode* shader)
             activeList.getDependNode(0, lightObj);
             if (!lightObj.isNull())
             {
-               MPlug dummyPlug = MFnDependencyNode(lightObj).findPlug("message");
+               MPlug dummyPlug = MFnDependencyNode(lightObj).findPlug("message", true);
                if (!dummyPlug.isNull())
                {
                   AtNode *lightArnoldNode = ExportConnectedNode(dummyPlug);
