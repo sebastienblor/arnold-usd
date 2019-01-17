@@ -14,6 +14,9 @@ from alembic import Abc, AbcGeom
 
 class AbcTreeView(BaseTreeView):
     """docstring for AbcTree"""
+
+    itemSelected = QtCore.Signal(str, object)
+
     def __init__(self, transverser, parent=None):
         super(AbcTreeView, self).__init__(parent)
         self.transverser = transverser
@@ -44,6 +47,32 @@ class AbcTreeView(BaseTreeView):
         for i in range(item.childCount()):
             child = item.child(i)
             child.obtainChildren()
+
+    def selectionChanged(self, selected, deselected):
+        """
+        Called when the selection is changed. The previous selection (which
+        may be empty), is specified by deselected, and the new selection by
+        selected.
+        """
+        # This will redraw selected items in the tree view.
+        super(AbcTreeView, self).selectionChanged(selected, deselected)
+        print "selectionChanged", selected, deselected
+
+        indices = self.selectedIndexes()
+        if indices:
+            objects = []
+
+            for i in indices:
+                if not i.isValid():
+                    continue
+
+                item = i.internalPointer()
+
+                subObject = item.iobject
+                if subObject:
+                    objects.append(subObject)
+
+            self.itemSelected.emit(item.node, objects)
 
 
 class AbcTreeModel(BaseModel):
@@ -95,7 +124,7 @@ class AbcItem(BaseItem):
 
         name = ""
         if self.iobject:
-            name = iobject.getName()
+            name = iobject[ABC_NAME]
 
         if not parentItem:
             self.origin = True
@@ -114,12 +143,21 @@ class AbcItem(BaseItem):
             return
         self.iarch = self.transverser.getArchive(self.getNode())
         if not self.iobject:
-            item = AbcItem(self, self.transverser, iobject=self.iarch.getTop())
+            item = AbcItem(self, self.transverser, iobject=self.transverser.getObjectInfo(self.iarch.getTop()))
             item.obtainChildren()
         else:
-            children = self.transverser.dir(self.iobject)
+            children = self.transverser.dir(self.iobject[ABC_IOBJECT])
             if children:
                 for child in children:
-                    AbcItem(self, self.transverser, iobject=child[ABC_IOBJECT])
+                    AbcItem(self, self.transverser, iobject=child)
 
         self.childrenObtained = True
+
+    def getOverrides(self):
+        overrides = []
+        op_node = self.transverser.getOperator(self.node, self.iobject)
+        return overrides
+
+    def addOverride(self, param, value):
+        pass
+

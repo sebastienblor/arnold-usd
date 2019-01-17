@@ -6,6 +6,7 @@ from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt.Qt import QtGui
 from mtoa.ui.qt.Qt import QtWidgets
 from mtoa.ui.qt.Qt import shiboken
+from mtoa.ui.qt import toQtObject
 
 import mtoa.melUtils as mu
 import mtoa.utils as utils
@@ -18,8 +19,10 @@ import os
 import os.path
 from ast import literal_eval
 
-from AbcTreeView import AbcTreeView
-from AbcTransverser import AlembicTransverser
+from abcview import AbcTreeView, AlembicTransverser, AbcPropertiesPanel, \
+                    ABC_PATH, ABC_NAME, ABC_PARENT, \
+                    ABC_VISIBILITY, ABC_INSTANCEPATH, \
+                    ABC_ENTIY_TYPE, ABC_IOBJECT
 
 from alembic.AbcCoreAbstract import *
 from alembic.Abc import *
@@ -121,10 +124,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         """Cast and return the current widget."""
         # Get the current widget Maya name.
         currentWidgetName = cmds.setParent(query=True)
-        # Convert it to C++ ptr.
-        ptr = OpenMayaUI.MQtUtil.findLayout(currentWidgetName)
-        # Convert it to PySide object.
-        return shiboken.wrapInstance(long(ptr), pySideType)
+        return toQtObject(currentWidgetName, pySideType)
 
     def createCacheAttr(self, node):
         if not cmds.attributeQuery(CACHE_ATTR, node=node, exists=True):
@@ -564,10 +564,15 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.currentItem = None
         currentWidget = self.__currentWidget()
 
-        tree = AbcTreeView(AlembicTransverser(), currentWidget)
-        currentWidget.layout().addWidget(tree)
-        tree.setObjectName("abcTreeWidget")
+        self.tree = AbcTreeView(AlembicTransverser(), currentWidget)
+        self.tree.setObjectName("abcTreeWidget")
+        currentWidget.layout().addWidget(self.tree)
 
+        # now add the preperties panel
+        self.proprties_panel = AbcPropertiesPanel(currentWidget)
+        currentWidget.layout().addWidget(self.proprties_panel)
+
+        self.tree.itemSelected.connect(self.showItemProperties)
         self.abcInfoReplace(nodeAttr)
 
         # cmds.rowLayout(nc=2)
@@ -624,6 +629,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         #         cmds.treeView(self.abcInfoPath, edit=True, visible=False)
         #         cmds.button(self.inspectAlembicPath, edit=True, visible=True)
         #         cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
+
+    @QtCore.Slot(str, object)
+    def showItemProperties(self, node, objects):
+        for obj in objects:
+            print obj[ABC_PATH]
+            self.proprties_panel.setObject(node, obj)
 
     def updateAlembicFile(self):
         # clear the cache

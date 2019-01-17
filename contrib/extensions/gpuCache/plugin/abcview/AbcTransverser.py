@@ -1,4 +1,5 @@
 import os
+import re
 import maya.cmds as cmds
 from mtoa.ui.qt import BaseTransverser
 from alembic import Abc, AbcGeom
@@ -12,6 +13,11 @@ from alembic import Abc, AbcGeom
  ABC_IOBJECT) = range(7)
 
 VISIBILITY = ['differed', 'hidden', 'visible']
+
+EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
+                         (?P<op>=|\+=|-=|\*=)\s* # operation
+                         (?P<value>.*\w) # value
+                         """, re.X)
 
 
 def abcToArnType(iObj):
@@ -58,6 +64,10 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.visitObject(iObj)
 
+    def getObjectInfo(self, iObj):
+
+        return self.impl.getObjectInfo(iObj)
+
     def dir(self, *args):
 
         return self.impl.dir(*args)
@@ -66,21 +76,21 @@ class AlembicTransverser(BaseTransverser):
 
     #     return self.impl.properties(node, path)
 
-    # def createOperator(self, node, path):
+    def createOperator(self, node, iobject):
 
-    #     return self.impl.createOperator(node, path)
+        return self.impl.createOperator(node, iobject)
 
-    # def getOperator(self, node, path):
+    def getOperator(self, node, iobject):
 
-    #     return self.impl.getOperator(node, path)
+        return self.impl.getOperator(node, iobject)
 
-    # def setOverride(self, node, path, param, value):
+    def setOverride(self, node, path, param, value):
 
-    #     return self.impl.setOverride(node, path)
+        return self.impl.setOverride(node, path, param, value)
 
-    # def deleteOverride(self, node, path, param):
+    def deleteOverride(self, node, path, param):
 
-    #     return self.impl.deleteOverride(node, path)
+        return self.impl.deleteOverride(node, path, param)
 
 
 class AlembicTransverserImpl(object):
@@ -138,18 +148,37 @@ class AlembicTransverserImpl(object):
 
         pass
 
-    def createOperator(self, node, path):
+    def createOperator(self, node, iobject):
+
+        op = cmds.createNode("aiSetParameter")
+        path = iobject[ABC_PATH]
+        if iobject[ABC_ENTIY_TYPE] == "xform":
+            path += "/*"
+        cmds.setAttr(op + ".selection", path)
+
+        attrSize = mu.getAttrNumElements(node, 'operators')
+        newItem = '{}.operators[{}]'.format(node, attrSize)
+        cmds.connectAttr(op + ".out", newItem)
+        return op
+
+    def getOperator(self, node, iobject):
+
+        operator = None
+        for op in cmds.getAttr(node + ".operators"):
+            if cmds.objExists(op + ".selection"):
+                sel_exp = cmds.getAttr(op + ".selection")
+                tokens = sel_exp.rsplit()
+                for tok in tokens:
+                    if tok == iobject[ABC_PATH] or \
+                       tok == iobject[ABC_PATH] + "*":
+                        operator = op
+                        break
+        return operator
+
+    def setOverride(self, node, path, param, value):
 
         pass
 
-    def getOperator(self, node, path):
-
-        pass
-
-    def setOverride(self, node, path, ):
-
-        pass
-
-    def deleteOverride(self, node, path, ):
+    def deleteOverride(self, node, path, param):
 
         pass

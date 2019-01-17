@@ -7,6 +7,7 @@ from .utils import dpiScale
 
 from arnold import *
 
+OPERATIONS = ["=", "+=", "-=", "*="]
 
 DEFAULT_VISBILITIES = {'AI_RAY_CAMERA': True,
                        'AI_RAY_SHADOW': True,
@@ -144,3 +145,36 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
 
     def emitDelete(self, *args):
         self.deleteAttr.emit(self.node, self.pattern, self.attr)
+
+
+class MtoALabelLineEdit(QtWidgets.QFrame):
+    def __init__(self, label='label', parent=None):
+        super(MtoALabelLineEdit, self).__init__(parent)
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.titleLabel = QtWidgets.QLabel(label)
+        self.layout().addWidget(self.titleLabel)
+        self.lineEdit = QtWidgets.QLineEdit()
+        self.layout().addWidget(self.lineEdit)
+
+
+class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super(MtoAOperatorOverrideWidget, self).__init__(parent)
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.paramMenu = QtWidgets.QComboBox()
+        self.layout().addWidget(self.paramMenu)
+
+        self.op_menu = QtWidgets.QComboBox()
+        self.op_menu.addItems(OPERATIONS)
+        self.layout().addWidget(self.op_menu)
+
+        self.expressionEditor = QtWidgets.QLineEdit()
+        self.layout().addWidget(self.expressionEditor)
+
+        EXPRESSION_ICON = QtGui.QPixmap(":/out_expression.png")
+        self.expBtn = QtWidgets.QPushButton()
+        self.expBtn.setIcon(EXPRESSION_ICON)
+        self.layout().addWidget(self.expressionEditor)

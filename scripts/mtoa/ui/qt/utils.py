@@ -29,7 +29,7 @@ def toPyObject(obj):
     return obj
 
 
-def toQtObject(mayaUIName):
+def toQtObject(mayaUIName, pySideType=QtCore.QObject):
     '''
     Given the name of a Maya UI element of any type,
     return the corresponding QWidget or QAction.
@@ -42,7 +42,7 @@ def toQtObject(mayaUIName):
             ptr = OpenMayaUI.MQtUtil.findMenuItem(mayaUIName)
 
     if ptr is not None:
-        obj = shiboken.wrapInstance(long(ptr), QObject)
+        obj = shiboken.wrapInstance(long(ptr), pySideType)
         return obj
 
 
@@ -50,22 +50,26 @@ def clearWidget(widget):
     """clear children from given widget"""
     while widget.layout().count():
         item = widget.layout().takeAt(0)
-        if isinstance(item, QWidgetItem):
+        if isinstance(item, QtWidgets.QWidgetItem):
             item.widget().close()
-        elif isinstance(item, QSpacerItem):
+        elif isinstance(item, QtWidgets.QSpacerItem):
             widget.layout().removeItem(item)
 
 
 def setStaticSize(widget, width=0, height=0, posx=0, posy=0):
     if width:
-        widget.setMinimumWidth(width)
-        widget.setMaximumWidth(width)
+        widget.setMinimumWidth(dpiScale(width))
+        widget.setMaximumWidth(dpiScale(width))
+
     if height:
-        widget.setMinimumHeight(height)
-        widget.setMaximumHeight(height)
+        widget.setMinimumHeight(dpiScale(height))
+        widget.setMaximumHeight(dpiScale(height))
 
     if width and height and posx and posy:
-        widget.setGeometry(width, height, width, height)
+        widget.setGeometry(dpiScale(width),
+                           dpiScale(height),
+                           dpiScale(width),
+                           dpiScale(height))
 
 
 def getMayaWindow():
