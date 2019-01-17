@@ -482,9 +482,8 @@ if env['COMPILER'] == 'gcc':
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
 
         if system.os == 'darwin': 
-            # We used to have -gstabs, what arguments should we use now for debug ?
-            env.Append(CCFLAGS = Split('-g')) 
-            env.Append(LINKFLAGS = Split('-g')) 
+           env.Append(CCFLAGS = Split('-g3')) 
+            env.Append(LINKFLAGS = Split('-g3')) 
         else: 
             env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
             env.Append(LINKFLAGS = Split('-g')) 
