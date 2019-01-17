@@ -160,10 +160,6 @@ void CGpuCacheTranslator::timeChangedCallback(void* clientData)
       translator->RequestUpdate();
    }
 
-   // AtNode *node =  translator->GetArnoldNode();
-
-   // MTime curTime = MAnimControl::currentTime();
-   // AiNodeSetFlt(node, "frame", float(curTime.value()));
 }
 
 void CGpuCacheTranslator::AddUpdateCallbacks()
@@ -356,7 +352,6 @@ void CGpuCacheTranslator::ExportMotion(AtNode *shape)
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
-
    // Set transform matrix
    ExportMatrix(shape);
 
@@ -366,11 +361,9 @@ void CGpuCacheTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    if (s_alembicSupported == false)
       return;
-   
+
    // Check if
    if (!IsTransformPlug(plug))
       SetUpdateMode(AI_RECREATE_NODE);
    CShapeTranslator::NodeChanged(node, plug);
 }
-   
-

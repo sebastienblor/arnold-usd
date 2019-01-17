@@ -29,6 +29,9 @@ from alembic.AbcGeom import *
 from arnold import *
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
+TYPE_MATCH = {IPolyMesh: "polymesh", ISubD: "polymesh", IXform: "xform", INuPatch: "nurbs",
+              ICurves: "curves", IPoints: "points", ICamera: "persp_camera"}
+
 
 BLACK_LIST_PARAMS = ['id', 'name', 'sidedness', 'matrix', 'motion_start',
                      'motion_end', 'shader', 'disp_map', 'vidxs', 'vlist',
@@ -630,6 +633,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.button(self.inspectAlembicPath, edit=True, visible=True)
         cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
 
+    def getNodeType(self, iObj):
+        for tp in TYPE_MATCH.keys():
+            if tp.matches(iObj.getHeader()):
+                return TYPE_MATCH[tp]
+        return 'xform'
+
     def visitObject(self, iObj, parent="", visibility="visible"):
 
         path = iObj.getFullName()
@@ -685,6 +694,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.treeView(self.abcInfoPath, edit=True, removeAll=True)
         cmds.treeView(self.abcInfoPath, edit=True, visible=True)
         cmds.button(self.inspectAlembicPath, edit=True, visible=False)
+        cmds.button(self.overrideSelectionButton, edit=True, visible=True, enable=False)
 
         assigned_color = (0.2, 0.2, 0.9)
 
@@ -720,6 +730,45 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         self.showAbcItemProperties()
 
+    def getItem(self, path):
+
+        for i in self.abcItems:
+            if path == i[0]:
+                return i
+
+    def getNodeTypes(self, item):
+
+        node_types = []
+        if item[4] != 'xform' and item[4] not in node_types:
+            node_types.append(item[4])
+        else:
+            child_types = []
+            for child in cmds.treeView(self.abcInfoPath, query=True, children=item[0]):
+                if child != item[0]:
+                    child_item = self.getItem(child)
+                    if child_item[4] != 'xform':
+                        child_types.append(child_item[4])
+                    else:
+                        child_types += self.getNodeTypes(child_item)
+            for ct in child_types:
+                if ct not in node_types:
+                    node_types += self.getNodeTypes(child_item)
+            node_types.append(item[4])  # append "xform"
+
+        return node_types
+
+    def overrideSelection(self):
+        selectedItems = cmds.treeView(self.abcInfoPath, query=True, selectItem=True) or []
+        selectedTypes = []
+        for selItem in selectedItems:
+            for i in self.abcItems:
+                if selItem == i[0]:
+                    selectedTypes += self.getNodeTypes(i)
+
+        win = GpuCacheOverrideGUI()
+        win.create(self.nodeName, selectedItems, selectedTypes)
+        return
+
     def inspectAlembic(self):
         filenameAttr = self.nodeName + '.cacheFileName'
         filename = cmds.getAttr(filenameAttr)
@@ -749,7 +798,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             _visibility = cmds.getAttr('{}.{}[{}].ai_abcVisibility'.format(self.nodeName, CACHE_ATTR, i))
             _instanced = cmds.getAttr('{}.{}[{}].ai_abcInstancePath'.format(self.nodeName, CACHE_ATTR, i))
             _entity_type= cmds.getAttr('{}.{}[{}].ai_entity_type'.format(self.nodeName, CACHE_ATTR, i))
-
             self.abcItems.append((_path, _label, _parent, _visibility, _instanced, _entity_type))
 
     def populateParams(self, node_type):
