@@ -482,7 +482,7 @@ if env['COMPILER'] == 'gcc':
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
 
         if system.os == 'darwin': 
-           env.Append(CCFLAGS = Split('-g3')) 
+            env.Append(CCFLAGS = Split('-g3')) 
             env.Append(LINKFLAGS = Split('-g3')) 
         else: 
             env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
