@@ -12,19 +12,19 @@ def setAttr(objName, attrName, value, type=None):
     else:
         cmds.setAttr('{}.{}'.format(objName, attrName), value, type)
 
-def getAttrInputs(objName, attrName, plug=False, connections=False):
+def getAttrInputs(objName, attrName, plugs=False, connections=False):
     return cmds.listConnections('{}.{}'.format(objName, attrName),
                                 source=True, destination=False,
-                                connections=connections, plug=plug) or []
+                                connections=connections, plugs=plugs) or []
 
 def hasAttrInputs(objName, attrName):
     return cmds.listConnections('{}.{}'.format(objName, attrName),
                                 source=True, destination=False)
 
-def getAttrOutputs(objName, attrName, plug=False, connections=False):
+def getAttrOutputs(objName, attrName, plugs=False, connections=False):
     return cmds.listConnections('{}.{}'.format(objName, attrName),
                                 source=False, destination=True,
-                                connections=connections, plug=plug) or []
+                                connections=connections, plugs=plugs) or []
 
 def hasAttrOutputs(objName, attrName):
     return cmds.listConnections('{}.{}'.format(objName, attrName),

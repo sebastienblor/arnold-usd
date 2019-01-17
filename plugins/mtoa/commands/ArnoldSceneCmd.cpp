@@ -108,7 +108,10 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
 
       CMayaScene::Export();
    }
-   else if (mode == "convert_selected")
+   // Ok this is tricky. "convert_selected" is going to call CMayaScene::Export(&sList) which will trigger the options export.
+   // But we need another mode that only exports each of the selected nodes independantly. We're calling this new mode "convert_selected_only".
+   // Yes, it sucks.... but we don't want to break existing workflows using "convert_selected"
+   else if (mode == "convert_selected" || mode == "convert_selected_only" ) 
    {
       if (!CMayaScene::IsActive())
          CMayaScene::Begin(MTOA_SESSION_ASS);
@@ -123,23 +126,27 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
       if (sListStringsLength > 0)
       {
          for (unsigned int i = 0; i < sListStringsLength; ++i)
+         {
             sList.add(sListStrings[i]);
+         }
       }
       else
          MGlobal::getActiveSelectionList(sList);
 
       MSelectionList sel(sList);
 
-      CMayaScene::Export(&sList);
+      if (mode == "convert_selected")
+         CMayaScene::Export(&sList); // do NOT call this function for "convert_selected_only", because we don't want to export the options
+
       CArnoldSession *session = CMayaScene::GetArnoldSession();
 
-      // Now loop over sList nodes and get the associated arnold nodes
-      if (session && listRootNodes)
+      // Even though we called Export(&sList) we must ensure that each of the selected nodes was properly exported.
+      // The problem is that this function is only exporting cameras, shapes, lights, etc... so it's not fully doing what we expect
+      if (session)
       {
          unordered_set<std::string> newNodes;
          for (unsigned int i = 0; i < sel.length(); ++i)
          {
-
             MStatus listStatus;
             MDagPath dag;
             MObject objNode;
@@ -168,7 +175,6 @@ MStatus CArnoldSceneCmd::doIt(const MArgList& argList)
             result.append((*it).c_str());
          
       }
-
    }
    if (listAllNewNodes || listAllNodes)
    {
