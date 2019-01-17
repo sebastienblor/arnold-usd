@@ -54,7 +54,7 @@ else:
 vars = Variables('custom.py')
 vars.AddVariables(
     ## basic options
-    EnumVariable('MODE'       , 'Set compiler configuration', 'debug'             , allowed_values=('opt', 'debug', 'profile')),
+    EnumVariable('MODE'       , 'Set compiler configuration', 'opt'             , allowed_values=('opt', 'debug', 'profile')),
     EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
     EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
     ('COMPILER_VERSION'       , 'Version of compiler to use', ''),
@@ -482,8 +482,9 @@ if env['COMPILER'] == 'gcc':
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
 
         if system.os == 'darwin': 
-            env.Append(CCFLAGS = Split('-gstabs')) 
-            env.Append(LINKFLAGS = Split('-gstabs')) 
+            # We used to have -gstabs, what arguments should we use now for debug ?
+            env.Append(CCFLAGS = Split('-g')) 
+            env.Append(LINKFLAGS = Split('-g')) 
         else: 
             env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
             env.Append(LINKFLAGS = Split('-g')) 
@@ -1352,12 +1353,15 @@ if not env['MTOA_DISABLE_RV']:
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
+
+mode_token = '' if env['MODE'] == 'opt' else '-%s' % env['MODE']
+
 if system.os == "windows":
-    installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX, mode_token)
 elif system.os == "darwin":
-    installer_name = 'MtoA-%s-%s-%s%s.zip' % (MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s%s.zip' % (MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX, mode_token)
 else:
-    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s%s.run' % (MTOA_VERSION, system.os, maya_base_version, PACKAGE_SUFFIX, mode_token)
 
 def create_installer(target, source, env):
 
