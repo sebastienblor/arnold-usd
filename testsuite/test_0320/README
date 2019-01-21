@@ -1,0 +1,6 @@
+Support flipped UVs in normal maps / export tangent as indexed user data
+
+See trac#3685
+
+author: sebastien.ortega
+

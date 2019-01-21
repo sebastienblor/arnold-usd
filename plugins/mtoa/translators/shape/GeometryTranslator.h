@@ -54,6 +54,8 @@ protected:
    bool GetTangents(const MObject &geometry,
          AtArray*& tangents,
          AtArray*& bitangents,
+         AtArray*& tangentsidx,
+         AtArray*& bitangentsidx,
          MSpace::Space space=MSpace::kObject,
          bool force=false);
    bool GetUVs(const MObject &geometry,
@@ -65,6 +67,8 @@ protected:
          AtArray*& rnidxs,
          AtArray*& refTangents,
          AtArray*& refBitangents,
+         AtArray*& refTangentsidx,
+         AtArray*& refBitangentsidx,
          const std::vector<unsigned int> &polyVtxRemap);
    bool GetVertexColors(const MObject &geometry,
          unordered_map<std::string, std::vector<float> > &vcolors, const std::vector<unsigned int> &polyVtxRemap);
