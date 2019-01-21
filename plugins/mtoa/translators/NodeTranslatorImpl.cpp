@@ -480,7 +480,9 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
    for (unsigned int i=0; i<ns; i++)
    {
       fnSet.setObject(overrideSetObjs[i]);
-      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message", true)));
+      CNodeTranslator *translator = m_session->ExportNode(fnSet.findPlug("message", true));
+      if (translator)
+         m_overrideSets.push_back(translator);
    }
    if (MtoaTranslationInfo())
    {
