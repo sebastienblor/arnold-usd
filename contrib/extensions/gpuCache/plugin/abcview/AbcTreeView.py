@@ -3,7 +3,7 @@
 #
 
 import maya.cmds as cmds
-from mtoa.ui.qt.Qt import QtWidgets, QtCore
+from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, BaseItem, BaseWindow
 from AbcTransverser import AlembicTransverser, ABC_PATH, \
@@ -20,6 +20,7 @@ class AbcTreeView(BaseTreeView):
     def __init__(self, transverser, parent=None):
         super(AbcTreeView, self).__init__(parent)
         self.transverser = transverser
+        self.currentItems = []
 
         model = AbcTreeModel(self, self.transverser)
         self.setModel(model)
@@ -35,6 +36,7 @@ class AbcTreeView(BaseTreeView):
         model = self.model()
         model.setCurrentNode(node)
         model.refresh()
+        self.expandToDepth(0)
 
     # TODO: put it to TreeModel
     def onExpanded(self, index):
@@ -68,11 +70,11 @@ class AbcTreeView(BaseTreeView):
 
                 item = i.internalPointer()
 
-                subObject = item.iobject
+                subObject = item.data
                 if subObject:
                     objects.append(subObject)
 
-            self.itemSelected.emit(item.node, objects)
+            self.itemSelected.emit(self.model().currentNode, objects)
 
 
 class AbcTreeModel(BaseModel):
@@ -110,7 +112,12 @@ class AbcTreeViewDelegate(BaseDelegate):
 
 class AbcItem(BaseItem):
 
-    def __init__(self, parentItem, transverser, node=None, iobject=None):
+    ALEMBIC_ICON = QtGui.QPixmap(":/out_objectSet.png")
+    GROUP_ICON = QtGui.QPixmap(":/out_transform.png")
+    MESH_ICON = QtGui.QPixmap(":/out_mesh.png")
+    CURVES_ICON = QtGui.QPixmap(":/out_curves.png")
+
+    def __init__(self, parentItem, transverser, node=None, data=None):
         self.childItems = []
         self.childrenObtained = False
 
@@ -120,11 +127,13 @@ class AbcItem(BaseItem):
         self.node = node
         self.iarch = None
 
-        self.iobject = iobject
+        self.data = data
 
         name = ""
-        if self.iobject:
-            name = iobject[ABC_NAME]
+        if self.data:
+            name = data[ABC_NAME]
+            if data[ABC_PATH] == '/':
+                name = '/'
 
         if not parentItem:
             self.origin = True
@@ -138,24 +147,29 @@ class AbcItem(BaseItem):
 
         return self.parent().getNode()
 
+    # def getIcon(self):
+    #     if self.childItems:
+    #         return self.GROUP_ICON
+    #     return self.MESH_ICON
+
     def obtainChildren(self):
         if self.childrenObtained:
             return
         self.iarch = self.transverser.getArchive(self.getNode())
-        if not self.iobject:
-            item = AbcItem(self, self.transverser, iobject=self.transverser.getObjectInfo(self.iarch.getTop()))
+        if not self.data:
+            item = AbcItem(self, self.transverser, self.node, data=self.transverser.getObjectInfo(self.iarch.getTop()))
             item.obtainChildren()
         else:
-            children = self.transverser.dir(self.iobject[ABC_IOBJECT])
+            children = self.transverser.dir(self.data[ABC_IOBJECT])
             if children:
                 for child in children:
-                    AbcItem(self, self.transverser, iobject=child)
+                    AbcItem(self, self.transverser, self.node, data=child)
 
         self.childrenObtained = True
 
     def getOverrides(self):
         overrides = []
-        op_node = self.transverser.getOperator(self.node, self.iobject)
+        op_node = self.transverser.getOperator(self.getNode(), self.data)
         return overrides
 
     def addOverride(self, param, value):

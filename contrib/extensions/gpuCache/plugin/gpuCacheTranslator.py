@@ -564,12 +564,14 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.currentItem = None
         currentWidget = self.__currentWidget()
 
-        self.tree = AbcTreeView(AlembicTransverser(), currentWidget)
+        abcTransverser = AlembicTransverser()
+
+        self.tree = AbcTreeView(abcTransverser, currentWidget)
         self.tree.setObjectName("abcTreeWidget")
         currentWidget.layout().addWidget(self.tree)
 
         # now add the preperties panel
-        self.proprties_panel = AbcPropertiesPanel(currentWidget)
+        self.proprties_panel = AbcPropertiesPanel(abcTransverser, currentWidget)
         currentWidget.layout().addWidget(self.proprties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
@@ -616,7 +618,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         currentWidget = self.__currentWidget()
 
         tree = currentWidget.layout().itemAt(0).widget()
-        tree.setCurrentNode(nodeAttr.split('.')[0])
+        tree.setCurrentNode(self.nodeName)
         # self.abcItems = []
         # cache_attr_exists = cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True)
         # if not cache_attr_exists:
@@ -633,7 +635,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, objects):
         for obj in objects:
-            print obj[ABC_PATH]
             self.proprties_panel.setObject(node, obj)
 
     def updateAlembicFile(self):
@@ -1227,8 +1228,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.beginLayout("Alembic Contents", collapse=False)
         self.addCustom('aiInfo', self.abcInfoNew, self.abcInfoReplace)
         self.endLayout()
-        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
-        self.addSeparator()
-
+        # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
+        # self.suppress('operators')
 
 templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "alembic")

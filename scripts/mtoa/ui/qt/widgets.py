@@ -159,12 +159,24 @@ class MtoALabelLineEdit(QtWidgets.QFrame):
 
 
 class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
+
+    EXPRESSION_ICON = QtGui.QPixmap(":/expression.svg")
+    BIN_ICON = QtGui.QPixmap(":/deleteActive.png")
+
+    deleteMe = QtCore.Signal(object)
+
     def __init__(self, parent=None):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
+
+        # set the paramater type so we know what type of widget to create.
+        self.param_type = None
+        self.id = -1
+
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.paramMenu = QtWidgets.QComboBox()
+        self.paramMenu.addItem("Choose Parameter")
         self.layout().addWidget(self.paramMenu)
 
         self.op_menu = QtWidgets.QComboBox()
@@ -174,7 +186,27 @@ class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
         self.expressionEditor = QtWidgets.QLineEdit()
         self.layout().addWidget(self.expressionEditor)
 
-        EXPRESSION_ICON = QtGui.QPixmap(":/out_expression.png")
         self.expBtn = QtWidgets.QPushButton()
-        self.expBtn.setIcon(EXPRESSION_ICON)
-        self.layout().addWidget(self.expressionEditor)
+        self.expBtn.setIcon(self.EXPRESSION_ICON)
+        self.expBtn.setFlat(True)
+        self.expBtn.setCheckable(True)
+        self.layout().addWidget(self.expBtn)
+
+        self.delBtn = QtWidgets.QPushButton()
+        self.delBtn.setIcon(self.BIN_ICON)
+        # self.delBtn.setFlat(True)
+        self.delBtn.setStyleSheet("QPushButton{background:rgba(0,0,0,0);border:rgba(0,0,0,0);}"\
+                                  "QPushButton:hover{background:rgba(0,0,0,25);border:rgba(20,20,20,255);border-radius: 1px;}")
+        self.layout().addWidget(self.delBtn)
+
+        self.delBtn.pressed.connect(self.callDeleteMe)
+
+    def callDeleteMe(self):
+        self.deleteMe.emit(self)
+
+    def populateParams(self, paramList):
+        for param in paramList:
+            self.paramMenu.addItem(param)
+
+    def getParam(self):
+        return self.paramMenu.currentText()

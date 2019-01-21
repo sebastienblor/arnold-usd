@@ -1,8 +1,10 @@
 import os
 import re
 import maya.cmds as cmds
+import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser
 from alembic import Abc, AbcGeom
+from arnold import AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE
 
 (ABC_PATH,
  ABC_NAME,
@@ -13,6 +15,8 @@ from alembic import Abc, AbcGeom
  ABC_IOBJECT) = range(7)
 
 VISIBILITY = ['differed', 'hidden', 'visible']
+
+SELECTION_REGEX = re.compile(r"([/\w]+)/*\**")
 
 EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
@@ -80,9 +84,13 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.createOperator(node, iobject)
 
-    def getOperator(self, node, iobject):
+    def getOperator(self, node, path):
 
-        return self.impl.getOperator(node, iobject)
+        return self.impl.getOperator(node, path)
+
+    def getOverrides(self, node, path):
+
+        return self.impl.getOverrides(node, path)
 
     def setOverride(self, node, path, param, value):
 
@@ -149,36 +157,102 @@ class AlembicTransverserImpl(object):
         pass
 
     def createOperator(self, node, iobject):
-
-        op = cmds.createNode("aiSetParameter")
+        num_ops = mu.getAttrNumElements(node, 'operators')
+        op_name = '{}_setParam{}'.format(node, num_ops)
+        op = cmds.createNode("aiSetParameter", name=op_name, ss=True)
         path = iobject[ABC_PATH]
         if iobject[ABC_ENTIY_TYPE] == "xform":
             path += "/*"
-        cmds.setAttr(op + ".selection", path)
+        elif iobject[ABC_ENTIY_TYPE] == None:
+            path += "*"
+        cmds.setAttr(op + ".selection",
+                     path,
+                     type="string")
 
-        attrSize = mu.getAttrNumElements(node, 'operators')
-        newItem = '{}.operators[{}]'.format(node, attrSize)
+        newItem = '{}.operators[{}]'.format(node, num_ops)
         cmds.connectAttr(op + ".out", newItem)
         return op
 
-    def getOperator(self, node, iobject):
+    def getOperator(self, node, path):
 
-        operator = None
-        for op in cmds.getAttr(node + ".operators"):
-            if cmds.objExists(op + ".selection"):
-                sel_exp = cmds.getAttr(op + ".selection")
+        def walkInputs(op, path, plug):
+
+            selection_exp = '{}*'.format(path)
+
+            r_ipt = r_plug = None
+            if cmds.attributeQuery('selection', node=op, exists=True):
+                sel_exp = cmds.getAttr('{}.selection'.format(op))
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
-                    if tok == iobject[ABC_PATH] or \
-                       tok == iobject[ABC_PATH] + "*":
-                        operator = op
-                        break
+                    mat = SELECTION_REGEX.match(tok)
+                    if mat and mat.group(0) == path:
+                        return op, plug
+
+            if cmds.attributeQuery('inputs', node=op, exists=True):
+                inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
+                it = iter(inputs_raw)
+                inputs = zip(it, it)
+                for plug, ipt in inputs:
+                    r_ipt, r_plug = walkInputs(ipt, path, plug)
+
+            return r_ipt, r_plug
+
+        operator = None
+        operators = cmds.listConnections('{}.operators'.format(node)) or []
+        for idx, op in enumerate(operators):
+            out_op, plug = walkInputs(op, path, '{}.operators[{}]'.format(node, idx))
+            if out_op:
+                operator = out_op
+                break
+
         return operator
+
+    def getOverrides(self, node, path):
+
+        op = self.getOperator(node, path)
+        print op
+
+        overrides = []
+        if op:
+            for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+                ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                overrides.append(ass_str)
+
+        return overrides
 
     def setOverride(self, node, path, param, value):
 
-        pass
+        op = self.getOperator(node, path)
+        if op:
+            n_conn = mu.getAttrNumElements(op, "assignment")
+            c_idx = n_conn
+            if param != 'NEWOVERRIDE':
+                for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+                    ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                    if ass_str.startswith(param):
+                        c_idx = c
+                        break
+            if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
+                value = "'{}'".format(value)
+            param_exp = "{}={}".format(param, value)
+            cmds.setAttr("{}.assignment[{}]".format(op, c_idx),
+                         param_exp,
+                         type="string")
+            return True
 
-    def deleteOverride(self, node, path, param):
+        return False
 
-        pass
+    def deleteOverride(self, node, path, index):
+
+        op = self.getOperator(node, path)
+        # index = -1
+        # for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+        #     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+        #     if ass_str.startswith(param):
+        #         index = c
+        #         break
+        if index != -1 and op:
+            print cmds.getAttr('{}.assignment[{}]'.format(op, index))
+            status = cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
+            return status
+        return False

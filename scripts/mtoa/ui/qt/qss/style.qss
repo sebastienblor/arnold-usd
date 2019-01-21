@@ -1,5 +1,5 @@
 
-QWidget
+/*QWidget
 {{
     border-radius: 5px;
     background-color: {BACKGROUND_COLOR2};
@@ -9,17 +9,17 @@ QWidget
     selection-background-color:{BACKGROUND_SELECTED_COLOR1};
     selection-color:{SELECTION_COLOR1};
 }}
-
-QAbstractItemView
+*/
+/*QAbstractItemView
 {{
     background-color: {BACKGROUND_COLOR2};
     border:1px solid {BORDER_COLOR1};
     gridline-color: {BORDER_COLOR1};
     color: {TEXT_COLOR2};
     selection-background-color:{BACKGROUND_SELECTED_COLOR2};
-}}
+}}*/
 
-QTreeView::item::text
+/*QTreeView::item::text
 {{
         color: {TEXT_COLOR2};
 }}
@@ -27,7 +27,7 @@ QTreeView::item::text
 QTreeView::item
 {{
         color: {TEXT_COLOR2};
-}}
+}}*/
 
 /* Remove decorations from QTreeView branches */
 QTreeView::branch

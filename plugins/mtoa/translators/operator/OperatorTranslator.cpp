@@ -31,7 +31,7 @@ void COperatorTranslator::Export(AtNode *shader)
    MPlug elemPlug;
    AtArray* array = AiArrayAllocate(nelems, 1, AI_TYPE_NODE);
       
-   for (unsigned int i = 0; i < nelems; ++i)
+   for (int i = nelems -1;i != -1; --i)
    {
       elemPlug = inputs[i];       
       
