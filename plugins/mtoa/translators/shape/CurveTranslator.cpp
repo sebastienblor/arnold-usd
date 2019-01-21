@@ -192,12 +192,8 @@ void CCurveTranslator::Export( AtNode *curve )
          MString hairShaderName = fnDepNodeCurve.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
-
-         // Add shader uparam and vparam names
-         //AiNodeSetStr(shader, "uparam", "uparamcoord");
-         //AiNodeSetStr(shader, "vparam", "vparamcoord");
       }
-      SetRootShader(shader);      
+      AiNodeSetPtr(curve, "shader", shader);
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate

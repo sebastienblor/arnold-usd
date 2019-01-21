@@ -206,7 +206,7 @@ void CHairTranslator::Export( AtNode *curve )
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse", true);
          AiNodeSetFlt(shader, "indirectDiffuse", plug.asFloat());
       }
-      SetRootShader(shader);      
+      AiNodeSetPtr(curve, "shader", shader);
    }
    
    AiNodeSetByte(curve, "visibility", visibility);  
