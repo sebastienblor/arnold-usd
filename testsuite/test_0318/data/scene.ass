@@ -1,0 +1,163 @@
+### exported: Mon Aug 27 15:21:00 2018
+### from:     Arnold 5.1.1.1 [3849b993] linux clang-5.0.0 oiio-1.7.17 osl-1.9.0 vdb-4.0.0 clm-1.0.3.513 rlm-12.2.2 2018/06/26 20:42:28
+### host app: MtoA 3.0.1.1 443e943e (master) Maya 2018
+### bounds: 0 0 0 0 0 0
+### user: lharris
+### render_layer: defaultRenderLayer
+### scene: /home/lharris/maya/projects/simpleXgen/xgenSimple.ma
+
+
+
+options
+{
+ AA_samples 3
+ AA_samples_max 8
+ outputs "RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tif.RGBA"
+ xres 160
+ yres 120
+ texture_per_file_stats on
+ texture_automip off
+ camera "perspShape"
+ frame 1
+ GI_diffuse_depth 1
+ GI_specular_depth 1
+ GI_transmission_depth 8
+ declare render_layer constant STRING
+ render_layer "defaultRenderLayer"
+}
+
+gaussian_filter
+{
+ name defaultArnoldFilter@gaussian_filter
+}
+
+driver_tiff
+{
+ name defaultArnoldDriver@driver_tif.RGBA
+ filename "testrender.tif"
+}
+
+skydome_light
+{
+ name aiSkyDomeLightShape1
+ matrix
+ 1 0 0 0
+ 0 1 0 0
+ 0 0 1 0
+ 0 0 0 1
+ exposure 0
+ cast_shadows on
+ cast_volumetric_shadows on
+ shadow_density 1
+ shadow_color 0 0 0
+ samples 1
+ normalize on
+ camera 1
+ transmission 1
+ diffuse 1
+ specular 1
+ sss 1
+ indirect 1
+ max_bounces 999
+ volume_samples 2
+ volume 1
+ aov "default"
+ resolution 1000
+ format "latlong"
+ portal_mode "interior_only"
+ aov_indirect off
+ declare maya_full_name constant STRING
+ maya_full_name "|aiSkyDomeLight1|aiSkyDomeLightShape1"
+}
+
+xgen_procedural
+{
+ name dsc_longHairShape
+ visibility 255
+ use_light_group off
+ id 3217364969
+ data "-debug 1 -warning 1 -stats 1  -frame 15.000000  -file xgenSimple__collection.xgen -palette collection -geom xgenSimple__collection.abc -patch msh_longHair -description dsc_longHair -fps 24.000000  -motionSamplesLookup 0.0  -motionSamplesPlacement 0.0  -world 1;0;0;0;0;1;0;0;0;0;1;0;0;0;0;1"
+ declare xgen_shader constant ARRAY NODE
+ xgen_shader "lambert1"
+ declare maya_full_name constant STRING
+ maya_full_name "|collection|dsc_longHair|dsc_longHairShape"
+ declare irRenderCam constant STRING
+ irRenderCam "false,-0.004097,0.000000,0.000000"
+ declare irRenderCamFOV constant STRING
+ irRenderCamFOV "0.000000,-nan"
+ declare irRenderCamXform constant STRING
+ irRenderCamXform "0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,-229882208.000000,0.000000,0.000000,0.000000"
+ declare irRenderCamRatio constant STRING
+ irRenderCamRatio "0.000000"
+ declare xgen_renderMethod constant STRING
+ xgen_renderMethod "1"
+ declare ai_mode constant INT
+ ai_mode 0
+ declare ai_min_pixel_width constant FLOAT
+ ai_min_pixel_width 0
+ declare xgen_multithreading constant BOOL
+ xgen_multithreading on
+}
+
+xgen_procedural
+{
+ name dsc_shortHairShape
+ visibility 255
+ use_light_group off
+ id 1403555768
+ data "-debug 1 -warning 1 -stats 1  -frame 1.000000  -file xgenSimple__collection.xgen -palette collection -geom xgenSimple__collection.abc -patch msh_shortHair -description dsc_shortHair -fps 24.000000  -motionSamplesLookup 0.0  -motionSamplesPlacement 0.0  -world 1;0;0;0;0;1;0;0;0;0;1;0;0;0;0;1"
+ declare xgen_shader constant ARRAY NODE
+ xgen_shader "lambert1"
+ declare maya_full_name constant STRING
+ maya_full_name "|collection|dsc_shortHair|dsc_shortHairShape"
+ declare irRenderCam constant STRING
+ irRenderCam "true,0.000000,0.000000,0.000000"
+ declare irRenderCamFOV constant STRING
+ irRenderCamFOV "0.000000,0.000000"
+ declare irRenderCamXform constant STRING
+ irRenderCamXform "-0.010668,0.000000,0.000000,0.000000,-0.010669,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,-0.005677,0.000000,0.000000,0.000000"
+ declare irRenderCamRatio constant STRING
+ irRenderCamRatio "0.000000"
+ declare xgen_renderMethod constant STRING
+ xgen_renderMethod "1"
+ declare ai_mode constant INT
+ ai_mode 0
+ declare ai_min_pixel_width constant FLOAT
+ ai_min_pixel_width 0
+ declare xgen_multithreading constant BOOL
+ xgen_multithreading on
+}
+
+lambert
+{
+ name lambert1
+ Kd 0.800000012
+ Kd_color 0.5 0.5 0.5
+ opacity 1 1 1
+}
+
+persp_camera
+{
+ name perspShape
+ matrix
+ 0.965925813 1.73472348e-18 -0.258819044 0
+ -0.0177764967 0.997638524 -0.066342786 0
+ 0.258207858 0.0686831102 0.963644803 0
+ 2.08239937 0.853050947 3.94953322 1
+ near_clip 0.100000001
+ far_clip 10000
+ screen_window_min -1 -1
+ screen_window_max 1 1
+ shutter_start 0
+ shutter_end 0
+ shutter_type "box"
+ rolling_shutter "off"
+ rolling_shutter_duration 0
+ motion_start 0
+ motion_end 0
+ exposure 0
+ fov 54.4322243
+ declare maya_full_name constant STRING
+ maya_full_name "|persp|perspShape"
+}
+
