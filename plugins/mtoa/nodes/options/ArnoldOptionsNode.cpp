@@ -479,6 +479,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("gpu_default_names");
    s_attributes.MakeInput("gpu_default_min_memory_MB");
+   s_attributes.MakeInput("gpu_max_texture_resolution");
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");
