@@ -121,9 +121,9 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.setOverride(node, path, param, op, value, param_type, is_array, index)
 
-    def deleteOverride(self, node, path, param):
+    def deleteOverride(self, node, path, index):
 
-        return self.impl.deleteOverride(node, path, param)
+        return self.impl.deleteOverride(node, path, index)
 
 
 class AlembicTransverserImpl(object):
@@ -310,6 +310,9 @@ class AlembicTransverserImpl(object):
 
         return operator
 
+    def deleteOperator(self, op):
+        pass
+
     def getOverrides(self, node, path):
 
         op = self.getOperator(node, path)
@@ -353,8 +356,22 @@ class AlembicTransverserImpl(object):
 
         return False
 
+    def _indexInAssignment(self, index, op):
+        indices = cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
+        if index in indices:
+            return True
+        return False
+
     def deleteOverride(self, node, path, index):
         op = self.getOperator(node, path)
+        print "AlembicTransverserImpl.deleteOverride", node, path, index
         if index != -1 and op:
-            return cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
+            indices = cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
+            if self._indexInAssignment(index, op):
+                cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
+            else:
+                return False
+            # Final check the the index was removed
+            if not self._indexInAssignment(index, op):
+                return True
         return False

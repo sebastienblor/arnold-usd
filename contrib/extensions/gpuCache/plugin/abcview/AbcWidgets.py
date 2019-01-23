@@ -44,10 +44,10 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
 
         # shader override
-        self.shaderOverrideWidget = MtoALabelLineEdit("Shader")
+        self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader")
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
         # displacement override
-        self.dispOverrideWidget = MtoALabelLineEdit("Displacement")
+        self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement")
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
 
         self.layout.addWidget(self.shadingPanel)
@@ -90,20 +90,22 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         new_widget.populateParams(self.paramDict)
         # set the widget
         param_data = self.paramDict.get(param, (None, None))
-        new_widget.setParam(param, param_data[1], param_data[0], self.paramDict)
+        new_widget.setParam(param, param_data[PARAM_TYPE], param_data[NODE_TYPE], self.paramDict)
         new_widget.setOperation(op)
         new_widget.setValue(value)
 
         new_widget.valueChanged[str, str, str, int].connect(self.setOverride)
         new_widget.valueChanged[str, str, int, int].connect(self.setOverride)
-        new_widget.valueChangedFlt.connect(self.setOverride)
+        new_widget.valueChanged[str, str, float, int].connect(self.setOverride)
         # add widget
         self.overridesPanel.layout().addWidget(new_widget)
         return new_widget
 
     def removeOverride(self, widget):
         index = widget.index
-        if self.transverser.deleteOverride(self.node, self.object[ABC_PATH], index):
+        removed = self.transverser.deleteOverride(self.node, self.object[ABC_PATH], index)
+        print "AbcPropertiesPanel.removeOverride", removed
+        if removed:
             self.getOverrides()
 
     @QtCore.Slot(str, str, str, int)
@@ -120,7 +122,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
 
         param_data = self.paramDict.get(param)
         if param_data:
-            param_type = param_data[1]
-            is_array = param_data[2]
+            param_type = param_data[PARAM_TYPE]
+            is_array = param_data[IS_ARRAY]
 
         return self.transverser.setOverride(self.node, self.object[ABC_PATH], param, op, value, param_type, is_array, index)

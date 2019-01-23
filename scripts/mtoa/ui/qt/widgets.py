@@ -5,6 +5,8 @@ from .Qt import QtWidgets
 from .itemStyle import ItemStyle
 from .utils import dpiScale, setStaticSize, clearWidget
 
+from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
+
 import re
 
 from arnold import *
@@ -17,6 +19,9 @@ from arnold import *
  ENUM_VALUES) = range(6)
 
 OPERATIONS = ["=", "+=", "-=", "*="]
+
+TYPES = ["string", "int", "byte", "uint", "float", "bool", "node"]
+# TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
 
 DEFAULT_VISBILITIES = {'AI_RAY_CAMERA': True,
                        'AI_RAY_SHADOW': True,
@@ -135,6 +140,14 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
         self.valueChanged.emit(self.getValue())
 
 
+class MtoARGBControl(QtWidgets.QFrame):
+
+    valueChanged = QtCore.Signal(float, float, float)
+
+    def __init__(self, value=True, parent=None):
+        super(MtoARGBControl, self).__init__(parent)
+
+
 class MtoACheckbox(QtWidgets.QCheckBox):
 
     valueChanged = QtCore.Signal(bool)
@@ -212,18 +225,39 @@ class MtoAStrControl(QtWidgets.QLineEdit):
             self.setText(m.group(1))
 
 
-class MtoALabelLineEdit(QtWidgets.QFrame):
+class MtoALabelLineEdit(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def __init__(self, label='label', parent=None):
         super(MtoALabelLineEdit, self).__init__(parent)
+
         self.setLayout(QtWidgets.QHBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+
         self.titleLabel = QtWidgets.QLabel(label)
         self.layout().addWidget(self.titleLabel)
         self.lineEdit = QtWidgets.QLineEdit()
         self.layout().addWidget(self.lineEdit)
 
 
-class MtoAMutiControlWidget(QtWidgets.QFrame):
+class MtoANodeConnectionWidget(MtoALabelLineEdit):
+
+    CONNECTED_ICON = QtGui.QPixmap(":/navButtonConnected.png")
+    UNCONNECTED_ICON = QtGui.QPixmap(":/navButtonUnconnected.png")
+
+    def __init__(self, label='label', nodeType="shader", parent=None):
+        super(MtoANodeConnectionWidget, self).__init__(label, parent)
+        self.conButton = QtWidgets.QPushButton()
+        self.conButton.setIcon(self.UNCONNECTED_ICON)
+        self.layout().addWidget(self.conButton)
+
+        self.conMenu = QtWidgets.QMenu()
+        self.conMenu.addAction("Disconnect")
+
+        self.conButton.setMenu(self.conMenu)
+
+    def showNodeLister(self):
+        pass
+
+
+class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     """docstring for MtoAMutiControlWidget"""
     valueChanged = QtCore.Signal((str,),
                                  (int,),
@@ -253,10 +287,10 @@ class MtoAMutiControlWidget(QtWidgets.QFrame):
             self.control.setValue(value)
 
 
-class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
+class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
 
-    EXPRESSION_ICON = QtGui.QPixmap(":/expression.svg")
-    BIN_ICON = QtGui.QPixmap(":/deleteActive.png")
+    EXPRESSION_ICON = QtGui.QIcon(":/expression.svg")
+    BIN_ICON = QtGui.QIcon(":/deleteActive.png")
 
     deleteMe = QtCore.Signal(object)
     paramChanged = QtCore.Signal(str)
@@ -273,18 +307,15 @@ class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
         self.param_dict = {}
         self.index = -1
 
-        self.setLayout(QtWidgets.QHBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-
-        self.paramMenu = MtoAMenuBox(self)
-        self.layout().addWidget(self.paramMenu)
+        self.paramWidget = MtoAParamBox(self)
+        self.addWidget(self.paramWidget)
 
         self.op_menu = QtWidgets.QComboBox()
         self.op_menu.addItems(OPERATIONS)
-        self.layout().addWidget(self.op_menu)
+        self.addWidget(self.op_menu)
 
         self.valueWidget = QtWidgets.QStackedWidget()  # set the widget for this control
-        self.layout().addWidget(self.valueWidget)
+        self.addWidget(self.valueWidget)
 
         self.controlWidget = MtoAMutiControlWidget()
         self.valueWidget.addWidget(self.controlWidget)
@@ -292,24 +323,21 @@ class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
         self.expressionEditor = QtWidgets.QLineEdit()
         self.valueWidget.addWidget(self.expressionEditor)
 
-        self.expBtn = QtWidgets.QPushButton()
-        self.expBtn.setIcon(self.EXPRESSION_ICON)
-        self.expBtn.setFlat(True)
+        self.expBtn = self.addAction(self.EXPRESSION_ICON, "Toggle Expression")
+        # self.expBtn.setFlat(True)
         self.expBtn.setCheckable(True)
-        self.layout().addWidget(self.expBtn)
 
-        self.delBtn = QtWidgets.QPushButton()
-        self.delBtn.setIcon(self.BIN_ICON)
+        self.delBtn = self.addAction(self.BIN_ICON, "Delete")
         # self.delBtn.setFlat(True)
-        self.delBtn.setStyleSheet("QPushButton{background:rgba(0,0,0,0);border:rgba(0,0,0,0);}"\
-                                  "QPushButton:hover{background:rgba(0,0,0,25);border:rgba(20,20,20,255);border-radius: 1px;}")
-        self.layout().addWidget(self.delBtn)
+        # self.delBtn.setStyleSheet("QPushButton{background:rgba(0,0,0,0);border:rgba(0,0,0,0);}"\
+        #                           "QPushButton:hover{background:rgba(0,0,0,25);border:rgba(20,20,20,255);border-radius: 1px;}")
+        self.addAction(self.delBtn)
 
         self.setup()
 
     def setup(self):
-        self.delBtn.pressed.connect(self.callDeleteMe)
-        self.paramMenu.textChanged.connect(self.emitParamChanged)
+        self.delBtn.triggered.connect(self.callDeleteMe)
+        self.paramWidget.paramChanged.connect(self.emitParamChanged)
         self.expBtn.toggled.connect(self.valueWidget.setCurrentIndex)
 
     def callDeleteMe(self):
@@ -347,13 +375,13 @@ class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
 
     def populateParams(self, paramDict):
         for param, data in sorted(paramDict.items()):
-            self.paramMenu.addItem(param, data[0])
+            self.paramWidget.addItem(param, data[0])
 
     def getParam(self):
-        return self.paramMenu.getText()
+        return self.paramWidget.getText()
 
     def setParam(self, param, param_type, node_entry, param_dict):
-        self.paramMenu.setText(param)
+        self.paramWidget.setText(param)
         self.param_name = param
         self.param_type = param_type
         self.node_entry = node_entry
@@ -408,40 +436,47 @@ class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
         self.controlWidget.setWidget(control)
 
 
-class MtoAMenuBox(QtWidgets.QFrame):
+class MtoAParamBox(QtWidgets.QToolBar):
     """docstring for MtoAMenuBox"""
     PARAM_ICON = QtGui.QPixmap(":/list.svg")
 
-    textChanged = QtCore.Signal(str)
+    paramChanged = QtCore.Signal(str)
 
     def __init__(self, parent):
-        super(MtoAMenuBox, self).__init__(parent)
+        super(MtoAParamBox, self).__init__(parent)
 
-        self.setLayout(QtWidgets.QHBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        # self.setLayout(QtWidgets.QHBoxLayout())
+        # self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.menuButton = QtWidgets.QPushButton()
         self.menuButton.setIcon(self.PARAM_ICON)
         self.menu = QtWidgets.QMenu()
         self.menuButton.setMenu(self.menu)
-        self.layout().addWidget(self.menuButton)
+        self.menuAction = self.addWidget(self.menuButton)
+
+        self.paramTypeBox = QtWidgets.QComboBox()
+        self.paramTypeBox.addItems(TYPES)
+        self.paramTypeAction = self.addWidget(self.paramTypeBox)
+        self.paramTypeAction.setVisible(False)
 
         self.editBox = QtWidgets.QLineEdit()
-        self.layout().addWidget(self.editBox)
+        self.editBox.setReadOnly(True)
+        self.addWidget(self.editBox)
 
         self.setup()
 
     def setup(self):
         self.menu.triggered.connect(self.setTextFromAction)
         self.editBox.textEdited.connect(self.emitChange)
+        self.paramTypeBox.hide()
 
     def emitChange(self):
-        self.textChanged.emit(self.getText())
+        self.paramChanged.emit(self.getText())
 
     def setTextFromAction(self, action):
         new_text = action.text()
         self.editBox.setText(new_text)
-        self.textChanged.emit(new_text)
+        self.paramChanged.emit(new_text)
 
     def setText(self, text):
         self.editBox.setText(text)
