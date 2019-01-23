@@ -7,8 +7,8 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, BaseItem, BaseWindow
 from AbcTransverser import AlembicTransverser, ABC_PATH, \
-                            ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
-                            ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT
+                           ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
+                           ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT
 from alembic import Abc, AbcGeom
 
 
@@ -34,11 +34,10 @@ class AbcTreeView(BaseTreeView):
     def setCurrentNode(self, node):
         """Clear the widget and generate the view of the new node."""
         model = self.model()
-        model.setCurrentNode(node)
-        model.refresh()
-        self.expandToDepth(0)
+        if model.setCurrentNode(node):
+            model.refresh()
+            self.expandToDepth(0)
 
-    # TODO: put it to TreeModel
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
         if not index.isValid():
@@ -58,8 +57,6 @@ class AbcTreeView(BaseTreeView):
         """
         # This will redraw selected items in the tree view.
         super(AbcTreeView, self).selectionChanged(selected, deselected)
-        print "selectionChanged", selected, deselected
-
         indices = self.selectedIndexes()
         if indices:
             objects = []
@@ -101,7 +98,10 @@ class AbcTreeModel(BaseModel):
         self.endResetModel()
 
     def setCurrentNode(self, node):
-        self.currentNode = node
+        if self.currentNode != node:
+            self.currentNode = node
+            return True
+        return False
 
 
 class AbcTreeViewDelegate(BaseDelegate):

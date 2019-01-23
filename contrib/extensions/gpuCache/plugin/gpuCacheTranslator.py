@@ -1228,7 +1228,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.beginLayout("Alembic Contents", collapse=False)
         self.addCustom('aiInfo', self.abcInfoNew, self.abcInfoReplace)
         self.endLayout()
-        # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
-        # self.suppress('operators')
+        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
+
 
 templates.registerTranslatorUI(gpuCacheDescriptionTemplate, "gpuCache", "alembic")

@@ -4,7 +4,7 @@ import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser
 from alembic import Abc, AbcGeom
-from arnold import AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE
+from arnold import *
 
 (ABC_PATH,
  ABC_NAME,
@@ -16,12 +16,29 @@ from arnold import AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE
 
 VISIBILITY = ['differed', 'hidden', 'visible']
 
-SELECTION_REGEX = re.compile(r"([/\w]+)/*\**")
+SELECTION_REGEX = re.compile(r"(/[/\w]*\w+)/*\**")
 
 EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
-                         (?P<value>.*\w) # value
+                         (?P<value>.*) # value
                          """, re.X)
+
+
+def ArnoldUniverseOnlyBegin():
+    if not AiUniverseIsActive():
+        AiBegin()
+        AiMsgSetConsoleFlags(AI_LOG_NONE)
+        return True
+    return False
+
+
+def ArnoldUniverseEnd():
+    if AiUniverseIsActive():
+        if AiRendering():
+            AiRenderInterrupt()
+        if AiRendering():
+            AiRenderAbort()
+        AiEnd()
 
 
 def abcToArnType(iObj):
@@ -72,6 +89,14 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.getObjectInfo(iObj)
 
+    def getParams(self, node_types):
+
+        return self.impl.getParams(node_types)
+
+    def getNodeTypes(self, iObj):
+
+        return self.impl.getNodeTypes(iObj)
+
     def dir(self, *args):
 
         return self.impl.dir(*args)
@@ -92,9 +117,9 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.getOverrides(node, path)
 
-    def setOverride(self, node, path, param, value):
+    def setOverride(self, node, path, param, op, value, param_type, is_array=False, index=-1):
 
-        return self.impl.setOverride(node, path, param, value)
+        return self.impl.setOverride(node, path, param, op, value, param_type, is_array, index)
 
     def deleteOverride(self, node, path, param):
 
@@ -116,19 +141,12 @@ class AlembicTransverserImpl(object):
     def visitObject(self, iObj, parent="", visibility="visible"):
 
         abc_items = []
-        path = iObj.getFullName()
-        name = iObj.getName()
-        instancedPath = iObj.instanceSourcePath()
+        obj_data = self.getObjectInfo(iObj)
 
-        entity_type = abcToArnType(iObj)
-
-        if visibility != VISIBILITY[1]:
-            visibility = VISIBILITY[int(AbcGeom.GetVisibility(iObj))+1]
-
-        abc_items.append(getObjectInfo(iObj))
+        abc_items.append(obj_data)
 
         for child in iObj.children:
-            abc_items += self.visitObject(child, path, visibility)
+            abc_items += self.visitObject(child, obj_data[ABC_PATH], obj_data[ABC_VISIBILITY])
 
         return abc_items
 
@@ -143,6 +161,90 @@ class AlembicTransverserImpl(object):
         visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
 
         return [path, name, parent, visibility, instancedPath, entity_type, iobject]
+
+    def _getDefaultValue(self, param, param_type):
+
+        AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        AiMsgSetConsoleFlags(AI_LOG_NONE)
+
+        value = None
+        param_default = AiParamGetDefault(param)
+        if param_type is AI_TYPE_INT:
+            value = param_default.contents.INT
+        elif param_type is AI_TYPE_UINT:
+            value = param_default.contents.UINT
+        elif param_type is AI_TYPE_BYTE:
+            value = param_default.contents.BYTE
+        elif param_type is AI_TYPE_FLOAT:
+            value = param_default.contents.FLT
+        elif param_type is AI_TYPE_BOOLEAN:
+            value = param_default.contents.BOOL
+        elif param_type is AI_TYPE_STRING:
+            value = str(param_default.contents.STR)
+        elif param_type is AI_TYPE_ENUM:
+            idx = param_default.contents.INT
+            value = AiEnumGetString(AiParamGetEnum(param), idx)
+
+        if AiUniverseCreated:
+            ArnoldUniverseEnd()
+
+        return value
+
+    def getParams(self, node_types):
+
+        paramDict = {}
+
+        AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        AiMsgSetConsoleFlags(AI_LOG_NONE)
+
+        for nodeType in node_types:
+            if nodeType:
+                nodeEntry = AiNodeEntryLookUp(nodeType)
+                paramIter = AiNodeEntryGetParamIterator(nodeEntry)
+                while not AiParamIteratorFinished(paramIter):
+                    param = AiParamIteratorGetNext(paramIter)
+                    param_type = AiParamGetType(param)
+                    if param_type == AI_TYPE_ARRAY:
+                        array_default = AiParamGetDefault(param).contents.ARRAY
+                        param_type = AiArrayGetType(array_default)
+
+                    enum_values = []
+
+                    if param_type == AI_TYPE_ENUM:
+                        enumParam = AiParamGetEnum(param)
+                        i = 0
+                        t = True
+                        while t is not None:
+                            t = AiEnumGetString(enumParam, i)
+                            if t:
+                                enum_values.append(t)
+                            i += 1
+
+                    default_value = self._getDefaultValue(param, param_type)
+
+                    paramName = AiParamGetName(param)
+                    if paramName not in paramDict:
+                        paramDict[paramName] = (nodeType, param_type, default_value, param_type == AI_TYPE_ARRAY, enum_values)
+                    else:
+                        paramDict[paramName] = ("common", param_type, default_value, param_type == AI_TYPE_ARRAY, enum_values)
+
+                AiParamIteratorDestroy(paramIter)
+
+        if AiUniverseCreated:
+            ArnoldUniverseEnd()
+
+        return paramDict
+
+    def getNodeTypes(self, iObj):
+
+        node_types = []
+        children = self.visitObject(iObj)
+
+        for child in children:
+            if child[ABC_ENTIY_TYPE] not in node_types:
+                node_types.append(child[ABC_ENTIY_TYPE])
+
+        return node_types
 
     def dir(self, iobject):
 
@@ -185,7 +287,8 @@ class AlembicTransverserImpl(object):
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
                     mat = SELECTION_REGEX.match(tok)
-                    if mat and mat.group(0) == path:
+                    if mat and mat.group(1) == path or \
+                       (path == "/" and tok == "/*"):
                         return op, plug
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
@@ -210,49 +313,48 @@ class AlembicTransverserImpl(object):
     def getOverrides(self, node, path):
 
         op = self.getOperator(node, path)
-        print op
+        print "getOverrides", op, node, path
 
         overrides = []
         if op:
             for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
                 ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
-                overrides.append(ass_str)
+                mat = EXP_REGEX.match(ass_str)
+                data = list(mat.groups())
+                data.append(c)
+                overrides.append(data)  # split to param, op, value
 
         return overrides
 
-    def setOverride(self, node, path, param, value):
+    def setOverride(self, node, path, param, op, value, param_type, array=False, index=-1):
 
         op = self.getOperator(node, path)
-        if op:
+        if not op:
+            return False
+
+        if index == -1:
             n_conn = mu.getAttrNumElements(op, "assignment")
-            c_idx = n_conn
+            index = n_conn
             if param != 'NEWOVERRIDE':
                 for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
                     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
                     if ass_str.startswith(param):
-                        c_idx = c
+                        index = c
                         break
-            if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
-                value = "'{}'".format(value)
-            param_exp = "{}={}".format(param, value)
-            cmds.setAttr("{}.assignment[{}]".format(op, c_idx),
-                         param_exp,
-                         type="string")
-            return True
+
+        if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
+            value = "'{}'".format(value)
+
+        param_exp = "{}={}".format(param, value)
+        cmds.setAttr("{}.assignment[{}]".format(op, index),
+                     param_exp,
+                     type="string")
+        return True
 
         return False
 
     def deleteOverride(self, node, path, index):
-
         op = self.getOperator(node, path)
-        # index = -1
-        # for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
-        #     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
-        #     if ass_str.startswith(param):
-        #         index = c
-        #         break
         if index != -1 and op:
-            print cmds.getAttr('{}.assignment[{}]'.format(op, index))
-            status = cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
-            return status
+            return cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
         return False

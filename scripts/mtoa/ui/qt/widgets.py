@@ -3,9 +3,18 @@ from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
-from .utils import dpiScale
+from .utils import dpiScale, setStaticSize, clearWidget
+
+import re
 
 from arnold import *
+
+(NODE_TYPE,
+ PARAM_TYPE,
+ DEFAULT_VALUE,
+ NODE_ENTRY,
+ IS_ARRAY,
+ ENUM_VALUES) = range(6)
 
 OPERATIONS = ["=", "+=", "-=", "*="]
 
@@ -26,6 +35,9 @@ RAYS = [("ai_ray_camera", AI_RAY_CAMERA),
         ("ai_ray_diffuse_reflect", AI_RAY_DIFFUSE_REFLECT),
         ("ai_ray_specular_reflect", AI_RAY_SPECULAR_REFLECT),
         ("ai_ray_subsurface", AI_RAY_SUBSURFACE)]
+
+
+STRING_EXP = re.compile(r'["\']*(\w+)["\']*')
 
 
 def getVisibilityValue(ai_ray_camera=True,
@@ -76,75 +88,128 @@ def getVisibilityDict(value):
 
 class MtoAVisibilityCheckBox(QtWidgets.QCheckBox):
     """docstring for MtoAVisibilityCheckBox"""
-    def __init__(self, arg):
-        super(MtoAVisibilityCheckBox, self).__init__()
-        self.visibility = None
+    def __init__(self, label, parent=None):
+        super(MtoAVisibilityCheckBox, self).__init__(label, parent)
+        self.VIS_RAY = None
 
 
 class MtoAVisibilityWidget(QtWidgets.QFrame):
     """docstring for MtoAVisibilityWidget"""
 
-    valueChanged = QtCore.Signal(str, str, str, int)
+    valueChanged = QtCore.Signal(int)
     deleteAttr = QtCore.Signal(str, str, str)
 
-    def __init__(self, title='test', parent=None):
+    def __init__(self, value=255, title='test', parent=None):
         super(MtoAVisibilityWidget, self).__init__(parent)
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.label_frame = QtWidgets.QFrame()
-        self.label_frame.setStyleSheet("QFrame {border:0px;background-color: rgba(0,0,0,0);}")
-        self.label_frame.setLayout(QtWidgets.QHBoxLayout())
-        self.label_frame.layout().setContentsMargins(0, 0, 0, 0)
-        self.label = QtWidgets.QLabel(title)
-        self.label_frame.layout().addWidget(self.label)
-
-        self.removeWidget = QtWidgets.QPushButton()
-        BBWidget.setStaticSize(self.removeWidget, 15, 15)
-        self.removeWidget.setFlat(True)
-        self.removeWidget.setStyleSheet(
-            "QPushButton:flat {border: 0px solid rgb(0,0,0,0);background-color: rgba(0,0,0,0);}")
-        self.removeWidget.setIcon(
-            QIcon(self.style().standardPixmap(QStyle.SP_DockWidgetCloseButton)))
-        self.removeWidget.setToolTip("Remove attribute from item")
-        self.removeWidget.clicked.connect(self.emitDelete)
-        self.label_frame.layout().addWidget(self.removeWidget)
-
-        self.layout().addWidget(self.label_frame)
-
         self.node = None
         self.pattern = None
         self.attr = None
 
         self.vis_boxes = []
         # make a box per visibility option
-        for name, vis in RAYS:
+        for name, ray in RAYS:
             _visBox = MtoAVisibilityCheckBox(' '.join(name.split('_')[2:]).title())
             _visBox.setChecked(True)
-            _visBox.visibility = vis
+            _visBox.VIS_RAY = ray
             self.layout().addWidget(_visBox)
             self.vis_boxes.append(_visBox)
             _visBox.stateChanged.connect(self.emitValue)
+
+        self.setValue(value)
 
     def getValue(self):
 
         vis = AI_RAY_ALL
         for cb in self.vis_boxes:
             if not cb.isChecked():
-                vis &= ~cb.visibility
+                vis &= ~cb.VIS_RAY
         return vis
 
     def setValue(self, value):
         vis_dict = getVisibilityDict(value)
         for vis_box in self.vis_boxes:
-            self.visBoxGlossy.setChecked(vis_dict[vis_box.visibility])
+            vis_box.setChecked(vis_dict[vis_box.VIS_RAY])
 
     def emitValue(self, *args):
-        self.valueChanged.emit(self.node,
-                               self.pattern,
-                               self.attr,
-                               self.getValue())
+        self.valueChanged.emit(self.getValue())
 
-    def emitDelete(self, *args):
-        self.deleteAttr.emit(self.node, self.pattern, self.attr)
+
+class MtoACheckbox(QtWidgets.QCheckBox):
+
+    valueChanged = QtCore.Signal(bool)
+
+    def __init__(self, value=True, parent=None):
+        super(MtoACheckbox, self).__init__(parent)
+        self.setValue(value)
+        self.stateChanged.connect(self.emitValueChanged)
+
+    def emitValueChanged(self, value):
+        self.valueChanged.emit(bool(value))
+
+    def getValue(self):
+        return self.isChecked()
+
+    def setValue(self, value):
+        self.setChecked(value)
+
+
+class MtoAComboBox(QtWidgets.QComboBox):
+
+    valueChanged = QtCore.Signal(str)
+
+    def __init__(self, parent=None):
+        super(MtoAComboBox, self).__init__(parent)
+        self.currentTextChanged .connect(self.emitValueChanged)
+
+    def emitValueChanged(self, text):
+        self.valueChanged.emit(text)
+
+    def getValue(self):
+        return self.currentText()
+
+    def setValue(self, value):
+        m = STRING_EXP.match(value)
+        if m:
+            self.setCurrentText(m.group(1))
+
+
+class MtoAIntControl(QtWidgets.QSpinBox):
+
+    def __init__(self, parent=None):
+        super(MtoAIntControl, self).__init__(parent)
+
+    def setValue(self, value):
+        super(MtoAIntControl, self).setValue(int(value))
+
+
+class MtoAFltControl(QtWidgets.QDoubleSpinBox):
+    def __init__(self, parent=None):
+        super(MtoAFltControl, self).__init__(parent)
+
+    def setValue(self, value):
+        super(MtoAIntControl, self).setValue(float(value))
+
+
+class MtoAStrControl(QtWidgets.QLineEdit):
+
+    valueChanged = QtCore.Signal(str)
+
+    def __init__(self, parent=None):
+        super(MtoAStrControl, self).__init__(parent)
+
+        self.textEdited.connect(self.emitValueChanged)
+
+    def emitValueChanged(self, text):
+        self.valueChanged.emit(text)
+
+    def getValue(self):
+        return self.text()
+
+    def setValue(self, value):
+        m = STRING_EXP.match(value)
+        if m:
+            self.setText(m.group(1))
 
 
 class MtoALabelLineEdit(QtWidgets.QFrame):
@@ -158,33 +223,74 @@ class MtoALabelLineEdit(QtWidgets.QFrame):
         self.layout().addWidget(self.lineEdit)
 
 
+class MtoAMutiControlWidget(QtWidgets.QFrame):
+    """docstring for MtoAMutiControlWidget"""
+    valueChanged = QtCore.Signal((str,),
+                                 (int,),
+                                 (float,),)
+
+    def __init__(self, parent=None):
+        super(MtoAMutiControlWidget, self).__init__(parent)
+        self.setLayout(QtWidgets.QVBoxLayout())
+        self.control = None
+
+    def setWidget(self, widget):
+        self.control = widget
+        self.layout().addWidget(widget)
+        # self.control.valueChanged.connect(self.emitValueChanged)
+
+    def emitValueChanged(self):
+        value = self.getValue
+        self.valueChanged.emit(value)
+
+    def getValue(self):
+        if self.control:
+            return self.control.getValue()
+
+    def setValue(self, value):
+        print "MtoAOperatorOverrideWidget.setValue", value, self.control
+        if self.control:
+            self.control.setValue(value)
+
+
 class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
 
     EXPRESSION_ICON = QtGui.QPixmap(":/expression.svg")
     BIN_ICON = QtGui.QPixmap(":/deleteActive.png")
 
     deleteMe = QtCore.Signal(object)
+    paramChanged = QtCore.Signal(str)
+    valueChanged = QtCore.Signal((str, str, str, int,),
+                                 (str, str, int, int,),
+                                 (str, str, float, int,))
 
     def __init__(self, parent=None):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
 
         # set the paramater type so we know what type of widget to create.
+        self.param_name = None
         self.param_type = None
-        self.id = -1
+        self.param_dict = {}
+        self.index = -1
 
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.paramMenu = QtWidgets.QComboBox()
-        self.paramMenu.addItem("Choose Parameter")
+        self.paramMenu = MtoAMenuBox(self)
         self.layout().addWidget(self.paramMenu)
 
         self.op_menu = QtWidgets.QComboBox()
         self.op_menu.addItems(OPERATIONS)
         self.layout().addWidget(self.op_menu)
 
+        self.valueWidget = QtWidgets.QStackedWidget()  # set the widget for this control
+        self.layout().addWidget(self.valueWidget)
+
+        self.controlWidget = MtoAMutiControlWidget()
+        self.valueWidget.addWidget(self.controlWidget)
+
         self.expressionEditor = QtWidgets.QLineEdit()
-        self.layout().addWidget(self.expressionEditor)
+        self.valueWidget.addWidget(self.expressionEditor)
 
         self.expBtn = QtWidgets.QPushButton()
         self.expBtn.setIcon(self.EXPRESSION_ICON)
@@ -199,14 +305,160 @@ class MtoAOperatorOverrideWidget(QtWidgets.QFrame):
                                   "QPushButton:hover{background:rgba(0,0,0,25);border:rgba(20,20,20,255);border-radius: 1px;}")
         self.layout().addWidget(self.delBtn)
 
+        self.setup()
+
+    def setup(self):
         self.delBtn.pressed.connect(self.callDeleteMe)
+        self.paramMenu.textChanged.connect(self.emitParamChanged)
+        self.expBtn.toggled.connect(self.valueWidget.setCurrentIndex)
 
     def callDeleteMe(self):
         self.deleteMe.emit(self)
 
-    def populateParams(self, paramList):
-        for param in paramList:
-            self.paramMenu.addItem(param)
+    def emitParamChanged(self, param):
+        default_value = ""
+        param_data = self.param_dict.get(param, None)
+        if param_data:
+            default_value = param_data[2]
+
+        print "MtoAOperatorOverrideWidget.emitParamChanged", \
+              ','.join([param,
+                        self.getOperation(),
+                        str(default_value),
+                        str(self.index)])
+        self.setControlWidget(param)
+        self.setValue(default_value)
+        self.emitValueChanged(default_value)
+
+    def emitValueChanged(self, value):
+
+        param = self.getParam()
+        print "MtoAOperatorOverrideWidget.emitValueChanged", \
+              ','.join([param,
+                        self.getOperation(),
+                        str(value),
+                        str(self.index)])
+
+        self.valueChanged[str, str, type(value), int].emit(
+                                   param,
+                                   self.getOperation(),
+                                   value,
+                                   self.index)
+
+    def populateParams(self, paramDict):
+        for param, data in sorted(paramDict.items()):
+            self.paramMenu.addItem(param, data[0])
 
     def getParam(self):
-        return self.paramMenu.currentText()
+        return self.paramMenu.getText()
+
+    def setParam(self, param, param_type, node_entry, param_dict):
+        self.paramMenu.setText(param)
+        self.param_name = param
+        self.param_type = param_type
+        self.node_entry = node_entry
+        self.param_dict = param_dict
+        self.setControlWidget(param)
+
+    def setParamType(self, param):
+        param_data = self.param_dict.get(param, None)
+        if param_data:
+            self.param_type = param_data[PARAM_TYPE]
+
+    def getOperation(self):
+        return self.op_menu.currentText()
+
+    def setOperation(self, operation):
+        return self.op_menu.setCurrentText(operation)
+
+    def getValue(self):
+        if self.controlWidget:
+            return self.controlWidget.value()
+        else:
+            return self.expressionEditor.text()
+
+    def setValue(self, value):
+        self.controlWidget.setValue(value)
+        self.expressionEditor.setText(str(value))
+
+    def setControlWidget(self, param):
+        # make sure the param type is updated
+        self.setParamType(param)
+        # delete old widgets
+        clearWidget(self.controlWidget)
+        control = None
+        print "MtoAOperatorOverrideWidget.setControlWidget", param, self.param_type
+        if self.param_type in [AI_TYPE_BYTE] and param == 'visibility':
+            control = MtoAVisibilityWidget()
+        elif self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
+            control = MtoAIntControl()
+        elif self.param_type is AI_TYPE_FLOAT:
+            control = MtoAFltControl()
+        elif self.param_type is AI_TYPE_BOOLEAN:
+            control = MtoACheckbox()
+        elif self.param_type is AI_TYPE_ENUM:
+            control = MtoAComboBox()
+            # populate the options
+            for i in self.param_dict[param][-1]:
+                    control.addItem(i)
+        else:
+            control = MtoAStrControl()
+
+        control.valueChanged.connect(self.emitValueChanged)
+        self.controlWidget.setWidget(control)
+
+
+class MtoAMenuBox(QtWidgets.QFrame):
+    """docstring for MtoAMenuBox"""
+    PARAM_ICON = QtGui.QPixmap(":/list.svg")
+
+    textChanged = QtCore.Signal(str)
+
+    def __init__(self, parent):
+        super(MtoAMenuBox, self).__init__(parent)
+
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.menuButton = QtWidgets.QPushButton()
+        self.menuButton.setIcon(self.PARAM_ICON)
+        self.menu = QtWidgets.QMenu()
+        self.menuButton.setMenu(self.menu)
+        self.layout().addWidget(self.menuButton)
+
+        self.editBox = QtWidgets.QLineEdit()
+        self.layout().addWidget(self.editBox)
+
+        self.setup()
+
+    def setup(self):
+        self.menu.triggered.connect(self.setTextFromAction)
+        self.editBox.textEdited.connect(self.emitChange)
+
+    def emitChange(self):
+        self.textChanged.emit(self.getText())
+
+    def setTextFromAction(self, action):
+        new_text = action.text()
+        self.editBox.setText(new_text)
+        self.textChanged.emit(new_text)
+
+    def setText(self, text):
+        self.editBox.setText(text)
+
+    def getText(self):
+        return self.editBox.text()
+
+    def addItem(self, item, parent):
+        parent_menu = self.menu
+        if parent:
+            # check if a root item exists
+            for action in self.menu.actions():
+                if action.menu():
+                    sub_menu = action.menu()
+                    if sub_menu.title() == parent:
+                        parent_menu = sub_menu
+            if parent_menu == self.menu:
+                parent_menu = self.menu.addMenu(parent)
+        if parent_menu:
+            parent_menu.addAction(item)
