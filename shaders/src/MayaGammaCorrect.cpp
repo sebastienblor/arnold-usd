@@ -18,10 +18,10 @@ node_parameters
    AiParameterVec("value", 0, 0, 0);
    AiParameterVec("gamma", 1, 1, 1);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "gammaCorrect");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x5247414d);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
-   
+      
 }
 
 node_initialize

@@ -157,7 +157,7 @@ void CLambertTranslator::Export(AtNode* shader)
             MString tag = "transparency";
             AtNode* reverseNode = GetArnoldNode(tag.asChar());
             if (reverseNode == NULL)
-               reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
+               reverseNode = AddArnoldNode("complement", tag.asChar());
             AiNodeLink(inNode, "input", reverseNode);
             AiNodeLink(reverseNode, "opacity", shader);
          }
@@ -3013,4 +3013,37 @@ void CAiOslShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
       SetUpdateMode(AI_RECREATE_NODE);
 
    CShaderTranslator::NodeChanged(node, plug);
+}
+
+AtNode* CGammaCorrectTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("pow");
+}
+
+void CGammaCorrectTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "base", AI_TYPE_RGB, "value");
+
+   MPlug plug = FindMayaPlug("gamma");
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      AtNode* linkedNode = ExportConnectedNode(connections[0]);
+      // there is a link on the gamma attribute. We need to insert an invert shader in the middle
+      AtNode* invert = GetArnoldNode("invert");
+      if (invert == NULL)
+         invert = AddArnoldNode("reciprocal", "invert");
+
+      AiNodeLink(linkedNode, "input", invert);   
+      AiNodeLink(invert, "exponent", shader);
+      
+   } else
+   {
+      // no connection on the gamma attribute, just set the exponent as 1/gamma
+      AiNodeSetRGB(shader, "exponent", 1.f / AiMax(AI_EPSILON, plug.child(0).asFloat()), 
+                                       1.f / AiMax(AI_EPSILON, plug.child(1).asFloat()), 
+                                       1.f / AiMax(AI_EPSILON, plug.child(2).asFloat()));
+   }
+   
 }
