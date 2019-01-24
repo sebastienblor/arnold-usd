@@ -156,7 +156,7 @@ void CGpuCacheTranslator::timeChangedCallback(void* clientData)
    CGpuCacheTranslator * translator = static_cast< CGpuCacheTranslator* >(clientData);
    if (translator != NULL)
    {
-      translator->SetUpdateMode(AI_RECREATE_NODE);
+      // translator->SetUpdateMode(AI_RECREATE_NODE);
       translator->RequestUpdate();
    }
 
@@ -263,7 +263,11 @@ void CGpuCacheTranslator::Export( AtNode *shape )
       const char* node_type = NodeTypes[typePlug.asInt()];
 
       std::string attribute_name, attribute_set;
-      attribute_name = std::string(node_type) + ":" + std::string(namePlug.asString().asChar());
+      // catch if the node_type is curves, and the namePlug is "basis" or "mode"
+      if (std::string(node_type) == "curves" && (namePlug.asString() == "mode" || namePlug.asString() == "basis"))
+         attribute_name = std::string(namePlug.asString().asChar());
+      else
+         attribute_name = std::string(node_type) + ":" + std::string(namePlug.asString().asChar());
 
       attribute_set = attribute_name + " " + std::string(valuePlug.asString().asChar());
 

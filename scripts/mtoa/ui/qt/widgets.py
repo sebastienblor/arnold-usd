@@ -6,7 +6,7 @@ from .itemStyle import ItemStyle
 from .utils import dpiScale, setStaticSize, clearWidget
 
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
-
+import maya.cmds as cmds
 import re
 
 from arnold import *
@@ -236,25 +236,110 @@ class MtoALabelLineEdit(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.lineEdit = QtWidgets.QLineEdit()
         self.layout().addWidget(self.lineEdit)
 
+    def getText(self):
+        return self.lineEdit.text()
+
+    def setText(self, text):
+        return self.lineEdit.setText(text)
+
 
 class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
     CONNECTED_ICON = QtGui.QPixmap(":/navButtonConnected.png")
     UNCONNECTED_ICON = QtGui.QPixmap(":/navButtonUnconnected.png")
 
+    valueChanged = QtCore.Signal(str)
+    nodeDisconnected = QtCore.Signal()
+
     def __init__(self, label='label', nodeType="shader", parent=None):
         super(MtoANodeConnectionWidget, self).__init__(label, parent)
+
+        self.node = None
+
         self.conButton = QtWidgets.QPushButton()
         self.conButton.setIcon(self.UNCONNECTED_ICON)
         self.layout().addWidget(self.conButton)
+        self._orginalStyle = self.frameStyle()
+        self._orginalWidth = self.frameWidth()
+        self.conButton.clicked.connect(self.showNodeLister)
 
-        self.conMenu = QtWidgets.QMenu()
-        self.conMenu.addAction("Disconnect")
+        # self.conMenu = QtWidgets.QMenu()
+        # self.conMenu.addAction("Disconnect")
+        # self.conButton.setMenu(self.conMenu)
 
-        self.conButton.setMenu(self.conMenu)
+        self.setAcceptDrops(True)
+
+        self.lineEdit.textEdited.connect(self.valueChanged)
 
     def showNodeLister(self):
-        pass
+        """
+        To be overrloaded to launch the appropriate editor to choose the node to connect
+        returns the new node
+        """
+        return None
+
+    def newNode(self):
+
+        node = self.showNodeLister()
+        if node:
+            self.setNode(node)
+
+    def setNode(self, node):
+        self.node = node
+        self.setText(node)
+        self.conButton.setIcon(self.CONNECTED_ICON)
+        self.conButton.clicked.disconnect()
+        self.conButton.clicked.connect(self.selectNode)
+        self.valueChanged.emit(node)
+
+    def disconnectNode(self):
+        self.node = None
+        self.setText("")
+        self.conButton.setIcon(self.UNCONNECTED_ICON)
+        self.conButton.clicked.disconnect()
+        self.conButton.clicked.connect(self.showNodeLister)
+        self.nodeDisconnected.emit()
+
+    def selectNode(self):
+        if self.node:
+            cmds.select(node, r=True)
+
+    def dragEnterEvent(self, event):
+        """ Reimplementing event to accept plain text, """
+        self.setFrameStyle(QtWidgets.QFrame.Box)
+        self.setLineWidth(1)
+        if event.mimeData().hasFormat('text/plain'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def resetStyle(self):
+        self.setFrameStyle(self._orginalStyle)
+        self.setLineWidth(self._orginalWidth)
+
+    def dragLeaveEvent(self, event):
+        """ Reimplementing event to accept plain text, """
+        self.resetStyle()
+
+    def dragMoveEvent(self, event):
+        """ Reimplementing event to accept plain text, """
+        if event.mimeData().hasFormat('text/plain'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        node = event.mimeData().text()
+        if cmds.objExists(node):
+            self.setNode(node)
+        self.resetStyle()
+
+
+class MtoAShaderConnectionWidget(MtoANodeConnectionWidget):
+    """docstring for MtoAShaderConnectionWidget"""
+    def __init__(self, parent):
+        super(MtoAShaderConnectionWidget, self).__init__(parent)
+        self.arg = arg
 
 
 class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
@@ -324,13 +409,10 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
         self.valueWidget.addWidget(self.expressionEditor)
 
         self.expBtn = self.addAction(self.EXPRESSION_ICON, "Toggle Expression")
-        # self.expBtn.setFlat(True)
         self.expBtn.setCheckable(True)
 
         self.delBtn = self.addAction(self.BIN_ICON, "Delete")
-        # self.delBtn.setFlat(True)
-        # self.delBtn.setStyleSheet("QPushButton{background:rgba(0,0,0,0);border:rgba(0,0,0,0);}"\
-        #                           "QPushButton:hover{background:rgba(0,0,0,25);border:rgba(20,20,20,255);border-radius: 1px;}")
+
         self.addAction(self.delBtn)
 
         self.setup()
@@ -349,11 +431,6 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
         if param_data:
             default_value = param_data[2]
 
-        print "MtoAOperatorOverrideWidget.emitParamChanged", \
-              ','.join([param,
-                        self.getOperation(),
-                        str(default_value),
-                        str(self.index)])
         self.setControlWidget(param)
         self.setValue(default_value)
         self.emitValueChanged(default_value)
@@ -361,12 +438,6 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
     def emitValueChanged(self, value):
 
         param = self.getParam()
-        print "MtoAOperatorOverrideWidget.emitValueChanged", \
-              ','.join([param,
-                        self.getOperation(),
-                        str(value),
-                        str(self.index)])
-
         self.valueChanged[str, str, type(value), int].emit(
                                    param,
                                    self.getOperation(),
@@ -415,7 +486,6 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
         # delete old widgets
         clearWidget(self.controlWidget)
         control = None
-        print "MtoAOperatorOverrideWidget.setControlWidget", param, self.param_type
         if self.param_type in [AI_TYPE_BYTE] and param == 'visibility':
             control = MtoAVisibilityWidget()
         elif self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:

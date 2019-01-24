@@ -14,6 +14,8 @@ from arnold import *
  ABC_ENTIY_TYPE,
  ABC_IOBJECT) = range(7)
 
+(PARM, OP, VALUE, INDEX) = range(4)
+
 VISIBILITY = ['differed', 'hidden', 'visible']
 
 SELECTION_REGEX = re.compile(r"(/[/\w]*\w+)/*\**")
@@ -22,6 +24,9 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
                          (?P<value>.*) # value
                          """, re.X)
+
+OVERRIDE_OP = "aiSetParameter"
+DISABLE_OP = "aiDisable"
 
 
 def ArnoldUniverseOnlyBegin():
@@ -105,9 +110,9 @@ class AlembicTransverser(BaseTransverser):
 
     #     return self.impl.properties(node, path)
 
-    def createOperator(self, node, iobject):
+    def createOperator(self, node, iobject, operator_type):
 
-        return self.impl.createOperator(node, iobject)
+        return self.impl.createOperator(node, iobject, operator_type)
 
     def getOperator(self, node, path):
 
@@ -117,9 +122,9 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.getOverrides(node, path)
 
-    def setOverride(self, node, path, param, op, value, param_type, is_array=False, index=-1):
+    def setOverride(self, node, path, param, operation, value, param_type, is_array=False, index=-1):
 
-        return self.impl.setOverride(node, path, param, op, value, param_type, is_array, index)
+        return self.impl.setOverride(node, path, param, operation, value, param_type, is_array, index)
 
     def deleteOverride(self, node, path, index):
 
@@ -258,31 +263,37 @@ class AlembicTransverserImpl(object):
 
         pass
 
-    def createOperator(self, node, iobject):
+    def createOperator(self, node, iobject, operator_type):
         num_ops = mu.getAttrNumElements(node, 'operators')
         op_name = '{}_setParam{}'.format(node, num_ops)
-        op = cmds.createNode("aiSetParameter", name=op_name, ss=True)
-        path = iobject[ABC_PATH]
-        if iobject[ABC_ENTIY_TYPE] == "xform":
-            path += "/*"
-        elif iobject[ABC_ENTIY_TYPE] == None:
-            path += "*"
-        cmds.setAttr(op + ".selection",
-                     path,
-                     type="string")
+        op = cmds.createNode(operator_type, name=op_name, ss=True)
+        if op:
+            # if this operator has a selection attribute set it to the
+            # given object path
+            if cmds.attributeQuery('selection', node=op, exists=True):
+                path = iobject[ABC_PATH]
+                if iobject[ABC_ENTIY_TYPE] == "xform":
+                    path += "/*"
+                elif iobject[ABC_ENTIY_TYPE] == None:
+                    path += "*"
+                cmds.setAttr(op + ".selection",
+                             path,
+                             type="string")
 
-        newItem = '{}.operators[{}]'.format(node, num_ops)
-        cmds.connectAttr(op + ".out", newItem)
-        return op
+            newItem = '{}.operators[{}]'.format(node, num_ops)
+            cmds.connectAttr(op + ".out", newItem)
+            return op
+        return None
 
-    def getOperator(self, node, path):
+    def getOperator(self, node, path, operator_type):
 
         def walkInputs(op, path, plug):
 
             selection_exp = '{}*'.format(path)
 
             r_ipt = r_plug = None
-            if cmds.attributeQuery('selection', node=op, exists=True):
+            if cmds.attributeQuery('selection', node=op, exists=True) and \
+               cmds.nodeType(op) == operator_type:
                 sel_exp = cmds.getAttr('{}.selection'.format(op))
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
@@ -311,12 +322,11 @@ class AlembicTransverserImpl(object):
         return operator
 
     def deleteOperator(self, op):
-        pass
+        cmds.delete(op)
 
     def getOverrides(self, node, path):
 
         op = self.getOperator(node, path)
-        print "getOverrides", op, node, path
 
         overrides = []
         if op:
@@ -329,7 +339,7 @@ class AlembicTransverserImpl(object):
 
         return overrides
 
-    def setOverride(self, node, path, param, op, value, param_type, array=False, index=-1):
+    def setOverride(self, node, path, param, operation, value, param_type, array=False, index=-1):
 
         op = self.getOperator(node, path)
         if not op:
@@ -348,13 +358,11 @@ class AlembicTransverserImpl(object):
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
             value = "'{}'".format(value)
 
-        param_exp = "{}={}".format(param, value)
+        param_exp = "{}{}{}".format(param, operation, value)
         cmds.setAttr("{}.assignment[{}]".format(op, index),
                      param_exp,
                      type="string")
         return True
-
-        return False
 
     def _indexInAssignment(self, index, op):
         indices = cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []

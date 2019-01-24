@@ -6,7 +6,9 @@ from mtoa.ui.qt import setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 
 from AbcTransverser import ABC_PATH, ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
-                            ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT
+                            ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
+                            OVERRIDE_OP, DISABLE_OP,\
+                            PARM, OP, VALUE, INDEX
 
 
 class AbcPropertiesPanel(QtWidgets.QFrame):
@@ -42,13 +44,21 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
 
         self.shadingPanel = QtWidgets.QFrame()
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
+        self.shadingPanel.layout().setContentsMargins(0, 0, 0, 0)
 
         # shader override
+        self.shadingWidgets = {}
         self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader")
+        self.shaderOverrideWidget.valueChanged.connect(self.setShader)
+        self.shaderOverrideWidget.nodeDisconnected.connect(self.disconnectShader)
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
+        self.shadingWidgets['shader'] = self.shaderOverrideWidget
+
         # displacement override
         self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement")
+        self.dispOverrideWidget.valueChanged.connect(self.setDisplacement)
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
+        self.shadingWidgets['disp_map'] = self.dispOverrideWidget
 
         self.layout.addWidget(self.shadingPanel)
 
@@ -63,6 +73,25 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         self.getParams()
         self.getOverrides()
 
+    def setShader(self, shader):
+        print "AbcPropertiesPanel.setShader", shader
+        self.setNodeParam(shader, "shader")
+
+    def disconnectShader(self):
+        pass
+
+    def setDisplacement(self, disp):
+        self.setNodeParam(disp, "disp_map")
+
+    def getOverrideOperator(self):
+        op = self.transverser.getOperator(self.node, self.object[ABC_PATH])
+        if not op:
+            op = self.transverser.createOperator(self.node, self.object, "aiSetParameter")
+
+    def setNodeParam(self, node, param):
+        op = self.getOverrideOperator()
+        self.setOverride(param, "=", node)
+
     def getParams(self):
         node_types = self.transverser.getNodeTypes(self.object[ABC_IOBJECT])
         self.paramDict = self.transverser.getParams(node_types)
@@ -70,15 +99,18 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
     def getOverrides(self):
         clearWidget(self.overridesPanel)
         for override in self.transverser.getOverrides(self.node, self.object[ABC_PATH]):
-            self.addOverrideGUI(*override)
+            # FIXME what if the user wants to connect a shader from inside the procedural?
+            if override[PARM] in ["shader", "disp_map"]:
+                # set the shader slot
+                self.shadingWidgets[override[PARM]].setNode(value)
+            else:
+                self.addOverrideGUI(*override)
 
     def getProperties(self, obj):
         pass
 
     def addOverride(self):
-        op = self.transverser.getOperator(self.node, self.object[ABC_PATH])
-        if not op:
-            op = self.transverser.createOperator(self.node, self.object)
+        op = getOverrideOperator()
         self.setOverride(None, "=", None)
         self.getOverrides()
 
@@ -104,7 +136,6 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
     def removeOverride(self, widget):
         index = widget.index
         removed = self.transverser.deleteOverride(self.node, self.object[ABC_PATH], index)
-        print "AbcPropertiesPanel.removeOverride", removed
         if removed:
             self.getOverrides()
 
