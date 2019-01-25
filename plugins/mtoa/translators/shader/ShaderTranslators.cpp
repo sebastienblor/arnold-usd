@@ -3190,3 +3190,28 @@ void CSurfaceShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
 
    CShaderTranslator::NodeChanged(node, plug);
 }
+
+
+AtNode* CRgbToHsvTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("color_convert");
+}
+
+void CRgbToHsvTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "inRgb");
+   AiNodeSetStr(shader, "from", "RGB");
+   AiNodeSetStr(shader, "to", "HSV");
+}
+
+AtNode* CHsvToRgbTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("color_convert");
+}
+
+void CHsvToRgbTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "inHsv");
+   AiNodeSetStr(shader, "from", "HSV");
+   AiNodeSetStr(shader, "to", "RGB");  
+}

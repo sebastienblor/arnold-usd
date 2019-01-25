@@ -17,10 +17,14 @@ enum HsvToRgbParams
 node_parameters
 {
    AiParameterVec("inHsv", 0.0f, 0.0f, 0.0f);
-
+/*
    AiMetaDataSetStr(nentry, NULL, "maya.name", "hsvToRgb");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52483252);
+*/ 
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+
    
 }
 

@@ -18,8 +18,12 @@ node_parameters
 {
    AiParameterRGB("inRgb", 0.0f, 0.0f, 0.0f);
 
+/*
    AiMetaDataSetStr(nentry, NULL, "maya.name", "rgbToHsv");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52523248);
+*/
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
