@@ -275,3 +275,13 @@ protected:
 
 
 };
+
+class CSurfaceShaderTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CSurfaceShaderTranslator();}
+
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};

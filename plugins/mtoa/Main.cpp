@@ -927,6 +927,10 @@ namespace // <anonymous>
          shaders->RegisterTranslator("gammaCorrect",
                                        "",
                                        CGammaCorrectTranslator::creator);
+         shaders->RegisterTranslator("surfaceShader",
+                                       "",
+                                       CSurfaceShaderTranslator::creator);
+         
 
 
          if(MGlobal::apiVersion() >= 20180400)

@@ -3047,3 +3047,125 @@ void CGammaCorrectTranslator::Export(AtNode* shader)
    }
    
 }
+
+// Maya's SurfaceShader
+// If no matte is set (outMatteOpacity=white), we just want a standard_surface
+// with emission + transparency. If there is matte, then we also need to insert
+// a matte shader before the standard_surface, which will be evaluated for camera
+// rays and behave like a passthrough for other ray types.
+// We need to set the matte's color (same as standard_surface emission) and opacity.
+// The matte color is converted to a scalar value here.
+AtNode*  CSurfaceShaderTranslator::CreateArnoldNodes()
+{
+   AtNode *surface = AddArnoldNode("standard_surface");
+   if (IsRGBAttrDefault(FindMayaPlug("outMatteOpacity"), 1.f, 1.f, 1.f))
+      return surface;
+
+   AtNode *matte = AddArnoldNode("matte", "matte");
+   AiNodeLink(surface, "passthrough", matte);
+   return matte;
+}
+
+void CSurfaceShaderTranslator::Export(AtNode* shader)
+{
+   shader = GetArnoldNode();
+   AtNode *matte = GetArnoldNode("matte");
+   AtNode* reverseNode = NULL;
+   AtRGB opacity(1.f, 1.f, 1.f);
+
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "outColor");
+   AiNodeSetFlt(shader, "emission", 1.f);
+   AiNodeSetFlt(shader, "base", 0.f);
+   AiNodeSetFlt(shader, "specular", 0.f);
+   
+   // Transparency to opacity
+   MPlug plug = FindMayaPlug("outTransparency");
+   if (!plug.isNull())
+   {
+      MPlugArray connections;
+      // For IPR unlink first
+      if (AiNodeIsLinked(shader, "opacity")) AiNodeUnlink(shader, "opacity");
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* inNode = ExportConnectedNode(connections[0]);
+         // Need to reverse it
+         if (inNode != NULL)
+         {
+            MString tag = "outTransparency";
+            reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("complement", tag.asChar());
+            AiNodeLink(inNode, "input", reverseNode);
+            AiNodeLink(reverseNode, "opacity", shader);
+         }
+      }
+      else
+      {
+         opacity = AtRGB(1.0f - plug.child(0).asFloat(),
+                        1.0f - plug.child(1).asFloat(),
+                        1.0f - plug.child(2).asFloat());
+         AiNodeSetRGB(shader, "opacity", opacity.r, opacity.g, opacity.b);
+      }
+   }
+
+   if (matte == NULL)
+      return;
+
+   // Need to deal with matte
+   AtRGB color = AiNodeGetRGB(shader, "emission_color");
+   if (AiNodeIsLinked(shader, "emission_color"))
+   {
+      // outColor attribute is linked, we need to link each R, G, B component separately
+      // because the alpha must be connected to the outMatteOpacity
+      AtNode *colorLink = AiNodeGetLink(shader, "emission_color");
+      if (colorLink)
+      {
+         AiNodeLinkOutput(colorLink, "r", matte, "color.r");
+         AiNodeLinkOutput(colorLink, "g", matte, "color.g");
+         AiNodeLinkOutput(colorLink, "b", matte, "color.b");
+      }
+   } else // outColor isn't linked, let's just set the parameters (don't worry about color.a, we'll set it below)
+      AiNodeSetRGBA(matte, "color", color.r, color.g, color.b, 1.f);
+
+   // matte :  Note, we're not trying to support colored matte opacity, just a scalar matte value (in color.a)
+   plug = FindMayaPlug("outMatteOpacity");
+   if (!plug.isNull())
+   {
+      MPlugArray connections;
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         // outMatteOpacity is connected. 
+         // To avoid inserting yet another node in this mess for such a rare use case, 
+         // we're just linking with the "r" output
+         AtNode* inNode = ExportConnectedNode(connections[0]);
+         AiNodeLinkOutput(inNode, "r", matte, "color.a");   
+      } else
+      {
+         // outMatteOpacity is not connected, let's set color.a to the value of the color
+         float matteVal = AiMax(plug.child(0).asFloat(), AiMax(plug.child(1).asFloat(), plug.child(2).asFloat()));
+         AiNodeSetRGBA(matte, "color", color.r, color.g, color.b, matteVal);
+      }
+
+      // set matte's opacity to the same value as the standard_surface
+      AiNodeSetRGB(matte, "opacity", opacity.r, opacity.g, opacity.b);
+      // if we connected something to standard_surface's opacity, let's connect it here too
+      if (reverseNode)
+         AiNodeLink(reverseNode, "opacity", matte);
+
+   }   
+}
+
+void CSurfaceShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // If I didn't have created the matte before and if outMatteOpacity is being changed, 
+   // it means we're likely going to have to create it and insert it at the root of this translator nodes.
+   // So let's recreate the node in that case. If the matte shader already exists, we can leave it where it is,
+   // even if outMatteOpacity is now set to white during IPR.
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "outMatteOpacity" && (GetArnoldNode("matte") == NULL))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
