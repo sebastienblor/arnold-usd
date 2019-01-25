@@ -3,6 +3,7 @@ from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
+from .treeView import BaseItem
 from .utils import dpiScale, setStaticSize, clearWidget
 
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
@@ -230,6 +231,7 @@ class MtoALabelLineEdit(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         super(MtoALabelLineEdit, self).__init__(parent)
 
         self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.titleLabel = QtWidgets.QLabel(label)
         self.layout().addWidget(self.titleLabel)
@@ -245,11 +247,13 @@ class MtoALabelLineEdit(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
 class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
-    CONNECTED_ICON = QtGui.QPixmap(":/navButtonConnected.png")
-    UNCONNECTED_ICON = QtGui.QPixmap(":/navButtonUnconnected.png")
+    CONNECTED_ICON = BaseItem.dpiScaledIcon(":/navButtonConnected.png")
+    UNCONNECTED_ICON = BaseItem.dpiScaledIcon(":/navButtonUnconnected.png")
 
     valueChanged = QtCore.Signal(str)
     nodeDisconnected = QtCore.Signal()
+    connectionButtonClicked = QtCore.Signal()
+    menuTriggered = QtCore.Signal(object)
 
     def __init__(self, label='label', nodeType="shader", parent=None):
         super(MtoANodeConnectionWidget, self).__init__(label, parent)
@@ -257,47 +261,48 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.node = None
 
         self.conButton = QtWidgets.QPushButton()
+        self.conButton.setFlat(True)
         self.conButton.setIcon(self.UNCONNECTED_ICON)
+        setStaticSize(self.conButton, 16, 16)
         self.layout().addWidget(self.conButton)
+
         self._orginalStyle = self.frameStyle()
         self._orginalWidth = self.frameWidth()
-        self.conButton.clicked.connect(self.showNodeLister)
+        self.conButton.clicked.connect(self.connectionButtonClicked)
 
-        # self.conMenu = QtWidgets.QMenu()
-        # self.conMenu.addAction("Disconnect")
-        # self.conButton.setMenu(self.conMenu)
+        self.menu = None
+
+        menu = QtWidgets.QMenu()
+        menu.addAction("Disconnect")
+        self.setMenu(menu)
 
         self.setAcceptDrops(True)
 
         self.lineEdit.textEdited.connect(self.valueChanged)
 
-    def showNodeLister(self):
-        """
-        To be overrloaded to launch the appropriate editor to choose the node to connect
-        returns the new node
-        """
-        return None
+    def setMenu(self, menu):
+        self.menu = menu
+        self.menu.triggered.connect(self.menuTriggered.emit)
 
-    def newNode(self):
+    def contextMenuEvent(self, event):
+        if self.menu:
+            self.menu.exec_(event.globalPos())
 
-        node = self.showNodeLister()
-        if node:
-            self.setNode(node)
-
-    def setNode(self, node):
+    def setNode(self, node, emit=True):
         self.node = node
         self.setText(node)
         self.conButton.setIcon(self.CONNECTED_ICON)
         self.conButton.clicked.disconnect()
         self.conButton.clicked.connect(self.selectNode)
-        self.valueChanged.emit(node)
+        if emit:
+            self.valueChanged.emit(node)
 
     def disconnectNode(self):
         self.node = None
         self.setText("")
         self.conButton.setIcon(self.UNCONNECTED_ICON)
         self.conButton.clicked.disconnect()
-        self.conButton.clicked.connect(self.showNodeLister)
+        self.conButton.clicked.connect(self.connectionButtonClicked)
         self.nodeDisconnected.emit()
 
     def selectNode(self):
@@ -333,13 +338,6 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         if cmds.objExists(node):
             self.setNode(node)
         self.resetStyle()
-
-
-class MtoAShaderConnectionWidget(MtoANodeConnectionWidget):
-    """docstring for MtoAShaderConnectionWidget"""
-    def __init__(self, parent):
-        super(MtoAShaderConnectionWidget, self).__init__(parent)
-        self.arg = arg
 
 
 class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):

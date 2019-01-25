@@ -106,17 +106,17 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.dir(*args)
 
-    # def properties(self, node, path):
+    def properties(self, node, path):
 
-    #     return self.impl.properties(node, path)
+        return self.impl.properties(node, path)
 
     def createOperator(self, node, iobject, operator_type):
 
         return self.impl.createOperator(node, iobject, operator_type)
 
-    def getOperator(self, node, path):
+    def getOperator(self, node, path, operator_type=None):
 
-        return self.impl.getOperator(node, path)
+        return self.impl.getOperator(node, path, operator_type)
 
     def getOverrides(self, node, path):
 
@@ -285,7 +285,7 @@ class AlembicTransverserImpl(object):
             return op
         return None
 
-    def getOperator(self, node, path, operator_type):
+    def getOperator(self, node, path, operator_type=None):
 
         def walkInputs(op, path, plug):
 
@@ -293,7 +293,8 @@ class AlembicTransverserImpl(object):
 
             r_ipt = r_plug = None
             if cmds.attributeQuery('selection', node=op, exists=True) and \
-               cmds.nodeType(op) == operator_type:
+               (operator_type is None or cmds.nodeType(op) == operator_type):
+
                 sel_exp = cmds.getAttr('{}.selection'.format(op))
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
@@ -326,7 +327,7 @@ class AlembicTransverserImpl(object):
 
     def getOverrides(self, node, path):
 
-        op = self.getOperator(node, path)
+        op = self.getOperator(node, path, OVERRIDE_OP)
 
         overrides = []
         if op:
@@ -341,7 +342,7 @@ class AlembicTransverserImpl(object):
 
     def setOverride(self, node, path, param, operation, value, param_type, array=False, index=-1):
 
-        op = self.getOperator(node, path)
+        op = self.getOperator(node, path, OVERRIDE_OP)
         if not op:
             return False
 
@@ -371,7 +372,7 @@ class AlembicTransverserImpl(object):
         return False
 
     def deleteOverride(self, node, path, index):
-        op = self.getOperator(node, path)
+        op = self.getOperator(node, path, OVERRIDE_OP)
         print "AlembicTransverserImpl.deleteOverride", node, path, index
         if index != -1 and op:
             indices = cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []

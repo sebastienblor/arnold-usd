@@ -75,20 +75,20 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
 
     def setShader(self, shader):
         print "AbcPropertiesPanel.setShader", shader
-        self.setNodeParam(shader, "shader")
+        self.setNodeParam("shader", shader)
 
     def disconnectShader(self):
         pass
 
     def setDisplacement(self, disp):
-        self.setNodeParam(disp, "disp_map")
+        self.setNodeParam("disp_map", disp)
 
     def getOverrideOperator(self):
-        op = self.transverser.getOperator(self.node, self.object[ABC_PATH])
+        op = self.transverser.getOperator(self.node, self.object[ABC_PATH], OVERRIDE_OP)
         if not op:
-            op = self.transverser.createOperator(self.node, self.object, "aiSetParameter")
+            op = self.transverser.createOperator(self.node, self.object, OVERRIDE_OP)
 
-    def setNodeParam(self, node, param):
+    def setNodeParam(self, param, node):
         op = self.getOverrideOperator()
         self.setOverride(param, "=", node)
 
@@ -96,13 +96,19 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         node_types = self.transverser.getNodeTypes(self.object[ABC_IOBJECT])
         self.paramDict = self.transverser.getParams(node_types)
 
+    def resetShadingWidgets(self):
+        for widget in self.shadingWidgets.values():
+            widget.disconnectNode()
+
     def getOverrides(self):
         clearWidget(self.overridesPanel)
+        self.resetShadingWidgets()
         for override in self.transverser.getOverrides(self.node, self.object[ABC_PATH]):
             # FIXME what if the user wants to connect a shader from inside the procedural?
             if override[PARM] in ["shader", "disp_map"]:
                 # set the shader slot
-                self.shadingWidgets[override[PARM]].setNode(value)
+                node = override[VALUE].replace("'", "").replace('"', "")
+                self.shadingWidgets[override[PARM]].setNode(node, False)
             else:
                 self.addOverrideGUI(*override)
 
@@ -110,7 +116,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         pass
 
     def addOverride(self):
-        op = getOverrideOperator()
+        op = self.getOverrideOperator()
         self.setOverride(None, "=", None)
         self.getOverrides()
 

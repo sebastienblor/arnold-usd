@@ -8,7 +8,8 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, BaseItem, BaseWindow
 from AbcTransverser import AlembicTransverser, ABC_PATH, \
                            ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
-                           ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT
+                           ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
+                           OVERRIDE_OP, DISABLE_OP
 from alembic import Abc, AbcGeom
 
 
@@ -169,7 +170,7 @@ class AbcItem(BaseItem):
 
     def getOverrides(self):
         overrides = []
-        op_node = self.transverser.getOperator(self.getNode(), self.data)
+        op_node = self.transverser.getOperator(self.getNode(), self.data, OVERRIDE_OP)
         return overrides
 
     def addOverride(self, param, value):

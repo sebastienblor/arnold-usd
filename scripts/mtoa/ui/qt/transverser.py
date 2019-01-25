@@ -47,10 +47,11 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.createOperator".format(str(self.__class__.__name__)))
 
-    def getOperator(self, node, path, operator_type):
+    def getOperator(self, node, path, operator_type=None):
         """
-        get the operator for the given node and path that matches
-        the given node type
+        get the operator for the given node and path
+        if operator_typoe is set match against this node type
+
         returns the operator node name or None
         """
 
