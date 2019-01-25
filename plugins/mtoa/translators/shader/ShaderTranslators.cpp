@@ -1095,7 +1095,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "incandescense"
       )
    {
-      return AddArnoldNode("MtoaUserDataColor");
+      return AddArnoldNode("user_data_rgb");
    }
 
    else if(
