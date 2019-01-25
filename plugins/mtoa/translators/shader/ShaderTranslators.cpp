@@ -3099,13 +3099,34 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
             AiNodeLink(inNode, "input", reverseNode);
             AiNodeLink(reverseNode, "opacity", shader);
          }
-      }
+      } 
       else
       {
-         opacity = AtRGB(1.0f - plug.child(0).asFloat(),
-                        1.0f - plug.child(1).asFloat(),
-                        1.0f - plug.child(2).asFloat());
-         AiNodeSetRGB(shader, "opacity", opacity.r, opacity.g, opacity.b);
+         // Need also to support component linking. 
+         // FIXME we have the same issue with all the other translations here where we just 
+         // ask for the connection on the whole attribute plug
+         bool comp_linking = false;
+         for (int i = 0; i < 3; ++i)
+         {
+            plug.child(i).connectedTo(connections, true, false);
+            comp_linking |= (connections.length() > 0);
+         }
+         if (comp_linking)
+         {
+            MString tag = "outTransparency";
+            reverseNode = GetArnoldNode(tag.asChar());
+            if (reverseNode == NULL)
+               reverseNode = AddArnoldNode("complement", tag.asChar());
+            AiNodeLink(reverseNode, "opacity", shader);
+            ProcessParameter(reverseNode, "input", AI_TYPE_RGB, "outTransparency" );
+         } else
+         {
+            opacity = AtRGB(1.0f - plug.child(0).asFloat(),
+                           1.0f - plug.child(1).asFloat(),
+                           1.0f - plug.child(2).asFloat());
+
+            AiNodeSetRGB(shader, "opacity", opacity.r, opacity.g, opacity.b);
+         }
       }
    }
 
