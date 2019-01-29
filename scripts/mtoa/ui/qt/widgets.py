@@ -19,7 +19,7 @@ from arnold import *
  IS_ARRAY,
  ENUM_VALUES) = range(6)
 
-OPERATIONS = ["=", "+=", "-=", "*="]
+OPERATIONS = ["=", "+=", "-=", "*=", "/=", "^=", "%="]
 
 TYPES = ["string", "int", "byte", "uint", "float", "bool", "node"]
 # TYPES = ["string", "int", "byte", "uint", "float", "bool", "node", "rgb", "rgba", "vector", "vector2", "matrix"]
@@ -115,12 +115,13 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
         self.vis_boxes = []
         # make a box per visibility option
         for name, ray in RAYS:
-            _visBox = MtoAVisibilityCheckBox(' '.join(name.split('_')[2:]).title())
-            _visBox.setChecked(True)
-            _visBox.VIS_RAY = ray
-            self.layout().addWidget(_visBox)
-            self.vis_boxes.append(_visBox)
-            _visBox.stateChanged.connect(self.emitValue)
+            if ray != AI_RAY_SUBSURFACE:
+                _visBox = MtoAVisibilityCheckBox(' '.join(name.split('_')[2:]).title())
+                _visBox.setChecked(True)
+                _visBox.VIS_RAY = ray
+                self.layout().addWidget(_visBox)
+                self.vis_boxes.append(_visBox)
+                _visBox.stateChanged.connect(self.emitValue)
 
         self.setValue(value)
 
@@ -202,7 +203,7 @@ class MtoAFltControl(QtWidgets.QDoubleSpinBox):
         super(MtoAFltControl, self).__init__(parent)
 
     def setValue(self, value):
-        super(MtoAIntControl, self).setValue(float(value))
+        super(MtoAFltControl, self).setValue(float(value))
 
 
 class MtoAStrControl(QtWidgets.QLineEdit):
@@ -344,6 +345,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     """docstring for MtoAMutiControlWidget"""
     valueChanged = QtCore.Signal((str,),
                                  (int,),
+                                 (bool,),
                                  (float,),)
 
     def __init__(self, parent=None):
@@ -365,7 +367,6 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             return self.control.getValue()
 
     def setValue(self, value):
-        print "MtoAOperatorOverrideWidget.setValue", value, self.control
         if self.control:
             self.control.setValue(value)
 
@@ -379,6 +380,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
     paramChanged = QtCore.Signal(str)
     valueChanged = QtCore.Signal((str, str, str, int,),
                                  (str, str, int, int,),
+                                 (str, str, bool, int,),
                                  (str, str, float, int,))
 
     def __init__(self, parent=None):

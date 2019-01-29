@@ -552,11 +552,12 @@ class BaseItem(object):
     and/or children. It's a tree data structure with parent and children.
     """
 
-    ACTION_EXPAND = 1
+    ACTION_EXPAND = 0
 
-    def __init__(self, parentItem, name):
+    def __init__(self, parentItem, name, model):
         """Called after the instance has been created."""
         self.name = name
+        self.model = model
         self.childItems = []
         self.setParent(parentItem)
 

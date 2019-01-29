@@ -110,17 +110,21 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.properties(node, path)
 
-    def createOperator(self, node, iobject, operator_type):
+    def deleteOperator(self, node, path, operator_type):
 
-        return self.impl.createOperator(node, iobject, operator_type)
+        return self.impl.deleteOperator(node, path, operator_type)
+
+    def createOperator(self, node, item, operator_type):
+
+        return self.impl.createOperator(node, item, operator_type)
 
     def getOperator(self, node, path, operator_type=None):
 
         return self.impl.getOperator(node, path, operator_type)
 
-    def getOverrides(self, node, path):
+    def getOverrides(self, node, path, override_type=None):
 
-        return self.impl.getOverrides(node, path)
+        return self.impl.getOverrides(node, path, override_type)
 
     def setOverride(self, node, path, param, operation, value, param_type, is_array=False, index=-1):
 
@@ -263,27 +267,68 @@ class AlembicTransverserImpl(object):
 
         pass
 
-    def createOperator(self, node, iobject, operator_type):
+    def getOperatorIndices(self, node):
+        return cmds.getAttr('{}.operators'.format(node), multiIndices=True) or []
+
+    def getConnectedOperator(self, node, index):
+        return cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+
+    def getOperatorIndex(self, node, operator):
+
+        index = -1
+
+        for idx in self.getOperatorIndices(node):
+            src = self.getConnectedOperator(node, idx)
+            if src and src.split('.')[0] == operator:
+                index = idx
+
+        return index
+
+    def createOperator(self, node, item, operator_type):
         num_ops = mu.getAttrNumElements(node, 'operators')
+        # get the index that this operator should come in the list
+        data = item.data
+        # get parent index
+        index = 0
+        parent_index = self.getOperatorIndex(node, item.getOverridesOp())
+        if parent_index > -1:
+            index = parent_index + 1
+
         op_name = '{}_setParam{}'.format(node, num_ops)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
         if op:
             # if this operator has a selection attribute set it to the
             # given object path
             if cmds.attributeQuery('selection', node=op, exists=True):
-                path = iobject[ABC_PATH]
-                if iobject[ABC_ENTIY_TYPE] == "xform":
+                path = data[ABC_PATH]
+                if data[ABC_ENTIY_TYPE] == "xform":
                     path += "/*"
-                elif iobject[ABC_ENTIY_TYPE] == None:
+                elif data[ABC_ENTIY_TYPE] == None:
                     path += "*"
                 cmds.setAttr(op + ".selection",
                              path,
                              type="string")
 
-            newItem = '{}.operators[{}]'.format(node, num_ops)
-            cmds.connectAttr(op + ".out", newItem)
+            self.insertOperator(node, op, index)
             return op
         return None
+
+    def insertOperator(self, node, op, index):
+
+        # check if index has connection, if not do a straight connection at given index
+        dest = '{}.operators[{}]'.format(node, index)
+        src = '{}.out'.format(op)
+        if not cmds.connectionInfo(dest, isDestination=True):
+            cmds.connectAttr(src, dest)
+        else:
+            # move other conenctions along
+            for idx in reversed(self.getOperatorIndices(node)):
+                if idx >= index:
+                    idx_src = self.getConnectedOperator(node, idx)
+                    cmds.disconnectAttr(idx_src, '{}.operators[{}]'.format(node, idx))
+                    cmds.connectAttr(idx_src, '{}.operators[{}]'.format(node, idx+1))
+            # connect at the index given
+            cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
     def getOperator(self, node, path, operator_type=None):
 
@@ -322,10 +367,13 @@ class AlembicTransverserImpl(object):
 
         return operator
 
-    def deleteOperator(self, op):
-        cmds.delete(op)
+    def deleteOperator(self, node, path, operator_type):
 
-    def getOverrides(self, node, path):
+        op = self.getOperator(node, path, OVERRIDE_OP)
+        if op:
+            cmds.delete(op)
+
+    def getOverrides(self, node, path, override_type=None):
 
         op = self.getOperator(node, path, OVERRIDE_OP)
 
@@ -335,7 +383,9 @@ class AlembicTransverserImpl(object):
                 ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
                 mat = EXP_REGEX.match(ass_str)
                 data = list(mat.groups())
-                data.append(c)
+                if override_type is None or \
+                   (override_type and data[0] == override_type):
+                    data.append(c)
                 overrides.append(data)  # split to param, op, value
 
         return overrides
@@ -365,17 +415,22 @@ class AlembicTransverserImpl(object):
                      type="string")
         return True
 
+    def _getOverrideIndices(self, op):
+        if cmds.nodeType(op) == OVERRIDE_OP:
+            return cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
+        else:
+            raise NodeTypeError("Given operator is not of type {}".format(OVERRIDE_OP))
+
     def _indexInAssignment(self, index, op):
-        indices = cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
+        indices = self._getOverrideIndices(op)
         if index in indices:
             return True
         return False
 
     def deleteOverride(self, node, path, index):
         op = self.getOperator(node, path, OVERRIDE_OP)
-        print "AlembicTransverserImpl.deleteOverride", node, path, index
         if index != -1 and op:
-            indices = cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []
+            indices = self._getOverrideIndices(op)
             if self._indexInAssignment(index, op):
                 cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
             else:

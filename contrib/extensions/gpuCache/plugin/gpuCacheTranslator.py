@@ -149,11 +149,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def abcInfoReplace(self, nodeAttr):
         self.tree.setCurrentNode(self.nodeName)
+        # self.proprties_panel.setItem(self.nodeName, None)
 
     @QtCore.Slot(str, object)
-    def showItemProperties(self, node, objects):
-        for obj in objects:
-            self.proprties_panel.setObject(node, obj)
+    def showItemProperties(self, node, items):
+        for item in items:
+            self.proprties_panel.setItem(node, item)
 
     def updateAlembicFile(self):
         # clear the cache

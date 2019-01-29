@@ -21,6 +21,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         super(AbcPropertiesPanel, self).__init__(parent)
 
         self.node = None
+        self.item = None
         self.object = None
         self.paramDict = {}
         self.transverser = transverser
@@ -35,7 +36,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         self.toolBar.setLayout(QtWidgets.QHBoxLayout())
         self.layout.addWidget(self.toolBar)
 
-        self.addOverideButton = QtWidgets.QPushButton("Add Override")
+        self.addOverideButton = QtWidgets.QPushButton("Add Parameter")
         self.addOverideButton.setIcon(self.GEAR_ICON)
         self.toolBar.layout().addWidget(self.addOverideButton)
         self.toolBar.layout().insertStretch(-1)
@@ -66,15 +67,17 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
         self.layout.addWidget(self.overridesPanel)
 
-    def setObject(self, node, obj):
+    def setItem(self, node, item):
         self.node = node
-        self.object = obj
-        self.object_label.setText(obj[ABC_PATH])
-        self.getParams()
-        self.getOverrides()
+        self.item = item
+        if item:
+            self.object = item.data
+            self.object_label.setText(item.data[ABC_PATH])
+            self.getParams()
+
+        self.refresh()
 
     def setShader(self, shader):
-        print "AbcPropertiesPanel.setShader", shader
         self.setNodeParam("shader", shader)
 
     def disconnectShader(self):
@@ -83,10 +86,15 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
     def setDisplacement(self, disp):
         self.setNodeParam("disp_map", disp)
 
-    def getOverrideOperator(self):
+    def getOverrideOperator(self, create=True):
         op = self.transverser.getOperator(self.node, self.object[ABC_PATH], OVERRIDE_OP)
-        if not op:
-            op = self.transverser.createOperator(self.node, self.object, OVERRIDE_OP)
+        if not op and create:
+            op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
+            self.item.overrides_op = op
+        return op
+
+    def getInheritedOverrideOperator(self):
+        return self.item.getOverridesOp()
 
     def setNodeParam(self, param, node):
         op = self.getOverrideOperator()
@@ -100,28 +108,31 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         for widget in self.shadingWidgets.values():
             widget.disconnectNode()
 
-    def getOverrides(self):
+    def refresh(self):
         clearWidget(self.overridesPanel)
         self.resetShadingWidgets()
-        for override in self.transverser.getOverrides(self.node, self.object[ABC_PATH]):
-            # FIXME what if the user wants to connect a shader from inside the procedural?
-            if override[PARM] in ["shader", "disp_map"]:
-                # set the shader slot
-                node = override[VALUE].replace("'", "").replace('"', "")
-                self.shadingWidgets[override[PARM]].setNode(node, False)
-            else:
-                self.addOverrideGUI(*override)
+        if self.item:
+            for override in self.transverser.getOverrides(self.node, self.object[ABC_PATH]):
+                # FIXME what if the user wants to connect a shader from inside the procedural?
+                if override[PARM] in ["shader", "disp_map"]:
+                    # set the shader slot
+                    node = override[VALUE].replace("'", "").replace('"', "")
+                    self.shadingWidgets[override[PARM]].setNode(node, False)
+                else:
+                    self.addOverrideGUI(*override)
 
     def getProperties(self, obj):
         pass
 
+    def getOverrides(self):
+        return self.transverser.getOverrides(self.node, self.object[ABC_PATH])
+
     def addOverride(self):
         op = self.getOverrideOperator()
         self.setOverride(None, "=", None)
-        self.getOverrides()
+        self.refresh()
 
     def addOverrideGUI(self, param, op, value, index=-1):
-        print "AbcPropertiesPanel.addOverrideGUI", param, op, value, index
         new_widget = MtoAOperatorOverrideWidget(self.overridesPanel)
         new_widget.index = index
         new_widget.deleteMe.connect(self.removeOverride)
@@ -134,6 +145,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
 
         new_widget.valueChanged[str, str, str, int].connect(self.setOverride)
         new_widget.valueChanged[str, str, int, int].connect(self.setOverride)
+        new_widget.valueChanged[str, str, bool, int].connect(self.setOverride)
         new_widget.valueChanged[str, str, float, int].connect(self.setOverride)
         # add widget
         self.overridesPanel.layout().addWidget(new_widget)
@@ -143,17 +155,18 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         index = widget.index
         removed = self.transverser.deleteOverride(self.node, self.object[ABC_PATH], index)
         if removed:
-            self.getOverrides()
+            if len(self.getOverrides()) == 0:
+                self.transverser.deleteOperator(self.node, self.object[ABC_PATH], OVERRIDE_OP)
+            self.refresh()
 
     @QtCore.Slot(str, str, str, int)
     @QtCore.Slot(str, str, int, int)
+    @QtCore.Slot(str, str, bool, int)
     @QtCore.Slot(str, str, float, int)
     def setOverride(self, param, op, value, index=-1):
-        print "AbcPropertiesPanel.setOverride", param, op, value, index
-
         if not param and not value:
-            param = "NEWOVERRIDE"
-            value = "NEWVALUE"
+            param = "new"
+            value = "''"
         param_type = None
         is_array = False
 

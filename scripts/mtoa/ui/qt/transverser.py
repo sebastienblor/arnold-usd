@@ -36,6 +36,15 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.properties".format(str(self.__class__.__name__)))
 
+    def deleteOperator(self, node, path, operator_type):
+        """
+        delete the operator returned by querying the target node, path
+        and operator type
+        """
+
+        raise NotImplementedError(
+            "{}.deleteOperator".format(str(self.__class__.__name__)))
+
     def createOperator(self, node, path, operator_type):
         """
         create a new operator and attach it to the give node with the selection
