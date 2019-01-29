@@ -229,6 +229,7 @@ previousFiles = [
 'scripts/mtoa/2017',
 'scripts/mtoa/2018',
 'scripts/mtoa/2019',
+'scripts/mtoa/2020',
 'scripts/mtoa/api',
 'scripts/mtoa/aov.py',
 'scripts/mtoa/core.py',
@@ -354,15 +355,14 @@ if installMode == 1: # do the proper installation
     else:
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
 
-    if sys.argv[1] != '2018' and sys.argv[1] != '2019':
+    if sys.argv[1] == '2017':
         shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
     
-    if sys.argv[1] == '2017' or sys.argv[1] == '2018' or sys.argv[1] == '2019':
-        homeDir = os.path.expanduser(userString)
-        templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
-        if EnsureDir(templatesDir):
-            shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
-            shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
+    homeDir = os.path.expanduser(userString)
+    templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
+    if EnsureDir(templatesDir):
+        shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
+        shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
 
 
 
