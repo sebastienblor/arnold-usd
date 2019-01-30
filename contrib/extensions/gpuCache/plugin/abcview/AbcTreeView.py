@@ -156,6 +156,10 @@ class AbcItem(BaseItem):
     MESH_ICON = QtGui.QPixmap(":/out_mesh.png")
     CURVES_ICON = QtGui.QPixmap(":/out_curves.png")
 
+    COLOR_OBJECT = QtGui.QColor(113, 142, 164)
+    COLOR_OPERATOR = QtGui.QColor(18, 54, 82)
+    COLOR_UNDIFINE = QtGui.QColor(0, 0, 0)
+
     (ACTION_EXPAND,  # Always first
      ACTION_NONE,
      ACTION_OPERATOR,
@@ -163,7 +167,13 @@ class AbcItem(BaseItem):
      ACTION_DISPACEMENT,
      ACTION_DISABLE) = range(6)
 
-    def __init__(self, parentItem, transverser, node=None, model=None, data=None):
+    (UNKNWON_TYPE,
+     OBJECT_TYPE,
+     OPERATOR_TYPE,
+     ASSIGNMENT_TYPE) = range(4)
+
+    def __init__(self, parentItem, transverser,
+                 node=None, model=None, data=None, operator=None, index=-1):
 
         self.ATTRIBUTE_ICON = ":/out_list.png"
         self.SHADER_ICON = ":/out_blinn.png"
@@ -179,6 +189,7 @@ class AbcItem(BaseItem):
         self.iarch = None
 
         self.data = data
+        self.operator = operator
 
         self.overrides_op = None
         self.disable_op = None
@@ -188,11 +199,21 @@ class AbcItem(BaseItem):
             name = data[ABC_NAME]
             if data[ABC_PATH] == '/':
                 name = '/'
+            self.itemType = self.OBJECT_TYPE
+
+        elif self.operator:
+            name = self.operator
+            self.itemType = self.OPERATOR_TYPE
+            if cmds.nodeType(self.operator) == OVERRIDE_OP:
+                self.overrides_op = self.operator
+        else:
+            name = "unknown"
+            self.itemType = self.UNKNWON_TYPE
 
         if not parentItem:
             self.origin = True
 
-        super(AbcItem, self).__init__(parentItem, name, model)
+        super(AbcItem, self).__init__(parentItem, name, model, index)
 
     def getNode(self):
         """Recursively search the the origin parent TreeItem in parents."""
@@ -220,6 +241,29 @@ class AbcItem(BaseItem):
         if self.childItems:
             return self.GROUP_ICON
         return self.MESH_ICON
+
+    def getBackgroundColor(self):
+        """
+        The background color of current node. It can be different depending on
+        the item type.
+        """
+        if self.itemType == self.OBJECT_TYPE:
+            return QtGui.QColor(71, 71, 71)
+        elif self.itemType == self.OPERATOR_TYPE:
+            return QtGui.QColor(71, 80, 71)
+        else:
+            return QtGui.QColor(71, 71, 71)
+
+    def getLabelColor(self):
+        """
+        Return the color of the  of the current item. It can be different
+        depending on the item type.
+        """
+        if self.itemType == self.OBJECT_TYPE:
+            return self.COLOR_OBJECT
+        elif self.itemType == self.OPERATOR_TYPE:
+            return self.COLOR_OPERATOR
+        return self.COLOR_UNDEFINED
 
     def getActions(self):
         actions = []
@@ -286,7 +330,7 @@ class AbcItem(BaseItem):
             return []
         else:
             overrides = []
-            currentOverrides = self.getOverrides(override_type)
+            currentOverrides = self.getOverrides(False, override_type)
             if currentOverrides:
                 overrides += currentOverrides
 
@@ -300,10 +344,18 @@ class AbcItem(BaseItem):
         if self.childrenObtained:
             return
         self.iarch = self.transverser.getArchive(self.getNode())
-        if not self.data:
+        # root node
+        print "AbcItem.obtainChildren", self.data, self.itemType
+        if not self.data and not self.parent():
             item = AbcItem(self, self.transverser, self.node, data=self.transverser.getObjectInfo(self.iarch.getTop()))
             item.obtainChildren()
-        else:
+        elif self.itemType == self.OBJECT_TYPE:
+            # get operators with this path
+            operators = self.transverser.getOperators(self.node, self.data[ABC_PATH])
+            if operators:
+                print operators
+                for op in operators:
+                    AbcItem(self, self.transverser, self.node, operator=op)
             children = self.transverser.dir(self.data[ABC_IOBJECT])
             if children:
                 for child in children:
@@ -313,6 +365,11 @@ class AbcItem(BaseItem):
 
     def addOverrideOp(self, operator):
         self.overrides_op = operator
+        op_item = AbcItem(self, self.transverser, self.node, operator=operator, index=0)
+        # model = self.getModel()
+        # if model:
+        #     index = model.indexFromItem(self)
+        #     model.executeAction(AbcItem.ACTION_EXPAND, index)
         # model = self.getModel()
         # index = model.indexFromItem(self)
         # model.setData(index, operator, OVERRIDE)

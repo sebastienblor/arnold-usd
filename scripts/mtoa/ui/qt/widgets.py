@@ -73,7 +73,6 @@ def getVisibilityValue(ai_ray_camera=True,
         vis &= ~AI_RAY_SPECULAR_REFLECT
     if not ai_ray_subsurface:
         vis &= ~AI_RAY_SUBSURFACE
-
     return vis
 
 

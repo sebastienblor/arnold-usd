@@ -106,9 +106,9 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.dir(*args)
 
-    def properties(self, node, path):
+    # def properties(self, node, path):
 
-        return self.impl.properties(node, path)
+    #     return self.impl.properties(node, path)
 
     def deleteOperator(self, node, path, operator_type):
 
@@ -118,9 +118,9 @@ class AlembicTransverser(BaseTransverser):
 
         return self.impl.createOperator(node, item, operator_type)
 
-    def getOperator(self, node, path, operator_type=None):
+    def getOperators(self, node, path, operator_type=None):
 
-        return self.impl.getOperator(node, path, operator_type)
+        return self.impl.getOperators(node, path, operator_type)
 
     def getOverrides(self, node, path, override_type=None):
 
@@ -200,7 +200,11 @@ class AlembicTransverserImpl(object):
         return value
 
     def getParams(self, node_types):
-
+        """
+        Get all the parameters that can be overidden for the given node types
+        """
+        # FIXME cache this so we don't call it everytime the widget is created
+        # FIXME blacklist parameters that we don't want to expose
         paramDict = {}
 
         AiUniverseCreated = ArnoldUniverseOnlyBegin()
@@ -290,9 +294,10 @@ class AlembicTransverserImpl(object):
         data = item.data
         # get parent index
         index = 0
-        parent_index = self.getOperatorIndex(node, item.getOverridesOp())
+        parent_index = self.getOperatorIndex(node, item.getOverridesOp(True))
         if parent_index > -1:
             index = parent_index + 1
+        print "AlembicTransverserImpl.createOperator", node, parent_index, index
 
         op_name = '{}_setParam{}'.format(node, num_ops)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
@@ -310,6 +315,7 @@ class AlembicTransverserImpl(object):
                              type="string")
 
             self.insertOperator(node, op, index)
+            item.addOverrideOp(op)
             return op
         return None
 
@@ -321,7 +327,7 @@ class AlembicTransverserImpl(object):
         if not cmds.connectionInfo(dest, isDestination=True):
             cmds.connectAttr(src, dest)
         else:
-            # move other conenctions along
+            # move other connections along starting at the end
             for idx in reversed(self.getOperatorIndices(node)):
                 if idx >= index:
                     idx_src = self.getConnectedOperator(node, idx)
@@ -330,12 +336,16 @@ class AlembicTransverserImpl(object):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
-    def getOperator(self, node, path, operator_type=None):
+    def getOperators(self, node, path, operator_type=None):
 
         def walkInputs(op, path, plug):
+            """
+            walk the inputs of the given plug and
+            return list of operators matching the path
+            """
 
             selection_exp = '{}*'.format(path)
-
+            ops = []
             r_ipt = r_plug = None
             if cmds.attributeQuery('selection', node=op, exists=True) and \
                (operator_type is None or cmds.nodeType(op) == operator_type):
@@ -346,56 +356,59 @@ class AlembicTransverserImpl(object):
                     mat = SELECTION_REGEX.match(tok)
                     if mat and mat.group(1) == path or \
                        (path == "/" and tok == "/*"):
-                        return op, plug
+                        ops.append(op)
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
                 inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
-                    r_ipt, r_plug = walkInputs(ipt, path, plug)
+                    ops += walkInputs(ipt, path, plug)
 
-            return r_ipt, r_plug
+            return ops
 
-        operator = None
-        operators = cmds.listConnections('{}.operators'.format(node)) or []
-        for idx, op in enumerate(operators):
-            out_op, plug = walkInputs(op, path, '{}.operators[{}]'.format(node, idx))
+        # Start the query
+        operators = []
+        con_operators = cmds.listConnections('{}.operators'.format(node)) or []
+        for idx, op in enumerate(con_operators):
+            out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx))
             if out_op:
-                operator = out_op
-                break
+                operators += out_op
 
-        return operator
+        return operators
 
     def deleteOperator(self, node, path, operator_type):
 
-        op = self.getOperator(node, path, OVERRIDE_OP)
-        if op:
-            cmds.delete(op)
+        op = self.getOperators(node, path, OVERRIDE_OP)
+        if len(op) == 1:
+            # for now only delete if there is only one op that has this path
+            cmds.delete(op[0])
 
     def getOverrides(self, node, path, override_type=None):
 
-        op = self.getOperator(node, path, OVERRIDE_OP)
+        ops = self.getOperators(node, path, OVERRIDE_OP)
 
         overrides = []
-        if op:
-            for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
-                ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
-                mat = EXP_REGEX.match(ass_str)
-                data = list(mat.groups())
-                if override_type is None or \
-                   (override_type and data[0] == override_type):
-                    data.append(c)
-                overrides.append(data)  # split to param, op, value
+        if len(ops):
+            for op in ops:
+                for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+                    ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                    mat = EXP_REGEX.match(ass_str)
+                    data = list(mat.groups())
+                    if override_type is None or \
+                       (override_type and data[0] == override_type):
+                        data.append(c)
+                    overrides.append(data)  # split to param, op, value
 
         return overrides
 
     def setOverride(self, node, path, param, operation, value, param_type, array=False, index=-1):
 
-        op = self.getOperator(node, path, OVERRIDE_OP)
-        if not op:
+        ops = self.getOperators(node, path, OVERRIDE_OP)
+        if not len(ops):
             return False
-
+        # for now only add the assignment to the first matching op
+        op = ops[0]
         if index == -1:
             n_conn = mu.getAttrNumElements(op, "assignment")
             index = n_conn
@@ -428,9 +441,9 @@ class AlembicTransverserImpl(object):
         return False
 
     def deleteOverride(self, node, path, index):
-        op = self.getOperator(node, path, OVERRIDE_OP)
-        if index != -1 and op:
-            indices = self._getOverrideIndices(op)
+        ops = self.getOperators(node, path, OVERRIDE_OP)
+        if index != -1 and len(ops):
+            op = ops[0]
             if self._indexInAssignment(index, op):
                 cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
             else:
