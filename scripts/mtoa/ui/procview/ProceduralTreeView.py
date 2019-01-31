@@ -7,9 +7,9 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale
-from mtoa.ui.abcview.AbcTransverser import AlembicTransverser, ABC_PATH, \
-                           ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
-                           ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
+from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
+                           PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
+                           PROC_INSTANCEPATH, PROC_ENTITY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
 
 SHADER = "shader"
@@ -17,21 +17,21 @@ DISPLACEMENT = "disp_map"
 PARAMETER = "other"
 
 
-class AbcTreeView(BaseTreeView):
-    """docstring for AbcTree"""
+class ProceduralTreeView(BaseTreeView):
+    """docstring for ProceduralTree"""
 
     itemSelected = QtCore.Signal(str, object)
 
     def __init__(self, transverser, parent=None):
-        super(AbcTreeView, self).__init__(parent)
+        super(ProceduralTreeView, self).__init__(parent)
         self.transverser = transverser
         self.currentItems = []
 
-        model = AbcTreeModel(self, self.transverser)
+        model = ProceduralTreeModel(self, self.transverser)
         self.setModel(model)
 
         # Custom style
-        delegate = AbcTreeViewDelegate(self)
+        delegate = ProceduralTreeViewDelegate(self)
         self.setItemDelegate(delegate)
 
         self.expanded.connect(self.onExpanded)
@@ -61,7 +61,7 @@ class AbcTreeView(BaseTreeView):
         selected.
         """
         # This will redraw selected items in the tree view.
-        super(AbcTreeView, self).selectionChanged(selected, deselected)
+        super(ProceduralTreeView, self).selectionChanged(selected, deselected)
         indices = self.selectedIndexes()
         if indices:
             objects = []
@@ -78,7 +78,7 @@ class AbcTreeView(BaseTreeView):
             self.itemSelected.emit(self.model().currentNode, objects)
 
 
-class AbcTreeModel(BaseModel):
+class ProceduralTreeModel(BaseModel):
     """docstring for TestModel"""
 
     def __init__(self, treeView, transverser, parent=None):
@@ -86,10 +86,10 @@ class AbcTreeModel(BaseModel):
         self.transverser = transverser
         self.currentNode = None
         self.iarch = None
-        self.abc_items = []
+        self.proc_items = []
 
         # call the base class init and refresh the data
-        super(AbcTreeModel, self).__init__(treeView, parent)
+        super(ProceduralTreeModel, self).__init__(treeView, parent)
 
     def refresh(self):
         if not self.currentNode or not cmds.objExists(self.currentNode):
@@ -97,7 +97,7 @@ class AbcTreeModel(BaseModel):
 
         self.beginResetModel()
 
-        self.rootItem = AbcItem(None, self.transverser, self.currentNode, self)
+        self.rootItem = ProceduralItem(None, self.transverser, self.currentNode, self)
         self.rootItem.obtainChildren()
 
         self.endResetModel()
@@ -135,20 +135,19 @@ class AbcTreeModel(BaseModel):
         """User pressed by one of the actions."""
         item = index.internalPointer()
 
-        if action == AbcItem.ACTION_SHADER:
+        if action == ProceduralItem.ACTION_SHADER:
             self.transverser.action(item.getOverride(SHADER))
-        elif action == AbcItem.ACTION_EXPAND:
+        elif action == ProceduralItem.ACTION_EXPAND:
             self.treeView().setExpanded(
                 index, not self.treeView().isExpanded(index))
 
 
-class AbcTreeViewDelegate(BaseDelegate):
+class ProceduralTreeViewDelegate(BaseDelegate):
 
     def __init__(self, treeView):
-        super(AbcTreeViewDelegate, self).__init__(treeView)
+        super(ProceduralTreeViewDelegate, self).__init__(treeView)
 
-
-class AbcItem(BaseItem):
+class ProceduralItem(BaseItem):
 
     ALEMBIC_ICON = QtGui.QPixmap(":/out_objectSet.png")
     GROUP_ICON = QtGui.QPixmap(":/out_transform.png")
@@ -195,8 +194,8 @@ class AbcItem(BaseItem):
 
         name = ""
         if self.data:
-            name = data[ABC_NAME]
-            if data[ABC_PATH] == '/':
+            name = data[PROC_NAME]
+            if data[PROC_PATH] == '/':
                 name = '/'
             self.itemType = self.OBJECT_TYPE
 
@@ -212,7 +211,7 @@ class AbcItem(BaseItem):
         if not parentItem:
             self.origin = True
 
-        super(AbcItem, self).__init__(parentItem, name, model, index)
+        super(ProceduralItem, self).__init__(parentItem, name, model, index)
 
     def getNode(self):
         """Recursively search the the origin parent TreeItem in parents."""
@@ -325,7 +324,7 @@ class AbcItem(BaseItem):
     def getOverrides(self, tranverse=False, override_type=None):
         if not tranverse:
             if self.data:
-                return self.transverser.getOverrides(self.node, self.data[ABC_PATH], override_type)
+                return self.transverser.getOverrides(self.node, self.data[PROC_PATH], override_type)
             return []
         else:
             overrides = []
@@ -342,27 +341,28 @@ class AbcItem(BaseItem):
     def obtainChildren(self):
         if self.childrenObtained:
             return
-        self.iarch = self.transverser.getArchive(self.getNode())
+
+        # FIXME need to extract this
         # root node
-        print "AbcItem.obtainChildren", self.data, self.itemType
+        print "ProceduralItem.obtainChildren", self.data, self.itemType
         if not self.data and not self.parent():
-            item = AbcItem(self, self.transverser, self.node, data=self.transverser.getObjectInfo(self.iarch.getTop()))
+            item = ProceduralItem(self, self.transverser, self.node, data=self.transverser.getRootObjectInfo(self.node))
             item.obtainChildren()
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
 
             # For now we don't show the operators in the hierarchy, we need to make it an option
             if self.transverser.showOperatorItems():
-                operators = self.transverser.getOperators(self.node, self.data[ABC_PATH])
+                operators = self.transverser.getOperators(self.node, self.data[PROC_PATH])
                 if operators:
                     print operators
                     for op in operators:
-                        AbcItem(self, self.transverser, self.node, operator=op)
+                        ProceduralItem(self, self.transverser, self.node, operator=op)
             
-            children = self.transverser.dir(self.data[ABC_IOBJECT])
+            children = self.transverser.dir(self.data[PROC_IOBJECT])
             if children:
                 for child in children:
-                    AbcItem(self, self.transverser, self.node, data=child)
+                    ProceduralItem(self, self.transverser, self.node, data=child)
 
         self.childrenObtained = True
 
@@ -370,12 +370,12 @@ class AbcItem(BaseItem):
         self.overrides_op = operator
         # FIXME for now we're not showing the operator in the hierarchy, we need to make it an option
         if self.transverser.showOperatorItems():
-            op_item = AbcItem(self, self.transverser, self.node, operator=operator, index=0)
+            op_item = ProceduralItem(self, self.transverser, self.node, operator=operator, index=0)
 
         # model = self.getModel()
         # if model:
         #     index = model.indexFromItem(self)
-        #     model.executeAction(AbcItem.ACTION_EXPAND, index)
+        #     model.executeAction(ProceduralItem.ACTION_EXPAND, index)
         # model = self.getModel()
         # index = model.indexFromItem(self)
         # model.setData(index, operator, OVERRIDE)

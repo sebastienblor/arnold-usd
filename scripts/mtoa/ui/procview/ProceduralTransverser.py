@@ -6,17 +6,16 @@ from mtoa.ui.qt import BaseTransverser
 from alembic import Abc, AbcGeom
 from arnold import *
 
-(ABC_PATH,
- ABC_NAME,
- ABC_PARENT,
- ABC_VISIBILITY,
- ABC_INSTANCEPATH,
- ABC_ENTIY_TYPE,
- ABC_IOBJECT) = range(7)
+(PROC_PATH,
+ PROC_NAME,
+ PROC_PARENT,
+ PROC_VISIBILITY,
+ PROC_INSTANCEPATH,
+ PROC_ENTITY_TYPE,
+ PROC_IOBJECT) = range(7)
 
 (PARM, OP, VALUE, INDEX) = range(4)
 
-VISIBILITY = ['differed', 'hidden', 'visible']
 
 SELECTION_REGEX = re.compile(r"(/[/\w]*\w+)/*\**")
 
@@ -46,165 +45,8 @@ def ArnoldUniverseEnd():
         AiEnd()
 
 
-# This part belongs in the ABC code
-def abcToArnType(iObj):
-    if not iObj:
-        return
-
-    md = iObj.getMetaData()
-    if AbcGeom.IPolyMesh.matches(md) or AbcGeom.ISubD.matches(md):
-        return 'polymesh'
-    elif AbcGeom.IPoints.matches(md):
-        return 'points'
-    elif AbcGeom.ICurves.matches(md):
-        return 'curves'
-    elif AbcGeom.IXform.matches(md):
-        return 'xform'
-    else:
-        return None
-
-
-class AlembicTransverser(BaseTransverser):
-    """ Alembic Transverser class """
-
-    __instance = None
-
-    def __new__(cls, *args, **kwargs):
-
-        if not cls.__instance:
-            instance = super(AlembicTransverser, cls).__new__(cls, *args, **kwargs)
-
-            instance.impl = AlembicTransverserImpl()
-
-            cls.__instance = instance
-
-        return cls.__instance
-
-    def __init__(self):
-        super(AlembicTransverser, self).__init__(self)
-
-    def getArchive(self, abc_file):
-
-        return self.impl.getArchive(abc_file)
-
-    def visitObject(self, iObj, parent="", visibility="visible"):
-
-        return self.impl.visitObject(iObj)
-
-    def getObjectInfo(self, iObj):
-
-        return self.impl.getObjectInfo(iObj)
-
-    def getParams(self, node_types):
-
-        return self.impl.getParams(node_types)
-
-    def getNodeTypes(self, iObj):
-
-        return self.impl.getNodeTypes(iObj)
-
-    def dir(self, *args):
-
-        return self.impl.dir(*args)
-
-    # def properties(self, node, path):
-
-    #     return self.impl.properties(node, path)
-
-    def deleteOperator(self, node, path, operator_type):
-
-        return self.impl.deleteOperator(node, path, operator_type)
-
-    def createOperator(self, node, item, operator_type):
-
-        return self.impl.createOperator(node, item, operator_type)
-
-    def getOperators(self, node, path, operator_type=None):
-
-        return self.impl.getOperators(node, path, operator_type)
-
-    def getOverrides(self, node, path, override_type=None):
-
-        return self.impl.getOverrides(node, path, override_type)
-
-    def setOverride(self, node, path, param, operation, value, param_type, is_array=False, index=-1):
-
-        return self.impl.setOverride(node, path, param, operation, value, param_type, is_array, index)
-
-    def deleteOverride(self, node, path, index):
-
-        return self.impl.deleteOverride(node, path, index)
-    def showOperatorItems(self):
-        return self.impl.showOperatorItems()
-
-
-class AlembicTransverserImpl(object):
-
-    # We must extract the alembic-specific part from the common one that will be used for all procedural
-    # So far it looks like getArcivePath, getArchive, visitObject, getObjectInfo, are alembic-specific,
-    # while the rest is more generic
-
-    def getArchivePath(self, node):
-
-        return os.path.abspath(cmds.getAttr("{}.cacheFileName".format(node)))
-
-    def getArchive(self, node):
-
-        abc_file = self.getArchivePath(node)
-        iarch = Abc.IArchive(str(abc_file))
-        return iarch
-
-    def visitObject(self, iObj, parent="", visibility="visible"):
-
-        abc_items = []
-        obj_data = self.getObjectInfo(iObj)
-
-        abc_items.append(obj_data)
-
-        for child in iObj.children:
-            abc_items += self.visitObject(child, obj_data[ABC_PATH], obj_data[ABC_VISIBILITY])
-
-        return abc_items
-
-    def getObjectInfo(self, iobject):
-        path = iobject.getFullName()
-        name = iobject.getName()
-        parent = iobject.getParent().getFullName()
-        instancedPath = iobject.instanceSourcePath()
-
-        entity_type = abcToArnType(iobject)
-
-        visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
-
-        return [path, name, parent, visibility, instancedPath, entity_type, iobject]
-
-    def _getDefaultValue(self, param, param_type):
-
-        AiUniverseCreated = ArnoldUniverseOnlyBegin()
-        AiMsgSetConsoleFlags(AI_LOG_NONE)
-
-        value = None
-        param_default = AiParamGetDefault(param)
-        if param_type is AI_TYPE_INT:
-            value = param_default.contents.INT
-        elif param_type is AI_TYPE_UINT:
-            value = param_default.contents.UINT
-        elif param_type is AI_TYPE_BYTE:
-            value = param_default.contents.BYTE
-        elif param_type is AI_TYPE_FLOAT:
-            value = param_default.contents.FLT
-        elif param_type is AI_TYPE_BOOLEAN:
-            value = param_default.contents.BOOL
-        elif param_type is AI_TYPE_STRING:
-            value = str(param_default.contents.STR)
-        elif param_type is AI_TYPE_ENUM:
-            idx = param_default.contents.INT
-            value = AiEnumGetString(AiParamGetEnum(param), idx)
-
-        if AiUniverseCreated:
-            ArnoldUniverseEnd()
-
-        return value
+class ProceduralTransverser(BaseTransverser):
+    """ Procedural Transverser class """
 
     def getParams(self, node_types):
         """
@@ -261,21 +103,19 @@ class AlembicTransverserImpl(object):
         children = self.visitObject(iObj)
 
         for child in children:
-            if child[ABC_ENTIY_TYPE] not in node_types:
-                node_types.append(child[ABC_ENTIY_TYPE])
+            if child[PROC_ENTITY_TYPE] not in node_types:
+                node_types.append(child[PROC_ENTITY_TYPE])
 
         return node_types
 
-    def dir(self, iobject):
-
-        children = []
-        for ich in iobject.children:
-            children.append(self.getObjectInfo(ich))
-
-        return children
+    # "dir" must be implemented by the procedural-specific class
+    #def dir(self, iobject):
+    def visitObject(self, iObj, parent="", visibility="visible"):
+        raise NotImplementedError(
+            "{}.visitObject".format(str(self.__class__.__name__)))
+        pass
 
     def properties(self, node, path):
-
         pass
 
     def getOperatorIndices(self, node):
@@ -304,7 +144,7 @@ class AlembicTransverserImpl(object):
         parent_index = self.getOperatorIndex(node, item.getOverridesOp(True))
         if parent_index > -1:
             index = parent_index + 1
-        print "AlembicTransverserImpl.createOperator", node, parent_index, index
+        print "ProceduralTransverser.createOperator", node, parent_index, index
 
         op_name = '{}_setParam{}'.format(node, num_ops)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
@@ -312,10 +152,10 @@ class AlembicTransverserImpl(object):
             # if this operator has a selection attribute set it to the
             # given object path
             if cmds.attributeQuery('selection', node=op, exists=True):
-                path = data[ABC_PATH]
-                if data[ABC_ENTIY_TYPE] == "xform":
+                path = data[PROC_PATH]
+                if data[PROC_ENTITY_TYPE] == "xform":
                     path += "/*"
-                elif data[ABC_ENTIY_TYPE] == None:
+                elif data[PROC_ENTITY_TYPE] == None:
                     path += "*"
                 cmds.setAttr(op + ".selection",
                              path,
@@ -463,3 +303,31 @@ class AlembicTransverserImpl(object):
     # Do we want to see a line for each operator in the hierarchy. For now it's disabled
     def showOperatorItems(self):
         return False
+       
+    def _getDefaultValue(self, param, param_type):
+
+        AiUniverseCreated = ArnoldUniverseOnlyBegin()
+        AiMsgSetConsoleFlags(AI_LOG_NONE)
+
+        value = None
+        param_default = AiParamGetDefault(param)
+        if param_type is AI_TYPE_INT:
+            value = param_default.contents.INT
+        elif param_type is AI_TYPE_UINT:
+            value = param_default.contents.UINT
+        elif param_type is AI_TYPE_BYTE:
+            value = param_default.contents.BYTE
+        elif param_type is AI_TYPE_FLOAT:
+            value = param_default.contents.FLT
+        elif param_type is AI_TYPE_BOOLEAN:
+            value = param_default.contents.BOOL
+        elif param_type is AI_TYPE_STRING:
+            value = str(param_default.contents.STR)
+        elif param_type is AI_TYPE_ENUM:
+            idx = param_default.contents.INT
+            value = AiEnumGetString(AiParamGetEnum(param), idx)
+
+        if AiUniverseCreated:
+            ArnoldUniverseEnd()
+
+        return value

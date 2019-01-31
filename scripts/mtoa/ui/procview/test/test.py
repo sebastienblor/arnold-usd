@@ -39,10 +39,10 @@ if __name__ == '__main__':
 
     children = []
     for obj in abc_items:
-        if obj[ABC_PATH] == path:
-            iobj = obj[ABC_IOBJECT]
+        if obj[PROC_PATH] == path:
+            iobj = obj[PROC_IOBJECT]
             for i in abc_items:
-                if i[ABC_PARENT] == path:
+                if i[PROC_PARENT] == path:
                     children.append(i)
             break
     for ch in children:

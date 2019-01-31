@@ -19,13 +19,15 @@ import os
 import os.path
 from ast import literal_eval
 
-from mtoa.ui.abcview.AbcTreeView import AbcTreeView, AbcTreeModel, AbcItem
-from mtoa.ui.abcview.AbcTransverser import AlembicTransverser, \
-                    ABC_PATH, ABC_NAME, ABC_PARENT, \
-                    ABC_VISIBILITY, ABC_INSTANCEPATH, \
-                    ABC_ENTIY_TYPE, ABC_IOBJECT
+from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
+from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
+from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
+                           PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
+                           PROC_INSTANCEPATH, PROC_ENTITY_TYPE, PROC_IOBJECT, \
+                           OVERRIDE_OP, DISABLE_OP
 
-from mtoa.ui.abcview.AbcWidgets import AbcPropertiesPanel
+
+from alembic import Abc, AbcGeom
 
 from alembic.AbcCoreAbstract import *
 from alembic.Abc import *
@@ -121,6 +123,109 @@ def getVisibilityValue(vis_flags=[True]*8):
     return vis
 
 
+VISIBILITY = ['differed', 'hidden', 'visible']
+
+# This part belongs in the ABC code
+def abcToArnType(iObj):
+    if not iObj:
+        return
+
+    md = iObj.getMetaData()
+    if AbcGeom.IPolyMesh.matches(md) or AbcGeom.ISubD.matches(md):
+        return 'polymesh'
+    elif AbcGeom.IPoints.matches(md):
+        return 'points'
+    elif AbcGeom.ICurves.matches(md):
+        return 'curves'
+    elif AbcGeom.IXform.matches(md):
+        return 'xform'
+    else:
+        return None
+
+
+class AlembicTransverser(ProceduralTransverser):
+    """ Alembic Transverser class """
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+
+        if not cls.__instance:
+            instance = super(AlembicTransverser, cls).__new__(cls, *args, **kwargs)
+
+            instance.impl = AlembicTransverserImpl()
+
+            cls.__instance = instance
+
+        return cls.__instance
+
+    def __init__(self):
+        super(AlembicTransverser, self).__init__(self)
+
+    def getArchive(self, abc_file):
+        return self.impl.getArchive(abc_file)
+
+    def visitObject(self, iObj, parent="", visibility="visible"):
+        return self.impl.visitObject(iObj)
+
+    def getObjectInfo(self, iObj):
+        return self.impl.getObjectInfo(iObj)
+
+    def getRootObjectInfo(self, node):
+        return self.impl.getRootObjectInfo(node)
+        
+    def dir(self, *args):
+
+        return self.impl.dir(*args)
+
+
+class AlembicTransverserImpl(object):
+
+    # We must extract the alembic-specific part from the common one that will be used for all procedural
+    # So far it looks like getArcivePath, getArchive, visitObject, getObjectInfo, getRootObjectInfo, are alembic-specific,
+    # while the rest is more generic
+
+    def getArchivePath(self, node):
+        return os.path.abspath(cmds.getAttr("{}.cacheFileName".format(node)))
+
+    def getArchive(self, node):
+        abc_file = self.getArchivePath(node)
+        iarch = Abc.IArchive(str(abc_file))
+        return iarch
+
+    def visitObject(self, iObj, parent="", visibility="visible"):
+        abc_items = []
+        obj_data = self.getObjectInfo(iObj)
+
+        abc_items.append(obj_data)
+
+        for child in iObj.children:
+            abc_items += self.visitObject(child, obj_data[PROC_PATH], obj_data[PROC_VISIBILITY])
+
+        return abc_items
+
+    def getObjectInfo(self, iobject):
+        path = iobject.getFullName()
+        name = iobject.getName()
+        parent = iobject.getParent().getFullName()
+        instancedPath = iobject.instanceSourcePath()
+
+        entity_type = abcToArnType(iobject)
+
+        visibility = VISIBILITY[int(AbcGeom.GetVisibility(iobject))+1]
+
+        return [path, name, parent, visibility, instancedPath, entity_type, iobject]
+
+    def getRootObjectInfo(self, node):
+        abc_file = self.getArchive(node) 
+        return self.getObjectInfo(abc_file.getTop())
+        
+    def dir(self, iobject):
+        children = []
+        for ich in iobject.children:
+            children.append(self.getObjectInfo(ich))
+
+        return children
+
 class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def __currentWidget(self, pySideType=QtWidgets.QWidget):
@@ -135,13 +240,13 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         abcTransverser = AlembicTransverser()
 
-        self.tree = AbcTreeView(abcTransverser, currentWidget)
+        self.tree = ProceduralTreeView(abcTransverser, currentWidget)
         self.tree.setObjectName("abcTreeWidget")
         currentWidget.layout().addWidget(self.tree)
 
         # now add the preperties panel
-        self.proprties_panel = AbcPropertiesPanel(abcTransverser, currentWidget)
-        currentWidget.layout().addWidget(self.proprties_panel)
+        self.properties_panel = ProceduralPropertiesPanel(abcTransverser, currentWidget)
+        currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
         self.abcInfoReplace(nodeAttr)
@@ -152,12 +257,12 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
     def abcInfoReplace(self, nodeAttr):
         self.tree.setCurrentNode(self.nodeName)
-        # self.proprties_panel.setItem(self.nodeName, None)
+        # self.properties_panel.setItem(self.nodeName, None)
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
         for item in items:
-            self.proprties_panel.setItem(node, item)
+            self.properties_panel.setItem(node, item)
 
     def updateAlembicFile(self):
         # clear the cache

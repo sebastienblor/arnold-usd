@@ -5,19 +5,19 @@ from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt import setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 
-from mtoa.ui.abcview.AbcTransverser import ABC_PATH, ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
-                            ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
+from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
+                            PROC_INSTANCEPATH, PROC_ENTITY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP,\
                             PARM, OP, VALUE, INDEX
 
-class AbcPropertiesPanel(QtWidgets.QFrame):
+class ProceduralPropertiesPanel(QtWidgets.QFrame):
     """SubClass properties panel for displying properties of an object"""
 
     propertyChanged = QtCore.Signal(str, object)
     GEAR_ICON = QtGui.QPixmap(":/gear.png")
 
     def __init__(self, transverser, parent=None):
-        super(AbcPropertiesPanel, self).__init__(parent)
+        super(ProceduralPropertiesPanel, self).__init__(parent)
 
         self.node = None
         self.item = None
@@ -105,7 +105,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         if not data:
             return
 
-        node_types = self.transverser.getNodeTypes(data[ABC_IOBJECT])
+        node_types = self.transverser.getNodeTypes(data[PROC_IOBJECT])
         self.paramDict = self.transverser.getParams(node_types)
 
     def resetShadingWidgets(self):
@@ -125,7 +125,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         if self.item:
             data = self.getData(self.item)
             if data:
-                for override in self.transverser.getOverrides(self.node, data[ABC_PATH]):
+                for override in self.transverser.getOverrides(self.node, data[PROC_PATH]):
                     # FIXME what if the user wants to connect a shader from inside the procedural?
                     if override[PARM] in ["shader", "disp_map"]:
                         # set the shader slot
@@ -141,7 +141,7 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         data = self.getData(self.item)
         if not data:
             return
-        return self.transverser.getOverrides(self.node, data[ABC_PATH])
+        return self.transverser.getOverrides(self.node, data[PROC_PATH])
 
     def addOverride(self):
         op = self.getOverrideOperator()
@@ -157,6 +157,10 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         param_data = self.paramDict.get(param, (None, None))
         new_widget.setParam(param, param_data[PARAM_TYPE], param_data[NODE_TYPE], self.paramDict)
         new_widget.setOperation(op)
+        print '-------'
+        print new_widget
+        print value
+        print '-------'
         new_widget.setValue(value)
 
         new_widget.valueChanged[str, str, str, int].connect(self.setOverride)
@@ -172,10 +176,10 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
         data = self.getData(self.item)
         if not data:
             return
-        removed = self.transverser.deleteOverride(self.node, data[ABC_PATH], index)
+        removed = self.transverser.deleteOverride(self.node, data[PROC_PATH], index)
         if removed:
             if len(self.getOverrides()) == 0:
-                self.transverser.deleteOperator(self.node, data[ABC_PATH], OVERRIDE_OP)
+                self.transverser.deleteOperator(self.node, data[PROC_PATH], OVERRIDE_OP)
             self.refresh()
 
     @QtCore.Slot(str, str, str, int)
@@ -198,4 +202,4 @@ class AbcPropertiesPanel(QtWidgets.QFrame):
             param_type = param_data[PARAM_TYPE]
             is_array = param_data[IS_ARRAY]
 
-        return self.transverser.setOverride(self.node, data[ABC_PATH], param, op, value, param_type, is_array, index)
+        return self.transverser.setOverride(self.node, data[PROC_PATH], param, op, value, param_type, is_array, index)
