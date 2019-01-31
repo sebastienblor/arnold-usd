@@ -46,6 +46,7 @@ def ArnoldUniverseEnd():
         AiEnd()
 
 
+# This part belongs in the ABC code
 def abcToArnType(iObj):
     if not iObj:
         return
@@ -133,9 +134,15 @@ class AlembicTransverser(BaseTransverser):
     def deleteOverride(self, node, path, index):
 
         return self.impl.deleteOverride(node, path, index)
+    def showOperatorItems(self):
+        return self.impl.showOperatorItems()
 
 
 class AlembicTransverserImpl(object):
+
+    # We must extract the alembic-specific part from the common one that will be used for all procedural
+    # So far it looks like getArcivePath, getArchive, visitObject, getObjectInfo, are alembic-specific,
+    # while the rest is more generic
 
     def getArchivePath(self, node):
 
@@ -451,4 +458,8 @@ class AlembicTransverserImpl(object):
             # Final check the the index was removed
             if not self._indexInAssignment(index, op):
                 return True
+        return False
+
+    # Do we want to see a line for each operator in the hierarchy. For now it's disabled
+    def showOperatorItems(self):
         return False

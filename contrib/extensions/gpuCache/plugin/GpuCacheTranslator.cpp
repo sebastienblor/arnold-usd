@@ -114,6 +114,8 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputCompound(data, children);
 
    //// aiOverrides
+   // We shouldn't need this anymore
+/*
 
    std::vector<CAttrData> ovrchildren(4);
 
@@ -139,7 +141,7 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
    data.isArray = true;
 
    helper.MakeInputCompound(data, ovrchildren);
-
+*/
 }
 
 AtNode* CGpuCacheTranslator::CreateArnoldNodes()
@@ -324,7 +326,8 @@ void CGpuCacheTranslator::ExportShaders()
          AiNodeSetPtr(node, "shader", NULL);
       }
    }
-
+/*
+   // We no longer need this, right ?
    MPlug OverridesPlug = FindMayaPlug("aiOverrides");
    unsigned nelems = OverridesPlug.numElements();
    MPlug elemPlug;
@@ -347,6 +350,7 @@ void CGpuCacheTranslator::ExportShaders()
       // TODO export and create operators from overrides, 
       // currently we make them in the interactive session
    }
+*/
 }
 
 void CGpuCacheTranslator::ExportMotion(AtNode *shape)

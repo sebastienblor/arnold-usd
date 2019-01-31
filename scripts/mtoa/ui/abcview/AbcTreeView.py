@@ -11,7 +11,6 @@ from mtoa.ui.abcview.AbcTransverser import AlembicTransverser, ABC_PATH, \
                            ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
                            ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
-from alembic import Abc, AbcGeom
 
 SHADER = "shader"
 DISPLACEMENT = "disp_map"
@@ -351,11 +350,15 @@ class AbcItem(BaseItem):
             item.obtainChildren()
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
-            operators = self.transverser.getOperators(self.node, self.data[ABC_PATH])
-            if operators:
-                print operators
-                for op in operators:
-                    AbcItem(self, self.transverser, self.node, operator=op)
+
+            # For now we don't show the operators in the hierarchy, we need to make it an option
+            if self.transverser.showOperatorItems():
+                operators = self.transverser.getOperators(self.node, self.data[ABC_PATH])
+                if operators:
+                    print operators
+                    for op in operators:
+                        AbcItem(self, self.transverser, self.node, operator=op)
+            
             children = self.transverser.dir(self.data[ABC_IOBJECT])
             if children:
                 for child in children:
@@ -365,7 +368,10 @@ class AbcItem(BaseItem):
 
     def addOverrideOp(self, operator):
         self.overrides_op = operator
-        op_item = AbcItem(self, self.transverser, self.node, operator=operator, index=0)
+        # FIXME for now we're not showing the operator in the hierarchy, we need to make it an option
+        if self.transverser.showOperatorItems():
+            op_item = AbcItem(self, self.transverser, self.node, operator=operator, index=0)
+
         # model = self.getModel()
         # if model:
         #     index = model.indexFromItem(self)
