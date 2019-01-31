@@ -19,10 +19,13 @@ import os
 import os.path
 from ast import literal_eval
 
-from abcview import AbcTreeView, AlembicTransverser, AbcPropertiesPanel, \
+from mtoa.ui.abcview.AbcTreeView import AbcTreeView, AbcTreeModel, AbcItem
+from mtoa.ui.abcview.AbcTransverser import AlembicTransverser, \
                     ABC_PATH, ABC_NAME, ABC_PARENT, \
                     ABC_VISIBILITY, ABC_INSTANCEPATH, \
                     ABC_ENTIY_TYPE, ABC_IOBJECT
+
+from mtoa.ui.abcview.AbcWidgets import AbcPropertiesPanel
 
 from alembic.AbcCoreAbstract import *
 from alembic.Abc import *

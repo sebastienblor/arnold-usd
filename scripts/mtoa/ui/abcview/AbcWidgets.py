@@ -5,11 +5,10 @@ from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt import setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 
-from AbcTransverser import ABC_PATH, ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
+from mtoa.ui.abcview.AbcTransverser import ABC_PATH, ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
                             ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP,\
                             PARM, OP, VALUE, INDEX
-
 
 class AbcPropertiesPanel(QtWidgets.QFrame):
     """SubClass properties panel for displying properties of an object"""

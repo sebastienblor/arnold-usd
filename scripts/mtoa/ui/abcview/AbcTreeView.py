@@ -7,7 +7,7 @@ from mtoa.ui.qt.Qt import QtWidgets, QtCore, QtGui
 
 from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale
-from AbcTransverser import AlembicTransverser, ABC_PATH, \
+from mtoa.ui.abcview.AbcTransverser import AlembicTransverser, ABC_PATH, \
                            ABC_NAME, ABC_PARENT, ABC_VISIBILITY, \
                            ABC_INSTANCEPATH, ABC_ENTIY_TYPE, ABC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
