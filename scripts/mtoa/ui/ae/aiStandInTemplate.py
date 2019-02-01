@@ -367,6 +367,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
 
         if not os.path.exists(filename):
             return
+        
+        ext_str = os.path.splitext(filename)[1].lower()
+        # do not try to load anything else than .ass files....
+        if ext_str != '.ass' and ext_str != '.ass.gz':
+            return
        
         self.assItems = []
 
