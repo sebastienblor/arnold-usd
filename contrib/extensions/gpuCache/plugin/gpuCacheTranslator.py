@@ -23,7 +23,7 @@ from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTr
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTITY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
 
 
@@ -174,8 +174,17 @@ class AlembicTransverser(ProceduralTransverser):
         return self.impl.getRootObjectInfo(node)
         
     def dir(self, *args):
-
         return self.impl.dir(*args)
+
+    def getNodeTypes(self, iObj):
+        node_types = []
+        children = self.visitObject(iObj)
+
+        for child in children:
+            if child[PROC_ENTRY_TYPE] not in node_types:
+                node_types.append(child[PROC_ENTRY_TYPE])
+
+        return node_types
 
 
 class AlembicTransverserImpl(object):

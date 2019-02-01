@@ -11,7 +11,7 @@ from arnold import *
  PROC_PARENT,
  PROC_VISIBILITY,
  PROC_INSTANCEPATH,
- PROC_ENTITY_TYPE,
+ PROC_ENTRY_TYPE,
  PROC_IOBJECT) = range(7)
 
 (PARM, OP, VALUE, INDEX) = range(4)
@@ -52,9 +52,13 @@ class ProceduralTransverser(BaseTransverser):
         """
         Get all the parameters that can be overidden for the given node types
         """
+        if not node_types:
+            return {}
+
         # FIXME cache this so we don't call it everytime the widget is created
         # FIXME blacklist parameters that we don't want to expose
         paramDict = {}
+
 
         AiUniverseCreated = ArnoldUniverseOnlyBegin()
         AiMsgSetConsoleFlags(AI_LOG_NONE)
@@ -98,22 +102,14 @@ class ProceduralTransverser(BaseTransverser):
         return paramDict
 
     def getNodeTypes(self, iObj):
+        if not iObj:
+            return None
 
-        node_types = []
-        children = self.visitObject(iObj)
+        objectInfo = self.getObjectInfo(iObj)
+        if not objectInfo:
+            return None
 
-        for child in children:
-            if child[PROC_ENTITY_TYPE] not in node_types:
-                node_types.append(child[PROC_ENTITY_TYPE])
-
-        return node_types
-
-    # "dir" must be implemented by the procedural-specific class
-    #def dir(self, iobject):
-    def visitObject(self, iObj, parent="", visibility="visible"):
-        raise NotImplementedError(
-            "{}.visitObject".format(str(self.__class__.__name__)))
-        pass
+        return [objectInfo[PROC_ENTRY_TYPE]]
 
     def properties(self, node, path):
         pass
@@ -153,9 +149,9 @@ class ProceduralTransverser(BaseTransverser):
             # given object path
             if cmds.attributeQuery('selection', node=op, exists=True):
                 path = data[PROC_PATH]
-                if data[PROC_ENTITY_TYPE] == "xform":
+                if data[PROC_ENTRY_TYPE] == "xform":
                     path += "/*"
-                elif data[PROC_ENTITY_TYPE] == None:
+                elif data[PROC_ENTRY_TYPE] == None:
                     path += "*"
                 cmds.setAttr(op + ".selection",
                              path,

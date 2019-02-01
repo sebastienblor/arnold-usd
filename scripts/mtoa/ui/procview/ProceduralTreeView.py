@@ -9,7 +9,7 @@ from mtoa.ui.qt import BaseTreeView, BaseModel, BaseDelegate, \
                        BaseItem, BaseWindow, dpiScale
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, \
                            PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                           PROC_INSTANCEPATH, PROC_ENTITY_TYPE, PROC_IOBJECT, \
+                           PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                            OVERRIDE_OP, DISABLE_OP
 
 SHADER = "shader"

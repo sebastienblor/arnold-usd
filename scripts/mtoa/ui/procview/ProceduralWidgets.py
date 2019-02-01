@@ -6,7 +6,7 @@ from mtoa.ui.qt import setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
-                            PROC_INSTANCEPATH, PROC_ENTITY_TYPE, PROC_IOBJECT, \
+                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP,\
                             PARM, OP, VALUE, INDEX
 
@@ -188,7 +188,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     @QtCore.Slot(str, str, float, int)
     def setOverride(self, param, op, value, index=-1):
         if not param and not value:
-            param = "new"
+            param = "NEWOVERRIDE"
             value = "''"
         param_type = None
         is_array = False
