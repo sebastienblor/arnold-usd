@@ -122,6 +122,7 @@ MObject CArnoldOptionsNode::s_legacy_gi_glossy_samples;
 MObject CArnoldOptionsNode::s_legacy_gi_refraction_samples;
 MObject CArnoldOptionsNode::s_gpu;
 MObject CArnoldOptionsNode::s_render_devices;
+MObject CArnoldOptionsNode::s_gpu_max_texture_resolution;
 MObject CArnoldOptionsNode::s_manual_devices;
 MObject CArnoldOptionsNode::s_ignore_list;
 
@@ -476,6 +477,12 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setArray(true);
    addAttribute(s_render_devices);   
+
+   // Cannot use s_attributes.MakeInput because the attribute only exists in the gpu version
+   s_gpu_max_texture_resolution =  nAttr.create("gpu_max_texture_resolution", "gpumtr", MFnNumericData::kInt, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_gpu_max_texture_resolution);   
+
 
    s_attributes.MakeInput("gpu_default_names");
    s_attributes.MakeInput("gpu_default_min_memory_MB");

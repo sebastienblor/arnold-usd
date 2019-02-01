@@ -27,9 +27,14 @@ node_parameters
    AiParameterRGB("outTransparency", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("outMatteOpacity", 1.0f, 1.0f, 1.0f);
 
+/*
    AiMetaDataSetStr(nentry, NULL, "maya.name", "surfaceShader");
    AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52535348);
+*/
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   
 }
 
 node_initialize

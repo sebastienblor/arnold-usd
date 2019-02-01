@@ -106,6 +106,8 @@ bool CPolygonGeometryTranslator::GetNormals(const MObject& geometry,
 bool CPolygonGeometryTranslator::GetTangents(const MObject &geometry,
                                       AtArray*& tangents,
                                       AtArray*& bitangents,
+                                      AtArray*& tangentidxs,
+                                      AtArray*& bitangentidxs,
                                       MSpace::Space space,
                                       bool force)
 {
@@ -148,60 +150,77 @@ bool CPolygonGeometryTranslator::GetTangents(const MObject &geometry,
    if (!status)
       return false;
 
-   int nverts = fnMesh.numVertices();
+   int nFaceVerts = fnMesh.numFaceVertices();
+   int nVerts = fnMesh.numVertices();
+
+   std::vector<AtVector> perVertexTangent;
+   std::vector<AtVector> perVertexBitangent;
+
+   perVertexTangent.assign(nVerts, AtVector(0.f,0.f,0.f));
+   perVertexBitangent.assign(nVerts, AtVector(0.f,0.f,0.f));
+   std::vector<bool> foundVtx(nVerts, false);
+
+   std::vector<AtVector> indexedTangent(mayaTangents.length());
+   std::vector<AtVector> indexedBitangent(mayaBitangents.length());
+   std::vector<unsigned int> indexedTangentIdxs(nFaceVerts, 0);
    
-   tangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
-   bitangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
-   
-   for (int i = 0; i < nverts; ++i)
-   {
-      AiArraySetVec(tangents, i, AI_V3_ZERO);
-      AiArraySetVec(bitangents, i, AI_V3_ZERO);
-   }  
-   
-   std::vector<int> weights;
-   weights.resize(nverts, 0);
-   
+   // FIXME is there another way to copy the vectors from Maya to Arnold ? can we assume they store the data the same way ?
+   for (unsigned int i = 0, tangentsLength = mayaTangents.length(); i < tangentsLength; ++i)
+      indexedTangent[i] = AtVector(mayaTangents[i].x, mayaTangents[i].y, mayaTangents[i].z);
+   for (unsigned int i = 0, bitangentsLength = mayaBitangents.length(); i < bitangentsLength; ++i)
+      indexedBitangent[i] = AtVector(mayaBitangents[i].x, mayaBitangents[i].y, mayaBitangents[i].z);
+
+   // We will try to set per-vertex tangents / bitangents. If we find a difference for a same vertex on different faces, 
+   // we'll switch to indexed data
    MItMeshPolygon iter(fnMesh.object());
    MIntArray vids;
-   
+
+   bool needFaceVertexData = false;
+
+   int fvidx = 0;
    for (;!iter.isDone(); iter.next())
    {
       iter.getVertices(vids);
-      for (unsigned int i = 0; i < vids.length(); ++i)
+      for (unsigned int i = 0; i < vids.length(); ++i, ++fvidx)
       {
          unsigned int tid = iter.tangentIndex(i);
-         unsigned int vid = vids[i];
-         ++weights[vid];
-         MFloatVector tv = mayaTangents[tid];
-         AtVector atv = AiArrayGetVec(tangents, vid);
-         atv.x += tv.x;
-         atv.y += tv.y;
-         atv.z += tv.z;
-         AiArraySetVec(tangents, vid, atv);
-         tv = mayaBitangents[tid];
-         atv = AiArrayGetVec(bitangents, vid);
-         atv.x += tv.x;
-         atv.y += tv.y;
-         atv.z += tv.z;
-         AiArraySetVec(bitangents, vid, atv);
+
+         if (!needFaceVertexData)
+         {
+            // so far we didn't spot any difference for vertices per face, so let's try to make it work this way
+            unsigned int vtxId = vids[i];
+            if (!foundVtx[vtxId])
+            {
+               // first time we see this vertex, let's fill the arrays
+               perVertexTangent[vtxId] = indexedTangent[tid];
+               perVertexBitangent[vtxId] = indexedBitangent[tid];
+               foundVtx[vtxId] = true;
+            } else
+            {
+               // we already found this vertex, let's see if the current tangent is different from the one stored previously
+               AtVector diff = perVertexTangent[vtxId] - indexedTangent[tid];
+               if (std::abs(diff.x) > AI_EPSILON || std::abs(diff.y) > AI_EPSILON || std::abs(diff.z) > AI_EPSILON)
+                  needFaceVertexData = true; // we can't continue with per-vertex data, need to go with indexed user data
+            }
+         }
+         indexedTangentIdxs[fvidx] = tid;
       }
    }
-   
-   for (int i = 0; i < nverts; ++i)
+   if (needFaceVertexData)
    {
-      if (weights[i] != 0)
-      {
-         const float w = 1.0f / (float)weights[i];
-         
-         AtVector atv = AiArrayGetVec(tangents, i);
-         atv *= w;
-         AiArraySetVec(tangents, i, atv);         
-         
-         atv = AiArrayGetVec(bitangents, i);
-         atv *= w;
-         AiArraySetVec(bitangents, i, atv);
-      }
+      // we need to store per-face-vertex data
+      tangents = AiArrayConvert(indexedTangent.size(), 1, AI_TYPE_VECTOR, &indexedTangent[0]);
+      bitangents = AiArrayConvert(indexedBitangent.size(), 1, AI_TYPE_VECTOR, &indexedBitangent[0]);
+
+      tangentidxs = AiArrayConvert(nFaceVerts, 1, AI_TYPE_UINT, &indexedTangentIdxs[0]);
+      bitangentidxs = AiArrayConvert(nFaceVerts, 1, AI_TYPE_UINT, &indexedTangentIdxs[0]);
+   } else
+   {
+      // Awesome, we can store a per-vertex (varying) user data. The results for the difference faces were identical
+      // We create tangents / bitangent arrays per-vertex and set the idxs arrays to null.
+      tangents = AiArrayConvert(nVerts, 1, AI_TYPE_VECTOR, &perVertexTangent[0]);
+      bitangents = AiArrayConvert(nVerts, 1, AI_TYPE_VECTOR, &perVertexBitangent[0]);      
+      tangentidxs = bitangentidxs = NULL;
    }
 
    return true;
@@ -258,6 +277,8 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
                                     AtArray*& rnidxs,
                                     AtArray*& refTangents,
                                     AtArray*& refBitangents,
+                                    AtArray*& reftangentidxs,
+                                    AtArray*& refBitangentidxs,
                                     const std::vector<unsigned int> &polyVtxRemap)
 {
    MFnMesh fnMesh(m_dagPath);
@@ -303,7 +324,7 @@ bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
       {
          // Get tangents of the reference object in world space
          // Also, even if subdivision is applied we want to get the tangent data
-         GetTangents(geometryRef, refTangents, refBitangents, MSpace::kWorld, true);
+         GetTangents(geometryRef, refTangents, refBitangents,reftangentidxs, refBitangentidxs, MSpace::kWorld, true);
       }
       // If we are using a smoothed reference object, we need to delete it.
       //FIXME : This is somehow dirty, but I can't find a way to have a real "virtual" DAG object from generateSmoothMesh.
@@ -364,7 +385,7 @@ bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
 
    if (fnMesh.numColorSets() > 0)
    {
-      MPlug plug = fnMesh.findPlug("aiExportColors");
+      MPlug plug = fnMesh.findPlug("aiExportColors", true);
       if (!plug.isNull())
          exportColors = plug.asBool();
    }
@@ -728,12 +749,12 @@ void CPolygonGeometryTranslator::GetDisplacement(MObject& obj,
                                           bool& enableAutoBump)
 {
    MFnDependencyNode dNode(obj);
-   MPlug plug = dNode.findPlug("aiDisplacementPadding");
+   MPlug plug = dNode.findPlug("aiDisplacementPadding", true);
    if (!plug.isNull())
       dispPadding = AiMax(dispPadding, plug.asFloat());
    if (!enableAutoBump)
    {
-      plug = dNode.findPlug("aiDisplacementAutoBump");
+      plug = dNode.findPlug("aiDisplacementAutoBump", true);
       if (!plug.isNull())
          enableAutoBump = enableAutoBump || plug.asBool();
    }
@@ -753,7 +774,7 @@ static MPlug MtoaGetAssignedShaderPlug(const MPlug &shadingGroupPlug, bool isVol
    // check if it has custom AOVs
    bool hasCustomAovs = false;
    MPlugArray connections;
-   MPlug arrayPlug = sgNode.findPlug("aiCustomAOVs");
+   MPlug arrayPlug = sgNode.findPlug("aiCustomAOVs", true);
 
    for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
    {
@@ -777,11 +798,11 @@ static MPlug MtoaGetAssignedShaderPlug(const MPlug &shadingGroupPlug, bool isVol
    MString aiShaderName =  (isVolume) ? "aiVolumeShader" : "aiSurfaceShader";
 
    connections.clear();
-   MPlug shaderPlug = sgNode.findPlug(aiShaderName);
+   MPlug shaderPlug = sgNode.findPlug(aiShaderName, true);
    shaderPlug.connectedTo(connections, true, false);
    if (connections.length() == 0)
    {
-      shaderPlug = sgNode.findPlug(shaderName);
+      shaderPlug = sgNode.findPlug(shaderName, true);
       if (MtoaTranslationInfo())
          MtoaDebugLog("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug "+ shaderPlug.name());
       shaderPlug.connectedTo(connections, true, false);
@@ -806,7 +827,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    // What's even worse is that GetNodeShadingGroup is static so I can't get the AtNode
    // => verify if this works with fluids
    MFnDependencyNode fnDGNode(path.node());
-   MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize");
+   MPlug stepSizePlug = fnDGNode.findPlug("aiStepSize", true);
 //   if (!stepSizePlug.isNull())
 //      isVolume = (stepSizePlug.asFloat() > AI_EPSILON);
 
@@ -838,7 +859,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // DISPLACEMENT MATERIAL EXPORT
       MPlugArray        connections;
       MFnDependencyNode fnDGShadingGroup(shadingGroupPlug.node());
-      MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+      MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader", true);
       shaderPlug.connectedTo(connections, true, false);
 
       // are there any connections to displacementShader?
@@ -911,7 +932,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
 
          MPlugArray        connections;
          MFnDependencyNode fnDGShadingGroup(shadingGroups[J]);
-         MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+         MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader", true);
          shaderPlug.connectedTo(connections, true, false);
 
          // are there any connections to displacementShader?
@@ -953,7 +974,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       int divisions = 0;
       int multiplier = 0;
       
-      if (fnMesh.findPlug("displaySmoothMesh").asBool())
+      if (fnMesh.findPlug("displaySmoothMesh", true).asBool())
       {
          MMeshSmoothOptions options;
          MStatus status = fnMesh.getSmoothMeshDisplayOptions(options);
@@ -1044,6 +1065,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       AtArray* vidxs = 0; AtArray* nidxs = 0;
       unordered_map<std::string, std::vector<float> > vcolors;
       AtArray* refNormals = 0; AtArray* rnidxs = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
+      AtArray* reftangentidxs = 0; AtArray* refBitangentidxs = 0;
       const float* refVertices = 0;
 
       std::vector<unsigned int> polyVtxRemap;
@@ -1061,7 +1083,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
 
       // Get reference objects
       bool exportReferenceObjects = GetRefObj(refVertices, refNormals, rnidxs,
-                                              refTangents, refBitangents, polyVtxRemap);
+                                              refTangents, refBitangents, reftangentidxs, refBitangentidxs, polyVtxRemap);
       bool exportRefVerts = refVertices != 0;
       bool exportRefNorms = refNormals != 0;
       bool exportRefTangents = refTangents != 0;
@@ -1074,13 +1096,35 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
 
       // Get all tangents, bitangents
       AtArray* tangents; AtArray* bitangents;
-      if (GetTangents(geometry, tangents, bitangents, MSpace::kObject)) // Arnold doesn't support motion blurred user data
+      AtArray* tangentidxs; AtArray* bitangentidxs;
+      if (GetTangents(geometry, tangents, bitangents, tangentidxs, bitangentidxs, MSpace::kObject)) // Arnold doesn't support motion blurred user data
       {
-         AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
-         AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
-         
-         AiNodeSetArray(polymesh, "tangent", tangents);
-         AiNodeSetArray(polymesh, "bitangent", bitangents);
+         if (tangentidxs)
+         {
+            // Per-face-vertex "indexed" user data
+            if (AiNodeLookUpUserParameter(polymesh, "tangent") == NULL)
+               AiNodeDeclare(polymesh, "tangent", "indexed VECTOR");
+            if (AiNodeLookUpUserParameter(polymesh, "bitangent") == NULL)
+               AiNodeDeclare(polymesh, "bitangent", "indexed VECTOR");
+            AiNodeSetArray(polymesh, "tangent", tangents);
+            AiNodeSetArray(polymesh, "bitangent", bitangents);
+            
+            if (AiNodeLookUpUserParameter(polymesh, "tangentidxs") == NULL)
+               AiNodeDeclare(polymesh, "tangentidxs", "indexed UINT");
+            if (AiNodeLookUpUserParameter(polymesh, "bitangentidxs") == NULL)
+               AiNodeDeclare(polymesh, "bitangentidxs", "indexed UINT");
+            AiNodeSetArray(polymesh, "tangentidxs", tangentidxs);
+            AiNodeSetArray(polymesh, "bitangentidxs", bitangentidxs);
+         } else
+         {
+            // per-vertex user data
+            if (AiNodeLookUpUserParameter(polymesh, "tangent") == NULL)
+               AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
+            if (AiNodeLookUpUserParameter(polymesh, "bitangent") == NULL)
+               AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
+            AiNodeSetArray(polymesh, "tangent", tangents);
+            AiNodeSetArray(polymesh, "bitangent", bitangents);
+         }
       }
 
       if (exportReferenceObjects)
@@ -1091,9 +1135,18 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
             AiNodeDeclare(polymesh, "Nref", "indexed VECTOR");
             AiNodeDeclare(polymesh, "Nrefidxs", "indexed UINT");
          if (exportRefTangents)
-         {
-            AiNodeDeclare(polymesh, "Tref", "varying VECTOR");
-            AiNodeDeclare(polymesh, "BTref", "varying VECTOR");
+         {                        
+            if (reftangentidxs)
+            {               
+               AiNodeDeclare(polymesh, "Tref", "indexed VECTOR");
+               AiNodeDeclare(polymesh, "BTref", "indexed VECTOR");
+               AiNodeDeclare(polymesh, "Trefidxs", "indexed UINT");
+               AiNodeDeclare(polymesh, "BTrefidxs", "indexed UINT");
+            } else
+            {
+               AiNodeDeclare(polymesh, "Tref", "varying VECTOR");
+               AiNodeDeclare(polymesh, "BTref", "varying VECTOR");
+            }
          }
       }
 
@@ -1257,6 +1310,11 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          {
             AiNodeSetArray(polymesh, "Tref", refTangents);
             AiNodeSetArray(polymesh, "BTref", refBitangents);
+            if (reftangentidxs)
+            {
+               AiNodeSetArray(polymesh, "Trefidxs", reftangentidxs);
+               AiNodeSetArray(polymesh, "BTrefidxs", refBitangentidxs);
+            }
          }
       }
       if (exportUVs)
@@ -1305,7 +1363,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
       // for the first version we always export them
       // since the user might override the subdiv options
       // from a procedural, node processor etc...
-      if (!fnMesh.findPlug("displaySmoothMesh").asBool())
+      if (!fnMesh.findPlug("displaySmoothMesh", true).asBool())
       {
          MUintArray creaseEdgeIds;
          MDoubleArray creaseEdgeDatas;
@@ -1482,7 +1540,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    MFnDependencyNode masterDepNode(masterInstance.node());
-   MPlug dummyPlug = masterDepNode.findPlug("matrix");
+   MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
    // in case master instance wasn't exported (#648)
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
@@ -1505,7 +1563,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
       //
       // MFnMesh           meshNode(m_dagPath.node());
       MFnMesh meshNode(m_geometry);
-      MPlug plug = meshNode.findPlug("instObjGroups");
+      MPlug plug = meshNode.findPlug("instObjGroups", true);
 
       MPlugArray conns0, connsI;
 
@@ -1539,7 +1597,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
 
       if (shadersDifferent)
       {
-         MPlug stepSizePlug = meshNode.findPlug("aiStepSize");
+         MPlug stepSizePlug = meshNode.findPlug("aiStepSize", true);
          bool isVolume = (stepSizePlug.isNull()) ? false : (stepSizePlug.asFloat() > AI_EPSILON); 
          MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
          MPlug shaderPlug = MtoaGetAssignedShaderPlug(shadingGroupPlug, isVolume);

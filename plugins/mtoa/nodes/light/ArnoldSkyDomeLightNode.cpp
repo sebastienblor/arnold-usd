@@ -216,14 +216,14 @@ void CArnoldSkyDomeLightNode::postConstructor()
    // Always make the node not receive or cast shadows
    //
    MFnDependencyNode node(thisMObject());
-   MPlug plug = node.findPlug("receiveShadows");
+   MPlug plug = node.findPlug("receiveShadows", true);
    plug.setValue(false);
-   plug = node.findPlug("castsShadows");
+   plug = node.findPlug("castsShadows", true);
    plug.setValue(false);
 
    // Alias aiExposure as exposure for internal attribute name recognition
    MStatus stat;
-   MPlug plg = node.findPlug("aiExposure", &stat);
+   MPlug plg = node.findPlug("aiExposure", true, &stat);
    node.setAlias("exposure", "aiExposure", plg, true /*add*/, &stat);
 #endif
 

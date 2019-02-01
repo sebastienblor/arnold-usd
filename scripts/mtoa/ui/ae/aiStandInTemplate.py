@@ -109,7 +109,7 @@ class StandInTransverser(ProceduralTransverser):
 ################################################
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)
@@ -318,6 +318,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         filename = cmds.getAttr(filenameAttr)
 
         if not os.path.exists(filename):
+            return
+        
+        ext_str = os.path.splitext(filename)[1].lower()
+        # do not try to load anything else than .ass files....
+        if ext_str != '.ass' and ext_str != '.ass.gz':
             return
        
         self.assItems = []

@@ -91,8 +91,8 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
         if(status && !m_samplerState)
         {
 			int wrapMode[2] = { 0, 0 };
-            MPlug plugS = node.findPlug("swrap");
-            MPlug plugT = node.findPlug("twrap");
+            MPlug plugS = node.findPlug("swrap", true);
+            MPlug plugT = node.findPlug("twrap", true);
             if(!plugS.isNull() && !plugT.isNull())
             {
                 plugS.getValue(wrapMode[0]);
@@ -145,9 +145,9 @@ void ArnoldAiImageShaderOverride::updateShader(MHWRender::MShaderInstance& shade
                 if(status)
                 {
 					MString name, filename;
-					node.findPlug("filename").getValue(name);
+					node.findPlug("filename", true).getValue(name);
 
-                    name = resolveFilePathForSequences(name, node.findPlug("frame").asInt());
+                    name = resolveFilePathForSequences(name, node.findPlug("frame", true).asInt());
                     MRenderUtil::exactFileTextureName(name, false, "", filename);
 
                     MHWRender::MTexture* texture =

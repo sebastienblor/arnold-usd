@@ -98,7 +98,7 @@ MBoundingBox CArnoldSkyDomeLightDrawOverride::boundingBox(
 
     MStatus status;
     double radius = 1.0f;
-    MPlug plug = depNode.findPlug("skyRadius", &status);
+    MPlug plug = depNode.findPlug("skyRadius", true, &status);
     if (status && !plug.isNull())
         radius = (double)plug.asFloat();
     bbox.expand(MPoint(radius, radius, radius));
@@ -136,11 +136,11 @@ struct SArnoldSkyDomeLightUserData : public MUserData{
         MFnDependencyNode depNode(objPath.node());
 
         MStatus status;
-        MPlug plug = depNode.findPlug("skyRadius", &status);
+        MPlug plug = depNode.findPlug("skyRadius", true, &status);
         if (status && !plug.isNull())
             m_radius = plug.asFloat();
 
-        plug = depNode.findPlug("format", &status);
+        plug = depNode.findPlug("format", true, &status);
         if (status && !plug.isNull())
             m_format = plug.asInt();
 

@@ -924,7 +924,20 @@ namespace // <anonymous>
          shaders->RegisterTranslator("surfaceLuminance",
                                        "",
                                        CSurfaceLuminanceTranslator::creator);
-
+         shaders->RegisterTranslator("gammaCorrect",
+                                       "",
+                                       CGammaCorrectTranslator::creator);
+         shaders->RegisterTranslator("surfaceShader",
+                                       "",
+                                       CSurfaceShaderTranslator::creator);
+         shaders->RegisterTranslator("rgbToHsv",
+                                       "",
+                                       CRgbToHsvTranslator::creator);
+         shaders->RegisterTranslator("hsvToRgb",
+                                       "",
+                                       CHsvToRgbTranslator::creator);
+         
+         
 
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");

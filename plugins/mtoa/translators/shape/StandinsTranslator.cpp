@@ -24,6 +24,17 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
    // before we test it in ExportUserAttribute #3673
    IsMasterInstance();
+
+   MString dso = FindMayaPlug("dso").asString();
+   MStringArray splitStr;
+   dso.split('.', splitStr);
+
+   if (splitStr.length() > 1)
+   {
+      MString ext = splitStr[splitStr.length() -1].toLowerCase();
+      if (ext == "abc")
+         return AddArnoldNode("alembic");
+   }
    return AddArnoldNode("procedural");
 }
 
@@ -44,7 +55,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    if (IsExported())
       return;
    
-   MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
+   MString dso = m_DagNode.findPlug("dso", true).asString().expandEnvironmentVariablesAndTilde();
    MString filename;
    MString nodeName = m_dagPath.fullPathName();
 

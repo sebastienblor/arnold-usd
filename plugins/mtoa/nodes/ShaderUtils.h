@@ -228,16 +228,16 @@ const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
 
 
 #define EXPORT_DYN_PARAM_FLOAT(arnold_node, param_name, node) \
-   plug = node.findPlug(param_name);\
+   plug = node.findPlug(param_name, true);\
    if (!plug.isNull())\
       AiNodeSetFlt(arnold_node, param_name, plug.asFloat());
 
 #define EXPORT_DYN_PARAM_BOOL(arnold_node, param_name, node) \
-   plug = node.findPlug(param_name);\
+   plug = node.findPlug(param_name, true);\
    if (!plug.isNull())\
       AiNodeSetBool(arnold_node, param_name, plug.asBool());
 
 #define EXPORT_DYN_PARAM_INT(arnold_node, param_name, node) \
-   plug = node.findPlug(param_name);\
+   plug = node.findPlug(param_name, true);\
    if (!plug.isNull())\
       AiNodeSetInt(arnold_node, param_name, plug.asInt());

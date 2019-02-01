@@ -97,7 +97,7 @@ void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path
 	// Check for a change in geometry type
 	MStatus status;
 	short primitiveType = 0;
-    MPlug plug = depNode.findPlug("geometryType", &status);
+    MPlug plug = depNode.findPlug("geometryType", true, &status);
     if (status && !plug.isNull())
     {
 		primitiveType = plug.asShort();

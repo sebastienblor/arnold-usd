@@ -688,10 +688,10 @@ void CRenderViewMtoA::UpdateRenderCallbacks()
    MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
    if (status)
    {
-      m_progressiveRenderStarted = optionsNode.findPlug("IPRRefinementStarted").asString();
-      m_preProgressiveStep = optionsNode.findPlug("IPRStepStarted").asString();
-      m_postProgressiveStep = optionsNode.findPlug("IPRStepFinished").asString();
-      m_progressiveRenderFinished = optionsNode.findPlug("IPRRefinementFinished").asString();
+      m_progressiveRenderStarted = optionsNode.findPlug("IPRRefinementStarted", true).asString();
+      m_preProgressiveStep = optionsNode.findPlug("IPRStepStarted", true).asString();
+      m_postProgressiveStep = optionsNode.findPlug("IPRStepFinished", true).asString();
+      m_progressiveRenderFinished = optionsNode.findPlug("IPRRefinementFinished", true).asString();
    }
    else
    {
@@ -727,7 +727,7 @@ static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
    if (objNode.hasFn(MFn::kDisplacementShader))
    {
       MFnDependencyNode depNode(objNode);
-      MPlug dispPlug = depNode.findPlug("displacement");
+      MPlug dispPlug = depNode.findPlug("displacement", true);
       if (!dispPlug.isNull())
       {
          MPlugArray conn;
@@ -881,7 +881,7 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
       if (objNode.hasFn(MFn::kDisplacementShader))
       {
          MFnDependencyNode depNode(objNode);
-         MPlug dispPlug = depNode.findPlug("displacement");
+         MPlug dispPlug = depNode.findPlug("displacement", true);
          if (!dispPlug.isNull())
          {
             MPlugArray conn;
@@ -1513,7 +1513,7 @@ void CRenderViewMtoA::UpdateColorManagement()
 
    MStatus status;
    MPlug plug;
-   plug = depNode.findPlug("cfe", &status);
+   plug = depNode.findPlug("cfe", true, &status);
    bool ocio = false;
 
    if (status == MS::kSuccess && plug.asBool())
@@ -1527,7 +1527,7 @@ void CRenderViewMtoA::UpdateColorManagement()
    else  SetOption("Color Management.OCIO", "0");
 
    
-   plug = depNode.findPlug("cfp", &status);
+   plug = depNode.findPlug("cfp", true, &status);
    
    if (status == MS::kSuccess)
    {      
@@ -1539,7 +1539,7 @@ void CRenderViewMtoA::UpdateColorManagement()
 
       if (ocio)
       {
-         plug = depNode.findPlug("vtn", &status);
+         plug = depNode.findPlug("vtn", true, &status);
          if (status == MS::kSuccess)
          {
             const std::string viewTransform = plug.asString().asChar();
@@ -1547,7 +1547,7 @@ void CRenderViewMtoA::UpdateColorManagement()
          }
       } else
       {
-         plug = depNode.findPlug("vtn", &status);
+         plug = depNode.findPlug("vtn", true, &status);
          if (status == MS::kSuccess)
          {            
             const std::string viewTransform = plug.asString().asChar();
@@ -1645,19 +1645,19 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    float pixelAspectRatio = 1.f;
    bool updateRender = false;
    
-   MPlug plug = depNode.findPlug("width", &status);
+   MPlug plug = depNode.findPlug("width", true, &status);
    if (status == MS::kSuccess)
    {
       width = plug.asInt();
       if (width != (int)renderOptions->width()) updateRender = true;
    }
-   plug = depNode.findPlug("height", &status);
+   plug = depNode.findPlug("height", true, &status);
    if (status == MS::kSuccess)
    {
       height = plug.asInt();
       if (height != (int)renderOptions->height()) updateRender = true;
    }
-   plug = depNode.findPlug("deviceAspectRatio", &status);
+   plug = depNode.findPlug("deviceAspectRatio", true, &status);
    if (status == MS::kSuccess)
    {
       pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());

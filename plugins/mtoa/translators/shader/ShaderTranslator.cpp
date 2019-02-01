@@ -145,10 +145,10 @@ bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &re
       // for basic shaders with a single output, which this translator represents, message attributes are equivalent
       // to outColor/outValue
       MFnDependencyNode fnNode(outputPlug.node());
-      resolvedOutputPlug = fnNode.findPlug("outColor", &status);
+      resolvedOutputPlug = fnNode.findPlug("outColor", true, &status);
       if (status != MS::kSuccess)
       {
-         resolvedOutputPlug = fnNode.findPlug("outValue", &status);
+         resolvedOutputPlug = fnNode.findPlug("outValue", true, &status);
          if (status != MS::kSuccess)
          {
             AiMsgError("[mtoa] Cannot resolve message attribute \"%s\" to a valid shader output (e.g. outColor/outValue)",

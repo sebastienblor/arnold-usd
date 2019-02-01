@@ -134,16 +134,16 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
    // aiMinPixelWidth
    {
       AiNodeDeclare(procedural, "ai_min_pixel_width", "constant FLOAT");
-      AiNodeSetFlt(procedural, "ai_min_pixel_width", fnDagNode.findPlug("ai_min_pixel_width").asFloat());
+      AiNodeSetFlt(procedural, "ai_min_pixel_width", fnDagNode.findPlug("ai_min_pixel_width", true).asFloat());
    }
 
    // aiMode
    {
       AiNodeDeclare(procedural, "ai_mode", "constant INT");
-      int aiMode = fnDagNode.findPlug("ai_mode").asInt();
+      int aiMode = fnDagNode.findPlug("ai_mode", true).asInt();
 
 #ifdef XGEN_ARNOLD_ORIENTATIONS
-      MPlug faceCamAttr = fnDagNode.findPlug("faceCamera");
+      MPlug faceCamAttr = fnDagNode.findPlug("faceCamera", true);
       if (aiMode == 0 && (!faceCamAttr.isNull()) && (!faceCamAttr.asBool()))
          aiMode = 2; // oriented
 #endif

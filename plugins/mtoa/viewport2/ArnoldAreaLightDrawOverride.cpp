@@ -100,7 +100,7 @@ struct CArnoldAreaLightUserData : public MUserData{
 
       MFnDependencyNode depNode(objPath.node());		
       MStatus status;
-      MPlug plug = depNode.findPlug("aiTranslator", &status);
+      MPlug plug = depNode.findPlug("aiTranslator", true, &status);
       MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());
       if (status && !plug.isNull())
       {
@@ -208,7 +208,7 @@ struct CArnoldAreaLightUserData : public MUserData{
       MFnDependencyNode depNode(objPath.node());
 
       MStatus status;
-      MPlug plug = depNode.findPlug("aiTranslator", &status);
+      MPlug plug = depNode.findPlug("aiTranslator", true, &status);
       MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());
       if (status && !plug.isNull())
       {

@@ -483,18 +483,23 @@ def createGpuSettings():
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
 
+    isGPU = False
     universeCreated = False
     if not ai.AiUniverseIsActive():
         ai.AiBegin()
         universeCreated = True
 
     if ai.AiNodeEntryLookUpParameter(ai.AiNodeGetNodeEntry(ai.AiUniverseGetOptions()), "render_device"):
-        cmds.attrControlGrp('gpu', 
-                            label="GPU Rendering", 
-                            attribute='defaultArnoldRenderOptions.gpu')
-
+        isGPU = True
+        
     if universeCreated:
         ai.AiEnd()
+
+    if isGPU:
+        cmds.attrControlGrp('gpu', 
+                    label="GPU Rendering", 
+                    attribute='defaultArnoldRenderOptions.gpu')
+
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('gpu_default_names', 
@@ -545,7 +550,10 @@ def createGpuSettings():
 
     changeGpu()
     cmds.setParent('..')
-
+    if isGPU:
+        cmds.attrControlGrp('gpu_max_texture_resolution', 
+                        label="Max Texture Resolution", 
+                        attribute='defaultArnoldRenderOptions.gpu_max_texture_resolution')
     cmds.setParent('..')
         
 def createArnoldRenderSettings():

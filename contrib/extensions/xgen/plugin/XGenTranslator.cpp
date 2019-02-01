@@ -45,7 +45,7 @@ AtNode *ExportMissingNode(const char *name)
       return NULL;
    
    MFnDependencyNode shaderDepNode(shaderObj);
-   MPlug plug = shaderDepNode.findPlug("message");
+   MPlug plug = shaderDepNode.findPlug("message", true);
    if (plug.isNull())
       return NULL;
 
@@ -265,10 +265,10 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
 
          MFnDagNode  xgenPalette;
          xgenPalette.setObject(palDagPath.node());
-         info.useDeltaFile = xgenPalette.findPlug("xgExportAsDelta").asBool();
-         info.deltaFiles = xgenPalette.findPlug("xgDeltaFiles").asString().asChar();
-         info.palBaseFile = xgenPalette.findPlug("xgBaseFile").asString().asChar();
-         info.palFileName = xgenPalette.findPlug("xgFileName").asString().asChar();
+         info.useDeltaFile = xgenPalette.findPlug("xgExportAsDelta", true).asBool();
+         info.deltaFiles = xgenPalette.findPlug("xgDeltaFiles", true).asString().asChar();
+         info.palBaseFile = xgenPalette.findPlug("xgBaseFile", true).asString().asChar();
+         info.palFileName = xgenPalette.findPlug("xgFileName", true).asString().asChar();
 
 #ifdef DEBUG_MTOA
       printf("deltaFiles=%s\n",info.deltaFiles.c_str() );
@@ -309,18 +309,18 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
                MFnDagNode  xgenDesc;
                xgenDesc.setObject(childDagPath.node());
                
-               info.renderMode = xgenDesc.findPlug("renderMode").asInt();
+               info.renderMode = xgenDesc.findPlug("renderMode", true).asInt();
                
-               info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth").asFloat();
-               info.aiMode = xgenDesc.findPlug("aiMode").asInt();
-               info.renderMode = xgenDesc.findPlug("renderMode").asInt();
-               info.moblur = xgenDesc.findPlug("motionBlurOverride").asInt();
-               info.moblurmode = xgenDesc.findPlug("motionBlurMode").asInt();
+               info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth", true).asFloat();
+               info.aiMode = xgenDesc.findPlug("aiMode", true).asInt();
+               info.renderMode = xgenDesc.findPlug("renderMode", true).asInt();
+               info.moblur = xgenDesc.findPlug("motionBlurOverride", true).asInt();
+               info.moblurmode = xgenDesc.findPlug("motionBlurMode", true).asInt();
                info.motionBlurSteps = 1;
                info.moblurFactor = 0.5;
-               info.auxRenderPatch = xgenDesc.findPlug("aiAuxRenderPatch").asString().asChar();
-               info.useAuxRenderPatch = xgenDesc.findPlug("aiUseAuxRenderPatch").asBool();
-               info.multithreading = xgenDesc.findPlug("aiMultithreading").asBool();
+               info.auxRenderPatch = xgenDesc.findPlug("aiAuxRenderPatch", true).asString().asChar();
+               info.useAuxRenderPatch = xgenDesc.findPlug("aiUseAuxRenderPatch", true).asBool();
+               info.multithreading = xgenDesc.findPlug("aiMultithreading", true).asBool();
 
                //  use render globals moblur settings
                if (info.moblur == 0)
@@ -334,8 +334,8 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
                // use  xgen per  description moblur settings
                else if (info.moblur == 1)
                {
-                  info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
-                  info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
+                  info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps", true).asInt();
+                  info.moblurFactor = xgenDesc.findPlug("motionBlurFactor", true).asFloat();
                }
 #ifdef DEBUG_MTOA
                printf("strChild=%s\n",strChild.c_str() );
@@ -380,12 +380,12 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
                         float xmin,ymin,zmin;
                         float xmax,ymax,zmax;
                         float xlen,ylen,zlen;
-                        xmin = xgenNode.findPlug ( "bboxCorner10" ).asFloat();
-                        ymin = xgenNode.findPlug ( "bboxCorner11" ).asFloat();
-                        zmin = xgenNode.findPlug ( "bboxCorner12" ).asFloat();
-                        xmax = xgenNode.findPlug ( "bboxCorner20" ).asFloat();
-                        ymax = xgenNode.findPlug ( "bboxCorner21" ).asFloat();
-                        zmax = xgenNode.findPlug ( "bboxCorner22" ).asFloat();
+                        xmin = xgenNode.findPlug ( "bboxCorner10", true ).asFloat();
+                        ymin = xgenNode.findPlug ( "bboxCorner11", true ).asFloat();
+                        zmin = xgenNode.findPlug ( "bboxCorner12", true ).asFloat();
+                        xmax = xgenNode.findPlug ( "bboxCorner20", true ).asFloat();
+                        ymax = xgenNode.findPlug ( "bboxCorner21", true ).asFloat();
+                        zmax = xgenNode.findPlug ( "bboxCorner22", true ).asFloat();
                         xlen = xmax-xmin;
                         ylen = ymax-ymin;
                         zlen = zmax-zmin;
@@ -396,7 +396,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
                         ymax += ylen*5*fUnitConvFactor;
                         zmax += zlen*5*fUnitConvFactor; 
 
-                        MPlug geo = xgenNode.findPlug ( "geometry");
+                        MPlug geo = xgenNode.findPlug ( "geometry", true);
                         MPlugArray connections;
                         geo.connectedTo(connections, true, false);
                         if (connections.length() > 0)
@@ -449,7 +449,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          MFnCamera fnCamera(camera.node());
 
          // info.bCameraOrtho
-         MPlug plug = fnNode.findPlug("aiTranslator", status);
+         MPlug plug = fnNode.findPlug("aiTranslator", true, &status);
          if (status && !plug.isNull())
          {
             if (plug.asString() == MString("orthographic"))

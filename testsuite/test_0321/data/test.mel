@@ -1,0 +1,8 @@
+loadPlugin("mtoa");
+loadPlugin("setNode.py");
+
+print "about to export scene";
+arnoldExportAss -f "test.ass";
+print "exported scene";
+
+sysFile -copy  "testrender.tif" "ok.tif";

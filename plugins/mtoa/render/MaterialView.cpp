@@ -551,14 +551,14 @@ void CMaterialView::InitOptions()
       MObject renderOptions;
       list.getDependNode(0, renderOptions);
       MFnDependencyNode fnArnoldRenderOptions(renderOptions);
-      AiNodeSetInt(options, "GI_diffuse_samples",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples")).asInt());
-      AiNodeSetInt(options, "GI_specular_samples",    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_samples")).asInt());
-      AiNodeSetInt(options, "GI_transmission_samples",fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_samples")).asInt());
-      AiNodeSetInt(options, "GI_sss_samples",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples")).asInt());
-      AiNodeSetInt(options, "GI_total_depth",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth")).asInt());
-      AiNodeSetInt(options, "GI_diffuse_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth")).asInt());
-      AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth")).asInt());
-      AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth")).asInt());
+      AiNodeSetInt(options, "GI_diffuse_samples",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples"), true).asInt());
+      AiNodeSetInt(options, "GI_specular_samples",    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_samples"), true).asInt());
+      AiNodeSetInt(options, "GI_transmission_samples",fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_samples"), true).asInt());
+      AiNodeSetInt(options, "GI_sss_samples",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples"), true).asInt());
+      AiNodeSetInt(options, "GI_total_depth",         fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth"), true).asInt());
+      AiNodeSetInt(options, "GI_diffuse_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth"), true).asInt());
+      AiNodeSetInt(options, "GI_specular_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_specular_depth"), true).asInt());
+      AiNodeSetInt(options, "GI_transmission_depth",  fnArnoldRenderOptions.findPlug(toMayaStyle("GI_transmission_depth"), true).asInt());
    }
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    if (arnoldSession)

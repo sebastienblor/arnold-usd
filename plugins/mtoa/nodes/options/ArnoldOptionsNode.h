@@ -154,5 +154,6 @@ public:
    static MObject s_profile_enable;
    static MObject s_profile_file;
    static MObject s_ignore_list;
+   static MObject s_gpu_max_texture_resolution;
 
 };  // class CArnoldOptionsNode

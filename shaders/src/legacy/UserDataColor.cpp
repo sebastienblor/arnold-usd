@@ -17,14 +17,22 @@ enum UserDataColorParams
 
 node_parameters
 {
+   /*
+
    AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataColor");
    AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataColor");
    AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATACOLOR);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
+   */
+
    AiParameterStr("colorAttrName", "");
    AiParameterRGB("defaultValue", 0.f, 0.f, 0.f);
+   
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);  
 }
 
 node_initialize

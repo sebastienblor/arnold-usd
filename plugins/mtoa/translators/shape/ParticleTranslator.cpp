@@ -184,7 +184,7 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle)
              currentAttr == "opacityPP" ||
              currentAttr == "radiusPP")
             continue;
-         m_fnParticleSystem.findPlug(currentAttr, &status);
+         m_fnParticleSystem.findPlug(currentAttr, true, &status);
          if (status != MS::kSuccess)
             continue;
 
@@ -235,20 +235,20 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    MStatus status;
 
    // Particle shape extra attributes
-   int pointsAs            = m_fnParticleSystem.findPlug("aiRenderPointsAs").asInt();
-   m_exportId              = m_fnParticleSystem.findPlug("aiExportParticleIDs").asBool();
-   m_isOpaque              = m_fnParticleSystem.findPlug("aiOpaque").asBool();
-   m_deleteDeadParticles   = m_fnParticleSystem.findPlug("aiDeleteDeadParticles").asBool();
-   m_inheritCacheTxfm      = m_fnParticleSystem.findPlug("aiInheritCacheTransform").asBool();
+   int pointsAs            = m_fnParticleSystem.findPlug("aiRenderPointsAs", true).asInt();
+   m_exportId              = m_fnParticleSystem.findPlug("aiExportParticleIDs", true).asBool();
+   m_isOpaque              = m_fnParticleSystem.findPlug("aiOpaque", true).asBool();
+   m_deleteDeadParticles   = m_fnParticleSystem.findPlug("aiDeleteDeadParticles", true).asBool();
+   m_inheritCacheTxfm      = m_fnParticleSystem.findPlug("aiInheritCacheTransform", true).asBool();
 
-   m_minPixelWidth = m_fnParticleSystem.findPlug("aiMinPixelWidth").asFloat();
+   m_minPixelWidth = m_fnParticleSystem.findPlug("aiMinPixelWidth", true).asFloat();
    if (renderType != PARTICLE_TYPE_BLOBBYSURFACE && renderType != PARTICLE_TYPE_CLOUD)
       AiNodeSetFlt(particle, "min_pixel_width", m_minPixelWidth);
    else
    {
-      float falloffExponent = m_fnParticleSystem.findPlug("aiFalloffExponent").asFloat();
-      bool smoothStepFalloff = m_fnParticleSystem.findPlug("aiSmoothStepFalloff").asBool();
-      int implicitSamples = m_fnParticleSystem.findPlug("aiImplicitSamples").asInt();
+      float falloffExponent = m_fnParticleSystem.findPlug("aiFalloffExponent", true).asFloat();
+      bool smoothStepFalloff = m_fnParticleSystem.findPlug("aiSmoothStepFalloff", true).asBool();
+      int implicitSamples = m_fnParticleSystem.findPlug("aiImplicitSamples", true).asInt();
       AiNodeSetFlt(particle, "falloff_exponent", falloffExponent);
       AiNodeSetBool(particle, "smooth_step", smoothStepFalloff);
       if (renderType == PARTICLE_TYPE_BLOBBYSURFACE)
@@ -292,12 +292,12 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    {
       m_doMultiPoint = true;
       AiNodeDeclare(particle, "particleMultiIndex", constantUserData ? "constant ARRAY INT" : "uniform INT");
-      MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
+      MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", true, &status));
       if ( MS::kSuccess == status )
       {
          mcPlug.getValue( m_multiCount );
       }
-      MPlug mrPlug( m_fnParticleSystem.findPlug("multiRadius", &status));
+      MPlug mrPlug( m_fnParticleSystem.findPlug("multiRadius", true, &status));
       if ( MS::kSuccess == status )
       {
          mrPlug.getValue( m_multiRadius );
@@ -337,27 +337,27 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    if (!m_hasRadiusPP || m_isSprite)
    {
-      MPlug radiusPlug( m_fnParticleSystem.findPlug("radius", &status));
+      MPlug radiusPlug( m_fnParticleSystem.findPlug("radius", true, &status));
       if ( MS::kSuccess == status )
       {
          radiusPlug.getValue( m_radius );
       }
-      MPlug pointPlug( m_fnParticleSystem.findPlug("pointSize", &status));
+      MPlug pointPlug( m_fnParticleSystem.findPlug("pointSize", true, &status));
       if ( MS::kSuccess == status )
       {
          pointPlug.getValue( m_pointSize );
       }
-      MPlug linePlug( m_fnParticleSystem.findPlug("lineWidth", &status));
+      MPlug linePlug( m_fnParticleSystem.findPlug("lineWidth", true, &status));
       if ( MS::kSuccess == status )
       {
          linePlug.getValue( m_lineWidth );
       }
-      MPlug ssXPlug( m_fnParticleSystem.findPlug("spriteScaleX", &status));
+      MPlug ssXPlug( m_fnParticleSystem.findPlug("spriteScaleX", true, &status));
       if ( MS::kSuccess == status )
       {
          ssXPlug.getValue( m_spriteScaleX );
       }
-      MPlug ssYPlug( m_fnParticleSystem.findPlug("spriteScaleY", &status));
+      MPlug ssYPlug( m_fnParticleSystem.findPlug("spriteScaleY", true, &status));
       if ( MS::kSuccess == status )
       {
          ssYPlug.getValue( m_spriteScaleY );
@@ -468,7 +468,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       m_particleIDMap[particleId[i]] = i;
    
 
-   m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes").asString();
+   m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes", true).asString();
 
    if (m_customAttrs.length() != 0)
    {
@@ -476,7 +476,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       ExportCustomParticleData(particle);
    }
 
-   if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()) && IsNParticle())
+   if ((m_fnParticleSystem.findPlug("aiInterpolateBlur", true).asBool()) && IsNParticle())
    {
       const float evaluateEvery = FindMayaPlug("aiEvaluateEvery").asFloat();
 
@@ -1241,9 +1241,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    MVector m_rgb;
    AtRGB a_rgb;
 
-   float minRadius   = m_fnParticleSystem.findPlug("aiMinParticleRadius").asFloat();
-   float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius").asFloat();
-   float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier").asFloat();
+   float minRadius   = m_fnParticleSystem.findPlug("aiMinParticleRadius", true).asFloat();
+   float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius", true).asFloat();
+   float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier", true).asFloat();
 
    bool constantUserData = m_fnParticleSystem.renderType() == (MFnParticleSystem::RenderType)PARTICLE_TYPE_CLOUD ||
                            m_fnParticleSystem.renderType() == (MFnParticleSystem::RenderType)PARTICLE_TYPE_BLOBBYSURFACE;
@@ -1553,7 +1553,7 @@ bool CParticleTranslator::IsCached()
    MObject dynGlobals;
    list.getDependNode(0, dynGlobals);
    MFnDependencyNode dynGlobalsNode(dynGlobals, &stat);
-   return (stat == MS::kSuccess && dynGlobalsNode.findPlug("useParticleDiskCache").asBool());
+   return (stat == MS::kSuccess && dynGlobalsNode.findPlug("useParticleDiskCache", true).asBool());
 }
 
 bool CParticleTranslator::IsNParticle()
@@ -1661,7 +1661,7 @@ void CParticleTranslator::GetMatrix(AtMatrix& matrix)
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    MFnDependencyNode masterDepNode(masterInstance.node());
-   MPlug dummyPlug = masterDepNode.findPlug("matrix");
+   MPlug dummyPlug = masterDepNode.findPlug("matrix", true);
    // in case master instance wasn't exported (#648)
    // and also to create the reference between both translators
    AtNode *masterNode = (dummyPlug.isNull()) ? NULL : ExportConnectedNode(dummyPlug);
@@ -1737,7 +1737,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
       if (renderType != PARTICLE_TYPE_BLOBBYSURFACE && renderType != PARTICLE_TYPE_CLOUD)
       {
           // Multiply in the step_scale because the points node doesn't have a step_scale parameter
-          float stepScale = m_fnParticleSystem.findPlug("aiStepScale").asFloat();
+          float stepScale = m_fnParticleSystem.findPlug("aiStepScale", true).asFloat();
           float curStepSize = AiNodeGetFlt(particle, "step_size");
           AiNodeSetFlt(particle, "step_size", curStepSize * stepScale);
       }
@@ -1749,7 +1749,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    }
    else
    {
-      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()) && IsNParticle())
+      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur", true).asBool()) && IsNParticle())
          InterpolateBlurSteps(particle, step); // compute all the data from  the first steps  population
       else
          GatherBlurSteps(particle, step); // gather the data from each step

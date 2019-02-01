@@ -12,18 +12,18 @@
 void CSynColorTranslator::Export(AtNode* node)
 {
    MFnDependencyNode defaultColorSettings(GetMayaObject());
-   const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled").asBool();
+   const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled", true).asBool();
    if(cmEnabled)
    {
       AtNode *options = AiUniverseGetOptions();
       AiNodeSetPtr(options, "color_manager", (void*)node);
 
-      MString renderingSpace = defaultColorSettings.findPlug("workingSpaceName").asString();
+      MString renderingSpace = defaultColorSettings.findPlug("workingSpaceName", true).asString();
 
-      const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled").asBool();
+      const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled", true).asBool();
       if(cmOCIOEnabled)
       {
-         AiNodeSetStr (node, "config",             defaultColorSettings.findPlug("configFilePath").asString().asChar());
+         AiNodeSetStr (node, "config",             defaultColorSettings.findPlug("configFilePath", true).asString().asChar());
          AiNodeSetStr (node, "color_space_linear", renderingSpace.asChar());
       }
       else
@@ -114,10 +114,10 @@ AtNode* CSynColorTranslator::CreateArnoldNodes()
 {
    MFnDependencyNode defaultColorSettings(GetMayaObject());
    m_renderingSpaceChanged = false;
-   const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled").asBool();
+   const bool cmEnabled = defaultColorSettings.findPlug("cmEnabled", true).asBool();
    if(cmEnabled)
    {
-      const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled").asBool();
+      const bool cmOCIOEnabled = defaultColorSettings.findPlug("configFileEnabled", true).asBool();
       if(cmOCIOEnabled)
       {
          return AddArnoldNode("color_manager_ocio");

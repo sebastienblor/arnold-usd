@@ -192,12 +192,8 @@ void CCurveTranslator::Export( AtNode *curve )
          MString hairShaderName = fnDepNodeCurve.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
-
-         // Add shader uparam and vparam names
-         //AiNodeSetStr(shader, "uparam", "uparamcoord");
-         //AiNodeSetStr(shader, "vparam", "vparamcoord");
       }
-      SetRootShader(shader);      
+      AiNodeSetPtr(curve, "shader", shader);
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate
@@ -329,7 +325,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
    mayaCurve.clear(); // just to be sure
    MFnDependencyNode fnDepNodeCurve(curve);
    MStatus stat;
-   MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", &stat);
+   MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", true, &stat);
    if (stat == MStatus::kSuccess)
    {
       float globalWidth = 1.0;

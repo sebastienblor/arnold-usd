@@ -172,7 +172,7 @@ protected:
    MPlug GetPlug(const MObject& obj, const MString &attrName, MStatus* ReturnStatus = NULL) const
    {
       MFnDependencyNode fnNode(obj);
-      return fnNode.findPlug(attrName, ReturnStatus);
+      return fnNode.findPlug(attrName, true, ReturnStatus);
    }
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
    virtual MObject GetMeshObject() const;

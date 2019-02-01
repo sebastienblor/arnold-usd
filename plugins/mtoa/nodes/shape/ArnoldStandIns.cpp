@@ -287,9 +287,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       if (selectedItems.length() > 0)
          selectedItems.split(',', selectedItemsList);
       
-      // FIXME shouldn't we rather call ArnoldUniverseOnlyBegin ?
-      AiUniverseCreated = ArnoldUniverseBegin();
-
+      
       bool processRead = false;
       bool isSo = false;
       bool isAss = false;
@@ -317,21 +315,24 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isAss = true;
 
       if (isAss)
+      {
+         if (!AiUniverseIsActive())
+         {
+            AiUniverseCreated = true;
+            AiBegin();
+         }      
+
          universe = AiUniverse();
+      }
       else
       {
-         if (AiUniverseIsActive())
+         //if (AiUniverseIsActive())
          {
             m_refreshAvoided = true;
             return MS::kSuccess;
-         }         
+         }                 
       }
-	  if (!AiUniverseIsActive())
-	  {
-          AiUniverseCreated = true;
-		  AiBegin();
-	  }
-      
+	   
       AtNode* options = AiUniverseGetOptions(universe);
       AiNodeSetBool(options, "skip_license_check", true);
       AiNodeSetBool(options, "enable_dependency_graph", false);
@@ -347,7 +348,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          MFnDependencyNode fnArnoldRenderOptions(node, &status);
          if (status)
          {
-            MPlug plug = fnArnoldRenderOptions.findPlug("procedural_searchpath");            
+            MPlug plug = fnArnoldRenderOptions.findPlug("procedural_searchpath", true);            
             if (!plug.isNull())
                proceduralPath = plug.asString();
          }
@@ -383,7 +384,14 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          }
       }
       else
-      {         
+      {
+         if (universe) AiUniverseDestroy(universe);
+         if (AiUniverseCreated) AiEnd();        
+         return MS::kSuccess;
+
+         // FIXME: for now we're not trying to display anything for non-ass files
+
+        /*
          procedural = AiNode(universe, "procedural", AtString(), NULL);
          AiNodeSetStr(procedural, "filename", assfile.asChar());
 //         AiNodeSetBool(procedural, "load_at_init", true);
@@ -413,7 +421,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (AiUniverseCreated) AiEnd();            
 
             return MS::kSuccess;
-         }
+         }*/
       }
 
       if (processRead)
@@ -1162,7 +1170,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
  	{ 
       MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
       if (!ArnoldRenderOptionsNode.isNull()) 
-         fGeometry.drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort(); 
+         fGeometry.drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort(); 
  	} 
  	else 
       fGeometry.drawOverride -= 1;
@@ -1412,7 +1420,7 @@ void CArnoldStandInShape::AttrChangedCallback(MNodeMessage::AttributeMessage msg
          plug.setValue(true);
 
          // need to set the other attribute to true, meaning that nothing will be overridden in the standin
-         MPlug basePlug = dNode.findPlug(VisibilityAttributesList[i], &status);
+         MPlug basePlug = dNode.findPlug(VisibilityAttributesList[i], true, &status);
          if (status)
             basePlug.setValue(true);
       }
@@ -1447,7 +1455,7 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
    MFnDependencyNode dNode(info.multiPath().node(), &status);
    if (status)
    {
-      MPlug plug = dNode.findPlug("standInDrawOverride", &status);
+      MPlug plug = dNode.findPlug("standInDrawOverride", true, &status);
       if (!plug.isNull() && status)
       {
          const int localDrawOverride = plug.asShort();
@@ -1455,7 +1463,7 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
          {
             MObject ArnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
             if (!ArnoldRenderOptionsNode.isNull())
-               drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
+               drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort();
          }
          else
             drawOverride = localDrawOverride - 1;

@@ -8,16 +8,16 @@ void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params
    // It is similar, this is tidier and more condenced.
 
    // Get the tesselation attributes off the node
-   const int modeU                  = surface.findPlug("modeU").asInt();
-   const int numberU                = surface.findPlug("numberU").asInt();
-   const int modeV                  = surface.findPlug("modeV").asInt();
-   const int numberV                = surface.findPlug("numberV").asInt();
-   const bool smoothEdge            = surface.findPlug("smoothEdge").asBool();
-   const bool useChordHeightRatio   = surface.findPlug("useChordHeightRatio").asBool();
-   const bool edgeSwap              = surface.findPlug("edgeSwap").asBool();
-   const bool useMinScreen          = surface.findPlug("useMinScreen").asBool();
-   const double chordHeightRatio    = surface.findPlug("chordHeightRatio").asDouble();
-   const double minScreen           = surface.findPlug("minScreen").asDouble();
+   const int modeU                  = surface.findPlug("modeU", true).asInt();
+   const int numberU                = surface.findPlug("numberU", true).asInt();
+   const int modeV                  = surface.findPlug("modeV", true).asInt();
+   const int numberV                = surface.findPlug("numberV", true).asInt();
+   const bool smoothEdge            = surface.findPlug("smoothEdge", true).asBool();
+   const bool useChordHeightRatio   = surface.findPlug("useChordHeightRatio", true).asBool();
+   const bool edgeSwap              = surface.findPlug("edgeSwap", true).asBool();
+   const bool useMinScreen          = surface.findPlug("useMinScreen", true).asBool();
+   const double chordHeightRatio    = surface.findPlug("chordHeightRatio", true).asDouble();
+   const double minScreen           = surface.findPlug("minScreen", true).asDouble();
 
    // I don't actually know why these aren't used. I don't see where they'd be set
    // on MTesselationParams either.

@@ -139,7 +139,7 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
                MFnDagNode fnDagNode(path);
                if(fnDagNode.typeName() == "aiStandIn")
                {
-                  MPlug m_dso = fnDagNode.findPlug("dso");
+                  MPlug m_dso = fnDagNode.findPlug("dso", true);
                   if (!m_dso.isNull())
                   {
                      m_dso.setValue(file.resolvedFullName());
@@ -163,7 +163,7 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
          {
             m_standin = fnDagNode.child(i);
             MFnDagNode fnDagNodeChildren(m_standin);
-            MPlug m_dso = fnDagNodeChildren.findPlug("dso");
+            MPlug m_dso = fnDagNodeChildren.findPlug("dso", true);
             if (!m_dso.isNull())
             {
                m_dso.setValue(file.resolvedFullName());

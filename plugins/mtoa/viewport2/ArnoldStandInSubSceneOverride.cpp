@@ -795,7 +795,7 @@ int CArnoldStandInSubSceneOverride::getDrawOverride()
     MFnDagNode node(mLocatorNode, &status);
 
     int drawOverride = 0;
-    MPlug plug = node.findPlug("standInDrawOverride", &status);
+    MPlug plug = node.findPlug("standInDrawOverride", true, &status);
     if (!plug.isNull() && status)
     {
         const int localDrawOverride = plug.asShort();
@@ -803,7 +803,7 @@ int CArnoldStandInSubSceneOverride::getDrawOverride()
         {
             MObject ArnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
             if (!ArnoldRenderOptionsNode.isNull())
-                drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
+                drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override", true).asShort();
         }
         else
             drawOverride = localDrawOverride - 1;
@@ -825,7 +825,7 @@ void CArnoldStandInSubSceneOverride::updateShaderFromNode()
             MFnDependencyNode fnSet(sets[i], &status);
             if (status)
             {
-                MPlug shaderPlug = fnSet.findPlug("surfaceShader");
+                MPlug shaderPlug = fnSet.findPlug("surfaceShader", true);
                 if (!shaderPlug.isNull())
                 {
                     shaderPlug.connectedTo(connectedPlugs, true, false);
