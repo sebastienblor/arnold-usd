@@ -162,7 +162,7 @@ class MtoAProceduralOperator(object):
 ################################################
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)

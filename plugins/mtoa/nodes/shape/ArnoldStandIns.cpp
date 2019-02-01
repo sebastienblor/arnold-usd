@@ -287,9 +287,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       if (selectedItems.length() > 0)
          selectedItems.split(',', selectedItemsList);
       
-      // FIXME shouldn't we rather call ArnoldUniverseOnlyBegin ?
-      AiUniverseCreated = ArnoldUniverseBegin();
-
+      
       bool processRead = false;
       bool isSo = false;
       bool isAss = false;
@@ -317,21 +315,24 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isAss = true;
 
       if (isAss)
+      {
+         if (!AiUniverseIsActive())
+         {
+            AiUniverseCreated = true;
+            AiBegin();
+         }      
+
          universe = AiUniverse();
+      }
       else
       {
-         if (AiUniverseIsActive())
+         //if (AiUniverseIsActive())
          {
             m_refreshAvoided = true;
             return MS::kSuccess;
-         }         
+         }                 
       }
-	  if (!AiUniverseIsActive())
-	  {
-          AiUniverseCreated = true;
-		  AiBegin();
-	  }
-      
+	   
       AtNode* options = AiUniverseGetOptions(universe);
       AiNodeSetBool(options, "skip_license_check", true);
       AiNodeSetBool(options, "enable_dependency_graph", false);
@@ -383,7 +384,14 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          }
       }
       else
-      {         
+      {
+         if (universe) AiUniverseDestroy(universe);
+         if (AiUniverseCreated) AiEnd();        
+         return MS::kSuccess;
+
+         // FIXME: for now we're not trying to display anything for non-ass files
+
+        /*
          procedural = AiNode(universe, "procedural", AtString(), NULL);
          AiNodeSetStr(procedural, "filename", assfile.asChar());
 //         AiNodeSetBool(procedural, "load_at_init", true);
@@ -413,7 +421,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (AiUniverseCreated) AiEnd();            
 
             return MS::kSuccess;
-         }
+         }*/
       }
 
       if (processRead)

@@ -24,6 +24,17 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    // We need to invoke IsMasterInstance first so that the m_isMasterDag value is initialized
    // before we test it in ExportUserAttribute #3673
    IsMasterInstance();
+
+   MString dso = FindMayaPlug("dso").asString();
+   MStringArray splitStr;
+   dso.split('.', splitStr);
+
+   if (splitStr.length() > 1)
+   {
+      MString ext = splitStr[splitStr.length() -1].toLowerCase();
+      if (ext == "abc")
+         return AddArnoldNode("alembic");
+   }
    return AddArnoldNode("procedural");
 }
 
