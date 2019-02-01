@@ -34,7 +34,18 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
       MString ext = splitStr[splitStr.length() -1].toLowerCase();
       if (ext == "abc")
          return AddArnoldNode("alembic");
+
+      if (ext == "usd")
+      {
+         if (AiNodeEntryLookUp("usd"))
+         {
+            // oh amazing, there's a usd node available ! let's use it
+            return AddArnoldNode("usd");  
+         }
+         AiMsgError("[mtoa.standin] USD files not supported : %s", GetMayaNodeName().asChar());         
+      }
    }
+       
    return AddArnoldNode("procedural");
 }
 
