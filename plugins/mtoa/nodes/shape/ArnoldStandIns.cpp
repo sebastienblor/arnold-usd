@@ -276,6 +276,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    MString assfile = geom->filename;
    MString dsoData = geom->data;
    bool AiUniverseCreated = false;
+   bool free_render = false;
    AtUniverse *universe = NULL;
    if (assfile != "")
    {  
@@ -291,28 +292,39 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       bool processRead = false;
       bool isSo = false;
       bool isAss = false;
-      
+      bool isAbc = false;
+      bool isUsd = false;
+
       // This will load correct platform library file independently of current extension
       unsigned int nchars = assfile.numChars();
-      if ((nchars > 3) && (assfile.substringW(nchars - 3, nchars-1).toLowerCase() == ".so"))
+      MStringArray splitStr;
+      assfile.split('.', splitStr);
+      MString ext("ass");
+
+      if (splitStr.length() > 1)
+         ext = splitStr[splitStr.length() -1].toLowerCase();
+      
+      if (ext == "so")
       {
          assfile = assfile.substringW(0, nchars - 4) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars-1).toLowerCase() == ".dll"))
+      else if (ext == "dll")
       {
          assfile = assfile.substringW(0, nchars - 5) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 6) && (assfile.substringW(nchars - 6, nchars-1).toLowerCase() == ".dylib"))
+      else if (ext == "dylib")
       {
          assfile = assfile.substringW(0, nchars - 7) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars-1).toLowerCase() == ".ass"))
+      else if (ext == "ass" || ext == "ass.gz")
          isAss = true;
-      else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars-1).toLowerCase() == ".ass.gz"))
-         isAss = true;
+      else if (ext == "abc")
+         isAbc = true;
+      else if (ext == "usd" || ext == "usda" || ext == "usdc")
+         isUsd = true;      
 
       if (isAss)
       {
@@ -326,11 +338,16 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       }
       else
       {
-         //if (AiUniverseIsActive())
+
+         if (AiUniverseIsActive())
          {
             m_refreshAvoided = true;
             return MS::kSuccess;
-         }                 
+         } 
+
+         AiUniverseCreated = true;
+         AiBegin(AI_SESSION_INTERACTIVE);
+         // no universe is active currently
       }
 	   
       AtNode* options = AiUniverseGetOptions(universe);
@@ -384,10 +401,24 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          }
       }
       else
-      {
-         if (universe) AiUniverseDestroy(universe);
-         if (AiUniverseCreated) AiEnd();        
-         return MS::kSuccess;
+      {      
+
+         AtNode *proc = NULL;
+         if (isAbc)
+            proc = AiNode("alembic");
+         else if (isUsd)
+         {
+            if (AiNodeEntryLookUp("usd"))
+               proc = AiNode("usd"); // oh amazing, there's a usd node available ! let's use it
+            else
+               AiMsgError("[mtoa.standin] USD files not supported");
+         } else
+            proc = AiNode("procedural");
+         
+         AiNodeSetStr(proc, "filename", geom->filename.asChar());
+         AiRender(AI_RENDER_MODE_FREE);
+         free_render = true;
+         processRead = true;
 
          // FIXME: for now we're not trying to display anything for non-ass files
 
@@ -537,12 +568,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          geom->IsGeomLoaded = false;
          status = MS::kFailure;
       }
-
+      
+      if (free_render) AiRenderAbort();
       if (universe) AiUniverseDestroy(universe);
       if (AiUniverseCreated) AiEnd();
-      
-
-
    }
    else
    {
