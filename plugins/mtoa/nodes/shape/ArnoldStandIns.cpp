@@ -1301,15 +1301,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
       // If we can't, we have to load the .ass file and compute it ourselves
       if (fGeometry.mode != 0 || !LoadBoundingBox())
-      {
-         MStatus load = GetPointsFromAss();
-         //if we cant load the geom, we force bounding box
-         if (load != MS::kSuccess && fGeometry.mode != 0)
-         {
-            plug.setAttribute(s_mode);
-            plug.setValue(0);
-         }
-      }
+         GetPointsFromAss();
+      
       MPoint bbMin = fGeometry.bbox.min();
       MPoint bbMax = fGeometry.bbox.max();
       // If BBox has zero size, make it default size
@@ -1325,12 +1318,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         // empty geometry, so set the mode to 0
-         if (fGeometry.mode != 0)
-         {
-            plug.setAttribute(s_mode);
-            plug.setValue(0);
-         }
+         
       }
       else
       {
