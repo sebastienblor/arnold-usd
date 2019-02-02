@@ -93,6 +93,7 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    useFrameExtension = false;
    dList = 0;
    drawOverride = 0;
+   hasSelection=false;
 }
 
 CArnoldStandInGeom::~CArnoldStandInGeom()
@@ -111,6 +112,7 @@ void CArnoldStandInGeom::Clear()
         it != m_instanceList.end(); ++it)
       delete (*it);
    m_instanceList.clear();
+   hasSelection = false;
 }
 
 void CArnoldStandInGeom::Draw(int DrawMode)
@@ -127,13 +129,13 @@ void CArnoldStandInGeom::Draw(int DrawMode)
       (*it)->Draw(DrawMode);
 }
 
-size_t CArnoldStandInGeom::PointCount() const
+size_t CArnoldStandInGeom::PointCount(StandinSelectionFilter filter) const
 {
     size_t totalPoints = 0;
     for (geometryListIterType it = m_geometryList.begin();
          it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
         {
             totalPoints += it->second->PointCount();
         }
@@ -142,7 +144,7 @@ size_t CArnoldStandInGeom::PointCount() const
     for (instanceListIterType it = m_instanceList.begin();
          it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
         {
             totalPoints += (*it)->GetGeometry().PointCount();
         }
@@ -150,29 +152,30 @@ size_t CArnoldStandInGeom::PointCount() const
     return totalPoints;
 }
 
-size_t CArnoldStandInGeom::SharedVertexCount() const
+size_t CArnoldStandInGeom::SharedVertexCount(StandinSelectionFilter filter) const
 {
     size_t totalPoints = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
             totalPoints += it->second->SharedVertexCount();
     }
 
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
-        totalPoints += (*it)->GetGeometry().SharedVertexCount();
+        if ((*it)->GetGeometry().Visible(filter))
+          totalPoints += (*it)->GetGeometry().SharedVertexCount();
     return totalPoints;
 }
 
-size_t CArnoldStandInGeom::WireIndexCount() const
+size_t CArnoldStandInGeom::WireIndexCount(StandinSelectionFilter filter) const
 {
     size_t total = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
         {
             total += it->second->WireIndexCount();
         }
@@ -181,7 +184,7 @@ size_t CArnoldStandInGeom::WireIndexCount() const
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
         {
             total += (*it)->GetGeometry().WireIndexCount();
         }
@@ -189,13 +192,13 @@ size_t CArnoldStandInGeom::WireIndexCount() const
     return total;
 }
 
-size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
+size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices, StandinSelectionFilter filter) const
 {
     size_t total = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
         {
             total += it->second->TriangleIndexCount(sharedVertices);
         }
@@ -204,7 +207,7 @@ size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
         {
             total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
         }
@@ -212,20 +215,20 @@ size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
     return total;
 }
 
-size_t CArnoldStandInGeom::VisibleGeometryCount() const
+size_t CArnoldStandInGeom::VisibleGeometryCount(StandinSelectionFilter filter) const
 {
     size_t total = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
             total++;
     }
 
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
             total++;
     }
     return total;
@@ -507,6 +510,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (selectedItemsList[s] == nodeName)
                   {
                      g->SetSelected(true);
+                     geom->hasSelection = true;
                   }
 
 
@@ -1029,6 +1033,8 @@ MStatus CArnoldStandInShape::initialize()
    s_selectedItems = tAttr.create("selectedItems", "selected_items", MFnData::kString);
    nAttr.setHidden(true);
    nAttr.setStorable(false);
+   nAttr.setWritable(false);
+   nAttr.setInternal(true);
    addAttribute(s_selectedItems);
 
    // atributes that are used only by translation
@@ -1355,6 +1361,7 @@ void CArnoldStandInShape::UpdateSelectedItems()
    
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
+   geom->hasSelection = false;
    for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin(); it != geom->m_geometryList.end(); ++it)
    {
       CArnoldStandInGeometry* g = it->second;
@@ -1369,6 +1376,7 @@ void CArnoldStandInShape::UpdateSelectedItems()
             if (selectedItemsList[i] == nodeName)
             {
                selected = true;
+               geom->hasSelection = true;
                break;
             }
          }

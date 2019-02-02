@@ -297,7 +297,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def fileInfoReplace(self, nodeAttr) :
         if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
             # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
+            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray", storable=False, writable=False )
         self.populateItems()
         if len(self.assItems):
             self.displayTree()
@@ -311,7 +311,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def fileInfoReplace(self, nodeAttr) :
         if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
             # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
+            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray", storable=False, writable=False )
         self.populateItems()
         if len(self.assItems):
             self.displayTree()

@@ -16,6 +16,12 @@ enum GeometryDrawingMode{
    GM_NORMAL_AND_POLYGONS
 };
 
+ enum StandinSelectionFilter {
+      STANDIN_GEOM_ALL,
+      STANDIN_GEOM_UNSELECTED,
+      STANDIN_GEOM_SELECTED
+};
+
 // interface for drawing
 // so we could add support for curves
 // point clouds or other primitives
@@ -29,6 +35,8 @@ protected:
    bool m_visible;
    bool m_invalid;
    bool m_selected;
+
+  
 
    // simple polygons, without normals
    virtual void DrawPolygons() const = 0;
@@ -51,7 +59,7 @@ public:
    MBoundingBox GetBBox(bool transformed = true) const;
    const AtMatrix& GetMatrix() const;
 
-   bool Visible() const;
+   bool Visible(StandinSelectionFilter filter = STANDIN_GEOM_ALL) const;
    bool Invalid() const;
 
    void SetSelected(bool b) {m_selected = b;}
