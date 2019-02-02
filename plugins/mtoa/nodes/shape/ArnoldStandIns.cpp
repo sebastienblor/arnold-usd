@@ -505,12 +505,15 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                if (g->Visible())
                   geom->bbox.expand(g->GetBBox());  
 
+                g->SetSelected(false);
+
                for (unsigned int s = 0; s < selectedItemsList.length(); ++s)
                {
                   if (selectedItemsList[s] == nodeName)
                   {
                      g->SetSelected(true);
                      geom->hasSelection = true;
+                     break;
                   }
 
 
