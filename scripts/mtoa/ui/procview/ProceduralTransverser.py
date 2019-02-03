@@ -174,7 +174,13 @@ class ProceduralTransverser(BaseTransverser):
             if len(selectionStr):
                 selectionStr += ','
 
+            if sel[PROC_PARENT] == None and len(selection) == 1:
+                selectionStr = '' 
+                break
             selectionStr += sel[PROC_PATH]
+            if sel[PROC_ENTRY_TYPE] =='xform':
+                selectionStr += '/*'
+
         cmds.setAttr('{}.{}'.format(node, self.selectionAttr), selectionStr, type='string')
 
     def insertOperator(self, node, op, index):
