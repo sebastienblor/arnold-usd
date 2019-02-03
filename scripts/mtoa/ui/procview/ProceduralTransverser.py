@@ -48,6 +48,10 @@ def ArnoldUniverseEnd():
 class ProceduralTransverser(BaseTransverser):
     """ Procedural Transverser class """
 
+    def __init__(self):
+        super(ProceduralTransverser, self).__init__()
+        self.selectionAttr = None # eventually a string attribute to be updated when the selection changes
+
     def getParams(self, node_types):
         """
         Get all the parameters that can be overidden for the given node types
@@ -161,6 +165,17 @@ class ProceduralTransverser(BaseTransverser):
             item.addOverrideOp(op)
             return op
         return None
+
+    def selectionChanged(self, node, selection):
+        if not self.selectionAttr:
+            return
+        selectionStr = ''
+        for sel in selection:
+            if len(selectionStr):
+                selectionStr += ','
+
+            selectionStr += sel[PROC_PATH]
+        cmds.setAttr('{}.{}'.format(node, self.selectionAttr), selectionStr, type='string')
 
     def insertOperator(self, node, op, index):
 

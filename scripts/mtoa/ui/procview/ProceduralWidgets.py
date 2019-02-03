@@ -75,6 +75,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.getParams()
 
         self.refresh()
+        # Tell the transverser that the selection has changed.
+        # Let's pass the data as an array in case we end up supporting multi-selection
+        self.transverser.selectionChanged(node, [item.data]) 
 
     def setShader(self, shader):
         self.setNodeParam("shader", shader)
@@ -157,10 +160,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         param_data = self.paramDict.get(param, (None, None))
         new_widget.setParam(param, param_data[PARAM_TYPE], param_data[NODE_TYPE], self.paramDict)
         new_widget.setOperation(op)
-        print '-------'
-        print new_widget
-        print value
-        print '-------'
         new_widget.setValue(value)
 
         new_widget.valueChanged[str, str, str, int].connect(self.setOverride)

@@ -36,6 +36,12 @@ class ProceduralTreeView(BaseTreeView):
 
         self.expanded.connect(self.onExpanded)
 
+    def setTransverser(self, transverser):
+        self.transverser = transverser
+        currentItems = []
+        self.model().setTransverser(transverser)
+
+
     def setCurrentNode(self, node):
         """Clear the widget and generate the view of the new node."""
         model = self.model()
@@ -86,10 +92,14 @@ class ProceduralTreeModel(BaseModel):
         self.transverser = transverser
         self.currentNode = None
         self.iarch = None
-        self.proc_items = []
 
         # call the base class init and refresh the data
         super(ProceduralTreeModel, self).__init__(treeView, parent)
+
+    def setTransverser(self, transverser):
+        self.transverser = transverser
+        self.iarch = None
+        self.refresh()
 
     def refresh(self):
         if not self.currentNode or not cmds.objExists(self.currentNode):
@@ -342,9 +352,6 @@ class ProceduralItem(BaseItem):
         if self.childrenObtained:
             return
 
-        # FIXME need to extract this
-        # root node
-        print "ProceduralItem.obtainChildren", self.data, self.itemType
         if not self.data and not self.parent():
             item = ProceduralItem(self, self.transverser, self.node, data=self.transverser.getRootObjectInfo(self.node))
             item.obtainChildren()
