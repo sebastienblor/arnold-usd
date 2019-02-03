@@ -93,6 +93,7 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    useFrameExtension = false;
    dList = 0;
    drawOverride = 0;
+   hasSelection=false;
 }
 
 CArnoldStandInGeom::~CArnoldStandInGeom()
@@ -111,6 +112,7 @@ void CArnoldStandInGeom::Clear()
         it != m_instanceList.end(); ++it)
       delete (*it);
    m_instanceList.clear();
+   hasSelection = false;
 }
 
 void CArnoldStandInGeom::Draw(int DrawMode)
@@ -127,13 +129,13 @@ void CArnoldStandInGeom::Draw(int DrawMode)
       (*it)->Draw(DrawMode);
 }
 
-size_t CArnoldStandInGeom::PointCount() const
+size_t CArnoldStandInGeom::PointCount(StandinSelectionFilter filter) const
 {
     size_t totalPoints = 0;
     for (geometryListIterType it = m_geometryList.begin();
          it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
         {
             totalPoints += it->second->PointCount();
         }
@@ -142,7 +144,7 @@ size_t CArnoldStandInGeom::PointCount() const
     for (instanceListIterType it = m_instanceList.begin();
          it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
         {
             totalPoints += (*it)->GetGeometry().PointCount();
         }
@@ -150,29 +152,30 @@ size_t CArnoldStandInGeom::PointCount() const
     return totalPoints;
 }
 
-size_t CArnoldStandInGeom::SharedVertexCount() const
+size_t CArnoldStandInGeom::SharedVertexCount(StandinSelectionFilter filter) const
 {
     size_t totalPoints = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
             totalPoints += it->second->SharedVertexCount();
     }
 
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
-        totalPoints += (*it)->GetGeometry().SharedVertexCount();
+        if ((*it)->GetGeometry().Visible(filter))
+          totalPoints += (*it)->GetGeometry().SharedVertexCount();
     return totalPoints;
 }
 
-size_t CArnoldStandInGeom::WireIndexCount() const
+size_t CArnoldStandInGeom::WireIndexCount(StandinSelectionFilter filter) const
 {
     size_t total = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
         {
             total += it->second->WireIndexCount();
         }
@@ -181,7 +184,7 @@ size_t CArnoldStandInGeom::WireIndexCount() const
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
         {
             total += (*it)->GetGeometry().WireIndexCount();
         }
@@ -189,13 +192,13 @@ size_t CArnoldStandInGeom::WireIndexCount() const
     return total;
 }
 
-size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
+size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices, StandinSelectionFilter filter) const
 {
     size_t total = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
         {
             total += it->second->TriangleIndexCount(sharedVertices);
         }
@@ -204,7 +207,7 @@ size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
         {
             total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
         }
@@ -212,20 +215,20 @@ size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
     return total;
 }
 
-size_t CArnoldStandInGeom::VisibleGeometryCount() const
+size_t CArnoldStandInGeom::VisibleGeometryCount(StandinSelectionFilter filter) const
 {
     size_t total = 0;
     for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
     {
-        if (it->second->Visible())
+        if (it->second->Visible(filter))
             total++;
     }
 
     for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
     {
-        if ((*it)->GetGeometry().Visible())
+        if ((*it)->GetGeometry().Visible(filter))
             total++;
     }
     return total;
@@ -276,6 +279,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    MString assfile = geom->filename;
    MString dsoData = geom->data;
    bool AiUniverseCreated = false;
+   bool free_render = false;
    AtUniverse *universe = NULL;
    if (assfile != "")
    {  
@@ -291,28 +295,39 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       bool processRead = false;
       bool isSo = false;
       bool isAss = false;
-      
+      bool isAbc = false;
+      bool isUsd = false;
+
       // This will load correct platform library file independently of current extension
       unsigned int nchars = assfile.numChars();
-      if ((nchars > 3) && (assfile.substringW(nchars - 3, nchars-1).toLowerCase() == ".so"))
+      MStringArray splitStr;
+      assfile.split('.', splitStr);
+      MString ext("ass");
+
+      if (splitStr.length() > 1)
+         ext = splitStr[splitStr.length() -1].toLowerCase();
+      
+      if (ext == "so")
       {
          assfile = assfile.substringW(0, nchars - 4) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars-1).toLowerCase() == ".dll"))
+      else if (ext == "dll")
       {
          assfile = assfile.substringW(0, nchars - 5) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 6) && (assfile.substringW(nchars - 6, nchars-1).toLowerCase() == ".dylib"))
+      else if (ext == "dylib")
       {
          assfile = assfile.substringW(0, nchars - 7) + LIBEXT;
          isSo = true;
       }
-      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars-1).toLowerCase() == ".ass"))
+      else if (ext == "ass" || ext == "ass.gz")
          isAss = true;
-      else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars-1).toLowerCase() == ".ass.gz"))
-         isAss = true;
+      else if (ext == "abc")
+         isAbc = true;
+      else if (ext == "usd" || ext == "usda" || ext == "usdc")
+         isUsd = true;      
 
       if (isAss)
       {
@@ -326,11 +341,16 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       }
       else
       {
-         //if (AiUniverseIsActive())
+
+         if (AiUniverseIsActive())
          {
             m_refreshAvoided = true;
             return MS::kSuccess;
-         }                 
+         } 
+
+         AiUniverseCreated = true;
+         AiBegin(AI_SESSION_INTERACTIVE);
+         // no universe is active currently
       }
 	   
       AtNode* options = AiUniverseGetOptions(universe);
@@ -384,10 +404,24 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          }
       }
       else
-      {
-         if (universe) AiUniverseDestroy(universe);
-         if (AiUniverseCreated) AiEnd();        
-         return MS::kSuccess;
+      {      
+
+         AtNode *proc = NULL;
+         if (isAbc)
+            proc = AiNode("alembic");
+         else if (isUsd)
+         {
+            if (AiNodeEntryLookUp("usd"))
+               proc = AiNode("usd"); // oh amazing, there's a usd node available ! let's use it
+            else
+               AiMsgError("[mtoa.standin] USD files not supported");
+         } else
+            proc = AiNode("procedural");
+         
+         AiNodeSetStr(proc, "filename", geom->filename.asChar());
+         AiRender(AI_RENDER_MODE_FREE);
+         free_render = true;
+         processRead = true;
 
          // FIXME: for now we're not trying to display anything for non-ass files
 
@@ -471,11 +505,15 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                if (g->Visible())
                   geom->bbox.expand(g->GetBBox());  
 
+                g->SetSelected(false);
+
                for (unsigned int s = 0; s < selectedItemsList.length(); ++s)
                {
                   if (selectedItemsList[s] == nodeName)
                   {
                      g->SetSelected(true);
+                     geom->hasSelection = true;
+                     break;
                   }
 
 
@@ -537,12 +575,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          geom->IsGeomLoaded = false;
          status = MS::kFailure;
       }
-
+      
+      if (free_render) AiRenderAbort();
       if (universe) AiUniverseDestroy(universe);
       if (AiUniverseCreated) AiEnd();
-      
-
-
    }
    else
    {
@@ -1000,6 +1036,8 @@ MStatus CArnoldStandInShape::initialize()
    s_selectedItems = tAttr.create("selectedItems", "selected_items", MFnData::kString);
    nAttr.setHidden(true);
    nAttr.setStorable(false);
+   nAttr.setWritable(false);
+   nAttr.setInternal(true);
    addAttribute(s_selectedItems);
 
    // atributes that are used only by translation
@@ -1272,15 +1310,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
       // If we can't, we have to load the .ass file and compute it ourselves
       if (fGeometry.mode != 0 || !LoadBoundingBox())
-      {
-         MStatus load = GetPointsFromAss();
-         //if we cant load the geom, we force bounding box
-         if (load != MS::kSuccess && fGeometry.mode != 0)
-         {
-            plug.setAttribute(s_mode);
-            plug.setValue(0);
-         }
-      }
+         GetPointsFromAss();
+      
       MPoint bbMin = fGeometry.bbox.min();
       MPoint bbMax = fGeometry.bbox.max();
       // If BBox has zero size, make it default size
@@ -1296,12 +1327,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         // empty geometry, so set the mode to 0
-         if (fGeometry.mode != 0)
-         {
-            plug.setAttribute(s_mode);
-            plug.setValue(0);
-         }
+         
       }
       else
       {
@@ -1338,6 +1364,7 @@ void CArnoldStandInShape::UpdateSelectedItems()
    
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
+   geom->hasSelection = false;
    for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin(); it != geom->m_geometryList.end(); ++it)
    {
       CArnoldStandInGeometry* g = it->second;
@@ -1352,6 +1379,7 @@ void CArnoldStandInShape::UpdateSelectedItems()
             if (selectedItemsList[i] == nodeName)
             {
                selected = true;
+               geom->hasSelection = true;
                break;
             }
          }

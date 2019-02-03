@@ -109,7 +109,7 @@ class StandInTransverser(ProceduralTransverser):
 ################################################
 
 def LoadStandInButtonPush(attrName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply *.abc *.usd)'
     defaultDir = cmds.workspace(query=True, directory=True)
     currentDir = cmds.getAttr(attrName) or ''
     currentDir = os.path.dirname(currentDir)
@@ -231,7 +231,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         '''
         if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
             # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray" )
+            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray", storable=False, writable=False )
         self.populateItems()
         if len(self.assItems):
             self.displayTree()

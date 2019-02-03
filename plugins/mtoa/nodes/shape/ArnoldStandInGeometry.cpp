@@ -139,12 +139,24 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed) const
 
 const AtMatrix& CArnoldStandInGeometry::GetMatrix() const
 {
-    return m_matrix;
+   return m_matrix;
 }
 
-bool CArnoldStandInGeometry::Visible() const
+bool CArnoldStandInGeometry::Visible(StandinSelectionFilter filter) const
 {
-   return m_visible;
+   if (!m_visible)
+      return false;
+
+   switch(filter)
+   {
+      default:
+      case STANDIN_GEOM_ALL:
+         return true;
+      case STANDIN_GEOM_UNSELECTED:
+         return !m_selected;
+      case STANDIN_GEOM_SELECTED:
+         return m_selected;
+   }
 }
 
 bool CArnoldStandInGeometry::Invalid() const
@@ -588,6 +600,7 @@ CArnoldStandInGInstance::~CArnoldStandInGInstance()
 
 void CArnoldStandInGInstance::Draw(int DrawMode)
 {
+   AiMsgWarning("geom draw");
    glPushMatrix();
    glMultMatrixf(&m_matrix[0][0]);
    p_geom->Draw(DrawMode, m_inheritXForm);
