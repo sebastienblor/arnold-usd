@@ -66,6 +66,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
         self.layout.addWidget(self.overridesPanel)
 
+    def setTransverser(self, transverser):
+        self.transverser = transverser
+
     def setItem(self, node, item):
         self.node = node
         self.item = item
@@ -77,7 +80,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.refresh()
         # Tell the transverser that the selection has changed.
         # Let's pass the data as an array in case we end up supporting multi-selection
-        self.transverser.selectionChanged(node, [item.data]) 
+        if self.transverser:
+            self.transverser.selectionChanged(node, [item.data]) 
 
     def setShader(self, shader):
         self.setNodeParam("shader", shader)

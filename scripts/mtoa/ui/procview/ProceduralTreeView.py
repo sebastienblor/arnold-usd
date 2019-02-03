@@ -102,7 +102,7 @@ class ProceduralTreeModel(BaseModel):
         self.refresh()
 
     def refresh(self):
-        if not self.currentNode or not cmds.objExists(self.currentNode):
+        if not self.currentNode or not cmds.objExists(self.currentNode) or not self.transverser:
             return
 
         self.beginResetModel()

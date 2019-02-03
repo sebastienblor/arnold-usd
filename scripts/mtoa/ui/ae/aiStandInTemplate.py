@@ -20,6 +20,7 @@ CACHE_ATTR = 'ai_asscache'
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
+from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 
 from mtoa.callbacks import *
     
@@ -116,9 +117,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
     
     def updateAssFile(self):
         self.assItems = []
+        self.fileInfoReplace(self.nodeName + ".dso")
         cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
 
-        self.fileInfoReplace(self.nodeName + ".dso")
 
     '''
     def selectElement(self, itemName, itemValue):
@@ -144,36 +145,34 @@ class AEaiStandInTemplate(ShaderAETemplate):
     '''
     
     def fileInfoReplace(self, nodeAttr) :
-        self.tree.setCurrentNode(self.nodeName)
-        '''
-        if not cmds.attributeQuery(CACHE_ATTR, node=self.nodeName, exists=True):
-            # make the attr
-            cmds.addAttr(self.nodeName, longName=CACHE_ATTR, dt="stringArray", storable=False, writable=False )
-        self.populateItems()
-        if len(self.assItems):
-            self.displayTree()
-        else:
-            cmds.treeView(self.assInfoPath, edit=True, visible=False)
-            cmds.button(self.inspectAssPath, edit=True, visible=True)
-            cmds.treeView(self.assInfoPath, edit=True, removeAll=True)
-            cmds.button(self.overrideSelectionButton, edit=True, visible=False)
-            cmds.button(self.selectOperatorButton, edit=True, visible=False)
-        '''
+        fileAttr = '{}.dso'.format(nodeAttr.split('.')[0])
+        filename = cmds.getAttr(fileAttr)
+        ext_str = os.path.splitext(filename)[1].lower()
 
+        if ext_str == '.abc':
+            transverser = AlembicTransverser()
+            transverser.filenameAttr = 'dso'
+        else:
+            transverser = StandInTransverser()
+
+        transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
+        self.tree.setTransverser(transverser)
+        self.properties_panel.setTransverser(transverser)
+        self.tree.setCurrentNode(self.nodeName)
+        
 
     def fileInfoNew(self, nodeAttr):
         self.currentItem = None
         currentWidget = self.__currentWidget()
 
-        standinTransverser = StandInTransverser()
-        standinTransverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
-
-        self.tree = ProceduralTreeView(standinTransverser, currentWidget)
+        # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
+        # in fileInfoReplace
+        self.tree = ProceduralTreeView(None, currentWidget)
         self.tree.setObjectName("standinTreeWidget")
         currentWidget.layout().addWidget(self.tree)
 
         # now add the preperties panel
-        self.properties_panel = ProceduralPropertiesPanel(standinTransverser, currentWidget)
+        self.properties_panel = ProceduralPropertiesPanel(None, currentWidget)
         currentWidget.layout().addWidget(self.properties_panel)
 
         self.tree.itemSelected.connect(self.showItemProperties)
@@ -183,9 +182,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile],
                        replacePrevious=True, parent=self.inspectAssPath)
 
-    def fileInfoReplace(self, nodeAttr):
-        self.tree.setCurrentNode(self.nodeName)
-        # self.properties_panel.setItem(self.nodeName, None)
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
@@ -231,50 +227,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
     def selectOperators(self):
         return
 
-    def inspectFile(self):
-        filenameAttr = self.nodeName + '.dso'
-        filename = cmds.getAttr(filenameAttr)
-
-        if not os.path.exists(filename):
-            return
-        
-        ext_str = os.path.splitext(filename)[1].lower()
-        # do not try to load anything else than .ass files....
-        if ext_str != '.ass' and ext_str != '.ass.gz':
-            return
-       
-        self.assItems = []
-
-        universeCreated = False
-        if not ai.AiUniverseIsActive():
-            universeCreated = True
-            ai.AiBegin()
-
-        universe = ai.AiUniverse()
-        ai.AiASSLoad(universe, filename, ai.AI_NODE_ALL)
-
-        iter = ai.AiUniverseGetNodeIterator(universe, ai.AI_NODE_ALL);
-        
-        while not ai.AiNodeIteratorFinished(iter):
-            node = ai.AiNodeIteratorGetNext(iter)
-            nodeName = ai.AiNodeGetName(node)
-            if nodeName == 'root' or nodeName == 'ai_default_reflection_shader' or nodeName == 'options':
-                continue
-            
-            nodeEntry = ai.AiNodeGetNodeEntry(node)
-            entryName = ai.AiNodeEntryGetName(nodeEntry)
-            #entryType = ai.AiNodeEntryGetTypeName(nodeEntry)
-            
-            self.assItems.append([nodeName, entryName])
-
-        ai.AiNodeIteratorDestroy(iter)
-        ai.AiUniverseDestroy(universe)
-
-        if universeCreated:
-            ai.AiEnd()
-
-        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), len(self.assItems), *[','.join(a) for a in self.assItems], type="stringArray")
-        self.displayTree()
 
     def populateItems(self):
         self.assItems = []
