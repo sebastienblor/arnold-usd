@@ -287,10 +287,21 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       MString selectedItems;
       selPlug.getValue(selectedItems);
       MStringArray selectedItemsList;
-      
+      MStringArray xformSelections;
+
       if (selectedItems.length() > 0)
          selectedItems.split(',', selectedItemsList);
       
+      unordered_set<std::string> selectedMap;
+      for (unsigned int i = 0; i < selectedItemsList.length(); ++i)
+      {
+         const MString &sel = selectedItemsList[i];
+         if (sel.asChar()[sel.length() - 1] == '*')
+            xformSelections.append(sel.substringW(0, sel.length() - 2));
+         else
+            selectedMap.insert(std::string(sel.asChar()));
+
+      }
       
       bool processRead = false;
       bool isSo = false;
@@ -505,19 +516,21 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                if (g->Visible())
                   geom->bbox.expand(g->GetBBox());  
 
-                g->SetSelected(false);
-
-               for (unsigned int s = 0; s < selectedItemsList.length(); ++s)
+                
+               bool selected = (selectedMap.find(std::string(nodeName.asChar())) != selectedMap.end());
+               if (!selected)
                {
-                  if (selectedItemsList[s] == nodeName)
+                  for (unsigned int i = 0; i < xformSelections.length(); ++i)
                   {
-                     g->SetSelected(true);
-                     geom->hasSelection = true;
-                     break;
+                     const MString &sel = xformSelections[i];
+                     if (nodeName.length() > sel.length() && nodeName.substringW(0, sel.length() - 1) == sel)
+                        selected = true;
                   }
-
-
                }
+               if (selected)
+                  geom->hasSelection = true;
+               
+               g->SetSelected(selected);
                geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
             }
          }
@@ -1358,9 +1371,23 @@ void CArnoldStandInShape::UpdateSelectedItems()
    MString selectedItems;
    selPlug.getValue(selectedItems);
    MStringArray selectedItemsList;
-   
+
+   MStringArray xformSelections;
    if (selectedItems.length() > 0)
+   {
       selectedItems.split(',', selectedItemsList);
+   }
+   unordered_set<std::string> selectedMap;
+   for (unsigned int i = 0; i < selectedItemsList.length(); ++i)
+   {
+      const MString &sel = selectedItemsList[i];
+      if (sel.asChar()[sel.length() - 1] == '*')
+      {
+         xformSelections.append(sel.substringW(0, sel.length() - 2));
+      }
+      else
+         selectedMap.insert(std::string(sel.asChar()));
+   }
    
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
@@ -1374,15 +1401,19 @@ void CArnoldStandInShape::UpdateSelectedItems()
 
       if (g)
       {
-         for (unsigned int i = 0; i < selectedItemsList.length(); ++i)
+         bool selected = (selectedMap.find(std::string(nodeName.asChar())) != selectedMap.end());
+         if (!selected)
          {
-            if (selectedItemsList[i] == nodeName)
+            for (unsigned int i = 0; i < xformSelections.length(); ++i)
             {
-               selected = true;
-               geom->hasSelection = true;
-               break;
+               const MString &sel = xformSelections[i];
+               if (nodeName.length() > sel.length() && nodeName.substringW(0, sel.length() - 1) == sel)
+                  selected = true;
             }
          }
+         if (selected)
+            geom->hasSelection = true;
+
          g->SetSelected(selected);
       }
       
