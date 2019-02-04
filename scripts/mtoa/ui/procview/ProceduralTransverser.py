@@ -27,6 +27,8 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
 OVERRIDE_OP = "aiSetParameter"
 DISABLE_OP = "aiDisable"
 
+NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
+
 PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
                    'motion_start', 'motion_end', 'shader', 'disp_map',
                    'vidxs', 'vlist', 'nsides', 'uvidxs', 'shidxs',
@@ -67,9 +69,14 @@ class ProceduralTransverser(BaseTransverser):
         if not node_types:
             return {}
 
+        self.paramDict['hidden'] = {'shader': (AI_TYPE_NODE, None, False, []),
+                                    'disp_map': (AI_TYPE_NODE, None, False, []),}
+
         self.paramDict['common'] = {"visibility": (AI_TYPE_BYTE, 255, False, []),
                                     "sidedness": (AI_TYPE_BYTE, 255, False, []),
                                     "recieve_shadows": (AI_TYPE_BOOLEAN, True, False, []),
+                                    "opaque": (AI_TYPE_BOOLEAN, True, False, []),
+                                    "mask": (AI_TYPE_BOOLEAN, True, False, []),
                                     "self_shadows": (AI_TYPE_BOOLEAN, True, False, [])}
 
         for nodeType in node_types:
@@ -83,9 +90,10 @@ class ProceduralTransverser(BaseTransverser):
                 while not AiParamIteratorFinished(paramIter):
                     param = AiParamIteratorGetNext(paramIter)
                     param_type = AiParamGetType(param)
+                    paramName = AiParamGetName(param)
 
                     # skip parameters in the blacklist
-                    if param in PARAM_BLACKLIST:
+                    if paramName in PARAM_BLACKLIST:
                         continue
 
                     if param_type == AI_TYPE_ARRAY:
@@ -106,7 +114,6 @@ class ProceduralTransverser(BaseTransverser):
 
                     default_value = self._getDefaultValue(param, param_type)
 
-                    paramName = AiParamGetName(param)
                     if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys():
                         is_array = param_type == AI_TYPE_ARRAY
                         self.paramDict[nodeType][paramName] = (param_type,
@@ -161,7 +168,7 @@ class ProceduralTransverser(BaseTransverser):
         if parent_index > -1:
             index = parent_index + 1
 
-        op_name = '{}_setParam{}'.format(node, num_ops)
+        op_name = '{}_{}'.format(node, operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
         if op:
             # if this operator has a selection attribute set it to the

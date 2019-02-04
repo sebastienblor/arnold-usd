@@ -268,17 +268,17 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self._orginalWidth = self.frameWidth()
         self.conButton.clicked.connect(self.connectionButtonClicked)
 
-        self.menu = None
-
-        menu = QtWidgets.QMenu()
-        menu.addAction("Disconnect")
-        self.setMenu(menu)
+        self.menu = QtWidgets.QMenu()
+        self.menu.addAction("Disconnect")
+        self.setMenu(self.menu)
 
         self.setAcceptDrops(True)
 
         self.lineEdit.textEdited.connect(self.valueChanged)
 
     def setMenu(self, menu):
+        if self.menu:
+            self.menu.deleteLater()
         self.menu = menu
         self.menu.triggered.connect(self.menuTriggered.emit)
 
@@ -444,8 +444,9 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
     def populateParams(self, paramDict):
 
         for node_type, params in sorted(paramDict.items()):
-            for param, data in sorted(params.items()):
-                self.paramWidget.addItem(param, node_type)
+            if node_type != 'hidden':
+                for param, data in sorted(params.items()):
+                    self.paramWidget.addItem(param, node_type)
 
         # for param, data in sorted(paramDict.items()):
         #     self.paramWidget.addItem(param, data[0])

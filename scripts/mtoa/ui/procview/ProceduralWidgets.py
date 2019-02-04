@@ -5,10 +5,14 @@ from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt import setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 
+import maya.cmds as cmds
+
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                             PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP,\
                             PARM, OP, VALUE, INDEX
+
+OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
 
 
 class ProceduralPropertiesPanel(QtWidgets.QFrame):
@@ -38,11 +42,15 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.toolBar.setLayout(QtWidgets.QHBoxLayout())
         self.layout.addWidget(self.toolBar)
 
-        self.addOverideButton = QtWidgets.QPushButton("Add Parameter")
-        self.addOverideButton.setIcon(self.GEAR_ICON)
-        self.toolBar.layout().addWidget(self.addOverideButton)
+        self.addOverrideButton = QtWidgets.QPushButton("Add Parameter")
+        self.addOverrideButton.setIcon(self.GEAR_ICON)
+        self.overrideMenu = QtWidgets.QMenu()
+        self.addOverrideButton.setMenu(self.overrideMenu)
+        self.rootMenus = []
 
-        self.addOverideButton.clicked.connect(self.addOverride)
+        self.toolBar.layout().addWidget(self.addOverrideButton)
+
+        self.overrideMenu.triggered.connect(self.setOverrideFromMenu)
 
         self.addShaderButton = QtWidgets.QPushButton("Add Shader")
         self.addShaderButton.setIcon(self.SHADER_ICON)
@@ -56,23 +64,33 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.addDisplacementButton.clicked.connect(self.addDisplacement)
 
+        self.addOperatorButton = QtWidgets.QPushButton("Add Operator")
+        self.addOperatorButton.setIcon(self.GEAR_ICON)
+        self.toolBar.layout().addWidget(self.addOperatorButton)
+        self.operatorMenu = QtWidgets.QMenu()
+        self.addOperatorButton.setMenu(self.operatorMenu)
+
+        self.operatorMenu.triggered.connect(self.addOperator)
+
         self.toolBar.layout().insertStretch(-1)
 
         self.shadingPanel = QtWidgets.QFrame()
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
         self.shadingPanel.layout().setContentsMargins(0, 0, 0, 0)
 
-        # shader override
+        # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}
         self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader")
         self.shaderOverrideWidget.valueChanged.connect(self.setShader)
+        self.shaderOverrideWidget.setVisible(False)
         self.shaderOverrideWidget.nodeDisconnected.connect(self.disconnectShader)
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
         self.shadingWidgets['shader'] = self.shaderOverrideWidget
 
-        # displacement override
+        # displacement override - HIDDEN BY DEFAULT
         self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement")
         self.dispOverrideWidget.valueChanged.connect(self.setDisplacement)
+        self.dispOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
         self.shadingWidgets['disp_map'] = self.dispOverrideWidget
 
@@ -81,6 +99,64 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.overridesPanel = QtWidgets.QFrame()
         self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
         self.layout.addWidget(self.overridesPanel)
+
+    def addOperatorMenu(self):
+        self.operatorMenu.clear()
+
+        # get list of operators in scene
+        # for operator in OPERATORS:
+        #     opNodes = cmds.ls(type=operator) or []
+        #     for opNode in opNodes:
+        #         if opNode == nodeName:
+        #             continue
+        #         self.operatorMenu.addAction(opNode)
+
+        for op in OPERATORS:
+            self.operatorMenu.addAction(op)
+
+    def addOperator(self, action):
+        op_name = action.text()
+        # check if op exists, otherwise create it
+        if not cmds.objExists(op_name) and op_name in OPERATORS:
+            op = self.transverser.createOperator(self.node, self.item, op_name)
+
+    def addOverrideMenu(self):
+
+        if not self.overrideMenu.isEmpty():
+            self.overrideMenu.clear()
+            for menu in self.rootMenus:
+                menu.deleteLater()
+            self.rootMenus = []
+
+        for node_type, params in sorted(self.paramDict.items()):
+            if node_type != 'hidden':
+                parent_menu = self.overrideMenu
+                print node_type
+                for sub_menu in self.rootMenus:
+                    if sub_menu.title() == node_type:
+                        parent_menu = sub_menu
+
+                for param, data in sorted(params.items()):
+                    # check if a root item exists
+                    if parent_menu == self.overrideMenu:
+                        parent_menu = self.overrideMenu.addMenu(node_type)
+                    self.rootMenus.append(parent_menu)
+                    if parent_menu:
+                        parent_menu.addAction(param)
+
+    def setOverrideFromMenu(self, action):
+        op = self.getOverrideOperator()
+        param = action.text()
+        value = self.getDefaultValue(param)
+        self.setOverride(param, "=", value)
+        self.refresh()
+
+    def getDefaultValue(self, param):
+        default_value = ""
+        param_data = self.getParamData(param)
+        if param_data:
+            default_value = param_data[DEFAULT_VALUE]
+        return default_value
 
     def setTransverser(self, transverser):
         self.transverser = transverser
@@ -92,6 +168,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.object = item.data
             self.object_label.setText(item.getName())
             self.getParams()
+            self.addOverrideMenu()
+            self.addOperatorMenu()
 
         self.refresh()
         # Tell the transverser that the selection has changed.
@@ -100,6 +178,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.transverser.selectionChanged(node, [item.data]) 
 
     def setShader(self, shader):
+        self.shaderOverrideWidget.setNode(shader, False)
+        self.shaderOverrideWidget.setVisible(True)
         self.setNodeParam("shader", shader)
 
     def disconnectShader(self):
@@ -109,7 +189,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.setNodeParam("disp_map", disp)
 
     def addShader(self):
-        pass
+        shader = 'lambert1'
+        self.setShader(shader)
 
     def addDisplacement(self):
         pass
@@ -150,6 +231,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def refresh(self):
         clearWidget(self.overridesPanel)
+        self.shaderOverrideWidget.setVisible(False)
+        self.dispOverrideWidget.setVisible(False)
+
         self.resetShadingWidgets()
         if self.item:
             data = self.getData(self.item)
@@ -160,6 +244,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                         # set the shader slot
                         node = override[VALUE].replace("'", "").replace('"', "")
                         self.shadingWidgets[override[PARM]].setNode(node, False)
+                        self.shadingWidgets[override[PARM]].setVisible(True)
                     else:
                         self.addOverrideGUI(*override)
 
@@ -223,7 +308,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             value = "''"
         param_type = None
         is_array = False
-
         data = self.getData(self.item)
         if not data:
             return

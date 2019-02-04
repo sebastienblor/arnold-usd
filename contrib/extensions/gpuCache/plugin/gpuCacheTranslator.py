@@ -22,12 +22,12 @@ from ast import literal_eval
 from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTreeModel, ProceduralItem
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.ProceduralTransverser import ProceduralTransverser, \
+                           ArnoldUniverseOnlyBegin, ArnoldUniverseEnd, NODE_TYPES, \
                            PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                            PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
-                           OVERRIDE_OP, DISABLE_OP
+                           OVERRIDE_OP, DISABLE_OP, PARAM_BLACKLIST
 
-from mtoa.ui.procview.AlembicTransverser import AlembicTransverser, \
-                        ArnoldUniverseOnlyBegin, ArnoldUniverseEnd, NODE_TYPES, BLACK_LIST_PARAMS
+from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
 
 
 from alembic import Abc, AbcGeom
@@ -95,7 +95,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
             param_type = AiParamGetType(this_param)
 
             # check this param is not in the black list
-            if param_name not in BLACK_LIST_PARAMS:
+            if param_name not in PARAM_BLACKLIST:
                 if param_type not in [AI_TYPE_ARRAY]:
                     self.user_attrs[node_type][param_name] = self._createControl(node_type, param_name, param_type, this_param)
 
@@ -212,7 +212,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                     param_default = self._getDefaultValue(this_param, param_type)
 
                 # check this param is not in the black list
-                if param_name not in BLACK_LIST_PARAMS:
+                if param_name not in PARAM_BLACKLIST:
                     if param_type not in [AI_TYPE_ARRAY]:
                         cmds.setParent(subsections[node_type][sub_param])
                         self.attr_ctrls[node_type][param_name] = {'control':self._createControl(node_type, param_name, param_type, this_param),
