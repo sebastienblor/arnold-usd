@@ -21,6 +21,7 @@ from mtoa.ui.procview.ProceduralTreeView import ProceduralTreeView, ProceduralTr
 from mtoa.ui.procview.ProceduralWidgets import ProceduralPropertiesPanel
 from mtoa.ui.procview.StandInTransverser import StandInTransverser
 from mtoa.ui.procview.AlembicTransverser import AlembicTransverser
+from mtoa.ui.procview.CustomProceduralTransverser import CustomProceduralTransverser
 
 from mtoa.callbacks import *
     
@@ -152,8 +153,14 @@ class AEaiStandInTemplate(ShaderAETemplate):
         if ext_str == '.abc':
             transverser = AlembicTransverser()
             transverser.filenameAttr = 'dso'
-        else:
+        elif ext_str == '.ass' or ext_str == '.ass.gz' or ext_str == '.gz':
             transverser = StandInTransverser()
+        else:
+            # need to find out which procedural to use with it
+            procName = 'procedural'
+            if ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
+                procName = 'usd'
+            transverser = CustomProceduralTransverser(procName, 'filename', filename)
 
         transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
         self.tree.setTransverser(transverser)

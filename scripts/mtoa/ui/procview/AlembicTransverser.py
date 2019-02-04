@@ -178,8 +178,7 @@ class AlembicTransverser(ProceduralTransverser):
         abc_file = self.getArchive(node) 
         return self.getObjectInfo(abc_file.getTop())
         
-    def dir(self, *args):
-        iobject = args[0]
+    def dir(self, iobject):
         children = []
         for ich in iobject.children:
             children.append(self.getObjectInfo(ich))
