@@ -146,8 +146,14 @@ class AEaiStandInTemplate(ShaderAETemplate):
     '''
     
     def fileInfoReplace(self, nodeAttr) :
-        fileAttr = '{}.dso'.format(nodeAttr.split('.')[0])
+        nodeName = nodeAttr.split('.')[0]
+        fileAttr = '{}.dso'.format(nodeName)
         filename = cmds.getAttr(fileAttr)
+        if nodeName == self.currentNode and filename == self.currentFilename:
+            return # nothing to do here...
+
+        self.currentNode = nodeName
+        self.currentFilename = filename
         ext_str = os.path.splitext(filename)[1].lower()
 
         if ext_str == '.abc':
@@ -166,11 +172,14 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setTransverser(transverser)
         self.properties_panel.setTransverser(transverser)
         self.tree.setCurrentNode(self.nodeName)
+
         
 
     def fileInfoNew(self, nodeAttr):
-        self.currentItem = None
+
         currentWidget = self.__currentWidget()
+        self.currentNode = ''
+        self.currentFilename = ''
 
         # Here we first create the ProceduralTreeView with a 'None' ProceduralTranverser, because we'll set it later or 
         # in fileInfoReplace
