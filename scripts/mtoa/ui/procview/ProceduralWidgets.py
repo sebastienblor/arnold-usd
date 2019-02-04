@@ -10,11 +10,14 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             OVERRIDE_OP, DISABLE_OP,\
                             PARM, OP, VALUE, INDEX
 
+
 class ProceduralPropertiesPanel(QtWidgets.QFrame):
     """SubClass properties panel for displying properties of an object"""
 
     propertyChanged = QtCore.Signal(str, object)
     GEAR_ICON = QtGui.QPixmap(":/gear.png")
+    SHADER_ICON = QtGui.QPixmap(":/out_blinn.png")
+    DISP_ICON = QtGui.QPixmap(":/out_displacementShader.png")
 
     def __init__(self, transverser, parent=None):
         super(ProceduralPropertiesPanel, self).__init__(parent)
@@ -38,9 +41,22 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.addOverideButton = QtWidgets.QPushButton("Add Parameter")
         self.addOverideButton.setIcon(self.GEAR_ICON)
         self.toolBar.layout().addWidget(self.addOverideButton)
-        self.toolBar.layout().insertStretch(-1)
 
         self.addOverideButton.clicked.connect(self.addOverride)
+
+        self.addShaderButton = QtWidgets.QPushButton("Add Shader")
+        self.addShaderButton.setIcon(self.SHADER_ICON)
+        self.toolBar.layout().addWidget(self.addShaderButton)
+
+        self.addShaderButton.clicked.connect(self.addShader)
+
+        self.addDisplacementButton = QtWidgets.QPushButton("Add Displacement")
+        self.addDisplacementButton.setIcon(self.DISP_ICON)
+        self.toolBar.layout().addWidget(self.addDisplacementButton)
+
+        self.addDisplacementButton.clicked.connect(self.addDisplacement)
+
+        self.toolBar.layout().insertStretch(-1)
 
         self.shadingPanel = QtWidgets.QFrame()
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
@@ -91,6 +107,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def setDisplacement(self, disp):
         self.setNodeParam("disp_map", disp)
+
+    def addShader(self):
+        pass
+
+    def addDisplacement(self):
+        pass
 
     def getOverrideOperator(self, create=True):
         ops = self.transverser.getOperators(self.node, self.item.getName(), OVERRIDE_OP)
@@ -161,8 +183,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         new_widget.deleteMe.connect(self.removeOverride)
         new_widget.populateParams(self.paramDict)
         # set the widget
-        param_data = self.paramDict.get(param, (None, None))
-        new_widget.setParam(param, param_data[PARAM_TYPE], param_data[NODE_TYPE], self.paramDict)
+        new_widget.setParam(param, self.paramDict)
         new_widget.setOperation(op)
         new_widget.setValue(value)
 
@@ -185,6 +206,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                 self.transverser.deleteOperator(self.node, data[PROC_PATH], OVERRIDE_OP)
             self.refresh()
 
+    def getParamData(self, param):
+        for node_type, params in self.paramDict.items():
+            if param in params:
+                return params[param]
+
+        return None
+
     @QtCore.Slot(str, str, str, int)
     @QtCore.Slot(str, str, int, int)
     @QtCore.Slot(str, str, bool, int)
@@ -200,7 +228,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if not data:
             return
 
-        param_data = self.paramDict.get(param)
+        param_data = self.getParamData(param)
         if param_data:
             param_type = param_data[PARAM_TYPE]
             is_array = param_data[IS_ARRAY]

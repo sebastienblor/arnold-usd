@@ -41,7 +41,6 @@ class ProceduralTreeView(BaseTreeView):
         currentItems = []
         self.model().setTransverser(transverser)
 
-
     def setCurrentNode(self, node):
         """Clear the widget and generate the view of the new node."""
         model = self.model()
@@ -157,12 +156,15 @@ class ProceduralTreeViewDelegate(BaseDelegate):
     def __init__(self, treeView):
         super(ProceduralTreeViewDelegate, self).__init__(treeView)
 
+
 class ProceduralItem(BaseItem):
 
     ALEMBIC_ICON = QtGui.QPixmap(":/out_objectSet.png")
     GROUP_ICON = QtGui.QPixmap(":/out_transform.png")
     MESH_ICON = QtGui.QPixmap(":/out_mesh.png")
+    POINTS_ICON = QtGui.QPixmap(":/out_particle.png")
     CURVES_ICON = QtGui.QPixmap(":/out_curves.png")
+    UNKNOWN_ICON = QtGui.QPixmap(":/question.png")
 
     COLOR_OBJECT = QtGui.QColor(113, 142, 164)
     COLOR_OPERATOR = QtGui.QColor(18, 54, 82)
@@ -248,7 +250,13 @@ class ProceduralItem(BaseItem):
     def getIcon(self):
         if self.childItems:
             return self.GROUP_ICON
-        return self.MESH_ICON
+        if self.data[PROC_ENTRY_TYPE] == 'polymesh':
+            return self.MESH_ICON
+        elif self.data[PROC_ENTRY_TYPE] == 'points':
+            return self.POINTS_ICON
+        elif self.data[PROC_ENTRY_TYPE] == 'curves':
+            return self.CURVES_ICON
+        return self.UNKNOWN_ICON
 
     def getBackgroundColor(self):
         """
@@ -362,10 +370,9 @@ class ProceduralItem(BaseItem):
             if self.transverser.showOperatorItems():
                 operators = self.transverser.getOperators(self.node, self.data[PROC_PATH])
                 if operators:
-                    print operators
                     for op in operators:
                         ProceduralItem(self, self.transverser, self.node, operator=op)
-            
+
             children = self.transverser.dir(self.data[PROC_IOBJECT])
             if children:
                 for child in children:

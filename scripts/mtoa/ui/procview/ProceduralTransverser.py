@@ -27,6 +27,13 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
 OVERRIDE_OP = "aiSetParameter"
 DISABLE_OP = "aiDisable"
 
+PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
+                   'motion_start', 'motion_end', 'shader', 'disp_map',
+                   'vidxs', 'vlist', 'nsides', 'uvidxs', 'shidxs',
+                   'nlist', 'uvlist', 'crease_idxs', 'crease_sharpness',
+                   'use_shadow_group', 'use_light_group', 'degree_u',
+                   'degree_v', 'transform_type']
+
 
 def ArnoldUniverseOnlyBegin():
     if not AiUniverseIsActive():
@@ -50,7 +57,8 @@ class ProceduralTransverser(BaseTransverser):
 
     def __init__(self):
         super(ProceduralTransverser, self).__init__()
-        self.selectionAttr = None # eventually a string attribute to be updated when the selection changes
+        self.selectionAttr = None  # eventually a string attribute to be updated when the selection changes
+        self.paramDict = {}
 
     def getParams(self, node_types):
         """
@@ -59,21 +67,27 @@ class ProceduralTransverser(BaseTransverser):
         if not node_types:
             return {}
 
-        # FIXME cache this so we don't call it everytime the widget is created
-        # FIXME blacklist parameters that we don't want to expose
-        paramDict = {}
-
-
-        AiUniverseCreated = ArnoldUniverseOnlyBegin()
-        AiMsgSetConsoleFlags(AI_LOG_NONE)
+        self.paramDict['common'] = {"visibility": (AI_TYPE_BYTE, 255, False, []),
+                                    "sidedness": (AI_TYPE_BYTE, 255, False, []),
+                                    "recieve_shadows": (AI_TYPE_BOOLEAN, True, False, []),
+                                    "self_shadows": (AI_TYPE_BOOLEAN, True, False, [])}
 
         for nodeType in node_types:
-            if nodeType:
+            if nodeType and nodeType not in self.paramDict:
+                self.paramDict[nodeType] = {}
+                AiUniverseCreated = ArnoldUniverseOnlyBegin()
+                AiMsgSetConsoleFlags(AI_LOG_NONE)
+
                 nodeEntry = AiNodeEntryLookUp(nodeType)
                 paramIter = AiNodeEntryGetParamIterator(nodeEntry)
                 while not AiParamIteratorFinished(paramIter):
                     param = AiParamIteratorGetNext(paramIter)
                     param_type = AiParamGetType(param)
+
+                    # skip parameters in the blacklist
+                    if param in PARAM_BLACKLIST:
+                        continue
+
                     if param_type == AI_TYPE_ARRAY:
                         array_default = AiParamGetDefault(param).contents.ARRAY
                         param_type = AiArrayGetType(array_default)
@@ -93,17 +107,19 @@ class ProceduralTransverser(BaseTransverser):
                     default_value = self._getDefaultValue(param, param_type)
 
                     paramName = AiParamGetName(param)
-                    if paramName not in paramDict:
-                        paramDict[paramName] = (nodeType, param_type, default_value, param_type == AI_TYPE_ARRAY, enum_values)
-                    else:
-                        paramDict[paramName] = ("common", param_type, default_value, param_type == AI_TYPE_ARRAY, enum_values)
+                    if paramName not in self.paramDict[nodeType].keys() + self.paramDict['common'].keys():
+                        is_array = param_type == AI_TYPE_ARRAY
+                        self.paramDict[nodeType][paramName] = (param_type,
+                                                               default_value,
+                                                               is_array,
+                                                               enum_values)
 
                 AiParamIteratorDestroy(paramIter)
 
-        if AiUniverseCreated:
-            ArnoldUniverseEnd()
+                if AiUniverseCreated:
+                    ArnoldUniverseEnd()
 
-        return paramDict
+        return self.paramDict
 
     def getNodeTypes(self, iObj):
         if not iObj:
@@ -144,7 +160,6 @@ class ProceduralTransverser(BaseTransverser):
         parent_index = self.getOperatorIndex(node, item.getOverridesOp(True))
         if parent_index > -1:
             index = parent_index + 1
-        print "ProceduralTransverser.createOperator", node, parent_index, index
 
         op_name = '{}_setParam{}'.format(node, num_ops)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
@@ -320,7 +335,7 @@ class ProceduralTransverser(BaseTransverser):
     # Do we want to see a line for each operator in the hierarchy. For now it's disabled
     def showOperatorItems(self):
         return False
-       
+
     def _getDefaultValue(self, param, param_type):
 
         AiUniverseCreated = ArnoldUniverseOnlyBegin()

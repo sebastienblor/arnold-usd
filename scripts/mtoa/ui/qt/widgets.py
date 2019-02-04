@@ -12,12 +12,10 @@ import re
 
 from arnold import *
 
-(NODE_TYPE,
- PARAM_TYPE,
+(PARAM_TYPE,
  DEFAULT_VALUE,
- NODE_ENTRY,
  IS_ARRAY,
- ENUM_VALUES) = range(6)
+ ENUM_VALUES) = range(4)
 
 OPERATIONS = ["=", "+=", "-=", "*=", "/=", "^=", "%="]
 
@@ -426,7 +424,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
 
     def emitParamChanged(self, param):
         default_value = ""
-        param_data = self.param_dict.get(param, None)
+        param_data = self.getParamData(param)
         if param_data:
             default_value = param_data[2]
 
@@ -444,22 +442,34 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
                                    self.index)
 
     def populateParams(self, paramDict):
-        for param, data in sorted(paramDict.items()):
-            self.paramWidget.addItem(param, data[0])
+
+        for node_type, params in sorted(paramDict.items()):
+            for param, data in sorted(params.items()):
+                self.paramWidget.addItem(param, node_type)
+
+        # for param, data in sorted(paramDict.items()):
+        #     self.paramWidget.addItem(param, data[0])
+
+        self.paramWidget.addItem("custom", None)
+
+    def getParamData(self, param):
+        for node_type, params in self.param_dict.items():
+            if param in params:
+                return params[param]
+
+        return None
 
     def getParam(self):
         return self.paramWidget.getText()
 
-    def setParam(self, param, param_type, node_entry, param_dict):
+    def setParam(self, param, param_dict):
         self.paramWidget.setText(param)
         self.param_name = param
-        self.param_type = param_type
-        self.node_entry = node_entry
         self.param_dict = param_dict
         self.setControlWidget(param)
 
     def setParamType(self, param):
-        param_data = self.param_dict.get(param, None)
+        param_data = self.getParamData(param)
         if param_data:
             self.param_type = param_data[PARAM_TYPE]
 
@@ -485,7 +495,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
         # delete old widgets
         clearWidget(self.controlWidget)
         control = None
-        if self.param_type in [AI_TYPE_BYTE] and param == 'visibility':
+        if self.param_type in [AI_TYPE_BYTE] and param in ['visibility', 'sidedness']:
             control = MtoAVisibilityWidget()
         elif self.param_type in [AI_TYPE_INT, AI_TYPE_BYTE, AI_TYPE_UINT]:
             control = MtoAIntControl()
@@ -496,7 +506,8 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
         elif self.param_type is AI_TYPE_ENUM:
             control = MtoAComboBox()
             # populate the options
-            for i in self.param_dict[param][-1]:
+            param_data = self.getParamData(param)
+            for i in param_data[ENUM_VALUES]:
                     control.addItem(i)
         else:
             control = MtoAStrControl()
@@ -522,6 +533,8 @@ class MtoAParamBox(QtWidgets.QToolBar):
         self.menu = QtWidgets.QMenu()
         self.menuButton.setMenu(self.menu)
         self.menuAction = self.addWidget(self.menuButton)
+
+        self.rootMenus = []
 
         self.paramTypeBox = QtWidgets.QComboBox()
         self.paramTypeBox.addItems(TYPES)
@@ -557,12 +570,11 @@ class MtoAParamBox(QtWidgets.QToolBar):
         parent_menu = self.menu
         if parent:
             # check if a root item exists
-            for action in self.menu.actions():
-                if action.menu():
-                    sub_menu = action.menu()
+            for sub_menu in self.rootMenus:
                     if sub_menu.title() == parent:
                         parent_menu = sub_menu
             if parent_menu == self.menu:
                 parent_menu = self.menu.addMenu(parent)
+                self.rootMenus.append(parent_menu)
         if parent_menu:
             parent_menu.addAction(item)
