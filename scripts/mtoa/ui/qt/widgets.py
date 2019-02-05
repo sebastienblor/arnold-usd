@@ -368,7 +368,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             self.control.setValue(value)
 
 
-class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
+class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     EXPRESSION_ICON = QtGui.QIcon(":/expression.svg")
     BIN_ICON = QtGui.QIcon(":/deleteActive.png")
@@ -388,29 +388,37 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
         self.param_type = None
         self.param_dict = {}
         self.index = -1
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.paramWidget = MtoAParamBox(self)
-        self.addWidget(self.paramWidget)
+        self.layout().addWidget(self.paramWidget, alignment=QtCore.Qt.AlignTop)
 
         self.op_menu = QtWidgets.QComboBox()
         self.op_menu.addItems(OPERATIONS)
-        self.addWidget(self.op_menu)
+        self.layout().addWidget(self.op_menu, alignment=QtCore.Qt.AlignTop)
 
         self.valueWidget = QtWidgets.QStackedWidget()  # set the widget for this control
-        self.addWidget(self.valueWidget)
+        self.layout().addWidget(self.valueWidget, alignment=QtCore.Qt.AlignTop)
 
         self.controlWidget = MtoAMutiControlWidget()
         self.valueWidget.addWidget(self.controlWidget)
 
+        self.exp_panel = QtWidgets.QFrame()
+        self.exp_panel.setLayout(QtWidgets.QVBoxLayout())
         self.expressionEditor = QtWidgets.QLineEdit()
-        self.valueWidget.addWidget(self.expressionEditor)
+        self.exp_panel.layout().addWidget(self.expressionEditor)
+        self.exp_panel.layout().insertStretch(-1)
+        self.valueWidget.addWidget(self.exp_panel)
 
-        self.expBtn = self.addAction(self.EXPRESSION_ICON, "Toggle Expression")
+        self.buttonsPanel = QtWidgets.QToolBar()
+
+        self.expBtn = self.buttonsPanel.addAction(self.EXPRESSION_ICON, "Toggle Expression")
         self.expBtn.setCheckable(True)
 
-        self.delBtn = self.addAction(self.BIN_ICON, "Delete")
+        self.delBtn = self.buttonsPanel.addAction(self.BIN_ICON, "Delete")
 
-        self.addAction(self.delBtn)
+        self.layout().addWidget(self.buttonsPanel, alignment=QtCore.Qt.AlignTop)
 
         self.setup()
 
@@ -440,6 +448,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QToolBar):
                                    self.getOperation(),
                                    value,
                                    self.index)
+        self.expressionEditor.setText(value)
 
     def populateParams(self, paramDict):
 
