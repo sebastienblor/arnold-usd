@@ -34,7 +34,9 @@ PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
                    'vidxs', 'vlist', 'nsides', 'uvidxs', 'shidxs',
                    'nlist', 'uvlist', 'crease_idxs', 'crease_sharpness',
                    'use_shadow_group', 'use_light_group', 'degree_u',
-                   'degree_v', 'transform_type']
+                   'degree_v', 'transform_type',
+                   'num_points', 'points', 'orientations',
+                   'uvs', 'cvs', 'knots_u', 'knots_v', 'degree_u', 'degree_v']
 
 
 def ArnoldUniverseOnlyBegin():
@@ -76,7 +78,7 @@ class ProceduralTransverser(BaseTransverser):
                                     "sidedness": (AI_TYPE_BYTE, 255, False, []),
                                     "recieve_shadows": (AI_TYPE_BOOLEAN, True, False, []),
                                     "opaque": (AI_TYPE_BOOLEAN, True, False, []),
-                                    "mask": (AI_TYPE_BOOLEAN, True, False, []),
+                                    "matte": (AI_TYPE_BOOLEAN, True, False, []),
                                     "self_shadows": (AI_TYPE_BOOLEAN, True, False, [])}
 
         for nodeType in node_types:
@@ -222,6 +224,7 @@ class ProceduralTransverser(BaseTransverser):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
+    @classmethod
     def getOperators(self, node, path, operator_type=None):
 
         def walkInputs(op, path, plug):
@@ -288,9 +291,10 @@ class ProceduralTransverser(BaseTransverser):
 
         return overrides
 
-    def setOverride(self, node, path, param, operation, value, param_type, array=False, index=-1):
+    @classmethod
+    def setOverride(cls, node, path, param, operation, value, param_type, array=False, index=-1):
 
-        ops = self.getOperators(node, path, OVERRIDE_OP)
+        ops = cls.getOperators(node, path, OVERRIDE_OP)
         if not len(ops):
             return False
         # for now only add the assignment to the first matching op
@@ -304,6 +308,9 @@ class ProceduralTransverser(BaseTransverser):
                     if ass_str.startswith(param):
                         index = c
                         break
+
+        if value is None:
+            value = ''
 
         if param_type in [AI_TYPE_ENUM, AI_TYPE_STRING, AI_TYPE_POINTER, AI_TYPE_NODE]:
             value = "'{}'".format(value)

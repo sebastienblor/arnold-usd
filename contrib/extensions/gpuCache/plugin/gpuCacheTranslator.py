@@ -55,26 +55,13 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         abcTransverser = AlembicTransverser()
         abcTransverser.filenameAttr = 'cacheFileName'
 
-        # splitter layout
-
-        # self.splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical, currentWidget)
-        # self.splitter.setChildrenCollapsible(False)
-        # currentWidget.layout().addWidget(self.splitter)
-
         self.tree = ProceduralTreeView(abcTransverser, currentWidget)
         self.tree.setObjectName("abcTreeWidget")
-        # self.splitter.addWidget(self.tree)
         currentWidget.layout().addWidget(self.tree)
 
         # now add the preperties panel
         self.properties_panel = ProceduralPropertiesPanel(abcTransverser, currentWidget)
         currentWidget.layout().addWidget(self.properties_panel)
-        # self.properties_layout = QtWidgets.QWidget()
-        # self.properties_layout.setLayout(QtWidgets.QVBoxLayout())
-        # self.properties_layout.layout().addWidget(self.properties_panel)
-        # self.properties_layout.layout().addStretch()
-
-        # self.splitter.addWidget(self.properties_layout)
 
         self.tree.itemSelected.connect(self.showItemProperties)
         self.abcInfoReplace(nodeAttr)
@@ -137,7 +124,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                 i += 1
             control = enum_ctrl
         return control
-
 
     def _getDefaultValue(self, param, param_type):
         value = None
@@ -436,6 +422,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         self.beginLayout("Alembic Contents", collapse=False)
         self.addCustom('aiInfo', self.abcInfoNew, self.abcInfoReplace)
+        self.addSeparator()
         self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
         self.endLayout()
         self.addSeparator()

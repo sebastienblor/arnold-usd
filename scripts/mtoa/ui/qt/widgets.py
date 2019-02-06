@@ -8,6 +8,7 @@ from .utils import dpiScale, setStaticSize, clearWidget
 
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 import maya.cmds as cmds
+import maya.mel as mel
 import re
 
 from arnold import *
@@ -105,6 +106,7 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
     def __init__(self, value=255, title='test', parent=None):
         super(MtoAVisibilityWidget, self).__init__(parent)
         self.setLayout(QtWidgets.QVBoxLayout())
+        # self.layout().setContentsMargins(0, 0, 0, 0)
         self.node = None
         self.pattern = None
         self.attr = None
@@ -131,7 +133,7 @@ class MtoAVisibilityWidget(QtWidgets.QFrame):
         return vis
 
     def setValue(self, value):
-        vis_dict = getVisibilityDict(value)
+        vis_dict = getVisibilityDict(int(value))
         for vis_box in self.vis_boxes:
             vis_box.setChecked(vis_dict[vis_box.VIS_RAY])
 
@@ -163,7 +165,9 @@ class MtoACheckbox(QtWidgets.QCheckBox):
         return self.isChecked()
 
     def setValue(self, value):
-        self.setChecked(value)
+        s_value = str(value).lower()
+        b_value = s_value not in ['false', 'off', '0']
+        self.setChecked(b_value)
 
 
 class MtoAComboBox(QtWidgets.QComboBox):
@@ -269,7 +273,10 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.conButton.clicked.connect(self.connectionButtonClicked)
 
         self.menu = QtWidgets.QMenu()
-        self.menu.addAction("Disconnect")
+        disconnectAction = self.menu.addAction("Disconnect")
+        disconnectAction.triggered.connect(self.disconnectNode)
+        selectAction = self.menu.addAction("Select")
+        selectAction.triggered.connect(self.selectNode)
         self.setMenu(self.menu)
 
         self.setAcceptDrops(True)
@@ -277,8 +284,9 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.lineEdit.textEdited.connect(self.valueChanged)
 
     def setMenu(self, menu):
-        if self.menu:
-            self.menu.deleteLater()
+        # if self.menu:
+        #     old_menu = self.menu
+        #     old_menu.deleteLater()
         self.menu = menu
         self.menu.triggered.connect(self.menuTriggered.emit)
 
@@ -287,25 +295,29 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.menu.exec_(event.globalPos())
 
     def setNode(self, node, emit=True):
-        self.node = node
-        self.setText(node)
-        self.conButton.setIcon(self.CONNECTED_ICON)
-        self.conButton.clicked.disconnect()
-        self.conButton.clicked.connect(self.selectNode)
+        if node and node != '':
+            self.node = node
+            self.setText(node)
+            self.conButton.setIcon(self.CONNECTED_ICON)
+            self.conButton.clicked.disconnect()
+            self.conButton.clicked.connect(self.selectNode)
         if emit:
             self.valueChanged.emit(node)
 
-    def disconnectNode(self):
+    def disconnectNode(self, emit=True):
+        print "MtoANodeConnectionWidget.disconnectNode"
         self.node = None
         self.setText("")
         self.conButton.setIcon(self.UNCONNECTED_ICON)
         self.conButton.clicked.disconnect()
         self.conButton.clicked.connect(self.connectionButtonClicked)
-        self.nodeDisconnected.emit()
+        if emit:
+            self.nodeDisconnected.emit()
 
     def selectNode(self):
+        print "MtoANodeConnectionWidget.selectNode"
         if self.node:
-            cmds.select(node, r=True)
+            cmds.select(self.node, r=True)
 
     def dragEnterEvent(self, event):
         """ Reimplementing event to accept plain text, """
@@ -348,6 +360,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(MtoAMutiControlWidget, self).__init__(parent)
         self.setLayout(QtWidgets.QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.control = None
 
     def setWidget(self, widget):
@@ -383,22 +396,25 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
 
+        self.setObjectName("MtoAOperatorOverrideWidget")
         # set the paramater type so we know what type of widget to create.
         self.param_name = None
         self.param_type = None
         self.param_dict = {}
         self.index = -1
         self.setLayout(QtWidgets.QHBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        # self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.paramWidget = MtoAParamBox(self)
         self.layout().addWidget(self.paramWidget, alignment=QtCore.Qt.AlignTop)
 
         self.op_menu = QtWidgets.QComboBox()
+        self.op_menu.setObjectName("MtoAOperatorChoice")
         self.op_menu.addItems(OPERATIONS)
         self.layout().addWidget(self.op_menu, alignment=QtCore.Qt.AlignTop)
 
         self.valueWidget = QtWidgets.QStackedWidget()  # set the widget for this control
+        self.valueWidget.setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(self.valueWidget, alignment=QtCore.Qt.AlignTop)
 
         self.controlWidget = MtoAMutiControlWidget()
@@ -448,7 +464,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                    self.getOperation(),
                                    value,
                                    self.index)
-        self.expressionEditor.setText(value)
+        self.expressionEditor.setText(str(value))
 
     def populateParams(self, paramDict):
 
@@ -535,7 +551,6 @@ class MtoAParamBox(QtWidgets.QToolBar):
     def __init__(self, parent):
         super(MtoAParamBox, self).__init__(parent)
 
-        # self.setLayout(QtWidgets.QHBoxLayout())
         # self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.menuButton = QtWidgets.QPushButton()

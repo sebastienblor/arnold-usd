@@ -34,3 +34,24 @@ QTreeView::branch
 {{
         background: {BACKGROUND_COLOR2};
 }}
+
+QToolBar
+{{
+        padding: 0;
+}}
+
+MtoAOperatorOverrideWidget
+{{
+        margin: 0;
+        padding: 0;
+        background: {BACKGROUND_COLOR1};
+        border: 1px solid black;
+}}
+
+/*MtoAOperatorOverrideWidget QWidget
+{{
+        margin: 0;
+        padding: 0;
+        background: {BACKGROUND_COLOR1};
+        border: 1px solid black;
+}}*/
