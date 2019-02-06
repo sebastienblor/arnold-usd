@@ -2154,8 +2154,16 @@
 
 
 [node camera_projection]
-    maya.hide               BOOL    true
     maya.id                 INT     0x00115D88
+    maya.name               STRING  "aiCameraProjection"
+    maya.classification     STRING  "utility/shader"
+    maya.swatch             BOOL    true
+    [attr mask]
+        min                 FLOAT   0
+        softmax             FLOAT   1
+    [attr aspect_ratio]
+        min                 FLOAT   0.0001
+        softmax             FLOAT   2
 
 [node checkerboard]
     maya.hide               BOOL    true
