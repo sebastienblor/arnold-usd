@@ -1,6 +1,6 @@
 #include <ai.h>
 
-#define ARNOLD_NODEID_USERDATA_BOOL             0x00115D18
+// #define ARNOLD_NODEID_USERDATA_BOOL             0x00115D18
 
 AI_SHADER_NODE_EXPORT_METHODS(UserDataBoolMtd);
 
@@ -16,13 +16,17 @@ namespace
 node_parameters
 {
    AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataBool");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataBool");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATA_BOOL);
+   // AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataBool");
+   // AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATA_BOOL);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterStr("boolAttrName", "");
    AiParameterBool("defaultValue", false);
+
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize

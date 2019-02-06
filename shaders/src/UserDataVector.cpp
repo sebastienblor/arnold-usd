@@ -17,13 +17,17 @@ enum UserDataVectorParams
 node_parameters
 {
    AiMetaDataSetStr(nentry, NULL, "_synonym", "userDataVector");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataVector");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATAVECTOR);
+   // AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataVector");
+   // AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATAVECTOR);
    AiMetaDataSetStr(nentry, NULL, "maya.classification", "utility/user data");
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterStr("vectorAttrName", "");
    AiParameterVec("defaultValue", 0.f, 0.f, 0.f);
+   
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
 node_initialize

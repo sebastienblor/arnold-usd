@@ -3215,3 +3215,18 @@ void CHsvToRgbTranslator::Export(AtNode* shader)
    AiNodeSetStr(shader, "from", "HSV");
    AiNodeSetStr(shader, "to", "RGB");  
 }
+
+AtNode* CUserDataVec2Translator::CreateArnoldNodes()
+{
+   return AddArnoldNode("user_data_rgb");
+}
+
+void CUserDataVec2Translator::Export(AtNode* shader)
+{
+
+   ProcessParameter(shader, "attribute", AI_TYPE_STRING, "vec2AttrName");
+   float defX = FindMayaPlug("defaultValueX").asFloat();
+   float defY = FindMayaPlug("defaultValueY").asFloat();
+   AiNodeSetRGB(shader,"default", defX, defY, 0.0f);
+
+}
