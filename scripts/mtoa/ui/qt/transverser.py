@@ -18,24 +18,6 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.properties".format(str(self.__class__.__name__)))
 
-    def dir(self, node, path):
-        """
-        return a list of objects directly below the given path
-        on the given node
-        """
-        raise NotImplementedError(
-            "{}.dir".format(str(self.__class__.__name__)))
-
-    def properties(self, node, path):
-        """
-        return a list of properties that the current node allready contains
-
-        returns dict of properties
-        """
-
-        raise NotImplementedError(
-            "{}.properties".format(str(self.__class__.__name__)))
-
     def deleteOperator(self, node, path, operator_type):
         """
         delete the operator returned by querying the target node, path

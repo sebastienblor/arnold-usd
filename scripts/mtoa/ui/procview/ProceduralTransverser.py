@@ -190,6 +190,29 @@ class ProceduralTransverser(BaseTransverser):
             return op
         return None
 
+    def selectNode(self, obj):
+
+        if not obj or not cmds.objExists(obj):
+            # It happens when the object is in the Alembic file, not in the
+            # scene.
+            cmds.warning(
+                "Can't select {}. This object is not in the Maya scene.".format(obj))
+            return
+
+        cmds.select(obj)
+
+    def toggleOperator(self, operator):
+
+        if not operator or not cmds.objExists(operator):
+            # It happens when the object is in the Alembic file, not in the
+            # scene.
+            cmds.warning(
+                "Can't select {}. This object is not in the Maya scene.".format(obj))
+            return
+
+        attrname = operator+".enable"
+        cmds.setAttr(attrname, not cmds.getAttr(attrname))
+
     def selectionChanged(self, node, selection):
         if not self.selectionAttr:
             return

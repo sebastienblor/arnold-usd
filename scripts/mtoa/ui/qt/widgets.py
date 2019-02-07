@@ -281,18 +281,18 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
         self.setAcceptDrops(True)
 
-        self.lineEdit.textEdited.connect(self.valueChanged)
+        self.lineEdit.editingFinished.connect(self.manualSet)
 
     def setMenu(self, menu):
-        # if self.menu:
-        #     old_menu = self.menu
-        #     old_menu.deleteLater()
         self.menu = menu
         self.menu.triggered.connect(self.menuTriggered.emit)
 
     def contextMenuEvent(self, event):
         if self.menu:
             self.menu.exec_(event.globalPos())
+
+    def manualSet(self):
+        self.setNode(self.getText())
 
     def setNode(self, node, emit=True):
         if node and node != '':
@@ -305,7 +305,6 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.valueChanged.emit(node)
 
     def disconnectNode(self, emit=True):
-        print "MtoANodeConnectionWidget.disconnectNode"
         self.node = None
         self.setText("")
         self.conButton.setIcon(self.UNCONNECTED_ICON)
@@ -315,7 +314,6 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
             self.nodeDisconnected.emit()
 
     def selectNode(self):
-        print "MtoANodeConnectionWidget.selectNode"
         if self.node:
             cmds.select(self.node, r=True)
 
@@ -424,6 +422,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.exp_panel.setLayout(QtWidgets.QVBoxLayout())
         self.expressionEditor = QtWidgets.QLineEdit()
         self.exp_panel.layout().addWidget(self.expressionEditor)
+        self.exp_panel.layout().setContentsMargins(0, 0, 0, 0)
         self.exp_panel.layout().insertStretch(-1)
         self.valueWidget.addWidget(self.exp_panel)
 
@@ -542,7 +541,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.controlWidget.setWidget(control)
 
 
-class MtoAParamBox(QtWidgets.QToolBar):
+class MtoAParamBox(QtWidgets.QFrame):
     """docstring for MtoAMenuBox"""
     PARAM_ICON = QtGui.QPixmap(":/list.svg")
 
@@ -551,31 +550,31 @@ class MtoAParamBox(QtWidgets.QToolBar):
     def __init__(self, parent):
         super(MtoAParamBox, self).__init__(parent)
 
-        # self.layout().setContentsMargins(0, 0, 0, 0)
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.menuButton = QtWidgets.QPushButton()
         self.menuButton.setIcon(self.PARAM_ICON)
         self.menu = QtWidgets.QMenu()
         self.menuButton.setMenu(self.menu)
-        self.menuAction = self.addWidget(self.menuButton)
+        self.layout().addWidget(self.menuButton)
 
         self.rootMenus = []
 
         self.paramTypeBox = QtWidgets.QComboBox()
         self.paramTypeBox.addItems(TYPES)
-        self.paramTypeAction = self.addWidget(self.paramTypeBox)
-        self.paramTypeAction.setVisible(False)
+        self.paramTypeBox.setVisible(False)
+        self.layout().addWidget(self.paramTypeBox)
 
         self.editBox = QtWidgets.QLineEdit()
         self.editBox.setReadOnly(True)
-        self.addWidget(self.editBox)
+        self.layout().addWidget(self.editBox)
 
         self.setup()
 
     def setup(self):
         self.menu.triggered.connect(self.setTextFromAction)
-        self.editBox.textEdited.connect(self.emitChange)
-        self.paramTypeBox.hide()
+        self.editBox.editingFinished.connect(self.emitChange)
 
     def emitChange(self):
         self.paramChanged.emit(self.getText())

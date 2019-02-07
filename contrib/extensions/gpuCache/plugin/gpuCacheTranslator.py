@@ -422,8 +422,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
 
         self.beginLayout("Alembic Contents", collapse=False)
         self.addCustom('aiInfo', self.abcInfoNew, self.abcInfoReplace)
-        self.addSeparator()
-        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
+        # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
         self.endLayout()
         self.addSeparator()
         self.beginLayout("Alembic Overrides", collapse=False)

@@ -554,10 +554,9 @@ class BaseItem(object):
 
     ACTION_EXPAND = 0
 
-    def __init__(self, parentItem, name, model, index=-1):
+    def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
         self.name = name
-        self.model = model
         self.childItems = []
         if index >= 0:
             self.setParent(parentItem, index)

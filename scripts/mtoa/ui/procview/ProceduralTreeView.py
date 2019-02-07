@@ -145,7 +145,7 @@ class ProceduralTreeModel(BaseModel):
         item = index.internalPointer()
 
         if action == ProceduralItem.ACTION_SHADER:
-            self.transverser.action(item.getOverride(SHADER))
+            self.transverser.selectNode(item.getOverride(SHADER))
         elif action == ProceduralItem.ACTION_EXPAND:
             self.treeView().setExpanded(
                 index, not self.treeView().isExpanded(index))
@@ -198,6 +198,8 @@ class ProceduralItem(BaseItem):
         self.node = node
         self.iarch = None
 
+        self.model = model
+
         self.data = data
         self.operator = operator
 
@@ -223,7 +225,7 @@ class ProceduralItem(BaseItem):
         if not parentItem:
             self.origin = True
 
-        super(ProceduralItem, self).__init__(parentItem, name, model, index)
+        super(ProceduralItem, self).__init__(parentItem, name, index)
 
     def getNode(self):
         """Recursively search the the origin parent TreeItem in parents."""

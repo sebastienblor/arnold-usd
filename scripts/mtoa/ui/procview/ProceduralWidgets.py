@@ -4,6 +4,7 @@ from mtoa.ui.qt.Qt import QtGui
 from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt import MtoAStyle, setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
+from mtoa.ui.qt.treeView import *
 
 import maya.cmds as cmds
 
@@ -13,6 +14,142 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             PARM, OP, VALUE, INDEX
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
+
+
+class OperatorTreeView(BaseTreeView):
+
+    def __init__(self, transverser, parent=None):
+        super(OperatorTreeView, self).__init__(parent)
+        self.transverser = None
+
+        model = OperatorTreeModel(self)
+        self.setModel(model)
+
+        # Custom style
+        delegate = OperatorTreeViewDelegate(self)
+        self.setItemDelegate(delegate)
+
+        self.setTransverser(transverser)
+
+    def setTransverser(self, transverser):
+        self.transverser = transverser
+        self.model().setTransverser(transverser)
+
+    def setCurrentNode(self, node):
+        """Clear the widget and generate the view of the new node."""
+        model = self.model()
+        if model.setCurrentNode(node):
+            model.refresh()
+
+    def setCurrentItem(self, item):
+        """Clear the widget and generate the view of the new node."""
+        model = self.model()
+        if model.setCurrentItem(item):
+            model.refresh()
+
+    def mouseDoubleClickEvent(self, event):
+        """Receive mouse double click events for the widget."""
+        # super(BaseTreeView, self).mouseDoubleClickEvent(event)
+        index = self.indexAt(event.pos())
+        item = index.internalPointer()
+
+        item.selectOperator()
+
+
+class OperatorTreeModel(BaseModel):
+
+    def __init__(self, treeView, parent=None):
+
+        self.transverser = None
+        self.currentNode = None
+        self.currentItem = None
+
+        super(OperatorTreeModel, self).__init__(treeView, parent)
+
+    def setTransverser(self, transverser):
+        self.transverser = transverser
+        self.refresh()
+
+    def refresh(self):
+        if not self.currentNode or \
+           not cmds.objExists(self.currentNode) or \
+           not self.treeView().transverser:
+            return
+
+        self.beginResetModel()
+
+        self.rootItem = OperatorItem(None, "")
+        if self.currentItem:
+            operators = self.transverser.getOperators(self.currentNode, self.currentItem.data[PROC_PATH])
+
+            for op in operators:
+                enabled = cmds.getAttr(op+'.enable')
+                OperatorItem(self.rootItem, op, enabled)
+
+        self.endResetModel()
+
+    def setCurrentNode(self, node):
+        if self.currentNode != node:
+            self.currentNode = node
+            return True
+        return False
+
+    def setCurrentItem(self, item):
+        if self.currentItem != item:
+            self.currentItem = item
+            return True
+        return False
+
+    def executeAction(self, action, index):
+        """User pressed by one of the actions."""
+        item = index.internalPointer()
+
+        if action == OperatorItem.ACTION_SELECT:
+            self.transverser.selectNode(item.name)
+        elif action == OperatorItem.ACTION_DISABLE:
+            self.transverser.toggleOperator(item.name)
+            item.enabled = not item.enabled
+
+
+class OperatorTreeViewDelegate(BaseDelegate):
+
+    def __init__(self, treeView):
+        super(OperatorTreeViewDelegate, self).__init__(treeView)
+
+
+class OperatorItem(BaseItem):
+
+    CONNECTED_ICON = BaseItem.dpiScaledIcon(":/navButtonConnected.png")
+    ENABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_ON.png")
+    DISABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_OFF.png")
+
+    COLOR_OPERATOR = QtGui.QColor(18, 82, 18)
+
+    (ACTION_EXPAND,  # Always first, even if not used
+     ACTION_NONE,
+     ACTION_SELECT,
+     ACTION_DISABLE) = range(4)
+
+    def __init__(self, parentItem, name, enabled=True, index=-1):
+        super(OperatorItem, self).__init__(parentItem, name, index)
+        self.enabled = enabled
+
+    def selectOperator(self):
+        cmds.select(self.name, r=True)
+
+    def getLabelColor(self):
+        return self.COLOR_OPERATOR
+
+    def getActions(self):
+
+        actions = []
+        actions.append((self.CONNECTED_ICON, 1.0, self.ACTION_SELECT))
+
+        # disableOpacity = 1.0 if self.enabled else 0.2
+        disableIcon = self.ENABLED_ICON if self.enabled else self.DISABLED_ICON
+        actions.append((disableIcon, 1.0, self.ACTION_DISABLE))
+
+        return actions
 
 
 class ProceduralPropertiesPanel(QtWidgets.QFrame):
@@ -48,7 +185,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.layout.addWidget(self.toolBar)
 
         self.addOverrideButton = QtWidgets.QPushButton("Add Assignment")
-        self.addOverrideButton.setIcon(self.GEAR_ICON)
+        # self.addOverrideButton.setIcon(self.GEAR_ICON)
         self.overrideMenu = QtWidgets.QMenu()
         self.addOverrideButton.setMenu(self.overrideMenu)
         self.rootMenus = []
@@ -58,7 +195,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.overrideMenu.triggered.connect(self.setOverrideFromMenu)
 
         self.addOperatorButton = QtWidgets.QPushButton("Add Operator")
-        self.addOperatorButton.setIcon(self.GEAR_ICON)
+        # self.addOperatorButton.setIcon(self.GEAR_ICON)
         self.toolBar.layout().addWidget(self.addOperatorButton)
         self.operatorMenu = QtWidgets.QMenu()
         self.addOperatorButton.setMenu(self.operatorMenu)
@@ -96,22 +233,18 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
         self.layout.addWidget(self.overridesPanel)
 
+        # now the operators list
+
+        self.operators_frame = QtWidgets.QGroupBox("Operators", self)
+        self.operators_frame.setLayout(QtWidgets.QVBoxLayout())
+        self.operators_frame.setMinimumHeight(150)
+
+        self.operators_tree = OperatorTreeView(self.transverser, self.operators_frame)
+        self.operators_frame.layout().addWidget(self.operators_tree)
+        self.layout.addWidget(self.operators_frame)
+
     def addOperatorMenu(self):
         self.operatorMenu.clear()
-
-        # get list of operators in scene
-        opnode_exists = False
-        for operator in OPERATORS:
-            opNodes = cmds.ls(type=operator) or []
-            for opNode in opNodes:
-                if opNode == self.node:
-                    continue
-                opnode_exists = True
-                self.operatorMenu.addAction(opNode)
-
-        if opnode_exists:
-            self.operatorMenu.addSeparator()
-
         for op in OPERATORS:
             self.operatorMenu.addAction(op)
 
@@ -155,20 +288,27 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.addDisplacement()
         else:
             value = self.getDefaultValue(param)
-            print "ProceduralPropertiesPanel.setOverrideFromMenu", param, value
             self.setOverride(param, "=", value)
             self.refresh()
 
     def getDefaultValue(self, param):
         default_value = ""
         param_data = self.getParamData(param)
-        print "ProceduralPropertiesPanel.getDefaultValue", param_data
         if param_data is not None:
             default_value = param_data[DEFAULT_VALUE]
         return default_value
 
     def setTransverser(self, transverser):
         self.transverser = transverser
+        self.operators_tree.setTransverser(transverser)
+
+    def setCurrentItem(self, item):
+        itemchanged = False
+        if self.item != item:
+            self.item = item
+            self.operators_tree.setCurrentItem(item)
+            itemchanged = True
+        return itemchanged
 
     def setItem(self, node, item):
         nodechanged = False
@@ -176,9 +316,11 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.node = node
             nodechanged = True
 
+        # itemchanged = self.setCurrentItem(item)
         itemchanged = False
         if self.item != item and (item is not None):
             self.item = item
+            self.operators_tree.setCurrentItem(item)
             itemchanged = True
         elif nodechanged and item is None:
             self.item = None
@@ -190,6 +332,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.getParams()
             self.addOverrideMenu()
             self.addOperatorMenu()
+            self.popualteOperatorsList()
         elif nodechanged and not self.item:
             self.object_label.setText("Select Item")
             self.toolBar.setEnabled(False)
@@ -198,7 +341,10 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         # Tell the transverser that the selection has changed.
         # Let's pass the data as an array in case we end up supporting multi-selection
         if self.transverser and item:
-            self.transverser.selectionChanged(node, [item.data]) 
+            self.transverser.selectionChanged(node, [item.data])
+
+    def popualteOperatorsList(self):
+        self.operators_tree.setCurrentNode(self.node)
 
     def setShader(self, shader):
         self.setNodeParam("shader", shader)
@@ -238,7 +384,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         param_data = self.getParamData(nodetype)
         callback = callback.format(node=self.node, path=self.item.data[PROC_PATH],
                                    param_type=param_data[PARAM_TYPE], node_type=nodetype)
-        print callback
         mel.eval("createRenderNode -all \"python(\\\"" + callback + "\\\")\" \"\"")
 
     def getOverrideOperator(self, create=True):
@@ -290,6 +435,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                     else:
                         self.addOverrideGUI(*override)
 
+                self.operators_tree.model().refresh()
+
     def getProperties(self, obj):
         pass
 
@@ -312,7 +459,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         # set the widget
         new_widget.setParam(param, self.paramDict)
         new_widget.setOperation(op)
-        print "ProceduralPropertiesPanel.addOverrideGUI value : {}".format(str(value))
 
         new_widget.setValue(value)
 
@@ -350,7 +496,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if not param and not value:
             param = "NEWOVERRIDE"
             value = "''"
-        print "ProceduralPropertiesPanel.setOverride", param, op, value
         param_type = None
         is_array = False
         data = self.getData(self.item)
