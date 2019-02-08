@@ -66,6 +66,7 @@
 #include "nodes/SphereLocator.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
+#include "nodes/shader/ArnoldUserDataVec2Node.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
@@ -205,6 +206,7 @@ namespace // <anonymous>
 #endif
 
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
+   const MString AI_USER_DATA_BOOL_NODE_CLASSIFICATION = "utility/user data";
 
    struct mayaNode {
       const char* name;
@@ -266,6 +268,10 @@ namespace // <anonymous>
          "aiSky", CArnoldSkyNode::id,
          CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
          MPxNode::kLocatorNode, &AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH
+      } , {
+         "aiUserDataVec2", CArnoldUserDataVec2Node::id,
+         CArnoldUserDataVec2Node::creator, CArnoldUserDataVec2Node::initialize,
+         MPxNode::kDependNode, &AI_USER_DATA_BOOL_NODE_CLASSIFICATION
       }
    };
 
@@ -936,7 +942,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("hsvToRgb",
                                        "",
                                        CHsvToRgbTranslator::creator);
-         
+         shaders->RegisterTranslator("aiUserDataVec2",
+                                       "",
+                                       CUserDataVec2Translator::creator);
          
 
          if(MGlobal::apiVersion() >= 20180400)
