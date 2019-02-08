@@ -71,7 +71,6 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
                        replacePrevious=True, parent=self.inspectAlembicPath)
 
     def abcInfoReplace(self, nodeAttr):
-        print "gpuCacheDescriptionTemplate.abcInfoReplace", nodeAttr, self.nodeName
         self.tree.setCurrentNode(self.nodeName)
         self.properties_panel.setItem(self.nodeName, None)
 

@@ -5,6 +5,7 @@ from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt import MtoAStyle, setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 from mtoa.ui.qt.treeView import *
+import time
 
 import maya.cmds as cmds
 
@@ -73,7 +74,7 @@ class OperatorTreeModel(BaseModel):
     def refresh(self):
         if not self.currentNode or \
            not cmds.objExists(self.currentNode) or \
-           not self.treeView().transverser:
+           not self.transverser:
             return
 
         self.beginResetModel()
@@ -81,7 +82,6 @@ class OperatorTreeModel(BaseModel):
         self.rootItem = OperatorItem(None, "")
         if self.currentItem:
             operators = self.transverser.getOperators(self.currentNode, self.currentItem.data[PROC_PATH])
-
             for op in operators:
                 enabled = cmds.getAttr(op+'.enable')
                 OperatorItem(self.rootItem, op, enabled)
@@ -253,6 +253,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         # check if op exists, otherwise create it
         if not cmds.objExists(op_name) and op_name in OPERATORS:
             op = self.transverser.createOperator(self.node, self.item, op_name)
+            self.refresh()
 
     def addOverrideMenu(self):
 
@@ -353,11 +354,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.setNodeParam("disp_map", disp)
 
     def setNodeParam(self, param, node):
-        if node:
-            self.shadingWidgets[param].setNode(node, False)
-        self.shadingWidgets[param].setVisible(True)
         ops = self.getOverrideOperator()
         self.setOverride(param, "=", node)
+        self.refresh()
 
     def addShader(self):
         if self.item:
@@ -424,6 +423,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.resetShadingWidgets()
         if self.item:
             data = self.getData(self.item)
+
             if data:
                 for override in self.transverser.getOverrides(self.node, data[PROC_PATH]):
                     # FIXME what if the user wants to connect a shader from inside the procedural?
@@ -434,7 +434,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                         self.shadingWidgets[override[PARM]].setVisible(True)
                     else:
                         self.addOverrideGUI(*override)
-
+                # refresh the operators list
                 self.operators_tree.model().refresh()
 
     def getProperties(self, obj):

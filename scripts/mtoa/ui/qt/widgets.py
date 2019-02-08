@@ -185,7 +185,7 @@ class MtoAComboBox(QtWidgets.QComboBox):
         return self.currentText()
 
     def setValue(self, value):
-        m = STRING_EXP.match(value)
+        m = STRING_EXP.match(str(value))
         if m:
             self.setCurrentText(m.group(1))
 

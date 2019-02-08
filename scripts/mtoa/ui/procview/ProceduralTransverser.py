@@ -265,7 +265,10 @@ class ProceduralTransverser(BaseTransverser):
                 sel_exp = cmds.getAttr('{}.selection'.format(op))
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
+                    print tok
                     mat = SELECTION_REGEX.match(tok)
+                    if mat:
+                        print mat.groups()
                     if mat and mat.group(1) == path or \
                        (path == "/" and tok == "/*"):
                         ops.append(op)

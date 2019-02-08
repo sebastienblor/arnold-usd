@@ -172,8 +172,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setTransverser(transverser)
         self.properties_panel.setTransverser(transverser)
         self.tree.setCurrentNode(self.nodeName)
-
-        
+        self.properties_panel.setItem(self.nodeName, None)
 
     def fileInfoNew(self, nodeAttr):
 
@@ -355,7 +354,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.beginLayout("File Contents", collapse=False)
         self.addCustom('aiInfo', self.fileInfoNew, self.fileInfoReplace)
         self.endLayout()
-        self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
+        # self.addCustom("operators", self.operatorsNew, self.operatorsReplace)
         self.addSeparator()
         
 
