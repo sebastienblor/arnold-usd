@@ -910,29 +910,68 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
 
 
 void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append)
-{   
+{  
+   MStringArray selectedObjects;
    CArnoldSession *session = CMayaScene::GetArnoldSession();
-   if (append)
-   {
-      if (selectionCount == 0) return;
-      for (unsigned int i = 0; i < selectionCount; ++i)
-      {
-         MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[i]), MGlobal::kAddToList);
-      }
+   unordered_map<std::string, std::vector<std::string> > proceduralSelectedItems;
 
-   } else 
+   for (unsigned int i = 0; i < selectionCount; ++i)
    {
-      if (selectionCount == 0) 
+      const AtNode *pickedObject = selectedNodes[i];
+      if (pickedObject == NULL)
+         continue;
+
+      MString selectedPath = AiNodeGetName(pickedObject);
+
+      // get the root parent node
+      AtNode *parentNode = AiNodeGetParent(pickedObject);
+      while(parentNode)
       {
-         MGlobal::clearSelectionList();
-         return;
+         pickedObject = parentNode;
+         parentNode = AiNodeGetParent(pickedObject);
+         if (parentNode)
+            selectedPath = MString(AiNodeGetName(pickedObject)) + MString("/") + selectedPath;
+         else
+            break;      
       }
-      
-      MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[0]), MGlobal::kReplaceList);
-      for (unsigned int i = 1; i < selectionCount; ++i)
+      MString objName = session->GetMayaObjectName(pickedObject);
+      std::string objNameStr(objName.asChar());
+      // selectedObjects contain the list of root parent nodes (eg the root standin that exists in the maya scene)
+      selectedObjects.append(objName);
+
+      // selectedFullName contain the list of paths (procedural child names) that we'll use to update the UI list
+      if(AiNodeEntryGetDerivedType(AiNodeGetNodeEntry(pickedObject)) == AI_NODE_SHAPE_PROCEDURAL) 
+         proceduralSelectedItems[objNameStr].push_back(selectedPath.asChar());
+
+   }
+   
+   if (selectedObjects.length() == 0 && !append)
+   {
+      MGlobal::clearSelectionList();
+      return;
+   }
+
+   for (unsigned int i = 0; i < selectedObjects.length(); ++i)
+      MGlobal::selectByName(selectedObjects[i], (append || i > 0) ? MGlobal::kAddToList : MGlobal::kReplaceList);
+
+   unordered_map<std::string, std::vector<std::string> >::iterator it = proceduralSelectedItems.begin();
+   
+   for (; it != proceduralSelectedItems.end(); ++it)
+   {
+      std::vector<std::string> &selectedItems = it->second;
+      MString cmd ("setAttr -type \"string\" ");
+      cmd += MString(it->first.c_str());
+      cmd += ".selectedItems \"";
+
+      for (size_t i = 0; i < selectedItems.size(); ++i)
       {
-         MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[i]), MGlobal::kAddToList);
+         if (i > 0)
+            cmd += MString(",");
+         cmd += MString(selectedItems[i].c_str());
       }
+      cmd += MString("\"");
+      MGlobal::displayWarning(cmd);
+      MGlobal::executeCommand(cmd);
    }
 }
 
