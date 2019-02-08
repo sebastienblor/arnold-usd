@@ -98,7 +98,7 @@ void COperatorTranslator::ExportAssignedShaders(AtNode *shader)
          return;
 
       MString attrName = assignmentSplit[0].substringW(0, 8);
-      if (attrName != MString("shader") and attrName != MString("disp_map"))
+      if (attrName != MString("shader") && attrName != MString("disp_map"))
          return; // here we only care about shader and disp_map assignments
 
       std::string attrValue = assignmentSplit[1].asChar(); // this is meant to be the name of the arnold shader
