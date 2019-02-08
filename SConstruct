@@ -1118,11 +1118,19 @@ for ext in os.listdir(ext_base_dir):
         
         pluginDir = os.path.join(ext_dir, 'plugin')
         pyfiles = glob.glob(pluginDir+"/*.py")
-        
         for pyfile  in pyfiles:
             if os.path.exists(pyfile):
                 ext_files.append(pyfile)
                 env.Install(TARGET_EXTENSION_PATH, pyfile)
+
+        pymodules = glob.glob(pluginDir+"/*/__init__.py")
+        for pymodule in pymodules:
+            if os.path.exists(pymodule):
+                moddir = os.path.dirname(pymodule)
+                modirname = os.path.basename(moddir)
+                for modpy in glob.glob(moddir+"/*.py"):
+                    ext_files.append(modpy)
+                    env.Install(os.path.join(TARGET_EXTENSION_PATH, modirname), modpy)
 
 #TODO XGEN: figure out the proper place these can go so that they always override the maya scripts
 

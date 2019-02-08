@@ -31,6 +31,7 @@ class BaseTreeView(QtWidgets.QTreeView):
         """Called after the instance has been created."""
         super(BaseTreeView, self).__init__(parent)
 
+        # FIXME: currently completely overriding maya style
         if not style:
             style = MtoAStyle.currentStyle()
         style.apply(self)
@@ -122,7 +123,7 @@ class BaseTreeView(QtWidgets.QTreeView):
 
     def showProperties(self, event):
         """Show the properties of the item at index `index`."""
-        pass
+        raise NotImplemenedError("{}.showProperties not implemented yet".format(str(self.__class__.__name__)))
 
 
 class BaseModel(QtCore.QAbstractItemModel):
@@ -182,9 +183,9 @@ class BaseModel(QtCore.QAbstractItemModel):
         elif role == QtCore.Qt.SizeHintRole:
             return QtCore.QSize(250, ITEM_HEIGHT)
         elif role == QtCore.Qt.BackgroundRole:
-            return QtGui.QColor(71, 71, 71)
+            return item.getBackgroundColor()
         elif role == NODE_BAR_COLOUR:
-            return QtGui.QColor(113, 142, 164)
+            return item.getLabelColor()
         elif role == CHILD_COUNT:
             return item.childCount()
         elif role == ACTIONS:
@@ -551,13 +552,16 @@ class BaseItem(object):
     and/or children. It's a tree data structure with parent and children.
     """
 
-    ACTION_EXPAND = 1
+    ACTION_EXPAND = 0
 
-    def __init__(self, parentItem, name):
+    def __init__(self, parentItem, name, index=-1):
         """Called after the instance has been created."""
         self.name = name
         self.childItems = []
-        self.setParent(parentItem)
+        if index >= 0:
+            self.setParent(parentItem, index)
+        else:
+            self.setParent(parentItem)
 
     def getName(self):
         """The label of the item."""
@@ -635,6 +639,20 @@ class BaseItem(object):
         type.
         """
         pass
+
+    def getBackgroundColor(self):
+        """
+        The background color of current node. It can be different depending on
+        the item type.
+        """
+        return QtGui.QColor(71, 71, 71)
+
+    def getLabelColor(self):
+        """
+        The background color of current node. It can be different depending on
+        the item type.
+        """
+        return QtGui.QColor(113, 142, 164)
 
     def getIndent(self):
         """The text indent."""

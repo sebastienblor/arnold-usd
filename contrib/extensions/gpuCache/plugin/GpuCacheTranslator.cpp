@@ -113,6 +113,35 @@ void CGpuCacheTranslator::NodeInitializer(CAbTranslator context)
 
    helper.MakeInputCompound(data, children);
 
+   //// aiOverrides
+   // We shouldn't need this anymore
+/*
+
+   std::vector<CAttrData> ovrchildren(4);
+
+   ovrchildren[0].name = "abcPath";
+   ovrchildren[0].shortName = "abc_path";
+   ovrchildren[0].type = AI_TYPE_STRING;
+
+   ovrchildren[1].name = "abcShader";
+   ovrchildren[1].shortName = "abc_shader";
+   ovrchildren[1].type = AI_TYPE_NODE;
+
+   ovrchildren[2].name = "abcDisplacement";
+   ovrchildren[2].shortName = "abc_displacement";
+   ovrchildren[2].type = AI_TYPE_NODE;
+
+   ovrchildren[3].name = "abcOverrides";
+   ovrchildren[3].shortName = "abc_overrides";
+   ovrchildren[3].isArray = true;
+   ovrchildren[3].type = AI_TYPE_STRING;
+
+   data.name = "aiOverrides";
+   data.shortName = "aiovr";
+   data.isArray = true;
+
+   helper.MakeInputCompound(data, ovrchildren);
+*/
 }
 
 AtNode* CGpuCacheTranslator::CreateArnoldNodes()
@@ -129,7 +158,7 @@ void CGpuCacheTranslator::timeChangedCallback(void* clientData)
    CGpuCacheTranslator * translator = static_cast< CGpuCacheTranslator* >(clientData);
    if (translator != NULL)
    {
-      translator->SetUpdateMode(AI_RECREATE_NODE);
+      // translator->SetUpdateMode(AI_RECREATE_NODE);
       translator->RequestUpdate();
    }
 
@@ -156,6 +185,9 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 {
    if (s_alembicSupported == false || shape == NULL)
       return;
+
+   // ExportMatrix(shape);
+   // ProcessRenderFlags(shape);
 
    // export gpuCache parameters   
    MPlug filenamePlug = FindMayaPlug("cacheFileName");
@@ -215,7 +247,11 @@ void CGpuCacheTranslator::Export( AtNode *shape )
 
    AiNodeSetBool(shape, "pull_user_params", FindMayaPlug( "aiPullUserParams" ).asBool());
 
-   AiNodeSetStr(shape, "nameprefix", FindMayaPlug("aiNameprefix").asString().asChar());
+   MString namePrefix = FindMayaPlug("aiNameprefix").asString();
+   if (namePrefix.length() > 0)
+      AiNodeSetStr(shape, "nameprefix", namePrefix.asChar());
+   else
+      AiNodeResetParameter(shape, "nameprefix");
 
    // now the user attributes
    MPlug arrayPlug = FindMayaPlug("aiNodeAttrs");
@@ -229,7 +265,11 @@ void CGpuCacheTranslator::Export( AtNode *shape )
       const char* node_type = NodeTypes[typePlug.asInt()];
 
       std::string attribute_name, attribute_set;
-      attribute_name = std::string(node_type) + ":" + std::string(namePlug.asString().asChar());
+      // catch if the node_type is curves, and the namePlug is "basis" or "mode"
+      if (std::string(node_type) == "curves" && (namePlug.asString() == "mode" || namePlug.asString() == "basis"))
+         attribute_name = std::string(namePlug.asString().asChar());
+      else
+         attribute_name = std::string(node_type) + ":" + std::string(namePlug.asString().asChar());
 
       attribute_set = attribute_name + " " + std::string(valuePlug.asString().asChar());
 
@@ -286,6 +326,31 @@ void CGpuCacheTranslator::ExportShaders()
          AiNodeSetPtr(node, "shader", NULL);
       }
    }
+/*
+   // We no longer need this, right ?
+   MPlug OverridesPlug = FindMayaPlug("aiOverrides");
+   unsigned nelems = OverridesPlug.numElements();
+   MPlug elemPlug;
+   for (unsigned int i = 0; i < nelems; ++i)
+   {
+      elemPlug = OverridesPlug[i];
+
+      MPlug shaderPlug = elemPlug.child(1);
+      MPlugArray shaderConnections;
+      shaderPlug.connectedTo(shaderConnections, true, false);
+      if (shaderConnections.length() > 0)
+         ExportConnectedNode(shaderConnections[0]);
+
+      MPlug dispPlug = elemPlug.child(2);
+      MPlugArray dispConnections;
+      dispPlug.connectedTo(dispConnections, true, false);
+      if (dispConnections.length() > 0)
+         ExportConnectedNode(dispConnections[0]);
+
+      // TODO export and create operators from overrides, 
+      // currently we make them in the interactive session
+   }
+*/
 }
 
 void CGpuCacheTranslator::ExportMotion(AtNode *shape)
