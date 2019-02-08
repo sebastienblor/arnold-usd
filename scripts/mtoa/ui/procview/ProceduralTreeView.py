@@ -145,11 +145,17 @@ class ProceduralTreeModel(BaseModel):
         item = index.internalPointer()
 
         if action == ProceduralItem.ACTION_SHADER:
-            self.transverser.selectNode(item.getOverride(SHADER))
+            ov = item.getOverrides() or []
+            if len(ov) == 0:
+                return
+            ov = ov[0]
+            if ov and len(ov) >= 3 and ov[0] == 'shader':
+                ov = str(ov[2]).replace("'", "")
+                self.transverser.selectNode(ov)
         elif action == ProceduralItem.ACTION_EXPAND:
             self.treeView().setExpanded(
                 index, not self.treeView().isExpanded(index))
-
+            
 
 class ProceduralTreeViewDelegate(BaseDelegate):
 
