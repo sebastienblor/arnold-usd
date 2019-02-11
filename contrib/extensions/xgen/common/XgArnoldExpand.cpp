@@ -1295,17 +1295,40 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
                   AiNodeDeclare( in_node, param_name, declarestr.c_str() );
                   AiNodeSetFlt( in_node, param_name, AiNodeGetFlt(m_node, param_name));
                   break;
+               case AI_TYPE_INT:
+                  declarestr += "INT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetInt( in_node, param_name, AiNodeGetInt(m_node, param_name));
+                  break;
+               case AI_TYPE_UINT:
+                  declarestr += "UINT";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetUInt( in_node, param_name, AiNodeGetUInt(m_node, param_name));
+                  break;
+               case AI_TYPE_BOOLEAN:
+                  declarestr += "BOOL";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AiNodeSetBool( in_node, param_name, AiNodeGetBool(m_node, param_name));
+                  break;
                case AI_TYPE_STRING:
                   declarestr += "STRING";
                   AiNodeDeclare( in_node, param_name, declarestr.c_str() );
                   AiNodeSetStr( in_node, param_name, AiNodeGetStr(m_node, param_name));
                   break;
                case AI_TYPE_RGB:
-               {
+                {
                   declarestr += "RGB";
                   AiNodeDeclare( in_node, param_name, declarestr.c_str() );
                   AtRGB color = AiNodeGetRGB(m_node, param_name);
                   AiNodeSetRGB( in_node, param_name,  color.r, color.g, color.b);
+                  break;
+                }
+               case AI_TYPE_RGBA:
+                {
+                  declarestr += "RGBA";
+                  AiNodeDeclare( in_node, param_name, declarestr.c_str() );
+                  AtRGBA color = AiNodeGetRGBA(m_node, param_name);
+                  AiNodeSetRGBA( in_node, param_name,  color.r, color.g, color.b, color.a);
                   break;
                 }
                case AI_TYPE_VECTOR:
