@@ -1014,7 +1014,7 @@ AtNode*  CBump3DTranslator::CreateArnoldNodes()
 void CBump3DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");   
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
 }
 
 // SamplerInfo
@@ -1023,32 +1023,123 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
    MString outputAttr = GetMayaOutputAttributeName();
    AtNode* shader = NULL;
-   if (outputAttr == "facingRatio" || outputAttr == "flippedNormal")
+
+   // 1D Conditions 
+   if (outputAttr == "facingRatio")
    {
-      shader = AddArnoldNode("MayaSamplerInfo1D");
+      shader = AddArnoldNode("facing_ratio");
    }
-   else if (outputAttr == "uvCoord" || outputAttr == "pixelCenter")
+   else if (outputAttr == "flippedNormal")
    {
-      shader = AddArnoldNode("MayaSamplerInfo2D");
+      shader = AddArnoldNode("compare");
+      AtNode* dot_shader = AddArnoldNode("dot");
+      AtNode* Nf_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(Nf_shader, "variable", "Nf");
+      AtNode* N_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(N_shader, "variable", "N");
+      AiNodeLink(Nf_shader, "input1", dot_shader);
+      AiNodeLink(N_shader, "input2", dot_shader);
+      AiNodeSetStr(shader, "test", "<");
+      AiNodeSetFlt(shader, "input2", 0.0f);
+      AiNodeLink(dot_shader, "input1", shader);
    }
-   else if (outputAttr == "pointWorld" || outputAttr == "pointObj" || outputAttr == "pointCamera" ||
-            outputAttr == "normalCamera" || outputAttr == "rayDirection" ||
-            outputAttr == "tangentUCamera" ||outputAttr == "tangentVCamera")
+
+   // // 2D Conditions
+   else if (outputAttr == "uvCoord" )
    {
-      shader = AddArnoldNode("MayaSamplerInfo3D");
+      shader = AddArnoldNode("float_to_rgb");
+      AtNode* u_shader = AddArnoldNode("state_float");
+      AiNodeSetStr(u_shader, "variable", "u");
+      AtNode* v_shader = AddArnoldNode("state_float");
+      AiNodeSetStr(v_shader, "variable", "v");
+      AiNodeLink(u_shader, "r", shader);
+      AiNodeLink(v_shader, "g", shader);
+   }
+   else if (outputAttr == "pixelCenter")
+   {
+      shader = AddArnoldNode("float_to_rgb");
+      AtNode* screenx_shader = AddArnoldNode("state_int");
+      AiNodeSetStr(screenx_shader, "variable", "x");
+      AtNode* screeny_shader = AddArnoldNode("state_int");
+      AiNodeSetStr(shader2, "variable", "y");
+      AiNodeLink(screenx_shader, "r", shader);
+      AiNodeLink(screeny_shader, "g", shader);
+   }
+
+   // // 3D Conditions 
+   else if ( outputAttr == "pointWorld")
+   {
+      shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(shader, "variable", "P");
+   }
+   else if ( outputAttr == "pointObj")
+   {
+      shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(shader, "variable", "Po");
+   }
+   else if ( outputAttr == "pointCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AtNode* P_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(P_shader, "variable", "P");
+      AiNodeLink(P_shader, "input", shader);
+   }
+   else if ( outputAttr == "normalCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AtNode* N_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(N_shader, "variable", "N");
+      AiNodeLink(N_shader, "input", shader);
+   }
+   else if ( outputAttr == "rayDirection")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AtNode* Rd_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(Rd_shader, "variable", "Rd");
+      AiNodeLink(Rd_shader, "input", shader);
+   }
+   else if ( outputAttr == "tangentUCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetBool(shader, "normalize", true);
+      AtNode* tgtU_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(tgtU_shader, "variable", "dPdu");
+      AiNodeLink(tgtU_shader, "input", shader);
+   }
+   else if ( outputAttr == "tangentVCamera")
+   {
+      shader = AddArnoldNode("space_transform");
+      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "from", "world");
+      AiNodeSetStr(shader, "to", "camera");
+      AiNodeSetBool(shader, "normalize", true);
+      AtNode* tgtV_shader = AddArnoldNode("state_vector");
+      AiNodeSetStr(tgtV_shader, "variable", "dPdv");
+      AiNodeLink(tgtV_shader, "input", shader);
    }
    else
    {
       AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
-   AtEnum modeEnum = AiParamGetEnum(AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(shader), "mode"));
-   AiNodeSetInt(shader, "mode", AiEnumGetValue(modeEnum, outputAttr.asChar()));
    return shader;
 }
 
 void CSamplerInfoTranslator::Export(AtNode* shader)
-{}
+{
+}
 
 // PlusMinusAverage
 //
@@ -2944,7 +3035,7 @@ void CConditionTranslator::Export(AtNode* shader)
    }
    ProcessParameter(compare, "input1", AI_TYPE_FLOAT, "firstTerm");
    ProcessParameter(compare, "input2", AI_TYPE_FLOAT, "secondTerm");
-   AiNodeLink(compare, "index", shader);   
+   AiNodeLink(compare, "index", shader);
    
    ProcessParameter(shader, "input0", AI_TYPE_RGBA, "colorIfFalse");
    ProcessParameter(shader, "input1", AI_TYPE_RGBA, "colorIfTrue");
