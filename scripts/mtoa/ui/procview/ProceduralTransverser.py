@@ -1,5 +1,6 @@
 import os
 import re
+import fnmatch
 import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser
@@ -17,7 +18,7 @@ from arnold import *
 (PARM, OP, VALUE, INDEX) = range(4)
 
 
-SELECTION_REGEX = re.compile(r"(/[/\w]*\w+)/*\**")
+SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
 EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
@@ -248,7 +249,7 @@ class ProceduralTransverser(BaseTransverser):
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
     @classmethod
-    def getOperators(self, node, path, operator_type=None):
+    def getOperators(self, node, path, operator_type=None, exact_match=True):
 
         def walkInputs(op, path, plug):
             """
@@ -256,7 +257,6 @@ class ProceduralTransverser(BaseTransverser):
             return list of operators matching the path
             """
 
-            selection_exp = '{}*'.format(path)
             ops = []
             r_ipt = r_plug = None
             if cmds.attributeQuery('selection', node=op, exists=True) and \
@@ -265,9 +265,20 @@ class ProceduralTransverser(BaseTransverser):
                 sel_exp = cmds.getAttr('{}.selection'.format(op))
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
-                    mat = SELECTION_REGEX.match(tok)
-                    if mat and mat.group(1) == path or \
-                       (path == "/" and tok == "/*"):
+                    sel_mat = False
+                    if exact_match:
+                        mat = SELECTION_REGEX.match(tok)
+                        if mat and mat.group() == path:
+                            sel_mat = True
+                        if not mat:
+                            sel_mat = (tok == path) or (tok == "/*" and path == '/')
+                    else:
+                        pat = fnmatch.translate(tok)
+                        reobj = re.compile(pat)
+                        mat = reobj.match(path)
+                        if mat:
+                            sel_mat = True
+                    if sel_mat:
                         ops.append(op)
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
@@ -296,9 +307,9 @@ class ProceduralTransverser(BaseTransverser):
             # for now only delete if there is only one op that has this path
             cmds.delete(op[0])
 
-    def getOverrides(self, node, path, override_type=None):
+    def getOverrides(self, node, path, override_type=None, exact_match=False):
 
-        ops = self.getOperators(node, path, OVERRIDE_OP)
+        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match)
 
         overrides = []
         if len(ops):

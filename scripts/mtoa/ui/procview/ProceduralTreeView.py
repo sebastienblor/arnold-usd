@@ -349,8 +349,9 @@ class ProceduralItem(BaseItem):
 
     def getOverrides(self, tranverse=False, override_type=None):
         if not tranverse:
+            # get the overrides just for this node
             if self.data:
-                return self.transverser.getOverrides(self.node, self.data[PROC_PATH], override_type)
+                return self.transverser.getOverrides(self.node, self.data[PROC_PATH], override_type, exact_match=True)
             return []
         else:
             overrides = []
@@ -358,9 +359,10 @@ class ProceduralItem(BaseItem):
             if currentOverrides:
                 overrides += currentOverrides
 
+            # get the overides for parent nodes as well
             parent = self.parent()
             if parent:
-                overrides += parent.getOverrides(True, override_type)
+                overrides += self.transverser.getOverrides(parent.node, self.data[PROC_PATH], override_type)
 
             return overrides
 
