@@ -115,7 +115,23 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidgetName = cmds.setParent(query=True)
         return toQtObject(currentWidgetName, pySideType)
 
-    
+    def updateSelectedItems(self):
+        if not self.tree or not self.tree.transverser:
+            return
+        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
+        
+        if selection == self.tree.transverser.selectionStr:
+            return
+        #self.tree.transverser.selectionStr = selection
+        selectionSplit = selection.split(',')
+        for selected in selectionSplit:
+            if selected:
+                # Prevent firing signals in Qt to avoid infinite loop.
+                oldState = self.tree.blockSignals(True)
+                self.tree.select(selected)
+                self.tree.blockSignals(oldState)
+                return
+                
     def updateAssFile(self):
         self.assItems = []
         self.fileInfoReplace(self.nodeName + ".dso")
@@ -174,14 +190,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setCurrentNode(self.nodeName)
         self.properties_panel.setItem(self.nodeName, None)
 
-    def select(self, path):
-        # Prevent firing signals in Qt to avoid infinite loop.
-        oldState = self.tree.blockSignals(True)
-
-        self.tree.select(path)
-
-        self.tree.blockSignals(oldState)
-
     def fileInfoNew(self, nodeAttr):
 
         currentWidget = self.__currentWidget()
@@ -202,8 +210,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.fileInfoReplace(nodeAttr)
 
         fileAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile],
-                       replacePrevious=True, parent=self.inspectAssPath)
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile])
+
+        fileAttr = self.nodeName + ".selected_items"
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
+
 
 
     @QtCore.Slot(str, object)
