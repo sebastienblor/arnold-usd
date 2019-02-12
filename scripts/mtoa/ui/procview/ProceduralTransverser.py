@@ -391,7 +391,7 @@ class ProceduralTransverser(BaseTransverser):
         elif param_type is AI_TYPE_BOOLEAN:
             value = param_default.contents.BOOL
         elif param_type is AI_TYPE_STRING:
-            value = str(param_default.contents.STR)
+            value = param_default.contents.STR
         elif param_type is AI_TYPE_ENUM:
             idx = param_default.contents.INT
             value = AiEnumGetString(AiParamGetEnum(param), idx)
