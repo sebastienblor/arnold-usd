@@ -59,6 +59,29 @@ class ProceduralTreeView(BaseTreeView):
             child = item.child(i)
             child.obtainChildren()
 
+    def select(self, path):
+        root = self.model().rootItem
+
+        item = root.find(path)
+
+        if not item:
+            return
+
+        parent = item.parent()
+        while parent:
+            index = self.model().indexFromItem(parent)
+            self.onExpanded(index)
+            parent = parent.parent()
+
+        self.clearSelection()
+
+        # We are ready to manipulate with the selection.
+        # Get the index of the item.
+        index = self.model().indexFromItem(item)
+        # Select it.
+        self.selectionModel().setCurrentIndex(
+            index, QtCore.QItemSelectionModel.Select)
+
     def selectionChanged(self, selected, deselected):
         """
         Called when the selection is changed. The previous selection (which
@@ -195,7 +218,6 @@ class ProceduralItem(BaseItem):
         self.SHADER_ICON = ":/out_blinn.png"
         self.DISPMAP_ICON = ":/out_displacementShader.png"
 
-        self.childItems = []
         self.childrenObtained = False
 
         self.transverser = transverser
@@ -389,6 +411,19 @@ class ProceduralItem(BaseItem):
                     ProceduralItem(self, self.transverser, self.node, data=child)
 
         self.childrenObtained = True
+
+    def find(self, path):
+
+        self.obtainChildren()
+
+        for child in self.childItems:
+            if child.data and path == child.data[PROC_PATH]:
+                return child
+            if child.data:
+                isRoot = child.data[PROC_PATH] == '/'
+                childPath = child.data[PROC_PATH] + ('' if isRoot else '/')
+                if path.startswith(childPath):
+                    return child.find(path)
 
     def addOverrideOp(self, operator):
         self.overrides_op = operator
