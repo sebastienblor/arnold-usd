@@ -958,8 +958,17 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
    
    for (; it != proceduralSelectedItems.end(); ++it)
    {
+      // First check if the procedural has an attribute called "selectedItems"
+      int exists = 0;
+      MString cmd = "attributeExists \"selectedItems\" \"";
+      cmd += MString(it->first.c_str());
+      cmd += MString("\"");
+      MGlobal::executeCommand(cmd, exists);
+      if (exists == 0)
+         continue;
+
       std::vector<std::string> &selectedItems = it->second;
-      MString cmd ("setAttr -type \"string\" ");
+      cmd = MString("setAttr -type \"string\" ");
       cmd += MString(it->first.c_str());
       cmd += ".selectedItems \"";
 
@@ -970,7 +979,6 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
          cmd += MString(selectedItems[i].c_str());
       }
       cmd += MString("\"");
-      MGlobal::displayWarning(cmd);
       MGlobal::executeCommand(cmd);
    }
 }

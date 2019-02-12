@@ -50,7 +50,7 @@ class StandInTransverser(ProceduralTransverser):
 
     def getObjectInfo(self, iObj):
         if iObj == None:
-            return ['root', 'root', '', 'visible', '', 'root', None]
+            return ['/', '/', '', 'visible', '', '/', None]
         
         name = iObj
         entryName = self.cache[iObj]
@@ -58,7 +58,7 @@ class StandInTransverser(ProceduralTransverser):
 
     def getRootObjectInfo(self, node):
         self.nodeName = node
-        return ["root", "root", '', 'visible', '', 'root', None]
+        return ["/", "/", '', 'visible', '', '/', None]
         
     def dir(self, iobject):
         if iobject != None:
