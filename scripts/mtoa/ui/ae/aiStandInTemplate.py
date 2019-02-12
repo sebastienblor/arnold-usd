@@ -174,6 +174,14 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setCurrentNode(self.nodeName)
         self.properties_panel.setItem(self.nodeName, None)
 
+    def select(self, path):
+        # Prevent firing signals in Qt to avoid infinite loop.
+        oldState = self.tree.blockSignals(True)
+
+        self.tree.select(path)
+
+        self.tree.blockSignals(oldState)
+
     def fileInfoNew(self, nodeAttr):
 
         currentWidget = self.__currentWidget()
