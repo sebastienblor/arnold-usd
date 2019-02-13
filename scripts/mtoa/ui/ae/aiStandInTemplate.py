@@ -115,11 +115,28 @@ class AEaiStandInTemplate(ShaderAETemplate):
         currentWidgetName = cmds.setParent(query=True)
         return toQtObject(currentWidgetName, pySideType)
 
-    
+    def updateSelectedItems(self):
+        if not self.tree or not self.tree.transverser:
+            return
+        selection = cmds.getAttr('{}.{}'.format(self.nodeName, 'selected_items'))
+        
+        if selection == self.tree.transverser.selectionStr:
+            return
+        #self.tree.transverser.selectionStr = selection
+        selectionSplit = selection.split(',')
+        for selected in selectionSplit:
+            if selected:
+                # Prevent firing signals in Qt to avoid infinite loop.
+                #oldState = self.tree.blockSignals(True)
+                self.tree.select(selected)
+                #self.tree.blockSignals(oldState)
+                return
+                
     def updateAssFile(self):
         self.assItems = []
         self.fileInfoReplace(self.nodeName + ".dso")
-        cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
+        # FIXME for now let's not rely on this cache attribute
+        #cmds.setAttr('{}.{}'.format(self.nodeName, CACHE_ATTR), 0, type="stringArray")
 
 
     '''
@@ -152,6 +169,9 @@ class AEaiStandInTemplate(ShaderAETemplate):
         if nodeName == self.currentNode and filename == self.currentFilename:
             return # nothing to do here...
 
+        if filename == None or len(filename) == 0:
+            return
+
         self.currentNode = nodeName
         self.currentFilename = filename
         ext_str = os.path.splitext(filename)[1].lower()
@@ -159,28 +179,18 @@ class AEaiStandInTemplate(ShaderAETemplate):
         if ext_str == '.abc':
             transverser = AlembicTransverser()
             transverser.filenameAttr = 'dso'
-        elif ext_str == '.ass' or ext_str == '.ass.gz' or ext_str == '.gz':
-            transverser = StandInTransverser()
-        else:
+        elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
             # need to find out which procedural to use with it
-            procName = 'procedural'
-            if ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
-                procName = 'usd'
+            procName = 'usd'
             transverser = CustomProceduralTransverser(procName, 'filename', filename)
-
+        else:
+            transverser = StandInTransverser()
+        
         transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
         self.tree.setTransverser(transverser)
         self.properties_panel.setTransverser(transverser)
         self.tree.setCurrentNode(self.nodeName)
         self.properties_panel.setItem(self.nodeName, None)
-
-    def select(self, path):
-        # Prevent firing signals in Qt to avoid infinite loop.
-        oldState = self.tree.blockSignals(True)
-
-        self.tree.select(path)
-
-        self.tree.blockSignals(oldState)
 
     def fileInfoNew(self, nodeAttr):
 
@@ -202,8 +212,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.fileInfoReplace(nodeAttr)
 
         fileAttr = self.nodeName + ".dso"
-        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile],
-                       replacePrevious=True, parent=self.inspectAssPath)
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateAssFile])
+
+        fileAttr = self.nodeName + ".selected_items"
+        cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
+
 
 
     @QtCore.Slot(str, object)
@@ -255,9 +268,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.assItems = []
         self.selectedItems = []
         # get the items in the cache
+        '''
         cache_str_list = cmds.getAttr('{}.{}'.format(self.nodeName, CACHE_ATTR)) or []
         for s in cache_str_list:
             self.assItems.append(s.split(','))
+        '''
 
     def useSequenceChange(self, nodeName):
         

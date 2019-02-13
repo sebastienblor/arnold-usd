@@ -137,6 +137,7 @@ void XgSplineProcedural::CreateCurves(AtNode* procedural, bool procParent)
       AiNodeSetBool(_curves, "self_shadows", AiNodeGetBool(procedural, "self_shadows"));
       AiNodeSetBool(_curves, "receive_shadows", AiNodeGetBool(procedural, "receive_shadows"));
       AiNodeSetBool(_curves, "matte", AiNodeGetBool(procedural, "matte"));
+      AiNodeSetArray(_curves, "matrix", AiArrayCopy(AiNodeGetArray(procedural, "matrix")));
    }
 
 }

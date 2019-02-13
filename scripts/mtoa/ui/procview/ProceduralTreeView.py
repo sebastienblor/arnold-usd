@@ -61,11 +61,14 @@ class ProceduralTreeView(BaseTreeView):
 
     def select(self, path):
         root = self.model().rootItem
-
         item = root.find(path)
-
         if not item:
             return
+
+        if self.transverser:
+            if path == self.transverser.selectionStr:
+                return # nothing changed, we can leave
+            self.transverser.selectionStr = path
 
         parent = item.parent()
         while parent:
@@ -413,16 +416,14 @@ class ProceduralItem(BaseItem):
         self.childrenObtained = True
 
     def find(self, path):
-
         self.obtainChildren()
-
         for child in self.childItems:
             if child.data and path == child.data[PROC_PATH]:
                 return child
             if child.data:
-                isRoot = child.data[PROC_PATH] == '/'
+                isRoot = child.data[PROC_PATH] == '/' or child.data[PROC_PATH] == ''
                 childPath = child.data[PROC_PATH] + ('' if isRoot else '/')
-                if path.startswith(childPath):
+                if isRoot or path == childPath or path.startswith(childPath):
                     return child.find(path)
 
     def addOverrideOp(self, operator):

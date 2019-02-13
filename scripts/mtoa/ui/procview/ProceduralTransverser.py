@@ -64,6 +64,7 @@ class ProceduralTransverser(BaseTransverser):
         super(ProceduralTransverser, self).__init__()
         self.selectionAttr = None  # eventually a string attribute to be updated when the selection changes
         self.paramDict = {}
+        self.selectionStr = ''
 
     def getParams(self, node_types):
         """
@@ -214,6 +215,7 @@ class ProceduralTransverser(BaseTransverser):
         attrname = operator+".enable"
         cmds.setAttr(attrname, not cmds.getAttr(attrname))
 
+    # this function is invoked when we select an item in the tree view
     def selectionChanged(self, node, selection):
         if not self.selectionAttr:
             return
@@ -228,7 +230,9 @@ class ProceduralTransverser(BaseTransverser):
             selectionStr += sel[PROC_PATH]
             if sel[PROC_ENTRY_TYPE] =='xform':
                 selectionStr += '/*'
-
+        if selectionStr == self.selectionStr:
+            return
+        self.selectionStr = selectionStr
         cmds.setAttr('{}.{}'.format(node, self.selectionAttr), selectionStr, type='string')
 
     def insertOperator(self, node, op, index):
@@ -402,7 +406,7 @@ class ProceduralTransverser(BaseTransverser):
         elif param_type is AI_TYPE_BOOLEAN:
             value = param_default.contents.BOOL
         elif param_type is AI_TYPE_STRING:
-            value = str(param_default.contents.STR)
+            value = param_default.contents.STR
         elif param_type is AI_TYPE_ENUM:
             idx = param_default.contents.INT
             value = AiEnumGetString(AiParamGetEnum(param), idx)

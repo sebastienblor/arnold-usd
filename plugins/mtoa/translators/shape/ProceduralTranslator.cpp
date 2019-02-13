@@ -343,7 +343,7 @@ void CProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
    m_attrChanged = true; // this flag tells me that I've been through a NodeChanged call
    MString plugName = plug.partialName(false, false, false, false, false, true);
 
-   if (plugName == "selectedItems") return;
+   if (plugName == "selectedItems" || plugName == "selected_items") return;
 
    if (!IsTransformPlug(plug))
       SetUpdateMode(AI_RECREATE_NODE);
