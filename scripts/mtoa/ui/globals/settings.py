@@ -497,7 +497,7 @@ def createGpuSettings():
 
     if isGPU:
         cmds.attrControlGrp('gpu', 
-                    label="GPU Rendering", 
+                    label="GPU Rendering (BETA)", 
                     attribute='defaultArnoldRenderOptions.gpu')
 
 
