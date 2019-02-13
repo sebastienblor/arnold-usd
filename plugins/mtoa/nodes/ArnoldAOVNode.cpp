@@ -60,12 +60,13 @@ MStatus CArnoldAOVNode::initialize()
    s_type = eAttr.create("type", "aovt", AI_TYPE_RGBA);
    // add all valid AOV types
    eAttr.addField("int",     AI_TYPE_INT);
+   eAttr.addField("uint",    AI_TYPE_UINT);
    eAttr.addField("bool",    AI_TYPE_BOOLEAN);
    eAttr.addField("float",   AI_TYPE_FLOAT);
    eAttr.addField("rgb",     AI_TYPE_RGB);
    eAttr.addField("rgba",    AI_TYPE_RGBA);
    eAttr.addField("vector",  AI_TYPE_VECTOR);
-   eAttr.addField("vector2",  AI_TYPE_VECTOR2);
+   eAttr.addField("vector2", AI_TYPE_VECTOR2);
    eAttr.addField("pointer", AI_TYPE_POINTER);
    eAttr.setKeyable(false);
    addAttribute(s_type);
