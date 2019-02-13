@@ -1061,7 +1061,7 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
       AtNode* screenx_shader = AddArnoldNode("state_int");
       AiNodeSetStr(screenx_shader, "variable", "x");
       AtNode* screeny_shader = AddArnoldNode("state_int");
-      AiNodeSetStr(shader2, "variable", "y");
+      AiNodeSetStr(screeny_shader, "variable", "y");
       AiNodeLink(screenx_shader, "r", shader);
       AiNodeLink(screeny_shader, "g", shader);
    }
