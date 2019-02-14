@@ -3321,3 +3321,76 @@ void CUserDataVec2Translator::Export(AtNode* shader)
    AiNodeSetRGB(shader,"default", defX, defY, 0.0f);
 
 }
+
+
+
+AtNode* CContrastTranslator::CreateArnoldNodes()
+{
+   MPlug contrastPlug = FindMayaPlug("contrast");
+   MPlug biasPlug = FindMayaPlug("bias");
+
+   AtRGB contrast(contrastPlug.child(0).asFloat(), contrastPlug.child(1).asFloat(), contrastPlug.child(2).asFloat());
+   AtRGB bias(biasPlug.child(0).asFloat(), biasPlug.child(1).asFloat(), biasPlug.child(2).asFloat());
+   
+   if (std::abs(contrast.r - contrast.g) < AI_EPSILON && std::abs(contrast.r - contrast.b) < AI_EPSILON &&
+      std::abs(bias.r - bias.g) < AI_EPSILON && std::abs(bias.r - bias.b) < AI_EPSILON)
+      m_isRgb = false;
+   else
+      m_isRgb = true;
+
+   if (m_isRgb)
+   {
+      AddArnoldNode("range", "range_r");
+      AddArnoldNode("range", "range_g");
+      AddArnoldNode("range", "range_b");
+      AddArnoldNode("flat", "flat");
+      return AddArnoldNode("float_to_rgb");
+   }
+
+   return AddArnoldNode("range");
+}
+
+void CContrastTranslator::Export(AtNode* shader)
+{
+   if (!m_isRgb)
+   {
+      ProcessParameter(shader, "input", AI_TYPE_RGB, "value");
+      float contrast = FindMayaPlug("contrast").child(0).asFloat();
+      AiNodeSetFlt(shader, "gain", 1.f - powf(2.f, -contrast));
+      float bias = FindMayaPlug("bias").child(0).asFloat();
+      AiNodeSetFlt(shader, "bias", 1.f - bias);
+      return;
+   }
+   AtNode *flat = GetArnoldNode("flat");
+   AtNode *range_r = GetArnoldNode("range_r");
+   AtNode *range_g = GetArnoldNode("range_g");
+   AtNode *range_b = GetArnoldNode("range_b");
+   AiNodeLink(range_r, "r", shader);
+   AiNodeLink(range_g, "g", shader);
+   AiNodeLink(range_b, "b", shader);
+   AiNodeLinkOutput(flat, "r", range_r, "input");
+   AiNodeLinkOutput(flat, "g", range_g, "input");
+   AiNodeLinkOutput(flat, "b", range_b, "input");
+   ProcessParameter(flat, "color", AI_TYPE_RGB, "value");
+   MPlug contrastPlug = FindMayaPlug("contrast");
+   AtRGB contrast(contrastPlug.child(0).asFloat(), contrastPlug.child(1).asFloat(), contrastPlug.child(2).asFloat());
+   MPlug biasPlug = FindMayaPlug("bias");
+   AtRGB bias(biasPlug.child(0).asFloat(), biasPlug.child(1).asFloat(), biasPlug.child(2).asFloat());
+   AiNodeSetFlt(range_r, "gain", 1.f - powf(2.f, -contrast.r));
+   AiNodeSetFlt(range_g, "gain", 1.f - powf(2.f, -contrast.g));
+   AiNodeSetFlt(range_b, "gain", 1.f - powf(2.f, -contrast.b));
+   AiNodeSetFlt(range_r, "bias", 1.f - bias.r);
+   AiNodeSetFlt(range_g, "bias", 1.f - bias.g);
+   AiNodeSetFlt(range_b, "bias", 1.f - bias.b);
+}
+
+
+void CContrastTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (!m_isRgb && (plugName == "contrast" || plugName == "bias"))
+      SetUpdateMode(AI_RECREATE_NODE);
+   
+   CShaderTranslator::NodeChanged(node, plug);
+
+}

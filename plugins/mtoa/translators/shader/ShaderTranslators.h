@@ -288,3 +288,17 @@ public:
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
 };
+
+class CContrastTranslator : public CShaderTranslator
+{   
+public:
+   CContrastTranslator() : m_isRgb(false) {}
+   
+   static void* creator(){return new CContrastTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool m_isRgb;
+};   

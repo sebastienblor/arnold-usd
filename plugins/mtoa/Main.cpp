@@ -945,6 +945,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("aiUserDataVec2",
                                        "",
                                        CUserDataVec2Translator::creator);
+         shaders->RegisterTranslator("contrast",
+                                       "",
+                                       CContrastTranslator::creator);
          
 
          if(MGlobal::apiVersion() >= 20180400)
