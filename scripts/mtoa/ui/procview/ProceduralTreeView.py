@@ -41,12 +41,13 @@ class ProceduralTreeView(BaseTreeView):
         currentItems = []
         self.model().setTransverser(transverser)
 
-    def setCurrentNode(self, node):
+    def setCurrentNode(self, node, expand=True):
         """Clear the widget and generate the view of the new node."""
         model = self.model()
         if model.setCurrentNode(node):
             model.refresh()
-            self.expandToDepth(0)
+            if expand:
+                self.expandToDepth(0)
 
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
@@ -195,7 +196,7 @@ class ProceduralItem(BaseItem):
     GROUP_ICON = QtGui.QPixmap(":/out_transform.png")
     MESH_ICON = QtGui.QPixmap(":/out_mesh.png")
     POINTS_ICON = QtGui.QPixmap(":/out_particle.png")
-    CURVES_ICON = QtGui.QPixmap(":/out_curves.png")
+    CURVES_ICON = QtGui.QPixmap(":/nurbsCurve.svg")
     UNKNOWN_ICON = QtGui.QPixmap(":/question.png")
 
     COLOR_OBJECT = QtGui.QColor(113, 142, 164)

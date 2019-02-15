@@ -167,7 +167,8 @@ class AEaiStandInTemplate(ShaderAETemplate):
         fileAttr = '{}.dso'.format(nodeName)
         filename = cmds.getAttr(fileAttr)
         if nodeName == self.currentNode and filename == self.currentFilename:
-            return # nothing to do here...
+            self.properties_panel.setItem(self.nodeName, None)
+            return  # nothing to do here...
 
         if filename == None or len(filename) == 0:
             return
@@ -176,9 +177,11 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.currentFilename = filename
         ext_str = os.path.splitext(filename)[1].lower()
 
+        expand = False
         if ext_str == '.abc':
             transverser = AlembicTransverser()
             transverser.filenameAttr = 'dso'
+            expand = True
         elif ext_str == '.usd' or ext_str == '.usda' or ext_str == '.usdc':
             # need to find out which procedural to use with it
             procName = 'usd'
@@ -189,8 +192,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
         self.tree.setTransverser(transverser)
         self.properties_panel.setTransverser(transverser)
-        self.tree.setCurrentNode(self.nodeName)
-        self.properties_panel.setItem(self.nodeName, None)
+        self.tree.setCurrentNode(self.nodeName, expand)
 
     def fileInfoNew(self, nodeAttr):
 
