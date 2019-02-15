@@ -1,5 +1,6 @@
 import os
 import re
+import fnmatch
 import maya.cmds as cmds
 import mtoa.melUtils as mu
 from mtoa.ui.qt import BaseTransverser
@@ -14,10 +15,10 @@ from arnold import *
  PROC_ENTRY_TYPE,
  PROC_IOBJECT) = range(7)
 
-(PARM, OP, VALUE, INDEX) = range(4)
+(PARM, OP, VALUE, INDEX, OPERATOR) = range(5)
 
 
-SELECTION_REGEX = re.compile(r"(/[/\w]*\w+)/*\**")
+SELECTION_REGEX = re.compile(r'.*(?=/\*)')
 
 EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
                          (?P<op>=|\+=|-=|\*=)\s* # operation
@@ -173,6 +174,7 @@ class ProceduralTransverser(BaseTransverser):
 
         op_name = '{}_{}'.format(node, operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
+        print "ProceduralTransverser.createOperator", index, parent_index, op
         if op:
             # if this operator has a selection attribute set it to the
             # given object path
@@ -251,8 +253,36 @@ class ProceduralTransverser(BaseTransverser):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
+    def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True):
+
+        sel_mat = False
+        if cmds.attributeQuery('selection', node=operator, exists=True) and \
+           (operator_type is None or cmds.nodeType(operator) == operator_type):
+
+            sel_exp = cmds.getAttr('{}.selection'.format(operator))
+            tokens = sel_exp.rsplit()
+            for tok in tokens:
+                if exact_match:
+                    mat = SELECTION_REGEX.match(tok)
+                    isRoot = (tok == "/*" and path == '/')
+                    if mat and mat.group() == path or isRoot:
+                        sel_mat = True
+                        break
+                    if not mat:
+                        sel_mat = (tok == path) or (tok == "/*" and path == '/')
+                else:
+                    pat = fnmatch.translate(tok.replace('/*', '*'))
+                    reobj = re.compile(pat)
+                    mat = reobj.match(path)
+                    if mat:
+                        sel_mat = True
+                        break
+
+        return sel_mat
+
+
     @classmethod
-    def getOperators(self, node, path, operator_type=None):
+    def getOperators(self, node, path, operator_type=None, exact_match=True):
 
         def walkInputs(op, path, plug):
             """
@@ -260,21 +290,36 @@ class ProceduralTransverser(BaseTransverser):
             return list of operators matching the path
             """
 
-            selection_exp = '{}*'.format(path)
             ops = []
-            r_ipt = r_plug = None
+            sel_mat = False
             if cmds.attributeQuery('selection', node=op, exists=True) and \
                (operator_type is None or cmds.nodeType(op) == operator_type):
 
                 sel_exp = cmds.getAttr('{}.selection'.format(op))
                 tokens = sel_exp.rsplit()
                 for tok in tokens:
-                    mat = SELECTION_REGEX.match(tok)
-                    if mat and mat.group(1) == path or \
-                       (path == "/" and tok == "/*"):
-                        ops.append(op)
+                    if exact_match:
+                        mat = SELECTION_REGEX.match(tok)
+                        isRoot = (tok == "/*" and path == '/')
+                        if mat and mat.group() == path or isRoot:
+                            sel_mat = True
+                            break
+                        if not mat:
+                            sel_mat = (tok == path) or (tok == "/*" and path == '/')
+                    else:
+                        pat = fnmatch.translate(tok.replace('/*', '*'))
+                        reobj = re.compile(pat)
+                        mat = reobj.match(path)
+                        if mat:
+                            sel_mat = True
+                            break
+
+            if sel_mat and op not in ops:
+                ops.append(op)
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
+                # FIXME what if switch node, we should only traverse down the
+                #  input that is the same as the input switch
                 inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
@@ -288,21 +333,23 @@ class ProceduralTransverser(BaseTransverser):
         con_operators = cmds.listConnections('{}.operators'.format(node)) or []
         for idx, op in enumerate(con_operators):
             out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx))
-            if out_op:
+            if len(out_op):
                 operators += out_op
 
         return operators
 
-    def deleteOperator(self, node, path, operator_type):
+    def deleteOperator(self, operator):
+        return cmds.delete(operator)
 
-        op = self.getOperators(node, path, OVERRIDE_OP)
-        if len(op) == 1:
-            # for now only delete if there is only one op that has this path
-            cmds.delete(op[0])
+    def getOverrides(self, node, path, exact_match=False):
 
-    def getOverrides(self, node, path, override_type=None):
+        def getParmInList(param, param_list):
+            for i, p in enumerate(param_list):
+                if p[0] == param:
+                    return i
+            return -1
 
-        ops = self.getOperators(node, path, OVERRIDE_OP)
+        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match)
 
         overrides = []
         if len(ops):
@@ -310,22 +357,24 @@ class ProceduralTransverser(BaseTransverser):
                 for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
                     ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
                     mat = EXP_REGEX.match(ass_str)
-                    data = list(mat.groups())
-                    if override_type is None or \
-                       (override_type and data[0] == override_type):
+                    if mat:
+                        param = mat.group('param')
+                        data = list(mat.groups())
                         data.append(c)
-                    overrides.append(data)  # split to param, op, value
+                        data.append(op)
+                        # get if this parameter is already i the list, if so replace it with this one
+                        idx = getParmInList(param, overrides)
+                        if idx != -1:
+                            overrides[idx] = data
+                        else:
+                            overrides.append(data)  # split to param, op, VALUE
 
         return overrides
 
     @classmethod
-    def setOverride(cls, node, path, param, operation, value, param_type, array=False, index=-1):
+    def setOverride(cls, node, path, operator, param, operation, value, param_type, array=False, index=-1):
 
-        ops = cls.getOperators(node, path, OVERRIDE_OP)
-        if not len(ops):
-            return False
-        # for now only add the assignment to the first matching op
-        op = ops[0]
+        op = operator
         if index == -1:
             n_conn = mu.getAttrNumElements(op, "assignment")
             index = n_conn
@@ -360,16 +409,16 @@ class ProceduralTransverser(BaseTransverser):
             return True
         return False
 
-    def deleteOverride(self, node, path, index):
-        ops = self.getOperators(node, path, OVERRIDE_OP)
-        if index != -1 and len(ops):
-            op = ops[0]
-            if self._indexInAssignment(index, op):
-                cmds.removeMultiInstance('{}.assignment[{}]'.format(op, index))
+    def deleteOverride(operator, index):
+        if not cmds.objExists(operator):
+            return False
+        if index != -1:
+            if self._indexInAssignment(index, operator):
+                cmds.removeMultiInstance('{}.assignment[{}]'.format(operator, index))
             else:
                 return False
             # Final check the the index was removed
-            if not self._indexInAssignment(index, op):
+            if not self._indexInAssignment(index, operator):
                 return True
         return False
 

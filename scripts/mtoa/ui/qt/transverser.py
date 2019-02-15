@@ -38,7 +38,7 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.createOperator".format(str(self.__class__.__name__)))
 
-    def getOperator(self, node, path, operator_type=None):
+    def getOperator(self, node, path, operator_type=None, exact_match=False):
         """
         get the operator for the given node and path
         if operator_typoe is set match against this node type
@@ -49,7 +49,7 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.getOperator".format(str(self.__class__.__name__)))
 
-    def getOverrides(self, node, path):
+    def getOverrides(self, node, path, exact_match=False):
         """
         Get a list of ovverrides currently set for the given path
         on the given node
@@ -69,11 +69,12 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.getOverrides".format(str(self.__class__.__name__)))
 
-    def setOverride(self, node, path, param, operation, value, param_type, is_array=False, index=-1):
+    def setOverride(self, node, path, operator, param, operation, value, param_type, is_array=False, index=-1):
         """
         Set the override by adding the override to the given set parameter operator.
             node
             path
+            operator
             param
             operation
             value
