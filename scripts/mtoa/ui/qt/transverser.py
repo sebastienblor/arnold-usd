@@ -69,11 +69,12 @@ class BaseTransverser(object):
         raise NotImplementedError(
             "{}.getOverrides".format(str(self.__class__.__name__)))
 
-    def setOverride(self, node, path, param, operation, value, param_type, is_array=False, index=-1):
+    def setOverride(self, node, path, operator, param, operation, value, param_type, is_array=False, index=-1):
         """
         Set the override by adding the override to the given set parameter operator.
             node
             path
+            operator
             param
             operation
             value

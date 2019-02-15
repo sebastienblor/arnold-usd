@@ -181,7 +181,7 @@ class ProceduralTreeModel(BaseModel):
         elif action == ProceduralItem.ACTION_EXPAND:
             self.treeView().setExpanded(
                 index, not self.treeView().isExpanded(index))
-            
+
 
 class ProceduralTreeViewDelegate(BaseDelegate):
 
@@ -243,6 +243,7 @@ class ProceduralItem(BaseItem):
             if data[PROC_PATH] == '/':
                 name = '/'
             self.itemType = self.OBJECT_TYPE
+            self.setOverridesOp()
 
         elif self.operator:
             name = self.operator
@@ -271,6 +272,12 @@ class ProceduralItem(BaseItem):
             return self.model
 
         return self.parent().getModel()
+
+    def setOverridesOp(self):
+        ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True)
+        if len(ops):
+            self.overrides_op = ops[0]
+            return self.overrides_op
 
     def getOverridesOp(self, transverse=False):
         if self.overrides_op:
@@ -372,22 +379,22 @@ class ProceduralItem(BaseItem):
         """The text indent. offset for the icon"""
         return dpiScale(40)
 
-    def getOverrides(self, tranverse=False, override_type=None):
+    def getOverrides(self, tranverse=False):
         if not tranverse:
             # get the overrides just for this node
             if self.data:
-                return self.transverser.getOverrides(self.node, self.data[PROC_PATH], override_type, exact_match=True)
+                return self.transverser.getOverrides(self.node, self.data[PROC_PATH], exact_match=True)
             return []
         else:
             overrides = []
-            currentOverrides = self.getOverrides(False, override_type)
+            currentOverrides = self.getOverrides(False)
             if currentOverrides:
                 overrides += currentOverrides
 
             # get the overides for parent nodes as well
             parent = self.parent()
             if parent:
-                overrides += self.transverser.getOverrides(parent.node, self.data[PROC_PATH], override_type)
+                overrides += self.transverser.getOverrides(parent.node, self.data[PROC_PATH])
 
             return overrides
 
