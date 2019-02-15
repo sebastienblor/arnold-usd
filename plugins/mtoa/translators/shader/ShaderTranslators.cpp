@@ -1834,21 +1834,35 @@ AtNode*  CDisplacementTranslator::CreateArnoldNodes()
    }
    else
    {
-      return AddArnoldNode("MayaNormalDisplacement");
+      return AddArnoldNode("range");
    }
 }
 
 void CDisplacementTranslator::Export(AtNode* shader)
 {
+   static const AtString range_str("range");
+   if (AiNodeIs(shader, range_str))
+   {
+      // simple displacement along the normal.
+      // We just need the displacement input + scale + zeroValue
+      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "displacement");
+      ProcessParameter(shader, "contrast", AI_TYPE_FLOAT, "scale");
+      AiNodeSetFlt(shader, "contrast_pivot", 0.f);
+      // Now to match the formulas I need output_min = - aiDisplacementZeroValue
+      // and (output_max - output_min) = 1
+      MPlug zeroValPlug = FindMayaPlug("aiDisplacementZeroValue");
+      float zeroVal = zeroValPlug.asFloat();
+      AiNodeSetFlt(shader, "output_min", - zeroVal);
+      AiNodeSetFlt(shader, "output_max", 1 - zeroVal);
+      return;
+   }
+
    ProcessParameter(shader, "displacement", AI_TYPE_FLOAT);
    ProcessParameter(shader, "vectorDisplacement", AI_TYPE_VECTOR);
    ProcessParameter(shader, "scale", AI_TYPE_FLOAT);
    ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
    ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
    ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
-   static const AtString MayaNormalDisplacement_str("MayaNormalDisplacement");
-   if (AiNodeIs(shader, MayaNormalDisplacement_str))
-      ProcessParameter(shader, "zeroValue", AI_TYPE_FLOAT, "aiDisplacementZeroValue");
 }
 void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 {

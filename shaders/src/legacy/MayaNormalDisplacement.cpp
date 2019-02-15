@@ -48,8 +48,10 @@ const char* vector_space_enum[] =
 
 node_parameters
 {
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "displacementShader");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52445348);
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "displacementShader");
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52445348);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 
    AiParameterFlt("displacement", 0.0f);
