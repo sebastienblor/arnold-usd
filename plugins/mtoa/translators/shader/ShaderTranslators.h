@@ -64,6 +64,7 @@ SHADER_TRANSLATOR(CUserDataVec2Translator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {
+   CDisplacementTranslator() : CShaderTranslator(), m_isVectorDisp(false) {}
 public:
    static void* creator(){return new CDisplacementTranslator();}
    virtual void Export(AtNode* shader);
@@ -72,6 +73,7 @@ public:
 
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool m_isVectorDisp;
 };
 
 class CMayaShadingSwitchTranslator : public CShaderTranslator{
@@ -292,7 +294,7 @@ protected:
 class CContrastTranslator : public CShaderTranslator
 {   
 public:
-   CContrastTranslator() : m_isRgb(false) {}
+   CContrastTranslator() : CShaderTranslator(), m_isRgb(false) {}
    
    static void* creator(){return new CContrastTranslator();}
    virtual void Export(AtNode* shader);

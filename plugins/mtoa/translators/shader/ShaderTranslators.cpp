@@ -1829,19 +1829,38 @@ AtNode*  CDisplacementTranslator::CreateArnoldNodes()
    plug.connectedTo(connections, true, false);
 
    if (connections.length() != 0)
-   {
-      return AddArnoldNode("MayaVectorDisplacement");
+   {      
+      m_isVectorDisp = true;
+      AtNode *vectorMap = AddArnoldNode("vector_map");
+      
+      // if space is world (0), we need to insert a space_transform node
+      AtNode *spaceTransform = (FindMayaPlug("vectorSpace").asInt() == 0) ? AddArnoldNode("space_transform", "space_transform") : NULL;
+
+      if (!IsFloatAttrDefault(FindMayaPlug("displacement"), 0.f))
+      {
+         // on top of the vector displacement, there will be a regular displacement along the normal,
+         // thus the root shader should be add
+         AtNode *add = AddArnoldNode("add", "add");
+         AddArnoldNode("state_vector", "state_vector");
+         AddArnoldNode("multiply", "multiply1");
+         AddArnoldNode("multiply", "multiply2");
+         return add;
+      }
+      if (spaceTransform)
+         return spaceTransform;
+      
+      return vectorMap;
    }
    else
-   {
+   {      
+      m_isVectorDisp = false;
       return AddArnoldNode("range");
    }
 }
 
 void CDisplacementTranslator::Export(AtNode* shader)
 {
-   static const AtString range_str("range");
-   if (AiNodeIs(shader, range_str))
+   if (!m_isVectorDisp)
    {
       // simple displacement along the normal.
       // We just need the displacement input + scale + zeroValue
@@ -1857,15 +1876,74 @@ void CDisplacementTranslator::Export(AtNode* shader)
       return;
    }
 
-   ProcessParameter(shader, "displacement", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "vectorDisplacement", AI_TYPE_VECTOR);
-   ProcessParameter(shader, "scale", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
-   ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
-   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+   // vector displacement, let the fun begin !
+   AtNode *vectorMap = GetArnoldNode();
+   AtNode *spaceTransform = GetArnoldNode("space_transform");
+   AtNode *add = GetArnoldNode("add");
+  
+   ProcessParameter(vectorMap, "input", AI_TYPE_VECTOR, "vectorDisplacement");
+   ProcessParameter(vectorMap, "scale", AI_TYPE_FLOAT);
+   ProcessParameter(vectorMap, "tangent", AI_TYPE_VECTOR);
+   AiNodeSetBool(vectorMap, "color_to_signed", (FindMayaPlug("vectorEncoding").asInt() != 0));
+   // vectorSpace = {WORLD, OBJECT, TANGENT}
+   int vectorSpace = FindMayaPlug("vectorSpace").asInt();
+   AiNodeSetBool(vectorMap, "tangent_space", (vectorSpace == 2)); 
+
+   if (spaceTransform)
+   {
+      AiNodeSetStr(spaceTransform, "to", "object");  // object
+      AiNodeSetStr(spaceTransform, "from", (vectorSpace == 0) ? "world" : "object");
+      AiNodeSetStr(spaceTransform, "type", "vector");
+      AiNodeLink(vectorMap, "input", spaceTransform);
+   }
+
+   if (add)
+   {
+      AtNode *stateVector = GetArnoldNode("state_vector");
+      AtNode *multiply1 = GetArnoldNode("multiply1");
+      AtNode *multiply2 = GetArnoldNode("multiply2");
+
+      AiNodeLink((spaceTransform) ? spaceTransform : vectorMap, "input1", add);
+      AiNodeLink(stateVector, "input1", multiply1);
+      AiNodeSetStr(stateVector, "variable", "N");
+      AiNodeLink(multiply1, "input2", add);
+      
+      float scale = FindMayaPlug("scale").asFloat();
+      MPlugArray connections;
+      MPlug displacementPlug = FindMayaPlug("displacement");
+      displacementPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         // there's a link on "displacement" so we can't just multiply it with "scale"
+         // so we link multiply2 to the input2 of multiply1, we link multiply2.input1 to the 
+         // displacement link, and we set scale to its input2
+         AiNodeLink(multiply2, "input2", multiply1);
+         AiNodeLink(ExportConnectedNode(connections[0]), "input1", multiply2);
+         AiNodeSetRGB(multiply2, "input2", scale, scale, scale);
+      }
+      else
+      {
+         // no link on "displacement", se we don't need multiply2. We just multiply it with "scale"
+         AiNodeUnlink(multiply1, "input2"); // it case it was linked before
+         float displacement = displacementPlug.asFloat();
+         displacement *= scale;
+         AiNodeSetRGB(multiply1, "input2", displacement, displacement, displacement);
+      }
+   }
 }
 void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (!m_isVectorDisp)
+   {
+      if (plugName == "vectorDisplacement")
+         SetUpdateMode(AI_RECREATE_NODE);
+   } else
+   {
+      if (plugName == "vectorSpace" || plugName == "displacement")
+         SetUpdateMode(AI_RECREATE_NODE);
+   }
+
    CShaderTranslator::NodeChanged(node, plug);
 
    MPlug disp = MFnDependencyNode(node).findPlug("displacement", true);
@@ -1910,39 +1988,6 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 
             translator2->SetUpdateMode(AI_RECREATE_NODE);
             translator2->RequestUpdate();
-
-            /*
-              Ok, there was surely a good reason to request updates twice here, but this was done a long time 
-              ago. So given that this original commit didn't contain any detail about "why twice", then we have 
-              to comment it and see exactly what issues it introduces....
-
-            // TODO: By now we have to check the connected nodes and if something that is not a mesh
-            //  is connected, we do not reexport, as some crashes may happen.
-            if(translator2->GetMayaNodeTypeName() != "mesh")
-            {
-               reexport = false;
-               break;
-            }
-            translatorsToUpdate.push_back(translator2);
-
-         }
-
-      }
-
-      // We only reexport if all nodes connected to the displacement are mesh nodes
-      if (reexport)
-      {
-         for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
-            iter != translatorsToUpdate.end(); ++iter)
-         {
-            CNodeTranslator* translator3 = (*iter);
-            if (translator3 != NULL)
-            {
-               translator3->SetUpdateMode(AI_RECREATE_NODE);
-               translator3->RequestUpdate();
-            }
-         }
-      }*/
          }
       }
    }
