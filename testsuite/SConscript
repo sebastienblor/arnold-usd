@@ -403,7 +403,7 @@ def run_test(target, source, env):
          if new_channels[3] :
             alpha = new_channels[3]
 
-      if status =='OK' and test_env['FORCE_RESULT'] == 'OK':
+      if True: #should we put this test ?   status =='OK' and test_env['FORCE_RESULT'] == 'OK':
          if test_env['UPDATE_REFERENCE']:
             if os.path.exists(output_image):
                if not reference_image:
