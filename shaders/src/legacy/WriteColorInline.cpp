@@ -4,7 +4,7 @@
 namespace
 {
 
-enum WriteVector2InlineParams
+enum WriteColorInlineParams
 {
    p_input,
    p_name,
@@ -14,27 +14,28 @@ enum WriteVector2InlineParams
 
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(WriteVector2InlineMtd);
+AI_SHADER_NODE_EXPORT_METHODS(WriteColorInlineMtd);
 
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteVector2");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAovWriteVector2");
+   AiMetaDataSetStr(nentry, NULL, "_synonym", "aovWriteColor");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
-   AiMetaDataSetBool(nentry, NULL, "aov_shader", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.false", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 
-   AiParameterVec2("input", 0.0f, 0.0f);
+
+   AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterStr("aov_name", "");
    AiParameterArray("sets", AiArray(0, 0, AI_TYPE_STRING));
 }
 
 shader_evaluate
 {
-   sg->out.VEC2() = AiShaderEvalParamVec2(p_input);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_input);
 
    if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup((AtArray*)AiNodeGetLocalData(node), sg))
-      AiAOVSetVec2(sg, AtString(AiShaderEvalParamStr(p_name)), sg->out.VEC2());
+      AiAOVSetRGBA(sg, AtString(AiShaderEvalParamStr(p_name)), sg->out.RGBA());
 }
 
 node_initialize

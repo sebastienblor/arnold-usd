@@ -1472,7 +1472,7 @@ void COptionsTranslator::Export(AtNode *options)
    
       // This AOV has a shader assigned to it. I want to check if this is an AOV shader or not (based on its metadata)
       // - If it's an AOV shader => add it to the "aov_shaders" list
-      // - If it's not -> insert an MtoaAovWriteColor in between
+      // - If it's not -> insert an aov_write_rgba in between
       AtNode *shaderNode = aovData.shaderTranslator->GetArnoldNode();
       if (shaderNode == NULL)
          continue;
@@ -1488,17 +1488,37 @@ void COptionsTranslator::Export(AtNode *options)
          // not an AOV shader, it cannot fill the aov. We need to create an "aov_write_" node
          // and insert it in the middle
 
+         MString aovInputAttr("input");
+
          // first get the type of the AOV
-         MString aovWriteType = GetAOVNodeType(aovData.type);
-         std::string shaderTag = "aov_shader_" + std::string(aovData.name.asChar());
-         AtNode *aovWriteNode = AddArnoldNode(aovWriteType.asChar(), shaderTag.c_str());
-         std::string aovWriteName = AiNodeGetName(shaderNode);
-         aovWriteName += "@aov_shader";
-         AiNodeSetStr(aovWriteNode, "name", aovWriteName.c_str());
+         MString aovWriteType;
+         switch (aovData.type)
+         {
+         case AI_TYPE_FLOAT:
+            aovWriteType = "aov_write_float";
+            break;
+         case AI_TYPE_VECTOR2:
+         case AI_TYPE_VECTOR:
+         case AI_TYPE_RGB:
+            aovWriteType = "aov_write_rgb";
+            break;
+         default:
+         case AI_TYPE_RGBA:
+            aovWriteType = "aov_write_rgba";
+            break;
+         }
+
+         std::string shaderTag = std::string(aovWriteType.asChar()) + std::string("_") + std::string(aovData.name.asChar());
+         AtNode *aovWriteNode = GetArnoldNode(shaderTag.c_str());
+         if (aovWriteNode == NULL)
+            aovWriteNode = AddArnoldNode(aovWriteType.asChar(), shaderTag.c_str());
+         //std::string aovWriteName = AiNodeGetName(shaderNode);
+         //aovWriteName += "@aov_shader";
+         //AiNodeSetStr(aovWriteNode, "name", aovWriteName.c_str());
          if (aovWriteNode)
          {
             aovShaders.insert(aovWriteNode);
-            AiNodeLink(shaderNode, "input", aovWriteNode);
+            AiNodeLink(shaderNode, "aov_input", aovWriteNode);
             AiNodeSetStr(aovWriteNode, "aov_name", aovData.name.asChar());
          }
       }      
