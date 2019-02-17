@@ -1787,25 +1787,51 @@ AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
    if (!IsMotionBlurEnabled(MTOA_MBLUR_SHADER))
       return NULL;
 
-   return AddArnoldNode("MtoaAnimFloat");
+   return AddArnoldNode("ramp_float");
 }
 
 void CAnimCurveTranslator::Export(AtNode* shader)
 {
+   if (shader == NULL)
+      return;
+
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
+   AiNodeSetStr(shader, "type", "time"); // we want time-driven ramps
 
    if (RequiresMotionData())
    {
-      AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      int numMotionSteps = GetNumMotionSteps();
+      int motionStep = GetMotionStep();
+
+      // Note that here we're exporting the different keys as elements in the ramp
+      AtArray* values = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
       AiArraySetFlt(values, GetMotionStep(), value);
-      AiNodeSetArray(shader, "values", values);
+      AiNodeSetArray(shader, "value", values);
+
+      // For positions, we can set the values right away...
+      AtArray* positions = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_FLOAT);
+      AtArray* interpolations = AiArrayAllocate(numMotionSteps, 1, AI_TYPE_INT);
+
+      for (int i = 0; i < numMotionSteps; ++i)
+      {
+         AiArraySetFlt(positions, i, float(i) / float(numMotionSteps - 1.f));
+         // 1=Linear interpolation. Can we set a single array element, or does ramp_float expect the 
+         // same amount of elements for the 3 arrays ?
+         AiArraySetInt(interpolations, i, 1);
+      }
+      
+      AiNodeSetArray(shader, "position", positions);
+      AiNodeSetArray(shader, "interpolation", interpolations);
    }
    else
-   {
-      AiNodeSetFlt(shader, "values", value);
+   {      
+      AiNodeSetFlt(shader, "value", value);
+      AiNodeSetFlt(shader, "position", 0.f);
+      AiNodeSetInt(shader, "interpolation", 1); // linear
    }
+   
 }
 
 void CAnimCurveTranslator::ExportMotion(AtNode* shader)
@@ -1813,7 +1839,7 @@ void CAnimCurveTranslator::ExportMotion(AtNode* shader)
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
-   AtArray* values = AiNodeGetArray(shader, "values");
+   AtArray* values = AiNodeGetArray(shader, "value");
    AiArraySetFlt(values, GetMotionStep(), value);
 }
 

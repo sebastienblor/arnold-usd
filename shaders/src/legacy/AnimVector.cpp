@@ -21,10 +21,9 @@ AI_SHADER_NODE_EXPORT_METHODS(AnimVectorMtd);
 node_parameters
 {
    AiParameterArray("values", AiArray(0, 0, AI_TYPE_VECTOR));
-
-   AiMetaDataSetStr(nentry, NULL, "_synonym", "anim_vector");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAnimVector");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 shader_evaluate

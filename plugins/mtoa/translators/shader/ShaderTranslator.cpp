@@ -75,7 +75,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader)
       // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
       if (strcmp(paramName, "placementMatrix") == 0)
       {
-         AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
+         AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "matrix");
          m_impl->ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaPlug(paramName));
       }
    }

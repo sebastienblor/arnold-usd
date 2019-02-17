@@ -4,43 +4,42 @@
 namespace
 {
 
-enum AnimColorParams
+enum AnimPointParams
 {
    p_values
 };
 
-struct animColorData{
+struct animPointData{
    float shutter_start;
    float inv_shutter_length;
 };
 
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(AnimColorMtd);
+AI_SHADER_NODE_EXPORT_METHODS(AnimPointMtd);
 
 node_parameters
 {
-   AiParameterArray("values", AiArray(0, 0, AI_TYPE_RGBA));
-
-   AiMetaDataSetStr(nentry, NULL, "_synonym", "anim_color");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAnimColor");
+   AiParameterArray("values", AiArray(0, 0, AI_TYPE_VECTOR));
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 shader_evaluate
 {
-   animColorData *data = (animColorData*)AiNodeGetLocalData(node);
-   sg->out.RGBA() = AiArrayInterpolateRGBA(AiShaderEvalParamArray(p_values), (sg->time - data->shutter_start) * data->inv_shutter_length, 0);
+   animPointData *data = (animPointData*)AiNodeGetLocalData(node);
+   sg->out.VEC() = AiArrayInterpolateVec(AiShaderEvalParamArray(p_values), (sg->time - data->shutter_start) * data->inv_shutter_length, 0);
 }
 
 node_initialize
 {
-   AiNodeSetLocalData(node, new animColorData());   
+   AiNodeSetLocalData(node, new animPointData());   
 }
 
 node_update
 {
-   animColorData *data = (animColorData*)AiNodeGetLocalData(node);
+   animPointData *data = (animPointData*)AiNodeGetLocalData(node);
    AtNode *camera = AiUniverseGetCamera();
    if (camera)
    {  
@@ -56,5 +55,5 @@ node_update
 
 node_finish
 {
-   delete (animColorData*)AiNodeGetLocalData(node);
+   delete (animPointData*)AiNodeGetLocalData(node);
 }

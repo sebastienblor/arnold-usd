@@ -22,9 +22,10 @@ node_parameters
 {
    AiParameterArray("values", AiArray(0, 0, AI_TYPE_FLOAT));
 
-   AiMetaDataSetStr(nentry, NULL, "_synonym", "anim_float");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiAnimFloat");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+
 }
 
 shader_evaluate
