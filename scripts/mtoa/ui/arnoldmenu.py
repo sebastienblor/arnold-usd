@@ -507,7 +507,34 @@ def arnoldImportOperators():
         defaultOperatorsFolder = ret[0]
         cmds.arnoldImportAss(f=ret[0])
 
+def updateProgressBar(percent):
 
+    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')
+    cmds.progressBar(gMainProgressBar, edit=True, pr=percent)
+    
+    if percent >= 100:
+       cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
+
+# def terminate_GPUCache():
+#     gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')
+#     cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
+#     ai.AiGPUCachePopulateTerminate()
+
+def cache_populate_callback(cUserdata, status, fraction_done, msg):
+    step = int(100*fraction_done)
+    maya.utils.executeInMainThreadWithResult(updateProgressBar, step)
+
+def populate_GPUCache():
+
+    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar');
+    cmds.progressBar( gMainProgressBar,
+                                edit=True,
+                                beginProgress=True,
+                                isInterruptable=True,
+                                status='"Pre-Populating Optix Cache ',
+                                maxValue=100 )
+    ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, 0, cache_populate_callback, 0)
+    
 
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
@@ -635,7 +662,9 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators(selected=True)', category="Utilities", annotation='Export the selected operator graph to .ass')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
-        
+        addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.populate_GPUCache()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
+
         cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
