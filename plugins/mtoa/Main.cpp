@@ -67,6 +67,8 @@
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shader/ArnoldUserDataVec2Node.h"
+#include "nodes/shader/ArnoldUserDataVectorNode.h"
+#include "nodes/shader/ArnoldUserDataBoolNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/shape/ArnoldCurveCollector.h"
 #include "nodes/shape/ArnoldVolume.h"
@@ -206,7 +208,7 @@ namespace // <anonymous>
 #endif
 
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
-   const MString AI_USER_DATA_BOOL_NODE_CLASSIFICATION = "utility/user data";
+   const MString AI_USER_DATA_NODE_CLASSIFICATION = ":rendernode/arnold/utility/user data";
 
    struct mayaNode {
       const char* name;
@@ -271,7 +273,15 @@ namespace // <anonymous>
       } , {
          "aiUserDataVec2", CArnoldUserDataVec2Node::id,
          CArnoldUserDataVec2Node::creator, CArnoldUserDataVec2Node::initialize,
-         MPxNode::kDependNode, &AI_USER_DATA_BOOL_NODE_CLASSIFICATION
+         MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
+      } , {
+         "aiUserDataVector", CArnoldUserDataVectorNode::id,
+         CArnoldUserDataVectorNode::creator, CArnoldUserDataVectorNode::initialize,
+         MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
+      } , {
+         "aiUserDataBool", CArnoldUserDataBoolNode::id,
+         CArnoldUserDataBoolNode::creator, CArnoldUserDataBoolNode::initialize,
+         MPxNode::kDependNode, &AI_USER_DATA_NODE_CLASSIFICATION
       }
    };
 
@@ -945,6 +955,12 @@ namespace // <anonymous>
          shaders->RegisterTranslator("aiUserDataVec2",
                                        "",
                                        CUserDataVec2Translator::creator);
+         shaders->RegisterTranslator("aiUserDataVector",
+                                       "",
+                                       CUserDataVectorTranslator::creator);
+         shaders->RegisterTranslator("aiUserDataBool",
+                                       "",
+                                       CUserDataBoolTranslator::creator);
          shaders->RegisterTranslator("contrast",
                                        "",
                                        CContrastTranslator::creator);

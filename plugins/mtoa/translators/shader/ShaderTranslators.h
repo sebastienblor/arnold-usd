@@ -61,6 +61,8 @@ SHADER_TRANSLATOR(CGammaCorrectTranslator);
 SHADER_TRANSLATOR(CRgbToHsvTranslator);
 SHADER_TRANSLATOR(CHsvToRgbTranslator);
 SHADER_TRANSLATOR(CUserDataVec2Translator);
+SHADER_TRANSLATOR(CUserDataBoolTranslator);
+SHADER_TRANSLATOR(CUserDataVectorTranslator);
 
 class CDisplacementTranslator : public CShaderTranslator
 {

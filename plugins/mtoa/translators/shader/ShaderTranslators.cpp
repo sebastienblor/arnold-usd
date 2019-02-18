@@ -1183,13 +1183,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "outTransparency"||
          outputAttr == "rgbPP" ||
          outputAttr == "incandescensePP" ||
-         outputAttr == "incandescense"
-      )
-   {
-      return AddArnoldNode("user_data_rgb");
-   }
-
-   else if(
+         outputAttr == "incandescense" ||
          outputAttr == "acceleration" ||
          outputAttr == "force" ||
          outputAttr == "position" ||
@@ -1205,7 +1199,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
          outputAttr == "userVector5PP"
          )
    {
-      return AddArnoldNode("MtoaUserDataVector");
+      return AddArnoldNode("user_data_rgb");
    }
    else if (
          outputAttr == "ageNormalized" ||
@@ -1244,11 +1238,11 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 
    if (outputAttr == "outColor" || outputAttr == "rgbPP")
    {
-      AiNodeSetStr(shader, "colorAttrName", "rgbPP");
+      AiNodeSetStr(shader, "attribute", "rgbPP");
    }
    else if (outputAttr == "outTransparency" )
    {
-      AiNodeSetStr(shader, "colorAttrName", "opacityPP");
+      AiNodeSetStr(shader, "attribute", "opacityPP");
    }
    else if ( outputAttr == "opacityPP" || outputAttr == "opacity")
    {
@@ -1256,7 +1250,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
    }
    else if (outputAttr == "outIncandescence" || outputAttr == "incandescensePP" || outputAttr == "incandescense" )
    {
-      AiNodeSetStr(shader, "colorAttrName", "incandescencePP");
+      AiNodeSetStr(shader, "attribute", "incandescencePP");
    }
    else if (outputAttr == "lifespanPP" || outputAttr == "lifespan")
    {
@@ -1280,12 +1274,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
             outputAttr == "userVector2PP" ||
             outputAttr == "userVector3PP" ||
             outputAttr == "userVector4PP" ||
-            outputAttr == "userVector5PP"
-            )
-      {
-         AiNodeSetStr(shader, "vectorAttrName", outputAttr.asChar());
-      }
-   else if (
+            outputAttr == "userVector5PP" ||
             outputAttr == "ageNormalized" ||
             outputAttr == "colorRed" ||
             outputAttr == "colorGreen" ||
@@ -3407,7 +3396,32 @@ void CUserDataVec2Translator::Export(AtNode* shader)
 
 }
 
+AtNode* CUserDataVectorTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("user_data_rgb");
+}
 
+void CUserDataVectorTranslator::Export(AtNode* shader)
+{
+
+   ProcessParameter(shader, "attribute", AI_TYPE_STRING, "vectorAttrName");
+   float defX = FindMayaPlug("defaultValueX").asFloat();
+   float defY = FindMayaPlug("defaultValueY").asFloat();
+   float defZ = FindMayaPlug("defaultValueZ").asFloat();
+   AiNodeSetRGB(shader,"default", defX, defY, defZ);
+
+}
+AtNode* CUserDataBoolTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("user_data_int");
+}
+
+void CUserDataBoolTranslator::Export(AtNode* shader)
+{
+
+   ProcessParameter(shader, "attribute", AI_TYPE_STRING, "boolAttrName");
+   AiNodeSetInt(shader,"default", FindMayaPlug("defaultValue").asBool() ? 1 : 0);
+}
 
 AtNode* CContrastTranslator::CreateArnoldNodes()
 {
