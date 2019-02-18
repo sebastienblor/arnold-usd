@@ -1032,10 +1032,10 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    else if (outputAttr == "flippedNormal")
    {
       shader = AddArnoldNode("compare");
-      AtNode* dot_shader = AddArnoldNode("dot");
-      AtNode* Nf_shader = AddArnoldNode("state_vector");
+      AtNode* dot_shader = AddArnoldNode("dot", "dot");
+      AtNode* Nf_shader = AddArnoldNode("state_vector", "nf");
       AiNodeSetStr(Nf_shader, "variable", "Nf");
-      AtNode* N_shader = AddArnoldNode("state_vector");
+      AtNode* N_shader = AddArnoldNode("state_vector", "n");
       AiNodeSetStr(N_shader, "variable", "N");
       AiNodeLink(Nf_shader, "input1", dot_shader);
       AiNodeLink(N_shader, "input2", dot_shader);
@@ -1048,9 +1048,9 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    else if (outputAttr == "uvCoord" )
    {
       shader = AddArnoldNode("float_to_rgb");
-      AtNode* u_shader = AddArnoldNode("state_float");
+      AtNode* u_shader = AddArnoldNode("state_float", "u");
       AiNodeSetStr(u_shader, "variable", "u");
-      AtNode* v_shader = AddArnoldNode("state_float");
+      AtNode* v_shader = AddArnoldNode("state_float", "v");
       AiNodeSetStr(v_shader, "variable", "v");
       AiNodeLink(u_shader, "r", shader);
       AiNodeLink(v_shader, "g", shader);
@@ -1058,9 +1058,9 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
    else if (outputAttr == "pixelCenter")
    {
       shader = AddArnoldNode("float_to_rgb");
-      AtNode* screenx_shader = AddArnoldNode("state_int");
+      AtNode* screenx_shader = AddArnoldNode("state_int", "x");
       AiNodeSetStr(screenx_shader, "variable", "x");
-      AtNode* screeny_shader = AddArnoldNode("state_int");
+      AtNode* screeny_shader = AddArnoldNode("state_int", "y");
       AiNodeSetStr(screeny_shader, "variable", "y");
       AiNodeLink(screenx_shader, "r", shader);
       AiNodeLink(screeny_shader, "g", shader);
@@ -1083,49 +1083,49 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
       AiNodeSetStr(shader, "type", "point");
       AiNodeSetStr(shader, "from", "world");
       AiNodeSetStr(shader, "to", "camera");
-      AtNode* P_shader = AddArnoldNode("state_vector");
+      AtNode* P_shader = AddArnoldNode("state_vector", "P");
       AiNodeSetStr(P_shader, "variable", "P");
       AiNodeLink(P_shader, "input", shader);
    }
    else if ( outputAttr == "normalCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "type", "normal");
       AiNodeSetStr(shader, "from", "world");
       AiNodeSetStr(shader, "to", "camera");
-      AtNode* N_shader = AddArnoldNode("state_vector");
+      AtNode* N_shader = AddArnoldNode("state_vector", "N");
       AiNodeSetStr(N_shader, "variable", "N");
       AiNodeLink(N_shader, "input", shader);
    }
    else if ( outputAttr == "rayDirection")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "type", "vector");
       AiNodeSetStr(shader, "from", "world");
       AiNodeSetStr(shader, "to", "camera");
-      AtNode* Rd_shader = AddArnoldNode("state_vector");
+      AtNode* Rd_shader = AddArnoldNode("state_vector", "Rd");
       AiNodeSetStr(Rd_shader, "variable", "Rd");
       AiNodeLink(Rd_shader, "input", shader);
    }
    else if ( outputAttr == "tangentUCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "type", "vector");
       AiNodeSetStr(shader, "from", "world");
       AiNodeSetStr(shader, "to", "camera");
       AiNodeSetBool(shader, "normalize", true);
-      AtNode* tgtU_shader = AddArnoldNode("state_vector");
+      AtNode* tgtU_shader = AddArnoldNode("state_vector", "u");
       AiNodeSetStr(tgtU_shader, "variable", "dPdu");
       AiNodeLink(tgtU_shader, "input", shader);
    }
    else if ( outputAttr == "tangentVCamera")
    {
       shader = AddArnoldNode("space_transform");
-      AiNodeSetStr(shader, "type", "point");
+      AiNodeSetStr(shader, "type", "vector");
       AiNodeSetStr(shader, "from", "world");
       AiNodeSetStr(shader, "to", "camera");
       AiNodeSetBool(shader, "normalize", true);
-      AtNode* tgtV_shader = AddArnoldNode("state_vector");
+      AtNode* tgtV_shader = AddArnoldNode("state_vector", "v");
       AiNodeSetStr(tgtV_shader, "variable", "dPdv");
       AiNodeLink(tgtV_shader, "input", shader);
    }
