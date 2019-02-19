@@ -27,6 +27,8 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
 
 OVERRIDE_OP = "aiSetParameter"
 DISABLE_OP = "aiDisable"
+COLLECTION_OP = "aiCollection"
+SWITCH_OP = "aiSwitchOperator"
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
@@ -253,7 +255,8 @@ class ProceduralTransverser(BaseTransverser):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
-    def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True):
+    @classmethod
+    def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True, collections=[]):
 
         sel_mat = False
         if cmds.attributeQuery('selection', node=operator, exists=True) and \
@@ -262,79 +265,72 @@ class ProceduralTransverser(BaseTransverser):
             sel_exp = cmds.getAttr('{}.selection'.format(operator))
             tokens = sel_exp.rsplit()
             for tok in tokens:
+                inCollections = tok[1:] in collections
                 if exact_match:
                     mat = SELECTION_REGEX.match(tok)
                     isRoot = (tok == "/*" and path == '/')
-                    if mat and mat.group() == path or isRoot:
+                    if mat and mat.group() == path or isRoot or inCollections:
                         sel_mat = True
                         break
                     if not mat:
-                        sel_mat = (tok == path) or (tok == "/*" and path == '/')
+                        sel_mat = (tok == path) or isRoot or inCollections
                 else:
                     pat = fnmatch.translate(tok.replace('/*', '*'))
                     reobj = re.compile(pat)
                     mat = reobj.match(path)
-                    if mat:
+                    if mat or inCollections:
                         sel_mat = True
                         break
 
         return sel_mat
 
+    @classmethod
+    def getCollections(self, node, path, exact_match=True):
+
+        col_ops = self.getOperators(node, path, COLLECTION_OP, exact_match)
+        collections = []
+        for op in col_ops:
+            collections.append(cmds.getAttr('{}.collection'.format(op)))
+        return collections
 
     @classmethod
-    def getOperators(self, node, path, operator_type=None, exact_match=True):
+    def getOperators(self, node, path, operator_type=None, exact_match=True, collections=[]):
 
-        def walkInputs(op, path, plug):
+        def walkInputs(op, path, plug, collections):
             """
             walk the inputs of the given plug and
             return list of operators matching the path
             """
 
             ops = []
-            sel_mat = False
-            if cmds.attributeQuery('selection', node=op, exists=True) and \
-               (operator_type is None or cmds.nodeType(op) == operator_type):
-
-                sel_exp = cmds.getAttr('{}.selection'.format(op))
-                tokens = sel_exp.rsplit()
-                for tok in tokens:
-                    if exact_match:
-                        mat = SELECTION_REGEX.match(tok)
-                        isRoot = (tok == "/*" and path == '/')
-                        if mat and mat.group() == path or isRoot:
-                            sel_mat = True
-                            break
-                        if not mat:
-                            sel_mat = (tok == path) or (tok == "/*" and path == '/')
-                    else:
-                        pat = fnmatch.translate(tok.replace('/*', '*'))
-                        reobj = re.compile(pat)
-                        mat = reobj.match(path)
-                        if mat:
-                            sel_mat = True
-                            break
-
-            if sel_mat and op not in ops:
+            sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
+            if sel_mat and op:
                 ops.append(op)
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
-                # FIXME what if switch node, we should only traverse down the
-                #  input that is the same as the input switch
-                inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
+                # FIXME what if switch node, should we only traverse down the
+                #  input that is the same as the input switch?
+                if cmds.nodeType(op) == SWITCH_OP:
+                    switch_index = cmds.getAttr("{}.index".format(op))
+                    inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
+                else:
+                    inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
-                    ops += walkInputs(ipt, path, plug)
+                    ops += walkInputs(ipt, path, plug, collections)
 
             return ops
 
         # Start the query
         operators = []
-        con_operators = cmds.listConnections('{}.operators'.format(node)) or []
-        for idx, op in enumerate(con_operators):
-            out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx))
-            if len(out_op):
-                operators += out_op
+        if cmds.attributeQuery('operators', node=node, exists=True):
+            con_operators = cmds.listConnections('{}.operators'.format(node)) or []
+            for idx, op in enumerate(con_operators):
+                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections)
+                for op in out_op:
+                    if op not in operators:
+                        operators.append(op)
 
         return operators
 
@@ -349,7 +345,8 @@ class ProceduralTransverser(BaseTransverser):
                     return i
             return -1
 
-        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match)
+        collections = self.getCollections(node, path, exact_match)
+        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match, collections)
 
         overrides = []
         if len(ops):
@@ -376,6 +373,7 @@ class ProceduralTransverser(BaseTransverser):
 
         op = operator
         if index == -1:
+            print "ProceduralTransverser.setOverride", operator
             n_conn = mu.getAttrNumElements(op, "assignment")
             index = n_conn
             if param != 'NEWOVERRIDE':

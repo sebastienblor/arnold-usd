@@ -275,7 +275,8 @@ class ProceduralItem(BaseItem):
         return self.parent().getModel()
 
     def setOverridesOp(self):
-        ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True)
+        collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
+        ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True, collections)
         if len(ops):
             self.overrides_op = ops[0]
             return self.overrides_op
@@ -411,7 +412,8 @@ class ProceduralItem(BaseItem):
 
             # For now we don't show the operators in the hierarchy, we need to make it an option
             if self.transverser.showOperatorItems():
-                operators = self.transverser.getOperators(self.node, self.data[PROC_PATH])
+                collections = self.transverser.getCollections(self.node, self.data[PROC_PATH])
+                operators = self.transverser.getOperators(self.node, self.data[PROC_PATH], collections=collections)
                 if operators:
                     for op in operators:
                         ProceduralItem(self, self.transverser, self.node, operator=op)

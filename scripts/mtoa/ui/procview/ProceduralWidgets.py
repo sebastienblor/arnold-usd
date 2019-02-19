@@ -82,7 +82,8 @@ class OperatorTreeModel(BaseModel):
         self.rootItem = OperatorItem(None, "")
         if self.currentItem:
             path = self.currentItem.data[PROC_PATH]
-            operators = self.transverser.getOperators(self.currentNode, path, exact_match=False)
+            collections = self.transverser.getCollections(self.currentNode, path, False)
+            operators = self.transverser.getOperators(self.currentNode, path, exact_match=False, collections=collections)
             for op in operators:
                 enabled = cmds.getAttr(op+'.enable')
                 local = self.transverser.operatorAffectsPath(path, op)
@@ -319,6 +320,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.addDisplacement()
         else:
             value = self.getDefaultValue(param)
+            print "setNewOverride", op
             self.setOverride(param, "=", value, operator=op)
             self.refresh()
 
@@ -384,7 +386,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.setNodeParam("disp_map", disp, create)
 
     def setNodeParam(self, param, node, create=False):
-        # FIXME need to set the correct assignment based on the operator that has this attribute
         operator = self.shadingWidgets[param].data.get('operator', None)
         if create:
             operator = self.getOverrideOperator()
@@ -422,11 +423,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         mel.eval("createRenderNode -all \"python(\\\"" + callback + "\\\")\" \"\"")
 
     def getOverrideOperator(self, create=True, exact_match=True):
-        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, exact_match)
+        collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH], exact_match)
+        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, exact_match, collections)
         if not len(ops) and create:
             op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
         else:
             op = ops[0]
+        print "ProceduralPropertiesPanel.getOverrideOperator", op
         return op
 
     def getItemOverrideOperator(self, create=False):
@@ -470,6 +473,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
                 if override[PARM] in ["shader", "disp_map"]:
                     # set the shader slot
+                    print override
                     node = override[VALUE].replace("'", "").replace('"', "")
                     self.shadingWidgets[override[PARM]].setNode(node, False)
                     self.shadingWidgets[override[PARM]].setVisible(True)
@@ -554,5 +558,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if param_data:
             param_type = param_data[PARAM_TYPE]
             is_array = param_data[IS_ARRAY]
+
+        print "ProceduralPropertiesPanel.setOverride", self.node, data[PROC_PATH], operator, param, op, value, param_type, is_array, index
 
         return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, is_array, index)
