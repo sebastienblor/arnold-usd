@@ -1268,6 +1268,7 @@
     [attr specular_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+        default             FLOAT   0.1
     [attr specular_IOR]
         min                 FLOAT   0.0
         softmax             FLOAT   3.0
