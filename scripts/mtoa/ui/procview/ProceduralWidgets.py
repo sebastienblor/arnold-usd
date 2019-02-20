@@ -254,10 +254,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.localOverridesPanel = QtWidgets.QGroupBox("Local Overrides", self)
         self.localOverridesPanel.setLayout(QtWidgets.QVBoxLayout())
+        self.localOverridesPanel.setVisible(False)
         self.overridesPanel.layout().addWidget(self.localOverridesPanel)
 
         self.inheritedOverridesPanel = QtWidgets.QGroupBox("Inherited Overrides", self)
         self.inheritedOverridesPanel.setLayout(QtWidgets.QVBoxLayout())
+        self.inheritedOverridesPanel.setVisible(False)
         self.overridesPanel.layout().addWidget(self.inheritedOverridesPanel)
 
         self.layout.addWidget(self.overridesPanel)
@@ -482,6 +484,11 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
                     widget = self.addOverrideGUI(*override)
                     widget.setInherited(inherited)
                     widget.overrideTriggered.connect(self.setNewOverride)
+            # hide the panels if they don't have children
+            for pan in [self.inheritedOverridesPanel, self.localOverridesPanel]:
+                if pan.layout().count() == 0:
+                    pan.setVisible(False)
+
             # refresh the operators list
             self.operators_tree.model().refresh()
 
@@ -499,6 +506,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         parentPanel = self.inheritedOverridesPanel
         if operator == self.getItemOverrideOperator():
             parentPanel = self.localOverridesPanel
+
+        parentPanel.setVisible(True)
 
         new_widget = MtoAOperatorOverrideWidget(parentPanel)
         new_widget.index = index
