@@ -151,7 +151,46 @@ class ProceduralTransverser(BaseTransverser):
         return cmds.getAttr('{}.operators'.format(node), multiIndices=True) or []
 
     def getConnectedOperator(self, node, index):
-        return cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+        conn = cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+        if conn:
+            return conn.split('.')[0]
+
+    def getInputs(self, operator, transverse=True):
+
+        def walkInputs(op, transverse=True):
+            """
+            return list of operators connected to the inputs
+            """
+
+            ops = []
+            ops.append(op)
+
+            if cmds.attributeQuery('inputs', node=op, exists=True):
+                if cmds.nodeType(op) == SWITCH_OP:
+                    switch_index = cmds.getAttr("{}.index".format(op))
+                    inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
+                else:
+                    inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
+                it = iter(inputs_raw)
+                inputs = zip(it, it)
+                if transverse:
+                    for plug, ipt in inputs:
+                        ops += walkInputs(ipt)
+
+            return ops
+
+        if not cmds.objExists(operator):
+            return []
+
+        print "ProceduralTransverser.getInputs", operator, transverse
+
+        operators = []
+        out_op = walkInputs(operator, transverse)
+        for op in out_op:
+            if op not in operators:
+                operators.append(op)
+
+        return operators
 
     def getOperatorIndex(self, node, operator):
 
@@ -159,7 +198,8 @@ class ProceduralTransverser(BaseTransverser):
 
         for idx in self.getOperatorIndices(node):
             src = self.getConnectedOperator(node, idx)
-            if src and src.split('.')[0] == operator:
+            op_list = self.getInputs(src)
+            if operator in op_list:
                 index = idx
 
         return index
@@ -173,10 +213,11 @@ class ProceduralTransverser(BaseTransverser):
         parent_index = self.getOperatorIndex(node, item.getOverridesOp(True))
         if parent_index > -1:
             index = parent_index + 1
-
+        # FIXME what if we need to add this operator after a custom operator graph?
+        #       What should the index be?
         op_name = '{}_{}'.format(node, operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
-        print "ProceduralTransverser.createOperator", index, parent_index, op
+        print "ProceduralTransverser.createOperator", index, node, op
         if op:
             # if this operator has a selection attribute set it to the
             # given object path
@@ -191,7 +232,7 @@ class ProceduralTransverser(BaseTransverser):
                              type="string")
 
             self.insertOperator(node, op, index)
-            item.addOverrideOp(op)
+            item.setOverrideOp(op)
             return op
         return None
 
@@ -294,7 +335,7 @@ class ProceduralTransverser(BaseTransverser):
         return collections
 
     @classmethod
-    def getOperators(self, node, path, operator_type=None, exact_match=True, collections=[]):
+    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1):
 
         def walkInputs(op, path, plug, collections):
             """
@@ -321,6 +362,9 @@ class ProceduralTransverser(BaseTransverser):
                     ops += walkInputs(ipt, path, plug, collections)
 
             return ops
+
+        if not cmds.objExists(node):
+            return []
 
         # Start the query
         operators = []
@@ -373,7 +417,6 @@ class ProceduralTransverser(BaseTransverser):
 
         op = operator
         if index == -1:
-            print "ProceduralTransverser.setOverride", operator
             n_conn = mu.getAttrNumElements(op, "assignment")
             index = n_conn
             if param != 'NEWOVERRIDE':
@@ -407,7 +450,7 @@ class ProceduralTransverser(BaseTransverser):
             return True
         return False
 
-    def deleteOverride(operator, index):
+    def deleteOverride(self, operator, index):
         if not cmds.objExists(operator):
             return False
         if index != -1:

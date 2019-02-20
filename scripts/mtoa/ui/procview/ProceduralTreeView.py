@@ -48,6 +48,7 @@ class ProceduralTreeView(BaseTreeView):
             model.refresh()
             if expand:
                 self.expandToDepth(0)
+            self.clearSelection()
 
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
@@ -436,7 +437,7 @@ class ProceduralItem(BaseItem):
                 if isRoot or path == childPath or path.startswith(childPath):
                     return child.find(path)
 
-    def addOverrideOp(self, operator):
+    def setOverrideOp(self, operator):
         self.overrides_op = operator
         # FIXME for now we're not showing the operator in the hierarchy, we need to make it an option
         if self.transverser.showOperatorItems():

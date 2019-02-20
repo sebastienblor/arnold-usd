@@ -12,6 +12,7 @@ import mtoa.melUtils as mu
 import mtoa.utils as utils
 from mtoa.callbacks import *
 import maya.OpenMayaUI as OpenMayaUI
+import maya.OpenMaya as OpenMaya
 import maya.cmds as cmds
 import maya.mel as mel
 import re
@@ -49,6 +50,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         return toQtObject(currentWidgetName, pySideType)
 
     def abcInfoNew(self, nodeAttr):
+        self.callbacks = []
         self.currentItem = None
         currentWidget = self.__currentWidget()
 
@@ -70,14 +72,23 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
         cmds.scriptJob(attributeChange=[fileAttr, self.updateAlembicFile],
                        replacePrevious=True, parent=self.inspectAlembicPath)
 
+        cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback],
+                       replacePrevious=True, parent=self.inspectAlembicPath)
+
     def abcInfoReplace(self, nodeAttr):
         self.tree.setCurrentNode(self.nodeName)
+        self.tree.clearSelection()
         self.properties_panel.setItem(self.nodeName, None)
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
         for item in items:
             self.properties_panel.setItem(node, item)
+
+    def newSceneCallback(self):
+        self.tree.setCurrentNode(None)
+        self.tree.clearSelection()
+        self.properties_panel.setItem(None, None)
 
     def updateAlembicFile(self):
         # clear the cache

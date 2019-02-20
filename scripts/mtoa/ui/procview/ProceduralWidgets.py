@@ -320,7 +320,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.addDisplacement()
         else:
             value = self.getDefaultValue(param)
-            print "setNewOverride", op
             self.setOverride(param, "=", value, operator=op)
             self.refresh()
 
@@ -369,6 +368,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         elif nodechanged and not self.item:
             self.object_label.setText("Select Item")
             self.toolBar.setEnabled(False)
+            self.popualteOperatorsList()
 
         self.refresh()
         # Tell the transverser that the selection has changed.
@@ -429,7 +429,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
         else:
             op = ops[0]
-        print "ProceduralPropertiesPanel.getOverrideOperator", op
         return op
 
     def getItemOverrideOperator(self, create=False):
@@ -473,7 +472,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
                 if override[PARM] in ["shader", "disp_map"]:
                     # set the shader slot
-                    print override
                     node = override[VALUE].replace("'", "").replace('"', "")
                     self.shadingWidgets[override[PARM]].setNode(node, False)
                     self.shadingWidgets[override[PARM]].setVisible(True)
@@ -497,11 +495,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def addOverrideGUI(self, param, op, value, index, operator):
 
-        # inherited = operator == self.getItemOverrideOperator()
         parentPanel = self.inheritedOverridesPanel
         if operator == self.getItemOverrideOperator():
             parentPanel = self.localOverridesPanel
-
 
         new_widget = MtoAOperatorOverrideWidget(parentPanel)
         new_widget.index = index
@@ -545,9 +541,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     def setOverride(self, param, op, value, index=-1, operator=None):
         if not operator:
             operator = self.getItemOverrideOperator()
-        if not param and not value:
-            param = "NEWOVERRIDE"
-            value = "''"
         param_type = None
         is_array = False
         data = self.getData(self.item)
@@ -558,7 +551,5 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if param_data:
             param_type = param_data[PARAM_TYPE]
             is_array = param_data[IS_ARRAY]
-
-        print "ProceduralPropertiesPanel.setOverride", self.node, data[PROC_PATH], operator, param, op, value, param_type, is_array, index
 
         return self.transverser.setOverride(self.node, data[PROC_PATH], operator, param, op, value, param_type, is_array, index)

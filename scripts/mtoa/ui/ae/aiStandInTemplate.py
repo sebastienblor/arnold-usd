@@ -219,7 +219,12 @@ class AEaiStandInTemplate(ShaderAETemplate):
         fileAttr = self.nodeName + ".selected_items"
         cmds.scriptJob(attributeChange=[fileAttr, self.updateSelectedItems])
 
+        cmds.scriptJob(event=["NewSceneOpened", self.newSceneCallback])
 
+    def newSceneCallback(self):
+        self.tree.setCurrentNode(None)
+        self.tree.clearSelection()
+        self.properties_panel.setItem(None, None)
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):
