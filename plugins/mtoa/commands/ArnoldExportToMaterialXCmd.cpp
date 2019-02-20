@@ -95,8 +95,6 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    renderSession->SetForceTranslateShadingEngines(true);   
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
 
-   AiRender(AI_RENDER_MODE_FREE);
-   AiRenderAbort();
    
    CMayaScene::Export(&selected);
 /*
@@ -109,6 +107,10 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    
    MGlobal::displayWarning(txt);
 */
+
+   AiRender(AI_RENDER_MODE_FREE);
+   AiRenderAbort();
+   
    AiMaterialxWrite(NULL, AtString(filename.asChar()), AtString(lookName.asChar()), true, AtString(properties.asChar()));
 
    CMayaScene::End();
