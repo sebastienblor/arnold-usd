@@ -83,10 +83,11 @@ class OperatorTreeModel(BaseModel):
         if self.currentItem:
             path = self.currentItem.data[PROC_PATH]
             collections = self.transverser.getCollections(self.currentNode, path, False)
+            local_collections = self.transverser.getCollections(self.currentNode, path, True)
             operators = self.transverser.getOperators(self.currentNode, path, exact_match=False, collections=collections)
             for op in operators:
                 enabled = cmds.getAttr(op+'.enable')
-                local = self.transverser.operatorAffectsPath(path, op)
+                local = self.transverser.operatorAffectsPath(path, op, collections=local_collections)
                 OperatorItem(self.rootItem, op, enabled, local)
 
         self.endResetModel()

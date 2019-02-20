@@ -151,9 +151,7 @@ class ProceduralTransverser(BaseTransverser):
         return cmds.getAttr('{}.operators'.format(node), multiIndices=True) or []
 
     def getConnectedOperator(self, node, index):
-        conn = cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
-        if conn:
-            return conn.split('.')[0]
+        return cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
 
     def getInputs(self, operator, transverse=True):
 
@@ -179,10 +177,8 @@ class ProceduralTransverser(BaseTransverser):
 
             return ops
 
-        if not cmds.objExists(operator):
+        if not cmds.objExists(operator) or not operator:
             return []
-
-        print "ProceduralTransverser.getInputs", operator, transverse
 
         operators = []
         out_op = walkInputs(operator, transverse)
@@ -198,7 +194,7 @@ class ProceduralTransverser(BaseTransverser):
 
         for idx in self.getOperatorIndices(node):
             src = self.getConnectedOperator(node, idx)
-            op_list = self.getInputs(src)
+            op_list = self.getInputs(src.split('.')[0])
             if operator in op_list:
                 index = idx
 
@@ -217,7 +213,6 @@ class ProceduralTransverser(BaseTransverser):
         #       What should the index be?
         op_name = '{}_{}'.format(node, operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
-        print "ProceduralTransverser.createOperator", index, node, op
         if op:
             # if this operator has a selection attribute set it to the
             # given object path
@@ -232,7 +227,8 @@ class ProceduralTransverser(BaseTransverser):
                              type="string")
 
             self.insertOperator(node, op, index)
-            item.setOverrideOp(op)
+            if operator_type == OVERRIDE_OP:
+                item.setOverrideOp(op)
             return op
         return None
 
