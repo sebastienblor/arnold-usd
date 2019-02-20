@@ -94,6 +94,10 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    renderSession->SetForceTranslateShadingEngines(true);   
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
+
+   AiRender(AI_RENDER_MODE_FREE);
+   AiRenderAbort();
+   
    CMayaScene::Export(&selected);
 /*
    MString txt("Running Export to MaterialX with filename=");
