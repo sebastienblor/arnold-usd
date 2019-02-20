@@ -504,7 +504,11 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     def addOverrideGUI(self, param, op, value, index, operator):
 
         parentPanel = self.inheritedOverridesPanel
-        if operator == self.getItemOverrideOperator():
+        data = self.getData(self.item)
+        path = data[PROC_PATH]
+        local_collections = self.transverser.getCollections(self.node,
+                                                            path, True)
+        if self.transverser.operatorAffectsPath(path, operator, collections=local_collections):
             parentPanel = self.localOverridesPanel
 
         parentPanel.setVisible(True)

@@ -206,11 +206,12 @@ class ProceduralTransverser(BaseTransverser):
         data = item.data
         # get parent index
         index = 0
-        parent_index = self.getOperatorIndex(node, item.getOverridesOp(True))
+
+        parent_op = item.getOverridesOp(True)
+        parent_index = self.getOperatorIndex(node, parent_op)
         if parent_index > -1:
             index = parent_index + 1
-        # FIXME what if we need to add this operator after a custom operator graph?
-        #       What should the index be?
+
         op_name = '{}_{}'.format(node, operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
         if op:
