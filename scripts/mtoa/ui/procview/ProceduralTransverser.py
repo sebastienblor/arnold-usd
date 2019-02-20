@@ -27,6 +27,8 @@ EXP_REGEX = re.compile(r"""(?P<param>\w+)\s* # parameter
 
 OVERRIDE_OP = "aiSetParameter"
 DISABLE_OP = "aiDisable"
+COLLECTION_OP = "aiCollection"
+SWITCH_OP = "aiSwitchOperator"
 
 NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 
@@ -149,7 +151,46 @@ class ProceduralTransverser(BaseTransverser):
         return cmds.getAttr('{}.operators'.format(node), multiIndices=True) or []
 
     def getConnectedOperator(self, node, index):
-        return cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+        conn = cmds.connectionInfo('{}.operators[{}]'.format(node, index), sourceFromDestination=True)
+        if conn:
+            return conn.split('.')[0]
+
+    def getInputs(self, operator, transverse=True):
+
+        def walkInputs(op, transverse=True):
+            """
+            return list of operators connected to the inputs
+            """
+
+            ops = []
+            ops.append(op)
+
+            if cmds.attributeQuery('inputs', node=op, exists=True):
+                if cmds.nodeType(op) == SWITCH_OP:
+                    switch_index = cmds.getAttr("{}.index".format(op))
+                    inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
+                else:
+                    inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
+                it = iter(inputs_raw)
+                inputs = zip(it, it)
+                if transverse:
+                    for plug, ipt in inputs:
+                        ops += walkInputs(ipt)
+
+            return ops
+
+        if not cmds.objExists(operator):
+            return []
+
+        print "ProceduralTransverser.getInputs", operator, transverse
+
+        operators = []
+        out_op = walkInputs(operator, transverse)
+        for op in out_op:
+            if op not in operators:
+                operators.append(op)
+
+        return operators
 
     def getOperatorIndex(self, node, operator):
 
@@ -157,7 +198,8 @@ class ProceduralTransverser(BaseTransverser):
 
         for idx in self.getOperatorIndices(node):
             src = self.getConnectedOperator(node, idx)
-            if src and src.split('.')[0] == operator:
+            op_list = self.getInputs(src)
+            if operator in op_list:
                 index = idx
 
         return index
@@ -171,10 +213,11 @@ class ProceduralTransverser(BaseTransverser):
         parent_index = self.getOperatorIndex(node, item.getOverridesOp(True))
         if parent_index > -1:
             index = parent_index + 1
-
+        # FIXME what if we need to add this operator after a custom operator graph?
+        #       What should the index be?
         op_name = '{}_{}'.format(node, operator_type)
         op = cmds.createNode(operator_type, name=op_name, ss=True)
-        print "ProceduralTransverser.createOperator", index, parent_index, op
+        print "ProceduralTransverser.createOperator", index, node, op
         if op:
             # if this operator has a selection attribute set it to the
             # given object path
@@ -189,7 +232,7 @@ class ProceduralTransverser(BaseTransverser):
                              type="string")
 
             self.insertOperator(node, op, index)
-            item.addOverrideOp(op)
+            item.setOverrideOp(op)
             return op
         return None
 
@@ -253,7 +296,8 @@ class ProceduralTransverser(BaseTransverser):
             # connect at the index given
             cmds.connectAttr(src, '{}.operators[{}]'.format(node, index))
 
-    def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True):
+    @classmethod
+    def operatorAffectsPath(self, path, operator, operator_type=None, exact_match=True, collections=[]):
 
         sel_mat = False
         if cmds.attributeQuery('selection', node=operator, exists=True) and \
@@ -262,79 +306,75 @@ class ProceduralTransverser(BaseTransverser):
             sel_exp = cmds.getAttr('{}.selection'.format(operator))
             tokens = sel_exp.rsplit()
             for tok in tokens:
+                inCollections = tok[1:] in collections
                 if exact_match:
                     mat = SELECTION_REGEX.match(tok)
                     isRoot = (tok == "/*" and path == '/')
-                    if mat and mat.group() == path or isRoot:
+                    if mat and mat.group() == path or isRoot or inCollections:
                         sel_mat = True
                         break
                     if not mat:
-                        sel_mat = (tok == path) or (tok == "/*" and path == '/')
+                        sel_mat = (tok == path) or isRoot or inCollections
                 else:
                     pat = fnmatch.translate(tok.replace('/*', '*'))
                     reobj = re.compile(pat)
                     mat = reobj.match(path)
-                    if mat:
+                    if mat or inCollections:
                         sel_mat = True
                         break
 
         return sel_mat
 
+    @classmethod
+    def getCollections(self, node, path, exact_match=True):
+
+        col_ops = self.getOperators(node, path, COLLECTION_OP, exact_match)
+        collections = []
+        for op in col_ops:
+            collections.append(cmds.getAttr('{}.collection'.format(op)))
+        return collections
 
     @classmethod
-    def getOperators(self, node, path, operator_type=None, exact_match=True):
+    def getOperators(self, node, path='', operator_type=None, exact_match=True, collections=[], index=-1):
 
-        def walkInputs(op, path, plug):
+        def walkInputs(op, path, plug, collections):
             """
             walk the inputs of the given plug and
             return list of operators matching the path
             """
 
             ops = []
-            sel_mat = False
-            if cmds.attributeQuery('selection', node=op, exists=True) and \
-               (operator_type is None or cmds.nodeType(op) == operator_type):
-
-                sel_exp = cmds.getAttr('{}.selection'.format(op))
-                tokens = sel_exp.rsplit()
-                for tok in tokens:
-                    if exact_match:
-                        mat = SELECTION_REGEX.match(tok)
-                        isRoot = (tok == "/*" and path == '/')
-                        if mat and mat.group() == path or isRoot:
-                            sel_mat = True
-                            break
-                        if not mat:
-                            sel_mat = (tok == path) or (tok == "/*" and path == '/')
-                    else:
-                        pat = fnmatch.translate(tok.replace('/*', '*'))
-                        reobj = re.compile(pat)
-                        mat = reobj.match(path)
-                        if mat:
-                            sel_mat = True
-                            break
-
-            if sel_mat and op not in ops:
+            sel_mat = self.operatorAffectsPath(path, op, operator_type, exact_match, collections)
+            if sel_mat and op:
                 ops.append(op)
 
             if cmds.attributeQuery('inputs', node=op, exists=True):
-                # FIXME what if switch node, we should only traverse down the
-                #  input that is the same as the input switch
-                inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
+                # FIXME what if switch node, should we only traverse down the
+                #  input that is the same as the input switch?
+                if cmds.nodeType(op) == SWITCH_OP:
+                    switch_index = cmds.getAttr("{}.index".format(op))
+                    inputs_raw = cmds.listConnections("{}.inputs[{}]".format(op, switch_index), c=True) or []
+                else:
+                    inputs_raw = cmds.listConnections("{}.inputs".format(op), c=True) or []
                 it = iter(inputs_raw)
                 inputs = zip(it, it)
                 for plug, ipt in inputs:
-                    ops += walkInputs(ipt, path, plug)
+                    ops += walkInputs(ipt, path, plug, collections)
 
             return ops
 
+        if not cmds.objExists(node):
+            return []
+
         # Start the query
         operators = []
-        con_operators = cmds.listConnections('{}.operators'.format(node)) or []
-        for idx, op in enumerate(con_operators):
-            out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx))
-            if len(out_op):
-                operators += out_op
+        if cmds.attributeQuery('operators', node=node, exists=True):
+            con_operators = cmds.listConnections('{}.operators'.format(node)) or []
+            for idx, op in enumerate(con_operators):
+                out_op = walkInputs(op, path, '{}.operators[{}]'.format(node, idx), collections)
+                for op in out_op:
+                    if op not in operators:
+                        operators.append(op)
 
         return operators
 
@@ -349,7 +389,8 @@ class ProceduralTransverser(BaseTransverser):
                     return i
             return -1
 
-        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match)
+        collections = self.getCollections(node, path, exact_match)
+        ops = self.getOperators(node, path, OVERRIDE_OP, exact_match, collections)
 
         overrides = []
         if len(ops):
@@ -409,7 +450,7 @@ class ProceduralTransverser(BaseTransverser):
             return True
         return False
 
-    def deleteOverride(operator, index):
+    def deleteOverride(self, operator, index):
         if not cmds.objExists(operator):
             return False
         if index != -1:

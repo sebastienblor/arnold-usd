@@ -304,10 +304,7 @@ AtNode* CProceduralTranslator::ExportProcedural(AtNode* procedural)
    MPlug ops = FindMayaPlug("operators");
    unsigned nelems = ops.numElements();
    MPlug elemPlug;
-   // FIXME this is a tempory workaround to get the operators translating in the correct order
-   // To be transferred to operators instead
-   for (int i = nelems; i > -1; --i)
-   // for (unsigned int i = 0; i < nelems; ++i)
+   for (unsigned int i = 0; i < nelems; ++i)
    {
       elemPlug = ops[i];       
       MPlugArray connections;

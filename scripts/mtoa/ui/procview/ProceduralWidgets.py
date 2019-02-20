@@ -82,7 +82,8 @@ class OperatorTreeModel(BaseModel):
         self.rootItem = OperatorItem(None, "")
         if self.currentItem:
             path = self.currentItem.data[PROC_PATH]
-            operators = self.transverser.getOperators(self.currentNode, path, exact_match=False)
+            collections = self.transverser.getCollections(self.currentNode, path, False)
+            operators = self.transverser.getOperators(self.currentNode, path, exact_match=False, collections=collections)
             for op in operators:
                 enabled = cmds.getAttr(op+'.enable')
                 local = self.transverser.operatorAffectsPath(path, op)
@@ -367,6 +368,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         elif nodechanged and not self.item:
             self.object_label.setText("Select Item")
             self.toolBar.setEnabled(False)
+            self.popualteOperatorsList()
 
         self.refresh()
         # Tell the transverser that the selection has changed.
@@ -384,7 +386,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.setNodeParam("disp_map", disp, create)
 
     def setNodeParam(self, param, node, create=False):
-        # FIXME need to set the correct assignment based on the operator that has this attribute
         operator = self.shadingWidgets[param].data.get('operator', None)
         if create:
             operator = self.getOverrideOperator()
@@ -422,7 +423,8 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         mel.eval("createRenderNode -all \"python(\\\"" + callback + "\\\")\" \"\"")
 
     def getOverrideOperator(self, create=True, exact_match=True):
-        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, exact_match)
+        collections = self.transverser.getCollections(self.node, self.item.data[PROC_PATH], exact_match)
+        ops = self.transverser.getOperators(self.node, self.item.data[PROC_PATH], OVERRIDE_OP, exact_match, collections)
         if not len(ops) and create:
             op = self.transverser.createOperator(self.node, self.item, OVERRIDE_OP)
         else:
@@ -493,11 +495,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def addOverrideGUI(self, param, op, value, index, operator):
 
-        # inherited = operator == self.getItemOverrideOperator()
         parentPanel = self.inheritedOverridesPanel
         if operator == self.getItemOverrideOperator():
             parentPanel = self.localOverridesPanel
-
 
         new_widget = MtoAOperatorOverrideWidget(parentPanel)
         new_widget.index = index
@@ -541,9 +541,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     def setOverride(self, param, op, value, index=-1, operator=None):
         if not operator:
             operator = self.getItemOverrideOperator()
-        if not param and not value:
-            param = "NEWOVERRIDE"
-            value = "''"
         param_type = None
         is_array = False
         data = self.getData(self.item)
