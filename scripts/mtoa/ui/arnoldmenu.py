@@ -8,6 +8,7 @@ import maya.mel
 import mtoa.txManager
 import mtoa.lightManager
 import mtoa.renderToTexture
+import mtoa.materialx
 import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
@@ -507,6 +508,14 @@ def arnoldImportOperators():
         defaultOperatorsFolder = ret[0]
         cmds.arnoldImportAss(f=ret[0])
 
+def arnoldExportMaterialx(selected=False):
+    selList = cmds.ls(sl=1)
+    if (len(selList) == 0):
+        cmds.confirmDialog( title='Export to MaterialX', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+        return False
+    win = mtoa.materialx.MtoAExportToMaterialX()
+    win.create()
+
 def updateProgressBar(percent):
 
     gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')
@@ -662,6 +671,8 @@ def createArnoldMenu():
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportOperators(selected=True)', category="Utilities", annotation='Export the selected operator graph to .ass')
         addRuntimeMenuItem('ArnoldImportOperators', label='Import Operator Graph', parent='ArnoldUtilities', keywords='operator',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldImportOperators()', category="Utilities", annotation='Import an operator graph from a .ass file')
+        addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx(selected=True)', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
         addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.populate_GPUCache()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
 
