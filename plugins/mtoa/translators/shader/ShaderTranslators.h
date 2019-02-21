@@ -232,12 +232,40 @@ public:
 
 class CRampTranslator : public CShaderTranslator{
 public:
+   enum RampType
+   {
+      RT_V = 0,
+      RT_U,
+      RT_DIAGONAL,
+      RT_RADIAL,
+      RT_CIRCULAR,
+      RT_BOX,
+      RT_UV,
+      RT_4CORNER,
+      RT_TARTAN
+   };
+   enum RampInterpolationType
+   {
+      RIT_NONE = 0,
+      RIT_LINEAR,
+      RIT_EXP_UP,
+      RIT_EXP_DOWN,
+      RIT_SMOOTH,
+      RIT_BUMP,
+      RIT_SPIKE
+   };
+
    static void* creator(){return new CRampTranslator();}
 
    virtual void Export(AtNode* shader);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
-
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+private:
+   bool RequiresColorCorrect() const;
+   bool RequiresUvTransform() const;
+   bool m_hasColorCorrect;
 };
 
 
