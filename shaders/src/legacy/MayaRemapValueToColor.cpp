@@ -37,6 +37,7 @@ node_parameters
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize

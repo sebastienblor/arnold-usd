@@ -1303,117 +1303,163 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
    MString outputAttr = GetMayaOutputAttributeName();
 
-   if (outputAttr == "outValue")
-   {
-      return AddArnoldNode("MayaRemapValueToValue");
-   }
-   else if (outputAttr == "outColor")
-   {
-      return AddArnoldNode("MayaRemapValueToColor");
-   }
-   else
-   {
-      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
-      return NULL;
-   }
+   AtNode* remapRamp = AddArnoldNode((outputAttr == "outValue") ? "ramp_float" : "ramp_rgb");
+   AtNode* outRemapRange = NULL;
+   if (!(IsFloatAttrDefault(FindMayaPlug("outputMin"), 0.f) &&
+         IsFloatAttrDefault(FindMayaPlug("outputMax"), 1.f)))
+      return AddArnoldNode("range", "outRemapRange");
+   
+   return remapRamp;
 }
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
    MString outputAttr = GetMayaOutputAttributeName();
    MFnDependencyNode fnNode(GetMayaObject());
+   MPlug attr, elem, pos, val, interp;
+
+   AtNode* inRemapRange = NULL;
+   if (!(IsFloatAttrDefault(FindMayaPlug("inputMin"), 0.f) &&
+         IsFloatAttrDefault(FindMayaPlug("inputMax"), 1.f)))
+   {
+      inRemapRange = GetArnoldNode("inRemapRange");
+      if (inRemapRange == NULL)
+         inRemapRange = AddArnoldNode("range", "inRemapRange");
+   }
+
+   AtNode* remapRamp = GetArnoldNode();
+   AtNode* outRemapRange = GetArnoldNode("outRemapRange");
+   if (inRemapRange)
+   {
+      AiNodeLink(inRemapRange, "input", remapRamp);
+      ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
+      ProcessParameter(inRemapRange, "input_max" ,AI_TYPE_FLOAT, "inputMax");         
+      ProcessParameter(inRemapRange, "input", AI_TYPE_FLOAT, "inputValue");
+   } else
+      ProcessParameter(remapRamp, "input", AI_TYPE_FLOAT, "inputValue");
+   
+   if (outRemapRange)
+   {
+      AiNodeLink(remapRamp, "input", outRemapRange);
+      ProcessParameter(outRemapRange, "output_min" , AI_TYPE_FLOAT, "outputMin");
+      ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT, "outputMax");
+   }
+
+
    if (outputAttr == "outValue")
    {
-      MPlug attr, elem, pos, val, interp;
-
-
-      // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader or set metadata
-      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
-      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
-      
       attr = FindMayaPlug("value");
 
       MObject opos = fnNode.attribute("value_Position");
-      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+      ProcessArrayParameter(remapRamp, "position", attr, AI_TYPE_FLOAT, &opos);
 
       MObject oval = fnNode.attribute("value_FloatValue");
-      ProcessArrayParameter(shader, "values", attr, AI_TYPE_FLOAT, &oval);
+      ProcessArrayParameter(remapRamp, "value", attr, AI_TYPE_FLOAT, &oval);
 
       MObject ointerp = fnNode.attribute("value_Interp");
-      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
+      ProcessArrayParameter(remapRamp, "interpolation", attr, AI_TYPE_INT, &ointerp);
+      
    }
-   else if (outputAttr == "outColor")
-   {
-      MPlug attr, elem, pos, val, interp;
-
-
-      // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
-      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
-
-      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
-
+   else
+   {  
       attr = FindMayaPlug("color");
 
       MObject opos = fnNode.attribute("color_Position");
-      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+      ProcessArrayParameter(remapRamp, "position", attr, AI_TYPE_FLOAT, &opos);
 
       MObject oval = fnNode.attribute("color_Color");
-      ProcessArrayParameter(shader, "values", attr, AI_TYPE_RGB, &oval);
+      ProcessArrayParameter(remapRamp, "color", attr, AI_TYPE_RGB, &oval);
 
       MObject ointerp = fnNode.attribute("color_Interp");
-      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
+      ProcessArrayParameter(remapRamp, "interpolation", attr, AI_TYPE_INT, &ointerp);
    }
 }
 
+void CRemapValueTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "outputMin" || plugName == "outputMax") && (GetArnoldNode("outRemapRange") == NULL))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
 // Remap Color
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRemapColor");
+   
+   AtNode* inRemapRange = AddArnoldNode("range", "inRemapRange");
+   
+   AtNode* R_Ramp = AddArnoldNode("ramp_float", "R_ramp");
+   AtNode* G_Ramp = AddArnoldNode("ramp_float", "G_ramp");
+   AtNode* B_Ramp = AddArnoldNode("ramp_float", "B_ramp");
+
+   AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
+
+   AiNodeLinkOutput(inRemapRange, "r", R_Ramp, "input");
+   AiNodeLinkOutput(inRemapRange, "g", G_Ramp, "input");
+   AiNodeLinkOutput(inRemapRange, "b", B_Ramp, "input");
+
+   AiNodeLink(R_Ramp, "input.r", outRemapRange);
+   AiNodeLink(G_Ramp, "input.g", outRemapRange);
+   AiNodeLink(B_Ramp, "input.b", outRemapRange);
+
+   return outRemapRange;
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
 {
    MPlug attr, elem, pos, val, interp;
 
-   const char *plugNames[3] = {"red", "green", "blue"};
-   const char *posNames[6] = {"red_Position",   "rPositions",
-                              "green_Position", "gPositions",
-                              "blue_Position",  "bPositions"};
-   const char *valNames[6] = {"red_FloatValue",   "rValues",
-                              "green_FloatValue", "gValues",
-                              "blue_FloatValue",  "bValues"};
-   const char *interpNames[6] = {"red_Interp",   "rInterpolations",
-                                 "green_Interp", "gInterpolations",
-                                 "blue_Interp",  "bInterpolations"};
+   AtNode* inRemapRange = GetArnoldNode("inRemapRange");
+   AtNode* R_Ramp = GetArnoldNode("R_ramp");
+   AtNode* G_Ramp = GetArnoldNode("G_ramp");
+   AtNode* B_Ramp = GetArnoldNode("B_ramp");
+   AtNode* outRemapRange = shader;
 
-   // FIXME: change shader parameter name to match maya
-   ProcessParameter(shader, "input", AI_TYPE_RGB, "color");
-   ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+   ProcessParameter(inRemapRange, "input", AI_TYPE_RGB, "color");
+   ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
+   ProcessParameter(inRemapRange, "input_max", AI_TYPE_FLOAT,"inputMax");
+
+   ProcessParameter(outRemapRange, "output_min", AI_TYPE_FLOAT,"outputMin");
+   ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT),"outputMax";
 
    MFnDependencyNode fnNode(GetMayaObject());
 
-   for (int ci=0; ci<3; ++ci)
-   {
-      attr = FindMayaPlug(plugNames[ci]);
+   attr = FindMayaPlug("red");
+   MObject rpos = fnNode.attribute("red_Position");
+   ProcessArrayParameter(R_Ramp, "position", attr, AI_TYPE_FLOAT, &rpos);
 
-      MObject opos = fnNode.attribute(posNames[ci*2]);
-      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+   MObject rval = fnNode.attribute("red_FloatValue");
+   ProcessArrayParameter(R_Ramp, "value", attr, AI_TYPE_FLOAT, &rval);
 
-      MObject oval = fnNode.attribute(valNames[ci*2]);
-      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
-      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
-      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
-   }
+   MObject rinterp = fnNode.attribute("red_Interp");
+   ProcessArrayParameter(R_Ramp,"interpolation", attr, AI_TYPE_INT, &rinterp);
+
+// ####
+
+   attr = FindMayaPlug("green");
+   MObject gpos = fnNode.attribute("green_Position");
+   ProcessArrayParameter(G_Ramp, "position", attr, AI_TYPE_FLOAT, &gpos);
+
+   MObject gval = fnNode.attribute("green_FloatValue");
+   ProcessArrayParameter(G_Ramp, "value", attr, AI_TYPE_FLOAT, &gval);
+
+   MObject ginterp = fnNode.attribute("green_Interp");
+   ProcessArrayParameter(G_Ramp,"interpolation", attr, AI_TYPE_INT, &ginterp);
+
+// ####
+
+   attr = FindMayaPlug("blue");
+   MObject bpos = fnNode.attribute("blue_Position");
+   ProcessArrayParameter(B_Ramp, "position", attr, AI_TYPE_FLOAT, &bpos);
+
+   MObject bval = fnNode.attribute("blue_FloatValue");
+   ProcessArrayParameter(B_Ramp, "value", attr, AI_TYPE_FLOAT, &bval);
+
+   MObject binterp = fnNode.attribute("blue_Interp");
+   ProcessArrayParameter(B_Ramp,"interpolation", attr, AI_TYPE_INT, &binterp);
+
 }
 
 // Remap Hsv
