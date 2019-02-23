@@ -265,7 +265,16 @@ protected:
 private:
    bool RequiresColorCorrect() const;
    bool RequiresUvTransform() const;
+   AtNode *ExportUvTransform();
+   AtNode *ExportColorCorrect(AtNode *target);
+   void ExportRampKeys(AtNode *shader);
+   void ExportRampType(AtNode *rampShader, RampType type);
+   void GetUvSet();
+
+   int m_type;
+   AtNode *m_custom_uvs;
    bool m_hasColorCorrect;
+   MString m_uvSet;
 };
 
 
