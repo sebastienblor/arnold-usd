@@ -36,13 +36,12 @@ SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
-SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
-SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
+SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
 SHADER_TRANSLATOR(CMayaPhongTranslator);
 SHADER_TRANSLATOR(CMayaPhongETranslator);
@@ -306,3 +305,13 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    bool m_isRgb;
 };   
+
+class CRemapValueTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CRemapValueTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};

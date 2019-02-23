@@ -1303,53 +1303,51 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
    MString outputAttr = GetMayaOutputAttributeName();
 
-   if (outputAttr == "outValue")
-   {
-
-      AtNode* inRemapRange = AddArnoldNode("range", "inRemapRange");
-      AtNode* remapRamp = AddArnoldNode("ramp_float", "remapRamp");
-      AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
-      
-      AiNodeLink(inRemapRange, "input", remapRamp);
-      AiNodeLink(remapRamp, "input", outRemapRange);
-      
-      return outRemapRange;
-   }
-   else if (outputAttr == "outColor")
-   {
-
-      AtNode* inRemapRange = AddArnoldNode("range", "inRemapRange");
-      AtNode* remapRamp = AddArnoldNode("ramp_rgb", "remapRamp");
-      AtNode* outRemapRange = AddArnoldNode("range", "outRemapRange");
-      
-      AiNodeLink(inRemapRange, "input", remapRamp);
-      AiNodeLink(remapRamp, "input", outRemapRange);
-      
-      return outRemapRange;
-   }
-   else
-   {
-      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
-      return NULL;
-   }
+   AtNode* remapRamp = AddArnoldNode((outputAttr == "outValue") ? "ramp_float" : "ramp_rgb");
+   AtNode* outRemapRange = NULL;
+   if (!(IsFloatAttrDefault(FindMayaPlug("outputMin"), 0.f) &&
+         IsFloatAttrDefault(FindMayaPlug("outputMax"), 1.f)))
+      return AddArnoldNode("range", "outRemapRange");
+   
+   return remapRamp;
 }
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
    MString outputAttr = GetMayaOutputAttributeName();
    MFnDependencyNode fnNode(GetMayaObject());
+   MPlug attr, elem, pos, val, interp;
+
+   AtNode* inRemapRange = NULL;
+   if (!(IsFloatAttrDefault(FindMayaPlug("inputMin"), 0.f) &&
+         IsFloatAttrDefault(FindMayaPlug("inputMax"), 1.f)))
+   {
+      inRemapRange = GetArnoldNode("inRemapRange");
+      if (inRemapRange == NULL)
+         inRemapRange = AddArnoldNode("range", "inRemapRange");
+   }
+
+   AtNode* remapRamp = GetArnoldNode();
+   AtNode* outRemapRange = GetArnoldNode("outRemapRange");
+   if (inRemapRange)
+   {
+      AiNodeLink(inRemapRange, "input", remapRamp);
+      ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
+      ProcessParameter(inRemapRange, "input_max" ,AI_TYPE_FLOAT, "inputMax");         
+      ProcessParameter(inRemapRange, "input", AI_TYPE_FLOAT, "inputValue");
+   } else
+      ProcessParameter(remapRamp, "input", AI_TYPE_FLOAT, "inputValue");
+   
+   if (outRemapRange)
+   {
+      AiNodeLink(remapRamp, "input", outRemapRange);
+      ProcessParameter(outRemapRange, "output_min" , AI_TYPE_FLOAT, "outputMin");
+      ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT, "outputMax");
+   }
+
+
    if (outputAttr == "outValue")
    {
-      MPlug attr, elem, pos, val, interp;
-
-      AtNode* inRemapRange = GetArnoldNode("inRemapRange");
-      AtNode* remapRamp = GetArnoldNode("remapRamp");
-      AtNode* outRemapRange = shader ;
-
-      ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
-      ProcessParameter(inRemapRange, "input_max" ,AI_TYPE_FLOAT, "inputMax");
-      ProcessParameter(inRemapRange, "input", AI_TYPE_FLOAT, "inputValue");
-
       attr = FindMayaPlug("value");
 
       MObject opos = fnNode.attribute("value_Position");
@@ -1360,22 +1358,10 @@ void CRemapValueTranslator::Export(AtNode* shader)
 
       MObject ointerp = fnNode.attribute("value_Interp");
       ProcessArrayParameter(remapRamp, "interpolation", attr, AI_TYPE_INT, &ointerp);
-
-      ProcessParameter(outRemapRange, "output_min" , AI_TYPE_FLOAT, "outputMin");
-      ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT, "outputMax");
+      
    }
-   else if (outputAttr == "outColor")
-   {
-      MPlug attr, elem, pos, val, interp;
-
-      AtNode* inRemapRange = GetArnoldNode("inRemapRange");
-      AtNode* remapRamp = GetArnoldNode("remapRamp");
-      AtNode* outRemapRange = shader ;
-   
-      ProcessParameter(inRemapRange, "input_min", AI_TYPE_FLOAT,"inputMin");
-      ProcessParameter(inRemapRange, "input_max" ,AI_TYPE_FLOAT, "inputMax");
-      ProcessParameter(inRemapRange, "input", AI_TYPE_FLOAT, "inputValue");
-   
+   else
+   {  
       attr = FindMayaPlug("color");
 
       MObject opos = fnNode.attribute("color_Position");
@@ -1386,12 +1372,17 @@ void CRemapValueTranslator::Export(AtNode* shader)
 
       MObject ointerp = fnNode.attribute("color_Interp");
       ProcessArrayParameter(remapRamp, "interpolation", attr, AI_TYPE_INT, &ointerp);
-
-      ProcessParameter(outRemapRange, "output_min" , AI_TYPE_FLOAT, "outputMin");
-      ProcessParameter(outRemapRange, "output_max", AI_TYPE_FLOAT, "outputMax");
    }
 }
 
+void CRemapValueTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if ((plugName == "outputMin" || plugName == "outputMax") && (GetArnoldNode("outRemapRange") == NULL))
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   CShaderTranslator::NodeChanged(node, plug);
+}
 // Remap Color
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
@@ -1414,11 +1405,6 @@ AtNode* CRemapColorTranslator::CreateArnoldNodes()
    AiNodeLink(B_Ramp, "input.b", outRemapRange);
 
    return outRemapRange;
-
-
-
-
-   
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
