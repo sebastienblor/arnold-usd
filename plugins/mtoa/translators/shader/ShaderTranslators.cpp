@@ -30,66 +30,6 @@
 
 #include <utils/MayaUtils.h>
 
-bool IsFloatAttrDefault(MPlug plug, float value)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-   float plugValue = plug.asFloat();
-   if (std::abs(plugValue - value) > AI_EPSILON)
-      return false; 
-
-   return true;
-}
-bool IsBoolAttrDefault(MPlug plug, bool value)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-   bool plugValue = plug.asBool();
-   
-   return (plugValue == value);
-}
-
-bool IsVec2AttrDefault(MPlug plug, float valueX, float valueY)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-
-   return (IsFloatAttrDefault(plug.child(0), valueX) &&
-           IsFloatAttrDefault(plug.child(1), valueY));
-
-}
-
-bool IsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-
-   return (IsFloatAttrDefault(plug.child(0), valueR) &&
-           IsFloatAttrDefault(plug.child(1), valueG) &&
-           IsFloatAttrDefault(plug.child(1), valueB));
-
-}
-
 
 // Sky
 //

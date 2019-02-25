@@ -29,65 +29,7 @@
 #include <fstream>
 
 #include <utils/MayaUtils.h>
-bool RampIsFloatAttrDefault(MPlug plug, float value)
-{
-   if (plug.isNull())
-      return true;
 
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-   float plugValue = plug.asFloat();
-   if (std::abs(plugValue - value) > AI_EPSILON)
-      return false; 
-
-   return true;
-}
-bool RampIsBoolAttrDefault(MPlug plug, bool value)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-   bool plugValue = plug.asBool();
-   
-   return (plugValue == value);
-}
-
-bool RampIsVec2AttrDefault(MPlug plug, float valueX, float valueY)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-
-   return (RampIsFloatAttrDefault(plug.child(0), valueX) &&
-           RampIsFloatAttrDefault(plug.child(1), valueY));
-
-}
-
-bool RampIsRGBAttrDefault(MPlug plug, float valueR, float valueG, float valueB)
-{
-   if (plug.isNull())
-      return true;
-
-   MPlugArray connections;
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-      return false; 
-
-   return (RampIsFloatAttrDefault(plug.child(0), valueR) &&
-           RampIsFloatAttrDefault(plug.child(1), valueG) &&
-           RampIsFloatAttrDefault(plug.child(1), valueB));
-
-}
 
 
 void CRampTranslator::NodeInitializer(CAbTranslator context)
@@ -310,7 +252,7 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
    ProcessParameter(colorCorrectNode, "add", AI_TYPE_RGB, "colorOffset");
    AiNodeLink(target, "input", colorCorrectNode);
 
-   if (!RampIsFloatAttrDefault(FindMayaPlug("hueNoise"), 0.f))
+   if (!IsFloatAttrDefault(FindMayaPlug("hueNoise"), 0.f))
    {
       AtNode *noise = GetArnoldNode("hue_noise");
       if (noise == NULL)
@@ -328,7 +270,7 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
    } else
       AiNodeUnlink(colorCorrectNode, "hue_shift");
 
-   if (!RampIsFloatAttrDefault(FindMayaPlug("satNoise"), 0.f))
+   if (!IsFloatAttrDefault(FindMayaPlug("satNoise"), 0.f))
    {
       AtNode *noise = GetArnoldNode("sat_noise");
       if (noise == NULL)
@@ -346,7 +288,7 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
    }  else
       AiNodeUnlink(colorCorrectNode, "saturation");
 
-   if (!RampIsFloatAttrDefault(FindMayaPlug("valNoise"), 0.f))
+   if (!IsFloatAttrDefault(FindMayaPlug("valNoise"), 0.f))
    {
       AtNode *noise = GetArnoldNode("val_noise");
       if (noise == NULL)
@@ -559,10 +501,10 @@ AtNode* CRampTranslator::ExportUvTransform()
 
    AtNode *uvTransformWave = NULL;
 
-   bool uWave = !RampIsFloatAttrDefault(FindMayaPlug("uWave"), 0.f);
-   bool vWave = !RampIsFloatAttrDefault(FindMayaPlug("vWave"), 0.f);
+   bool uWave = !IsFloatAttrDefault(FindMayaPlug("uWave"), 0.f);
+   bool vWave = !IsFloatAttrDefault(FindMayaPlug("vWave"), 0.f);
 
-   bool hasNoise = !RampIsFloatAttrDefault(FindMayaPlug("noise"), 0.f);
+   bool hasNoise = !IsFloatAttrDefault(FindMayaPlug("noise"), 0.f);
    AtNode *noise = NULL;
 
    // Do we have noise on the uv coordinates
@@ -695,9 +637,9 @@ bool CRampTranslator::RequiresUvTransform() const
    if (m_type == RT_UV || m_type == RT_TARTAN) 
       return true;
 
-   if (! (RampIsFloatAttrDefault(FindMayaPlug("uWave"), 0.f) &&
-          RampIsFloatAttrDefault(FindMayaPlug("vWave"), 0.f) &&
-          RampIsFloatAttrDefault(FindMayaPlug("noise"), 0.f)))
+   if (! (IsFloatAttrDefault(FindMayaPlug("uWave"), 0.f) &&
+          IsFloatAttrDefault(FindMayaPlug("vWave"), 0.f) &&
+          IsFloatAttrDefault(FindMayaPlug("noise"), 0.f)))
       return true;             
 
    MPlugArray connections;
@@ -713,28 +655,28 @@ bool CRampTranslator::RequiresUvTransform() const
    if (srcNodeFn.typeName() != "place2dTexture")
       return false;
 
-   return !(RampIsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
-            RampIsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
-            RampIsBoolAttrDefault(srcNodeFn.findPlug("mirrorV", true), false) &&
-            RampIsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame", true), 0.f ) &&
-            RampIsFloatAttrDefault(srcNodeFn.findPlug("rotateUV", true), 0.f ) &&
-            RampIsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
-            RampIsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
-            RampIsVec2AttrDefault(srcNodeFn.findPlug("repeatUV", true), 1.f, 1.f ) &&
-            RampIsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) );
+   return !(IsBoolAttrDefault(srcNodeFn.findPlug("stagger", true), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorU", true), false) &&
+            IsBoolAttrDefault(srcNodeFn.findPlug("mirrorV", true), false) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateFrame", true), 0.f ) &&
+            IsFloatAttrDefault(srcNodeFn.findPlug("rotateUV", true), 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("coverage", true), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("translateFrame", true), 0.f, 0.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("repeatUV", true), 1.f, 1.f ) &&
+            IsVec2AttrDefault(srcNodeFn.findPlug("noiseUV", true), 0.f, 0.f ) );
 
 }
 bool CRampTranslator::RequiresColorCorrect() const
 {
-   return ! (RampIsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
-             RampIsFloatAttrDefault(FindMayaPlug("alphaOffset"), 0.f) &&
-             RampIsBoolAttrDefault(FindMayaPlug("alphaIsLuminance"), false) &&
-             RampIsBoolAttrDefault(FindMayaPlug("invert"), false) && 
-             RampIsRGBAttrDefault(FindMayaPlug("colorGain"), 1.f, 1.f, 1.f) &&
-             RampIsRGBAttrDefault(FindMayaPlug("colorOffset"), 0.f, 0.f, 0.f)  &&
-             RampIsFloatAttrDefault(FindMayaPlug("hueNoise"), 0.f) &&
-             RampIsFloatAttrDefault(FindMayaPlug("valNoise"), 0.f) &&
-             RampIsFloatAttrDefault(FindMayaPlug("satNoise"), 0.f));
+   return ! (IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
+             IsFloatAttrDefault(FindMayaPlug("alphaOffset"), 0.f) &&
+             IsBoolAttrDefault(FindMayaPlug("alphaIsLuminance"), false) &&
+             IsBoolAttrDefault(FindMayaPlug("invert"), false) && 
+             IsRGBAttrDefault(FindMayaPlug("colorGain"), 1.f, 1.f, 1.f) &&
+             IsRGBAttrDefault(FindMayaPlug("colorOffset"), 0.f, 0.f, 0.f)  &&
+             IsFloatAttrDefault(FindMayaPlug("hueNoise"), 0.f) &&
+             IsFloatAttrDefault(FindMayaPlug("valNoise"), 0.f) &&
+             IsFloatAttrDefault(FindMayaPlug("satNoise"), 0.f));
 }
 
 void CRampTranslator::NodeChanged(MObject& node, MPlug& plug)
