@@ -3,7 +3,7 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnDependencyNode.h>
-#include <ai_constants.h>
+#include <ai.h>
 
 MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      double frameNumber,
