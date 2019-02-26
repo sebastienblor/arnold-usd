@@ -8,15 +8,15 @@ extern "C"
 DLLEXPORT void initializeExtension(CExtension& extension)
 {
     extension.Requires("renderSetup");
-    extension.RegisterTranslator("applyAbsFloatOverride",   "", CApplyAbsOverrideTranslator<float>::creator);
-    extension.RegisterTranslator("applyAbs2FloatsOverride", "", CApplyAbsOverrideTranslator<float2>::creator);
-    extension.RegisterTranslator("applyAbs3FloatsOverride", "", CApplyAbsOverrideTranslator<float3>::creator);
-    extension.RegisterTranslator("applyAbsIntOverride",     "", CApplyAbsOverrideTranslator<int>::creator);
+    extension.RegisterTranslator("applyAbsFloatOverride",   "", CApplyAbsFloatOverrideTranslator::creator);
+    extension.RegisterTranslator("applyAbs2FloatsOverride", "", CApplyAbsFloat2OverrideTranslator::creator);
+    extension.RegisterTranslator("applyAbs3FloatsOverride", "", CApplyAbsFloat3OverrideTranslator::creator);
+    extension.RegisterTranslator("applyAbsIntOverride",     "", CApplyAbsIntOverrideTranslator::creator);
 
-    extension.RegisterTranslator("applyRelFloatOverride",   "", CApplyRelOverrideTranslator<float>::creator);
-    extension.RegisterTranslator("applyRel2FloatsOverride", "", CApplyRelOverrideTranslator<float2>::creator);
-    extension.RegisterTranslator("applyRel3FloatsOverride", "", CApplyRelOverrideTranslator<float3>::creator);
-    extension.RegisterTranslator("applyRelIntOverride",     "", CApplyRelOverrideTranslator<int>::creator);
+    extension.RegisterTranslator("applyRelFloatOverride",   "", CApplyRelFloatOverrideTranslator::creator);
+    extension.RegisterTranslator("applyRel2FloatsOverride", "", CApplyRelFloat2OverrideTranslator::creator);
+    extension.RegisterTranslator("applyRel3FloatsOverride", "", CApplyRelFloat3OverrideTranslator::creator);
+    extension.RegisterTranslator("applyRelIntOverride",     "", CApplyRelIntOverrideTranslator::creator);
 }
 
 DLLEXPORT void deinitializeExtension(CExtension& extension)
