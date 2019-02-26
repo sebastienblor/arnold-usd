@@ -276,8 +276,10 @@ class ProceduralItem(BaseItem):
         return self.parent().getModel()
 
     def setOverridesOp(self):
-        collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
-        ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True, collections)
+        ops = []
+        if self.data:
+            collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
+            ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True, collections)
         if len(ops):
             self.overrides_op = ops[0]
         else:
