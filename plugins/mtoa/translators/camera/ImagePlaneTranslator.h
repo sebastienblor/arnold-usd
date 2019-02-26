@@ -25,4 +25,6 @@ protected:
 
    MString m_camera;
    MString m_colorSpace;
+   bool RequiresColorCorrect();
+   //virtual void NodeChanged(MObject& node, MPlug& plug);
 };

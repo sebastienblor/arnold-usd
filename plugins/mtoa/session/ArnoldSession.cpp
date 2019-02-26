@@ -2339,9 +2339,7 @@ void CArnoldSession::ExportTxFiles()
    ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
    ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
 
-   static const AtString MayaFile_str("MayaFile");
    static const AtString image_str("image");
-   static const AtString MayaImagePlane_str("MayaImagePlane");
 
    for ( ; it != itEnd; ++it)
    {
@@ -2351,7 +2349,7 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, MayaFile_str) || AiNodeIs(node, image_str) || AiNodeIs(node, MayaImagePlane_str)) textureNodes.push_back(translator);
+      if (AiNodeIs(node, image_str)) textureNodes.push_back(translator);
       
    }
 
@@ -2772,7 +2770,7 @@ void CArnoldSession::ExportImagePlane()
          {
             imgPlaneTranslator->SetCamera(fnNode.name());
 
-            AtNode *imgPlaneShader = imgPlaneTranslator->GetArnoldNode();
+            AtNode *imgPlaneShader = imgPlaneTranslator->m_impl->m_atRoot;
             
             if (imgPlaneShader)      
             {

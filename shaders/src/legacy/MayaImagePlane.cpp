@@ -25,7 +25,6 @@ enum ImagePlaneParams {
    p_fit_factor,
    p_translate,
    p_rotate,
-   p_camera,
    p_sourceTexture,
    p_offscreenColor
 };
@@ -88,7 +87,6 @@ node_parameters
    AiParameterFlt("rotate", 0.0f);
 
 
-   AiParameterNode("camera", NULL); 
    AiParameterNode("sourceTexture", NULL); 
    AiParameterRGBA("offscreenColor", 0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -96,6 +94,7 @@ node_parameters
    AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    
 }

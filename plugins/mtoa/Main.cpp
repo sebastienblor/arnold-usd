@@ -726,7 +726,7 @@ namespace // <anonymous>
                                     CSphericalCameraTranslator::creator,
                                     CSphericalCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("imagePlane",
-                                    "MayaImagePlane",
+                                    "",
                                     CImagePlaneTranslator::creator,
                                     CImagePlaneTranslator::NodeInitializer);                          
        // Hair
