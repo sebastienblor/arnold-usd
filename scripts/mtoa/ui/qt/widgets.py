@@ -6,6 +6,8 @@ from .itemStyle import ItemStyle
 from .treeView import BaseItem
 from .utils import dpiScale, setStaticSize, clearWidget
 
+from .button import MtoAButton, MtoACheckableButton
+
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 import maya.cmds as cmds
 import maya.mel as mel
@@ -268,14 +270,14 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         # attribute for adding custom user data
         self.data = {}
 
-        self.overrideButton = QtWidgets.QToolButton()
-        self.overrideAction = QtWidgets.QAction(self.overrideButton)
-        self.overrideAction.setIcon(self.INHERITED_ICON)
+        self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
+        # self.overrideAction = QtWidgets.QAction(self.overrideButton)
+        # self.overrideAction.setIcon(self.INHERITED_ICON)
 
-        self.overrideButton.setDefaultAction(self.overrideAction)
+        # self.overrideButton.setDefaultAction(self.overrideAction)
         self.overrideButton.setEnabled(False)
         self.layout().insertWidget(0, self.overrideButton)
-        self.overrideButton.triggered.connect(self.overrideTriggered)
+        self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
         self.conButton = QtWidgets.QPushButton()
         self.conButton.setFlat(True)
@@ -298,7 +300,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
         self.lineEdit.editingFinished.connect(self.manualSet)
 
-    def emitOverrideTrggered(self, action):
+    def emitOverrideTriggered(self):
         self.overrideTriggered.emit()
 
     def setMenu(self, menu):
@@ -403,7 +405,7 @@ class MtoAMutiControlWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
     EXPRESSION_ICON = QtGui.QIcon(":/expression.svg")
-    BIN_ICON = QtGui.QIcon(":/deleteActive.png")
+    BIN_ICON = QtGui.QIcon(":/RS_delete.png")
     INHERITED_ICON = BaseItem.dpiScaledIcon(":/expandInfluenceList.png")
 
     deleteMe = QtCore.Signal(object)
@@ -427,14 +429,10 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.overrideButton = QtWidgets.QToolButton()
-        self.overrideAction = QtWidgets.QAction(self.overrideButton)
-        self.overrideAction.setIcon(self.INHERITED_ICON)
-
-        self.overrideButton.setDefaultAction(self.overrideAction)
+        self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
         self.overrideButton.setEnabled(False)
         self.layout().insertWidget(0, self.overrideButton, alignment=QtCore.Qt.AlignTop)
-        self.overrideButton.triggered.connect(self.emitOverrideTriggered)
+        self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
         self.paramWidget = MtoAParamBox(self)
         self.layout().addWidget(self.paramWidget, alignment=QtCore.Qt.AlignTop)
@@ -462,14 +460,15 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.exp_panel.layout().insertStretch(-1)
         self.valueWidget.addWidget(self.exp_panel)
 
-        self.buttonsPanel = QtWidgets.QToolBar()
+        # self.buttonsPanel = QtWidgets.QToolBar()
 
-        self.expBtn = self.buttonsPanel.addAction(self.EXPRESSION_ICON, "Toggle Expression")
+        self.expBtn = MtoACheckableButton(self, self.EXPRESSION_ICON, dpiScale(20))  # self.buttonsPanel.addAction(self.EXPRESSION_ICON, "Toggle Expression")
         self.expBtn.setCheckable(True)
+        self.layout().addWidget(self.expBtn, alignment=QtCore.Qt.AlignTop)
 
-        self.delBtn = self.buttonsPanel.addAction(self.BIN_ICON, "Delete")
+        self.delBtn = MtoAButton(self, self.BIN_ICON, dpiScale(20))  # self.buttonsPanel.addAction(self.BIN_ICON, "Delete")
 
-        self.layout().addWidget(self.buttonsPanel, alignment=QtCore.Qt.AlignTop)
+        self.layout().addWidget(self.delBtn, alignment=QtCore.Qt.AlignTop)
 
         if param:
             self.setParam(param)
@@ -484,7 +483,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.setup()
 
     def setup(self):
-        self.delBtn.triggered.connect(self.callDeleteMe)
+        self.delBtn.clicked.connect(self.callDeleteMe)
         self.paramWidget.paramChanged.connect(self.emitParamChanged)
         self.expBtn.toggled.connect(self.valueWidget.setCurrentIndex)
 
@@ -508,7 +507,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.setValue(default_value)
         self.emitValueChanged(default_value)
 
-    def emitOverrideTriggered(self, action):
+    def emitOverrideTriggered(self):
         param = self.getParam()
         self.overrideTriggered.emit(param)
 

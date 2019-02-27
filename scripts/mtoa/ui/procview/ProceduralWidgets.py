@@ -14,7 +14,7 @@ import maya.cmds as cmds
 
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
                             PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
-                            OVERRIDE_OP, DISABLE_OP, NODE_TYPES,\
+                            OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, NODE_TYPES,\
                             PARM, OP, VALUE, INDEX, OPERATOR
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
@@ -131,6 +131,7 @@ class OperatorItem(BaseItem):
     DISABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_OFF.png")
 
     COLOR_OPERATOR = QtGui.QColor(18, 82, 18)
+    COLOR_COLLECTION = QtGui.QColor(179, 177, 71)
 
     (ACTION_EXPAND,  # Always first, even if not used
      ACTION_NONE,
@@ -145,7 +146,12 @@ class OperatorItem(BaseItem):
     def selectOperator(self):
         cmds.select(self.name, r=True)
 
+    def getNodeType(self):
+        return cmds.nodeType(self.name)
+
     def getLabelColor(self):
+        if self.getNodeType() == COLLECTION_OP:
+            return self.COLOR_COLLECTION
         if self.local:
             return self.COLOR_OPERATOR
         else:
