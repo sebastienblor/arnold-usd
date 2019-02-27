@@ -38,7 +38,6 @@ SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
-SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR(CRemapColorTranslator);
@@ -347,6 +346,34 @@ class CRemapValueTranslator : public CShaderTranslator
 {
 public:
    static void* creator(){return new CRemapValueTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+class CLayeredTextureTranslator : public CShaderTranslator
+{
+public:
+   
+enum LayeredTextureBlendMode
+{
+   BM_NONE = 0,
+   BM_OVER,
+   BM_IN,
+   BM_OUT,
+   BM_ADD,
+   BM_SUBTRACT,
+   BM_MULTIPLY,
+   BM_DIFFERENCE,
+   BM_LIGHTEN,
+   BM_DARKEN,
+   BM_SATURATE,
+   BM_DESATURATE,
+   BM_ILLUMINATE
+};
+
+   static void* creator(){return new CLayeredTextureTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
 protected:

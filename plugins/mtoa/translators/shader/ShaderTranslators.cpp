@@ -1578,7 +1578,11 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredTexture");
+   AtNode *layer_rgba = AddArnoldNode("layer_rgba");
+   if (FindMayaPlug("alphaIsLuminance").asBool())
+      return AddArnoldNode("color_correct", "cc");
+
+   return layer_rgba;
 }
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
@@ -1589,40 +1593,53 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    bool colorConnectedToAlpha;
    char aiAttr[64];
    
+   AtNode *cc = GetArnoldNode("cc");
+   if (cc)
+   {
+      AiNodeLink(shader, "input", cc);
+      AiNodeSetBool(cc, "alpha_is_luminance", true);
+   }
+
    MFnDependencyNode fnNode(GetMayaObject());
 
    attr = fnNode.findPlug("inputs", true);
-   unsigned int numElements = attr.numElements();
-   if (numElements > 16)
-   {
-      AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 16 inputs, only the first 16 will be handled", GetTranslatorName().asChar());
-      numElements = 16;
-   }
-
-   AiNodeSetUInt(shader, "numInputs", numElements);
-
-   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   int numElements = attr.numElements();
    
    MObject colorAttr = fnNode.attribute("color");
    MObject alphaAttr = fnNode.attribute("alpha");
    MObject blendModeAttr = fnNode.attribute("blendMode");
    MObject isVisibleAttr = fnNode.attribute("isVisible");
 
-   for (unsigned int i = 0; i < numElements; ++i)
+   // first initialize all layers to be disabled.
+   for (unsigned int i = 0; i < 8; ++i)
+   {
+      sprintf(aiAttr, "enable%u", i);
+      AiNodeSetBool(shader, aiAttr, false);
+   }
+
+   int arnoldIndex = 1;
+   int shader_index = 0;
+   if (numElements == 0)
+      return;
+
+   AtNode *rootShader = shader;
+   if (numElements > 8)
+   {
+      shader_index++;
+      shader = GetArnoldNode("l1");
+      if (shader == NULL)
+         shader = AddArnoldNode("layer_rgba", "l1");
+   }
+   for (int i = numElements - 1; i >= 0 ; --i, ++arnoldIndex)
    {
       elem = attr.elementByPhysicalIndex(i);
-
       color = elem.child(colorAttr);
       alpha = elem.child(alphaAttr);
       blendMode = elem.child(blendModeAttr);
       isVisible = elem.child(isVisibleAttr);
 
-      sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
-
       // Alpha connection is only handled when 
       // The input in color and alpha is the same
-
       colorSrc = MObject::kNullObj;
       alphaSrc = MObject::kNullObj;
 
@@ -1640,28 +1657,107 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
       else
          colorConnectedToAlpha = (colorSrc == alphaSrc);
 
-      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
-      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? true : false);
 
+      if (arnoldIndex > 8 )
+      {
+         // I already finished the whole layer(shader_index)
+         // I need to link it to the first input of the next layer
+
+         // I still  have (i+1) layers to compute, and the first layer of my next shader
+         // will be used to chain the previous layer_rgba. Let's see if that amount if < 8 so that
+         // I can use the original layer_rgba shader
+         AtNode *prevShader = shader;
+         if (i < 7)
+         {
+            shader = rootShader;
+         } else
+         {
+            shader_index++;
+            MString key = "l";
+            key += shader_index;
+            shader = GetArnoldNode(key.asChar());
+            if (shader == NULL)
+               shader = AddArnoldNode("layer_rgba", key.asChar());
+         }
+         // link the whole previous layer_rgba to input1 so that we can continue with the following ones
+         AiNodeLink(prevShader, "input1", shader); 
+         arnoldIndex = 2;
+      }
+
+      sprintf(aiAttr, "input%u", arnoldIndex);
+      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
+
+
+      sprintf(aiAttr, "mix%u", arnoldIndex);
       if (!colorConnectedToAlpha && alphaSrc.isNull())
-      {
-         // Export alpha value when it's not connected
-
-         sprintf(aiAttr, "alpha%u", i);
          AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
-      }
       else
-      {
-         sprintf(aiAttr, "alpha%u", i);
          ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, alpha);
+
+      int mayaBlend = blendMode.asInt();
+      MString arnoldBlend;
+      switch (mayaBlend){
+         // set the arnold blend mode based on the maya one 
+         default:
+         case BM_NONE:
+            arnoldBlend = "overwrite";
+            AiNodeUnlink(shader, aiAttr);
+            AiNodeSetFlt(shader, aiAttr, 1.f); // none = over with mix = 1 ?
+            break;
+         case BM_OVER:
+            arnoldBlend = "overwrite";
+            break;
+         case BM_IN:
+            // FIXME this isn't rendering properly
+            arnoldBlend = "in";
+            break;
+         case BM_OUT:
+            arnoldBlend = "out";
+            break;
+         case BM_ADD:
+            arnoldBlend = "plus";
+            break;
+         case BM_SUBTRACT:
+            arnoldBlend = "minus";
+            break;
+         case BM_MULTIPLY:
+            arnoldBlend = "multiply";
+            break;
+         case BM_DIFFERENCE:
+            arnoldBlend = "difference";
+            break;
+         case BM_LIGHTEN:
+            arnoldBlend = "max";
+            break;
+         case BM_DARKEN:
+            arnoldBlend = "min";
+            break;
+         case BM_SATURATE:
+            arnoldBlend = "hard_light";
+            break;
+         case BM_DESATURATE:
+            arnoldBlend = "exclusion";
+            break;
+         case BM_ILLUMINATE:
+            arnoldBlend = "geometric";
+            break;
       }
-
-      sprintf(aiAttr, "blendMode%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_ENUM, blendMode);
-
-      sprintf(aiAttr, "visible%u", i);
+      sprintf(aiAttr, "operation%u", arnoldIndex);
+      AiNodeSetStr(shader, aiAttr, arnoldBlend.asChar());
+      
+      sprintf(aiAttr, "enable%u", arnoldIndex);
       ProcessParameter(shader, aiAttr, AI_TYPE_BOOLEAN, isVisible);
+
    }
+
+}
+void CLayeredTextureTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "alphaIsLuminance")
+      SetUpdateMode(AI_RECREATE_NODE);
+ 
+   CShaderTranslator::NodeChanged(node, plug);  
 }
 
 // LayeredShader
