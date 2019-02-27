@@ -414,14 +414,14 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
                                  (str, str, float, int, str))
     overrideTriggered = QtCore.Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, param=None, op=None, value=None, paramDict={}, parent=None):
         super(MtoAOperatorOverrideWidget, self).__init__(parent)
 
         self.setObjectName("MtoAOperatorOverrideWidget")
         # set the paramater type so we know what type of widget to create.
         self.param_name = None
         self.param_type = None
-        self.param_dict = {}
+        self.param_dict = paramDict
         self.index = -1
         self.operator = ""
         self.setLayout(QtWidgets.QHBoxLayout())
@@ -439,6 +439,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.paramWidget = MtoAParamBox(self)
         self.layout().addWidget(self.paramWidget, alignment=QtCore.Qt.AlignTop)
         # self.paramWidget.setVisible(False)
+        self.populateParams(self.param_dict)
 
         self.op_menu = QtWidgets.QComboBox()
         self.op_menu.setObjectName("MtoAOperatorChoice")
@@ -447,7 +448,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.layout().addWidget(self.op_menu, alignment=QtCore.Qt.AlignTop)
 
         self.valueWidget = QtWidgets.QStackedWidget()  # set the widget for this control
-        self.valueWidget.setContentsMargins(0, 10, 0, 0)
+        self.valueWidget.setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(self.valueWidget, alignment=QtCore.Qt.AlignTop)
 
         self.controlWidget = MtoAMutiControlWidget()
@@ -470,6 +471,16 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
         self.layout().addWidget(self.buttonsPanel, alignment=QtCore.Qt.AlignTop)
 
+        if param:
+            self.setParam(param)
+            self.setControlWidget(param)
+        if op:
+            self.setOperation(op)
+        if value:
+            oldState = self.controlWidget.control.blockSignals(True)
+            self.setValue(value)
+            self.controlWidget.control.blockSignals(oldState)
+
         self.setup()
 
     def setup(self):
@@ -484,11 +495,15 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         self.deleteMe.emit(self)
 
     def emitParamChanged(self, param):
+        current_param = self.getParam()
+        if current_param == param:
+            return
+
         default_value = ""
         param_data = self.getParamData(param)
         if param_data:
-            default_value = param_data[2]
-
+            default_value = param_data[DEFAULT_VALUE]
+        self.param_name = param
         self.setControlWidget(param)
         self.setValue(default_value)
         self.emitValueChanged(default_value)
@@ -518,7 +533,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         # for param, data in sorted(paramDict.items()):
         #     self.paramWidget.addItem(param, data[0])
 
-        self.paramWidget.addItem("custom", None)
+        # self.paramWidget.addItem("custom", None)
 
     def getParamData(self, param):
         for node_type, params in self.param_dict.items():
@@ -528,13 +543,14 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
         return None
 
     def getParam(self):
-        return self.paramWidget.getText()
+        return self.param_name
 
-    def setParam(self, param, param_dict):
-        self.paramWidget.setText(param)
+    def setParam(self, param):
+        oldState = self.paramWidget.editBox.blockSignals(True)
         self.param_name = param
-        self.param_dict = param_dict
+        self.paramWidget.setText(param)
         self.setControlWidget(param)
+        self.paramWidget.editBox.blockSignals(oldState)
 
     def setParamType(self, param):
         param_data = self.getParamData(param)
@@ -624,7 +640,7 @@ class MtoAParamBox(QtWidgets.QFrame):
 
     def setTextFromAction(self, action):
         new_text = action.text()
-        self.editBox.setText(new_text)
+        self.setText(new_text)
         self.paramChanged.emit(new_text)
 
     def setText(self, text):
