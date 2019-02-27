@@ -153,11 +153,13 @@ void CApplyAbsFloatOverrideTranslator::Export( AtNode* shader)
     MFnDependencyNode mnode(this->GetMayaObject());
     if (mnode.findPlug("enabled", true).asBool())
     {
-        AiNodeSetRGB(shader, "color", mnode.findPlug("value", true).asFloat(),0,0);
+        const float& v = mnode.findPlug("value", true).asFloat();
+        AiNodeSetRGB(shader, "color", v,v,v);
     }
     else
     {
-        AiNodeSetRGB(shader, "color", mnode.findPlug("original", true).asFloat(),0,0);
+        const float& v = mnode.findPlug("original", true).asFloat();
+        AiNodeSetRGB(shader, "color", v,v,v);
     }
 }
 
