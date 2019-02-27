@@ -296,14 +296,14 @@ class ProceduralItem(BaseItem):
         return None
 
     def getIcon(self):
-        if self.childItems:
-            return self.GROUP_ICON
         if self.data[PROC_ENTRY_TYPE] == 'polymesh':
             return self.MESH_ICON
         elif self.data[PROC_ENTRY_TYPE] == 'points':
             return self.POINTS_ICON
         elif self.data[PROC_ENTRY_TYPE] == 'curves':
             return self.CURVES_ICON
+        elif self.childItems:
+            return self.GROUP_ICON
         return self.UNKNOWN_ICON
 
     def getBackgroundColor(self):

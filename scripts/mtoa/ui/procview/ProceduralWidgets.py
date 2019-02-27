@@ -7,6 +7,9 @@ from mtoa.ui.qt.widgets import *
 from mtoa.ui.qt.treeView import *
 import time
 
+#
+import traceback
+
 import maya.cmds as cmds
 
 from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PARENT, PROC_VISIBILITY, \
@@ -225,7 +228,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.shadingPanel = QtWidgets.QFrame()
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
-        self.shadingPanel.layout().setContentsMargins(0, 0, 0, 0)
 
         # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}
@@ -513,16 +515,11 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         parentPanel.setVisible(True)
 
-        new_widget = MtoAOperatorOverrideWidget(parentPanel)
+        new_widget = MtoAOperatorOverrideWidget(param, op, value, self.paramDict, parentPanel)
+
         new_widget.index = index
         new_widget.operator = operator
         new_widget.deleteMe.connect(self.removeOverride)
-        new_widget.populateParams(self.paramDict)
-        # set the widget
-        new_widget.setParam(param, self.paramDict)
-        new_widget.setOperation(op)
-
-        new_widget.setValue(value)
 
         new_widget.valueChanged[str, str, str, int, str].connect(self.setOverride)
         new_widget.valueChanged[str, str, int, int, str].connect(self.setOverride)

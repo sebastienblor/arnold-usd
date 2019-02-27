@@ -35,9 +35,9 @@ NODE_TYPES = ['polymesh', 'curves', 'nurbs', 'points']
 PARAM_BLACKLIST = ['id', 'visibility', 'name', 'matrix',
                    'motion_start', 'motion_end', 'shader', 'disp_map',
                    'vidxs', 'vlist', 'nsides', 'uvidxs', 'shidxs',
-                   'nlist', 'uvlist', 'crease_idxs', 'crease_sharpness',
-                   'use_shadow_group', 'use_light_group', 'degree_u',
-                   'degree_v', 'transform_type',
+                   'nlist', 'nidxs', 'uvlist', 'crease_idxs',
+                   'crease_sharpness', 'use_shadow_group', 'use_light_group',
+                   'degree_u', 'degree_v', 'transform_type',
                    'num_points', 'points', 'orientations',
                    'uvs', 'cvs', 'knots_u', 'knots_v', 'degree_u', 'degree_v']
 
@@ -416,12 +416,12 @@ class ProceduralTransverser(BaseTransverser):
         if index == -1:
             n_conn = mu.getAttrNumElements(op, "assignment")
             index = n_conn
-            if param != 'NEWOVERRIDE':
-                for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
-                    ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
-                    if ass_str.startswith(param):
-                        index = c
-                        break
+            for c in cmds.getAttr('{}.assignment'.format(op), multiIndices=True) or []:
+                ass_str = cmds.getAttr("{}.assignment[{}]".format(op, c))
+                if ass_str.startswith(param):
+                    index = c
+                    break
+                index = c+1
 
         if value is None:
             value = ''
