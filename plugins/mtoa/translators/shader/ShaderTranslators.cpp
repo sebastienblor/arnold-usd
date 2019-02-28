@@ -216,6 +216,9 @@ void CFileTranslator::Export(AtNode* shader)
          {
             // we need to set the UV controls in the uv_transform node
             AiNodeSetStr(uvTransformNode, "uvset", AiNodeGetStr(shader, "uvset"));
+            if (connections.length() > 0)
+               AiNodeResetParameter(shader, "uvset");
+
             ProcessParameter(uvTransformNode, "coverage", AI_TYPE_VECTOR2, srcNodeFn.findPlug("coverage", true));
             ProcessParameter(uvTransformNode, "mirror_u", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorU", true));
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
