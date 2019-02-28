@@ -13,6 +13,8 @@ import mtoa.denoise
 import mtoa.licensing
 import arnold as ai
 import mtoa.convertShaders
+from maya.api import OpenMaya
+
 
 from uuid import getnode as get_mac
 import os
@@ -516,35 +518,6 @@ def arnoldExportMaterialx(selected=False):
     win = mtoa.materialx.MtoAExportToMaterialX()
     win.create()
 
-def updateProgressBar(percent):
-
-    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')
-    cmds.progressBar(gMainProgressBar, edit=True, pr=percent)
-    
-    if percent >= 100:
-       cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
-
-# def terminate_GPUCache():
-#     gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar')
-#     cmds.progressBar(gMainProgressBar, edit=True, endProgress=True)
-#     ai.AiGPUCachePopulateTerminate()
-
-def cache_populate_callback(cUserdata, status, fraction_done, msg):
-    step = int(100*fraction_done)
-    maya.utils.executeInMainThreadWithResult(updateProgressBar, step)
-
-def populate_GPUCache():
-
-    gMainProgressBar = maya.mel.eval('$tmp = $gMainProgressBar');
-    cmds.progressBar( gMainProgressBar,
-                                edit=True,
-                                beginProgress=True,
-                                isInterruptable=True,
-                                status='"Pre-Populating Optix Cache ',
-                                maxValue=100 )
-    ai.AiGPUCachePopulate(ai.AI_GPU_CACHE_POPULATE_NON_BLOCKING, 0, cache_populate_callback, 0)
-    
-
 def arnoldRenderToTexture():
     selList = cmds.ls(sl=1)
     if (len(selList) == 0):
@@ -576,6 +549,11 @@ def addRuntimeMenuItem(name, parent, command, label = '', rtcLabel = '', tearOff
         cmds.runTimeCommand('cmd{}'.format(name), d=True, label=rtcLabel, annotation=annotation, category=category, keywords=keywords, tags=tags, command=command, image=image )
         cmds.menuItem(name, parent=parent, rtc='cmd{}'.format(name), label = label, sourceType= 'mel', optionBox=optionBox, tearOff=tearOff)
 
+def GPUCacheStart():
+    mutils.populate_GPUCache()
+
+def GPUCacheStop():
+    mutils.terminate_GPUCache();
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -674,8 +652,9 @@ def createArnoldMenu():
         addRuntimeMenuItem('ArnoldExportSelectedToMaterialx', label='Export Selection to MaterialX', parent='ArnoldUtilities', keywords='materialx',
                     command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.arnoldExportMaterialx(selected=True)', category="Utilities", annotation='Export the selected shading trees to .mtlx files')
         addRuntimeMenuItem('GPUCache', label='Pre-populate GPU Cache', parent='ArnoldUtilities', keywords='GPU',
-                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.populate_GPUCache()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
-
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStart()', category="Utilities", annotation='Pre-Populate the Optix GPU Cache')
+        addRuntimeMenuItem('AbortGPUCache', label='Abort GPU Cache', parent='ArnoldUtilities', keywords='GPU',
+                    command='import mtoa.ui.arnoldmenu;mtoa.ui.arnoldmenu.GPUCacheStop()', category="Utilities", annotation='Terminate the Optix GPU cache creation')
         cmds.menuItem('ArnoldLicensingMenu', label='RLM Licensing', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
         cmds.menuItem('ArnoldConnectLicenseServer', label='Connect to License Server', parent='ArnoldLicensingMenu',
