@@ -37,7 +37,7 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         
         self.addSeparator()
 
-        self.commonLightAttributes()
+        self.commonLightAttributes(addVisibility=True)
         
         self.endLayout()
 

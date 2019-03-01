@@ -206,10 +206,12 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addSeparator()
     
         self.beginLayout("Visibility" , collapse = False)
-        # for now only Skydome supports it, but area lights will also have it soon
         if addVisibility:
+            self.addControl("aiCamera", label="Camera")
             self.addControl("camera", label="Camera")
+            self.addControl("aiTransmission", label="Transmission")
             self.addControl("transmission", label="Transmission")    
+
         self.addControl("aiDiffuse", label="Diffuse")
         self.addControl("aiSpecular", label="Specular")
         self.addControl("aiSss", label="SSS")

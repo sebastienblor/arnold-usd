@@ -521,7 +521,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.commonLightAttributes()
+        self.commonLightAttributes(addVisibility=True)
 
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
@@ -575,7 +575,7 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
                 
         self.addSeparator()
 
-        self.commonLightAttributes()
+        self.commonLightAttributes(addVisibility=True)
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 

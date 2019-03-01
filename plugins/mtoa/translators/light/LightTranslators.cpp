@@ -42,6 +42,10 @@ void CPointLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CPointLightTranslator::NodeInitializer(CAbTranslator context)
@@ -52,6 +56,8 @@ void CPointLightTranslator::NodeInitializer(CAbTranslator context)
    // point light attributes
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("radius");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 // SpotLight
@@ -136,6 +142,10 @@ void CQuadLightTranslator::Export(AtNode* light)
    MPlugArray conn;
    colorPlug.connectedTo(conn, true, false);
    m_colorTexture = (conn.length() > 0);
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CQuadLightTranslator::NodeChanged(MObject& node, MPlug& plug)
@@ -166,6 +176,8 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("soft_edge");
    //helper.MakeInput("portal"); removed it from here as we now have a dedicated light portal node
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 // Cylinder AreaLight
@@ -182,6 +194,10 @@ void CCylinderLightTranslator::Export(AtNode* light)
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
    AiNodeSetFlt(light, "radius", float (scale[0]+scale[2])/2.0f);
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
@@ -191,6 +207,8 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 // Disk AreaLight
@@ -208,6 +226,10 @@ void CDiskLightTranslator::Export(AtNode* light)
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
    AiNodeSetFlt(light, "radius", float (scale[0]+scale[1])/2.0f);
+
+   AiNodeSetFlt(light, "camera", FindMayaPlug("aiCamera").asFloat());
+   AiNodeSetFlt(light, "transmission", FindMayaPlug("aiTransmission").asFloat());
+   
 }
 
 void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
@@ -218,6 +240,8 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("shadow_color");
    helper.MakeInput("spread");
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("camera");
+   helper.MakeInput("transmission");
 }
 
 void CSkyDomeLightTranslator::Export(AtNode* light)
@@ -235,7 +259,6 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    AiNodeSetInt(light, "portal_mode", FindMayaPlug("portal_mode").asInt());
    AiNodeSetFlt(light, "camera", FindMayaPlug("camera").asFloat());
-   AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
    AiNodeSetFlt(light, "transmission", FindMayaPlug("transmission").asFloat());
    AiNodeSetBool(light, "aov_indirect", FindMayaPlug("aiAovIndirect").asBool());
    MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
