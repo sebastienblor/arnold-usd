@@ -3533,6 +3533,11 @@ desc STRING "Apply a gamma correction to the color."
     maya.classification STRING "utility/math"
     maya.id INT 0x00115DA1
 
+[node c4d_texture_tag]
+    maya.hide BOOL TRUE
+    
+[node c4d_texture_tag_rgba]
+    maya.hide BOOL TRUE
 
 
 
