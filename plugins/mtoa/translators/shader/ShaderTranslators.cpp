@@ -1495,42 +1495,212 @@ void CRemapHsvTranslator::Export(AtNode* shader)
 // Projection
 //
 AtNode*  CProjectionTranslator::CreateArnoldNodes()
-{
-   return AddArnoldNode("MayaProjection");
+{  
+   int type = FindMayaPlug("projType").asInt();
+   AtNode *projection = NULL;
+   if (type == PT_PERSPECTIVE)
+      projection = AddArnoldNode("camera_projection"); 
+   else if (type == PT_TRIPLANAR)
+      projection = AddArnoldNode("triplanar");
+   else if (type == PT_NONE)
+      projection = AddArnoldNode("flat");
+   else
+      projection = AddArnoldNode("uv_projection");
+
+   if (RequiresColorCorrect())
+      return AddArnoldNode("color_correct", "cc");
+
+   return projection;
 }
 
 void CProjectionTranslator::Export(AtNode* shader)
 {
-   MStatus status;
-
-   CShaderTranslator::Export(shader);
-
-   MPlug typePlug = FindMayaPlug("projType");
-   MPlug camPlug = FindMayaPlug("linkedCamera");
-   MPlugArray connections;
-   camPlug.connectedTo(connections, true, false);
-   if (connections.length() >= 1 && typePlug.asInt() == 8)
+   if (AiNodeIs(shader, AtString("uv_projection")))
    {
-      ExportConnectedNode(connections[0]);
-      MObject camObj = connections[0].node();
-      MFnCamera cam(camObj);
+      int projType = FindMayaPlug("projType").asInt();
+      switch(projType)
+      {
+         default:
+         break; // shouldn't be here
+         case PT_PLANAR:
+            AiNodeSetStr(shader, "projection_type", "planar");
+            break;
+         case PT_SPHERICAL:
+            AiNodeSetStr(shader, "projection_type", "spherical");
+            break;
+         case PT_CYLINDRICAL:
+            AiNodeSetStr(shader, "projection_type", "spherical");
+            break;
+         case PT_BALL:
+            AiNodeSetStr(shader, "projection_type", "ball");
+            break;
+         case PT_CUBIC:
+            AiNodeSetStr(shader, "projection_type", "cubic");
+            break;
+         case PT_CONCENTRIC:
+            // error message, not supported            
+         break;
+      }
+      ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
 
-      // this will create a MtoA connection between this shader and the camera
-      ExportConnectedNode(connections[0]);
-      //ProcessParameter(shader, "linkedCamera", AI_TYPE_NODE);
-      AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
-      AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
-      AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
-   }
-   else
+      // Warning: the angles seem to appear as degrees in the Maya interface, 
+      // but they're actually returned as radians!
+      AiNodeSetFlt(shader, "u_angle", FindMayaPlug("uAngle").asFloat() * AI_RTOD);
+      AiNodeSetFlt(shader, "v_angle", FindMayaPlug("vAngle").asFloat() * AI_RTOD);
+      
+      ProcessParameter(shader, "matrix", AI_TYPE_MATRIX, "placementMatrix");
+      if (FindMayaPlug("local").asBool())
+         AiNodeSetStr(shader, "coord_space", "object");
+      else if (FindMayaPlug("aiUseReferenceObject").asBool())
+         AiNodeSetStr(shader, "coord_space", "Pref");
+      else
+         AiNodeSetStr(shader, "coord_space", "world");
+
+   } else if (AiNodeIs(shader, AtString("triplanar")))
    {
-      // no linked camera, fit type needs to be None ?
-      AiNodeSetInt(shader, "fitType", 0);
+      /*
+      AtNode *uv_transform = GetArnoldNode("uv");
+      if (uv_transform == NULL)
+         uv_transform = AddArnoldNode("uv_transform", "uv");
+
+      AiNodeLink(uv_transform, "input", shader);
+      */
+      ProcessParameter(shader, "input", AI_TYPE_RGB, "image");
+      
+      ProcessParameter(shader, "matrix", AI_TYPE_MATRIX, "placementMatrix");
+      if (FindMayaPlug("local").asBool())
+         AiNodeSetStr(shader, "coord_space", "object");
+      else if (FindMayaPlug("aiUseReferenceObject").asBool())
+         AiNodeSetStr(shader, "coord_space", "Pref");
+      else
+         AiNodeSetStr(shader, "coord_space", "world");
+
+      AiNodeSetVec(shader, "scale", 0.5f, 0.5f, 0.5f);
+      //AiNodeSetBool(uv_transform, "flip_v", true);
+
+   } else if (AiNodeIs(shader, AtString("camera_projection")))
+   {
+      MPlug camPlug = FindMayaPlug("linkedCamera");
+      MPlugArray connections;
+      camPlug.connectedTo(connections, true, false);
+      float camAR = 1.f;
+
+      if (connections.length() > 0)
+      {
+         AtNode *cam = ExportConnectedNode(connections[0]);
+         AiNodeSetPtr(shader, "camera", cam);
+         MObject camObj = connections[0].node();
+         MFnCamera mfnCam(camObj);
+         camAR = static_cast<float>(mfnCam.aspectRatio());
+      }
+      else
+         AiNodeResetParameter(shader, "camera");
+      /*
+      if (FindMayaPlug("local").asBool())
+         AiNodeSetStr(shader, "coord_space", "object");
+      else if (FindMayaPlug("aiUseReferenceObject").asBool())
+         AiNodeSetStr(shader, "coord_space", "Pref");
+      else
+         AiNodeSetStr(shader, "coord_space", "world");
+      */
+
+      AiNodeUnlink(shader, "projection_color");
+      ProcessParameter(shader, "projection_color", AI_TYPE_RGBA, "image");
+      ProcessParameter(shader, "offscreen_color", AI_TYPE_RGBA, "defaultColor");
+
+      MSelectionList resList;
+      resList.add(MString(":defaultResolution"));
+      
+      if (resList.length() > 0)
+      {
+         MObject resObject;
+         resList.getDependNode(0,resObject);
+         MFnDependencyNode fnRes(resObject);
+         int width = 1;
+         int height = 1;
+         float outAR = 1.f;
+         
+         MStatus status;
+         MPlug plug = fnRes.findPlug("width", true, &status);
+         if (status == MS::kSuccess)
+            width = plug.asInt();
+         plug = fnRes.findPlug("height", true, &status);
+         if (status == MS::kSuccess)
+            height = plug.asInt();
+         plug = fnRes.findPlug("deviceAspectRatio", true, &status);
+         if (status == MS::kSuccess)
+         {
+            AiNodeSetFlt(shader, "aspect_ratio", plug.asFloat());
+            outAR = 1.0f / (((float)height / width) * plug.asFloat());
+         }
+         
+         float uScale = 1.f;
+         float vScale = 1.f;
+
+         int fitType = FindMayaPlug("fitType").asInt();
+         int fitFill = FindMayaPlug("fitFill").asInt();
+         float resAR = (float(width) / float(height));
+
+         const float invOutAR = 1.0f / outAR;
+         const float invCamAR = 1.0f / camAR;
+         const float invResAR = 1.f / resAR;
+
+         if (fitFill == FILL_FILL)
+         {
+            if (fitType == FIT_CAMERA_FILM_GATE)
+            {
+               vScale = resAR * invCamAR * invOutAR;
+            } 
+         }
+         else if (fitFill == FILL_HORIZONTAL)
+         {
+            vScale = resAR * invOutAR;
+         }
+         else // FILL_VERTICAL
+         {
+            if (fitType == FIT_CAMERA_FILM_GATE)
+            {
+               vScale = resAR * invCamAR * invOutAR;
+               uScale = invCamAR;
+            }
+            else
+            {
+               uScale = invResAR * outAR;
+            }
+         }
+
+         if (std::abs(uScale - 1.f) > AI_EPSILON || std::abs(vScale - 1.f) > AI_EPSILON)
+         {
+            AtNode *uv_transform = GetArnoldNode("uv");
+            if (uv_transform == NULL)
+               uv_transform = AddArnoldNode("uv_transform", "uv");
+
+            ProcessParameter(uv_transform, "passthrough", AI_TYPE_RGBA, "image");
+            AiNodeSetVec2(uv_transform, "scale_frame", uScale, vScale);
+            AiNodeLink(uv_transform, "projection_color", shader);
+         } 
+         
+      }
+
+   } else if (AiNodeIs(shader, AtString("flat")))
+   {
+      ProcessParameter(shader, "color", AI_TYPE_RGBA, "image");
    }
-   ProcessParameter(shader, "useReferenceObject", AI_TYPE_BOOLEAN, "aiUseReferenceObject");
+  
+   AtNode *cc = GetArnoldNode("cc");
+   if (cc)
+   {
+      AiNodeLink(shader, "input", cc);
+      ProcessParameter(cc, "multiply", AI_TYPE_RGB, "colorGain");
+      ProcessParameter(cc, "add", AI_TYPE_RGB, "colorOffset");
+      ProcessParameter(cc, "alphaGain", AI_TYPE_FLOAT, "alphaGain");
+      ProcessParameter(cc, "alphaOffset", AI_TYPE_FLOAT, "alphaOffset");
+      ProcessParameter(cc, "invert", AI_TYPE_BOOLEAN, "invert");
+   }
+
 }
 
-void ProjectionTranslatorNodeInitializer(CAbTranslator context)
+void CProjectionTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("projection");
    
@@ -1543,6 +1713,28 @@ void ProjectionTranslatorNodeInitializer(CAbTranslator context)
    data.keyable = false;       
    helper.MakeInputBoolean(data);
 }
+void CProjectionTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if (plugName == "projType")
+      SetUpdateMode(AI_RECREATE_NODE);
+
+   if ((plugName == "alphaGain" || plugName == "alphaOffset" || plugName == "colorGain" || 
+        plugName == "colorOffset" || plugName == "invert" ) && GetArnoldNode("cc") == NULL)
+      SetUpdateMode(AI_RECREATE_NODE);
+ 
+   CShaderTranslator::NodeChanged(node, plug);  
+}
+
+bool CProjectionTranslator::RequiresColorCorrect() const
+{
+   return ! (IsFloatAttrDefault(FindMayaPlug("alphaGain"), 1.f) &&
+             IsFloatAttrDefault(FindMayaPlug("alphaOffset"), 0.f) &&
+             IsRGBAttrDefault(FindMayaPlug("colorGain"), 1.f, 1.f, 1.f) &&
+             IsRGBAttrDefault(FindMayaPlug("colorOffset"), 0.f, 0.f, 0.f) &&
+             IsBoolAttrDefault(FindMayaPlug("invert"), false));
+}
+
 
 // Place2DTexture
 
@@ -1767,7 +1959,7 @@ void CLayeredTextureTranslator::NodeChanged(MObject& node, MPlug& plug)
 //
 AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredShader");
+   return AddArnoldNode("maya_layered_shader");
 }
 
 void CLayeredShaderTranslator::Export(AtNode* shader)

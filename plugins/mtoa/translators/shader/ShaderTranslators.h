@@ -37,7 +37,6 @@ SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
-SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR(CRemapColorTranslator);
@@ -93,7 +92,7 @@ void* CreateQuadShadingSwitchTranslator();
 
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
-void ProjectionTranslatorNodeInitializer(CAbTranslator context);
+
 
 class CBump2DTranslator : public CShaderTranslator
 {
@@ -378,4 +377,43 @@ enum LayeredTextureBlendMode
    AtNode* CreateArnoldNodes();
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
+};
+
+class CProjectionTranslator : public CShaderTranslator
+{
+public:
+enum ProjectionType
+{
+   PT_NONE = 0,
+   PT_PLANAR,
+   PT_SPHERICAL,
+   PT_CYLINDRICAL,
+   PT_BALL,
+   PT_CUBIC,
+   PT_TRIPLANAR,
+   PT_CONCENTRIC,
+   PT_PERSPECTIVE
+};
+
+enum FitType
+{
+   FIT_NONE = 0,
+   FIT_CAMERA_FILM_GATE, 
+   FIT_CAMERA_RESOLUTION
+};
+enum FillType
+{
+   FILL_FILL = 0,
+   FILL_HORIZONTAL,
+   FILL_VERTICAL
+};
+
+
+   static void* creator(){return new CProjectionTranslator();}
+   virtual void Export(AtNode* shader);
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool RequiresColorCorrect() const;
 };

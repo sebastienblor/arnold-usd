@@ -862,7 +862,7 @@ namespace // <anonymous>
          shaders->RegisterTranslator("projection",
                                        "",
                                        CProjectionTranslator::creator,
-                                       ProjectionTranslatorNodeInitializer);
+                                       CProjectionTranslator::NodeInitializer);
          shaders->RegisterTranslator("ramp",
                                        "",
                                        CRampTranslator::creator,
