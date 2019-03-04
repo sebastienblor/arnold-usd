@@ -63,8 +63,8 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
 {
    // Is this needed ? since we always use AI_RECREATE_NODE
    // this test doesn't seem necessary
-   if (IsExported())
-      return;
+   // if (IsExported())
+   //    return;
    
    MString dso = m_DagNode.findPlug("dso", true).asString().expandEnvironmentVariablesAndTilde();
    MString filename;
@@ -171,5 +171,7 @@ void CArnoldStandInsTranslator::ExportStandInFilename(AtNode *node)
    
    GetSessionOptions().FormatProceduralPath(resolvedName);
    AiNodeSetStr(node, "filename", resolvedName.asChar());
-   
+
+   if ( strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(node)), "alembic" ) == 0)
+      AiNodeSetFlt(node, "frame", framestep);
 }

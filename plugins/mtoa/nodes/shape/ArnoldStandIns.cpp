@@ -278,6 +278,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
    MString assfile = geom->filename;
    MString dsoData = geom->data;
+   float frameStep = geom->frame + geom->frameOffset;
    bool AiUniverseCreated = false;
    bool free_render = false;
    AtUniverse *universe = NULL;
@@ -419,7 +420,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
          AtNode *proc = NULL;
          if (isAbc)
+         {
             proc = AiNode("alembic");
+            AiNodeSetFlt(proc, "frame", frameStep);
+         }
          else if (isUsd)
          {
             if (AiNodeEntryLookUp("usd"))
@@ -1318,7 +1322,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    }
    
    // Check if something has changed that requires us to reload the .ass (or at least the bounding box)
-   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride))
+   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData || fGeometry.mode != tmpMode || fGeometry.drawOverride != tmpDrawOverride || tmpFrameStep != framestep))
    {
       // if mode == 0 (bounding box), we first try to load the bounding box from the metadatas.
       // If we can't, we have to load the .ass file and compute it ourselves
