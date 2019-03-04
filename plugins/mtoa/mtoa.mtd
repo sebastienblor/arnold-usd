@@ -3529,6 +3529,17 @@ desc STRING "Apply a gamma correction to the color."
 [node cryptomatte_manifest_driver]
     maya.hide BOOL  TRUE        
 
+[node uv_projection]
+    maya.classification     STRING   "utility/shader"
+    maya.id                 INT      0x00115DA4
+    maya.swatch             BOOL     true
+    [attr u_angle]
+        softmin             FLOAT     0
+        softmax             FLOAT     360
+    [attr v_angle]
+        softmin             FLOAT     0
+        softmax             FLOAT     360
+
 [node matrix_multiply_vector]
     maya.classification STRING "utility/math"
     maya.id INT 0x00115DA0
@@ -3536,6 +3547,16 @@ desc STRING "Apply a gamma correction to the color."
 [node matrix_transform]
     maya.classification STRING "utility/math"
     maya.id INT 0x00115DA1
+
+[node matrix_interpolate]
+    maya.classification STRING "utility/math"
+    maya.id INT 0x00115DA5
+    [attr value]
+        min             FLOAT     0
+        max             FLOAT     1
+    [attr matrix]
+        maya.name       STRING  "placementMatrix"   
+    
 
 [node c4d_texture_tag]
     maya.hide BOOL TRUE
@@ -3545,6 +3566,10 @@ desc STRING "Apply a gamma correction to the color."
 
 [node driver_no_op]
     maya.hide BOOL TRUE
+
+[node maya_layered_shader]
+    maya.hide BOOL TRUE
+
 
 
 

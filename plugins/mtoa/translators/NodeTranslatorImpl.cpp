@@ -827,12 +827,13 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
       // handled above by ProcessParameterInputs
       break;
    case AI_TYPE_ARRAY:
-      {
-         if (!plug.isArray())
+      {// FIXME in some cases (e.g. matrix_interpolate) the arnold attribute is an array, but appears as a simple parameter on the maya side.
+      // Since Arnold allows setting a simple value for arrays, maybe we should let this happen here too ?
+/*         if (!plug.isArray())
          {
             MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not : " + plug.name());
             return NULL;
-         }
+         }*/
          m_tr.ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
       }
       break;
