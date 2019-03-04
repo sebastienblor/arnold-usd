@@ -3753,3 +3753,48 @@ void CContrastTranslator::NodeChanged(MObject& node, MPlug& plug)
    CShaderTranslator::NodeChanged(node, plug);
 
 }
+
+AtNode* CSetRangeTranslator::CreateArnoldNodes()
+{
+   AtNode* X_Range = AddArnoldNode("range", "X_Range");
+   AtNode* Y_Range = AddArnoldNode("range", "Y_Range");
+   AtNode* Z_Range = AddArnoldNode("range", "Z_Range");
+   AtNode* outFlat = AddArnoldNode("flat", "outFlat");
+
+   AiNodeLink(X_Range, "color.r", outFlat);
+   AiNodeLink(Y_Range, "color.g", outFlat);
+   AiNodeLink(Z_Range, "color.b", outFlat);
+
+   return outFlat;
+}
+void CSetRangeTranslator::Export(AtNode* shader)
+{
+   AtNode* X_Range = GetArnoldNode("X_Range");
+   AtNode* Y_Range = GetArnoldNode("Y_Range");
+   AtNode* Z_Range = GetArnoldNode("Z_Range");
+   AtNode* outFlat = shader;
+   
+   ProcessParameter(X_Range, "input.r", AI_TYPE_FLOAT, "valueX");
+   ProcessParameter(X_Range, "input.g", AI_TYPE_FLOAT, "valueX");
+   ProcessParameter(X_Range, "input.b", AI_TYPE_FLOAT, "valueX");
+   ProcessParameter(Y_Range, "input.r", AI_TYPE_FLOAT, "valueY");
+   ProcessParameter(Y_Range, "input.g", AI_TYPE_FLOAT, "valueY");
+   ProcessParameter(Y_Range, "input.b", AI_TYPE_FLOAT, "valueY");
+   ProcessParameter(Z_Range, "input.r", AI_TYPE_FLOAT, "valueZ");
+   ProcessParameter(Z_Range, "input.g", AI_TYPE_FLOAT, "valueZ");
+   ProcessParameter(Z_Range, "input.b", AI_TYPE_FLOAT, "valueZ");
+   
+   ProcessParameter(X_Range, "input_min", AI_TYPE_FLOAT, "oldMinX");
+   ProcessParameter(Y_Range, "input_min", AI_TYPE_FLOAT, "oldMinY");
+   ProcessParameter(Z_Range, "input_min", AI_TYPE_FLOAT, "oldMinZ");
+   ProcessParameter(X_Range, "input_max", AI_TYPE_FLOAT, "oldMaxX");
+   ProcessParameter(Y_Range, "input_max", AI_TYPE_FLOAT, "oldMaxY");
+   ProcessParameter(Z_Range, "input_max", AI_TYPE_FLOAT, "oldMaxZ");
+
+   ProcessParameter(X_Range, "output_min", AI_TYPE_FLOAT, "minX");
+   ProcessParameter(Y_Range, "output_min", AI_TYPE_FLOAT, "minY");
+   ProcessParameter(Z_Range, "output_min", AI_TYPE_FLOAT, "minZ");
+   ProcessParameter(X_Range, "output_max", AI_TYPE_FLOAT, "maxX");
+   ProcessParameter(Y_Range, "output_max", AI_TYPE_FLOAT, "maxY");
+   ProcessParameter(Z_Range, "output_max", AI_TYPE_FLOAT, "maxZ");
+}

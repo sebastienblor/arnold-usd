@@ -966,7 +966,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("contrast",
                                        "",
                                        CContrastTranslator::creator);
-         
+         shaders->RegisterTranslator("setRange",
+                                       "",
+                                       CSetRangeTranslator::creator);
 
          if(MGlobal::apiVersion() >= 20180400)
             LoadShadeFragment("aiRectangleAreaLight");
