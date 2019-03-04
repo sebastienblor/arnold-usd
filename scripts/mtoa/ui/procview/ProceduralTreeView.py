@@ -379,7 +379,7 @@ class ProceduralItem(BaseItem):
                 if icon:
                     icon = BaseItem.dpiScaledIcon(icon)
 
-            actions.append((icon, opacity, action))
+            actions.append((icon, opacity, action, False))
 
         return actions
 

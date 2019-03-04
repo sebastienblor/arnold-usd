@@ -613,6 +613,7 @@ class MtoAParamBox(QtWidgets.QFrame):
 
         self.menuButton = QtWidgets.QPushButton()
         self.menuButton.setIcon(self.PARAM_ICON)
+        setStaticSize(self.menuButton, 20, 16)
         self.menu = QtWidgets.QMenu()
         self.menuButton.setMenu(self.menu)
         self.layout().addWidget(self.menuButton)

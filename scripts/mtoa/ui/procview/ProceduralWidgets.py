@@ -128,7 +128,8 @@ class OperatorItem(BaseItem):
 
     CONNECTED_ICON = BaseItem.dpiScaledIcon(":/navButtonConnected.png")
     ENABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_ON.png")
-    DISABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_OFF.png")
+    # DISABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_OFF.png")
+    DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
 
     COLOR_OPERATOR = QtGui.QColor(18, 82, 18)
     COLOR_COLLECTION = QtGui.QColor(179, 177, 71)
@@ -170,11 +171,10 @@ class OperatorItem(BaseItem):
     def getActions(self):
 
         actions = []
-        actions.append((self.CONNECTED_ICON, 1.0, self.ACTION_SELECT))
+        actions.append((self.CONNECTED_ICON, 1.0, self.ACTION_SELECT, False))
 
-        # disableOpacity = 1.0 if self.enabled else 0.2
-        disableIcon = self.ENABLED_ICON if self.enabled else self.DISABLED_ICON
-        actions.append((disableIcon, 1.0, self.ACTION_DISABLE))
+        # disableIcon = self.ENABLED_ICON if self.enabled else self.DISABLED_ICON
+        actions.append((self.DISABLED_ICON, 1.0, self.ACTION_DISABLE, not self.enabled))
 
         return actions
 
@@ -232,6 +232,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.toolBar.layout().insertStretch(0)
         self.toolBar.layout().insertStretch(-1)
 
+        self.overridesPanel = QtWidgets.QFrame()
+        self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
+
         self.shadingPanel = QtWidgets.QFrame()
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
 
@@ -255,10 +258,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
         self.shadingWidgets['disp_map'] = self.dispOverrideWidget
 
-        self.layout.addWidget(self.shadingPanel)
-
-        self.overridesPanel = QtWidgets.QFrame()
-        self.overridesPanel.setLayout(QtWidgets.QVBoxLayout())
+        self.overridesPanel.layout().addWidget(self.shadingPanel)
 
         self.localOverridesPanel = QtWidgets.QGroupBox("Local Overrides", self)
         self.localOverridesPanel.setLayout(QtWidgets.QVBoxLayout())

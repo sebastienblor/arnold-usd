@@ -12,7 +12,7 @@ from copy import deepcopy
 
 
 # Global look variables.
-ITEM_HEIGHT = dpiScale(22)
+ITEM_HEIGHT = dpiScale(24)
 ITEM_INDENT = dpiScale(8)
 EXPAND_SENSITIVITY = dpiScale(4)
 
@@ -55,6 +55,9 @@ class BaseTreeView(QtWidgets.QTreeView):
 
         self.setExpandsOnDoubleClick(False)
 
+        # for mouseMoveEvent to redraw on hover
+        self.setMouseTracking(True)
+
         # We need this custom flag because if setDropIndicatorShown is set to
         # false, dropIndicatorPosition returns wrong data. We use this flag to
         # skip drawing of the indicator.
@@ -82,6 +85,19 @@ class BaseTreeView(QtWidgets.QTreeView):
             return
 
         # Redraw the item
+        self.redraw(index)
+
+    def mouseMoveEvent(self, event):
+
+        super(BaseTreeView, self).mouseMoveEvent(event)
+
+        index = self.indexAt(event.pos())
+
+        if not index.isValid():
+            return
+
+        # Redraw the item
+        self.itemDelegate().clearLastAction()
         self.redraw(index)
 
     def mouseDoubleClickEvent(self, event):
@@ -275,7 +291,13 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
     COLOR_BAR_WIDTH = dpiScale(6)
     ICON_WIDTH = dpiScale(20)
     ACTION_BORDER = dpiScale(2)
-    ICON_HIGHLIGHT = QtGui.QColor(113, 142, 164)
+    ACTION_WIDTH = dpiScale(24)
+    ICON_TOP_OFFSET = dpiScale(2)
+
+    BACKGROUND_RECT_LENGTH = dpiScale(28)
+    BACKGROUND_RECT_LEFT_OFFSET = dpiScale(4)
+
+    ICON_HIGHLIGHT = QtGui.QColor(113, 142, 184)
 
     EXPANDED_ARROW = (
         dpiScale(QtCore.QPointF(12.0, -2.5)),
@@ -309,8 +331,7 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
             option.showDecorationSelected and \
             option.state & QtWidgets.QStyle.State_Selected
 
-        self.drawBackground(
-            painter, rect, index, isHighlighted, highlightedColor)
+        self.drawBackground(painter, rect, index, isHighlighted, highlightedColor)
         self.drawColorBar(painter, rect, index)
         self.drawFill(painter, rect)
         actionIconRect = self.drawActionIcons(rect, painter, option, index)
@@ -348,6 +369,18 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
                     self.lastHitAction = BaseItem.ACTION_EXPAND
 
         painter.restore()
+
+    def drawToolbarFrame(self, painter, rect, toolbarCount):
+        # draw the darkened toolbar background
+        if toolbarCount > 0:
+            top = rect.top() + self.ICON_TOP_OFFSET
+            backgroundColor = QtGui.QColor(55, 55, 55)
+            toolbarLength = toolbarCount*self.ACTION_WIDTH + (2*self.ACTION_BORDER)
+            left = rect.right() - (toolbarLength + self.ACTION_BORDER)
+            left = left if left > 0 else 0
+            painter.setOpacity(0.8)
+            painter.fillRect(left, top-self.ACTION_BORDER, toolbarLength, self.ACTION_WIDTH, backgroundColor)
+            painter.setOpacity(1.0)
 
     def drawBackground(
             self, painter, rect, index, isHighlighted, highlightColor):
@@ -429,6 +462,9 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
         return textRect
 
+    def drawPixmap(self, painter, pixmap, left, top):
+        painter.drawPixmap(QtCore.QRect(left, top, self.ICON_WIDTH, self.ICON_WIDTH), pixmap)
+
     def drawActionIcons(self, rect, painter, option, index):
         """Draw the icons and buttons on the right side of the item."""
         painter.save()
@@ -443,30 +479,50 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
         center = toPyObject(index.data(QtCore.Qt.SizeHintRole)).height() / 2
         start = self.ACTION_BORDER
 
+        self.drawToolbarFrame(painter, rect, len([a for a in actions if a[0]]))
+
         iconRectCumul = None
-        for pixmap, opacity, action in actions:
+        for pixmap, opacity, action, checked in actions:
 
             if not pixmap or not opacity:
                 continue
+
+            cursorPosition = self.treeView().mapFromGlobal(QtGui.QCursor.pos())
+
             # Draw icon
             start += self.ICON_WIDTH + self.ACTION_BORDER
 
             width = min(self.ICON_WIDTH, pixmap.rect().width())
             height = min(self.ICON_WIDTH, pixmap.rect().height())
 
+            left = rect.right() - start + (self.ICON_WIDTH - width) / 2
+            top = rect.top() + center - height / 2
+
+            painter.setOpacity(1.0)
+
             iconRect = QtCore.QRect(
-                rect.right() - start + (self.ICON_WIDTH - width) / 2,
-                rect.top() + center - height / 2,
+                left,
+                top,
                 width,
                 height)
             iconRectCumul = iconRect
 
+            backgroundRect = QtCore.QRect(left - self.BACKGROUND_RECT_LEFT_OFFSET, top - self.ACTION_BORDER, self.BACKGROUND_RECT_LENGTH, self.ACTION_WIDTH)
+
+            if checked:
+                painter.fillRect(iconRect, self.ICON_HIGHLIGHT)
+
             painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
-            painter.setOpacity(opacity)
+
+            if not iconRect.contains(cursorPosition):
+                painter.setOpacity(opacity * 0.7)
+            else:
+                painter.setOpacity(opacity)
+                self.lastHitAction = action
+
             painter.drawPixmap(iconRect, pixmap)
 
             # Highlight the icon depending on the mouse over.
-            cursorPosition = self.treeView().mapFromGlobal(QtGui.QCursor.pos())
             if buttonPressed and iconRect.contains(cursorPosition):
                 painter.setOpacity(0.75)
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -492,7 +548,6 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
                 painter.drawEllipse(iconRect)
 
                 # Save the action to know
-                self.lastHitAction = action
 
                 painter.setClipping(False)
 
