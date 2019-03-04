@@ -1379,7 +1379,12 @@
     [attr thin_film_IOR]
         min             FLOAT   0.0
         softmax         FLOAT   3.0
-
+    [attr coat_anisotropy]
+        min             FLOAT   0.0
+        max             FLOAT   1.0
+    [attr coat_rotation]
+        softmin         FLOAT   0.0
+        softmax         FLOAT   1.0
 
 
 [node utility]

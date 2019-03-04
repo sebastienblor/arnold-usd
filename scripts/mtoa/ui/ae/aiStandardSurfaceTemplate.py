@@ -201,6 +201,9 @@ class AEaiStandardSurfaceTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addCustom("coatIOR", self.createIOR, self.updateIOR)
         self.addSeparator()
+        self.addControl("coatAnisotropy", label="Anisotropy", annotation="Coat Anisotropy")
+        self.addControl("coatRotation", label="Rotation", annotation="Coat Anisotropy Rotation")
+        self.addSeparator()
         self.addControl("coatNormal", label="Normal", annotation="Coat Normal")
         self.endLayout()
 
