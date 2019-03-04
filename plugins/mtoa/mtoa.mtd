@@ -3543,7 +3543,8 @@ desc STRING "Apply a gamma correction to the color."
 [node c4d_texture_tag_rgba]
     maya.hide BOOL TRUE
 
-
+[node driver_no_op]
+    maya.hide BOOL TRUE
 
 
 
