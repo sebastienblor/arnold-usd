@@ -204,13 +204,15 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addControl("aiVolumeSamples", label="Volume Samples")
         
         self.addSeparator()
-    
+        
         self.beginLayout("Visibility" , collapse = False)
         if addVisibility:
-            self.addControl("aiCamera", label="Camera")
-            self.addControl("camera", label="Camera")
-            self.addControl("aiTransmission", label="Transmission")
-            self.addControl("transmission", label="Transmission")    
+            if self.nodeName == None or cmds.objExists('{}.aiCamera'.format(self.nodeName)):
+                self.addControl("aiCamera", label="Camera")
+                self.addControl("aiTransmission", label="Transmission")
+            elif cmds.objExists('{}.camera'.format(self.nodeName)):
+                self.addControl("camera", label="Camera")
+                self.addControl("transmission", label="Transmission")    
 
         self.addControl("aiDiffuse", label="Diffuse")
         self.addControl("aiSpecular", label="Specular")
