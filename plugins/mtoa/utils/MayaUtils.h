@@ -6,6 +6,7 @@
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 #include <platform/Platform.h>
+#include <maya/MPlug.h>
 
 DLLEXPORT MString getFileName(
                             MCommonRenderSettingsData::MpathType pathType,
