@@ -28,13 +28,14 @@ class MtoAButton(QtWidgets.QAbstractButton):
     def __init__(self, parent, icon, size=DEFAULT_BUTTON_SIZE, isEnabled=True):
         super(MtoAButton, self).__init__(parent)
         self.size = size
-        self.setIcon(icon)
         self.enter = False
         # there is a pixmap to draw for mouseover events
         self.brighterPixmap = None
         # there is a pixmap to draw when the button is disabled
         self.disabledPixmap = None
         self.enabled = isEnabled
+        self.iconChanged = False
+        self.setIcon(icon)
 
     def setEnabled(self, enabled):
         self.enabled = enabled
@@ -50,6 +51,10 @@ class MtoAButton(QtWidgets.QAbstractButton):
     def leaveEvent(self, event):
         self.enter = False
         self.repaint()
+
+    def setIcon(self, icon):
+        super(MtoAButton, self).setIcon(icon)
+        self.iconChanged = True
 
     def event(self, event):
         if event.type() == QtCore.QEvent.ToolTip:
@@ -94,8 +99,9 @@ class MtoAButton(QtWidgets.QAbstractButton):
         painter.drawPixmap(option.rect, pixmap, pixmap.rect())
 
     def generatePixmapActiveIcon(self, iconMode, pixmap, option):
-        if self.brighterPixmap is None:
+        if self.brighterPixmap is None or self.iconChanged:
             self.brighterPixmap = self.generateHighlightedIconPixmap(pixmap)
+            self.iconChanged = False
         return self.brighterPixmap
 
     def getGeneratedIconPixmap(self, iconMode, pixmap, option):
@@ -105,8 +111,9 @@ class MtoAButton(QtWidgets.QAbstractButton):
         elif iconMode == QtGui.QIcon.Active:
             return self.generatePixmapActiveIcon(iconMode, pixmap, option)
         elif iconMode == QtGui.QIcon.Disabled:
-            if self.disabledPixmap is None:
+            if self.disabledPixmap is None or self.iconChanged:
                 self.disabledPixmap = self.generateDisabledIconPixmap(pixmap)
+                self.iconChanged = False
             return self.disabledPixmap
 
     def generateHighlightedIconPixmap(self, pixmap):

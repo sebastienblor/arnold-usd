@@ -18,6 +18,17 @@ def dpiScale(value):
     """Scale the value according to the current DPI of the current monitor."""
     return _DPI_SCALE * value
 
+def dpiScaledIcon(path):
+    """Creates QPixmap and scales it for hi-dpi mode"""
+    icon = QtGui.QPixmap(path)
+
+    scale = dpiScale(1.0)
+    if scale > 1.0:
+        icon = icon.scaledToHeight(
+            icon.height() * scale,
+            QtCore.Qt.SmoothTransformation)
+
+    return icon
 
 def toPyObject(obj):
     """Call QVariant.toPyObject on the case we are in PyQt."""

@@ -19,6 +19,9 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
 
+DISP_MAP = 'disp_map'
+SHADER = 'shader'
+
 
 class OperatorTreeView(BaseTreeView):
 
@@ -126,8 +129,8 @@ class OperatorTreeViewDelegate(BaseDelegate):
 
 class OperatorItem(BaseItem):
 
-    CONNECTED_ICON = BaseItem.dpiScaledIcon(":/navButtonConnected.png")
-    ENABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_ON.png")
+    CONNECTED_ICON = BaseItem.dpiScaledIcon(":/outArrow.png")
+    # ENABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_ON.png")
     # DISABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_OFF.png")
     DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
 
@@ -177,6 +180,9 @@ class OperatorItem(BaseItem):
         actions.append((self.DISABLED_ICON, 1.0, self.ACTION_DISABLE, not self.enabled))
 
         return actions
+
+    def isEnabled(self):
+        return self.enabled
 
 
 class ProceduralPropertiesPanel(QtWidgets.QFrame):
@@ -241,22 +247,28 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}
         self.shaderOverrideWidget = MtoANodeConnectionWidget("Shader")
+        deleteShaderAction = self.shaderOverrideWidget.menu.addAction("Delete")
+        deleteShaderAction.triggered.connect(self.deleteShaderAssignment)
+
         self.shaderOverrideWidget.valueChanged.connect(self.setShader)
         self.shaderOverrideWidget.overrideTriggered.connect(self.addShader)
         self.shaderOverrideWidget.connectionButtonClicked.connect(self.newShader)
         self.shaderOverrideWidget.nodeDisconnected.connect(self.disconnectShader)
         self.shaderOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.shaderOverrideWidget)
-        self.shadingWidgets['shader'] = self.shaderOverrideWidget
+        self.shadingWidgets[SHADER] = self.shaderOverrideWidget
 
         # displacement override - HIDDEN BY DEFAULT
         self.dispOverrideWidget = MtoANodeConnectionWidget("Displacement")
+        deleteDispAction = self.dispOverrideWidget.menu.addAction("Delete")
+        deleteDispAction.triggered.connect(self.deleteDisplacementAssignment)
+
         self.dispOverrideWidget.valueChanged.connect(self.setDisplacement)
         self.dispOverrideWidget.overrideTriggered.connect(self.addDisplacement)
         self.dispOverrideWidget.connectionButtonClicked.connect(self.newDisplacement)
         self.dispOverrideWidget.setVisible(False)
         self.shadingPanel.layout().addWidget(self.dispOverrideWidget)
-        self.shadingWidgets['disp_map'] = self.dispOverrideWidget
+        self.shadingWidgets[DISP_MAP] = self.dispOverrideWidget
 
         self.overridesPanel.layout().addWidget(self.shadingPanel)
 
@@ -412,14 +424,27 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.setDisplacement(None, True)
 
     def newDisplacement(self):
-        self.newShadingNode('disp_map')
+        self.newShadingNode(DISP_MAP)
 
     def newShader(self):
-        self.newShadingNode('shader')
+        self.newShadingNode(SHADER)
 
     def disconnectShader(self):
         if self.item:
             self.setShader(None)
+
+    def deleteShaderAssignment(self):
+        self.deleteNodeAssignment(SHADER)
+
+    def deleteDisplacementAssignment(self):
+        self.deleteNodeAssignment(DISP_MAP)
+
+    def deleteNodeAssignment(self, param):
+        print "deleteNodeAssignment", param
+        if self.item:
+            index = self.shadingWidgets[param].data['index']
+            operator = self.shadingWidgets[param].data['operator']
+            self.removeOverride(operator, index)
 
     def newShadingNode(self, param):
         # feed the output of the createRedner Node dialog to the setShader method
@@ -479,15 +504,17 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             for override in self.getOverrides():
                 # FIXME what if the user wants to connect a shader from inside the procedural?
                 operator = override[OPERATOR]
+                index = override[INDEX]
                 inherited = operator != self.getItemOverrideOperator()
 
-                if override[PARM] in ["shader", "disp_map"]:
+                if override[PARM] in [SHADER, "disp_map"]:
                     # set the shader slot
                     node = override[VALUE].replace("'", "").replace('"', "")
                     self.shadingWidgets[override[PARM]].setNode(node, False)
                     self.shadingWidgets[override[PARM]].setVisible(True)
                     self.shadingWidgets[override[PARM]].setInherited(inherited)
                     self.shadingWidgets[override[PARM]].data['operator'] = operator
+                    self.shadingWidgets[override[PARM]].data['index'] = index
                 else:
                     widget = self.addOverrideGUI(*override)
                     widget.setInherited(inherited)
@@ -525,7 +552,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         new_widget.index = index
         new_widget.operator = operator
-        new_widget.deleteMe.connect(self.removeOverride)
+        new_widget.deleteMe.connect(self.removeOverrideWidget)
 
         new_widget.valueChanged[str, str, str, int, str].connect(self.setOverride)
         new_widget.valueChanged[str, str, int, int, str].connect(self.setOverride)
@@ -535,9 +562,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         parentPanel.layout().addWidget(new_widget)
         return new_widget
 
-    def removeOverride(self, widget):
+    def removeOverrideWidget(self, widget):
         index = widget.index
         operator = widget.operator
+        self.removeOverride(operator, index)
+
+    def removeOverride(self, operator, index):
+        print "removeOverride", operator, index
         removed = self.transverser.deleteOverride(operator, index)
         if removed:
             if len(self.getOverrides()) == 0:

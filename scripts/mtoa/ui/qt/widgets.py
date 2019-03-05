@@ -271,18 +271,11 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
         self.data = {}
 
         self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
-        # self.overrideAction = QtWidgets.QAction(self.overrideButton)
-        # self.overrideAction.setIcon(self.INHERITED_ICON)
-
-        # self.overrideButton.setDefaultAction(self.overrideAction)
         self.overrideButton.setEnabled(False)
         self.layout().insertWidget(0, self.overrideButton)
         self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
-        self.conButton = QtWidgets.QPushButton()
-        self.conButton.setFlat(True)
-        self.conButton.setIcon(self.UNCONNECTED_ICON)
-        setStaticSize(self.conButton, 16, 16)
+        self.conButton = MtoAButton(self, self.UNCONNECTED_ICON, dpiScale(15))
         self.layout().addWidget(self.conButton)
 
         self._orginalStyle = self.frameStyle()
@@ -306,6 +299,9 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
     def setMenu(self, menu):
         self.menu = menu
         self.menu.triggered.connect(self.menuTriggered.emit)
+
+    def menu(self):
+        return self.menu
 
     def contextMenuEvent(self, event):
         if self.menu:

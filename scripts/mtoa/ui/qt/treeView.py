@@ -4,7 +4,7 @@ from .Qt import QtCore
 from .Qt import QtGui
 from .Qt import QtWidgets
 from .itemStyle import ItemStyle
-from .utils import dpiScale
+from .utils import dpiScale, dpiScaledIcon
 from .color import Color
 from .style import MtoAStyle
 import weakref
@@ -20,6 +20,7 @@ NODE_BAR_COLOUR = QtCore.Qt.UserRole + 1
 ACTIONS = QtCore.Qt.UserRole + 2
 ICON = QtCore.Qt.UserRole + 3
 TEXT_INDENT = QtCore.Qt.UserRole + 4
+NODE_ENABLED = QtCore.Qt.UserRole + 5
 
 CHILD_COUNT = QtCore.Qt.UserRole + 64
 
@@ -210,6 +211,8 @@ class BaseModel(QtCore.QAbstractItemModel):
             return item.getIcon()
         elif role == TEXT_INDENT:
             return item.getIndent()
+        elif role == NODE_ENABLED:
+            return item.isEnabled()
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """Set the role data for the item at index to value."""
@@ -296,6 +299,9 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
     BACKGROUND_RECT_LENGTH = dpiScale(28)
     BACKGROUND_RECT_LEFT_OFFSET = dpiScale(4)
+
+    DISABLED_BACKGROUND_IMAGE = dpiScaledIcon(":/RS_disabled_tile.png")
+    DISABLED_HIGHLIGHT_IMAGE = dpiScaledIcon(":/RS_disabled_tile_highlight.png")
 
     ICON_HIGHLIGHT = QtGui.QColor(113, 142, 184)
 
@@ -384,14 +390,23 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
     def drawBackground(
             self, painter, rect, index, isHighlighted, highlightColor):
+        painter.save()
+        rect2 = deepcopy(rect)
+
         """Draw the cell bacground color / image."""
         if isHighlighted:
-            # Draw the highlight color
-            painter.fillRect(rect, highlightColor)
+            # Draw the highlight colorif not item.data(renderSetupRoles.NODE_ENABLED):
+            if not index.data(NODE_ENABLED):
+                painter.drawTiledPixmap(rect2, self.DISABLED_HIGHLIGHT_IMAGE)
+            else:
+                painter.fillRect(rect2, highlightColor)
         else:
             # Otherwise draw our background color
             background = toPyObject(index.data(QtCore.Qt.BackgroundRole))
             painter.fillRect(rect, background)
+            if not index.data(NODE_ENABLED):
+                painter.drawTiledPixmap(rect2, self.DISABLED_BACKGROUND_IMAGE)
+        painter.restore()
 
     def drawColorBar(self, painter, rect, index):
         """Draw the label color bar."""
@@ -713,18 +728,13 @@ class BaseItem(object):
         """The text indent."""
         return dpiScale(20)
 
+    def isEnabled(self):
+        return True
+
     @staticmethod
     def dpiScaledIcon(path):
         """Creates QPixmap and scales it for hi-dpi mode"""
-        icon = QtGui.QPixmap(path)
-
-        scale = dpiScale(1.0)
-        if scale > 1.0:
-            icon = icon.scaledToHeight(
-                icon.height() * scale,
-                QtCore.Qt.SmoothTransformation)
-
-        return icon
+        return dpiScaledIcon(path)
 
     @staticmethod
     def coloredIcon(fileName, color=QtGui.QColor(255, 255, 255, 255)):
