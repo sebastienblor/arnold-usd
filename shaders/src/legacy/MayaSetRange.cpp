@@ -24,8 +24,8 @@ node_parameters
    AiParameterVec("oldMin", 0, 0, 0);
    AiParameterVec("oldMax", 0, 0, 0);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "setRange");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52524e47);
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "setRange");
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52524e47);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
