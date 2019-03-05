@@ -1,5 +1,5 @@
 #include <ai.h>
-#include "utils.h"
+#include "../utils.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(ldkFloatCorrectMtd);
 
