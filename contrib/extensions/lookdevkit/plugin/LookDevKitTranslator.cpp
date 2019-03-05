@@ -94,6 +94,25 @@ AtNode* CLookDevKitTranslator::CreateArnoldNodes()
 
       return cc;
    }
+   else if (nodeType == MString("floatCorrect"))
+   {      
+      AtNode *cc = AddArnoldNode("color_correct");
+      AtNode *clamp = (IsBoolAttrDefault(FindMayaPlug("clampOutput"), false)) ? NULL : AddArnoldNode("clamp", "clamp");
+      AtNode *gamma = (IsFloatAttrDefault(FindMayaPlug("gammaScale"), 1.f)) ? NULL : AddArnoldNode("color_correct", "gamma");
+
+      if (clamp)
+         return clamp;
+      if (gamma)
+         return gamma;
+      
+      return cc;
+   }
+   else if (nodeType == MString("premultiply"))
+   {
+      AtNode *shuffle = AddArnoldNode("shuffle");
+      AtNode *cc = AddArnoldNode("color_correct", "premult");
+      return shuffle;
+   }
    else
    {
 	   MString prefix = nodeType.substringW(0, 0);
@@ -644,7 +663,76 @@ void CLookDevKitTranslator::Export(AtNode* shader)
          else
             AiNodeLink(alphaUpstream, "alpha", shuffleA);
       }
-   } else // default behaviour
+   } else if (nodeType == MString("floatCorrect"))
+   {
+      AtNode *cc = shader;
+      AtNode *clamp = GetArnoldNode("clamp");
+      AtNode *gamma = GetArnoldNode("gamma");
+
+      MPlugArray connections;
+      MPlug inPlug = FindMayaPlug("inFloat");
+      inPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode *target = ExportConnectedNode(connections[0]);
+         AiNodeLink(target, "input", shader);
+      } else
+      {
+         float inFloat = inPlug.asFloat();
+         AiNodeSetRGB(shader, "input", inFloat, inFloat, inFloat);
+      }
+
+      MPlug gainPlug = FindMayaPlug("gain");
+      connections.clear();
+      gainPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode *target = ExportConnectedNode(connections[0]);
+         AiNodeLink(target, "multiply", shader);
+      } else
+      {
+         float inFloat = gainPlug.asFloat();
+         AiNodeSetRGB(shader, "multiply", inFloat, inFloat, inFloat);
+      }
+      MPlug offsetPlug = FindMayaPlug("offset");
+      connections.clear();
+      offsetPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode *target = ExportConnectedNode(connections[0]);
+         AiNodeLink(target, "add", shader);
+      } else
+      {
+         float inFloat = offsetPlug.asFloat();
+         AiNodeSetRGB(shader, "add", inFloat, inFloat, inFloat);
+      }
+
+      if (gamma)
+      {
+         AiNodeLink(shader, "input", gamma);
+         ProcessParameter(gamma, "gamma", AI_TYPE_FLOAT, "gammaScale");
+      }
+
+      if (clamp && FindMayaPlug("clampOutput").asBool())
+      {
+         AiNodeLink((gamma) ? gamma : shader, "input", clamp);
+         ProcessParameter(clamp, "min", AI_TYPE_FLOAT, "clampMin");
+         ProcessParameter(clamp, "max", AI_TYPE_FLOAT, "clampMax");
+      }
+      
+   } else if (nodeType == MString("premultiply"))
+   {
+      AtNode *cc = GetArnoldNode("premult");
+      
+      ProcessParameter(cc, "input", AI_TYPE_RGB, "inColor");
+      // This will act as a multiplication by a scalar
+      AiNodeSetFlt(cc, "contrast_pivot", 0.f);
+      ProcessParameter(cc, "contrast", AI_TYPE_FLOAT, "inAlpha");
+      AiNodeLink(cc, "color", shader);
+      ProcessParameter(shader, "alpha", AI_TYPE_FLOAT, "inAlpha");
+        
+   }
+   else // default behaviour
       CNodeTranslator::Export(shader);
 }
 
@@ -667,6 +755,14 @@ void CLookDevKitTranslator::NodeChanged(MObject& node, MPlug& plug)
          SetUpdateMode(AI_RECREATE_NODE);
       else if ((plugName ==  "alphaGamma" || plugName == "alphaClamp") && GetArnoldNode("premult") == NULL)
          SetUpdateMode(AI_RECREATE_NODE);
+   } else if (nodeType == MString("floatCorrect"))
+   {
+      MString plugName = plug.partialName(false, false, false, false, false, true);
+      if ((plugName == "gammaScale") && GetArnoldNode("gamma") == NULL)
+         SetUpdateMode(AI_RECREATE_NODE);
+      else if ((plugName == "clampOutput") && GetArnoldNode("clamp") == NULL)
+         SetUpdateMode(AI_RECREATE_NODE);
+      
    }
    CShaderTranslator::NodeChanged(node, plug);
 }

@@ -18,9 +18,10 @@ node_parameters
    AiParameterRGB("inColor", 0.3f, 0.3f, 0.3f);
    AiParameterFlt("inAlpha", 1.0f);
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "premultiply");
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "premultiply");
    //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x81644);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize
