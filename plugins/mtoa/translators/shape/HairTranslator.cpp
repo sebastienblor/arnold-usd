@@ -135,6 +135,8 @@ void CHairTranslator::Export( AtNode *curve )
             if (curveShaderPlug.length() > 0)
             {               
                shader = ExportConnectedNode(curveShaderPlug[0]);
+               // FIXME if matte is enabled -> export a matte shader
+               /*
                if (shader)
                {
                   CNodeTranslator* shaderTranslator = GetTranslator(curveShaderPlug[0].node()); // the shading engine's translator is not called
@@ -151,6 +153,7 @@ void CHairTranslator::Export( AtNode *curve )
                         ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
                   }
                }
+               */
             }
          }
       }
@@ -160,51 +163,72 @@ void CHairTranslator::Export( AtNode *curve )
          // First check if the internal root shader was already created in a previous export
          shader = GetArnoldNode("hairShader");
          if (shader == NULL)
-            shader = AddArnoldNode("MayaHair", "hairShader");
+            shader = AddArnoldNode("standard_hair", "hairShader");
 
-         ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor", true));
-         ProcessParameter(shader, "opacity", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("opacity", true));
-         ProcessParameter(shader, "translucence", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("translucence", true));
-         ProcessParameter(shader, "specularColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor", true));
-         ProcessParameter(shader, "specularPower", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularPower", true));
+         AtNode *multShader = GetArnoldNode("shaderMult");
+         if (multShader == NULL)
+            multShader = AddArnoldNode("multiply", "shaderMult");            
+
+         AiNodeLink(multShader, "diffuse_color", shader);
+
+         ProcessParameter(multShader, "input1", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
+         // need to multiply the color with ramp_rgb
+         MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale", true), &status);
+         if (status)
+         {
+            AtNode *rampShader = GetArnoldNode("shaderRamp");
+            if (rampShader == NULL)
+               rampShader = AddArnoldNode("ramp_rgb", "shaderRamp");
+            
+            AiNodeLink(rampShader, "input2", multShader);
+
+            MPlug rampPlug = fnDepNodeHair.findPlug("hairColorScale");
+            MObject opos = fnDepNodeHair.attribute("hairColorScale_Position");
+            ProcessArrayParameter(rampShader, "position", rampPlug, AI_TYPE_FLOAT, &opos);
+            MObject ocol = fnDepNodeHair.attribute("hairColorScale_Color");
+            ProcessArrayParameter(rampShader, "color", rampPlug, AI_TYPE_RGB, &ocol);   
+            MObject oint = fnDepNodeHair.attribute("hairColorScale_Interp");
+            ProcessArrayParameter(rampShader, "interpolation", rampPlug, AI_TYPE_INT, &oint);
+
+            AiNodeSetStr(rampShader, "type", "v");
+            AiNodeSetStr(rampShader, "use_implicit_uvs", "curves_only");              
+         }
+         AiNodeSetFlt(shader, "diffuse", 1.f);
+
+         MPlug opacPlug = fnDepNodeHair.findPlug("opacity");
+         MPlugArray connections;
+         opacPlug.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            AiNodeLink(ExportConnectedNode(connections[0]), "opacity", shader);
+         else
+         {
+            float opacity = opacPlug.asFloat();
+            AiNodeSetRGB(shader, "opacity", opacity, opacity, opacity);
+         }
+
+         MPlug transPlug = fnDepNodeHair.findPlug("translucence");
+         connections.clear();
+         transPlug.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            AiNodeLink(ExportConnectedNode(connections[0]), "transmission_tint", shader);
+         else
+         {
+            float translucence = transPlug.asFloat();
+            AiNodeSetRGB(shader, "transmission_tint", translucence, translucence, translucence);
+         }
+         ProcessParameter(shader, "specular_tint", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
+         float specRoughness = fnDepNodeHair.findPlug("specularPower").asFloat();
+         AiNodeSetFlt(shader, "roughness", 1.f / specRoughness);
+         plug = fnDepNodeHair.findPlug("aiIndirectDiffuse", true);
+         AiNodeSetFlt(shader, "indirect_diffuse", plug.asFloat());
          
-
          plug = fnDepNodeHair.findPlug("castShadows", true);
 
          if (plug.asBool())
             visibility = visibility | AI_RAY_SHADOW;
          else
             visibility = visibility & ~AI_RAY_SHADOW;
-
-         //const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
-         //const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
-         //const bool hueRandConnected = ProcessParameter(shader, "hueRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("hueRand")) != 0;
-         //const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
-         //const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
-
          
-
-         MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale", true), &status);
-         if (status)
-         {
-            // add some treshold later
-            // if the two of the closest point are closer than 1.f / 512.f
-            // increase the Frequency to have at least 8-16-32 samples 
-            // between any point
-            const int sampleFrequency = 512; 
-            const float sampleFrequencyDiv = 1.f / (float)(sampleFrequency - 1);
-            AtArray* rampArr = AiArrayAllocate(512, 1, AI_TYPE_RGB);
-            for (int i = 0; i < sampleFrequency; ++i)
-            {
-               MColor color(1.0, 1.0, 1.0, 1.0);
-               rampAttr.getColorAtPosition((float)i * sampleFrequencyDiv, color);
-               AtRGB aColor ((float)color.r , (float)color.g, (float)color.b);
-               AiArraySetRGB(rampArr, i, aColor);
-            }
-            AiNodeSetArray(shader, "hairColorScale", rampArr);
-         }
-         plug = fnDepNodeHair.findPlug("aiIndirectDiffuse", true);
-         AiNodeSetFlt(shader, "indirectDiffuse", plug.asFloat());
       }
       AiNodeSetPtr(curve, "shader", shader);
    }

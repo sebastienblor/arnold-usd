@@ -318,7 +318,7 @@ AtNode *CRampTranslator::ExportColorCorrect(AtNode *target)
 void CRampTranslator::ExportRampKeys(AtNode *shader)
 {
    MFnDependencyNode fnNode(GetMayaObject());
-   MPlug plug, elem, pos, col;
+   MPlug plug;
    plug = FindMayaPlug("colorEntryList");
    MObject opos = fnNode.attribute("position");
    ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);

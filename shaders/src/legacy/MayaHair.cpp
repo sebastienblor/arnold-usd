@@ -30,11 +30,12 @@ node_parameters
    AiParameterArray("hairColorScale", dummy);
    
 
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMayaHair");
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMayaHair");
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.deprecated", true);
    AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1A);
+   //AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1A);
 }
 
 enum MayaHairParams{
