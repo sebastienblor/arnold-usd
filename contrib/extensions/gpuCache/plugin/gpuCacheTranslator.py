@@ -78,6 +78,7 @@ class gpuCacheDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def abcInfoReplace(self, nodeAttr):
         self.tree.setCurrentNode(self.nodeName)
         self.properties_panel.setItem(self.nodeName, None)
+        self.properties_panel.setNode(self.nodeName)
 
     @QtCore.Slot(str, object)
     def showItemProperties(self, node, items):

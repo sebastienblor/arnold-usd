@@ -193,6 +193,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.tree.setTransverser(transverser)
         self.properties_panel.setTransverser(transverser)
         self.tree.setCurrentNode(self.nodeName, expand)
+        self.properties_panel.setNode(self.nodeName)
 
     def fileInfoNew(self, nodeAttr):
 

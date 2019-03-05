@@ -460,6 +460,28 @@ class ProceduralTransverser(BaseTransverser):
                 return True
         return False
 
+    def showGraphEditor(self, node):
+
+        if node:
+
+            window = cmds.window("Operators - {}".format(node), widthHeight=(800, 450))
+            form = cmds.formLayout()
+            panel = cmds.scriptedPanel(type="nodeEditorPanel", label="Node Editor")
+            cmds.formLayout(form, e=True, af=[(panel,s,0) for s in ("top","bottom","left","right")])
+            cmds.showWindow(window)
+
+            nodeeditor = panel+'NodeEditorEd'
+
+            ops = cmds.listConnections(node+'.operators')
+
+            for op in ops:
+                cmds.nodeEditor(nodeeditor, edit=True, addNode=op)
+
+            cmds.nodeEditor(nodeeditor, edit=True, rootNode=node, fa=True, ann=False)
+
+            return window, nodeeditor
+        return None, None
+
     # Do we want to see a line for each operator in the hierarchy. For now it's disabled
     def showOperatorItems(self):
         return False

@@ -203,6 +203,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.node = None
         self.item = None
         self.object = None
+        self.graphview = None
         self.paramDict = {}
         self.transverser = transverser
 
@@ -228,12 +229,15 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.overrideMenu.triggered.connect(self.setOverrideFromMenu)
 
         self.addOperatorButton = QtWidgets.QPushButton("Add Operator")
-        # self.addOperatorButton.setIcon(self.GEAR_ICON)
         self.toolBar.layout().addWidget(self.addOperatorButton)
         self.operatorMenu = QtWidgets.QMenu()
         self.addOperatorButton.setMenu(self.operatorMenu)
 
         self.operatorMenu.triggered.connect(self.addOperator)
+
+        self.showGraphButton = QtWidgets.QPushButton("Show Graph")
+        self.toolBar.layout().addWidget(self.showGraphButton)
+        self.showGraphButton.clicked.connect(self.showOperatorGraph)
 
         self.toolBar.layout().insertStretch(0)
         self.toolBar.layout().insertStretch(-1)
@@ -293,6 +297,9 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.operators_tree = OperatorTreeView(self.transverser, self.operators_frame)
         self.operators_frame.layout().addWidget(self.operators_tree)
         self.layout.addWidget(self.operators_frame)
+
+    def showOperatorGraph(self):
+        window, nodeEditor = self.transverser.showGraphEditor(self.node)
 
     def addOperatorMenu(self):
         self.operatorMenu.clear()
@@ -365,11 +372,14 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             itemchanged = True
         return itemchanged
 
-    def setItem(self, node, item):
-        nodechanged = False
+    def setNode(self, node):
         if self.node != node:
             self.node = node
-            nodechanged = True
+            return True
+        return False
+
+    def setItem(self, node, item):
+        nodechanged = self.setNode(node)
 
         # itemchanged = self.setCurrentItem(item)
         itemchanged = False
@@ -440,7 +450,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.deleteNodeAssignment(DISP_MAP)
 
     def deleteNodeAssignment(self, param):
-        print "deleteNodeAssignment", param
         if self.item:
             index = self.shadingWidgets[param].data['index']
             operator = self.shadingWidgets[param].data['operator']
@@ -568,7 +577,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.removeOverride(operator, index)
 
     def removeOverride(self, operator, index):
-        print "removeOverride", operator, index
         removed = self.transverser.deleteOverride(operator, index)
         if removed:
             if len(self.getOverrides()) == 0:
