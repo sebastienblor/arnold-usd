@@ -590,7 +590,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             closureName += "_clos";
             AtNode *child = m_tr.GetArnoldNode(closureName.c_str());
             if (child == NULL)
-               child = m_tr.AddArnoldNode("MayaFlatClosure", closureName.c_str());
+               child = m_tr.AddArnoldNode("flat", closureName.c_str());
 
             AiNodeSetRGB(child, "color", col.r, col.g, col.b);
             AiNodeLink(child, arnoldParamName, arnoldNode);
