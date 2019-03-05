@@ -518,26 +518,37 @@ void CMeshLightTranslator::Export(AtNode* light)
 
    AiNodeSetPtr(light, "mesh", meshNode);
 
-   AtNode* shaderNode = GetArnoldNode("shader");
-   AiNodeSetPtr(meshNode, "shader", shaderNode);
+   AtNode* shaderTwoSided = GetArnoldNode("two_sided");
+   AtNode* shaderRaySwitch = GetArnoldNode("shader");
+   AtNode *shaderMult = GetArnoldNode("multShader");
+
+   if (shaderTwoSided == NULL || shaderMult == NULL || shaderRaySwitch == NULL)
+      return; // shouldn't happen
+
+   AiNodeSetPtr(meshNode, "shader", shaderRaySwitch);
+
+   AiNodeLink(shaderMult, "front", shaderTwoSided);
+   // "back" should remain empty, so that it renders black on backfacing polygons
+   
+   AiNodeLink(shaderTwoSided, "camera", shaderRaySwitch);
+   AiNodeLink(shaderTwoSided, "specular_transmission", shaderRaySwitch);
+   // other ray types should render black
 
    if (FindMayaPlug("aiUseColorTemperature").asBool())
    {
       AtRGB color = ConvertKelvinToRGB(FindMayaPlug("aiColorTemperature").asFloat());
-      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+      AiNodeSetRGB(shaderMult, "input1", color.r, color.g, color.b);
    }
    else
-      ProcessParameter(shaderNode, "color", AI_TYPE_RGB, FindMayaPlug("color"));
+      ProcessParameter(shaderMult, "input1", AI_TYPE_RGB, FindMayaPlug("color"));
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible", true).asBool())
-   {      
-      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);
-      
+   {
+      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);      
       AtRGB colorMultiplier = AI_RGB_WHITE;
       colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));
-      
+         powf(2.f, AiNodeGetFlt(light, "exposure"));      
       // if normalize is set to false, we need to multiply
       // the color with the surface area
       // doing a very simple triangulation, good for
@@ -545,12 +556,12 @@ void CMeshLightTranslator::Export(AtNode* light)
       if (AiNodeGetBool(light, "normalize"))
          NormalizeColor(meshObject, colorMultiplier);
       
-      AiNodeSetRGB(shaderNode, "color_multiplier", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
+      AiNodeSetRGB(shaderMult, "input2", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
    }
    else
    {
       AiNodeSetByte(meshNode, "visibility", AI_RAY_SPECULAR_REFLECT);
-      AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
+      AiNodeSetRGB(shaderMult, "input2", 0.f, 0.f, 0.f);
    }
 }
 

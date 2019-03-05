@@ -20,10 +20,11 @@ node_parameters
    
    AiMetaDataSetBool(nentry, "color", "always_linear", true); // no gamma correction
    AiMetaDataSetStr(nentry, NULL, "_synonym", "meshLightMaterial");
-   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMeshLightMaterial");
-   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1B);
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMeshLightMaterial");
+//   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1B);
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
-   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+//   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
 }
 
 node_initialize
