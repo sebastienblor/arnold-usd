@@ -56,60 +56,96 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 {
     // Diffuse Component (D)
     //
+
     AtNode* rootcolor = GetAdapterNode("rootcolor");
-        ProcessParameter(rootcolor, "colorD",     AI_TYPE_RGB,   "rootColorD");
-        ProcessParameter(rootcolor, "intensityD", AI_TYPE_FLOAT, "intensityD");
+        ProcessParameter(rootcolor, "input1",AI_TYPE_RGB,   "rootColorD");
+        ProcessParameter(rootcolor, "input2.x", AI_TYPE_FLOAT, "intensityD");
+        ProcessParameter(rootcolor, "input2.y", AI_TYPE_FLOAT, "intensityD");
+        ProcessParameter(rootcolor, "input2.z", AI_TYPE_FLOAT, "intensityD");
 
     AtNode* tipcolor = GetAdapterNode("tipcolor");
-        ProcessParameter(tipcolor, "colorD",     AI_TYPE_RGB,   "tipColorD");
-        ProcessParameter(tipcolor, "intensityD", AI_TYPE_FLOAT, "intensityD");
+        ProcessParameter(tipcolor, "input1",     AI_TYPE_RGB,   "tipColorD");
+        ProcessParameter(tipcolor, "input2.x", AI_TYPE_FLOAT, "intensityD");
+        ProcessParameter(tipcolor, "input2.y", AI_TYPE_FLOAT, "intensityD");
+        ProcessParameter(tipcolor, "input2.z", AI_TYPE_FLOAT, "intensityD");
 
-    // Fully Kajiya-Kay diffuse. No isotropic.
+    // // Fully Kajiya-Kay diffuse. No isotropic.
     AiNodeSetFlt(shader, "ambdiff", 1.0f);
 
 
-    // Primary Specular Component (R)
-    //
+    // // Primary Specular Component (R)
+    // //
     AtNode* spec = GetAdapterNode("spec");
-        ProcessParameter(spec, "intensity",         AI_TYPE_FLOAT, "intensityR");
-        ProcessParameter(spec, "longitudinalWidth", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(spec, "input1.r",         AI_TYPE_FLOAT, "intensityR");
+    ProcessParameter(spec, "input1.g",         AI_TYPE_FLOAT, "intensityR");
+    ProcessParameter(spec, "input1.b",         AI_TYPE_FLOAT, "intensityR");
+    ProcessParameter(spec, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(spec, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(spec, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthR");
 
     AtNode* gloss = GetAdapterNode("gloss");
-        ProcessParameter(gloss, "longitudinalWidth", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(gloss, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(gloss, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(gloss, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(gloss, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(gloss, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthR");
+    ProcessParameter(gloss, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthR");
 
-    // Primary specular color
+    // // Primary specular color
     ProcessParameter(shader, "spec_color", AI_TYPE_RGB, "colorR");
 
-    // Angular shift in degrees
+    // // Angular shift in degrees
     ProcessParameter(shader, "spec_shift", AI_TYPE_FLOAT, "longitudinalShiftR");
 
 
-    // Secondary Specular Component (TRT)
-    //
+    // // Secondary Specular Component (TRT)
+    // //
     AtNode* spec2 = GetAdapterNode("spec2");
-        ProcessParameter(spec2, "intensity",         AI_TYPE_FLOAT, "intensityTRT");
-        ProcessParameter(spec2, "longitudinalWidth", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(spec2, "input1.r", AI_TYPE_FLOAT, "intensityTRT");
+    ProcessParameter(spec2, "input1.g", AI_TYPE_FLOAT, "intensityTRT");
+    ProcessParameter(spec2, "input1.b", AI_TYPE_FLOAT, "intensityTRT");
+    ProcessParameter(spec2, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(spec2, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(spec2, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthTRT");
 
     AtNode* gloss2 = GetAdapterNode("gloss2");
-        ProcessParameter(gloss2, "longitudinalWidth", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(gloss2, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(gloss2, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(gloss2, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(gloss2, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(gloss2, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthTRT");
+    ProcessParameter(gloss2, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthTRT");
 
-    // Secondary specular color
+    // // Secondary specular color
     ProcessParameter(shader, "spec2_color", AI_TYPE_RGB, "colorTRT");
 
-    // Angular shift in degrees
+    // // Angular shift in degrees
     ProcessParameter(shader, "spec2_shift", AI_TYPE_FLOAT, "longitudinalShiftTRT");
 
 
-    // Transmission Component (TT)
-    //
+    // // Transmission Component (TT)
+    // //
     AtNode* transmission = GetAdapterNode("transmission");
-        ProcessParameter(transmission, "intensityTT",         AI_TYPE_FLOAT, "intensityTT");
-        ProcessParameter(transmission, "longitudinalWidthTT", AI_TYPE_FLOAT, "longitudinalWidthTT");
-        ProcessParameter(transmission, "azimuthalWidthTT",    AI_TYPE_FLOAT, "azimuthalWidthTT");
+    AtNode* transmission2 = GetAdapterNode("transmission_mult2");
+    AtNode* transmission3 = GetAdapterNode("transmission_mult3");
+    ProcessParameter(transmission, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthTT");
+    ProcessParameter(transmission, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthTT");
+    ProcessParameter(transmission, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthTT");
+    ProcessParameter(transmission2, "input1.r",AI_TYPE_FLOAT, "azimuthalWidthTT");
+    ProcessParameter(transmission2, "input1.g",AI_TYPE_FLOAT, "azimuthalWidthTT");
+    ProcessParameter(transmission2, "input1.b",AI_TYPE_FLOAT, "azimuthalWidthTT");
+    ProcessParameter(transmission3, "input1.r",AI_TYPE_FLOAT, "intensityTT");
+    ProcessParameter(transmission3, "input1.g",AI_TYPE_FLOAT, "intensityTT");
+    ProcessParameter(transmission3, "input1.b",AI_TYPE_FLOAT, "intensityTT");
 
     AtNode* transmission_spread = GetAdapterNode("transmission_spread");
-        ProcessParameter(transmission_spread, "longitudinalWidthTT", AI_TYPE_FLOAT, "longitudinalWidthTT");
-        ProcessParameter(transmission_spread, "azimuthalWidthTT",    AI_TYPE_FLOAT, "azimuthalWidthTT");
+    AtNode* transmission_spread2 = GetAdapterNode("transmission_spread_mult2");
+    ProcessParameter(transmission_spread, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthTT");
+    ProcessParameter(transmission_spread, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthTT");
+    ProcessParameter(transmission_spread, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthTT");
+    ProcessParameter(transmission_spread2, "input1.r",AI_TYPE_FLOAT, "azimuthalWidthTT");
+    ProcessParameter(transmission_spread2, "input1.g",AI_TYPE_FLOAT, "azimuthalWidthTT");
+    ProcessParameter(transmission_spread2, "input1.b",AI_TYPE_FLOAT, "azimuthalWidthTT");
 
     // Transmission color
     ProcessParameter(shader, "transmission_color", AI_TYPE_RGB, "colorTT");
@@ -118,7 +154,7 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
     // Opacity
     //
     AtNode* opacity = GetAdapterNode("opacity");
-        ProcessParameter(opacity, "input", AI_TYPE_RGB, "transparency");
+    ProcessParameter(opacity, "input", AI_TYPE_RGB, "transparency");
 
 
     // Arnold-specific attributes
@@ -145,7 +181,75 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 AtNode* CHairPhysicalShaderTranslator::AddAdapterNode(AtNode* shader, const char* input, const char* type)
 {
     // Create a parameter adapter node of the specific type
-    AtNode* adapter = AddArnoldNode(type, input /*tag*/);
+    
+    AtNode* adapter = NULL;
+    if ( strcmp(type ,"HairPhysicalShaderDiffuseColorAdapter") == 0 )
+    {
+        adapter = AddArnoldNode("multiply", input);
+        AiNodeSetRGB(adapter, "input1", 0.207f, 0.138f, 0.069f);
+    }
+    
+    else if ( strcmp(type ,"HairPhysicalShaderSpecularWeightAdapter") == 0 )
+    {
+        AtNode* mult1 = AddArnoldNode("multiply", input);
+        adapter = AddArnoldNode("multiply", (std::string(input) +std::string("_2")).c_str() )  ;
+        AiNodeSetRGB(mult1, "input1", 0.55f, 0.55f,0.55f);
+        AiNodeSetRGB(mult1, "input2", 3.5f, 3.5f,3.5f );
+        AiNodeLink(mult1, "input1", adapter);
+        AiNodeSetRGB(adapter, "input2", 0.1f, 0.1f,0.1f);
+    }
+    else if ( strcmp(type ,"HairPhysicalShaderTransmissionSpreadAdapter") == 0 )
+    {
+        AtNode* mult1 = AddArnoldNode("multiply", input);
+        AtNode* mult2 = AddArnoldNode("multiply", (std::string(input) +std::string("_mult2")).c_str());
+        AtNode* add = AddArnoldNode("add", (std::string(input) +std::string("_add")).c_str());
+        adapter = AddArnoldNode("divide", (std::string(input) +std::string("_divide")).c_str());
+
+        AiNodeSetRGB(mult1, "input1", 10.0f, 10.0f,10.0f);
+        AiNodeSetRGB(mult1, "input2", 5.0f, 5.0f,5.0f);
+        AiNodeSetRGB(mult2, "input1", 10.0f, 10.0f,10.0f);
+        AiNodeSetRGB(mult2, "input2", 2.0f, 2.0f,2.0f);
+        AiNodeSetRGB(adapter, "input2", 40.0f, 40.0f,40.0f);
+        AiNodeLink(mult1, "input1", add);
+        AiNodeLink(mult2, "input2", add);
+        AiNodeLink(add, "input1", adapter);
+    }
+    else if ( strcmp(type ,"HairPhysicalShaderTransmissionWeightAdapter") == 0 )
+    {
+        AtNode* mult1 = AddArnoldNode("multiply", input);
+        AtNode* mult2 = AddArnoldNode("multiply", (std::string(input) +std::string("_mult2")).c_str());
+        AtNode* add = AddArnoldNode("add", (std::string(input) +std::string("_add")).c_str());
+        AtNode* divide = AddArnoldNode("divide", (std::string(input) +std::string("_divide")).c_str());
+        AtNode* mult3 = AddArnoldNode("multiply", (std::string(input) +std::string("_mult3")).c_str());
+        adapter = AddArnoldNode("multiply", (std::string(input) +std::string("_mult4")).c_str());
+
+        AiNodeSetRGB(mult1, "input1", 10.0f, 10.0f,10.0f);
+        AiNodeSetRGB(mult1, "input2", 5.0f, 5.0f,5.0f);
+        AiNodeSetRGB(mult2, "input1", 10.0f, 10.0f,10.0f);
+        AiNodeSetRGB(mult2, "input2", 2.0f, 2.0f,2.0f);
+        AiNodeSetRGB(mult3, "input1", 0.15f, 0.15f,0.150f);
+        AiNodeSetRGB(adapter, "input2", 0.1f, 0.1f,0.1f);
+        AiNodeSetRGB(divide, "input2", 40.0f, 40.0f,40.0f);
+        AiNodeLink(mult1, "input1", add);
+        AiNodeLink(mult2, "input2", add);
+        AiNodeLink(add, "input1", divide);
+        AiNodeLink(divide, "input2", mult3);
+        AiNodeLink(mult3, "input1" , adapter);
+    }
+    else if ( strcmp(type ,"HairPhysicalShaderSpecularGlossAdapter") == 0 )
+    {
+        AtNode* mult = AddArnoldNode("multiply", type);
+        AtNode* divide = AddArnoldNode("divide", (std::string(input) +std::string("_divide")).c_str());
+        adapter = AddArnoldNode("min", (std::string(input) +std::string("_min")).c_str() /*tag*/);
+        AiNodeSetRGB(mult, "input1", 3.5f, 3.5f,3.50f);
+        AiNodeSetRGB(mult, "input2", 3.5f, 3.5f,3.50f);
+        AiNodeSetRGB(divide, "input1", 3000.0f, 3000.0f,3000.0f);
+        AiNodeSetRGB(adapter, "input2", 5000.0f, 5000.0f,5000.0f);
+        AiNodeLink(mult, "input2", divide);
+        AiNodeLink(divide, "input1", adapter);
+    }
+    
+    
     assert(adapter);
 
     // Link the adapter node to the input of the shader node
