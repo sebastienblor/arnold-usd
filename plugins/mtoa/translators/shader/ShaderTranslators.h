@@ -35,7 +35,6 @@ public:
 SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
-SHADER_TRANSLATOR_MULTIOUT(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
@@ -419,4 +418,23 @@ enum FillType
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    bool RequiresColorCorrect() const;
+};
+
+class CPlusMinusAverageTranslator : public CShaderTranslator
+{
+public:
+
+enum MathOperation
+{
+   OP_NONE = 0,
+   OP_PLUS,
+   OP_MINUS,
+   OP_AVERAGE
+};
+   static void* creator(){return new CPlusMinusAverageTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+  // bool DependsOnOutputPlug() { return true; } 
+protected:
+   int m_inputSize;
 };

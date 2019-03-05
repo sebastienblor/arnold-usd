@@ -1,14 +1,14 @@
 #include <ai.h>
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage1DMtd);
+AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage2DMtd);
 
 namespace
 {
 
-enum MayaPlusMinusAverage1DParams
+enum MayaPlusMinusAverage2DParams
 {
    p_operation,
-   p_input1D
+   p_input2D
 };
 
 enum MathOperation
@@ -33,9 +33,10 @@ const char* MathOperationNames[] =
 node_parameters
 {
    AiParameterEnum("operation", OP_PLUS, MathOperationNames);
-   AiParameterArray("input1D", AiArray(0, 0, AI_TYPE_FLOAT));
+   AiParameterArray("input2D", AiArray(0, 0, AI_TYPE_VECTOR2));
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
@@ -54,9 +55,10 @@ node_finish
 shader_evaluate
 {
    int operation = AiShaderEvalParamEnum(p_operation);
-   AtArray* inputs = AiShaderEvalParamArray(p_input1D);
+   AtArray* inputs = AiShaderEvalParamArray(p_input2D);
    
-   float result = 0.0f;
+   AtVector2 result(0.0f, 0.0f);
+   AtVector2 value;
 
    if (AiArrayGetNumElements(inputs) > 0)
    {
@@ -66,27 +68,28 @@ shader_evaluate
          case OP_AVERAGE:
             for (uint32_t i=0; i<AiArrayGetNumElements(inputs); ++i)
             {
-               result += AiArrayGetFlt(inputs, i);
+               value = AiArrayGetVec2(inputs, i);
+               result += value;
             }
             break;
          case OP_MINUS:
-            result = AiArrayGetFlt(inputs, 0);
+            result = AiArrayGetVec2(inputs, 0);
             for (uint32_t i=1; i<AiArrayGetNumElements(inputs); ++i)
             {
-               result -= AiArrayGetFlt(inputs, i);
+               value = AiArrayGetVec2(inputs, i);
+               result -= value;
             }
             break;
          default:
-            result = AiArrayGetFlt(inputs, 0);
+            result = AiArrayGetVec2(inputs, 0);
             break;
       }
 
       if (operation == OP_AVERAGE)
       {
-         float divider = 1.0f / float(AiArrayGetNumElements(inputs));
-         result *= divider;
+         result /= float(AiArrayGetNumElements(inputs));
       }
    }
 
-   sg->out.FLT() = result;
+   sg->out.VEC2() = result;
 }

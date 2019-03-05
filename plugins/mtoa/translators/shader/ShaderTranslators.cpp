@@ -31,6 +31,85 @@
 #include <utils/MayaUtils.h>
 
 
+static const MStringArray SHADER_INVALID_COMPONENTS;
+static const char* shaderRgbComp[3] = {"r", "g", "b"};
+static const MStringArray SHADER_RGB_COMPONENTS(shaderRgbComp, 3);
+static const char* shaderRgbaComp[4] = {"r", "g", "b", "a"};
+static const MStringArray SHADER_RGBA_COMPONENTS(shaderRgbaComp, 4);
+const char* shaderPoint2Comp[2] = {"x", "y"};
+const MStringArray SHADER_VECTOR2_COMPONENTS(shaderPoint2Comp, 2);
+const char* shaderVectorComp[3] = {"x", "y", "z"};
+const MStringArray SHADER_VECTOR_COMPONENTS(shaderVectorComp, 3);
+
+const MStringArray& GetShaderComponentNames(int arnoldParamType)
+{
+   MStringArray componentNames;
+   switch (arnoldParamType)
+   {
+   case AI_TYPE_RGB:
+      return SHADER_RGB_COMPONENTS;
+   case AI_TYPE_RGBA:
+      return SHADER_RGBA_COMPONENTS;
+   case AI_TYPE_VECTOR:
+      return SHADER_VECTOR_COMPONENTS;
+   case AI_TYPE_VECTOR2:
+      return SHADER_VECTOR2_COMPONENTS;
+   // FIXME Arnold5 make sure we don't want any components with closures
+   default:
+      return SHADER_INVALID_COMPONENTS;
+   }
+}
+
+// returns 0-3 or -1 if failed
+int GetShaderFloatComponentIndex(const MPlug &plug)
+{
+   MStatus stat;
+   MFnNumericAttribute nAttr(plug.attribute(), &stat);
+   if (stat == MS::kSuccess && nAttr.unitType() == MFnNumericData::kFloat)
+   {
+      if (plug.isChild())
+      {
+         MPlug parentPlug = plug.parent();
+         if (parentPlug.numChildren() > 3)
+            // TODO: print warning
+            return -1;
+         for (unsigned int i=0; i < parentPlug.numChildren(); ++i)
+         {
+            if (parentPlug.child(i) == plug)
+               return i;
+         }
+         return -1;
+      }
+      else if (plug.partialName(false, false, false, false, false, true) == OUT_ALPHA_NAME)
+      {
+         return 3;
+      }
+   }
+   return -1;
+}
+
+MString GetShaderComponentName(int arnoldParamType, const MPlug &plug)
+{
+   const MStringArray names = GetShaderComponentNames(arnoldParamType);
+   int index = GetShaderFloatComponentIndex(plug);
+
+   if (index >= 0 && (unsigned int)index < names.length())
+      return names[index];
+   return "";
+}
+
+
+static void ShaderComputeLink(CShaderTranslator *translator, const MPlug &plug, AtNode *shader, const char *attr)
+{
+   AtNode *target = translator->ExportConnectedNode(plug);
+   if (plug.isChild())
+   {
+      int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(target));
+      MString component = GetShaderComponentName(outputType,plug);
+      AiNodeLinkOutput(target, component.asChar(), shader, attr);
+   } else
+      AiNodeLink(target, attr, shader);
+}
 // Sky
 //
 AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
@@ -1091,27 +1170,189 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
    MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "output1D")
-   {
-      return AddArnoldNode("MayaPlusMinusAverage1D");
-   }
+      m_inputSize = 1;
    else if (outputAttr == "output2D")
-   {
-      return AddArnoldNode("MayaPlusMinusAverage2D");
-   }
+      m_inputSize = 2;
    else if (outputAttr == "output3D")
-   {
-      return AddArnoldNode("MayaPlusMinusAverage3D");
-   }
+      m_inputSize = 3;
    else
    {
+      m_inputSize = 0;
       AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
+
+   return AddArnoldNode("layer_rgba");
 }
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
-   CShaderTranslator::Export(shader);
+   int operation = FindMayaPlug("operation").asInt();
+   std::string opStr;
+   switch(operation)
+   {
+      default:
+      case OP_NONE:
+         opStr = "overwrite";
+         break;
+      case OP_PLUS:
+         opStr = "plus";
+         break;
+      case OP_MINUS:
+         opStr = "minus";
+         break;   
+      case OP_AVERAGE: 
+         opStr = "average";
+         break;
+   }
+   MFnDependencyNode fnNode(GetMayaObject());
+
+   char aiAttr[64];
+   MPlugArray connections;
+   for (unsigned int i = 1; i <= 8; ++i)
+   {
+      sprintf(aiAttr, "enable%u", i);
+      AiNodeSetBool(shader, aiAttr, false);
+   }
+
+   if (m_inputSize == 1)
+   {
+      MPlug plug = FindMayaPlug("input1D");
+            
+      unsigned int size = plug.numElements();
+      if (size > 8)
+      {
+         AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
+         size = 8;
+      }
+      if (operation == OP_NONE)
+         size = 1;
+
+      for (unsigned int i = 0; i < size; ++i)
+      {
+         sprintf(aiAttr, "enable%u", i+1);
+         AiNodeSetBool(shader, aiAttr, true);
+         
+         sprintf(aiAttr, "input%u", i+1);
+         // can be linked
+         float val = plug[i].asFloat();
+         AiNodeSetRGBA(shader, aiAttr, val, val, val, 1.f);
+         plug[i].connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            ShaderComputeLink(this, connections[0], shader, aiAttr);
+         
+         if (i > 0)
+         {
+            sprintf(aiAttr, "operation%u", i+1);
+            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         }
+         
+      }
+   } else if (m_inputSize == 2)
+   {
+      MPlug plug = FindMayaPlug("input2D");
+      MObject ox = fnNode.attribute("input2Dx");
+      MObject oy = fnNode.attribute("input2Dy");
+      unsigned int size = plug.numElements();
+      if (size > 8)
+      {
+         AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
+         size = 8;
+      }
+      if (operation == OP_NONE)
+         size = 1;
+      
+      for (unsigned int i = 0; i < size; ++i)
+      {
+         sprintf(aiAttr, "enable%u", i);
+         AiNodeSetBool(shader, aiAttr, true);
+         
+         sprintf(aiAttr, "input%u", i);
+         AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(), 0.f, 1.f);
+
+         connections.clear();
+         plug[i].connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            ShaderComputeLink(this, connections[0], shader, aiAttr);
+         connections.clear();
+         plug[i].child(ox).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".r");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         connections.clear();
+         plug[i].child(oy).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".g");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+
+         sprintf(aiAttr, "operation%u", i);
+         AiNodeSetStr(shader, aiAttr, opStr.c_str());
+      }
+   } else if (m_inputSize == 3)
+   {
+      MPlug plug = FindMayaPlug("input3D");
+      MObject ox = fnNode.attribute("input3Dx");
+      MObject oy = fnNode.attribute("input3Dy");
+      MObject oz = fnNode.attribute("input3Dz");
+
+      unsigned int size = plug.numElements();
+      if (size > 8)
+      {
+         AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
+         size = 8;
+      }
+      if (operation == OP_NONE)
+         size = 1;
+      
+      for (unsigned int i = 0; i < size; ++i)
+      {
+         sprintf(aiAttr, "enable%u", i+1);
+         AiNodeSetBool(shader, aiAttr, true);
+         
+         sprintf(aiAttr, "input%u", i+1);
+         AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(),  plug[i].child(oz).asFloat(), 1.f);
+         connections.clear();
+         plug[i].connectedTo(connections, true, false);
+         if (connections.length() > 0)
+            ShaderComputeLink(this, connections[0], shader, aiAttr);
+
+         connections.clear();
+         plug[i].child(ox).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".r");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         connections.clear();
+         plug[i].child(oy).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".g");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         connections.clear();
+         plug[i].child(oz).connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            std::string compAttr = aiAttr;
+            compAttr += std::string(".b");
+            ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
+         }
+         sprintf(aiAttr, "operation%u", i+1);
+         AiNodeSetStr(shader, aiAttr, opStr.c_str());
+      }      
+
+   }
+   
+  
 }
 
 // ParticleSamplerInfo
@@ -2193,7 +2434,9 @@ void CDisplacementTranslator::Export(AtNode* shader)
          // so we link multiply2 to the input2 of multiply1, we link multiply2.input1 to the 
          // displacement link, and we set scale to its input2
          AiNodeLink(multiply2, "input2", multiply1);
-         AiNodeLink(ExportConnectedNode(connections[0]), "input1", multiply2);
+
+         ShaderComputeLink(this, connections[0], multiply2, "input1");
+
          AiNodeSetRGB(multiply2, "input2", scale, scale, scale);
       }
       else
