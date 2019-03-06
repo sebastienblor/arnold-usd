@@ -496,9 +496,9 @@ def createGpuSettings():
         ai.AiEnd()
 
     if isGPU:
-        cmds.attrControlGrp('gpu', 
-                    label="GPU Rendering (BETA)", 
-                    attribute='defaultArnoldRenderOptions.gpu')
+        cmds.attrControlGrp('renderDevice', 
+                    label="Render Device ", 
+                    attribute='defaultArnoldRenderOptions.renderDevice')
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('gpu_default_names', 

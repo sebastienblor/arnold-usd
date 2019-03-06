@@ -1541,7 +1541,7 @@ void COptionsTranslator::Export(AtNode *options)
    bool gpuRender = false;
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
    {
-      MPlug gpuPlug = FindMayaPlug("gpu");
+      MPlug gpuPlug = FindMayaPlug("renderDevice");
       if (GetSessionMode() != MTOA_SESSION_SWATCH && (!gpuPlug.isNull()))
          gpuRender = gpuPlug.asBool();
 

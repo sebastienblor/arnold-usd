@@ -465,10 +465,13 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotx);
 
-   s_gpu = nAttr.create("gpu", "gpu", MFnNumericData::kBoolean, false);
-   nAttr.setKeyable(false);
+   s_gpu = eAttr.create("renderDevice", "renderDevice");
+   eAttr.setKeyable(false);
+   eAttr.addField("CPU", 0);
+   eAttr.addField("GPU ( BETA )", 1);
+   eAttr.setDefault(0);
    addAttribute(s_gpu);
-
+   
    s_manual_devices = nAttr.create("manual_gpu_devices", "manualdevs", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
    addAttribute(s_manual_devices);
@@ -607,7 +610,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("reference_time");
       
-   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 1);
+   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_enable_swatch_render);
 

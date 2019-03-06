@@ -566,7 +566,7 @@ void CMaterialView::InitOptions()
       // FIXME this code is duplicated from OptionsTranslator, we should rather handle the whole export from there
       if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(options), "render_device") != NULL)
       {
-         MPlug gpuPlug = fnArnoldRenderOptions.findPlug("gpu");
+         MPlug gpuPlug = fnArnoldRenderOptions.findPlug("renderDevice");
          if (!gpuPlug.isNull())
             gpuRender = gpuPlug.asBool();
 
