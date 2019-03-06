@@ -4016,11 +4016,17 @@ AtNode* CSetRangeTranslator::CreateArnoldNodes()
    AtNode* X_Range = AddArnoldNode("range", "X_Range");
    AtNode* Y_Range = AddArnoldNode("range", "Y_Range");
    AtNode* Z_Range = AddArnoldNode("range", "Z_Range");
-   AtNode* outFlat = AddArnoldNode("flat", "outFlat");
+   AtNode* outFlat = AddArnoldNode("flat");
+   AtNode* inFlat = AddArnoldNode("flat", "inFlat");
 
    AiNodeLink(X_Range, "color.r", outFlat);
    AiNodeLink(Y_Range, "color.g", outFlat);
    AiNodeLink(Z_Range, "color.b", outFlat);
+
+   AiNodeLinkOutput(inFlat, "r", X_Range, "input");
+   AiNodeLinkOutput(inFlat, "g", Y_Range, "input");
+   AiNodeLinkOutput(inFlat, "b", Z_Range, "input");
+   
 
    return outFlat;
 }
@@ -4029,17 +4035,10 @@ void CSetRangeTranslator::Export(AtNode* shader)
    AtNode* X_Range = GetArnoldNode("X_Range");
    AtNode* Y_Range = GetArnoldNode("Y_Range");
    AtNode* Z_Range = GetArnoldNode("Z_Range");
+   AtNode* inFlat  = GetArnoldNode("inFlat");
    AtNode* outFlat = shader;
    
-   ProcessParameter(X_Range, "input.r", AI_TYPE_FLOAT, "valueX");
-   ProcessParameter(X_Range, "input.g", AI_TYPE_FLOAT, "valueX");
-   ProcessParameter(X_Range, "input.b", AI_TYPE_FLOAT, "valueX");
-   ProcessParameter(Y_Range, "input.r", AI_TYPE_FLOAT, "valueY");
-   ProcessParameter(Y_Range, "input.g", AI_TYPE_FLOAT, "valueY");
-   ProcessParameter(Y_Range, "input.b", AI_TYPE_FLOAT, "valueY");
-   ProcessParameter(Z_Range, "input.r", AI_TYPE_FLOAT, "valueZ");
-   ProcessParameter(Z_Range, "input.g", AI_TYPE_FLOAT, "valueZ");
-   ProcessParameter(Z_Range, "input.b", AI_TYPE_FLOAT, "valueZ");
+   ProcessParameter(inFlat, "color", AI_TYPE_RGB, "value");
    
    ProcessParameter(X_Range, "input_min", AI_TYPE_FLOAT, "oldMinX");
    ProcessParameter(Y_Range, "input_min", AI_TYPE_FLOAT, "oldMinY");
