@@ -77,11 +77,6 @@ class OperatorTreeModel(BaseModel):
         self.refresh()
 
     def refresh(self):
-        # if not self.currentNode or \
-        #    not cmds.objExists(self.currentNode) or \
-        #    not self.transverser:
-        #     return
-
         self.beginResetModel()
 
         self.rootItem = OperatorItem(None, "")
@@ -382,8 +377,6 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
     def setItem(self, node, item):
         nodechanged = self.setNode(node)
-        print "ProceduralPropertiesPanel.setItem", nodechanged, node, item
-        # itemchanged = self.setCurrentItem(item)
 
         itemchanged = False
         if self.item != item and (item is not None):
