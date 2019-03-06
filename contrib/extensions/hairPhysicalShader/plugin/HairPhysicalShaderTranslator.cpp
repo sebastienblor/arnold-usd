@@ -55,54 +55,30 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
     MPlug intensityD_plug = FindMayaPlug("intensityD");
     intensityD_plug.connectedTo(connections, true, false);
     AtNode *intensityD_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
-    if (connections.length() > 0 || AiNodeGetLink(shader, "rootcolor"))
-    {
-        // either rootcolor or diffuse weight is linked, we need to insert a shader
-        AtNode *adapter = GetArnoldNode("rootcolor");
-        if (adapter == NULL)
-            adapter = AddArnoldNode("multiply", "rootcolor");
 
-        AiNodeLink(adapter, "rootcolor", shader);
-        ProcessParameter(adapter, "input1", AI_TYPE_RGB, "rootColorD");
-        if (intensityD_link)
-            AiNodeLink(intensityD_link, "input2", adapter);
-        else
+    for (int i = 0; i < 2; ++i)
+    {
+        std::string colorAttr = (i == 0) ? "rootcolor" : "tipcolor";
+        std::string mayaColorAttr = (i == 0) ? "rootColorD" : "tipColorD";
+        if (connections.length() > 0 || AiNodeGetLink(shader, colorAttr.c_str()))
         {
-            float val = intensityD_plug.asFloat();
-            AiNodeUnlink(adapter, "input2");
-            AiNodeSetRGB(adapter, "input2", val, val, val);
-        }
-    } else
-    {
-        AtRGB col = AiNodeGetRGB(shader, "rootcolor");
-        col *= intensityD_plug.asFloat();
-        AiNodeUnlink(shader, "rootcolor");
-        AiNodeSetRGB(shader, "rootcolor", col.r, col.g, col.b);
-    }
+            // either rootcolor or diffuse weight is linked, we need to insert a shader
+            AtNode *adapter = GetArnoldNode(colorAttr.c_str());
+            if (adapter == NULL)
+                adapter = AddArnoldNode("color_correct", colorAttr.c_str());
 
-    if (connections.length() > 0 || AiNodeGetLink(shader, "tipcolor"))
-    {
-        // either rootcolor or diffuse weight is linked, we need to insert a shader
-        AtNode *adapter = GetArnoldNode("tipcolor");
-        if (adapter == NULL)
-            adapter = AddArnoldNode("multiply", "tipcolor");
-
-        AiNodeLink(adapter, "tipcolor", shader);
-        ProcessParameter(adapter, "input1", AI_TYPE_RGB, "tipColorD");
-        if (intensityD_link)
-            AiNodeLink(intensityD_link, "input2", adapter);
-        else
+            AiNodeLink(adapter, colorAttr.c_str(), shader);
+            ProcessParameter(adapter, "input", AI_TYPE_RGB, mayaColorAttr.c_str());
+            AiNodeSetFlt(adapter, "contrast_pivot", 0.f);
+            AiNodeUnlink(adapter, "contrast");
+            ProcessParameter(adapter,"contrast", AI_TYPE_FLOAT,intensityD_plug);
+        } else
         {
-            float val = intensityD_plug.asFloat();
-            AiNodeUnlink(adapter, "input2");
-            AiNodeSetRGB(adapter, "input2", val, val, val);
+            AtRGB col = AiNodeGetRGB(shader, colorAttr.c_str());
+            col *= intensityD_plug.asFloat();
+            AiNodeUnlink(shader, colorAttr.c_str());
+            AiNodeSetRGB(shader, colorAttr.c_str(), col.r, col.g, col.b);
         }
-    } else
-    {
-        AtRGB col = AiNodeGetRGB(shader, "tipcolor");
-        col *= intensityD_plug.asFloat();
-        AiNodeUnlink(shader, "tipcolor");
-        AiNodeSetRGB(shader, "tipcolor", col.r, col.g, col.b);
     }
 
     // // Fully Kajiya-Kay diffuse. No isotropic.
@@ -155,10 +131,7 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 
             AiNodeSetFlt(adapter, "contrast_pivot", 0.f);
             AiNodeUnlink(adapter, "contrast");
-            if (longitudinalWidthR_link)
-                AiNodeLink(longitudinalWidthR_link, "contrast", adapter);
-            else
-                AiNodeSetFlt(adapter, "contrast", longitudinalWidthR_plug.asFloat());
+            ProcessParameter(adapter, "contrast", AI_TYPE_FLOAT, longitudinalWidthR_plug);
         }
 
         AiNodeUnlink(shader, specGlossAttr.c_str());    
