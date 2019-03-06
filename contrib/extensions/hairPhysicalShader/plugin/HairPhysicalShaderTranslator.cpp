@@ -37,84 +37,167 @@ AtNode* CHairPhysicalShaderTranslator::CreateArnoldNodes()
     // Create the root aiHair shader node
     AtNode* shader = AddArnoldNode("hair");
 
-    // Create the parameter adapter nodes
-    AddAdapterNode(shader, "rootcolor",           "HairPhysicalShaderDiffuseColorAdapter");
-    AddAdapterNode(shader, "tipcolor",            "HairPhysicalShaderDiffuseColorAdapter");
-    AddAdapterNode(shader, "spec",                "HairPhysicalShaderSpecularWeightAdapter");
-    AddAdapterNode(shader, "gloss",               "HairPhysicalShaderSpecularGlossAdapter");
-    AddAdapterNode(shader, "spec2",               "HairPhysicalShaderSpecularWeightAdapter");
-    AddAdapterNode(shader, "gloss2",              "HairPhysicalShaderSpecularGlossAdapter");
-    AddAdapterNode(shader, "transmission",        "HairPhysicalShaderTransmissionWeightAdapter");
-    AddAdapterNode(shader, "transmission_spread", "HairPhysicalShaderTransmissionSpreadAdapter");
-    AddAdapterNode(shader, "opacity",             "MayaReverse");
-
     // Other AOV output nodes
     return ProcessAOVOutput(shader);
 }
 
 void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 {
+    MPlugArray connections;
+
     // Diffuse Component (D)
     //
+    ProcessParameter(shader, "rootcolor", AI_TYPE_RGB, "rootColorD");
+    ProcessParameter(shader, "tipcolor", AI_TYPE_RGB, "tipColorD");
 
-    AtNode* rootcolor = GetAdapterNode("rootcolor");
-        ProcessParameter(rootcolor, "input1",AI_TYPE_RGB,   "rootColorD");
-        ProcessParameter(rootcolor, "input2.x", AI_TYPE_FLOAT, "intensityD");
-        ProcessParameter(rootcolor, "input2.y", AI_TYPE_FLOAT, "intensityD");
-        ProcessParameter(rootcolor, "input2.z", AI_TYPE_FLOAT, "intensityD");
+    // We need to multiply both rootColor and tipColor by "Diffuse weight" (intensityD).
+    // If none of them is linked we can simply to the multiplication here. Otherwise we need to insert a multiply shader
+    MPlug intensityD_plug = FindMayaPlug("intensityD");
+    intensityD_plug.connectedTo(connections, true, false);
+    AtNode *intensityD_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+    if (connections.length() > 0 || AiNodeGetLink(shader, "rootcolor"))
+    {
+        // either rootcolor or diffuse weight is linked, we need to insert a shader
+        AtNode *adapter = GetArnoldNode("rootcolor");
+        if (adapter == NULL)
+            adapter = AddArnoldNode("multiply", "rootcolor");
 
-    AtNode* tipcolor = GetAdapterNode("tipcolor");
-        ProcessParameter(tipcolor, "input1",     AI_TYPE_RGB,   "tipColorD");
-        ProcessParameter(tipcolor, "input2.x", AI_TYPE_FLOAT, "intensityD");
-        ProcessParameter(tipcolor, "input2.y", AI_TYPE_FLOAT, "intensityD");
-        ProcessParameter(tipcolor, "input2.z", AI_TYPE_FLOAT, "intensityD");
+        AiNodeLink(adapter, "rootcolor", shader);
+        ProcessParameter(adapter, "input1", AI_TYPE_RGB, "rootColorD");
+        if (intensityD_link)
+            AiNodeLink(intensityD_link, "input2", adapter);
+        else
+        {
+            float val = intensityD_plug.asFloat();
+            AiNodeUnlink(adapter, "input2");
+            AiNodeSetRGB(adapter, "input2", val, val, val);
+        }
+    } else
+    {
+        AtRGB col = AiNodeGetRGB(shader, "rootcolor");
+        col *= intensityD_plug.asFloat();
+        AiNodeUnlink(shader, "rootcolor");
+        AiNodeSetRGB(shader, "rootcolor", col.r, col.g, col.b);
+    }
+
+    if (connections.length() > 0 || AiNodeGetLink(shader, "tipcolor"))
+    {
+        // either rootcolor or diffuse weight is linked, we need to insert a shader
+        AtNode *adapter = GetArnoldNode("tipcolor");
+        if (adapter == NULL)
+            adapter = AddArnoldNode("multiply", "tipcolor");
+
+        AiNodeLink(adapter, "tipcolor", shader);
+        ProcessParameter(adapter, "input1", AI_TYPE_RGB, "tipColorD");
+        if (intensityD_link)
+            AiNodeLink(intensityD_link, "input2", adapter);
+        else
+        {
+            float val = intensityD_plug.asFloat();
+            AiNodeUnlink(adapter, "input2");
+            AiNodeSetRGB(adapter, "input2", val, val, val);
+        }
+    } else
+    {
+        AtRGB col = AiNodeGetRGB(shader, "tipcolor");
+        col *= intensityD_plug.asFloat();
+        AiNodeUnlink(shader, "tipcolor");
+        AiNodeSetRGB(shader, "tipcolor", col.r, col.g, col.b);
+    }
 
     // // Fully Kajiya-Kay diffuse. No isotropic.
     AiNodeSetFlt(shader, "ambdiff", 1.0f);
 
 
-    // // Primary Specular Component (R)
-    // //
-    AtNode* spec = GetAdapterNode("spec");
-    ProcessParameter(spec, "input1.r",         AI_TYPE_FLOAT, "intensityR");
-    ProcessParameter(spec, "input1.g",         AI_TYPE_FLOAT, "intensityR");
-    ProcessParameter(spec, "input1.b",         AI_TYPE_FLOAT, "intensityR");
-    ProcessParameter(spec, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(spec, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(spec, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthR");
+    // // Primary Specular Component is (R)
+    // // Secondary Specular is (TRT)
 
-    AtNode* gloss = GetAdapterNode("gloss");
-    ProcessParameter(gloss, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(gloss, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(gloss, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(gloss, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(gloss, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthR");
-    ProcessParameter(gloss, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthR");
+    for (int i = 0; i < 2; ++i)
+    {
+        std::string specAttr = (i == 0) ? "spec" : "spec2";
+        std::string specGlossAttr = (i == 0) ? "spec_gloss" : "spec2_gloss";
+        std::string specIntensityAttr = (i == 0) ? "intensityR" : "intensityTRT";
+        std::string specWidthAttr = (i == 0) ? "longitudinalWidthR" : "longitudinalWidthTRT";        
+
+        connections.clear();
+        float specIntensity = 0.1f;
+        MPlug intensityR_plug = FindMayaPlug(specIntensityAttr.c_str());
+        specIntensity *= intensityR_plug.asFloat();
+        intensityR_plug.connectedTo(connections, true, false);
+        AtNode *intensityR_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+        MPlug longitudinalWidthR_plug = FindMayaPlug(specWidthAttr.c_str());
+        specIntensity *= longitudinalWidthR_plug.asFloat();
+        connections.clear();
+        longitudinalWidthR_plug.connectedTo(connections, true, false);
+        AtNode *longitudinalWidthR_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+
+        if (intensityR_link == NULL && longitudinalWidthR_link == NULL)
+        {
+            AiNodeUnlink(shader, specAttr.c_str());
+            // no link anywhere
+            AiNodeSetFlt(shader, specAttr.c_str(), specIntensity);
+        } else
+        {
+            // need to link spec to a shader
+            AtNode *adapter = GetArnoldNode(specAttr.c_str());
+            if (adapter == NULL)
+                adapter = AddArnoldNode("color_correct", specAttr.c_str());
+
+            AiNodeLinkOutput(adapter, "r", shader, specAttr.c_str());
+            AiNodeSetRGB(adapter, "multiply", 0.1f, 0.1f, 0.1f);
+            AiNodeUnlink(adapter, "input");
+            AiNodeUnlink(adapter, "input.r");
+
+            if (intensityR_link)
+                AiNodeLink(intensityR_link, "input.r", adapter);
+            else
+                AiNodeSetRGBA(adapter, "input", intensityR_plug.asFloat(), 0.f, 0.f, 1.f);
+
+            AiNodeSetFlt(adapter, "contrast_pivot", 0.f);
+            AiNodeUnlink(adapter, "contrast");
+            if (longitudinalWidthR_link)
+                AiNodeLink(longitudinalWidthR_link, "contrast", adapter);
+            else
+                AiNodeSetFlt(adapter, "contrast", longitudinalWidthR_plug.asFloat());
+        }
+
+        AiNodeUnlink(shader, specGlossAttr.c_str());    
+        if (longitudinalWidthR_link)
+        {
+            AtNode *adapter = GetArnoldNode(specGlossAttr.c_str());
+            if(adapter == NULL)
+                adapter = AddArnoldNode("layer_rgba", specGlossAttr.c_str());
+
+            AiNodeLinkOutput(adapter, "r", shader, specGlossAttr.c_str());
+            AiNodeSetRGBA(adapter, "input1", 3000.f, 0.f, 0.f, 1.f);
+            AiNodeSetRGBA(adapter, "input2", 1.f, 1.f, 1.f, 1.f);
+            AiNodeLink(longitudinalWidthR_link, "input2.r", adapter);
+            AiNodeSetStr(adapter, "operation2", "divide");
+            AiNodeSetRGBA(adapter, "input3", 1.f, 1.f, 1.f, 1.f);
+            AiNodeLink(longitudinalWidthR_link, "input3.r", adapter);
+            AiNodeSetStr(adapter, "operation3", "divide");
+            AiNodeSetRGBA(adapter, "input4", 5000.f, 0.f, 0.f, 1.f);
+            AiNodeSetStr(adapter, "operation4", "min");
+            AiNodeSetBool(adapter, "enable1", true);
+            AiNodeSetBool(adapter, "enable2", true);
+            AiNodeSetBool(adapter, "enable3", true);
+            AiNodeSetBool(adapter, "enable4", true);        
+            AiNodeSetBool(adapter, "enable5", false);
+            AiNodeSetBool(adapter, "enable6", false);
+            AiNodeSetBool(adapter, "enable7", false);
+            AiNodeSetBool(adapter, "enable8", false);
+        } else
+        {
+            float spec_gloss = longitudinalWidthR_plug.asFloat();
+            spec_gloss = AiMin(3000.0f / (spec_gloss * spec_gloss), 5000.0f);
+            AiNodeSetFlt(shader, specGlossAttr.c_str(), spec_gloss);
+        }
+    }
 
     // // Primary specular color
     ProcessParameter(shader, "spec_color", AI_TYPE_RGB, "colorR");
-
     // // Angular shift in degrees
     ProcessParameter(shader, "spec_shift", AI_TYPE_FLOAT, "longitudinalShiftR");
-
-
-    // // Secondary Specular Component (TRT)
-    // //
-    AtNode* spec2 = GetAdapterNode("spec2");
-    ProcessParameter(spec2, "input1.r", AI_TYPE_FLOAT, "intensityTRT");
-    ProcessParameter(spec2, "input1.g", AI_TYPE_FLOAT, "intensityTRT");
-    ProcessParameter(spec2, "input1.b", AI_TYPE_FLOAT, "intensityTRT");
-    ProcessParameter(spec2, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(spec2, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(spec2, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-
-    AtNode* gloss2 = GetAdapterNode("gloss2");
-    ProcessParameter(gloss2, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(gloss2, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(gloss2, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(gloss2, "input2.r", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(gloss2, "input2.g", AI_TYPE_FLOAT, "longitudinalWidthTRT");
-    ProcessParameter(gloss2, "input2.b", AI_TYPE_FLOAT, "longitudinalWidthTRT");
 
     // // Secondary specular color
     ProcessParameter(shader, "spec2_color", AI_TYPE_RGB, "colorTRT");
@@ -125,27 +208,43 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 
     // // Transmission Component (TT)
     // //
-    AtNode* transmission = GetAdapterNode("transmission");
-    AtNode* transmission2 = GetAdapterNode("transmission_mult2");
-    AtNode* transmission3 = GetAdapterNode("transmission_mult3");
-    ProcessParameter(transmission, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthTT");
-    ProcessParameter(transmission, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthTT");
-    ProcessParameter(transmission, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthTT");
-    ProcessParameter(transmission2, "input1.r",AI_TYPE_FLOAT, "azimuthalWidthTT");
-    ProcessParameter(transmission2, "input1.g",AI_TYPE_FLOAT, "azimuthalWidthTT");
-    ProcessParameter(transmission2, "input1.b",AI_TYPE_FLOAT, "azimuthalWidthTT");
-    ProcessParameter(transmission3, "input1.r",AI_TYPE_FLOAT, "intensityTT");
-    ProcessParameter(transmission3, "input1.g",AI_TYPE_FLOAT, "intensityTT");
-    ProcessParameter(transmission3, "input1.b",AI_TYPE_FLOAT, "intensityTT");
 
-    AtNode* transmission_spread = GetAdapterNode("transmission_spread");
-    AtNode* transmission_spread2 = GetAdapterNode("transmission_spread_mult2");
-    ProcessParameter(transmission_spread, "input1.r", AI_TYPE_FLOAT, "longitudinalWidthTT");
-    ProcessParameter(transmission_spread, "input1.g", AI_TYPE_FLOAT, "longitudinalWidthTT");
-    ProcessParameter(transmission_spread, "input1.b", AI_TYPE_FLOAT, "longitudinalWidthTT");
-    ProcessParameter(transmission_spread2, "input1.r",AI_TYPE_FLOAT, "azimuthalWidthTT");
-    ProcessParameter(transmission_spread2, "input1.g",AI_TYPE_FLOAT, "azimuthalWidthTT");
-    ProcessParameter(transmission_spread2, "input1.b",AI_TYPE_FLOAT, "azimuthalWidthTT");
+    connections.clear();
+    MPlug intensityTT_plug = FindMayaPlug("intensityTT");
+    intensityTT_plug.connectedTo(connections, true, false);
+    AtNode *intensityTT_link = (connections.length() > 0) ? ExportConnectedNode(connections[0]) : NULL;
+
+    MPlug longitudinalWidthTT_plug = FindMayaPlug("longitudinalWidthTT");
+    connections.clear();
+    longitudinalWidthTT_plug.connectedTo(connections, true, false);
+    if (connections.length() > 0)
+        AiMsgWarning("[mtoa.translator] Parameters binding not supported in hairPhysical's Transmission U Scatter");
+
+    MPlug azimuthalWidthTT_plug = FindMayaPlug("azimuthalWidthTT");
+    connections.clear();
+    azimuthalWidthTT_plug.connectedTo(connections, true, false);
+    if (connections.length() > 0)
+        AiMsgWarning("[mtoa.translator] Parameters binding not supported in hairPhysical's Transmission V Scatter");
+
+    float spread = (longitudinalWidthTT_plug.asFloat() * 5.f + azimuthalWidthTT_plug.asFloat() * 2.f) / 40.f;
+
+    AiNodeUnlink(shader, "transmission");
+    if (intensityTT_link)
+    {
+        AtNode* adapter = GetArnoldNode("transmission");
+        if (adapter == NULL)
+            adapter = AddArnoldNode("multiply", "transmission");
+        AiNodeLink(adapter, "transmission", shader);
+        AiNodeLink(intensityTT_link, "input1", adapter);
+        float transmissionVal = 0.1f * spread;
+        AiNodeSetRGB(adapter, "input2", transmissionVal, transmissionVal, transmissionVal);
+
+    } else
+    {
+        float transmissionVal = 0.1f * intensityTT_plug.asFloat() * spread;
+        AiNodeSetFlt(shader, "transmission", transmissionVal);
+    }
+    AiNodeSetFlt(shader, "transmission_spread", spread);
 
     // Transmission color
     ProcessParameter(shader, "transmission_color", AI_TYPE_RGB, "colorTT");
@@ -153,10 +252,38 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
 
     // Opacity
     //
-    AtNode* opacity = GetAdapterNode("opacity");
-    ProcessParameter(opacity, "input", AI_TYPE_RGB, "transparency");
+    MPlug transparency_plug = FindMayaPlug("transparency");
+    connections.clear();
+    transparency_plug.connectedTo(connections, true, false);
+    AiNodeUnlink(shader, "opacity");
+    AtRGB opacity(1.f - transparency_plug.child(0).asFloat(),
+                  1.f - transparency_plug.child(1).asFloat(), 
+                  1.f - transparency_plug.child(2).asFloat());
+    AiNodeSetRGB(shader, "opacity", opacity.r, opacity.g, opacity.b);
+    bool hasTransparencyConnection = (connections.length() > 0);
+    if (!hasTransparencyConnection)
+    {
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            connections.clear();
+            transparency_plug.child(i).connectedTo(connections, true, false);   
+            if (connections.length() > 0)
+            {
+                hasTransparencyConnection = true;
+                break;
+            }
+        }
+    }
+    if (hasTransparencyConnection)
+    {
+        AtNode *adapter = GetArnoldNode("opacity");
+        if (adapter == NULL)
+            adapter = AddArnoldNode("complement", "opacity");
+        AiNodeLink(adapter, "opacity", shader);
+        ProcessParameter(adapter, "input", AI_TYPE_RGB, "transparency");
+    }
 
-
+    
     // Arnold-specific attributes
     //
 
@@ -177,97 +304,6 @@ void CHairPhysicalShaderTranslator::Export(AtNode* shader)
     if (!IsZero("intensityG"))
         AiMsgWarning("[hairPhysicalShader] Glint (.intensityG) is not supported.");
 }
-
-AtNode* CHairPhysicalShaderTranslator::AddAdapterNode(AtNode* shader, const char* input, const char* type)
-{
-    // Create a parameter adapter node of the specific type
-    
-    AtNode* adapter = NULL;
-    if ( strcmp(type ,"HairPhysicalShaderDiffuseColorAdapter") == 0 )
-    {
-        adapter = AddArnoldNode("multiply", input);
-        AiNodeSetRGB(adapter, "input1", 0.207f, 0.138f, 0.069f);
-    }
-    
-    else if ( strcmp(type ,"HairPhysicalShaderSpecularWeightAdapter") == 0 )
-    {
-        AtNode* mult1 = AddArnoldNode("multiply", input);
-        adapter = AddArnoldNode("multiply", (std::string(input) +std::string("_2")).c_str() )  ;
-        AiNodeSetRGB(mult1, "input1", 0.55f, 0.55f,0.55f);
-        AiNodeSetRGB(mult1, "input2", 3.5f, 3.5f,3.5f );
-        AiNodeLink(mult1, "input1", adapter);
-        AiNodeSetRGB(adapter, "input2", 0.1f, 0.1f,0.1f);
-    }
-    else if ( strcmp(type ,"HairPhysicalShaderTransmissionSpreadAdapter") == 0 )
-    {
-        AtNode* mult1 = AddArnoldNode("multiply", input);
-        AtNode* mult2 = AddArnoldNode("multiply", (std::string(input) +std::string("_mult2")).c_str());
-        AtNode* add = AddArnoldNode("add", (std::string(input) +std::string("_add")).c_str());
-        adapter = AddArnoldNode("divide", (std::string(input) +std::string("_divide")).c_str());
-
-        AiNodeSetRGB(mult1, "input1", 10.0f, 10.0f,10.0f);
-        AiNodeSetRGB(mult1, "input2", 5.0f, 5.0f,5.0f);
-        AiNodeSetRGB(mult2, "input1", 10.0f, 10.0f,10.0f);
-        AiNodeSetRGB(mult2, "input2", 2.0f, 2.0f,2.0f);
-        AiNodeSetRGB(adapter, "input2", 40.0f, 40.0f,40.0f);
-        AiNodeLink(mult1, "input1", add);
-        AiNodeLink(mult2, "input2", add);
-        AiNodeLink(add, "input1", adapter);
-    }
-    else if ( strcmp(type ,"HairPhysicalShaderTransmissionWeightAdapter") == 0 )
-    {
-        AtNode* mult1 = AddArnoldNode("multiply", input);
-        AtNode* mult2 = AddArnoldNode("multiply", (std::string(input) +std::string("_mult2")).c_str());
-        AtNode* add = AddArnoldNode("add", (std::string(input) +std::string("_add")).c_str());
-        AtNode* divide = AddArnoldNode("divide", (std::string(input) +std::string("_divide")).c_str());
-        AtNode* mult3 = AddArnoldNode("multiply", (std::string(input) +std::string("_mult3")).c_str());
-        adapter = AddArnoldNode("multiply", (std::string(input) +std::string("_mult4")).c_str());
-
-        AiNodeSetRGB(mult1, "input1", 10.0f, 10.0f,10.0f);
-        AiNodeSetRGB(mult1, "input2", 5.0f, 5.0f,5.0f);
-        AiNodeSetRGB(mult2, "input1", 10.0f, 10.0f,10.0f);
-        AiNodeSetRGB(mult2, "input2", 2.0f, 2.0f,2.0f);
-        AiNodeSetRGB(mult3, "input1", 0.15f, 0.15f,0.150f);
-        AiNodeSetRGB(adapter, "input2", 0.1f, 0.1f,0.1f);
-        AiNodeSetRGB(divide, "input2", 40.0f, 40.0f,40.0f);
-        AiNodeLink(mult1, "input1", add);
-        AiNodeLink(mult2, "input2", add);
-        AiNodeLink(add, "input1", divide);
-        AiNodeLink(divide, "input2", mult3);
-        AiNodeLink(mult3, "input1" , adapter);
-    }
-    else if ( strcmp(type ,"HairPhysicalShaderSpecularGlossAdapter") == 0 )
-    {
-        AtNode* mult = AddArnoldNode("multiply", type);
-        AtNode* divide = AddArnoldNode("divide", (std::string(input) +std::string("_divide")).c_str());
-        adapter = AddArnoldNode("min", (std::string(input) +std::string("_min")).c_str() /*tag*/);
-        AiNodeSetRGB(mult, "input1", 3.5f, 3.5f,3.50f);
-        AiNodeSetRGB(mult, "input2", 3.5f, 3.5f,3.50f);
-        AiNodeSetRGB(divide, "input1", 3000.0f, 3000.0f,3000.0f);
-        AiNodeSetRGB(adapter, "input2", 5000.0f, 5000.0f,5000.0f);
-        AiNodeLink(mult, "input2", divide);
-        AiNodeLink(divide, "input1", adapter);
-    }
-    
-    
-    assert(adapter);
-
-    // Link the adapter node to the input of the shader node
-    assert(!AiNodeIsLinked(shader, input));
-    AiNodeLink(adapter, input, shader);
-    assert(AiNodeGetLink(shader, input) == adapter);
-
-    return adapter;
-}
-
-AtNode* CHairPhysicalShaderTranslator::GetAdapterNode(const char* input)
-{
-    // Get the adapter node from the node map
-    AtNode* adapter = GetArnoldNode(input /*tag*/);
-    assert(adapter);
-    return adapter;
-}
-
 
 bool CHairPhysicalShaderTranslator::IsBlack(const char* plugName)
 {
