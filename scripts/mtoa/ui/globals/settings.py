@@ -499,12 +499,6 @@ def createGpuSettings():
         cmds.attrControlGrp('gpu', 
                     label="GPU Rendering (BETA)", 
                     attribute='defaultArnoldRenderOptions.gpu')
-        cmds.separator()
-        cmds.rowLayout(numberOfColumns=3, columnWidth3=(150, 100, 150), adjustableColumn=2, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0), (3, 'both', 0)])
-        cmds.button(label = 'Pre Populate GPU Cache', command = lambda *args : utils.populate_GPUCache() )
-        cmds.text(" ")
-        cmds.button(label = 'Abort GPU Cahe ', command = lambda *args : utils.terminate_GPUCache() )
-        cmds.setParent('..')
 
     cmds.frameLayout(label='Automatic Device Selection', collapse=False)
     cmds.attrControlGrp('gpu_default_names', 
