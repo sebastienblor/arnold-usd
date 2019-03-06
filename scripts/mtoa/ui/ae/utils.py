@@ -27,16 +27,18 @@ def arnoldDimControlIfFalse(node, target, source):
     cmds.editorTemplate(dimControl=(node, target, dim))
 
 def getNodeType(name):
-    nodeType = cmds.nodeType(name)
-    lights = ["directionalLight",
-                "pointLight",
-                "spotLight",
-                "areaLight"]
+    if cmds.objExists(name):
+        nodeType = cmds.nodeType(name)
+        lights = ["directionalLight",
+                    "pointLight",
+                    "spotLight",
+                    "areaLight"]
 
-    if nodeType in lights:
-        nodeType = 'light'
+        if nodeType in lights:
+            nodeType = 'light'
 
-    return nodeType
+        return nodeType
+    return None
 
 def loadAETemplates():
     templates = []

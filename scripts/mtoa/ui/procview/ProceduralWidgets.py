@@ -5,10 +5,8 @@ from mtoa.ui.qt.Qt import QtCore
 from mtoa.ui.qt import MtoAStyle, setStaticSize, clearWidget
 from mtoa.ui.qt.widgets import *
 from mtoa.ui.qt.treeView import *
+import mtoa.ui.ae.utils as utils
 import time
-
-#
-import traceback
 
 import maya.cmds as cmds
 
@@ -16,6 +14,7 @@ from mtoa.ui.procview.ProceduralTransverser import PROC_PATH, PROC_NAME, PROC_PA
                             PROC_INSTANCEPATH, PROC_ENTRY_TYPE, PROC_IOBJECT, \
                             OVERRIDE_OP, DISABLE_OP, COLLECTION_OP, NODE_TYPES,\
                             PARM, OP, VALUE, INDEX, OPERATOR
+
 
 OPERATORS = cmds.arnoldPlugins(listOperators=True) or []
 
@@ -78,10 +77,10 @@ class OperatorTreeModel(BaseModel):
         self.refresh()
 
     def refresh(self):
-        if not self.currentNode or \
-           not cmds.objExists(self.currentNode) or \
-           not self.transverser:
-            return
+        # if not self.currentNode or \
+        #    not cmds.objExists(self.currentNode) or \
+        #    not self.transverser:
+        #     return
 
         self.beginResetModel()
 
@@ -151,7 +150,7 @@ class OperatorItem(BaseItem):
         cmds.select(self.name, r=True)
 
     def getNodeType(self):
-        return cmds.nodeType(self.name)
+        return utils.getNodeType(self.name)
 
     def getLabelColor(self):
         if self.getNodeType() == COLLECTION_OP:
@@ -216,6 +215,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         # AddOverride Button
         self.toolBar = QtWidgets.QFrame()
         self.toolBar.setLayout(QtWidgets.QHBoxLayout())
+        self.toolBar.setEnabled(False)
         self.layout.addWidget(self.toolBar)
 
         self.addOverrideButton = QtWidgets.QPushButton("Add Assignment")
@@ -373,15 +373,18 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         return itemchanged
 
     def setNode(self, node):
-        if self.node != node:
+        changed = False
+        if self.node != node and cmds.objExists(node):
             self.node = node
-            return True
-        return False
+            changed = True
+        self.populateOperatorsList()
+        return changed
 
     def setItem(self, node, item):
         nodechanged = self.setNode(node)
-
+        print "ProceduralPropertiesPanel.setItem", nodechanged, node, item
         # itemchanged = self.setCurrentItem(item)
+
         itemchanged = False
         if self.item != item and (item is not None):
             self.item = item
@@ -389,6 +392,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             itemchanged = True
         elif nodechanged and item is None:
             self.item = None
+            self.operators_tree.setCurrentItem(None)
 
         if self.item and itemchanged:
             self.toolBar.setEnabled(True)
@@ -397,11 +401,11 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             self.getParams()
             self.addOverrideMenu()
             self.addOperatorMenu()
-            self.popualteOperatorsList()
-        elif nodechanged and not self.item:
+        elif self.item is None:
             self.object_label.setText("Select Item")
             self.toolBar.setEnabled(False)
-            self.popualteOperatorsList()
+
+        self.populateOperatorsList()
 
         self.refresh()
         # Tell the transverser that the selection has changed.
@@ -409,7 +413,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         if self.transverser and item:
             self.transverser.selectionChanged(node, [item.data])
 
-    def popualteOperatorsList(self):
+    def populateOperatorsList(self):
         self.operators_tree.setCurrentNode(self.node)
 
     def setShader(self, shader, create=False):
@@ -532,9 +536,12 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
             for pan in [self.inheritedOverridesPanel, self.localOverridesPanel]:
                 if pan.layout().count() == 0:
                     pan.setVisible(False)
+        else:
+            self.object_label.setText("Select Item")
+            self.toolBar.setEnabled(False)
 
-            # refresh the operators list
-            self.operators_tree.model().refresh()
+        # refresh the operators list
+        self.operators_tree.model().refresh()
 
     def getProperties(self, obj):
         pass
