@@ -14,6 +14,7 @@ node_parameters
     AiParameterFlt("intensityD", 1.0f);
 
     AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize

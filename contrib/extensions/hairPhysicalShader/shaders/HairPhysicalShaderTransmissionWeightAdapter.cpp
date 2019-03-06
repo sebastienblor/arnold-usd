@@ -17,6 +17,7 @@ node_parameters
 
     AiMetaDataSetBool(nentry, "azimuthalWidthTT", "linkable", false);
     AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+    AiMetaDataSetBool(nentry, NULL, "deprecated", true);
 }
 
 node_initialize
