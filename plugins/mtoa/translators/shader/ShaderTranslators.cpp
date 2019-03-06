@@ -1202,13 +1202,14 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
          opStr = "minus";
          break;   
       case OP_AVERAGE: 
-         opStr = "average";
+         opStr = "plus";
          break;
    }
    MFnDependencyNode fnNode(GetMayaObject());
 
    char aiAttr[64];
    MPlugArray connections;
+   unsigned int size = 1;
    for (unsigned int i = 1; i <= 8; ++i)
    {
       sprintf(aiAttr, "enable%u", i);
@@ -1219,7 +1220,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    {
       MPlug plug = FindMayaPlug("input1D");
             
-      unsigned int size = plug.numElements();
+      size = plug.numElements();
       if (size > 8)
       {
          AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
@@ -1253,7 +1254,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       MPlug plug = FindMayaPlug("input2D");
       MObject ox = fnNode.attribute("input2Dx");
       MObject oy = fnNode.attribute("input2Dy");
-      unsigned int size = plug.numElements();
+      size = plug.numElements();
       if (size > 8)
       {
          AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
@@ -1264,10 +1265,10 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       
       for (unsigned int i = 0; i < size; ++i)
       {
-         sprintf(aiAttr, "enable%u", i);
+         sprintf(aiAttr, "enable%u", i+1);
          AiNodeSetBool(shader, aiAttr, true);
          
-         sprintf(aiAttr, "input%u", i);
+         sprintf(aiAttr, "input%u", i+1);
          AiNodeSetRGBA(shader, aiAttr, plug[i].child(ox).asFloat(), plug[i].child(oy).asFloat(), 0.f, 1.f);
 
          connections.clear();
@@ -1291,8 +1292,11 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
             ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
          }
 
-         sprintf(aiAttr, "operation%u", i);
-         AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         if (i > 0)
+         {
+            sprintf(aiAttr, "operation%u", i+1);
+            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         }
       }
    } else if (m_inputSize == 3)
    {
@@ -1301,7 +1305,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       MObject oy = fnNode.attribute("input3Dy");
       MObject oz = fnNode.attribute("input3Dz");
 
-      unsigned int size = plug.numElements();
+      size = plug.numElements();
       if (size > 8)
       {
          AiMsgWarning("[mtoa.translator] %s : a maximum of 8 inputs is supported for PlusMayaAverage inputs", fnNode.name().asChar());
@@ -1346,10 +1350,20 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
             compAttr += std::string(".b");
             ShaderComputeLink(this, connections[0], shader, compAttr.c_str());
          }
-         sprintf(aiAttr, "operation%u", i+1);
-         AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         if (i > 0)
+         {
+            sprintf(aiAttr, "operation%u", i+1);
+            AiNodeSetStr(shader, aiAttr, opStr.c_str());
+         }
       }      
 
+   }
+   if (operation == OP_AVERAGE)
+   {
+      AiNodeUnlink(shader, "input8");
+      AiNodeSetStr(shader, "operation8", "divide");
+      AiNodeSetRGBA(shader, "input8", float(size), float(size), float(size), 1.f);
+      AiNodeSetBool(shader, "enable8", true);
    }
    
   

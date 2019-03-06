@@ -217,6 +217,7 @@ void CHairTranslator::Export( AtNode *curve )
             AiNodeSetRGB(shader, "transmission_tint", translucence, translucence, translucence);
          }
          ProcessParameter(shader, "specular_tint", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
+         AiNodeSetRGB(shader, "specular2_tint", 0.f, 0.f, 0.f);
          float specRoughness = fnDepNodeHair.findPlug("specularPower").asFloat();
          AiNodeSetFlt(shader, "roughness", 1.f / specRoughness);
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse", true);
