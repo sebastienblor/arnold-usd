@@ -338,7 +338,10 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
         self.setNewOverride(param)
 
     def setNewOverride(self, param):
-        op = self.getItemOverrideOperator(True)
+        ops = self.getItemOverrideOperator(True)
+        if not type(ops) == list:
+            ops = [ops]
+        op = ops[-1] # always use the last operator
         if param == "shader":
             self.addShader()
         elif param == "displacement":
@@ -507,11 +510,15 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.resetShadingWidgets()
         if self.item:
+            path = self.item.data[PROC_PATH]
             for override in self.getOverrides():
                 # FIXME what if the user wants to connect a shader from inside the procedural?
                 operator = override[OPERATOR]
                 index = override[INDEX]
-                inherited = operator != self.getItemOverrideOperator()
+                ops = self.getItemOverrideOperator()
+                if not type(ops) == list:
+                    ops = [ops]
+                inherited = operator not in ops
 
                 if override[PARM] in [SHADER, "disp_map"]:
                     # set the shader slot
@@ -596,7 +603,13 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
     @QtCore.Slot(str, str, float, int)
     def setOverride(self, param, op, value, index=-1, operator=None):
         if not operator:
-            operator = self.getItemOverrideOperator()
+            ops = self.getItemOverrideOperator()
+            if not type(ops) == list:
+                ops = [ops]
+            if not len(ops):
+                return
+            operator = ops[-1]
+
         param_type = None
         is_array = False
         data = self.getData(self.item)

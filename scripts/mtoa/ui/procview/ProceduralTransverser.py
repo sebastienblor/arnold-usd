@@ -208,7 +208,15 @@ class ProceduralTransverser(BaseTransverser):
         index = 0
 
         parent_op = item.getOverridesOp(True)
-        parent_index = self.getOperatorIndex(node, parent_op)
+        if not type(parent_op) == list:
+            parent_op = [parent_op]
+
+        parent_index = -1
+        for p_op in parent_op:
+            p_idx = self.getOperatorIndex(node, p_op)
+            if p_idx > parent_index:
+                parent_index = p_idx
+
         if parent_index > -1:
             index = parent_index + 1
 
