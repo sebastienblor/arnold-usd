@@ -897,13 +897,13 @@ void CCheckerTranslator::Export(AtNode* shader)
             ProcessParameter(uvTransformNode, "mirror_v", AI_TYPE_BOOLEAN, srcNodeFn.findPlug("mirrorV", true));
 
             if (srcNodeFn.findPlug("wrapU", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "periodic");
+               AiNodeSetStr(uvTransformNode, "wrap_frame_u", "none");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_u", "color");
                
 
             if (srcNodeFn.findPlug("wrapV", true).asBool())
-               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "periodic");
+               AiNodeSetStr(uvTransformNode, "wrap_frame_v", "none");
             else
                AiNodeSetStr(uvTransformNode, "wrap_frame_v", "color");
             
@@ -1995,33 +1995,62 @@ bool CProjectionTranslator::RequiresColorCorrect() const
 
 AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaPlace2DTexture");
+   AddArnoldNode("utility", "uv");
+   return AddArnoldNode("uv_transform");
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "translateFrame", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "repeatUV", AI_TYPE_VECTOR2);
-   ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offsetUV", AI_TYPE_VECTOR2, "offset");
-   ProcessParameter(shader, "noiseUV", AI_TYPE_VECTOR2);
+   AtNode *utility = GetArnoldNode("uv");
+   AiNodeSetStr(utility, "color_mode", "uv");
+   AiNodeSetStr(utility, "shade_mode", "flat");
+   AiNodeLink(utility, "passthrough", shader);
 
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray connections;
+   AiNodeSetStr(shader, "uvset", "");
    fnNode.findPlug("uvCoord", true).connectedTo(connections, true, false);
    if (connections.length() > 0)
    {
       MFnDependencyNode uvcNodeFn(connections[0].node());
       if (uvcNodeFn.typeName() == "uvChooser")
-         AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
+         AiNodeSetStr(shader, "uvset", uvcNodeFn.findPlug("uvSets", true).elementByPhysicalIndex(0).asString().asChar());
    }
+   ProcessParameter(shader, "coverage", AI_TYPE_VECTOR2, fnNode.findPlug("coverage", true));
+   ProcessParameter(shader, "mirror_u", AI_TYPE_BOOLEAN, fnNode.findPlug("mirrorU", true));
+   ProcessParameter(shader, "mirror_v", AI_TYPE_BOOLEAN, fnNode.findPlug("mirrorV", true));
+
+   if (fnNode.findPlug("wrapU", true).asBool())
+      AiNodeSetStr(shader, "wrap_frame_u", "none");
+   else
+      AiNodeSetStr(shader, "wrap_frame_u", "color");
+      
+
+   if (fnNode.findPlug("wrapV", true).asBool())
+      AiNodeSetStr(shader, "wrap_frame_v", "none");
+   else
+      AiNodeSetStr(shader, "wrap_frame_v", "color");
+   
+   ProcessParameter(shader, "wrap_frame_color", AI_TYPE_RGBA, "defaultColor");   
+   if (!AiNodeIsLinked(shader, "wrap_frame_color")) // Force a transparent alpha on the defaultColor
+   {
+      AtRGBA col = AiNodeGetRGBA(shader, "wrap_frame_color");
+      AiNodeSetRGBA(shader, "wrap_frame_color", col.r, col.g, col.b, 0.f);
+   }
+
+   // if not linked, set alpha to zero
+   ProcessParameter(shader, "repeat", AI_TYPE_VECTOR2, fnNode.findPlug("repeatUV", true));
+   ProcessParameter(shader, "offset", AI_TYPE_VECTOR2, fnNode.findPlug("offset", true));
+
+
+   float rotateFrame = fnNode.findPlug("rotateFrame", true).asFloat();
+   AiNodeSetFlt(shader, "rotate_frame", rotateFrame * 180.f / AI_PI);
+   //ProcessParameter(shader, "rotate_frame", AI_TYPE_FLOAT, fnNode.findPlug("rotateFrame"));
+   ProcessParameter(shader, "translate_frame", AI_TYPE_VECTOR2, fnNode.findPlug("translateFrame", true));
+   float rotateUV = fnNode.findPlug("rotateUV", true).asFloat();
+   AiNodeSetFlt(shader, "rotate", rotateUV * 180.f / AI_PI);
+   ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN, fnNode.findPlug("stagger", true));
+   ProcessParameter(shader, "noise", AI_TYPE_VECTOR2, fnNode.findPlug("noiseUV", true));
 }
 
 // LayeredTexture

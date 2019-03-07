@@ -82,6 +82,7 @@ node_parameters
    AiParameterStr("uvSetName", "");
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
 }
 
