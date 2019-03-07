@@ -247,6 +247,7 @@ class ProceduralItem(BaseItem):
             self.itemType = self.OBJECT_TYPE
             self.setOverridesOp()
 
+        # this item is an operator, TODO make it's own Item class
         elif self.operator:
             name = self.operator
             self.itemType = self.OPERATOR_TYPE
@@ -281,7 +282,7 @@ class ProceduralItem(BaseItem):
             collections = self.transverser.getCollections(self.node, self.data[PROC_PATH], True)
             ops = self.transverser.getOperators(self.node, self.data[PROC_PATH], OVERRIDE_OP, True, collections)
         if len(ops):
-            self.overrides_op = ops[0]
+            self.overrides_op = ops
         else:
             self.overrides_op = None
         return self.overrides_op
