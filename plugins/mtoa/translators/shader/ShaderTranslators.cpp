@@ -1,5 +1,6 @@
 #include "ShaderTranslators.h"
 #include "platform/Platform.h"
+#include "../../common/UnorderedContainer.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -3431,19 +3432,19 @@ CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType,
 
 }
 
-void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
+void CMayaShadingSwitchTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shadingSwitch, "default", m_paramType, "default");
-   std::vector<AtNode*> inputs;
-   std::vector<AtNode*> shapes;
-
    MFnDependencyNode dnode(GetMayaObject());
+
+   unordered_map<std::string, std::vector<AtNode *> > shapeMap;
 
    MPlug inputPlug = dnode.findPlug("input", true);
    MIntArray existingIndices;
    inputPlug.getExistingArrayAttributeIndices(existingIndices);
    if (existingIndices.length() == 0)
       return;
+
+   // First build a map for all the shapes and the corresponding shaders
    for (unsigned int i = 0; i < existingIndices.length(); ++i)
    {
       MPlug currentInputPlug = inputPlug.elementByLogicalIndex(existingIndices[i]);      
@@ -3464,41 +3465,144 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
       AtNode* shape = ExportConnectedNode(inputShapePlug);
       if (shape == 0)
          continue;
-      inputs.push_back(shader);
-      shapes.push_back(shape);
+
+      shapeMap[AiNodeGetName(shader)].push_back(shape);
+      
    }
-   if (inputs.size() == 0)
+
+   if (shapeMap.empty())
       return;
-   AiNodeSetArray(shadingSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
-   AiNodeSetArray(shadingSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+
+   unordered_map<std::string, std::vector<AtNode *> >::iterator it = shapeMap.begin();
+   unordered_map<std::string, std::vector<AtNode *> >::iterator itEnd = shapeMap.end();
+
+   int ind = 0;
+   AtNode *previousSwitch = NULL;
+      
+   for (; it != itEnd; ++it)
+   {
+      const std::vector<AtNode*> &shapes = it->second;
+      if (shapes.empty())
+         continue;
+      
+      AtNode *shapeShader = AiNodeLookUpByName(it->first.c_str());
+      if (shapeShader == NULL)
+         continue;
+      
+      // Get a query_shape shader and set the list of shapes
+      MString queryKey = "query";
+      queryKey += (ind + 1);
+      AtNode *query = GetArnoldNode(queryKey.asChar());
+      if (query == NULL)
+         query = AddArnoldNode("query_shape", queryKey.asChar());
+
+      AiNodeSetArray(query, "shapes", AiArrayConvert((unsigned int) shapes.size(), 1, AI_TYPE_NODE, &(shapes[0])));
+
+      // Now get the switch_rgba shader
+      MString switchKey = "switch";
+      switchKey += (ind + 1);
+
+      AtNode *switch_rgba = (previousSwitch == NULL) ? shader : GetArnoldNode(switchKey.asChar());
+      if (switch_rgba == NULL)
+         switch_rgba = AddArnoldNode("switch_rgba", switchKey.asChar());
+
+      AiNodeLink(query, "index", switch_rgba);
+      // if condition is verified, we'll have index one, zero otherwise
+      AiNodeLink(shapeShader, "input1", switch_rgba);
+
+      if (previousSwitch)
+      {
+         // link this new layer_rgba shader to previous one's input0
+         // so that it's only called if the previous condition was false
+         AiNodeLink(switch_rgba, "input0", previousSwitch);
+      }
+      
+      previousSwitch = switch_rgba;
+      ind++;
+   }
+   // We did all the shapes, now let's set the default value on the last switch input0
+   if (previousSwitch)
+   {
+      MPlugArray connections;
+      MPlug plug = FindMayaPlug("default");
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         ShaderComputeLink(this, connections[0], previousSwitch, "input0");
+      else
+      {
+         std::vector<std::string> compInputs(3);
+         compInputs[0] = "input0.r";
+         compInputs[1] = "input0.g";
+         compInputs[2] = "input0.b";
+         switch(m_paramType)
+         {
+            {
+            case AI_TYPE_FLOAT:
+               float val = plug.asFloat();
+               AiNodeSetRGBA(previousSwitch, "input0", val, val, val, 1.f);
+               break;
+            }
+            {
+            case AI_TYPE_VECTOR2:
+               AiNodeSetRGBA(previousSwitch, "input0", plug.child(0).asFloat(), plug.child(1).asFloat(), 0.f, 1.f);
+               for (int c = 0; c < 2; ++c)
+               {
+                  connections.clear();
+                  plug.child(c).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                     ShaderComputeLink(this, connections[0], previousSwitch, compInputs[c].c_str());
+
+               }
+            break;
+            }
+            {
+            case AI_TYPE_RGB:
+               AiNodeSetRGBA(previousSwitch, "input0", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.f);
+               for (int c = 0; c < 3; ++c)
+               {
+                  connections.clear();
+                  plug.child(c).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                     ShaderComputeLink(this, connections[0], previousSwitch, compInputs[c].c_str());
+
+               }
+            break;
+            }
+            {
+            default:
+            case AI_TYPE_RGBA:
+               ProcessParameter(previousSwitch, "input0", AI_TYPE_RGBA, "default");
+               break;
+            }
+         }
+      }      
+   }
 }
 
 AtNode* CMayaShadingSwitchTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode(m_nodeType.c_str());
+   return AddArnoldNode("switch_rgba");
 }
 
 void* CreateSingleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaSingleShadingSwitch", AI_TYPE_FLOAT);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_FLOAT);
 }
 
 void* CreateDoubleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_VECTOR2);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_VECTOR2);
 }
 
 void* CreateTripleShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaTripleShadingSwitch", AI_TYPE_RGB);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_RGB);
 }
 
 void* CreateQuadShadingSwitchTranslator()
 {
-   return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
+   return new CMayaShadingSwitchTranslator("switch_rgba", AI_TYPE_RGBA);
 }
-
-
 
 
 // Toon

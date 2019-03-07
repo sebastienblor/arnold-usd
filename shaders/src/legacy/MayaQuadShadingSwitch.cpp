@@ -3,16 +3,18 @@
 
 #include "MayaSwitchUtils.h"
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaTripleShadingSwitchMtd);
+AI_SHADER_NODE_EXPORT_METHODS(MayaQuadShadingSwitchMtd);
 
 node_parameters
 {
-   AiParameterRGB("default", 0.8f, 0.8f, 0.8f);
+   AiParameterRGBA("default", 0.8f, 0.8f, 0.8f, 1.0f);
    AiParameterArray("inputs", AiArrayAllocate(0, 1, AI_TYPE_NODE));
    AiParameterArray("shapes", AiArrayAllocate(0, 1, AI_TYPE_NODE));
 
    AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
    AiMetaDataSetBool(nentry, NULL, "maya.attrs", false);
+   AiMetaDataSetBool(nentry, NULL, "deprecated", true);
+
 }
 
 node_initialize
@@ -33,5 +35,5 @@ node_finish
 shader_evaluate
 {
    if (EvaluateShadingSwitch(sg, node))
-      sg->out.RGB() = AiShaderEvalParamRGB(0);
+      sg->out.RGBA() = AiShaderEvalParamRGBA(0);
 }

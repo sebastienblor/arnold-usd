@@ -3570,6 +3570,8 @@ desc STRING "Apply a gamma correction to the color."
 [node maya_layered_shader]
     maya.hide BOOL TRUE
 
+[node query_shape]
+    maya.hide BOOL TRUE
 
 
 
