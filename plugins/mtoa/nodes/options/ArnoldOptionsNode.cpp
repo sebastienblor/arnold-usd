@@ -395,7 +395,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_mb_object_deform_enable);
 
-   s_mb_shader_enable = nAttr.create("mb_shader_enable", "mb_sen", MFnNumericData::kBoolean, 1);
+   s_mb_shader_enable = nAttr.create("mb_shader_enable", "mb_sen", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_mb_shader_enable);
 
