@@ -111,7 +111,7 @@ MStatus CArnoldExportToMaterialXCmd::doIt(const MArgList& argList)
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
    
-   AiMaterialxWrite(NULL, AtString(filename.asChar()), AtString(lookName.asChar()), true, AtString(properties.asChar()));
+   AiMaterialxWrite(NULL, filename.asChar(), lookName.asChar(), properties.asChar(), true);
 
    CMayaScene::End();
    return MS::kSuccess;
