@@ -18,6 +18,7 @@
 #include <string.h> // for memset.
 #include <string>
 #include <algorithm>
+#include <cctype>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -527,7 +528,7 @@ bool CRenderSwatchGenerator::DoSwatchRender()
       CMayaScene::End();
       return true;
    }
-
+   CMayaScene::End();
    return returnResult(status);
 }
 
@@ -542,90 +543,120 @@ bool CRenderSwatchGenerator::DoNoGPUImage()
    return returnResult(stat);
 }
 
+bool CRenderSwatchGenerator::DoStaticImage()
+{
+   MString iconsPath = MString(getenv("MTOA_PATH")) +MString ("icons//") ;
+   MString noGpuPath = iconsPath + MString ("arnold.png");
+   MStatus stat =  image().readFromFile(noGpuPath);
+   image().verticalFlip();
+   image().resize(resolution(), resolution());
+   
+   return returnResult(stat);
+}
+
 
 bool CRenderSwatchGenerator::doIteration()
 {
-   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR || CMayaScene::GetSessionMode() == MTOA_SESSION_BATCH )
+   if (CMayaScene::GetSessionMode() == MTOA_SESSION_BATCH )
+      return true; // shouldn't even be here in batch
+   
+
+   MObject mayaNode = swatchNode();
+   MObject arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+
+   if (arnoldRenderOptionsNode.isNull())
    {
+      MGlobal::executePythonCommand("import mtoa.core;mtoa.core.createOptions()"); 
+      arnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+   }
+
+   bool isGPU = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("renderDevice", true).asInt() > 0 ;
+   bool sceneSwatch = MFnDependencyNode(arnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
+   
+   if (!sceneSwatch && !isGPU)
+   {
+      DoStaticImage();
+      return true;
+   }
+   bool universeExists = AiUniverseIsActive();
+   // If no universe already exists, we should start a session
+   if (!universeExists)
+      CMayaScene::Begin(MTOA_SESSION_SWATCH);
+
+   MFnDependencyNode depNode(mayaNode);
+   std::string nodeType = depNode.typeName().asChar();
+   MString arnoldType;
+   // In the most common case, we can easily get the name of the arnold node entry
+   // from the maya node type (e.g. aiStandardSurface -> standard_surface)
+   if (nodeType.length() > 2 && nodeType[0] == 'a' && nodeType[1] == 'i')
+   {
+      std::string arnoldTypeStr;
+      arnoldTypeStr.reserve(nodeType.length() * 2);
+      for (size_t i = 2; i < nodeType.length(); ++i)
+      {
+         if (i > 2 && std::isupper(nodeType[i]))
+            arnoldTypeStr.push_back('_');
+         arnoldTypeStr.push_back(nodeType[i]);
+      }
+      arnoldType = arnoldTypeStr.c_str();
+      arnoldType.toLowerCase();
+   }
+   // Get the AtNodeEntry for this type name
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnoldType.asChar());
+   if (nodeEntry == NULL)
+   {
+      // We didn't find the arnold node entry, let's loop over the known node entries and see
+      // if one of them has the maya.name metadata pointing to our maya node type
+      AtString arnoldAStr(arnoldType.asChar());
+      AtNodeEntryIterator* nodeEntryIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+      AtString mayaNameMtd;
+      while (!AiNodeEntryIteratorFinished(nodeEntryIter))
+      {
+         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeEntryIter);
+         if (!AiMetaDataGetStr(nentry, NULL, "maya.name", &mayaNameMtd))
+            continue;
+         if (mayaNameMtd == arnoldAStr)
+         {
+            nodeEntry = nentry;
+            break;
+         }
+      }
+      AiNodeEntryIteratorDestroy(nodeEntryIter);
+   }
+   if (nodeEntry == NULL)
+   {
+      DoStaticImage();
       return true;
    }
 
+   bool gpuRenderCompatibility = true;
 
-   MObject mayaNode = swatchNode();
-   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
-
-   // Creating a session here to get some information about the Arnold node that 
-   // we may need to create a swatch render for
+   // Do we only want to show the no-gpu icon when gpu is enabled ?
+   if (isGPU)
+      AiMetaDataGetBool(nodeEntry, NULL, "gpu_support", &gpuRenderCompatibility);
    
-   CMayaScene::Begin(MTOA_SESSION_SWATCH);
-   AtNode* arnoldNode = NULL;
-   CNodeTranslator* translator = NULL;
-   translator = CExtensionsManager::GetTranslator(mayaNode);
-   CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
-   if (NULL != translator)
+   bool doSwatch = sceneSwatch && (AiNodeEntryGetType(nodeEntry) == AI_NODE_SHADER);
+   AiMetaDataGetBool(nodeEntry, NULL, "maya.swatch", &doSwatch);
+   
+   // if a universe was created, let's clear it
+   if (!universeExists)
+      CMayaScene::End();
+
+   if (!gpuRenderCompatibility)
    {
-      translator->m_impl->Init(exportSession, mayaNode, "");
-      arnoldNode = translator->m_impl->DoExport();
+      // if GPU is not supported for this node entry, we'll always show the no-gpu image
+      DoNoGPUImage();
+   } else if (doSwatch && !universeExists)
+   {      
+      // if swatch is enabled and no render is in progress, we can start a swatch rendering
+      DoSwatchRender();
+   }
+   else
+   {
+      // fallback behaviour, show a static image
+      DoStaticImage();
    }
 
-   bool gpuRenderCompatibility = true;
-   bool doSwatch = true;
-   bool isGPU = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("renderDevice", true).asInt() > 0 ;
-   bool sceneSwatch = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
-   
-   AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), NULL, "gpu_support", &gpuRenderCompatibility);
-   AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), NULL, "maya.swatch", &doSwatch);
-   CMayaScene::End();
-
-      // Start, must build the swatch scene
-      // Arnold can only render one thing at a time. It may be an option to block/wait here,
-      // but only if it's another swatch render taking place. We don't want to end the
-      // current session there
-
-      if (CMayaScene::IsActive())
-      {
-         // Other export or rendering process in progress.
-         // Wait if it's another swatch, abort else.
-         if (CMayaScene::GetSessionMode() == MTOA_SESSION_SWATCH)
-         {
-            return false;
-         }
-         else
-         {
-            return true;
-         }
-      }
-
-      if (sceneSwatch && doSwatch )
-      {
-         if (isGPU )
-         {
-            if ( gpuRenderCompatibility)
-               {
-                  return DoSwatchRender();
-               }
-            else 
-            {
-               return DoNoGPUImage();
-            }
-         }
-         else
-         {
-            return DoSwatchRender();
-         }
-      }
-      else
-      {
-         if ( isGPU && !gpuRenderCompatibility )
-         {
-            return DoNoGPUImage();
-         }
-         else
-         {
-            return DoStaticImage();
-         }
-      }
-   // we'll never get here
    return true;
 }
 

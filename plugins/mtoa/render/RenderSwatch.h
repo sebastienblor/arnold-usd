@@ -94,7 +94,7 @@ private:
    
    bool DoNoGPUImage();
 
-   bool DoStaticImage() { return true ; } // Is a dummy for now
+   bool DoStaticImage();
 
 
 private:
