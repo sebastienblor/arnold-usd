@@ -60,7 +60,7 @@ class MtoAButton(QtWidgets.QAbstractButton):
         if event.type() == QtCore.QEvent.ToolTip:
             QtWidgets.QToolTip.showText(event.globalPos(), self.toolTip())
             return True
-        if event.type() == QtCore.QEvent.MouseButtonPress and not self.isEnabled():
+        if event.type() in [QtCore.QEvent.MouseButtonPress, QtCore.QEvent.MouseButtonDblClick] and not self.isEnabled():
             return False
 
         return super(QtWidgets.QAbstractButton, self).event(event)
