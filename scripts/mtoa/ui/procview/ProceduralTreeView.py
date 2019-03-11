@@ -431,7 +431,6 @@ class ProceduralItem(BaseItem):
             children = self.transverser.dir(self.data[PROC_IOBJECT])
             if children:
                 for child in children:
-                    print child
                     ProceduralItem(self, self.transverser, self.node, data=child)
 
         self.childrenObtained = True
