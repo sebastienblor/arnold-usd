@@ -25,7 +25,6 @@ class ProceduralTreeView(BaseTreeView):
     def __init__(self, transverser, parent=None):
         super(ProceduralTreeView, self).__init__(parent)
         self.transverser = transverser
-        self.currentItems = []
 
         model = ProceduralTreeModel(self, self.transverser)
         self.setModel(model)
@@ -36,10 +35,9 @@ class ProceduralTreeView(BaseTreeView):
 
         self.expanded.connect(self.onExpanded)
 
-    def setTransverser(self, transverser):
+    def setTransverser(self, transverser, refresh=True):
         self.transverser = transverser
-        currentItems = []
-        self.model().setTransverser(transverser)
+        self.model().setTransverser(transverser, refresh)
 
     def setCurrentNode(self, node, expand=True):
         """Clear the widget and generate the view of the new node."""
@@ -55,8 +53,10 @@ class ProceduralTreeView(BaseTreeView):
         if not index.isValid():
             return
 
-        # Load the objects of the children items
         item = index.internalPointer()
+        # refresh the children of this item if needed
+        item.obtainChildren()
+        # Load the objects of the children items
         for i in range(item.childCount()):
             child = item.child(i)
             child.obtainChildren()
@@ -123,23 +123,25 @@ class ProceduralTreeModel(BaseModel):
         # call the base class init and refresh the data
         super(ProceduralTreeModel, self).__init__(treeView, parent)
 
-    def setTransverser(self, transverser):
+    def setTransverser(self, transverser, refresh=True):
         self.transverser = transverser
         self.iarch = None
-        self.refresh()
+        if refresh:
+            self.refresh()
 
     def refresh(self):
         if not self.currentNode or not cmds.objExists(self.currentNode) or not self.transverser:
             return
 
         self.beginResetModel()
-
+        print "ProceduralTreeModel.refresh", self.transverser, self.currentNode
         self.rootItem = ProceduralItem(None, self.transverser, self.currentNode, self)
         self.rootItem.obtainChildren()
 
         self.endResetModel()
 
     def setCurrentNode(self, node):
+        print "ProceduralTreeModel.setCurrentNode", node
         if self.currentNode != node:
             self.currentNode = node
             return True
@@ -198,11 +200,12 @@ class ProceduralItem(BaseItem):
     MESH_ICON = QtGui.QPixmap(":/out_mesh.png")
     POINTS_ICON = QtGui.QPixmap(":/out_particle.png")
     CURVES_ICON = QtGui.QPixmap(":/nurbsCurve.svg")
+    INSTANCE_ICON = QtGui.QPixmap(":/out_instancer.png")
     UNKNOWN_ICON = QtGui.QPixmap(":/question.png")
 
     COLOR_OBJECT = QtGui.QColor(113, 142, 164)
     COLOR_OPERATOR = QtGui.QColor(18, 54, 82)
-    COLOR_UNDIFINE = QtGui.QColor(0, 0, 0)
+    COLOR_UNDEFINED = QtGui.QColor(0, 0, 0)
 
     (ACTION_EXPAND,  # Always first
      ACTION_NONE,
@@ -303,6 +306,8 @@ class ProceduralItem(BaseItem):
             return self.POINTS_ICON
         elif self.data[PROC_ENTRY_TYPE] == 'curves':
             return self.CURVES_ICON
+        elif self.data[PROC_ENTRY_TYPE] == 'ginstance':
+            return self.INSTANCE_ICON
         elif self.childItems:
             return self.GROUP_ICON
         return self.UNKNOWN_ICON
@@ -392,7 +397,7 @@ class ProceduralItem(BaseItem):
         if not tranverse:
             # get the overrides just for this node
             if self.data:
-                return self.transverser.getOverrides(self.node, self.data[PROC_PATH], exact_match=True)
+                return self.transverser.getOverrides(self.getNode(), self.data[PROC_PATH], exact_match=True)
             return []
         else:
             overrides = []
@@ -419,15 +424,16 @@ class ProceduralItem(BaseItem):
 
             # For now we don't show the operators in the hierarchy, we need to make it an option
             if self.transverser.showOperatorItems():
-                collections = self.transverser.getCollections(self.node, self.data[PROC_PATH])
-                operators = self.transverser.getOperators(self.node, self.data[PROC_PATH], collections=collections)
+                collections = self.transverser.getCollections(self.getNode(), self.data[PROC_PATH])
+                operators = self.transverser.getOperators(self.getNode(), self.data[PROC_PATH], collections=collections)
                 if operators:
                     for op in operators:
-                        ProceduralItem(self, self.transverser, self.node, operator=op)
+                        ProceduralItem(self, self.transverser, operator=op)
 
             children = self.transverser.dir(self.data[PROC_IOBJECT])
             if children:
                 for child in children:
+                    print child
                     ProceduralItem(self, self.transverser, self.node, data=child)
 
         self.childrenObtained = True
@@ -448,11 +454,3 @@ class ProceduralItem(BaseItem):
         # FIXME for now we're not showing the operator in the hierarchy, we need to make it an option
         if self.transverser.showOperatorItems():
             op_item = ProceduralItem(self, self.transverser, self.node, operator=operator, index=0)
-
-        # model = self.getModel()
-        # if model:
-        #     index = model.indexFromItem(self)
-        #     model.executeAction(ProceduralItem.ACTION_EXPAND, index)
-        # model = self.getModel()
-        # index = model.indexFromItem(self)
-        # model.setData(index, operator, OVERRIDE)

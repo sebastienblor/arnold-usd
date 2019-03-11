@@ -190,8 +190,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
             transverser = StandInTransverser()
         
         transverser.selectionAttr = 'selected_items' # attribute to be updated when the selection changes
-        self.tree.setTransverser(transverser)
+        # setting refresh to False forces the tranverser not to refresh the tree
+        self.tree.setTransverser(transverser, refresh=False)
         self.properties_panel.setTransverser(transverser)
+        # setting node triggers the refresh
         self.tree.setCurrentNode(self.nodeName, expand)
         self.properties_panel.setNode(self.nodeName)
 
