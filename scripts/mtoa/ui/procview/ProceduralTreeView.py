@@ -134,14 +134,12 @@ class ProceduralTreeModel(BaseModel):
             return
 
         self.beginResetModel()
-        print "ProceduralTreeModel.refresh", self.transverser, self.currentNode
         self.rootItem = ProceduralItem(None, self.transverser, self.currentNode, self)
         self.rootItem.obtainChildren()
 
         self.endResetModel()
 
     def setCurrentNode(self, node):
-        print "ProceduralTreeModel.setCurrentNode", node
         if self.currentNode != node:
             self.currentNode = node
             return True
