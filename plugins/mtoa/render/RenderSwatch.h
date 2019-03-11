@@ -90,7 +90,6 @@ private:
    /// Creates a polygon sphere.
    AtNode* PolySphere();
 
-   // MStatus GetArnoldNode (MObject node, AtNode* & arnoldNode);
    bool DoSwatchRender();
    
    bool DoNoGPUImage();

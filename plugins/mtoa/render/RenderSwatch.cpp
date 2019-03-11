@@ -119,6 +119,13 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
    }
 }
 
+bool returnResult(MStatus status)
+{
+   if (status == MStatus::kSuccess) { return true;}
+   else {return false ;}
+}
+
+
 MStatus CRenderSwatchGenerator::BuildArnoldScene()
 {
    MStatus status;
@@ -484,27 +491,6 @@ void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
    ClearSwatch();
 }
 
-// {
-//    MStatus GetArnoldNode (MObject node, AtNode* arnoldNode)
-//    {
-//       CMayaScene::Begin(MTOA_SESSION_SWATCH);
-//       CNodeTranslator* translator = NULL;
-//       translator = CExtensionsManager::GetTranslator(mayaNode);
-//       CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
-//       if (NULL != translator)
-//       {
-//          translator->m_impl->Init(exportSession, mayaNode, "");
-//          arnoldNode = translator->m_impl->DoExport();
-//       }
-//       CMayaScene::End();
-//       if ( arnoldNode == NULL )
-//       {
-//          return MStatus::kFailure;
-//       }
-//       return MStatus::kSuccess ;
-//    }
-// }
-
 bool CRenderSwatchGenerator::DoSwatchRender()
 {
    MStatus status ;
@@ -541,6 +527,8 @@ bool CRenderSwatchGenerator::DoSwatchRender()
       CMayaScene::End();
       return true;
    }
+
+   return returnResult(status);
 }
 
 bool CRenderSwatchGenerator::DoNoGPUImage()
@@ -550,21 +538,25 @@ bool CRenderSwatchGenerator::DoNoGPUImage()
    MStatus stat =  image().readFromFile(noGpuPath);
    image().verticalFlip();
    image().resize(resolution(), resolution());
-   return true;
+   
+   return returnResult(stat);
 }
 
 
 bool CRenderSwatchGenerator::doIteration()
 {
-   MStatus status;
-   MObject mayaNode = swatchNode();
-   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
-
-   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR)
+   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR || CMayaScene::GetSessionMode() == MTOA_SESSION_BATCH )
    {
       return true;
    }
 
+
+   MObject mayaNode = swatchNode();
+   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+
+   // Creating a session here to get some information about the Arnold node that 
+   // we may need to create a swatch render for
+   
    CMayaScene::Begin(MTOA_SESSION_SWATCH);
    AtNode* arnoldNode = NULL;
    CNodeTranslator* translator = NULL;
@@ -578,7 +570,7 @@ bool CRenderSwatchGenerator::doIteration()
 
    bool gpuRenderCompatibility = true;
    bool doSwatch = true;
-   bool isGPU = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("renderDevice", true).asBool();
+   bool isGPU = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("renderDevice", true).asInt() > 0 ;
    bool sceneSwatch = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render", true).asBool();
    
    AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), NULL, "gpu_support", &gpuRenderCompatibility);
