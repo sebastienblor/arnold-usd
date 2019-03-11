@@ -3,6 +3,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiVolumeSampleFloatTemplate(ShaderAETemplate):
     def setup(self):
+        self.addSwatch()
         self.beginScrollLayout()
         
         self.beginLayout('Volume Sample Float Attributes', collapse=False)

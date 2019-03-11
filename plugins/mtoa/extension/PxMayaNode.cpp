@@ -461,14 +461,15 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          }
       }
       // should we use swatch to preview this node
-      bool doSwatch = (!isAutoProcedural); // we don't want swatches on procedurals by default
-      AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch); 
-      
+      // bool doSwatch = (!isAutoProcedural); // we don't want swatches on procedurals by default
+      // AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch); 
+      // doSwatch = true;
+
       if (strlen(classificationMtd))
       {
          classification = MString(classificationMtd);
          classification += MString(":") + ARNOLD_CLASSIFY(classification);
-         if (doSwatch) classification += MString(":swatch/") + ARNOLD_SWATCH;
+         classification += MString(":swatch/") + ARNOLD_SWATCH;
       }
       if (drawdbClassification.numChars() != 0)
          classification += drawdbClassification;

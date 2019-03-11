@@ -3,6 +3,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiUserDataStringTemplate(ShaderAETemplate):
     def setup(self):
+        self.addSwatch()
         self.beginScrollLayout()
 
         self.addControl('stringAttrName',label='Attribute')
