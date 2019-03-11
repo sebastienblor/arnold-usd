@@ -1012,8 +1012,8 @@ MStatus CArnoldStandInShape::initialize()
    addAttribute(s_frameOffset);
 
    s_data = tAttr.create("data", "data", MFnData::kString);
-   nAttr.setHidden(false);
-   nAttr.setStorable(true);
+   tAttr.setHidden(false);
+   tAttr.setStorable(true);
    addAttribute(s_data);
 
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
@@ -1046,15 +1046,15 @@ MStatus CArnoldStandInShape::initialize()
    addAttribute(s_overrideNodes);
 
    s_namespaceName = tAttr.create("aiNamespace", "ai_namespace", MFnData::kString);
-   nAttr.setHidden(false);
-   nAttr.setStorable(true);
+   tAttr.setHidden(false);
+   tAttr.setStorable(true);
    addAttribute(s_namespaceName);
 
    s_selectedItems = tAttr.create("selectedItems", "selected_items", MFnData::kString);
-   nAttr.setHidden(true);
-   nAttr.setStorable(false);
-   nAttr.setWritable(false);
-   nAttr.setInternal(true);
+   tAttr.setHidden(true);
+   tAttr.setStorable(false);
+   tAttr.setWritable(false);
+   tAttr.setInternal(true);
    addAttribute(s_selectedItems);
 
    // atributes that are used only by translation
