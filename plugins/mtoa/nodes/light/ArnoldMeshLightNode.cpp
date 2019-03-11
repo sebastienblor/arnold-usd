@@ -200,8 +200,8 @@ void CArnoldMeshLightNode::MeshDirtyCallback(MObject& node, MPlug& plug, void *c
    if (!lightNode)
       return;
 
-   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-   if(plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution")
+   MString plugName = plug.partialName(false, false, false, false, false, true);
+   if(plugName == "pnts" || plugName == "inMesh" || plugName == "dispResolution")
    {
       lightNode->scheduleGeometryUpdate();
    }
