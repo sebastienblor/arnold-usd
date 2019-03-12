@@ -132,6 +132,8 @@ class CustomProceduralTransverser(ProceduralTransverser):
         if not iobject:
             iobject = 0
         children = []
+        if iobject == 'NULL':
+            return children
         if iobject >= len(self.items):
             return []
         for ich in self.items[iobject].children:
