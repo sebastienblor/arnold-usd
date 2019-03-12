@@ -1329,8 +1329,8 @@
         min             FLOAT   0.0
         softmax         FLOAT   100.0
     [attr transmission_extra_roughness]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
+        softmin         FLOAT   0.0
+        softmax         FLOAT   1.0
     [attr subsurface]
         min             FLOAT   0.0
         max             FLOAT   1.0
