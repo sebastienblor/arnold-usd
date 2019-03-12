@@ -33,6 +33,7 @@ class ProceduralTreeView(BaseTreeView):
         delegate = ProceduralTreeViewDelegate(self)
         self.setItemDelegate(delegate)
 
+        self.pressed.connect(self.onPressed)
         self.expanded.connect(self.onExpanded)
 
     def setTransverser(self, transverser, refresh=True):
@@ -43,10 +44,19 @@ class ProceduralTreeView(BaseTreeView):
         """Clear the widget and generate the view of the new node."""
         model = self.model()
         if model.setCurrentNode(node):
-            model.refresh()
+            # refresh the model, pass if we need to delay the update
+            # of the child node to the actual expand
+            model.refresh(not expand)
             if expand:
                 self.expandToDepth(0)
             self.clearSelection()
+
+    def onPressed(self, index):
+        if not index.isValid():
+            return
+        item = index.internalPointer()
+        # refresh the children of this item if needed
+        item.obtainChildren()
 
     def onExpanded(self, index):
         """It is called when the item specified by index is expanded."""
@@ -54,8 +64,6 @@ class ProceduralTreeView(BaseTreeView):
             return
 
         item = index.internalPointer()
-        # refresh the children of this item if needed
-        item.obtainChildren()
         # Load the objects of the children items
         for i in range(item.childCount()):
             child = item.child(i)
@@ -129,13 +137,13 @@ class ProceduralTreeModel(BaseModel):
         if refresh:
             self.refresh()
 
-    def refresh(self):
+    def refresh(self, delayUpdate=False):
         if not self.currentNode or not cmds.objExists(self.currentNode) or not self.transverser:
             return
 
         self.beginResetModel()
         self.rootItem = ProceduralItem(None, self.transverser, self.currentNode, self)
-        self.rootItem.obtainChildren()
+        self.rootItem.obtainChildren(delayUpdate)
 
         self.endResetModel()
 
@@ -410,13 +418,21 @@ class ProceduralItem(BaseItem):
 
             return overrides
 
-    def obtainChildren(self):
+    def obtainChildren(self, delayUpdate=False):
         if self.childrenObtained:
             return
 
+        # delete any nodes under this one
+        for ch in range(self.childCount()):
+            self.removeChild(self.child(ch))
+
         if not self.data and not self.parent():
             item = ProceduralItem(self, self.transverser, self.node, data=self.transverser.getRootObjectInfo(self.node))
-            item.obtainChildren()
+            item.obtainChildren(delayUpdate)
+        elif delayUpdate:
+            # delay the update by creating a tempory node that will be deleted on the expand
+            ProceduralItem(self, self.transverser, self.node, data=['foo', 'foo', 'foo', 'visible', 'foo', 'foo', "NULL"])
+            return
         elif self.itemType == self.OBJECT_TYPE:
             # get operators with this path
 

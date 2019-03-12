@@ -97,6 +97,9 @@ class AlembicTransverser(ProceduralTransverser):
 
     def dir(self, iobject):
         children = []
+        if iobject == 'NULL':
+            return children
+
         for ich in iobject.children:
             children.append(self.getObjectInfo(ich))
 
