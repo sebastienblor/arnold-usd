@@ -500,7 +500,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_displacement");
    s_attributes.MakeInput("ignore_bump");   
    s_attributes.MakeInput("ignore_smoothing");   
-   s_attributes.MakeInput("ignore_motion_blur");
+   s_attributes.MakeInput("ignore_motion_blur"); // now exposed as "instantaneous shutter"
+   s_attributes.MakeInput("ignore_motion");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
    s_attributes.MakeInput("ignore_operators");
@@ -508,9 +509,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_ignore_list = tAttr.create("ignore_list", "igl", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_ignore_list);
-
-   
-
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);

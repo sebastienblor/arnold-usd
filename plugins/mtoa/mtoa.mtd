@@ -86,6 +86,9 @@
     [attr ignore_motion_blur]
         maya.keyable        BOOL    false
         linkable            BOOL    false
+    [attr ignore_motion]
+        maya.keyable        BOOL    false
+        linkable            BOOL    false
     [attr ignore_smoothing]
         maya.keyable        BOOL    false
         linkable            BOOL    false

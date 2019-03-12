@@ -1267,6 +1267,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    // Setting the reference time properly (used when ignore motion blur is turned on)
    float referenceTime = 0.f;
+   /*
    if (FindMayaPlug("mb_en").asBool())
    {
       // if motion blur is enabled, check the motion's range type 
@@ -1291,8 +1292,8 @@ void COptionsTranslator::Export(AtNode *options)
          break;
          }
       }
-   }
-   AiNodeSetFlt(options, "reference_time", referenceTime);
+   }*/
+   AiNodeSetFlt(options, "reference_time", 0.f);
 
    AddProjectFoldersToSearchPaths(options);
    
