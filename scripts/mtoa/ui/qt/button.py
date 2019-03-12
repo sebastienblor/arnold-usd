@@ -156,7 +156,7 @@ class MtoACheckableButton(MtoAButton):
     2 different pixmaps, one for each state (checked/unchecked)
     """
 
-    toggled = QtCore.Signal(bool)
+    ICON_HIGHLIGHT = QtGui.QColor(113, 142, 184)
 
     def __init__(self, parent, icon, size=MtoAButton.DEFAULT_BUTTON_SIZE, isEnabled=True, isCheckable=False, isChecked=False):
         super(MtoACheckableButton, self).__init__(parent, icon, size)
@@ -165,6 +165,7 @@ class MtoACheckableButton(MtoAButton):
         self.enabled = isEnabled
         self.checkable = isCheckable
         self.checked = isChecked
+        self.toggled.connect(self.setChecked)
 
     def setCheckable(self, isCheckable):
         self.checkable = isCheckable
@@ -176,8 +177,8 @@ class MtoACheckableButton(MtoAButton):
     def setChecked(self, checked):
         if self.isCheckable():
             self.checked = checked
-            super(MtoACheckableButton, self).setChecked(checked)
             self.repaint()
+            super(MtoACheckableButton, self).setChecked(checked)
 
     def isChecked(self):
         if not self.checkable:
@@ -203,6 +204,14 @@ class MtoACheckableButton(MtoAButton):
             return option.icon.pixmap(self.size, self.size, state=QtGui.QIcon.On)
         else:
             return option.icon.pixmap(self.size, self.size, state=QtGui.QIcon.Off)
+
+    def drawControl(self, element, option, painter, widget=None):
+
+        # make rectangle for the background
+        if option.checked == QtWidgets.QStyle.State_On:
+            painter.fillRect(option.rect, self.ICON_HIGHLIGHT)
+
+        super(MtoACheckableButton, self).drawControl(element, option, painter, widget)
 
     def generatePixmapActiveIcon(self, iconMode, pixmap, option):
         # There are 2 brighter pixmaps to draw in this derived class, the

@@ -424,7 +424,8 @@ class BaseDelegate(QtWidgets.QStyledItemDelegate):
 
         # Draw a 2 pixel border around the box
         painter.setPen(QtGui.QPen(QtGui.QColor(43, 43, 43), 2))
-        painter.drawRoundedRect(rect, 3, 3)
+        # painter.drawRoundedRect(rect, 3, 3)
+        painter.drawRect(rect)
 
         painter.restore()
 

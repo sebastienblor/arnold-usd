@@ -128,8 +128,12 @@ class OperatorItem(BaseItem):
     # DISABLED_ICON = BaseItem.dpiScaledIcon(":/hyper_s_OFF.png")
     DISABLED_ICON = BaseItem.dpiScaledIcon(":/RS_disable.png")
 
-    COLOR_OPERATOR = QtGui.QColor(18, 82, 18)
-    COLOR_COLLECTION = QtGui.QColor(179, 177, 71)
+    COLOR_SETPARAMETER = QtGui.QColor(18, 82, 18)
+    COLOR_COLLECTION = QtGui.QColor(204, 203, 129)
+    COLOR_DISABLE = QtGui.QColor(227, 149, 141)
+
+    BACKGROUND_COLOR_LOCAL = QtGui.QColor(82, 82, 82)
+    BACKGROUND_COLOR_INHERITED = QtGui.QColor(71, 71, 71)
 
     (ACTION_EXPAND,  # Always first, even if not used
      ACTION_NONE,
@@ -148,12 +152,15 @@ class OperatorItem(BaseItem):
         return utils.getNodeType(self.name)
 
     def getLabelColor(self):
-        if self.getNodeType() == COLLECTION_OP:
+        node_type = self.getNodeType()
+        if node_type == COLLECTION_OP:
             return self.COLOR_COLLECTION
-        if self.local:
-            return self.COLOR_OPERATOR
+        if node_type == OVERRIDE_OP:
+            return self.COLOR_SETPARAMETER
+        if node_type == DISABLE_OP:
+            return self.COLOR_DISABLE
         else:
-            return QtGui.QColor(100, 149, 100)
+            return QtGui.QColor(0, 0, 0)  # default to black if unknown operator
 
     def getBackgroundColor(self):
         """
@@ -161,16 +168,15 @@ class OperatorItem(BaseItem):
         the item type.
         """
         if self.local:
-            return QtGui.QColor(71, 71, 71)
+            return self.BACKGROUND_COLOR_LOCAL
         else:
-            return QtGui.QColor(51, 51, 51)
+            return self.BACKGROUND_COLOR_INHERITED
 
     def getActions(self):
 
         actions = []
         actions.append((self.CONNECTED_ICON, 1.0, self.ACTION_SELECT, False))
 
-        # disableIcon = self.ENABLED_ICON if self.enabled else self.DISABLED_ICON
         actions.append((self.DISABLED_ICON, 1.0, self.ACTION_DISABLE, not self.enabled))
 
         return actions
@@ -242,6 +248,7 @@ class ProceduralPropertiesPanel(QtWidgets.QFrame):
 
         self.shadingPanel = QtWidgets.QFrame()
         self.shadingPanel.setLayout(QtWidgets.QVBoxLayout())
+        self.shadingPanel.layout().setContentsMargins(15, 0, 0, 15)
 
         # shader override - HIDDEN BY DEFAULT
         self.shadingWidgets = {}

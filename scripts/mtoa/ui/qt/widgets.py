@@ -272,6 +272,7 @@ class MtoANodeConnectionWidget(MtoALabelLineEdit):
 
         self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
         self.overrideButton.setEnabled(False)
+        self.overrideButton.setToolTip("Override Assignment")
         self.layout().insertWidget(0, self.overrideButton)
         self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
@@ -427,6 +428,7 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
 
         self.overrideButton = MtoAButton(self, self.INHERITED_ICON, dpiScale(15))
         self.overrideButton.setEnabled(False)
+        self.overrideButton.setToolTip("Override Assignment")
         self.layout().insertWidget(0, self.overrideButton, alignment=QtCore.Qt.AlignTop)
         self.overrideButton.clicked.connect(self.emitOverrideTriggered)
 
@@ -524,11 +526,6 @@ class MtoAOperatorOverrideWidget(MayaQWidgetBaseMixin, QtWidgets.QFrame):
             if node_type != 'hidden':
                 for param, data in sorted(params.items()):
                     self.paramWidget.addItem(param, node_type)
-
-        # for param, data in sorted(paramDict.items()):
-        #     self.paramWidget.addItem(param, data[0])
-
-        # self.paramWidget.addItem("custom", None)
 
     def getParamData(self, param):
         for node_type, params in self.param_dict.items():
