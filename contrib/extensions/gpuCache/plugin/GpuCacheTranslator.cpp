@@ -326,31 +326,6 @@ void CGpuCacheTranslator::ExportShaders()
          AiNodeSetPtr(node, "shader", NULL);
       }
    }
-/*
-   // We no longer need this, right ?
-   MPlug OverridesPlug = FindMayaPlug("aiOverrides");
-   unsigned nelems = OverridesPlug.numElements();
-   MPlug elemPlug;
-   for (unsigned int i = 0; i < nelems; ++i)
-   {
-      elemPlug = OverridesPlug[i];
-
-      MPlug shaderPlug = elemPlug.child(1);
-      MPlugArray shaderConnections;
-      shaderPlug.connectedTo(shaderConnections, true, false);
-      if (shaderConnections.length() > 0)
-         ExportConnectedNode(shaderConnections[0]);
-
-      MPlug dispPlug = elemPlug.child(2);
-      MPlugArray dispConnections;
-      dispPlug.connectedTo(dispConnections, true, false);
-      if (dispConnections.length() > 0)
-         ExportConnectedNode(dispConnections[0]);
-
-      // TODO export and create operators from overrides, 
-      // currently we make them in the interactive session
-   }
-*/
 }
 
 void CGpuCacheTranslator::ExportMotion(AtNode *shape)
